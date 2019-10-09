@@ -15,7 +15,7 @@ npm install dapr.io
 ### Creating the client
 ```
 const PORT = process.env.DAPR_HTTP_PORT || 3500;
-var client = new services.DaprClient('localhost:${DAPR_HTTP_PORT}`, grpc.credentials.createInsecure());
+var client = new services.DaprClient('localhost:${PORT}`, grpc.credentials.createInsecure());
 ```
 
 For usage, refer to examples/simple/app.js
