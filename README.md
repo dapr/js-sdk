@@ -28,6 +28,20 @@ For usage, refer to [examples/simple/app.js](https://github.com/dapr/js-sdk/blob
 
 ### Running the code locally.
 
+From the root directory:
+
+```
+cd src
+npm install
+```
+
+From the root directory:
+
+```
+cd examples/simple
+npm install
+```
+
 ```
 dapr run --grpc-port=50001 node app.js
 ```

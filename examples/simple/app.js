@@ -1,7 +1,7 @@
 var dapr = require('dapr-client');
 var messages = dapr.dapr_pb; 
 var services = dapr.dapr_grpc;
-var grpc = require('grpc');
+var grpc = dapr.grpc;
 
 // TODO: Get port from the environment.
 var client = new services.DaprClient(
@@ -82,7 +82,7 @@ client.saveState(state, (err, res) => {
                 console.log(`Error getting state: ${err}`);
             } else {
                 console.log('Got!');
-                console.log(response.getData().getValue());
+                console.log(String.fromCharCode.apply(null, response.getData().getValue()));
 
                 // get done, now delete, again promises would be nice...
                 var del = new messages.DeleteStateEnvelope();
