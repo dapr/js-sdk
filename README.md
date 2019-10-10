@@ -14,11 +14,23 @@ npm install dapr.io
 
 ### Creating the client
 ```
-const PORT = process.env.DAPR_HTTP_PORT || 3500;
+var dapr = require('dapr-client');
+var messages = dapr.dapr_pb; 
+var services = dapr.dapr_grpc;
+var grpc = require('grpc');
+
+const PORT = process.env.DAPR_GRPC_PORT || 50001;
 var client = new services.DaprClient('localhost:${PORT}`, grpc.credentials.createInsecure());
 ```
 
-For usage, refer to examples/simple/app.js
+For usage, refer to [examples/simple/app.js](https://github.com/dapr/js-sdk/blob/master/examples/simple/app.js)
+
+
+### Running the code locally.
+
+```
+dapr run --grpc-port=50001 node app.js
+```
 
 
 TODO: Add more usage and update package name when finalized.
