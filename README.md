@@ -43,7 +43,7 @@ npm install
 ```
 
 ```
-dapr run --grpc-port=50001 node app.js
+dapr run --protocol grpc --grpc-port=50001 node app.js
 ```
 
 
