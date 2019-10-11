@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report a bug in Dapr CLI
+about: Report a bug in js-sdk
 title: ''
 labels: kind/bug
 assignees: ''
