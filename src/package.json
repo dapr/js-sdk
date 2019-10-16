@@ -1,6 +1,6 @@
 {
   "name": "dapr-client",
-  "version": "0.0.1",
+  "version": "0.1.0-preview01",
   "description": "Client for dapr, a distributed systems runtime. https://dapr.io",
   "main": "index.js",
   "scripts": {
@@ -16,12 +16,12 @@
     "kubernetes",
     "containers"
   ],
-  "author": "dapr project",
+  "author": "dapr.io",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/dapr/dapr-javascript/issues"
   },
-  "homepage": "https://github.com/dapr/dapr-javascript#readme",
+  "homepage": "https://dapr.io",
   "dependencies": {
     "google-protobuf": "^3.10.0",
     "grpc": "^1.24.0"
