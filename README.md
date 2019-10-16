@@ -10,7 +10,7 @@ dapr.io
 ## Usage
 Dapr javascript sdk package can be installed as:
 ```bash
-npm install dapr.io
+npm install dapr-client
 ```
 
 ### Creating the client
@@ -47,5 +47,21 @@ npm install
 dapr run --protocol grpc --grpc-port=50001 node app.js
 ```
 
+### Use the package from local source
+From the root directory:
 
-TODO: Add more usage and update package name when finalized.
+```
+cd examples/simple
+npm install ../../src
+```
+
+### Creating and publishing the package
+From the root directory:
+
+```
+cd src
+npm pack
+npm publish --access public
+```
+*Note* --access public will publish the package publicly.
+For all publish options see https://docs.npmjs.com/cli/publish
