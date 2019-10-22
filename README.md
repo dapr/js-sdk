@@ -14,14 +14,14 @@ npm install dapr-client
 ```
 
 ### Creating the client
-```
+```js
 var dapr = require('dapr-client');
 var messages = dapr.dapr_pb; 
 var services = dapr.dapr_grpc;
 var grpc = require('grpc');
 
 const PORT = process.env.DAPR_GRPC_PORT || 50001;
-var client = new services.DaprClient('localhost:${PORT}`, grpc.credentials.createInsecure());
+var client = new services.DaprClient(`localhost:${PORT}`, grpc.credentials.createInsecure());
 ```
 
 For usage, refer to [examples/simple/app.js](https://github.com/dapr/js-sdk/blob/master/examples/simple/app.js)
@@ -31,26 +31,26 @@ For usage, refer to [examples/simple/app.js](https://github.com/dapr/js-sdk/blob
 
 From the root directory:
 
-```
+```bash
 cd src
 npm install
 ```
 
 From the root directory:
 
-```
+```bash
 cd examples/simple
 npm install
 ```
 
-```
+```bash
 dapr run --protocol grpc --grpc-port=50001 node app.js
 ```
 
 ### Use the package from local source
 From the root directory:
 
-```
+```bash
 cd examples/simple
 npm install ../../src
 ```
@@ -58,7 +58,7 @@ npm install ../../src
 ### Creating and publishing the package
 From the root directory:
 
-```
+```bash
 cd src
 npm pack
 npm publish --access public
