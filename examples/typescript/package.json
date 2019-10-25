@@ -1,0 +1,31 @@
+{
+  "name": "dapr-typescript",
+  "version": "0.0.1",
+  "description": "A simple example of how to use dapr from typescript",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc app.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dapr/js-sdk.git"
+  },
+  "keywords": [
+    "distributed",
+    "systems",
+    "kubernetes",
+    "containers"
+  ],
+  "author": "dapr project",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dapr/js-sdk/issues"
+  },
+  "homepage": "https://github.com/dapr/js-sdk/#readme",
+  "dependencies": {
+    "@types/google-protobuf": "^3.7.2",
+    "dapr-client": "file:../../src/dapr-client-0.1.0-preview01.tgz",
+    "typescript": "^3.6.4"
+  }
+}
