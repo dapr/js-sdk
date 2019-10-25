@@ -3,6 +3,7 @@
   "version": "0.1.0-preview01",
   "description": "Client for dapr, a distributed systems runtime. https://dapr.io",
   "main": "index.js",
+  "types": "main.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
