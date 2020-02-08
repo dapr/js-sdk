@@ -542,8 +542,9 @@ proto.dapr.DeleteStateEnvelope.prototype.toObject = function(opt_includeInstance
  */
 proto.dapr.DeleteStateEnvelope.toObject = function(includeInstance, msg) {
   var f, obj = {
-    key: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    etag: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    storename: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    key: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    etag: jspb.Message.getFieldWithDefault(msg, 3, ""),
     options: (f = msg.getOptions()) && proto.dapr.StateOptions.toObject(includeInstance, f)
   };
 
@@ -583,13 +584,17 @@ proto.dapr.DeleteStateEnvelope.deserializeBinaryFromReader = function(msg, reade
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setKey(value);
+      msg.setStorename(value);
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
-      msg.setEtag(value);
+      msg.setKey(value);
       break;
     case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setEtag(value);
+      break;
+    case 4:
       var value = new proto.dapr.StateOptions;
       reader.readMessage(value,proto.dapr.StateOptions.deserializeBinaryFromReader);
       msg.setOptions(value);
@@ -623,24 +628,31 @@ proto.dapr.DeleteStateEnvelope.prototype.serializeBinary = function() {
  */
 proto.dapr.DeleteStateEnvelope.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getKey();
+  f = message.getStorename();
   if (f.length > 0) {
     writer.writeString(
       1,
       f
     );
   }
-  f = message.getEtag();
+  f = message.getKey();
   if (f.length > 0) {
     writer.writeString(
       2,
       f
     );
   }
+  f = message.getEtag();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
   f = message.getOptions();
   if (f != null) {
     writer.writeMessage(
-      3,
+      4,
       f,
       proto.dapr.StateOptions.serializeBinaryToWriter
     );
@@ -649,10 +661,10 @@ proto.dapr.DeleteStateEnvelope.serializeBinaryToWriter = function(message, write
 
 
 /**
- * optional string key = 1;
+ * optional string storeName = 1;
  * @return {string}
  */
-proto.dapr.DeleteStateEnvelope.prototype.getKey = function() {
+proto.dapr.DeleteStateEnvelope.prototype.getStorename = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
@@ -661,16 +673,16 @@ proto.dapr.DeleteStateEnvelope.prototype.getKey = function() {
  * @param {string} value
  * @return {!proto.dapr.DeleteStateEnvelope} returns this
  */
-proto.dapr.DeleteStateEnvelope.prototype.setKey = function(value) {
+proto.dapr.DeleteStateEnvelope.prototype.setStorename = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
 /**
- * optional string etag = 2;
+ * optional string key = 2;
  * @return {string}
  */
-proto.dapr.DeleteStateEnvelope.prototype.getEtag = function() {
+proto.dapr.DeleteStateEnvelope.prototype.getKey = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
@@ -679,18 +691,36 @@ proto.dapr.DeleteStateEnvelope.prototype.getEtag = function() {
  * @param {string} value
  * @return {!proto.dapr.DeleteStateEnvelope} returns this
  */
-proto.dapr.DeleteStateEnvelope.prototype.setEtag = function(value) {
+proto.dapr.DeleteStateEnvelope.prototype.setKey = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
 /**
- * optional StateOptions options = 3;
+ * optional string etag = 3;
+ * @return {string}
+ */
+proto.dapr.DeleteStateEnvelope.prototype.getEtag = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.DeleteStateEnvelope} returns this
+ */
+proto.dapr.DeleteStateEnvelope.prototype.setEtag = function(value) {
+  return jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional StateOptions options = 4;
  * @return {?proto.dapr.StateOptions}
  */
 proto.dapr.DeleteStateEnvelope.prototype.getOptions = function() {
   return /** @type{?proto.dapr.StateOptions} */ (
-    jspb.Message.getWrapperField(this, proto.dapr.StateOptions, 3));
+    jspb.Message.getWrapperField(this, proto.dapr.StateOptions, 4));
 };
 
 
@@ -699,7 +729,7 @@ proto.dapr.DeleteStateEnvelope.prototype.getOptions = function() {
  * @return {!proto.dapr.DeleteStateEnvelope} returns this
 */
 proto.dapr.DeleteStateEnvelope.prototype.setOptions = function(value) {
-  return jspb.Message.setWrapperField(this, 3, value);
+  return jspb.Message.setWrapperField(this, 4, value);
 };
 
 
@@ -717,7 +747,7 @@ proto.dapr.DeleteStateEnvelope.prototype.clearOptions = function() {
  * @return {boolean}
  */
 proto.dapr.DeleteStateEnvelope.prototype.hasOptions = function() {
-  return jspb.Message.getField(this, 3) != null;
+  return jspb.Message.getField(this, 4) != null;
 };
 
 
@@ -727,7 +757,7 @@ proto.dapr.DeleteStateEnvelope.prototype.hasOptions = function() {
  * @private {!Array<number>}
  * @const
  */
-proto.dapr.SaveStateEnvelope.repeatedFields_ = [1];
+proto.dapr.SaveStateEnvelope.repeatedFields_ = [2];
 
 
 
@@ -760,6 +790,7 @@ proto.dapr.SaveStateEnvelope.prototype.toObject = function(opt_includeInstance) 
  */
 proto.dapr.SaveStateEnvelope.toObject = function(includeInstance, msg) {
   var f, obj = {
+    storename: jspb.Message.getFieldWithDefault(msg, 1, ""),
     requestsList: jspb.Message.toObjectList(msg.getRequestsList(),
     proto.dapr.StateRequest.toObject, includeInstance)
   };
@@ -799,6 +830,10 @@ proto.dapr.SaveStateEnvelope.deserializeBinaryFromReader = function(msg, reader)
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setStorename(value);
+      break;
+    case 2:
       var value = new proto.dapr.StateRequest;
       reader.readMessage(value,proto.dapr.StateRequest.deserializeBinaryFromReader);
       msg.addRequests(value);
@@ -832,10 +867,17 @@ proto.dapr.SaveStateEnvelope.prototype.serializeBinary = function() {
  */
 proto.dapr.SaveStateEnvelope.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
+  f = message.getStorename();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
   f = message.getRequestsList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
-      1,
+      2,
       f,
       proto.dapr.StateRequest.serializeBinaryToWriter
     );
@@ -844,12 +886,30 @@ proto.dapr.SaveStateEnvelope.serializeBinaryToWriter = function(message, writer)
 
 
 /**
- * repeated StateRequest requests = 1;
+ * optional string storeName = 1;
+ * @return {string}
+ */
+proto.dapr.SaveStateEnvelope.prototype.getStorename = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.SaveStateEnvelope} returns this
+ */
+proto.dapr.SaveStateEnvelope.prototype.setStorename = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * repeated StateRequest requests = 2;
  * @return {!Array<!proto.dapr.StateRequest>}
  */
 proto.dapr.SaveStateEnvelope.prototype.getRequestsList = function() {
   return /** @type{!Array<!proto.dapr.StateRequest>} */ (
-    jspb.Message.getRepeatedWrapperField(this, proto.dapr.StateRequest, 1));
+    jspb.Message.getRepeatedWrapperField(this, proto.dapr.StateRequest, 2));
 };
 
 
@@ -858,7 +918,7 @@ proto.dapr.SaveStateEnvelope.prototype.getRequestsList = function() {
  * @return {!proto.dapr.SaveStateEnvelope} returns this
 */
 proto.dapr.SaveStateEnvelope.prototype.setRequestsList = function(value) {
-  return jspb.Message.setRepeatedWrapperField(this, 1, value);
+  return jspb.Message.setRepeatedWrapperField(this, 2, value);
 };
 
 
@@ -868,7 +928,7 @@ proto.dapr.SaveStateEnvelope.prototype.setRequestsList = function(value) {
  * @return {!proto.dapr.StateRequest}
  */
 proto.dapr.SaveStateEnvelope.prototype.addRequests = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.dapr.StateRequest, opt_index);
+  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.dapr.StateRequest, opt_index);
 };
 
 
@@ -913,8 +973,9 @@ proto.dapr.GetStateEnvelope.prototype.toObject = function(opt_includeInstance) {
  */
 proto.dapr.GetStateEnvelope.toObject = function(includeInstance, msg) {
   var f, obj = {
-    key: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    consistency: jspb.Message.getFieldWithDefault(msg, 2, "")
+    storename: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    key: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    consistency: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
   if (includeInstance) {
@@ -953,9 +1014,13 @@ proto.dapr.GetStateEnvelope.deserializeBinaryFromReader = function(msg, reader) 
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setKey(value);
+      msg.setStorename(value);
       break;
     case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setKey(value);
+      break;
+    case 3:
       var value = /** @type {string} */ (reader.readString());
       msg.setConsistency(value);
       break;
@@ -988,17 +1053,24 @@ proto.dapr.GetStateEnvelope.prototype.serializeBinary = function() {
  */
 proto.dapr.GetStateEnvelope.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getKey();
+  f = message.getStorename();
   if (f.length > 0) {
     writer.writeString(
       1,
       f
     );
   }
-  f = message.getConsistency();
+  f = message.getKey();
   if (f.length > 0) {
     writer.writeString(
       2,
+      f
+    );
+  }
+  f = message.getConsistency();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
       f
     );
   }
@@ -1006,10 +1078,10 @@ proto.dapr.GetStateEnvelope.serializeBinaryToWriter = function(message, writer) 
 
 
 /**
- * optional string key = 1;
+ * optional string storeName = 1;
  * @return {string}
  */
-proto.dapr.GetStateEnvelope.prototype.getKey = function() {
+proto.dapr.GetStateEnvelope.prototype.getStorename = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
@@ -1018,16 +1090,16 @@ proto.dapr.GetStateEnvelope.prototype.getKey = function() {
  * @param {string} value
  * @return {!proto.dapr.GetStateEnvelope} returns this
  */
-proto.dapr.GetStateEnvelope.prototype.setKey = function(value) {
+proto.dapr.GetStateEnvelope.prototype.setStorename = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
 /**
- * optional string consistency = 2;
+ * optional string key = 2;
  * @return {string}
  */
-proto.dapr.GetStateEnvelope.prototype.getConsistency = function() {
+proto.dapr.GetStateEnvelope.prototype.getKey = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
@@ -1036,8 +1108,26 @@ proto.dapr.GetStateEnvelope.prototype.getConsistency = function() {
  * @param {string} value
  * @return {!proto.dapr.GetStateEnvelope} returns this
  */
-proto.dapr.GetStateEnvelope.prototype.setConsistency = function(value) {
+proto.dapr.GetStateEnvelope.prototype.setKey = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string consistency = 3;
+ * @return {string}
+ */
+proto.dapr.GetStateEnvelope.prototype.getConsistency = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.GetStateEnvelope} returns this
+ */
+proto.dapr.GetStateEnvelope.prototype.setConsistency = function(value) {
+  return jspb.Message.setProto3StringField(this, 3, value);
 };
 
 
