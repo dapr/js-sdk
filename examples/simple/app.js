@@ -57,14 +57,17 @@ client.invokeService(invoke, (err, response) => {
 });
 
 var key = 'mykey';
+var storeName = 'statestore';
 
 var state = new messages.SaveStateEnvelope();
+state.setStorename(storeName);
 var req = new messages.StateRequest();
 req.setKey(key);
 
 var value = new proto.google.protobuf.Any();
 value.setValue(Buffer.from('My State'));
 req.setValue(value);
+
 
 state.addRequests(req);
 
@@ -76,6 +79,7 @@ client.saveState(state, (err, res) => {
 
         // saved, now do a get, promises would clean this up...
         var get = new messages.GetStateEnvelope();
+        get.setStorename(storeName)
         get.setKey(key);
         client.getState(get, (err, response) => {
             if (err) {
@@ -86,6 +90,7 @@ client.saveState(state, (err, res) => {
 
                 // get done, now delete, again promises would be nice...
                 var del = new messages.DeleteStateEnvelope();
+                del.setStorename(storeName)
                 del.setKey(key);
                 client.deleteState(del, (err, response) => {
                     if (err) {
