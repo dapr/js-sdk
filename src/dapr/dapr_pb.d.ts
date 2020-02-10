@@ -32,6 +32,9 @@ export namespace InvokeServiceResponseEnvelope {
 }
 
 export class DeleteStateEnvelope extends jspb.Message {
+  getStorename(): string;
+  setStorename(value: string): void;
+
   getKey(): string;
   setKey(value: string): void;
 
@@ -55,6 +58,7 @@ export class DeleteStateEnvelope extends jspb.Message {
 
 export namespace DeleteStateEnvelope {
   export type AsObject = {
+    storename: string,
     key: string,
     etag: string,
     options?: StateOptions.AsObject,
@@ -62,6 +66,9 @@ export namespace DeleteStateEnvelope {
 }
 
 export class SaveStateEnvelope extends jspb.Message {
+  getStorename(): string;
+  setStorename(value: string): void;
+
   clearRequestsList(): void;
   getRequestsList(): Array<StateRequest>;
   setRequestsList(value: Array<StateRequest>): void;
@@ -79,11 +86,15 @@ export class SaveStateEnvelope extends jspb.Message {
 
 export namespace SaveStateEnvelope {
   export type AsObject = {
+    storename: string,
     requestsList: Array<StateRequest.AsObject>,
   }
 }
 
 export class GetStateEnvelope extends jspb.Message {
+  getStorename(): string;
+  setStorename(value: string): void;
+
   getKey(): string;
   setKey(value: string): void;
 
@@ -102,6 +113,7 @@ export class GetStateEnvelope extends jspb.Message {
 
 export namespace GetStateEnvelope {
   export type AsObject = {
+    storename: string,
     key: string,
     consistency: string,
   }
