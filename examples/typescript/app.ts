@@ -68,8 +68,10 @@ client.invokeService(invoke, (err, response) => {
 });
 
 var key = 'mykey';
+var storeName = 'statestore';
 
 var state = new SaveStateEnvelope();
+state.setStorename(storeName);
 var req = new StateRequest();
 req.setKey(key);
 
@@ -87,6 +89,7 @@ client.saveState(state, (err, res) => {
 
         // saved, now do a get, promises would clean this up...
         var get = new GetStateEnvelope();
+        get.setStorename(storeName)
         get.setKey(key);
         client.getState(get, (err, response) => {
             if (err) {
@@ -97,6 +100,7 @@ client.saveState(state, (err, res) => {
 
                 // get done, now delete, again promises would be nice...
                 var del = new DeleteStateEnvelope();
+                del.setStorename(storeName)
                 del.setKey(key);
                 client.deleteState(del, (err, response) => {
                     if (err) {
