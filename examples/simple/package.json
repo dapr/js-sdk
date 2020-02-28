@@ -23,6 +23,6 @@
   },
   "homepage": "https://github.com/dapr/js-sdk/#readme",
   "dependencies": {
-    "dapr-client": "file:../../src/dapr-client-0.0.1.tgz"
+    "dapr-client": "0.2.0-preview01"
   }
 }
