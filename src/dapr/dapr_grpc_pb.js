@@ -18,6 +18,28 @@ function deserialize_dapr_DeleteStateEnvelope(buffer_arg) {
   return dapr_dapr_pb.DeleteStateEnvelope.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_GetSecretEnvelope(arg) {
+  if (!(arg instanceof dapr_dapr_pb.GetSecretEnvelope)) {
+    throw new Error('Expected argument of type dapr.GetSecretEnvelope');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_GetSecretEnvelope(buffer_arg) {
+  return dapr_dapr_pb.GetSecretEnvelope.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_GetSecretResponseEnvelope(arg) {
+  if (!(arg instanceof dapr_dapr_pb.GetSecretResponseEnvelope)) {
+    throw new Error('Expected argument of type dapr.GetSecretResponseEnvelope');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_GetSecretResponseEnvelope(buffer_arg) {
+  return dapr_dapr_pb.GetSecretResponseEnvelope.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_GetStateEnvelope(arg) {
   if (!(arg instanceof dapr_dapr_pb.GetStateEnvelope)) {
     throw new Error('Expected argument of type dapr.GetStateEnvelope');
@@ -152,6 +174,17 @@ var DaprService = exports.DaprService = {
     requestDeserialize: deserialize_dapr_GetStateEnvelope,
     responseSerialize: serialize_dapr_GetStateResponseEnvelope,
     responseDeserialize: deserialize_dapr_GetStateResponseEnvelope,
+  },
+  getSecret: {
+    path: '/dapr.Dapr/GetSecret',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_dapr_pb.GetSecretEnvelope,
+    responseType: dapr_dapr_pb.GetSecretResponseEnvelope,
+    requestSerialize: serialize_dapr_GetSecretEnvelope,
+    requestDeserialize: deserialize_dapr_GetSecretEnvelope,
+    responseSerialize: serialize_dapr_GetSecretResponseEnvelope,
+    responseDeserialize: deserialize_dapr_GetSecretResponseEnvelope,
   },
   saveState: {
     path: '/dapr.Dapr/SaveState',

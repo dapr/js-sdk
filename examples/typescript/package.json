@@ -25,7 +25,7 @@
   "homepage": "https://github.com/dapr/js-sdk/#readme",
   "dependencies": {
     "@types/google-protobuf": "^3.7.2",
-    "dapr-client": "0.2.0-preview01",
+    "dapr-client": "0.3.0-preview01",
     "typescript": "^3.6.4"
   }
 }
