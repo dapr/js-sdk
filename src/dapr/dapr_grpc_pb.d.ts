@@ -12,6 +12,7 @@ interface IDaprService extends grpc.ServiceDefinition<grpc.UntypedServiceImpleme
   invokeService: grpc.MethodDefinition<dapr_dapr_pb.InvokeServiceEnvelope, dapr_dapr_pb.InvokeServiceResponseEnvelope>;
   invokeBinding: grpc.MethodDefinition<dapr_dapr_pb.InvokeBindingEnvelope, google_protobuf_empty_pb.Empty>;
   getState: grpc.MethodDefinition<dapr_dapr_pb.GetStateEnvelope, dapr_dapr_pb.GetStateResponseEnvelope>;
+  getSecret: grpc.MethodDefinition<dapr_dapr_pb.GetSecretEnvelope, dapr_dapr_pb.GetSecretResponseEnvelope>;
   saveState: grpc.MethodDefinition<dapr_dapr_pb.SaveStateEnvelope, google_protobuf_empty_pb.Empty>;
   deleteState: grpc.MethodDefinition<dapr_dapr_pb.DeleteStateEnvelope, google_protobuf_empty_pb.Empty>;
 }
@@ -32,6 +33,9 @@ export class DaprClient extends grpc.Client {
   getState(argument: dapr_dapr_pb.GetStateEnvelope, callback: grpc.requestCallback<dapr_dapr_pb.GetStateResponseEnvelope>): grpc.ClientUnaryCall;
   getState(argument: dapr_dapr_pb.GetStateEnvelope, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<dapr_dapr_pb.GetStateResponseEnvelope>): grpc.ClientUnaryCall;
   getState(argument: dapr_dapr_pb.GetStateEnvelope, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<dapr_dapr_pb.GetStateResponseEnvelope>): grpc.ClientUnaryCall;
+  getSecret(argument: dapr_dapr_pb.GetSecretEnvelope, callback: grpc.requestCallback<dapr_dapr_pb.GetSecretResponseEnvelope>): grpc.ClientUnaryCall;
+  getSecret(argument: dapr_dapr_pb.GetSecretEnvelope, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<dapr_dapr_pb.GetSecretResponseEnvelope>): grpc.ClientUnaryCall;
+  getSecret(argument: dapr_dapr_pb.GetSecretEnvelope, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<dapr_dapr_pb.GetSecretResponseEnvelope>): grpc.ClientUnaryCall;
   saveState(argument: dapr_dapr_pb.SaveStateEnvelope, callback: grpc.requestCallback<google_protobuf_empty_pb.Empty>): grpc.ClientUnaryCall;
   saveState(argument: dapr_dapr_pb.SaveStateEnvelope, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<google_protobuf_empty_pb.Empty>): grpc.ClientUnaryCall;
   saveState(argument: dapr_dapr_pb.SaveStateEnvelope, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<google_protobuf_empty_pb.Empty>): grpc.ClientUnaryCall;

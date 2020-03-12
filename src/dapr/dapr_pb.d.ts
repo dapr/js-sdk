@@ -145,6 +145,52 @@ export namespace GetStateResponseEnvelope {
   }
 }
 
+export class GetSecretEnvelope extends jspb.Message {
+  getStorename(): string;
+  setStorename(value: string): void;
+
+  getKey(): string;
+  setKey(value: string): void;
+
+  getMetadataMap(): jspb.Map<string, string>;
+  clearMetadataMap(): void;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetSecretEnvelope.AsObject;
+  static toObject(includeInstance: boolean, msg: GetSecretEnvelope): GetSecretEnvelope.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetSecretEnvelope, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetSecretEnvelope;
+  static deserializeBinaryFromReader(message: GetSecretEnvelope, reader: jspb.BinaryReader): GetSecretEnvelope;
+}
+
+export namespace GetSecretEnvelope {
+  export type AsObject = {
+    storename: string,
+    key: string,
+    metadataMap: Array<[string, string]>,
+  }
+}
+
+export class GetSecretResponseEnvelope extends jspb.Message {
+  getDataMap(): jspb.Map<string, string>;
+  clearDataMap(): void;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetSecretResponseEnvelope.AsObject;
+  static toObject(includeInstance: boolean, msg: GetSecretResponseEnvelope): GetSecretResponseEnvelope.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetSecretResponseEnvelope, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetSecretResponseEnvelope;
+  static deserializeBinaryFromReader(message: GetSecretResponseEnvelope, reader: jspb.BinaryReader): GetSecretResponseEnvelope;
+}
+
+export namespace GetSecretResponseEnvelope {
+  export type AsObject = {
+    dataMap: Array<[string, string]>,
+  }
+}
+
 export class InvokeBindingEnvelope extends jspb.Message {
   getName(): string;
   setName(value: string): void;
