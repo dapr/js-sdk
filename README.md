@@ -59,7 +59,6 @@ npm install ../../src
 From the root directory:
 
 ```bash
-cd src
 npm pack
 npm publish --access public
 ```

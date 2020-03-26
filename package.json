@@ -2,14 +2,14 @@
   "name": "dapr-client",
   "version": "0.3.0-preview01",
   "description": "Client for dapr, a distributed systems runtime. https://dapr.io",
-  "main": "index.js",
-  "types": "main.d.ts",
+  "main": "src/index.js",
+  "types": "src/main.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dapr/dapr-javascript.git"
+    "url": "git+https://github.com/dapr/js-sdk.git"
   },
   "keywords": [
     "distributed",
@@ -20,7 +20,7 @@
   "author": "dapr.io",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/dapr/dapr-javascript/issues"
+    "url": "https://github.com/dapr/js-sdk/issues"
   },
   "homepage": "https://dapr.io",
   "dependencies": {
