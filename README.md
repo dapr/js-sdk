@@ -47,6 +47,18 @@ npm install
 dapr run --protocol grpc --grpc-port=50001 node app.js
 ```
 
+### Generate gRPC interface and proto buf stubs
+
+1. Make the `protobuf.sh` executable
+```bash
+sudo chmod +x protobuf.sh
+```
+
+2. Run the `protobuf.sh` script
+```bash
+./protobuf.sh
+```
+
 ### Use the package from local source
 From the root directory:
 

@@ -24,7 +24,8 @@
   },
   "homepage": "https://dapr.io",
   "dependencies": {
-    "google-protobuf": "^3.10.0",
-    "grpc": "^1.24.0"
+    "google-protobuf": "3.11.0",
+    "grpc": "~1.24.2",
+    "grpc-web": "1.0.7"
   }
 }
