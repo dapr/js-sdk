@@ -11,20 +11,13 @@
 OS=$(echo `uname`|tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 
-sudo curl -L "https://github.com/grpc/grpc-web/releases/download/1.0.7/protoc-gen-grpc-web-1.0.7-${OS}-${ARCH}" -o /usr/local/bin/protoc-gen-grpc-web
-sudo chmod +x /usr/local/bin/protoc-gen-grpc-web
+npm install grpc-tools --save-dev
 
-sudo curl -L "https://github.com/protocolbuffers/protobuf/releases/download/v3.11.0/protoc-3.11.0-${OS}-${ARCH}.zip" -o protoc.zip
+npm install protoc-plugin --save-dev
+#npm install grpc_tools_node_protoc_plugin --save-dev
+npm install ts-protoc-gen --save-dev
 
-if [ "$OS" == "linux" ]; then
-    sudo apt-get install unzip 2>&1
-else
-    brew install unzip 2>&1
-fi
-
-unzip protoc.zip -d protoc
-sudo mv protoc/bin/protoc /usr/local/bin
-sudo chmod +x /usr/local/bin/protoc
+#npm install grpc_tools_node_protoc_ts --save-dev
 
 # Proto buf generation
 
@@ -82,10 +75,21 @@ generateGrpc() {
     FILE_NAME=$1
     FILE_PATH="${PROTO_PATH}/${FILE_NAME}/v1"
 
-    protoc -I=$SRC --js_out=import_style=commonjs:$SRC --grpc-web_out=import_style=commonjs+dts,mode=grpcwebtext:$SRC ${FILE_PATH}/${FILE_NAME}.proto
+
+    #node_modules/grpc-tools/bin/protoc -I=$SRC --js_out=import_style=commonjs,binary:$SRC --grpc_out=$SRC --plugin=protoc-gen-grpc=node_modules/grpc-tools/bin/grpc_node_plugin ${FILE_PATH}/${FILE_NAME}.proto
+    #node_modules/grpc-tools/bin/protoc -I=$SRC --ts_out=$SRC --plugin=protoc-gen-ts=node_modules/grpc_tools_node_protoc_ts/bin/protoc-gen-ts ${FILE_PATH}/${FILE_NAME}.proto
+
+    node_modules/grpc-tools/bin/protoc \
+    -I=${SRC} \
+    --plugin="protoc-gen-ts=node_modules/ts-protoc-gen/bin/protoc-gen-ts" \
+    --plugin=protoc-gen-grpc=node_modules/grpc-tools/bin/grpc_node_plugin \
+    --js_out="import_style=commonjs,binary:${SRC}" \
+    --ts_out="${SRC}" \
+    --grpc_out="${SRC}" \
+     ${FILE_PATH}/${FILE_NAME}.proto
 
     if [ ! -e "${FILE_PATH}/${FILE_NAME}_pb.js" ]; then
-        echo "failed to generate proto buf $FILE_NAME"
+        echo "failed to generate proto buf ${FILE_PATH}/${FILE_NAME}_pb.js"
         ret_val=$FILE_NAME
         exit 1
     fi
