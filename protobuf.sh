@@ -12,12 +12,7 @@ OS=$(echo `uname`|tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 
 npm install grpc-tools --save-dev
-
-npm install protoc-plugin --save-dev
-#npm install grpc_tools_node_protoc_plugin --save-dev
-npm install ts-protoc-gen --save-dev
-
-#npm install grpc_tools_node_protoc_ts --save-dev
+npm install grpc_tools_node_protoc_ts --save-dev
 
 # Proto buf generation
 
@@ -76,20 +71,11 @@ generateGrpc() {
     FILE_PATH="${PROTO_PATH}/${FILE_NAME}/v1"
 
 
-    #node_modules/grpc-tools/bin/protoc -I=$SRC --js_out=import_style=commonjs,binary:$SRC --grpc_out=$SRC --plugin=protoc-gen-grpc=node_modules/grpc-tools/bin/grpc_node_plugin ${FILE_PATH}/${FILE_NAME}.proto
-    #node_modules/grpc-tools/bin/protoc -I=$SRC --ts_out=$SRC --plugin=protoc-gen-ts=node_modules/grpc_tools_node_protoc_ts/bin/protoc-gen-ts ${FILE_PATH}/${FILE_NAME}.proto
-
-    node_modules/grpc-tools/bin/protoc \
-    -I=${SRC} \
-    --plugin="protoc-gen-ts=node_modules/ts-protoc-gen/bin/protoc-gen-ts" \
-    --plugin=protoc-gen-grpc=node_modules/grpc-tools/bin/grpc_node_plugin \
-    --js_out="import_style=commonjs,binary:${SRC}" \
-    --ts_out="${SRC}" \
-    --grpc_out="${SRC}" \
-     ${FILE_PATH}/${FILE_NAME}.proto
+    node_modules/grpc-tools/bin/protoc -I=$SRC --js_out=import_style=commonjs,binary:$SRC --grpc_out=$SRC --plugin=protoc-gen-grpc=node_modules/grpc-tools/bin/grpc_node_plugin ${FILE_PATH}/${FILE_NAME}.proto
+    node_modules/grpc-tools/bin/protoc -I=$SRC --ts_out=$SRC --plugin=protoc-gen-ts=node_modules/grpc_tools_node_protoc_ts/bin/protoc-gen-ts ${FILE_PATH}/${FILE_NAME}.proto
 
     if [ ! -e "${FILE_PATH}/${FILE_NAME}_pb.js" ]; then
-        echo "failed to generate proto buf ${FILE_PATH}/${FILE_NAME}_pb.js"
+        echo "failed to generate proto buf $FILE_NAME"
         ret_val=$FILE_NAME
         exit 1
     fi
