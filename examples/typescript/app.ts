@@ -42,26 +42,28 @@ client.invokeBinding(binding, (err, response) => {
     }
 });
 
+// grcapp is not implemented yet
+/*
+var invoke = new InvokeServiceEnvelope();
+invoke.setId('grpcapp');
+invoke.setMethod('sith');
+var serialized = new Any();
+serialized.setValue(Buffer.from(JSON.stringify({
+    name: 'test',
+    message: {
+        counter: 1
+    }
+})));
+invoke.setData(serialized);
 
-// var invoke = new InvokeServiceEnvelope();
-// invoke.setId('grpcapp');
-// invoke.setMethod('sith');
-// var serialized = new Any();
-// serialized.setValue(Buffer.from(JSON.stringify({
-//     name: 'test',
-//     message: {
-//         counter: 1
-//     }
-// })));
-// invoke.setData(serialized);
-
-// client.invokeService(invoke, (err, response) => {
-//     if (err) {
-//         console.log(`Error invoking service: ${err}`);
-//     } else {
-//         console.log('Invoked!');
-//     }
-// });
+client.invokeService(invoke, (err, response) => {
+    if (err) {
+        console.log(`Error invoking service: ${err}`);
+    } else {
+        console.log('Invoked!');
+    }
+});
+*/
 
 var key = 'mykey';
 var storeName = 'statestore';

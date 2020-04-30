@@ -38,25 +38,26 @@ client.invokeBinding(binding, (err, response) => {
 });
 
 // grcapp is not implemented yet
-
-// var invoke = new messages.InvokeServiceEnvelope();
-// invoke.setId('grpcapp');
-// invoke.setMethod('sith');
-// var serialized = new proto.google.protobuf.Any();
-// serialized.setValue(Buffer.from(JSON.stringify({
-//     name: 'test',
-//     message: {
-//         counter: 1
-//     }
-// })));
-// invoke.setData(serialized);
-// client.invokeService(invoke, (err, response) => {
-//     if (err) {
-//         console.log(`Error invoking service: ${err}`);
-//     } else {
-//         console.log('Invoked!');
-//     }
-// });
+/*
+var invoke = new messages.InvokeServiceEnvelope();
+invoke.setId('grpcapp');
+invoke.setMethod('sith');
+var serialized = new proto.google.protobuf.Any();
+serialized.setValue(Buffer.from(JSON.stringify({
+    name: 'test',
+    message: {
+        counter: 1
+    }
+})));
+invoke.setData(serialized);
+client.invokeService(invoke, (err, response) => {
+    if (err) {
+        console.log(`Error invoking service: ${err}`);
+    } else {
+        console.log('Invoked!');
+    }
+});
+*/
 
 var key = 'mykey';
 var storeName = 'statestore';

@@ -47,33 +47,6 @@ export namespace HTTPExtension {
 
 }
 
-export class DataWithContentType extends jspb.Message { 
-    getContentType(): string;
-    setContentType(value: string): void;
-
-    getBody(): Uint8Array | string;
-    getBody_asU8(): Uint8Array;
-    getBody_asB64(): string;
-    setBody(value: Uint8Array | string): void;
-
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): DataWithContentType.AsObject;
-    static toObject(includeInstance: boolean, msg: DataWithContentType): DataWithContentType.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: DataWithContentType, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): DataWithContentType;
-    static deserializeBinaryFromReader(message: DataWithContentType, reader: jspb.BinaryReader): DataWithContentType;
-}
-
-export namespace DataWithContentType {
-    export type AsObject = {
-        contentType: string,
-        body: Uint8Array | string,
-    }
-}
-
 export class InvokeRequest extends jspb.Message { 
     getMethod(): string;
     setMethod(value: string): void;
@@ -83,6 +56,9 @@ export class InvokeRequest extends jspb.Message {
     clearData(): void;
     getData(): google_protobuf_any_pb.Any | undefined;
     setData(value?: google_protobuf_any_pb.Any): void;
+
+    getContentType(): string;
+    setContentType(value: string): void;
 
 
     hasHttpExtension(): boolean;
@@ -105,6 +81,7 @@ export namespace InvokeRequest {
     export type AsObject = {
         method: string,
         data?: google_protobuf_any_pb.Any.AsObject,
+        contentType: string,
         httpExtension?: HTTPExtension.AsObject,
     }
 }
@@ -115,6 +92,9 @@ export class InvokeResponse extends jspb.Message {
     clearData(): void;
     getData(): google_protobuf_any_pb.Any | undefined;
     setData(value?: google_protobuf_any_pb.Any): void;
+
+    getContentType(): string;
+    setContentType(value: string): void;
 
 
     serializeBinary(): Uint8Array;
@@ -130,5 +110,6 @@ export class InvokeResponse extends jspb.Message {
 export namespace InvokeResponse {
     export type AsObject = {
         data?: google_protobuf_any_pb.Any.AsObject,
+        contentType: string,
     }
 }
