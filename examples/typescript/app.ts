@@ -1,13 +1,7 @@
 import {
-    DeleteStateEnvelope,
-    GetStateEnvelope,
-    InvokeBindingEnvelope,
-    InvokeServiceEnvelope,
-    PublishEventEnvelope,
-    SaveStateEnvelope,
-    StateRequest
-} from 'dapr-client/dapr/dapr_pb';
-import { DaprClient } from 'dapr-client/dapr/dapr_grpc_pb';
+    dapr_pb,
+    dapr_grpc
+} from 'dapr-client';
 import { Any } from 'google-protobuf/google/protobuf/any_pb';
 
 var dapr = require('dapr-client');
@@ -15,10 +9,10 @@ var grpc = dapr.grpc;
 
 // TODO: Get port from the environment.
 // unfortunately for now clients don't have type info...
-var client = new DaprClient(
+var client = new dapr_grpc.DaprClient(
     `localhost:50001`, grpc.credentials.createInsecure());
 
-var event = new PublishEventEnvelope();
+var event = new dapr_pb.PublishEventEnvelope();
 event.setTopic('sith');
 
 var data = new Any();
@@ -34,9 +28,11 @@ client.publishEvent(event, (err, response) => {
 });
 
 // Invoke output binding named 'storage'
-var binding = new InvokeBindingEnvelope();
+var binding = new dapr_pb.InvokeBindingEnvelope();
 binding.setName('storage');
 binding.setData(data);
+var metaMap = binding.getMetadataMap();
+metaMap.set("key", "val");
 
 client.invokeBinding(binding, (err, response) => {
     if (err) {
@@ -46,7 +42,8 @@ client.invokeBinding(binding, (err, response) => {
     }
 });
 
-
+// grcapp is not implemented yet
+/*
 var invoke = new InvokeServiceEnvelope();
 invoke.setId('grpcapp');
 invoke.setMethod('sith');
@@ -66,13 +63,14 @@ client.invokeService(invoke, (err, response) => {
         console.log('Invoked!');
     }
 });
+*/
 
 var key = 'mykey';
 var storeName = 'statestore';
 
-var state = new SaveStateEnvelope();
-state.setStorename(storeName);
-var req = new StateRequest();
+var state = new dapr_pb.SaveStateEnvelope();
+state.setStoreName(storeName);
+var req = new dapr_pb.StateRequest();
 req.setKey(key);
 
 var value = new Any();
@@ -88,8 +86,8 @@ client.saveState(state, (err, res) => {
         console.log('Saved!');
 
         // saved, now do a get, promises would clean this up...
-        var get = new GetStateEnvelope();
-        get.setStorename(storeName)
+        var get = new dapr_pb.GetStateEnvelope();
+        get.setStoreName(storeName)
         get.setKey(key);
         client.getState(get, (err, response) => {
             if (err) {
@@ -99,8 +97,8 @@ client.saveState(state, (err, res) => {
                 console.log(String.fromCharCode.apply(null, response.getData().getValue()));
 
                 // get done, now delete, again promises would be nice...
-                var del = new DeleteStateEnvelope();
-                del.setStorename(storeName)
+                var del = new dapr_pb.DeleteStateEnvelope();
+                del.setStoreName(storeName)
                 del.setKey(key);
                 client.deleteState(del, (err, response) => {
                     if (err) {
