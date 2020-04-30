@@ -26,6 +26,8 @@ client.publishEvent(event, (err, response) => {
 var binding = new messages.InvokeBindingEnvelope();
 binding.setName('storage');
 binding.setData(data);
+var metaMap = binding.getMetadataMap();
+metaMap.set("key", "val");
 
 client.invokeBinding(binding, (err, response) => {
     if (err) {
@@ -35,32 +37,32 @@ client.invokeBinding(binding, (err, response) => {
     }
 });
 
+// grcapp is not implemented yet
 
-var invoke = new messages.InvokeServiceEnvelope();
-invoke.setId('grpcapp');
-invoke.setMethod('sith');
-var serialized = new proto.google.protobuf.Any();
-serialized.setValue(Buffer.from(JSON.stringify({
-    name: 'test',
-    message: {
-        counter: 1
-    }
-})));
-invoke.setData(serialized);
-
-client.invokeService(invoke, (err, response) => {
-    if (err) {
-        console.log(`Error invoking service: ${err}`);
-    } else {
-        console.log('Invoked!');
-    }
-});
+// var invoke = new messages.InvokeServiceEnvelope();
+// invoke.setId('grpcapp');
+// invoke.setMethod('sith');
+// var serialized = new proto.google.protobuf.Any();
+// serialized.setValue(Buffer.from(JSON.stringify({
+//     name: 'test',
+//     message: {
+//         counter: 1
+//     }
+// })));
+// invoke.setData(serialized);
+// client.invokeService(invoke, (err, response) => {
+//     if (err) {
+//         console.log(`Error invoking service: ${err}`);
+//     } else {
+//         console.log('Invoked!');
+//     }
+// });
 
 var key = 'mykey';
 var storeName = 'statestore';
 
 var state = new messages.SaveStateEnvelope();
-state.setStorename(storeName);
+state.setStoreName(storeName);
 var req = new messages.StateRequest();
 req.setKey(key);
 
@@ -79,7 +81,7 @@ client.saveState(state, (err, res) => {
 
         // saved, now do a get, promises would clean this up...
         var get = new messages.GetStateEnvelope();
-        get.setStorename(storeName)
+        get.setStoreName(storeName)
         get.setKey(key);
         client.getState(get, (err, response) => {
             if (err) {
@@ -90,7 +92,7 @@ client.saveState(state, (err, res) => {
 
                 // get done, now delete, again promises would be nice...
                 var del = new messages.DeleteStateEnvelope();
-                del.setStorename(storeName)
+                del.setStoreName(storeName)
                 del.setKey(key);
                 client.deleteState(del, (err, response) => {
                     if (err) {

@@ -64,7 +64,7 @@ From the root directory:
 
 ```bash
 cd examples/simple
-npm install ../../src
+npm install ../..
 ```
 
 ### Creating and publishing the package
