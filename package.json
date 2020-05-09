@@ -5,6 +5,7 @@
   "main": "src/index.js",
   "types": "src/main.d.ts",
   "scripts": {
+    "lint": "eslint .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -26,5 +27,8 @@
   "dependencies": {
     "google-protobuf": "^3.10.0",
     "grpc": "^1.24.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.0.0"
   }
 }

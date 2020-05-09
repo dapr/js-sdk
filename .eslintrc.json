@@ -1,0 +1,20 @@
+{
+    "env": {
+        "node": true,
+        "commonjs": true,
+        "es6": true
+    },
+    "globals": {
+        "proto": "readonly"
+    },
+    "extends": "eslint:recommended",
+    "rules": {
+        "no-unused-vars": [
+            2,
+            {
+                "vars": "local",
+                "args": "none"
+            }
+        ]
+    }
+}

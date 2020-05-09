@@ -1,5 +1,5 @@
 var dapr = require('dapr-client');
-var messages = dapr.dapr_pb; 
+var messages = dapr.dapr_pb;
 var services = dapr.dapr_grpc;
 var grpc = dapr.grpc;
 
