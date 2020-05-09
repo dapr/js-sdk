@@ -12,19 +12,33 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         node-version: [10.x, 12.x]
-
     steps:
     - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
+    
     - run: npm ci
       env:
         CI: true
+    
+    - name: Is Release?
+      if: startswith(github.ref, 'refs/tags/v')
+      run: echo "##[set-env name=DEPLOY_PACKAGE;]true"
+      
+    - name: Publish to npm
+      if: env.DEPLOY_PACKAGE == 'true'
+      run: npm set registry https://registry.npmjs.org/ && npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{secrets.npm_token}}      
+        
+    - name: Publish to github
+      if: env.DEPLOY_PACKAGE == 'true'
+      run: npm set registry https://npm.pkg.github.com/ && npm publish
+      env: 
+          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
