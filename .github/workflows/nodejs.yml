@@ -16,10 +16,10 @@ jobs:
   
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js 12.0
+    - name: Use Node.js
       uses: actions/setup-node@v1
       with:
-        node-version: 12.0
+        node-version: 10
     
     - run: npm ci
       env:
