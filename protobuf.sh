@@ -16,9 +16,10 @@ npm install grpc_tools_node_protoc_ts --save-dev
 
 # Proto buf generation
 
+APPCALLBACK="appcallback"
 COMMON="common"
 DAPR="dapr"
-DAPR_CLIENT="daprclient"
+RUNTIME="runtime"
 
 # Path to store output
 PROTO_PATH="src/dapr/proto"
@@ -41,11 +42,12 @@ checkHttpRequestCLI() {
 
 downloadFile() {
 
-    FILE_NAME=$1
-    FILE_PATH="${PROTO_PATH}/${FILE_NAME}/v1"
+    FOLDER_NAME=$1
+    FILE_NAME=$2
+    FILE_PATH="${PROTO_PATH}/${FOLDER_NAME}/v1"
 
     # URL for proto file
-    PROTO_URL="https://raw.githubusercontent.com/dapr/dapr/master/dapr/proto/${FILE_NAME}/v1/${FILE_NAME}.proto"
+    PROTO_URL="https://raw.githubusercontent.com/dapr/dapr/master/dapr/proto/${FOLDER_NAME}/v1/${FILE_NAME}.proto"
 
     mkdir -p "${FILE_PATH}"
 
@@ -67,8 +69,9 @@ downloadFile() {
 
 generateGrpc() {
 
-    FILE_NAME=$1
-    FILE_PATH="${PROTO_PATH}/${FILE_NAME}/v1"
+    FOLDER_NAME=$1
+    FILE_NAME=$2
+    FILE_PATH="${PROTO_PATH}/${FOLDER_NAME}/v1"
 
 
     node_modules/grpc-tools/bin/protoc -I=$SRC --js_out=import_style=commonjs,binary:$SRC --grpc_out=$SRC --plugin=protoc-gen-grpc=node_modules/grpc-tools/bin/grpc_node_plugin ${FILE_PATH}/${FILE_NAME}.proto
@@ -106,12 +109,12 @@ generateGrpcSuccess() {
 trap "fail_trap" EXIT
 
 checkHttpRequestCLI
-downloadFile $COMMON
-generateGrpc $COMMON
-downloadFile $DAPR
-generateGrpc $DAPR
-downloadFile $DAPR_CLIENT
-generateGrpc $DAPR_CLIENT
+downloadFile $COMMON $COMMON
+generateGrpc $COMMON $COMMON
+downloadFile $RUNTIME $DAPR
+generateGrpc $RUNTIME $DAPR
+downloadFile $RUNTIME $APPCALLBACK
+generateGrpc $RUNTIME $APPCALLBACK
 cleanup
 
 generateGrpcSuccess
