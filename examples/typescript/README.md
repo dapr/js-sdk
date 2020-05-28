@@ -16,15 +16,13 @@ spec:
     value: "true"
 ```
 
-Install `ts-node` globally - it enables us to run TypeScript files without the need of transpiling them to JavaScript files.
+Install dependencies using the following command
 ```bash
-npm install -g typescript
-npm install -g ts-node
+npm install
 ```
 
 Run the following command to start the app
-
 ```bash
-dapr run --app-id nodeapp --protocol grpc --grpc-port=50001 ts-node app.ts
+dapr run --app-id nodeapp --protocol grpc --grpc-port=50001 ./node_modules/.bin/ts-node app.ts
 ```
 
