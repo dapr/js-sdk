@@ -1,10 +1,9 @@
-import {
-    dapr_pb,
-    dapr_grpc
-} from 'dapr-client';
 import { Any } from 'google-protobuf/google/protobuf/any_pb';
 
 var dapr = require('dapr-client');
+var dapr_pb = dapr.dapr_pb;
+var dapr_grpc = dapr.dapr_grpc;
+var common_pb = dapr.common_pb;
 var grpc = dapr.grpc;
 
 // TODO: Get port from the environment.
@@ -12,11 +11,10 @@ var grpc = dapr.grpc;
 var client = new dapr_grpc.DaprClient(
     `localhost:50001`, grpc.credentials.createInsecure());
 
-var event = new dapr_pb.PublishEventEnvelope();
+var event = new dapr_pb.PublishEventRequest();
 event.setTopic('sith');
 
-var data = new Any();
-data.setValue(Buffer.from('lala'));
+const data = Buffer.from('lala');
 event.setData(data);
 
 client.publishEvent(event, (err, response) => {
@@ -28,7 +26,7 @@ client.publishEvent(event, (err, response) => {
 });
 
 // Invoke output binding named 'storage'
-var binding = new dapr_pb.InvokeBindingEnvelope();
+var binding = new dapr_pb.InvokeBindingRequest();
 binding.setName('storage');
 binding.setData(data);
 var metaMap = binding.getMetadataMap();
@@ -68,25 +66,22 @@ client.invokeService(invoke, (err, response) => {
 var key = 'mykey';
 var storeName = 'statestore';
 
-var state = new dapr_pb.SaveStateEnvelope();
-state.setStoreName(storeName);
-var req = new dapr_pb.StateRequest();
-req.setKey(key);
+var stateReq = new dapr_pb.SaveStateRequest();
+stateReq.setStoreName(storeName);
+var states = [new common_pb.StateItem()];
+states[0].setKey(key);
+states[0].setValue(Buffer.from('My State', 'utf-8'));
 
-var value = new Any();
-value.setValue(Buffer.from('My State'));
-req.setValue(value);
+stateReq.setStatesList(states)
 
-state.addRequests(req);
-
-client.saveState(state, (err, res) => {
+client.saveState(stateReq, (err, res) => {
     if (err) {
         console.log(`Error saving state: ${err}`);
     } else {
         console.log('Saved!');
 
         // saved, now do a get, promises would clean this up...
-        var get = new dapr_pb.GetStateEnvelope();
+        var get = new dapr_pb.GetStateRequest();
         get.setStoreName(storeName)
         get.setKey(key);
         client.getState(get, (err, response) => {
@@ -94,10 +89,10 @@ client.saveState(state, (err, res) => {
                 console.log(`Error getting state: ${err}`);
             } else {
                 console.log('Got!');
-                console.log(String.fromCharCode.apply(null, response.getData().getValue()));
+                console.log(String.fromCharCode.apply(null, response.getData()));
 
                 // get done, now delete, again promises would be nice...
-                var del = new dapr_pb.DeleteStateEnvelope();
+                var del = new dapr_pb.DeleteStateRequest();
                 del.setStoreName(storeName)
                 del.setKey(key);
                 client.deleteState(del, (err, response) => {
