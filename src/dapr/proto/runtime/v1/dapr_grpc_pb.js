@@ -89,6 +89,17 @@ function deserialize_dapr_proto_runtime_v1_InvokeBindingRequest(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_InvokeBindingResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.InvokeBindingResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_InvokeBindingResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_InvokeServiceRequest(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.InvokeServiceRequest)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.InvokeServiceRequest');
@@ -202,11 +213,11 @@ invokeBinding: {
     requestStream: false,
     responseStream: false,
     requestType: dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest,
-    responseType: google_protobuf_empty_pb.Empty,
+    responseType: dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse,
     requestSerialize: serialize_dapr_proto_runtime_v1_InvokeBindingRequest,
     requestDeserialize: deserialize_dapr_proto_runtime_v1_InvokeBindingRequest,
-    responseSerialize: serialize_google_protobuf_Empty,
-    responseDeserialize: deserialize_google_protobuf_Empty,
+    responseSerialize: serialize_dapr_proto_runtime_v1_InvokeBindingResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_InvokeBindingResponse,
   },
   // Gets secrets from secret stores.
 getSecret: {

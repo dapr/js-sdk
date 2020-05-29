@@ -195,6 +195,9 @@ export class InvokeBindingRequest extends jspb.Message {
     getMetadataMap(): jspb.Map<string, string>;
     clearMetadataMap(): void;
 
+    getOperation(): string;
+    setOperation(value: string): void;
+
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): InvokeBindingRequest.AsObject;
@@ -209,6 +212,36 @@ export class InvokeBindingRequest extends jspb.Message {
 export namespace InvokeBindingRequest {
     export type AsObject = {
         name: string,
+        data: Uint8Array | string,
+
+        metadataMap: Array<[string, string]>,
+        operation: string,
+    }
+}
+
+export class InvokeBindingResponse extends jspb.Message { 
+    getData(): Uint8Array | string;
+    getData_asU8(): Uint8Array;
+    getData_asB64(): string;
+    setData(value: Uint8Array | string): void;
+
+
+    getMetadataMap(): jspb.Map<string, string>;
+    clearMetadataMap(): void;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): InvokeBindingResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: InvokeBindingResponse): InvokeBindingResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: InvokeBindingResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): InvokeBindingResponse;
+    static deserializeBinaryFromReader(message: InvokeBindingResponse, reader: jspb.BinaryReader): InvokeBindingResponse;
+}
+
+export namespace InvokeBindingResponse {
+    export type AsObject = {
         data: Uint8Array | string,
 
         metadataMap: Array<[string, string]>,
