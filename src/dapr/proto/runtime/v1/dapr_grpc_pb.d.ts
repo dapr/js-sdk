@@ -64,14 +64,14 @@ interface IDaprService_IPublishEvent extends grpc.MethodDefinition<dapr_proto_ru
     responseSerialize: grpc.serialize<google_protobuf_empty_pb.Empty>;
     responseDeserialize: grpc.deserialize<google_protobuf_empty_pb.Empty>;
 }
-interface IDaprService_IInvokeBinding extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, google_protobuf_empty_pb.Empty> {
+interface IDaprService_IInvokeBinding extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse> {
     path: string; // "/dapr.proto.runtime.v1.Dapr/InvokeBinding"
     requestStream: boolean; // false
     responseStream: boolean; // false
     requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest>;
     requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest>;
-    responseSerialize: grpc.serialize<google_protobuf_empty_pb.Empty>;
-    responseDeserialize: grpc.deserialize<google_protobuf_empty_pb.Empty>;
+    responseSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse>;
+    responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse>;
 }
 interface IDaprService_IGetSecret extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.GetSecretRequest, dapr_proto_runtime_v1_dapr_pb.GetSecretResponse> {
     path: string; // "/dapr.proto.runtime.v1.Dapr/GetSecret"
@@ -91,7 +91,7 @@ export interface IDaprServer {
     saveState: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.SaveStateRequest, google_protobuf_empty_pb.Empty>;
     deleteState: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.DeleteStateRequest, google_protobuf_empty_pb.Empty>;
     publishEvent: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.PublishEventRequest, google_protobuf_empty_pb.Empty>;
-    invokeBinding: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, google_protobuf_empty_pb.Empty>;
+    invokeBinding: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse>;
     getSecret: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.GetSecretRequest, dapr_proto_runtime_v1_dapr_pb.GetSecretResponse>;
 }
 
@@ -111,9 +111,9 @@ export interface IDaprClient {
     publishEvent(request: dapr_proto_runtime_v1_dapr_pb.PublishEventRequest, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
     publishEvent(request: dapr_proto_runtime_v1_dapr_pb.PublishEventRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
     publishEvent(request: dapr_proto_runtime_v1_dapr_pb.PublishEventRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
-    invokeBinding(request: dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
-    invokeBinding(request: dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
-    invokeBinding(request: dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
+    invokeBinding(request: dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse) => void): grpc.ClientUnaryCall;
+    invokeBinding(request: dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse) => void): grpc.ClientUnaryCall;
+    invokeBinding(request: dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse) => void): grpc.ClientUnaryCall;
     getSecret(request: dapr_proto_runtime_v1_dapr_pb.GetSecretRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetSecretResponse) => void): grpc.ClientUnaryCall;
     getSecret(request: dapr_proto_runtime_v1_dapr_pb.GetSecretRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetSecretResponse) => void): grpc.ClientUnaryCall;
     getSecret(request: dapr_proto_runtime_v1_dapr_pb.GetSecretRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetSecretResponse) => void): grpc.ClientUnaryCall;
@@ -136,9 +136,9 @@ export class DaprClient extends grpc.Client implements IDaprClient {
     public publishEvent(request: dapr_proto_runtime_v1_dapr_pb.PublishEventRequest, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
     public publishEvent(request: dapr_proto_runtime_v1_dapr_pb.PublishEventRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
     public publishEvent(request: dapr_proto_runtime_v1_dapr_pb.PublishEventRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
-    public invokeBinding(request: dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
-    public invokeBinding(request: dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
-    public invokeBinding(request: dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
+    public invokeBinding(request: dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse) => void): grpc.ClientUnaryCall;
+    public invokeBinding(request: dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse) => void): grpc.ClientUnaryCall;
+    public invokeBinding(request: dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse) => void): grpc.ClientUnaryCall;
     public getSecret(request: dapr_proto_runtime_v1_dapr_pb.GetSecretRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetSecretResponse) => void): grpc.ClientUnaryCall;
     public getSecret(request: dapr_proto_runtime_v1_dapr_pb.GetSecretRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetSecretResponse) => void): grpc.ClientUnaryCall;
     public getSecret(request: dapr_proto_runtime_v1_dapr_pb.GetSecretRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetSecretResponse) => void): grpc.ClientUnaryCall;
