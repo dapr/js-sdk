@@ -29,6 +29,7 @@ client.publishEvent(event, (err, response) => {
 var binding = new dapr_pb.InvokeBindingRequest();
 binding.setName('storage');
 binding.setData(data);
+binding.setOperation('create');
 var metaMap = binding.getMetadataMap();
 metaMap.set("key", "val");
 
