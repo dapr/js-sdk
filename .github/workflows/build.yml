@@ -5,21 +5,27 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ master ]
-    tags: [v*]
+    branches:
+      - master
+      - release-*
+    tags:
+      - v*
   pull_request:
-    branches: [ master ]
+    branches:
+      - master
+      - release-*
 
 jobs:
   build:
     runs-on: ubuntu-latest
-  
+    env:
+      NODE_VER: 10
     steps:
     - uses: actions/checkout@v2
     - name: Use Node.js
       uses: actions/setup-node@v1
       with:
-        node-version: 10
+        node-version: ${{ env.NODE_VER }}
     
     - run: npm ci
       env:
@@ -31,11 +37,11 @@ jobs:
     
     - name: Is Release?
       if: startswith(github.ref, 'refs/tags/v')
-      run: echo "##[set-env name=DEPLOY_PACKAGE;]true"
+      run: echo "::set-env name=DEPLOY_PACKAGE::true"
       
     - name: Publish to npm
       if: env.DEPLOY_PACKAGE == 'true'
-      run: npm set registry https://registry.npmjs.org/ && npm publish
+      run: npm set registry https://registry.npmjs.org/ && npm publish --access public
       env:
         NODE_AUTH_TOKEN: ${{secrets.npm_token}}      
         
