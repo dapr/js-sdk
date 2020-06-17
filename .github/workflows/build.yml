@@ -43,10 +43,10 @@ jobs:
       if: env.DEPLOY_PACKAGE == 'true'
       run: npm set registry https://registry.npmjs.org/ && npm publish --access public
       env:
-        NODE_AUTH_TOKEN: ${{secrets.npm_token}}      
+        NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}      
         
     - name: Publish to github
       if: env.DEPLOY_PACKAGE == 'true'
       run: npm set registry https://npm.pkg.github.com/ && npm publish
       env: 
-          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
