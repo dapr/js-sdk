@@ -68,7 +68,10 @@ npm install ../..
 ```
 
 ### Creating and publishing the package
-From the root directory:
+
+1. Update the version in package.json
+
+2. From the root directory:
 
 ```bash
 npm pack
