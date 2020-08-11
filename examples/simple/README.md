@@ -18,5 +18,5 @@ spec:
 
 Run the app using the following command
 ```bash
-dapr run --protocol grpc --grpc-port=50001 node app.js
+dapr run --app-protocol grpc --dapr-grpc-port=50001 node app.js
 ```
