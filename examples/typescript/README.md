@@ -23,6 +23,6 @@ npm install
 
 Run the following command to start the app
 ```bash
-dapr run --app-id nodeapp --protocol grpc --grpc-port=50001 ./node_modules/.bin/ts-node app.ts
+dapr run --app-id nodeapp --app-protocol grpc --dapr-grpc-port=50001 ./node_modules/.bin/ts-node app.ts
 ```
 
