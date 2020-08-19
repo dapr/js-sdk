@@ -35,14 +35,14 @@ interface IAppCallbackService_IListTopicSubscriptions extends grpc.MethodDefinit
     responseSerialize: grpc.serialize<dapr_proto_runtime_v1_appcallback_pb.ListTopicSubscriptionsResponse>;
     responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_appcallback_pb.ListTopicSubscriptionsResponse>;
 }
-interface IAppCallbackService_IOnTopicEvent extends grpc.MethodDefinition<dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest, google_protobuf_empty_pb.Empty> {
+interface IAppCallbackService_IOnTopicEvent extends grpc.MethodDefinition<dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest, dapr_proto_runtime_v1_appcallback_pb.TopicEventResponse> {
     path: string; // "/dapr.proto.runtime.v1.AppCallback/OnTopicEvent"
     requestStream: boolean; // false
     responseStream: boolean; // false
     requestSerialize: grpc.serialize<dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest>;
     requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest>;
-    responseSerialize: grpc.serialize<google_protobuf_empty_pb.Empty>;
-    responseDeserialize: grpc.deserialize<google_protobuf_empty_pb.Empty>;
+    responseSerialize: grpc.serialize<dapr_proto_runtime_v1_appcallback_pb.TopicEventResponse>;
+    responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_appcallback_pb.TopicEventResponse>;
 }
 interface IAppCallbackService_IListInputBindings extends grpc.MethodDefinition<google_protobuf_empty_pb.Empty, dapr_proto_runtime_v1_appcallback_pb.ListInputBindingsResponse> {
     path: string; // "/dapr.proto.runtime.v1.AppCallback/ListInputBindings"
@@ -68,7 +68,7 @@ export const AppCallbackService: IAppCallbackService;
 export interface IAppCallbackServer {
     onInvoke: grpc.handleUnaryCall<dapr_proto_common_v1_common_pb.InvokeRequest, dapr_proto_common_v1_common_pb.InvokeResponse>;
     listTopicSubscriptions: grpc.handleUnaryCall<google_protobuf_empty_pb.Empty, dapr_proto_runtime_v1_appcallback_pb.ListTopicSubscriptionsResponse>;
-    onTopicEvent: grpc.handleUnaryCall<dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest, google_protobuf_empty_pb.Empty>;
+    onTopicEvent: grpc.handleUnaryCall<dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest, dapr_proto_runtime_v1_appcallback_pb.TopicEventResponse>;
     listInputBindings: grpc.handleUnaryCall<google_protobuf_empty_pb.Empty, dapr_proto_runtime_v1_appcallback_pb.ListInputBindingsResponse>;
     onBindingEvent: grpc.handleUnaryCall<dapr_proto_runtime_v1_appcallback_pb.BindingEventRequest, dapr_proto_runtime_v1_appcallback_pb.BindingEventResponse>;
 }
@@ -80,9 +80,9 @@ export interface IAppCallbackClient {
     listTopicSubscriptions(request: google_protobuf_empty_pb.Empty, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.ListTopicSubscriptionsResponse) => void): grpc.ClientUnaryCall;
     listTopicSubscriptions(request: google_protobuf_empty_pb.Empty, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.ListTopicSubscriptionsResponse) => void): grpc.ClientUnaryCall;
     listTopicSubscriptions(request: google_protobuf_empty_pb.Empty, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.ListTopicSubscriptionsResponse) => void): grpc.ClientUnaryCall;
-    onTopicEvent(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
-    onTopicEvent(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
-    onTopicEvent(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
+    onTopicEvent(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventResponse) => void): grpc.ClientUnaryCall;
+    onTopicEvent(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventResponse) => void): grpc.ClientUnaryCall;
+    onTopicEvent(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventResponse) => void): grpc.ClientUnaryCall;
     listInputBindings(request: google_protobuf_empty_pb.Empty, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.ListInputBindingsResponse) => void): grpc.ClientUnaryCall;
     listInputBindings(request: google_protobuf_empty_pb.Empty, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.ListInputBindingsResponse) => void): grpc.ClientUnaryCall;
     listInputBindings(request: google_protobuf_empty_pb.Empty, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.ListInputBindingsResponse) => void): grpc.ClientUnaryCall;
@@ -99,9 +99,9 @@ export class AppCallbackClient extends grpc.Client implements IAppCallbackClient
     public listTopicSubscriptions(request: google_protobuf_empty_pb.Empty, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.ListTopicSubscriptionsResponse) => void): grpc.ClientUnaryCall;
     public listTopicSubscriptions(request: google_protobuf_empty_pb.Empty, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.ListTopicSubscriptionsResponse) => void): grpc.ClientUnaryCall;
     public listTopicSubscriptions(request: google_protobuf_empty_pb.Empty, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.ListTopicSubscriptionsResponse) => void): grpc.ClientUnaryCall;
-    public onTopicEvent(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
-    public onTopicEvent(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
-    public onTopicEvent(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
+    public onTopicEvent(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventResponse) => void): grpc.ClientUnaryCall;
+    public onTopicEvent(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventResponse) => void): grpc.ClientUnaryCall;
+    public onTopicEvent(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventResponse) => void): grpc.ClientUnaryCall;
     public listInputBindings(request: google_protobuf_empty_pb.Empty, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.ListInputBindingsResponse) => void): grpc.ClientUnaryCall;
     public listInputBindings(request: google_protobuf_empty_pb.Empty, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.ListInputBindingsResponse) => void): grpc.ClientUnaryCall;
     public listInputBindings(request: google_protobuf_empty_pb.Empty, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.ListInputBindingsResponse) => void): grpc.ClientUnaryCall;

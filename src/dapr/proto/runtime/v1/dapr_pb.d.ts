@@ -65,6 +65,91 @@ export namespace GetStateRequest {
     }
 }
 
+export class GetBulkStateRequest extends jspb.Message { 
+    getStoreName(): string;
+    setStoreName(value: string): void;
+
+    clearKeysList(): void;
+    getKeysList(): Array<string>;
+    setKeysList(value: Array<string>): void;
+    addKeys(value: string, index?: number): string;
+
+    getParallelism(): number;
+    setParallelism(value: number): void;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetBulkStateRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: GetBulkStateRequest): GetBulkStateRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetBulkStateRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetBulkStateRequest;
+    static deserializeBinaryFromReader(message: GetBulkStateRequest, reader: jspb.BinaryReader): GetBulkStateRequest;
+}
+
+export namespace GetBulkStateRequest {
+    export type AsObject = {
+        storeName: string,
+        keysList: Array<string>,
+        parallelism: number,
+    }
+}
+
+export class GetBulkStateResponse extends jspb.Message { 
+    clearItemsList(): void;
+    getItemsList(): Array<BulkStateItem>;
+    setItemsList(value: Array<BulkStateItem>): void;
+    addItems(value?: BulkStateItem, index?: number): BulkStateItem;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetBulkStateResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: GetBulkStateResponse): GetBulkStateResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetBulkStateResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetBulkStateResponse;
+    static deserializeBinaryFromReader(message: GetBulkStateResponse, reader: jspb.BinaryReader): GetBulkStateResponse;
+}
+
+export namespace GetBulkStateResponse {
+    export type AsObject = {
+        itemsList: Array<BulkStateItem.AsObject>,
+    }
+}
+
+export class BulkStateItem extends jspb.Message { 
+    getKey(): string;
+    setKey(value: string): void;
+
+    getData(): Uint8Array | string;
+    getData_asU8(): Uint8Array;
+    getData_asB64(): string;
+    setData(value: Uint8Array | string): void;
+
+    getEtag(): string;
+    setEtag(value: string): void;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): BulkStateItem.AsObject;
+    static toObject(includeInstance: boolean, msg: BulkStateItem): BulkStateItem.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: BulkStateItem, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): BulkStateItem;
+    static deserializeBinaryFromReader(message: BulkStateItem, reader: jspb.BinaryReader): BulkStateItem;
+}
+
+export namespace BulkStateItem {
+    export type AsObject = {
+        key: string,
+        data: Uint8Array | string,
+        etag: string,
+    }
+}
+
 export class GetStateResponse extends jspb.Message { 
     getData(): Uint8Array | string;
     getData_asU8(): Uint8Array;
@@ -156,6 +241,9 @@ export namespace SaveStateRequest {
 }
 
 export class PublishEventRequest extends jspb.Message { 
+    getPubsubName(): string;
+    setPubsubName(value: string): void;
+
     getTopic(): string;
     setTopic(value: string): void;
 
@@ -177,6 +265,7 @@ export class PublishEventRequest extends jspb.Message {
 
 export namespace PublishEventRequest {
     export type AsObject = {
+        pubsubName: string,
         topic: string,
         data: Uint8Array | string,
     }
@@ -299,5 +388,66 @@ export namespace GetSecretResponse {
     export type AsObject = {
 
         dataMap: Array<[string, string]>,
+    }
+}
+
+export class TransactionalStateOperation extends jspb.Message { 
+    getOperationtype(): string;
+    setOperationtype(value: string): void;
+
+
+    hasRequest(): boolean;
+    clearRequest(): void;
+    getRequest(): dapr_proto_common_v1_common_pb.StateItem | undefined;
+    setRequest(value?: dapr_proto_common_v1_common_pb.StateItem): void;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): TransactionalStateOperation.AsObject;
+    static toObject(includeInstance: boolean, msg: TransactionalStateOperation): TransactionalStateOperation.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: TransactionalStateOperation, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): TransactionalStateOperation;
+    static deserializeBinaryFromReader(message: TransactionalStateOperation, reader: jspb.BinaryReader): TransactionalStateOperation;
+}
+
+export namespace TransactionalStateOperation {
+    export type AsObject = {
+        operationtype: string,
+        request?: dapr_proto_common_v1_common_pb.StateItem.AsObject,
+    }
+}
+
+export class ExecuteStateTransactionRequest extends jspb.Message { 
+    getStorename(): string;
+    setStorename(value: string): void;
+
+    clearOperationsList(): void;
+    getOperationsList(): Array<TransactionalStateOperation>;
+    setOperationsList(value: Array<TransactionalStateOperation>): void;
+    addOperations(value?: TransactionalStateOperation, index?: number): TransactionalStateOperation;
+
+
+    getMetadataMap(): jspb.Map<string, string>;
+    clearMetadataMap(): void;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ExecuteStateTransactionRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: ExecuteStateTransactionRequest): ExecuteStateTransactionRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ExecuteStateTransactionRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ExecuteStateTransactionRequest;
+    static deserializeBinaryFromReader(message: ExecuteStateTransactionRequest, reader: jspb.BinaryReader): ExecuteStateTransactionRequest;
+}
+
+export namespace ExecuteStateTransactionRequest {
+    export type AsObject = {
+        storename: string,
+        operationsList: Array<TransactionalStateOperation.AsObject>,
+
+        metadataMap: Array<[string, string]>,
     }
 }

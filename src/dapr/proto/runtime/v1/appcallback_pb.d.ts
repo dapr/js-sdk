@@ -32,6 +32,9 @@ export class TopicEventRequest extends jspb.Message {
     getTopic(): string;
     setTopic(value: string): void;
 
+    getPubsubName(): string;
+    setPubsubName(value: string): void;
+
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): TopicEventRequest.AsObject;
@@ -52,6 +55,24 @@ export namespace TopicEventRequest {
         dataContentType: string,
         data: Uint8Array | string,
         topic: string,
+        pubsubName: string,
+    }
+}
+
+export class TopicEventResponse extends jspb.Message { 
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): TopicEventResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: TopicEventResponse): TopicEventResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: TopicEventResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): TopicEventResponse;
+    static deserializeBinaryFromReader(message: TopicEventResponse, reader: jspb.BinaryReader): TopicEventResponse;
+}
+
+export namespace TopicEventResponse {
+    export type AsObject = {
     }
 }
 
@@ -161,6 +182,9 @@ export namespace ListTopicSubscriptionsResponse {
 }
 
 export class TopicSubscription extends jspb.Message { 
+    getPubsubName(): string;
+    setPubsubName(value: string): void;
+
     getTopic(): string;
     setTopic(value: string): void;
 
@@ -181,6 +205,7 @@ export class TopicSubscription extends jspb.Message {
 
 export namespace TopicSubscription {
     export type AsObject = {
+        pubsubName: string,
         topic: string,
 
         metadataMap: Array<[string, string]>,

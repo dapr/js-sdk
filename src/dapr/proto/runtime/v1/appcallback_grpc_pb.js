@@ -89,6 +89,17 @@ function deserialize_dapr_proto_runtime_v1_TopicEventRequest(buffer_arg) {
   return dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_TopicEventResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_appcallback_pb.TopicEventResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.TopicEventResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_TopicEventResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_appcallback_pb.TopicEventResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_google_protobuf_Empty(arg) {
   if (!(arg instanceof google_protobuf_empty_pb.Empty)) {
     throw new Error('Expected argument of type google.protobuf.Empty');
@@ -135,11 +146,11 @@ onTopicEvent: {
     requestStream: false,
     responseStream: false,
     requestType: dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest,
-    responseType: google_protobuf_empty_pb.Empty,
+    responseType: dapr_proto_runtime_v1_appcallback_pb.TopicEventResponse,
     requestSerialize: serialize_dapr_proto_runtime_v1_TopicEventRequest,
     requestDeserialize: deserialize_dapr_proto_runtime_v1_TopicEventRequest,
-    responseSerialize: serialize_google_protobuf_Empty,
-    responseDeserialize: deserialize_google_protobuf_Empty,
+    responseSerialize: serialize_dapr_proto_runtime_v1_TopicEventResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_TopicEventResponse,
   },
   // Lists all input bindings subscribed by this app.
 listInputBindings: {
