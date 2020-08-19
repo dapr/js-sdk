@@ -6,7 +6,6 @@
 
 import * as jspb from "google-protobuf";
 import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb";
-import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 
 export class HTTPExtension extends jspb.Message { 
     getVerb(): HTTPExtension.Verb;
@@ -167,12 +166,6 @@ export class StateOptions extends jspb.Message {
     setConsistency(value: StateOptions.StateConsistency): void;
 
 
-    hasRetryPolicy(): boolean;
-    clearRetryPolicy(): void;
-    getRetryPolicy(): StateRetryPolicy | undefined;
-    setRetryPolicy(value?: StateRetryPolicy): void;
-
-
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): StateOptions.AsObject;
     static toObject(includeInstance: boolean, msg: StateOptions): StateOptions.AsObject;
@@ -187,7 +180,6 @@ export namespace StateOptions {
     export type AsObject = {
         concurrency: StateOptions.StateConcurrency,
         consistency: StateOptions.StateConsistency,
-        retryPolicy?: StateRetryPolicy.AsObject,
     }
 
     export enum StateConcurrency {
@@ -200,45 +192,6 @@ export namespace StateOptions {
     CONSISTENCY_UNSPECIFIED = 0,
     CONSISTENCY_EVENTUAL = 1,
     CONSISTENCY_STRONG = 2,
-    }
-
-}
-
-export class StateRetryPolicy extends jspb.Message { 
-    getThreshold(): number;
-    setThreshold(value: number): void;
-
-    getPattern(): StateRetryPolicy.RetryPattern;
-    setPattern(value: StateRetryPolicy.RetryPattern): void;
-
-
-    hasInterval(): boolean;
-    clearInterval(): void;
-    getInterval(): google_protobuf_duration_pb.Duration | undefined;
-    setInterval(value?: google_protobuf_duration_pb.Duration): void;
-
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): StateRetryPolicy.AsObject;
-    static toObject(includeInstance: boolean, msg: StateRetryPolicy): StateRetryPolicy.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: StateRetryPolicy, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): StateRetryPolicy;
-    static deserializeBinaryFromReader(message: StateRetryPolicy, reader: jspb.BinaryReader): StateRetryPolicy;
-}
-
-export namespace StateRetryPolicy {
-    export type AsObject = {
-        threshold: number,
-        pattern: StateRetryPolicy.RetryPattern,
-        interval?: google_protobuf_duration_pb.Duration.AsObject,
-    }
-
-    export enum RetryPattern {
-    RETRY_UNSPECIFIED = 0,
-    RETRY_LINEAR = 1,
-    RETRY_EXPONENTIAL = 2,
     }
 
 }

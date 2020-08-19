@@ -34,6 +34,39 @@ function deserialize_dapr_proto_runtime_v1_DeleteStateRequest(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.DeleteStateRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_ExecuteStateTransactionRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.ExecuteStateTransactionRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.ExecuteStateTransactionRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_ExecuteStateTransactionRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.ExecuteStateTransactionRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_GetBulkStateRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.GetBulkStateRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.GetBulkStateRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_GetBulkStateRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.GetBulkStateRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_GetBulkStateResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.GetBulkStateResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.GetBulkStateResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_GetBulkStateResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.GetBulkStateResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_GetSecretRequest(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.GetSecretRequest)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.GetSecretRequest');
@@ -171,6 +204,18 @@ getState: {
     responseSerialize: serialize_dapr_proto_runtime_v1_GetStateResponse,
     responseDeserialize: deserialize_dapr_proto_runtime_v1_GetStateResponse,
   },
+  // Gets a bulk of state items for a list of keys
+getBulkState: {
+    path: '/dapr.proto.runtime.v1.Dapr/GetBulkState',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.GetBulkStateRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.GetBulkStateResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_GetBulkStateRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_GetBulkStateRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_GetBulkStateResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_GetBulkStateResponse,
+  },
   // Saves the state for a specific key.
 saveState: {
     path: '/dapr.proto.runtime.v1.Dapr/SaveState',
@@ -192,6 +237,18 @@ deleteState: {
     responseType: google_protobuf_empty_pb.Empty,
     requestSerialize: serialize_dapr_proto_runtime_v1_DeleteStateRequest,
     requestDeserialize: deserialize_dapr_proto_runtime_v1_DeleteStateRequest,
+    responseSerialize: serialize_google_protobuf_Empty,
+    responseDeserialize: deserialize_google_protobuf_Empty,
+  },
+  // Executes transactions for a specified store
+executeStateTransaction: {
+    path: '/dapr.proto.runtime.v1.Dapr/ExecuteStateTransaction',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.ExecuteStateTransactionRequest,
+    responseType: google_protobuf_empty_pb.Empty,
+    requestSerialize: serialize_dapr_proto_runtime_v1_ExecuteStateTransactionRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_ExecuteStateTransactionRequest,
     responseSerialize: serialize_google_protobuf_Empty,
     responseDeserialize: deserialize_google_protobuf_Empty,
   },

@@ -10,6 +10,7 @@ var client = new services.DaprClient(
 
 var event = new messages.PublishEventRequest();
 event.setTopic('sith');
+event.setPubsubName('pubsub');
 
 const data = Buffer.from('lala');
 event.setData(data);

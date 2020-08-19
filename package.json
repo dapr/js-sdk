@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "eslint": "^7.0.0",
-    "grpc-tools": "^1.8.1",
+    "grpc-tools": "^1.9.1",
     "grpc_tools_node_protoc_ts": "^3.0.0"
   }
 }
