@@ -13,6 +13,7 @@ var client = new dapr_grpc.DaprClient(
 
 var event = new dapr_pb.PublishEventRequest();
 event.setTopic('sith');
+event.setPubsubName('pubsub');
 
 const data = Buffer.from('lala');
 event.setData(data);
