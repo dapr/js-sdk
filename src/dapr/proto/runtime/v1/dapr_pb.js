@@ -561,7 +561,8 @@ proto.dapr.proto.runtime.v1.GetStateRequest.toObject = function(includeInstance,
   var f, obj = {
     storeName: jspb.Message.getFieldWithDefault(msg, 1, ""),
     key: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    consistency: jspb.Message.getFieldWithDefault(msg, 3, 0)
+    consistency: jspb.Message.getFieldWithDefault(msg, 3, 0),
+    metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -609,6 +610,12 @@ proto.dapr.proto.runtime.v1.GetStateRequest.deserializeBinaryFromReader = functi
     case 3:
       var value = /** @type {!proto.dapr.proto.common.v1.StateOptions.StateConsistency} */ (reader.readEnum());
       msg.setConsistency(value);
+      break;
+    case 4:
+      var value = msg.getMetadataMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "", "");
+         });
       break;
     default:
       reader.skipField();
@@ -659,6 +666,10 @@ proto.dapr.proto.runtime.v1.GetStateRequest.serializeBinaryToWriter = function(m
       3,
       f
     );
+  }
+  f = message.getMetadataMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(4, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
 };
 
@@ -717,6 +728,28 @@ proto.dapr.proto.runtime.v1.GetStateRequest.prototype.setConsistency = function(
 };
 
 
+/**
+ * map<string, string> metadata = 4;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.dapr.proto.runtime.v1.GetStateRequest.prototype.getMetadataMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 4, opt_noLazyCreate,
+      null));
+};
+
+
+/**
+ * Clears values from the map. The map will be non-null.
+ * @return {!proto.dapr.proto.runtime.v1.GetStateRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.GetStateRequest.prototype.clearMetadataMap = function() {
+  this.getMetadataMap().clear();
+  return this;};
+
+
 
 /**
  * List of repeated fields within this message type.
@@ -758,7 +791,8 @@ proto.dapr.proto.runtime.v1.GetBulkStateRequest.toObject = function(includeInsta
   var f, obj = {
     storeName: jspb.Message.getFieldWithDefault(msg, 1, ""),
     keysList: (f = jspb.Message.getRepeatedField(msg, 2)) == null ? undefined : f,
-    parallelism: jspb.Message.getFieldWithDefault(msg, 3, 0)
+    parallelism: jspb.Message.getFieldWithDefault(msg, 3, 0),
+    metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -806,6 +840,12 @@ proto.dapr.proto.runtime.v1.GetBulkStateRequest.deserializeBinaryFromReader = fu
     case 3:
       var value = /** @type {number} */ (reader.readInt32());
       msg.setParallelism(value);
+      break;
+    case 4:
+      var value = msg.getMetadataMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "", "");
+         });
       break;
     default:
       reader.skipField();
@@ -856,6 +896,10 @@ proto.dapr.proto.runtime.v1.GetBulkStateRequest.serializeBinaryToWriter = functi
       3,
       f
     );
+  }
+  f = message.getMetadataMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(4, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
 };
 
@@ -931,6 +975,28 @@ proto.dapr.proto.runtime.v1.GetBulkStateRequest.prototype.getParallelism = funct
 proto.dapr.proto.runtime.v1.GetBulkStateRequest.prototype.setParallelism = function(value) {
   return jspb.Message.setProto3IntField(this, 3, value);
 };
+
+
+/**
+ * map<string, string> metadata = 4;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.dapr.proto.runtime.v1.GetBulkStateRequest.prototype.getMetadataMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 4, opt_noLazyCreate,
+      null));
+};
+
+
+/**
+ * Clears values from the map. The map will be non-null.
+ * @return {!proto.dapr.proto.runtime.v1.GetBulkStateRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.GetBulkStateRequest.prototype.clearMetadataMap = function() {
+  this.getMetadataMap().clear();
+  return this;};
 
 
 
@@ -1127,7 +1193,8 @@ proto.dapr.proto.runtime.v1.BulkStateItem.toObject = function(includeInstance, m
   var f, obj = {
     key: jspb.Message.getFieldWithDefault(msg, 1, ""),
     data: msg.getData_asB64(),
-    etag: jspb.Message.getFieldWithDefault(msg, 3, "")
+    etag: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    error: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -1176,6 +1243,10 @@ proto.dapr.proto.runtime.v1.BulkStateItem.deserializeBinaryFromReader = function
       var value = /** @type {string} */ (reader.readString());
       msg.setEtag(value);
       break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setError(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -1223,6 +1294,13 @@ proto.dapr.proto.runtime.v1.BulkStateItem.serializeBinaryToWriter = function(mes
   if (f.length > 0) {
     writer.writeString(
       3,
+      f
+    );
+  }
+  f = message.getError();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
       f
     );
   }
@@ -1304,6 +1382,24 @@ proto.dapr.proto.runtime.v1.BulkStateItem.prototype.getEtag = function() {
  */
 proto.dapr.proto.runtime.v1.BulkStateItem.prototype.setEtag = function(value) {
   return jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional string error = 4;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.BulkStateItem.prototype.getError = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.BulkStateItem} returns this
+ */
+proto.dapr.proto.runtime.v1.BulkStateItem.prototype.setError = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
 };
 
 
@@ -1526,7 +1622,8 @@ proto.dapr.proto.runtime.v1.DeleteStateRequest.toObject = function(includeInstan
     storeName: jspb.Message.getFieldWithDefault(msg, 1, ""),
     key: jspb.Message.getFieldWithDefault(msg, 2, ""),
     etag: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    options: (f = msg.getOptions()) && dapr_proto_common_v1_common_pb.StateOptions.toObject(includeInstance, f)
+    options: (f = msg.getOptions()) && dapr_proto_common_v1_common_pb.StateOptions.toObject(includeInstance, f),
+    metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -1579,6 +1676,12 @@ proto.dapr.proto.runtime.v1.DeleteStateRequest.deserializeBinaryFromReader = fun
       var value = new dapr_proto_common_v1_common_pb.StateOptions;
       reader.readMessage(value,dapr_proto_common_v1_common_pb.StateOptions.deserializeBinaryFromReader);
       msg.setOptions(value);
+      break;
+    case 5:
+      var value = msg.getMetadataMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "", "");
+         });
       break;
     default:
       reader.skipField();
@@ -1637,6 +1740,10 @@ proto.dapr.proto.runtime.v1.DeleteStateRequest.serializeBinaryToWriter = functio
       f,
       dapr_proto_common_v1_common_pb.StateOptions.serializeBinaryToWriter
     );
+  }
+  f = message.getMetadataMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(5, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
 };
 
@@ -1730,6 +1837,28 @@ proto.dapr.proto.runtime.v1.DeleteStateRequest.prototype.clearOptions = function
 proto.dapr.proto.runtime.v1.DeleteStateRequest.prototype.hasOptions = function() {
   return jspb.Message.getField(this, 4) != null;
 };
+
+
+/**
+ * map<string, string> metadata = 5;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.dapr.proto.runtime.v1.DeleteStateRequest.prototype.getMetadataMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 5, opt_noLazyCreate,
+      null));
+};
+
+
+/**
+ * Clears values from the map. The map will be non-null.
+ * @return {!proto.dapr.proto.runtime.v1.DeleteStateRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.DeleteStateRequest.prototype.clearMetadataMap = function() {
+  this.getMetadataMap().clear();
+  return this;};
 
 
 

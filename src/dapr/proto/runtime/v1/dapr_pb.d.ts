@@ -47,6 +47,10 @@ export class GetStateRequest extends jspb.Message {
     setConsistency(value: dapr_proto_common_v1_common_pb.StateOptions.StateConsistency): void;
 
 
+    getMetadataMap(): jspb.Map<string, string>;
+    clearMetadataMap(): void;
+
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): GetStateRequest.AsObject;
     static toObject(includeInstance: boolean, msg: GetStateRequest): GetStateRequest.AsObject;
@@ -62,6 +66,8 @@ export namespace GetStateRequest {
         storeName: string,
         key: string,
         consistency: dapr_proto_common_v1_common_pb.StateOptions.StateConsistency,
+
+        metadataMap: Array<[string, string]>,
     }
 }
 
@@ -76,6 +82,10 @@ export class GetBulkStateRequest extends jspb.Message {
 
     getParallelism(): number;
     setParallelism(value: number): void;
+
+
+    getMetadataMap(): jspb.Map<string, string>;
+    clearMetadataMap(): void;
 
 
     serializeBinary(): Uint8Array;
@@ -93,6 +103,8 @@ export namespace GetBulkStateRequest {
         storeName: string,
         keysList: Array<string>,
         parallelism: number,
+
+        metadataMap: Array<[string, string]>,
     }
 }
 
@@ -131,6 +143,9 @@ export class BulkStateItem extends jspb.Message {
     getEtag(): string;
     setEtag(value: string): void;
 
+    getError(): string;
+    setError(value: string): void;
+
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): BulkStateItem.AsObject;
@@ -147,6 +162,7 @@ export namespace BulkStateItem {
         key: string,
         data: Uint8Array | string,
         etag: string,
+        error: string,
     }
 }
 
@@ -194,6 +210,10 @@ export class DeleteStateRequest extends jspb.Message {
     setOptions(value?: dapr_proto_common_v1_common_pb.StateOptions): void;
 
 
+    getMetadataMap(): jspb.Map<string, string>;
+    clearMetadataMap(): void;
+
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): DeleteStateRequest.AsObject;
     static toObject(includeInstance: boolean, msg: DeleteStateRequest): DeleteStateRequest.AsObject;
@@ -210,6 +230,8 @@ export namespace DeleteStateRequest {
         key: string,
         etag: string,
         options?: dapr_proto_common_v1_common_pb.StateOptions.AsObject,
+
+        metadataMap: Array<[string, string]>,
     }
 }
 
