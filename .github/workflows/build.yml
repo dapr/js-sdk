@@ -37,7 +37,7 @@ jobs:
       run: echo "::set-env name=DEPLOY_PACKAGE::true"
       
     - name: Publish to npm
-      #if: env.DEPLOY_PACKAGE == 'true'
+      if: env.DEPLOY_PACKAGE == 'true'
       run: npm pack && npm publish --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
