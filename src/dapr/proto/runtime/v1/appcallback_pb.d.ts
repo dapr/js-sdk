@@ -10,30 +10,30 @@ import * as dapr_proto_common_v1_common_pb from "../../../../dapr/proto/common/v
 
 export class TopicEventRequest extends jspb.Message { 
     getId(): string;
-    setId(value: string): void;
+    setId(value: string): TopicEventRequest;
 
     getSource(): string;
-    setSource(value: string): void;
+    setSource(value: string): TopicEventRequest;
 
     getType(): string;
-    setType(value: string): void;
+    setType(value: string): TopicEventRequest;
 
     getSpecVersion(): string;
-    setSpecVersion(value: string): void;
+    setSpecVersion(value: string): TopicEventRequest;
 
     getDataContentType(): string;
-    setDataContentType(value: string): void;
+    setDataContentType(value: string): TopicEventRequest;
 
     getData(): Uint8Array | string;
     getData_asU8(): Uint8Array;
     getData_asB64(): string;
-    setData(value: Uint8Array | string): void;
+    setData(value: Uint8Array | string): TopicEventRequest;
 
     getTopic(): string;
-    setTopic(value: string): void;
+    setTopic(value: string): TopicEventRequest;
 
     getPubsubName(): string;
-    setPubsubName(value: string): void;
+    setPubsubName(value: string): TopicEventRequest;
 
 
     serializeBinary(): Uint8Array;
@@ -60,6 +60,9 @@ export namespace TopicEventRequest {
 }
 
 export class TopicEventResponse extends jspb.Message { 
+    getStatus(): TopicEventResponse.TopicEventResponseStatus;
+    setStatus(value: TopicEventResponse.TopicEventResponseStatus): TopicEventResponse;
+
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): TopicEventResponse.AsObject;
@@ -73,17 +76,25 @@ export class TopicEventResponse extends jspb.Message {
 
 export namespace TopicEventResponse {
     export type AsObject = {
+        status: TopicEventResponse.TopicEventResponseStatus,
     }
+
+    export enum TopicEventResponseStatus {
+    SUCCESS = 0,
+    RETRY = 1,
+    DROP = 2,
+    }
+
 }
 
 export class BindingEventRequest extends jspb.Message { 
     getName(): string;
-    setName(value: string): void;
+    setName(value: string): BindingEventRequest;
 
     getData(): Uint8Array | string;
     getData_asU8(): Uint8Array;
     getData_asB64(): string;
-    setData(value: Uint8Array | string): void;
+    setData(value: Uint8Array | string): BindingEventRequest;
 
 
     getMetadataMap(): jspb.Map<string, string>;
@@ -111,25 +122,25 @@ export namespace BindingEventRequest {
 
 export class BindingEventResponse extends jspb.Message { 
     getStoreName(): string;
-    setStoreName(value: string): void;
+    setStoreName(value: string): BindingEventResponse;
 
     clearStatesList(): void;
     getStatesList(): Array<dapr_proto_common_v1_common_pb.StateItem>;
-    setStatesList(value: Array<dapr_proto_common_v1_common_pb.StateItem>): void;
+    setStatesList(value: Array<dapr_proto_common_v1_common_pb.StateItem>): BindingEventResponse;
     addStates(value?: dapr_proto_common_v1_common_pb.StateItem, index?: number): dapr_proto_common_v1_common_pb.StateItem;
 
     clearToList(): void;
     getToList(): Array<string>;
-    setToList(value: Array<string>): void;
+    setToList(value: Array<string>): BindingEventResponse;
     addTo(value: string, index?: number): string;
 
     getData(): Uint8Array | string;
     getData_asU8(): Uint8Array;
     getData_asB64(): string;
-    setData(value: Uint8Array | string): void;
+    setData(value: Uint8Array | string): BindingEventResponse;
 
     getConcurrency(): BindingEventResponse.BindingEventConcurrency;
-    setConcurrency(value: BindingEventResponse.BindingEventConcurrency): void;
+    setConcurrency(value: BindingEventResponse.BindingEventConcurrency): BindingEventResponse;
 
 
     serializeBinary(): Uint8Array;
@@ -161,7 +172,7 @@ export namespace BindingEventResponse {
 export class ListTopicSubscriptionsResponse extends jspb.Message { 
     clearSubscriptionsList(): void;
     getSubscriptionsList(): Array<TopicSubscription>;
-    setSubscriptionsList(value: Array<TopicSubscription>): void;
+    setSubscriptionsList(value: Array<TopicSubscription>): ListTopicSubscriptionsResponse;
     addSubscriptions(value?: TopicSubscription, index?: number): TopicSubscription;
 
 
@@ -183,10 +194,10 @@ export namespace ListTopicSubscriptionsResponse {
 
 export class TopicSubscription extends jspb.Message { 
     getPubsubName(): string;
-    setPubsubName(value: string): void;
+    setPubsubName(value: string): TopicSubscription;
 
     getTopic(): string;
-    setTopic(value: string): void;
+    setTopic(value: string): TopicSubscription;
 
 
     getMetadataMap(): jspb.Map<string, string>;
@@ -215,7 +226,7 @@ export namespace TopicSubscription {
 export class ListInputBindingsResponse extends jspb.Message { 
     clearBindingsList(): void;
     getBindingsList(): Array<string>;
-    setBindingsList(value: Array<string>): void;
+    setBindingsList(value: Array<string>): ListInputBindingsResponse;
     addBindings(value: string, index?: number): string;
 
 

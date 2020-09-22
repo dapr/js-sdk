@@ -10,13 +10,13 @@ import * as dapr_proto_common_v1_common_pb from "../../../../dapr/proto/common/v
 
 export class InvokeServiceRequest extends jspb.Message { 
     getId(): string;
-    setId(value: string): void;
+    setId(value: string): InvokeServiceRequest;
 
 
     hasMessage(): boolean;
     clearMessage(): void;
     getMessage(): dapr_proto_common_v1_common_pb.InvokeRequest | undefined;
-    setMessage(value?: dapr_proto_common_v1_common_pb.InvokeRequest): void;
+    setMessage(value?: dapr_proto_common_v1_common_pb.InvokeRequest): InvokeServiceRequest;
 
 
     serializeBinary(): Uint8Array;
@@ -38,13 +38,13 @@ export namespace InvokeServiceRequest {
 
 export class GetStateRequest extends jspb.Message { 
     getStoreName(): string;
-    setStoreName(value: string): void;
+    setStoreName(value: string): GetStateRequest;
 
     getKey(): string;
-    setKey(value: string): void;
+    setKey(value: string): GetStateRequest;
 
     getConsistency(): dapr_proto_common_v1_common_pb.StateOptions.StateConsistency;
-    setConsistency(value: dapr_proto_common_v1_common_pb.StateOptions.StateConsistency): void;
+    setConsistency(value: dapr_proto_common_v1_common_pb.StateOptions.StateConsistency): GetStateRequest;
 
 
     getMetadataMap(): jspb.Map<string, string>;
@@ -73,15 +73,15 @@ export namespace GetStateRequest {
 
 export class GetBulkStateRequest extends jspb.Message { 
     getStoreName(): string;
-    setStoreName(value: string): void;
+    setStoreName(value: string): GetBulkStateRequest;
 
     clearKeysList(): void;
     getKeysList(): Array<string>;
-    setKeysList(value: Array<string>): void;
+    setKeysList(value: Array<string>): GetBulkStateRequest;
     addKeys(value: string, index?: number): string;
 
     getParallelism(): number;
-    setParallelism(value: number): void;
+    setParallelism(value: number): GetBulkStateRequest;
 
 
     getMetadataMap(): jspb.Map<string, string>;
@@ -111,7 +111,7 @@ export namespace GetBulkStateRequest {
 export class GetBulkStateResponse extends jspb.Message { 
     clearItemsList(): void;
     getItemsList(): Array<BulkStateItem>;
-    setItemsList(value: Array<BulkStateItem>): void;
+    setItemsList(value: Array<BulkStateItem>): GetBulkStateResponse;
     addItems(value?: BulkStateItem, index?: number): BulkStateItem;
 
 
@@ -133,18 +133,18 @@ export namespace GetBulkStateResponse {
 
 export class BulkStateItem extends jspb.Message { 
     getKey(): string;
-    setKey(value: string): void;
+    setKey(value: string): BulkStateItem;
 
     getData(): Uint8Array | string;
     getData_asU8(): Uint8Array;
     getData_asB64(): string;
-    setData(value: Uint8Array | string): void;
+    setData(value: Uint8Array | string): BulkStateItem;
 
     getEtag(): string;
-    setEtag(value: string): void;
+    setEtag(value: string): BulkStateItem;
 
     getError(): string;
-    setError(value: string): void;
+    setError(value: string): BulkStateItem;
 
 
     serializeBinary(): Uint8Array;
@@ -170,10 +170,10 @@ export class GetStateResponse extends jspb.Message {
     getData(): Uint8Array | string;
     getData_asU8(): Uint8Array;
     getData_asB64(): string;
-    setData(value: Uint8Array | string): void;
+    setData(value: Uint8Array | string): GetStateResponse;
 
     getEtag(): string;
-    setEtag(value: string): void;
+    setEtag(value: string): GetStateResponse;
 
 
     serializeBinary(): Uint8Array;
@@ -195,19 +195,19 @@ export namespace GetStateResponse {
 
 export class DeleteStateRequest extends jspb.Message { 
     getStoreName(): string;
-    setStoreName(value: string): void;
+    setStoreName(value: string): DeleteStateRequest;
 
     getKey(): string;
-    setKey(value: string): void;
+    setKey(value: string): DeleteStateRequest;
 
     getEtag(): string;
-    setEtag(value: string): void;
+    setEtag(value: string): DeleteStateRequest;
 
 
     hasOptions(): boolean;
     clearOptions(): void;
     getOptions(): dapr_proto_common_v1_common_pb.StateOptions | undefined;
-    setOptions(value?: dapr_proto_common_v1_common_pb.StateOptions): void;
+    setOptions(value?: dapr_proto_common_v1_common_pb.StateOptions): DeleteStateRequest;
 
 
     getMetadataMap(): jspb.Map<string, string>;
@@ -237,11 +237,11 @@ export namespace DeleteStateRequest {
 
 export class SaveStateRequest extends jspb.Message { 
     getStoreName(): string;
-    setStoreName(value: string): void;
+    setStoreName(value: string): SaveStateRequest;
 
     clearStatesList(): void;
     getStatesList(): Array<dapr_proto_common_v1_common_pb.StateItem>;
-    setStatesList(value: Array<dapr_proto_common_v1_common_pb.StateItem>): void;
+    setStatesList(value: Array<dapr_proto_common_v1_common_pb.StateItem>): SaveStateRequest;
     addStates(value?: dapr_proto_common_v1_common_pb.StateItem, index?: number): dapr_proto_common_v1_common_pb.StateItem;
 
 
@@ -264,15 +264,15 @@ export namespace SaveStateRequest {
 
 export class PublishEventRequest extends jspb.Message { 
     getPubsubName(): string;
-    setPubsubName(value: string): void;
+    setPubsubName(value: string): PublishEventRequest;
 
     getTopic(): string;
-    setTopic(value: string): void;
+    setTopic(value: string): PublishEventRequest;
 
     getData(): Uint8Array | string;
     getData_asU8(): Uint8Array;
     getData_asB64(): string;
-    setData(value: Uint8Array | string): void;
+    setData(value: Uint8Array | string): PublishEventRequest;
 
 
     serializeBinary(): Uint8Array;
@@ -295,19 +295,19 @@ export namespace PublishEventRequest {
 
 export class InvokeBindingRequest extends jspb.Message { 
     getName(): string;
-    setName(value: string): void;
+    setName(value: string): InvokeBindingRequest;
 
     getData(): Uint8Array | string;
     getData_asU8(): Uint8Array;
     getData_asB64(): string;
-    setData(value: Uint8Array | string): void;
+    setData(value: Uint8Array | string): InvokeBindingRequest;
 
 
     getMetadataMap(): jspb.Map<string, string>;
     clearMetadataMap(): void;
 
     getOperation(): string;
-    setOperation(value: string): void;
+    setOperation(value: string): InvokeBindingRequest;
 
 
     serializeBinary(): Uint8Array;
@@ -334,7 +334,7 @@ export class InvokeBindingResponse extends jspb.Message {
     getData(): Uint8Array | string;
     getData_asU8(): Uint8Array;
     getData_asB64(): string;
-    setData(value: Uint8Array | string): void;
+    setData(value: Uint8Array | string): InvokeBindingResponse;
 
 
     getMetadataMap(): jspb.Map<string, string>;
@@ -361,10 +361,10 @@ export namespace InvokeBindingResponse {
 
 export class GetSecretRequest extends jspb.Message { 
     getStoreName(): string;
-    setStoreName(value: string): void;
+    setStoreName(value: string): GetSecretRequest;
 
     getKey(): string;
-    setKey(value: string): void;
+    setKey(value: string): GetSecretRequest;
 
 
     getMetadataMap(): jspb.Map<string, string>;
@@ -415,13 +415,13 @@ export namespace GetSecretResponse {
 
 export class TransactionalStateOperation extends jspb.Message { 
     getOperationtype(): string;
-    setOperationtype(value: string): void;
+    setOperationtype(value: string): TransactionalStateOperation;
 
 
     hasRequest(): boolean;
     clearRequest(): void;
     getRequest(): dapr_proto_common_v1_common_pb.StateItem | undefined;
-    setRequest(value?: dapr_proto_common_v1_common_pb.StateItem): void;
+    setRequest(value?: dapr_proto_common_v1_common_pb.StateItem): TransactionalStateOperation;
 
 
     serializeBinary(): Uint8Array;
@@ -443,11 +443,11 @@ export namespace TransactionalStateOperation {
 
 export class ExecuteStateTransactionRequest extends jspb.Message { 
     getStorename(): string;
-    setStorename(value: string): void;
+    setStorename(value: string): ExecuteStateTransactionRequest;
 
     clearOperationsList(): void;
     getOperationsList(): Array<TransactionalStateOperation>;
-    setOperationsList(value: Array<TransactionalStateOperation>): void;
+    setOperationsList(value: Array<TransactionalStateOperation>): ExecuteStateTransactionRequest;
     addOperations(value?: TransactionalStateOperation, index?: number): TransactionalStateOperation;
 
 

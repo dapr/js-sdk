@@ -9,7 +9,7 @@ import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb"
 
 export class HTTPExtension extends jspb.Message { 
     getVerb(): HTTPExtension.Verb;
-    setVerb(value: HTTPExtension.Verb): void;
+    setVerb(value: HTTPExtension.Verb): HTTPExtension;
 
 
     getQuerystringMap(): jspb.Map<string, string>;
@@ -49,22 +49,22 @@ export namespace HTTPExtension {
 
 export class InvokeRequest extends jspb.Message { 
     getMethod(): string;
-    setMethod(value: string): void;
+    setMethod(value: string): InvokeRequest;
 
 
     hasData(): boolean;
     clearData(): void;
     getData(): google_protobuf_any_pb.Any | undefined;
-    setData(value?: google_protobuf_any_pb.Any): void;
+    setData(value?: google_protobuf_any_pb.Any): InvokeRequest;
 
     getContentType(): string;
-    setContentType(value: string): void;
+    setContentType(value: string): InvokeRequest;
 
 
     hasHttpExtension(): boolean;
     clearHttpExtension(): void;
     getHttpExtension(): HTTPExtension | undefined;
-    setHttpExtension(value?: HTTPExtension): void;
+    setHttpExtension(value?: HTTPExtension): InvokeRequest;
 
 
     serializeBinary(): Uint8Array;
@@ -91,10 +91,10 @@ export class InvokeResponse extends jspb.Message {
     hasData(): boolean;
     clearData(): void;
     getData(): google_protobuf_any_pb.Any | undefined;
-    setData(value?: google_protobuf_any_pb.Any): void;
+    setData(value?: google_protobuf_any_pb.Any): InvokeResponse;
 
     getContentType(): string;
-    setContentType(value: string): void;
+    setContentType(value: string): InvokeResponse;
 
 
     serializeBinary(): Uint8Array;
@@ -116,15 +116,15 @@ export namespace InvokeResponse {
 
 export class StateItem extends jspb.Message { 
     getKey(): string;
-    setKey(value: string): void;
+    setKey(value: string): StateItem;
 
     getValue(): Uint8Array | string;
     getValue_asU8(): Uint8Array;
     getValue_asB64(): string;
-    setValue(value: Uint8Array | string): void;
+    setValue(value: Uint8Array | string): StateItem;
 
     getEtag(): string;
-    setEtag(value: string): void;
+    setEtag(value: string): StateItem;
 
 
     getMetadataMap(): jspb.Map<string, string>;
@@ -134,7 +134,7 @@ export class StateItem extends jspb.Message {
     hasOptions(): boolean;
     clearOptions(): void;
     getOptions(): StateOptions | undefined;
-    setOptions(value?: StateOptions): void;
+    setOptions(value?: StateOptions): StateItem;
 
 
     serializeBinary(): Uint8Array;
@@ -160,10 +160,10 @@ export namespace StateItem {
 
 export class StateOptions extends jspb.Message { 
     getConcurrency(): StateOptions.StateConcurrency;
-    setConcurrency(value: StateOptions.StateConcurrency): void;
+    setConcurrency(value: StateOptions.StateConcurrency): StateOptions;
 
     getConsistency(): StateOptions.StateConsistency;
-    setConsistency(value: StateOptions.StateConsistency): void;
+    setConsistency(value: StateOptions.StateConsistency): StateOptions;
 
 
     serializeBinary(): Uint8Array;

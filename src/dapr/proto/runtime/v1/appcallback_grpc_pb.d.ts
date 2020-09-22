@@ -18,45 +18,45 @@ interface IAppCallbackService extends grpc.ServiceDefinition<grpc.UntypedService
 }
 
 interface IAppCallbackService_IOnInvoke extends grpc.MethodDefinition<dapr_proto_common_v1_common_pb.InvokeRequest, dapr_proto_common_v1_common_pb.InvokeResponse> {
-    path: string; // "/dapr.proto.runtime.v1.AppCallback/OnInvoke"
-    requestStream: boolean; // false
-    responseStream: boolean; // false
+    path: "/dapr.proto.runtime.v1.AppCallback/OnInvoke";
+    requestStream: false;
+    responseStream: false;
     requestSerialize: grpc.serialize<dapr_proto_common_v1_common_pb.InvokeRequest>;
     requestDeserialize: grpc.deserialize<dapr_proto_common_v1_common_pb.InvokeRequest>;
     responseSerialize: grpc.serialize<dapr_proto_common_v1_common_pb.InvokeResponse>;
     responseDeserialize: grpc.deserialize<dapr_proto_common_v1_common_pb.InvokeResponse>;
 }
 interface IAppCallbackService_IListTopicSubscriptions extends grpc.MethodDefinition<google_protobuf_empty_pb.Empty, dapr_proto_runtime_v1_appcallback_pb.ListTopicSubscriptionsResponse> {
-    path: string; // "/dapr.proto.runtime.v1.AppCallback/ListTopicSubscriptions"
-    requestStream: boolean; // false
-    responseStream: boolean; // false
+    path: "/dapr.proto.runtime.v1.AppCallback/ListTopicSubscriptions";
+    requestStream: false;
+    responseStream: false;
     requestSerialize: grpc.serialize<google_protobuf_empty_pb.Empty>;
     requestDeserialize: grpc.deserialize<google_protobuf_empty_pb.Empty>;
     responseSerialize: grpc.serialize<dapr_proto_runtime_v1_appcallback_pb.ListTopicSubscriptionsResponse>;
     responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_appcallback_pb.ListTopicSubscriptionsResponse>;
 }
 interface IAppCallbackService_IOnTopicEvent extends grpc.MethodDefinition<dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest, dapr_proto_runtime_v1_appcallback_pb.TopicEventResponse> {
-    path: string; // "/dapr.proto.runtime.v1.AppCallback/OnTopicEvent"
-    requestStream: boolean; // false
-    responseStream: boolean; // false
+    path: "/dapr.proto.runtime.v1.AppCallback/OnTopicEvent";
+    requestStream: false;
+    responseStream: false;
     requestSerialize: grpc.serialize<dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest>;
     requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest>;
     responseSerialize: grpc.serialize<dapr_proto_runtime_v1_appcallback_pb.TopicEventResponse>;
     responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_appcallback_pb.TopicEventResponse>;
 }
 interface IAppCallbackService_IListInputBindings extends grpc.MethodDefinition<google_protobuf_empty_pb.Empty, dapr_proto_runtime_v1_appcallback_pb.ListInputBindingsResponse> {
-    path: string; // "/dapr.proto.runtime.v1.AppCallback/ListInputBindings"
-    requestStream: boolean; // false
-    responseStream: boolean; // false
+    path: "/dapr.proto.runtime.v1.AppCallback/ListInputBindings";
+    requestStream: false;
+    responseStream: false;
     requestSerialize: grpc.serialize<google_protobuf_empty_pb.Empty>;
     requestDeserialize: grpc.deserialize<google_protobuf_empty_pb.Empty>;
     responseSerialize: grpc.serialize<dapr_proto_runtime_v1_appcallback_pb.ListInputBindingsResponse>;
     responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_appcallback_pb.ListInputBindingsResponse>;
 }
 interface IAppCallbackService_IOnBindingEvent extends grpc.MethodDefinition<dapr_proto_runtime_v1_appcallback_pb.BindingEventRequest, dapr_proto_runtime_v1_appcallback_pb.BindingEventResponse> {
-    path: string; // "/dapr.proto.runtime.v1.AppCallback/OnBindingEvent"
-    requestStream: boolean; // false
-    responseStream: boolean; // false
+    path: "/dapr.proto.runtime.v1.AppCallback/OnBindingEvent";
+    requestStream: false;
+    responseStream: false;
     requestSerialize: grpc.serialize<dapr_proto_runtime_v1_appcallback_pb.BindingEventRequest>;
     requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_appcallback_pb.BindingEventRequest>;
     responseSerialize: grpc.serialize<dapr_proto_runtime_v1_appcallback_pb.BindingEventResponse>;

@@ -22,81 +22,81 @@ interface IDaprService extends grpc.ServiceDefinition<grpc.UntypedServiceImpleme
 }
 
 interface IDaprService_IInvokeService extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.InvokeServiceRequest, dapr_proto_common_v1_common_pb.InvokeResponse> {
-    path: string; // "/dapr.proto.runtime.v1.Dapr/InvokeService"
-    requestStream: boolean; // false
-    responseStream: boolean; // false
+    path: "/dapr.proto.runtime.v1.Dapr/InvokeService";
+    requestStream: false;
+    responseStream: false;
     requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.InvokeServiceRequest>;
     requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.InvokeServiceRequest>;
     responseSerialize: grpc.serialize<dapr_proto_common_v1_common_pb.InvokeResponse>;
     responseDeserialize: grpc.deserialize<dapr_proto_common_v1_common_pb.InvokeResponse>;
 }
 interface IDaprService_IGetState extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.GetStateRequest, dapr_proto_runtime_v1_dapr_pb.GetStateResponse> {
-    path: string; // "/dapr.proto.runtime.v1.Dapr/GetState"
-    requestStream: boolean; // false
-    responseStream: boolean; // false
+    path: "/dapr.proto.runtime.v1.Dapr/GetState";
+    requestStream: false;
+    responseStream: false;
     requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.GetStateRequest>;
     requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.GetStateRequest>;
     responseSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.GetStateResponse>;
     responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.GetStateResponse>;
 }
 interface IDaprService_IGetBulkState extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.GetBulkStateRequest, dapr_proto_runtime_v1_dapr_pb.GetBulkStateResponse> {
-    path: string; // "/dapr.proto.runtime.v1.Dapr/GetBulkState"
-    requestStream: boolean; // false
-    responseStream: boolean; // false
+    path: "/dapr.proto.runtime.v1.Dapr/GetBulkState";
+    requestStream: false;
+    responseStream: false;
     requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.GetBulkStateRequest>;
     requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.GetBulkStateRequest>;
     responseSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.GetBulkStateResponse>;
     responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.GetBulkStateResponse>;
 }
 interface IDaprService_ISaveState extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.SaveStateRequest, google_protobuf_empty_pb.Empty> {
-    path: string; // "/dapr.proto.runtime.v1.Dapr/SaveState"
-    requestStream: boolean; // false
-    responseStream: boolean; // false
+    path: "/dapr.proto.runtime.v1.Dapr/SaveState";
+    requestStream: false;
+    responseStream: false;
     requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.SaveStateRequest>;
     requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.SaveStateRequest>;
     responseSerialize: grpc.serialize<google_protobuf_empty_pb.Empty>;
     responseDeserialize: grpc.deserialize<google_protobuf_empty_pb.Empty>;
 }
 interface IDaprService_IDeleteState extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.DeleteStateRequest, google_protobuf_empty_pb.Empty> {
-    path: string; // "/dapr.proto.runtime.v1.Dapr/DeleteState"
-    requestStream: boolean; // false
-    responseStream: boolean; // false
+    path: "/dapr.proto.runtime.v1.Dapr/DeleteState";
+    requestStream: false;
+    responseStream: false;
     requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.DeleteStateRequest>;
     requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.DeleteStateRequest>;
     responseSerialize: grpc.serialize<google_protobuf_empty_pb.Empty>;
     responseDeserialize: grpc.deserialize<google_protobuf_empty_pb.Empty>;
 }
 interface IDaprService_IExecuteStateTransaction extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.ExecuteStateTransactionRequest, google_protobuf_empty_pb.Empty> {
-    path: string; // "/dapr.proto.runtime.v1.Dapr/ExecuteStateTransaction"
-    requestStream: boolean; // false
-    responseStream: boolean; // false
+    path: "/dapr.proto.runtime.v1.Dapr/ExecuteStateTransaction";
+    requestStream: false;
+    responseStream: false;
     requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.ExecuteStateTransactionRequest>;
     requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.ExecuteStateTransactionRequest>;
     responseSerialize: grpc.serialize<google_protobuf_empty_pb.Empty>;
     responseDeserialize: grpc.deserialize<google_protobuf_empty_pb.Empty>;
 }
 interface IDaprService_IPublishEvent extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.PublishEventRequest, google_protobuf_empty_pb.Empty> {
-    path: string; // "/dapr.proto.runtime.v1.Dapr/PublishEvent"
-    requestStream: boolean; // false
-    responseStream: boolean; // false
+    path: "/dapr.proto.runtime.v1.Dapr/PublishEvent";
+    requestStream: false;
+    responseStream: false;
     requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.PublishEventRequest>;
     requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.PublishEventRequest>;
     responseSerialize: grpc.serialize<google_protobuf_empty_pb.Empty>;
     responseDeserialize: grpc.deserialize<google_protobuf_empty_pb.Empty>;
 }
 interface IDaprService_IInvokeBinding extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse> {
-    path: string; // "/dapr.proto.runtime.v1.Dapr/InvokeBinding"
-    requestStream: boolean; // false
-    responseStream: boolean; // false
+    path: "/dapr.proto.runtime.v1.Dapr/InvokeBinding";
+    requestStream: false;
+    responseStream: false;
     requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest>;
     requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest>;
     responseSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse>;
     responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse>;
 }
 interface IDaprService_IGetSecret extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.GetSecretRequest, dapr_proto_runtime_v1_dapr_pb.GetSecretResponse> {
-    path: string; // "/dapr.proto.runtime.v1.Dapr/GetSecret"
-    requestStream: boolean; // false
-    responseStream: boolean; // false
+    path: "/dapr.proto.runtime.v1.Dapr/GetSecret";
+    requestStream: false;
+    responseStream: false;
     requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.GetSecretRequest>;
     requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.GetSecretRequest>;
     responseSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.GetSecretResponse>;
