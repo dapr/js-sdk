@@ -16,7 +16,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      NODE_VER: 10
+      NODE_VER: 12.18.2
     steps:
     - uses: actions/checkout@v2
     - name: Use Node.js
@@ -37,7 +37,7 @@ jobs:
       run: echo "::set-env name=DEPLOY_PACKAGE::true"
       
     - name: Publish to npm
-      if: env.DEPLOY_PACKAGE == 'true'
+      #if: env.DEPLOY_PACKAGE == 'true'
       run: npm pack && npm publish --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
