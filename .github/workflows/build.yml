@@ -40,4 +40,4 @@ jobs:
       if: env.DEPLOY_PACKAGE == 'true'
       run: npm pack && npm publish --access public
       env:
-        NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
