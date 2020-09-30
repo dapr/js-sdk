@@ -1,6 +1,6 @@
 {
   "name": "dapr-client",
-  "version": "0.6.0-preview01",
+  "version": "0.7.0-preview01",
   "description": "Client for dapr, a distributed systems runtime. https://dapr.io",
   "main": "src/index.js",
   "types": "src/main.d.ts",
