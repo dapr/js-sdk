@@ -34,7 +34,7 @@ jobs:
     
     - name: Is Release?
       if: startswith(github.ref, 'refs/tags/v')
-      run: echo "::set-env name=DEPLOY_PACKAGE::true"
+      run: echo "DEPLOY_PACKAGE=true" >> $GITHUB_ENV
       
     - name: Publish to npm
       if: env.DEPLOY_PACKAGE == 'true'
