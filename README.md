@@ -2,7 +2,7 @@
 
 This is the Dapr SDK for Javascript, based on the auto-generated proto client.<br>
 
-For more info on Dapr and gRPC, visit [this link](https://github.com/dapr/docs/tree/master/howto/create-grpc-app).
+For more info on Dapr and gRPC, visit [this link](https://docs.dapr.io/operations/configuration/grpc/).
 
 This repo generates following package:
 dapr.io
