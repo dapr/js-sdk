@@ -111,6 +111,28 @@ function deserialize_dapr_proto_runtime_v1_GetStateResponse(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.GetStateResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_InvokeActorRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.InvokeActorRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.InvokeActorRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_InvokeActorRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.InvokeActorRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_InvokeActorResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.InvokeActorResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.InvokeActorResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_InvokeActorResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.InvokeActorResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_InvokeBindingRequest(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.InvokeBindingRequest');
@@ -155,6 +177,17 @@ function deserialize_dapr_proto_runtime_v1_PublishEventRequest(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.PublishEventRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_RegisterActorTimerRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.RegisterActorTimerRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.RegisterActorTimerRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_RegisterActorTimerRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.RegisterActorTimerRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_SaveStateRequest(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SaveStateRequest)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.SaveStateRequest');
@@ -164,6 +197,17 @@ function serialize_dapr_proto_runtime_v1_SaveStateRequest(arg) {
 
 function deserialize_dapr_proto_runtime_v1_SaveStateRequest(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.SaveStateRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_UnregisterActorTimerRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.UnregisterActorTimerRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.UnregisterActorTimerRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_UnregisterActorTimerRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.UnregisterActorTimerRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_google_protobuf_Empty(arg) {
@@ -287,6 +331,42 @@ getSecret: {
     requestDeserialize: deserialize_dapr_proto_runtime_v1_GetSecretRequest,
     responseSerialize: serialize_dapr_proto_runtime_v1_GetSecretResponse,
     responseDeserialize: deserialize_dapr_proto_runtime_v1_GetSecretResponse,
+  },
+  // Register an actor timer.
+registerActorTimer: {
+    path: '/dapr.proto.runtime.v1.Dapr/RegisterActorTimer',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.RegisterActorTimerRequest,
+    responseType: google_protobuf_empty_pb.Empty,
+    requestSerialize: serialize_dapr_proto_runtime_v1_RegisterActorTimerRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_RegisterActorTimerRequest,
+    responseSerialize: serialize_google_protobuf_Empty,
+    responseDeserialize: deserialize_google_protobuf_Empty,
+  },
+  // Unregister an actor timer.
+unregisterActorTimer: {
+    path: '/dapr.proto.runtime.v1.Dapr/UnregisterActorTimer',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.UnregisterActorTimerRequest,
+    responseType: google_protobuf_empty_pb.Empty,
+    requestSerialize: serialize_dapr_proto_runtime_v1_UnregisterActorTimerRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_UnregisterActorTimerRequest,
+    responseSerialize: serialize_google_protobuf_Empty,
+    responseDeserialize: deserialize_google_protobuf_Empty,
+  },
+  // InvokeActor calls a method on an actor.
+invokeActor: {
+    path: '/dapr.proto.runtime.v1.Dapr/InvokeActor',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.InvokeActorRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.InvokeActorResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_InvokeActorRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_InvokeActorRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_InvokeActorResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_InvokeActorResponse,
   },
 };
 
