@@ -19,6 +19,9 @@ interface IDaprService extends grpc.ServiceDefinition<grpc.UntypedServiceImpleme
     publishEvent: IDaprService_IPublishEvent;
     invokeBinding: IDaprService_IInvokeBinding;
     getSecret: IDaprService_IGetSecret;
+    registerActorTimer: IDaprService_IRegisterActorTimer;
+    unregisterActorTimer: IDaprService_IUnregisterActorTimer;
+    invokeActor: IDaprService_IInvokeActor;
 }
 
 interface IDaprService_IInvokeService extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.InvokeServiceRequest, dapr_proto_common_v1_common_pb.InvokeResponse> {
@@ -102,6 +105,33 @@ interface IDaprService_IGetSecret extends grpc.MethodDefinition<dapr_proto_runti
     responseSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.GetSecretResponse>;
     responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.GetSecretResponse>;
 }
+interface IDaprService_IRegisterActorTimer extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.RegisterActorTimerRequest, google_protobuf_empty_pb.Empty> {
+    path: "/dapr.proto.runtime.v1.Dapr/RegisterActorTimer";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.RegisterActorTimerRequest>;
+    requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.RegisterActorTimerRequest>;
+    responseSerialize: grpc.serialize<google_protobuf_empty_pb.Empty>;
+    responseDeserialize: grpc.deserialize<google_protobuf_empty_pb.Empty>;
+}
+interface IDaprService_IUnregisterActorTimer extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.UnregisterActorTimerRequest, google_protobuf_empty_pb.Empty> {
+    path: "/dapr.proto.runtime.v1.Dapr/UnregisterActorTimer";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.UnregisterActorTimerRequest>;
+    requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.UnregisterActorTimerRequest>;
+    responseSerialize: grpc.serialize<google_protobuf_empty_pb.Empty>;
+    responseDeserialize: grpc.deserialize<google_protobuf_empty_pb.Empty>;
+}
+interface IDaprService_IInvokeActor extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.InvokeActorRequest, dapr_proto_runtime_v1_dapr_pb.InvokeActorResponse> {
+    path: "/dapr.proto.runtime.v1.Dapr/InvokeActor";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.InvokeActorRequest>;
+    requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.InvokeActorRequest>;
+    responseSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.InvokeActorResponse>;
+    responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.InvokeActorResponse>;
+}
 
 export const DaprService: IDaprService;
 
@@ -115,6 +145,9 @@ export interface IDaprServer {
     publishEvent: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.PublishEventRequest, google_protobuf_empty_pb.Empty>;
     invokeBinding: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse>;
     getSecret: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.GetSecretRequest, dapr_proto_runtime_v1_dapr_pb.GetSecretResponse>;
+    registerActorTimer: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.RegisterActorTimerRequest, google_protobuf_empty_pb.Empty>;
+    unregisterActorTimer: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.UnregisterActorTimerRequest, google_protobuf_empty_pb.Empty>;
+    invokeActor: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.InvokeActorRequest, dapr_proto_runtime_v1_dapr_pb.InvokeActorResponse>;
 }
 
 export interface IDaprClient {
@@ -145,6 +178,15 @@ export interface IDaprClient {
     getSecret(request: dapr_proto_runtime_v1_dapr_pb.GetSecretRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetSecretResponse) => void): grpc.ClientUnaryCall;
     getSecret(request: dapr_proto_runtime_v1_dapr_pb.GetSecretRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetSecretResponse) => void): grpc.ClientUnaryCall;
     getSecret(request: dapr_proto_runtime_v1_dapr_pb.GetSecretRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetSecretResponse) => void): grpc.ClientUnaryCall;
+    registerActorTimer(request: dapr_proto_runtime_v1_dapr_pb.RegisterActorTimerRequest, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
+    registerActorTimer(request: dapr_proto_runtime_v1_dapr_pb.RegisterActorTimerRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
+    registerActorTimer(request: dapr_proto_runtime_v1_dapr_pb.RegisterActorTimerRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
+    unregisterActorTimer(request: dapr_proto_runtime_v1_dapr_pb.UnregisterActorTimerRequest, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
+    unregisterActorTimer(request: dapr_proto_runtime_v1_dapr_pb.UnregisterActorTimerRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
+    unregisterActorTimer(request: dapr_proto_runtime_v1_dapr_pb.UnregisterActorTimerRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
+    invokeActor(request: dapr_proto_runtime_v1_dapr_pb.InvokeActorRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.InvokeActorResponse) => void): grpc.ClientUnaryCall;
+    invokeActor(request: dapr_proto_runtime_v1_dapr_pb.InvokeActorRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.InvokeActorResponse) => void): grpc.ClientUnaryCall;
+    invokeActor(request: dapr_proto_runtime_v1_dapr_pb.InvokeActorRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.InvokeActorResponse) => void): grpc.ClientUnaryCall;
 }
 
 export class DaprClient extends grpc.Client implements IDaprClient {
@@ -176,4 +218,13 @@ export class DaprClient extends grpc.Client implements IDaprClient {
     public getSecret(request: dapr_proto_runtime_v1_dapr_pb.GetSecretRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetSecretResponse) => void): grpc.ClientUnaryCall;
     public getSecret(request: dapr_proto_runtime_v1_dapr_pb.GetSecretRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetSecretResponse) => void): grpc.ClientUnaryCall;
     public getSecret(request: dapr_proto_runtime_v1_dapr_pb.GetSecretRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetSecretResponse) => void): grpc.ClientUnaryCall;
+    public registerActorTimer(request: dapr_proto_runtime_v1_dapr_pb.RegisterActorTimerRequest, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
+    public registerActorTimer(request: dapr_proto_runtime_v1_dapr_pb.RegisterActorTimerRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
+    public registerActorTimer(request: dapr_proto_runtime_v1_dapr_pb.RegisterActorTimerRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
+    public unregisterActorTimer(request: dapr_proto_runtime_v1_dapr_pb.UnregisterActorTimerRequest, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
+    public unregisterActorTimer(request: dapr_proto_runtime_v1_dapr_pb.UnregisterActorTimerRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
+    public unregisterActorTimer(request: dapr_proto_runtime_v1_dapr_pb.UnregisterActorTimerRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
+    public invokeActor(request: dapr_proto_runtime_v1_dapr_pb.InvokeActorRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.InvokeActorResponse) => void): grpc.ClientUnaryCall;
+    public invokeActor(request: dapr_proto_runtime_v1_dapr_pb.InvokeActorRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.InvokeActorResponse) => void): grpc.ClientUnaryCall;
+    public invokeActor(request: dapr_proto_runtime_v1_dapr_pb.InvokeActorRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.InvokeActorResponse) => void): grpc.ClientUnaryCall;
 }

@@ -473,3 +473,137 @@ export namespace ExecuteStateTransactionRequest {
         metadataMap: Array<[string, string]>,
     }
 }
+
+export class RegisterActorTimerRequest extends jspb.Message { 
+    getActorType(): string;
+    setActorType(value: string): RegisterActorTimerRequest;
+
+    getActorId(): string;
+    setActorId(value: string): RegisterActorTimerRequest;
+
+    getName(): string;
+    setName(value: string): RegisterActorTimerRequest;
+
+    getDueTime(): string;
+    setDueTime(value: string): RegisterActorTimerRequest;
+
+    getPeriod(): string;
+    setPeriod(value: string): RegisterActorTimerRequest;
+
+    getCallback(): string;
+    setCallback(value: string): RegisterActorTimerRequest;
+
+    getData(): Uint8Array | string;
+    getData_asU8(): Uint8Array;
+    getData_asB64(): string;
+    setData(value: Uint8Array | string): RegisterActorTimerRequest;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): RegisterActorTimerRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: RegisterActorTimerRequest): RegisterActorTimerRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: RegisterActorTimerRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): RegisterActorTimerRequest;
+    static deserializeBinaryFromReader(message: RegisterActorTimerRequest, reader: jspb.BinaryReader): RegisterActorTimerRequest;
+}
+
+export namespace RegisterActorTimerRequest {
+    export type AsObject = {
+        actorType: string,
+        actorId: string,
+        name: string,
+        dueTime: string,
+        period: string,
+        callback: string,
+        data: Uint8Array | string,
+    }
+}
+
+export class UnregisterActorTimerRequest extends jspb.Message { 
+    getActorType(): string;
+    setActorType(value: string): UnregisterActorTimerRequest;
+
+    getActorId(): string;
+    setActorId(value: string): UnregisterActorTimerRequest;
+
+    getName(): string;
+    setName(value: string): UnregisterActorTimerRequest;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): UnregisterActorTimerRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: UnregisterActorTimerRequest): UnregisterActorTimerRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: UnregisterActorTimerRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): UnregisterActorTimerRequest;
+    static deserializeBinaryFromReader(message: UnregisterActorTimerRequest, reader: jspb.BinaryReader): UnregisterActorTimerRequest;
+}
+
+export namespace UnregisterActorTimerRequest {
+    export type AsObject = {
+        actorType: string,
+        actorId: string,
+        name: string,
+    }
+}
+
+export class InvokeActorRequest extends jspb.Message { 
+    getActorType(): string;
+    setActorType(value: string): InvokeActorRequest;
+
+    getActorId(): string;
+    setActorId(value: string): InvokeActorRequest;
+
+    getMethod(): string;
+    setMethod(value: string): InvokeActorRequest;
+
+    getData(): Uint8Array | string;
+    getData_asU8(): Uint8Array;
+    getData_asB64(): string;
+    setData(value: Uint8Array | string): InvokeActorRequest;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): InvokeActorRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: InvokeActorRequest): InvokeActorRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: InvokeActorRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): InvokeActorRequest;
+    static deserializeBinaryFromReader(message: InvokeActorRequest, reader: jspb.BinaryReader): InvokeActorRequest;
+}
+
+export namespace InvokeActorRequest {
+    export type AsObject = {
+        actorType: string,
+        actorId: string,
+        method: string,
+        data: Uint8Array | string,
+    }
+}
+
+export class InvokeActorResponse extends jspb.Message { 
+    getData(): Uint8Array | string;
+    getData_asU8(): Uint8Array;
+    getData_asB64(): string;
+    setData(value: Uint8Array | string): InvokeActorResponse;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): InvokeActorResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: InvokeActorResponse): InvokeActorResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: InvokeActorResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): InvokeActorResponse;
+    static deserializeBinaryFromReader(message: InvokeActorResponse, reader: jspb.BinaryReader): InvokeActorResponse;
+}
+
+export namespace InvokeActorResponse {
+    export type AsObject = {
+        data: Uint8Array | string,
+    }
+}
