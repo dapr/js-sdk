@@ -5,6 +5,7 @@
 /* eslint-disable */
 
 import * as jspb from "google-protobuf";
+import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb";
 import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
 import * as dapr_proto_common_v1_common_pb from "../../../../dapr/proto/common/v1/common_pb";
 
@@ -147,6 +148,10 @@ export class BulkStateItem extends jspb.Message {
     setError(value: string): BulkStateItem;
 
 
+    getMetadataMap(): jspb.Map<string, string>;
+    clearMetadataMap(): void;
+
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): BulkStateItem.AsObject;
     static toObject(includeInstance: boolean, msg: BulkStateItem): BulkStateItem.AsObject;
@@ -163,6 +168,8 @@ export namespace BulkStateItem {
         data: Uint8Array | string,
         etag: string,
         error: string,
+
+        metadataMap: Array<[string, string]>,
     }
 }
 
@@ -174,6 +181,10 @@ export class GetStateResponse extends jspb.Message {
 
     getEtag(): string;
     setEtag(value: string): GetStateResponse;
+
+
+    getMetadataMap(): jspb.Map<string, string>;
+    clearMetadataMap(): void;
 
 
     serializeBinary(): Uint8Array;
@@ -190,6 +201,8 @@ export namespace GetStateResponse {
     export type AsObject = {
         data: Uint8Array | string,
         etag: string,
+
+        metadataMap: Array<[string, string]>,
     }
 }
 
@@ -274,6 +287,13 @@ export class PublishEventRequest extends jspb.Message {
     getData_asB64(): string;
     setData(value: Uint8Array | string): PublishEventRequest;
 
+    getDataContentType(): string;
+    setDataContentType(value: string): PublishEventRequest;
+
+
+    getMetadataMap(): jspb.Map<string, string>;
+    clearMetadataMap(): void;
+
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): PublishEventRequest.AsObject;
@@ -290,6 +310,9 @@ export namespace PublishEventRequest {
         pubsubName: string,
         topic: string,
         data: Uint8Array | string,
+        dataContentType: string,
+
+        metadataMap: Array<[string, string]>,
     }
 }
 
@@ -407,6 +430,56 @@ export class GetSecretResponse extends jspb.Message {
 }
 
 export namespace GetSecretResponse {
+    export type AsObject = {
+
+        dataMap: Array<[string, string]>,
+    }
+}
+
+export class GetBulkSecretRequest extends jspb.Message { 
+    getStoreName(): string;
+    setStoreName(value: string): GetBulkSecretRequest;
+
+
+    getMetadataMap(): jspb.Map<string, string>;
+    clearMetadataMap(): void;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetBulkSecretRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: GetBulkSecretRequest): GetBulkSecretRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetBulkSecretRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetBulkSecretRequest;
+    static deserializeBinaryFromReader(message: GetBulkSecretRequest, reader: jspb.BinaryReader): GetBulkSecretRequest;
+}
+
+export namespace GetBulkSecretRequest {
+    export type AsObject = {
+        storeName: string,
+
+        metadataMap: Array<[string, string]>,
+    }
+}
+
+export class GetBulkSecretResponse extends jspb.Message { 
+
+    getDataMap(): jspb.Map<string, string>;
+    clearDataMap(): void;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetBulkSecretResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: GetBulkSecretResponse): GetBulkSecretResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetBulkSecretResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetBulkSecretResponse;
+    static deserializeBinaryFromReader(message: GetBulkSecretResponse, reader: jspb.BinaryReader): GetBulkSecretResponse;
+}
+
+export namespace GetBulkSecretResponse {
     export type AsObject = {
 
         dataMap: Array<[string, string]>,
@@ -547,6 +620,193 @@ export namespace UnregisterActorTimerRequest {
         actorType: string,
         actorId: string,
         name: string,
+    }
+}
+
+export class RegisterActorReminderRequest extends jspb.Message { 
+    getActorType(): string;
+    setActorType(value: string): RegisterActorReminderRequest;
+
+    getActorId(): string;
+    setActorId(value: string): RegisterActorReminderRequest;
+
+    getName(): string;
+    setName(value: string): RegisterActorReminderRequest;
+
+    getDueTime(): string;
+    setDueTime(value: string): RegisterActorReminderRequest;
+
+    getPeriod(): string;
+    setPeriod(value: string): RegisterActorReminderRequest;
+
+    getData(): Uint8Array | string;
+    getData_asU8(): Uint8Array;
+    getData_asB64(): string;
+    setData(value: Uint8Array | string): RegisterActorReminderRequest;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): RegisterActorReminderRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: RegisterActorReminderRequest): RegisterActorReminderRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: RegisterActorReminderRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): RegisterActorReminderRequest;
+    static deserializeBinaryFromReader(message: RegisterActorReminderRequest, reader: jspb.BinaryReader): RegisterActorReminderRequest;
+}
+
+export namespace RegisterActorReminderRequest {
+    export type AsObject = {
+        actorType: string,
+        actorId: string,
+        name: string,
+        dueTime: string,
+        period: string,
+        data: Uint8Array | string,
+    }
+}
+
+export class UnregisterActorReminderRequest extends jspb.Message { 
+    getActorType(): string;
+    setActorType(value: string): UnregisterActorReminderRequest;
+
+    getActorId(): string;
+    setActorId(value: string): UnregisterActorReminderRequest;
+
+    getName(): string;
+    setName(value: string): UnregisterActorReminderRequest;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): UnregisterActorReminderRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: UnregisterActorReminderRequest): UnregisterActorReminderRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: UnregisterActorReminderRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): UnregisterActorReminderRequest;
+    static deserializeBinaryFromReader(message: UnregisterActorReminderRequest, reader: jspb.BinaryReader): UnregisterActorReminderRequest;
+}
+
+export namespace UnregisterActorReminderRequest {
+    export type AsObject = {
+        actorType: string,
+        actorId: string,
+        name: string,
+    }
+}
+
+export class GetActorStateRequest extends jspb.Message { 
+    getActorType(): string;
+    setActorType(value: string): GetActorStateRequest;
+
+    getActorId(): string;
+    setActorId(value: string): GetActorStateRequest;
+
+    getKey(): string;
+    setKey(value: string): GetActorStateRequest;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetActorStateRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: GetActorStateRequest): GetActorStateRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetActorStateRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetActorStateRequest;
+    static deserializeBinaryFromReader(message: GetActorStateRequest, reader: jspb.BinaryReader): GetActorStateRequest;
+}
+
+export namespace GetActorStateRequest {
+    export type AsObject = {
+        actorType: string,
+        actorId: string,
+        key: string,
+    }
+}
+
+export class GetActorStateResponse extends jspb.Message { 
+    getData(): Uint8Array | string;
+    getData_asU8(): Uint8Array;
+    getData_asB64(): string;
+    setData(value: Uint8Array | string): GetActorStateResponse;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetActorStateResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: GetActorStateResponse): GetActorStateResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetActorStateResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetActorStateResponse;
+    static deserializeBinaryFromReader(message: GetActorStateResponse, reader: jspb.BinaryReader): GetActorStateResponse;
+}
+
+export namespace GetActorStateResponse {
+    export type AsObject = {
+        data: Uint8Array | string,
+    }
+}
+
+export class ExecuteActorStateTransactionRequest extends jspb.Message { 
+    getActorType(): string;
+    setActorType(value: string): ExecuteActorStateTransactionRequest;
+
+    getActorId(): string;
+    setActorId(value: string): ExecuteActorStateTransactionRequest;
+
+    clearOperationsList(): void;
+    getOperationsList(): Array<TransactionalActorStateOperation>;
+    setOperationsList(value: Array<TransactionalActorStateOperation>): ExecuteActorStateTransactionRequest;
+    addOperations(value?: TransactionalActorStateOperation, index?: number): TransactionalActorStateOperation;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ExecuteActorStateTransactionRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: ExecuteActorStateTransactionRequest): ExecuteActorStateTransactionRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ExecuteActorStateTransactionRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ExecuteActorStateTransactionRequest;
+    static deserializeBinaryFromReader(message: ExecuteActorStateTransactionRequest, reader: jspb.BinaryReader): ExecuteActorStateTransactionRequest;
+}
+
+export namespace ExecuteActorStateTransactionRequest {
+    export type AsObject = {
+        actorType: string,
+        actorId: string,
+        operationsList: Array<TransactionalActorStateOperation.AsObject>,
+    }
+}
+
+export class TransactionalActorStateOperation extends jspb.Message { 
+    getOperationtype(): string;
+    setOperationtype(value: string): TransactionalActorStateOperation;
+
+    getKey(): string;
+    setKey(value: string): TransactionalActorStateOperation;
+
+
+    hasValue(): boolean;
+    clearValue(): void;
+    getValue(): google_protobuf_any_pb.Any | undefined;
+    setValue(value?: google_protobuf_any_pb.Any): TransactionalActorStateOperation;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): TransactionalActorStateOperation.AsObject;
+    static toObject(includeInstance: boolean, msg: TransactionalActorStateOperation): TransactionalActorStateOperation.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: TransactionalActorStateOperation, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): TransactionalActorStateOperation;
+    static deserializeBinaryFromReader(message: TransactionalActorStateOperation, reader: jspb.BinaryReader): TransactionalActorStateOperation;
+}
+
+export namespace TransactionalActorStateOperation {
+    export type AsObject = {
+        operationtype: string,
+        key: string,
+        value?: google_protobuf_any_pb.Any.AsObject,
     }
 }
 
