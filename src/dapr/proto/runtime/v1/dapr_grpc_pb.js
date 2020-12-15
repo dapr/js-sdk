@@ -9,6 +9,7 @@
 'use strict';
 var grpc = require('grpc');
 var dapr_proto_runtime_v1_dapr_pb = require('../../../../dapr/proto/runtime/v1/dapr_pb.js');
+var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js');
 var google_protobuf_empty_pb = require('google-protobuf/google/protobuf/empty_pb.js');
 var dapr_proto_common_v1_common_pb = require('../../../../dapr/proto/common/v1/common_pb.js');
 
@@ -34,6 +35,17 @@ function deserialize_dapr_proto_runtime_v1_DeleteStateRequest(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.DeleteStateRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_ExecuteActorStateTransactionRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.ExecuteActorStateTransactionRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.ExecuteActorStateTransactionRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_ExecuteActorStateTransactionRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.ExecuteActorStateTransactionRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_ExecuteStateTransactionRequest(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.ExecuteStateTransactionRequest)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.ExecuteStateTransactionRequest');
@@ -43,6 +55,50 @@ function serialize_dapr_proto_runtime_v1_ExecuteStateTransactionRequest(arg) {
 
 function deserialize_dapr_proto_runtime_v1_ExecuteStateTransactionRequest(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.ExecuteStateTransactionRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_GetActorStateRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.GetActorStateRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.GetActorStateRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_GetActorStateRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.GetActorStateRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_GetActorStateResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.GetActorStateResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.GetActorStateResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_GetActorStateResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.GetActorStateResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_GetBulkSecretRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.GetBulkSecretRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.GetBulkSecretRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_GetBulkSecretRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.GetBulkSecretRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_GetBulkSecretResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.GetBulkSecretResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.GetBulkSecretResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_GetBulkSecretResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.GetBulkSecretResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_dapr_proto_runtime_v1_GetBulkStateRequest(arg) {
@@ -177,6 +233,17 @@ function deserialize_dapr_proto_runtime_v1_PublishEventRequest(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.PublishEventRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_RegisterActorReminderRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.RegisterActorReminderRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.RegisterActorReminderRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_RegisterActorReminderRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.RegisterActorReminderRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_RegisterActorTimerRequest(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.RegisterActorTimerRequest)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.RegisterActorTimerRequest');
@@ -197,6 +264,17 @@ function serialize_dapr_proto_runtime_v1_SaveStateRequest(arg) {
 
 function deserialize_dapr_proto_runtime_v1_SaveStateRequest(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.SaveStateRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_UnregisterActorReminderRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.UnregisterActorReminderRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.UnregisterActorReminderRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_UnregisterActorReminderRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.UnregisterActorReminderRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_dapr_proto_runtime_v1_UnregisterActorTimerRequest(arg) {
@@ -332,6 +410,18 @@ getSecret: {
     responseSerialize: serialize_dapr_proto_runtime_v1_GetSecretResponse,
     responseDeserialize: deserialize_dapr_proto_runtime_v1_GetSecretResponse,
   },
+  // Gets a bulk of secrets
+getBulkSecret: {
+    path: '/dapr.proto.runtime.v1.Dapr/GetBulkSecret',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.GetBulkSecretRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.GetBulkSecretResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_GetBulkSecretRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_GetBulkSecretRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_GetBulkSecretResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_GetBulkSecretResponse,
+  },
   // Register an actor timer.
 registerActorTimer: {
     path: '/dapr.proto.runtime.v1.Dapr/RegisterActorTimer',
@@ -353,6 +443,54 @@ unregisterActorTimer: {
     responseType: google_protobuf_empty_pb.Empty,
     requestSerialize: serialize_dapr_proto_runtime_v1_UnregisterActorTimerRequest,
     requestDeserialize: deserialize_dapr_proto_runtime_v1_UnregisterActorTimerRequest,
+    responseSerialize: serialize_google_protobuf_Empty,
+    responseDeserialize: deserialize_google_protobuf_Empty,
+  },
+  // Register an actor reminder.
+registerActorReminder: {
+    path: '/dapr.proto.runtime.v1.Dapr/RegisterActorReminder',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.RegisterActorReminderRequest,
+    responseType: google_protobuf_empty_pb.Empty,
+    requestSerialize: serialize_dapr_proto_runtime_v1_RegisterActorReminderRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_RegisterActorReminderRequest,
+    responseSerialize: serialize_google_protobuf_Empty,
+    responseDeserialize: deserialize_google_protobuf_Empty,
+  },
+  // Unregister an actor reminder.
+unregisterActorReminder: {
+    path: '/dapr.proto.runtime.v1.Dapr/UnregisterActorReminder',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.UnregisterActorReminderRequest,
+    responseType: google_protobuf_empty_pb.Empty,
+    requestSerialize: serialize_dapr_proto_runtime_v1_UnregisterActorReminderRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_UnregisterActorReminderRequest,
+    responseSerialize: serialize_google_protobuf_Empty,
+    responseDeserialize: deserialize_google_protobuf_Empty,
+  },
+  // Gets the state for a specific actor.
+getActorState: {
+    path: '/dapr.proto.runtime.v1.Dapr/GetActorState',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.GetActorStateRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.GetActorStateResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_GetActorStateRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_GetActorStateRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_GetActorStateResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_GetActorStateResponse,
+  },
+  // Executes state transactions for a specified actor
+executeActorStateTransaction: {
+    path: '/dapr.proto.runtime.v1.Dapr/ExecuteActorStateTransaction',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.ExecuteActorStateTransactionRequest,
+    responseType: google_protobuf_empty_pb.Empty,
+    requestSerialize: serialize_dapr_proto_runtime_v1_ExecuteActorStateTransactionRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_ExecuteActorStateTransactionRequest,
     responseSerialize: serialize_google_protobuf_Empty,
     responseDeserialize: deserialize_google_protobuf_Empty,
   },

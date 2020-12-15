@@ -14,6 +14,8 @@ var client = new dapr_grpc.DaprClient(
 var event = new dapr_pb.PublishEventRequest();
 event.setTopic('sith');
 event.setPubsubName('pubsub');
+event.setDataContentType('text/plain');
+event.getMetadataMap().set('key', 'value');
 
 const data = Buffer.from('lala');
 event.setData(data);
@@ -108,5 +110,3 @@ client.saveState(stateReq, (err, res) => {
         });
     }
 });
-
-
