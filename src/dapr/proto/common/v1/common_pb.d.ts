@@ -123,8 +123,11 @@ export class StateItem extends jspb.Message {
     getValue_asB64(): string;
     setValue(value: Uint8Array | string): StateItem;
 
-    getEtag(): string;
-    setEtag(value: string): StateItem;
+
+    hasEtag(): boolean;
+    clearEtag(): void;
+    getEtag(): Etag | undefined;
+    setEtag(value?: Etag): StateItem;
 
 
     getMetadataMap(): jspb.Map<string, string>;
@@ -151,10 +154,31 @@ export namespace StateItem {
     export type AsObject = {
         key: string,
         value: Uint8Array | string,
-        etag: string,
+        etag?: Etag.AsObject,
 
         metadataMap: Array<[string, string]>,
         options?: StateOptions.AsObject,
+    }
+}
+
+export class Etag extends jspb.Message { 
+    getValue(): string;
+    setValue(value: string): Etag;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): Etag.AsObject;
+    static toObject(includeInstance: boolean, msg: Etag): Etag.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: Etag, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Etag;
+    static deserializeBinaryFromReader(message: Etag, reader: jspb.BinaryReader): Etag;
+}
+
+export namespace Etag {
+    export type AsObject = {
+        value: string,
     }
 }
 
