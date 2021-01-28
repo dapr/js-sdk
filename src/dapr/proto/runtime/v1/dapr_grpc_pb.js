@@ -24,6 +24,17 @@ function deserialize_dapr_proto_common_v1_InvokeResponse(buffer_arg) {
   return dapr_proto_common_v1_common_pb.InvokeResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_DeleteBulkStateRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.DeleteBulkStateRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.DeleteBulkStateRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_DeleteBulkStateRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.DeleteBulkStateRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_DeleteStateRequest(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.DeleteStateRequest)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.DeleteStateRequest');
@@ -121,6 +132,17 @@ function serialize_dapr_proto_runtime_v1_GetBulkStateResponse(arg) {
 
 function deserialize_dapr_proto_runtime_v1_GetBulkStateResponse(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.GetBulkStateResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_GetMetadataResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.GetMetadataResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.GetMetadataResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_GetMetadataResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.GetMetadataResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_dapr_proto_runtime_v1_GetSecretRequest(arg) {
@@ -266,6 +288,17 @@ function deserialize_dapr_proto_runtime_v1_SaveStateRequest(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.SaveStateRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_SetMetadataRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SetMetadataRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.SetMetadataRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_SetMetadataRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.SetMetadataRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_UnregisterActorReminderRequest(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.UnregisterActorReminderRequest)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.UnregisterActorReminderRequest');
@@ -359,6 +392,18 @@ deleteState: {
     responseType: google_protobuf_empty_pb.Empty,
     requestSerialize: serialize_dapr_proto_runtime_v1_DeleteStateRequest,
     requestDeserialize: deserialize_dapr_proto_runtime_v1_DeleteStateRequest,
+    responseSerialize: serialize_google_protobuf_Empty,
+    responseDeserialize: deserialize_google_protobuf_Empty,
+  },
+  // Deletes a bulk of state items for a list of keys
+deleteBulkState: {
+    path: '/dapr.proto.runtime.v1.Dapr/DeleteBulkState',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.DeleteBulkStateRequest,
+    responseType: google_protobuf_empty_pb.Empty,
+    requestSerialize: serialize_dapr_proto_runtime_v1_DeleteBulkStateRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_DeleteBulkStateRequest,
     responseSerialize: serialize_google_protobuf_Empty,
     responseDeserialize: deserialize_google_protobuf_Empty,
   },
@@ -505,6 +550,30 @@ invokeActor: {
     requestDeserialize: deserialize_dapr_proto_runtime_v1_InvokeActorRequest,
     responseSerialize: serialize_dapr_proto_runtime_v1_InvokeActorResponse,
     responseDeserialize: deserialize_dapr_proto_runtime_v1_InvokeActorResponse,
+  },
+  // Gets metadata of the sidecar
+getMetadata: {
+    path: '/dapr.proto.runtime.v1.Dapr/GetMetadata',
+    requestStream: false,
+    responseStream: false,
+    requestType: google_protobuf_empty_pb.Empty,
+    responseType: dapr_proto_runtime_v1_dapr_pb.GetMetadataResponse,
+    requestSerialize: serialize_google_protobuf_Empty,
+    requestDeserialize: deserialize_google_protobuf_Empty,
+    responseSerialize: serialize_dapr_proto_runtime_v1_GetMetadataResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_GetMetadataResponse,
+  },
+  // Sets value in extended metadata of the sidecar
+setMetadata: {
+    path: '/dapr.proto.runtime.v1.Dapr/SetMetadata',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.SetMetadataRequest,
+    responseType: google_protobuf_empty_pb.Empty,
+    requestSerialize: serialize_dapr_proto_runtime_v1_SetMetadataRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_SetMetadataRequest,
+    responseSerialize: serialize_google_protobuf_Empty,
+    responseDeserialize: deserialize_google_protobuf_Empty,
   },
 };
 

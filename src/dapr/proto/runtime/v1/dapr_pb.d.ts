@@ -213,8 +213,11 @@ export class DeleteStateRequest extends jspb.Message {
     getKey(): string;
     setKey(value: string): DeleteStateRequest;
 
-    getEtag(): string;
-    setEtag(value: string): DeleteStateRequest;
+
+    hasEtag(): boolean;
+    clearEtag(): void;
+    getEtag(): dapr_proto_common_v1_common_pb.Etag | undefined;
+    setEtag(value?: dapr_proto_common_v1_common_pb.Etag): DeleteStateRequest;
 
 
     hasOptions(): boolean;
@@ -241,10 +244,37 @@ export namespace DeleteStateRequest {
     export type AsObject = {
         storeName: string,
         key: string,
-        etag: string,
+        etag?: dapr_proto_common_v1_common_pb.Etag.AsObject,
         options?: dapr_proto_common_v1_common_pb.StateOptions.AsObject,
 
         metadataMap: Array<[string, string]>,
+    }
+}
+
+export class DeleteBulkStateRequest extends jspb.Message { 
+    getStoreName(): string;
+    setStoreName(value: string): DeleteBulkStateRequest;
+
+    clearStatesList(): void;
+    getStatesList(): Array<dapr_proto_common_v1_common_pb.StateItem>;
+    setStatesList(value: Array<dapr_proto_common_v1_common_pb.StateItem>): DeleteBulkStateRequest;
+    addStates(value?: dapr_proto_common_v1_common_pb.StateItem, index?: number): dapr_proto_common_v1_common_pb.StateItem;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): DeleteBulkStateRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: DeleteBulkStateRequest): DeleteBulkStateRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: DeleteBulkStateRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): DeleteBulkStateRequest;
+    static deserializeBinaryFromReader(message: DeleteBulkStateRequest, reader: jspb.BinaryReader): DeleteBulkStateRequest;
+}
+
+export namespace DeleteBulkStateRequest {
+    export type AsObject = {
+        storeName: string,
+        statesList: Array<dapr_proto_common_v1_common_pb.StateItem.AsObject>,
     }
 }
 
@@ -463,9 +493,32 @@ export namespace GetBulkSecretRequest {
     }
 }
 
+export class SecretResponse extends jspb.Message { 
+
+    getSecretsMap(): jspb.Map<string, string>;
+    clearSecretsMap(): void;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): SecretResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: SecretResponse): SecretResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: SecretResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): SecretResponse;
+    static deserializeBinaryFromReader(message: SecretResponse, reader: jspb.BinaryReader): SecretResponse;
+}
+
+export namespace SecretResponse {
+    export type AsObject = {
+
+        secretsMap: Array<[string, string]>,
+    }
+}
+
 export class GetBulkSecretResponse extends jspb.Message { 
 
-    getDataMap(): jspb.Map<string, string>;
+    getDataMap(): jspb.Map<string, SecretResponse>;
     clearDataMap(): void;
 
 
@@ -482,7 +535,7 @@ export class GetBulkSecretResponse extends jspb.Message {
 export namespace GetBulkSecretResponse {
     export type AsObject = {
 
-        dataMap: Array<[string, string]>,
+        dataMap: Array<[string, SecretResponse.AsObject]>,
     }
 }
 
@@ -865,5 +918,123 @@ export class InvokeActorResponse extends jspb.Message {
 export namespace InvokeActorResponse {
     export type AsObject = {
         data: Uint8Array | string,
+    }
+}
+
+export class GetMetadataResponse extends jspb.Message { 
+    getId(): string;
+    setId(value: string): GetMetadataResponse;
+
+    clearActiveActorsCountList(): void;
+    getActiveActorsCountList(): Array<ActiveActorsCount>;
+    setActiveActorsCountList(value: Array<ActiveActorsCount>): GetMetadataResponse;
+    addActiveActorsCount(value?: ActiveActorsCount, index?: number): ActiveActorsCount;
+
+    clearRegisteredComponentsList(): void;
+    getRegisteredComponentsList(): Array<RegisteredComponents>;
+    setRegisteredComponentsList(value: Array<RegisteredComponents>): GetMetadataResponse;
+    addRegisteredComponents(value?: RegisteredComponents, index?: number): RegisteredComponents;
+
+
+    getExtendedMetadataMap(): jspb.Map<string, string>;
+    clearExtendedMetadataMap(): void;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetMetadataResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: GetMetadataResponse): GetMetadataResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetMetadataResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetMetadataResponse;
+    static deserializeBinaryFromReader(message: GetMetadataResponse, reader: jspb.BinaryReader): GetMetadataResponse;
+}
+
+export namespace GetMetadataResponse {
+    export type AsObject = {
+        id: string,
+        activeActorsCountList: Array<ActiveActorsCount.AsObject>,
+        registeredComponentsList: Array<RegisteredComponents.AsObject>,
+
+        extendedMetadataMap: Array<[string, string]>,
+    }
+}
+
+export class ActiveActorsCount extends jspb.Message { 
+    getType(): string;
+    setType(value: string): ActiveActorsCount;
+
+    getCount(): number;
+    setCount(value: number): ActiveActorsCount;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ActiveActorsCount.AsObject;
+    static toObject(includeInstance: boolean, msg: ActiveActorsCount): ActiveActorsCount.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ActiveActorsCount, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ActiveActorsCount;
+    static deserializeBinaryFromReader(message: ActiveActorsCount, reader: jspb.BinaryReader): ActiveActorsCount;
+}
+
+export namespace ActiveActorsCount {
+    export type AsObject = {
+        type: string,
+        count: number,
+    }
+}
+
+export class RegisteredComponents extends jspb.Message { 
+    getName(): string;
+    setName(value: string): RegisteredComponents;
+
+    getType(): string;
+    setType(value: string): RegisteredComponents;
+
+    getVersion(): string;
+    setVersion(value: string): RegisteredComponents;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): RegisteredComponents.AsObject;
+    static toObject(includeInstance: boolean, msg: RegisteredComponents): RegisteredComponents.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: RegisteredComponents, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): RegisteredComponents;
+    static deserializeBinaryFromReader(message: RegisteredComponents, reader: jspb.BinaryReader): RegisteredComponents;
+}
+
+export namespace RegisteredComponents {
+    export type AsObject = {
+        name: string,
+        type: string,
+        version: string,
+    }
+}
+
+export class SetMetadataRequest extends jspb.Message { 
+    getKey(): string;
+    setKey(value: string): SetMetadataRequest;
+
+    getValue(): string;
+    setValue(value: string): SetMetadataRequest;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): SetMetadataRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: SetMetadataRequest): SetMetadataRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: SetMetadataRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): SetMetadataRequest;
+    static deserializeBinaryFromReader(message: SetMetadataRequest, reader: jspb.BinaryReader): SetMetadataRequest;
+}
+
+export namespace SetMetadataRequest {
+    export type AsObject = {
+        key: string,
+        value: string,
     }
 }
