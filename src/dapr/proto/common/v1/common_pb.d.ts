@@ -11,9 +11,8 @@ export class HTTPExtension extends jspb.Message {
     getVerb(): HTTPExtension.Verb;
     setVerb(value: HTTPExtension.Verb): HTTPExtension;
 
-
-    getQuerystringMap(): jspb.Map<string, string>;
-    clearQuerystringMap(): void;
+    getQuerystring(): string;
+    setQuerystring(value: string): HTTPExtension;
 
 
     serializeBinary(): Uint8Array;
@@ -29,8 +28,7 @@ export class HTTPExtension extends jspb.Message {
 export namespace HTTPExtension {
     export type AsObject = {
         verb: HTTPExtension.Verb,
-
-        querystringMap: Array<[string, string]>,
+        querystring: string,
     }
 
     export enum Verb {

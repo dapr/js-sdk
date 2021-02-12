@@ -184,7 +184,7 @@ proto.dapr.proto.common.v1.HTTPExtension.prototype.toObject = function(opt_inclu
 proto.dapr.proto.common.v1.HTTPExtension.toObject = function(includeInstance, msg) {
   var f, obj = {
     verb: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    querystringMap: (f = msg.getQuerystringMap()) ? f.toObject(includeInstance, undefined) : []
+    querystring: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -226,10 +226,8 @@ proto.dapr.proto.common.v1.HTTPExtension.deserializeBinaryFromReader = function(
       msg.setVerb(value);
       break;
     case 2:
-      var value = msg.getQuerystringMap();
-      reader.readMessage(value, function(message, reader) {
-        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "", "");
-         });
+      var value = /** @type {string} */ (reader.readString());
+      msg.setQuerystring(value);
       break;
     default:
       reader.skipField();
@@ -267,9 +265,12 @@ proto.dapr.proto.common.v1.HTTPExtension.serializeBinaryToWriter = function(mess
       f
     );
   }
-  f = message.getQuerystringMap(true);
-  if (f && f.getLength() > 0) {
-    f.serializeBinary(2, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  f = message.getQuerystring();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
   }
 };
 
@@ -308,25 +309,21 @@ proto.dapr.proto.common.v1.HTTPExtension.prototype.setVerb = function(value) {
 
 
 /**
- * map<string, string> querystring = 2;
- * @param {boolean=} opt_noLazyCreate Do not create the map if
- * empty, instead returning `undefined`
- * @return {!jspb.Map<string,string>}
+ * optional string querystring = 2;
+ * @return {string}
  */
-proto.dapr.proto.common.v1.HTTPExtension.prototype.getQuerystringMap = function(opt_noLazyCreate) {
-  return /** @type {!jspb.Map<string,string>} */ (
-      jspb.Message.getMapField(this, 2, opt_noLazyCreate,
-      null));
+proto.dapr.proto.common.v1.HTTPExtension.prototype.getQuerystring = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
 
 /**
- * Clears values from the map. The map will be non-null.
+ * @param {string} value
  * @return {!proto.dapr.proto.common.v1.HTTPExtension} returns this
  */
-proto.dapr.proto.common.v1.HTTPExtension.prototype.clearQuerystringMap = function() {
-  this.getQuerystringMap().clear();
-  return this;};
+proto.dapr.proto.common.v1.HTTPExtension.prototype.setQuerystring = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
+};
 
 
 
