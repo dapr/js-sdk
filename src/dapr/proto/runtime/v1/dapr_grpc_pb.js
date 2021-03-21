@@ -575,6 +575,18 @@ setMetadata: {
     responseSerialize: serialize_google_protobuf_Empty,
     responseDeserialize: deserialize_google_protobuf_Empty,
   },
+  // Shutdown the sidecar
+shutdown: {
+    path: '/dapr.proto.runtime.v1.Dapr/Shutdown',
+    requestStream: false,
+    responseStream: false,
+    requestType: google_protobuf_empty_pb.Empty,
+    responseType: google_protobuf_empty_pb.Empty,
+    requestSerialize: serialize_google_protobuf_Empty,
+    requestDeserialize: deserialize_google_protobuf_Empty,
+    responseSerialize: serialize_google_protobuf_Empty,
+    responseDeserialize: deserialize_google_protobuf_Empty,
+  },
 };
 
 exports.DaprClient = grpc.makeGenericClientConstructor(DaprService);
