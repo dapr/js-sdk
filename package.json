@@ -1,12 +1,13 @@
 {
-  "name": "@roadwork/dapr-js-sdk",
+  "name": "@dapr/js-sdk",
   "version": "0.3.1",
-  "description": "An unofficial Dapr (https://dapr.io) SDK for Node.js",
+  "description": "The official Dapr (https://dapr.io) SDK for Node.js",
   "types": "http/index.d.ts",
   "scripts": {
     "test": "jest --runInBand",
-    "test:dapr:http": "TEST_SECRET_1=secret_val_1 TEST_SECRET_2=secret_val_2 dapr run --app-id test-suite --app-protocol http --app-port 50051 --dapr-http-port 50050 --components-path ./components npm run test 'test/http.test.ts'",
-    "test:dapr:grpc": "TEST_SECRET_1=secret_val_1 TEST_SECRET_2=secret_val_2 dapr run --app-id test-suite --app-protocol grpc --app-port 50051 --dapr-grpc-port 50050 --components-path ./components npm run test 'test/grpc.test.ts'",
+    "test:e2e:common": "TEST_SECRET_1=secret_val_1 TEST_SECRET_2=secret_val_2 dapr run --app-id test-suite --app-protocol grpc --app-port 50051 --dapr-grpc-port 50050 --components-path ./components npm run test 'test/e2e/main.test.ts'",
+    "test:e2e:actors": "dapr run --app-id test-suite --app-protocol grpc --app-port 50051 --dapr-grpc-port 50050 --components-path ./components npm run test 'test/e2e/actor.test.ts'",
+    "test:unit:actors": "NODE_ENV=test npm run test 'test\/unit\/.*\\.test\\.ts'",
     "lint": "tslint -p tsconfig.json",
     "build": "npm run lint && tsc --outDir ./build/",
     "start:dev": "npm run build && nodemon --ext \".ts,.js\" --watch \"./src\" --exec \"npm run build\""
@@ -20,7 +21,8 @@
     "google-protobuf": "^3.15.8",
     "grpc": "^1.24.10",
     "node-fetch": "^2.6.1",
-    "restana": "^4.9.1"
+    "restana": "^4.9.1",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/body-parser": "^1.19.0",
@@ -28,6 +30,7 @@
     "@types/jest": "^26.0.21",
     "@types/node": "^15.0.3",
     "@types/node-fetch": "^2.5.8",
+    "@types/uuid": "^8.3.1",
     "grpc_tools_node_protoc_ts": "^5.2.2",
     "grpc-tools": "^1.11.1",
     "jest": "^26.6.3",
@@ -40,7 +43,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/roadwork/dapr-js-sdk.git",
+    "url": "https://github.com/dapr/js-sdk.git",
     "directory": ""
   }
 }

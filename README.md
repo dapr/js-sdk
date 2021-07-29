@@ -4,6 +4,8 @@ This is an unofficial [Dapr](https://dapr.io) Node.js SDK that allows interfacin
 
 > **Note:** This library is not ready for production yet
 
+This SDK utilizes gRPC to communicate with the Daprd process
+
 ## Examples
 
 For an example of the library, see the [Examples folder](/examples)
@@ -15,7 +17,7 @@ For an example of the library, see the [Examples folder](/examples)
 To create a simply pub sub listener, we can now execute the following:
 
 ```javascript
-import { DaprClient, DaprServer } from "@roadwork/dapr-js-sdk/grpc";
+import { DaprClient, DaprServer } from "@dapr/js-sdk";
 
 // Subscribe
 const server = new DaprServer(daprHost, daprPort, daprInternalServerPort);
@@ -40,9 +42,7 @@ dapr run --app-id hello-world --app-port 4000 --dapr-http-port 3500 --components
 **Library:**
 
 ```javascript
-import { DaprClient, DaprServer } from "@roadwork/dapr-js-sdk/http";
-// OR (depending on the protocol)
-import { DaprClient, DaprServer } from "@roadwork/dapr-js-sdk/grpc";
+import { DaprClient, DaprServer } from "@dapr/js-sdk";
 
 // Dapr ConnectionInfo
 // daprUrl: the url to the Dapr Sidecar
@@ -55,10 +55,11 @@ const daprPort = 3500;
 // We use this internal webserver for listening to dapr specific actions (e.g. method invocation, pub/sub, ...)
 // Note: make sure to utilize --app-port <daprInternalServerPort> if you don't run your own web server
 // Note 2: you can also set this port through the environment variable DAPR_INTERNAL_SERVER_PORT
-const daprInternalServerPort = 4000; 
+const serverHost = "127.0.0.1";
+const serverPort = 4000; 
 
 const client = new DaprClient(daprHost, daprPort);
-const server = new DaprServer(daprHost, daprPort, daprInternalServerPort);
+const server = new DaprServer(serverHost, serverPort);
 
 // NOTE: This has to be executed AFTER all server calls are done.
 // This is due to Dapr requiring that routes are registered before the server is started
@@ -155,7 +156,7 @@ Tests are written per protocol layer: http or grpc. This is done because Dapr re
 # Start MQTT for Binding tests
 # Dashboard: http://localhost:18083 (user: admin, pass: public)
 # Ports: 1883 = TCP MQTT Port | 8081 = HTTP API | 8083 = MQTT/SSL Port | 8883 = MQTT/Websocket/SSL Port | 8084 = MQTT/Websocket Port | 18083 = Dashboard
-docker run -d --name emqx -p 1883:1883 -p 8081:8081 -p 8083:8083 -p 8883:8883 -p 8084:8084 -p 18083:18083 emqx/emqx
+docker run -d --rm --name emqx -p 1883:1883 -p 8081:8081 -p 8083:8083 -p 8883:8883 -p 8084:8084 -p 18083:18083 emqx/emqx
 
 # Start gRPC tests
 npm run test:dapr:grpc

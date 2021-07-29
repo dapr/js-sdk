@@ -1,0 +1,22 @@
+# https://docs.dapr.io/reference/components-reference/supported-bindings/rabbitmq/
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: binding-mqtt
+  namespace: default
+spec:
+  type: bindings.mqtt
+  version: v1
+  metadata:
+  - name: consumerID
+    value: "{uuid}"
+  - name: url
+    value: "tcp://admin:public@localhost:1883"
+  - name: topic
+    value: "topic-testing"
+  - name: qos
+    value: 1
+  - name: retain
+    value: "false"
+  - name: cleanSession
+    value: "false"
