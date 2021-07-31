@@ -2,7 +2,7 @@ import http from "http";
 import Restana from "restana";
 import bodyParser from "body-parser";
 import HTTPServerImpl from "./HTTPServerImpl";
-import IServerStrategy from "../../../interfaces/Server/IServer";
+import IServer from "../../../interfaces/Server/IServer";
 
 // tslint:disable-next-line
 export interface IServerImplType extends HTTPServerImpl { };
@@ -13,7 +13,7 @@ export interface IRequest extends http.IncomingMessage, Restana.RequestExtension
 // tslint:disable-next-line
 export interface IResponse extends http.ServerResponse, Restana.ResponseExtensions { };
 
-export default class HTTPServer implements IServerStrategy {
+export default class HTTPServer implements IServer {
     serverHost: string;
     serverPort: string;
     isInitialized: boolean;

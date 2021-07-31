@@ -1,9 +1,9 @@
 import HTTPClient from './HTTPClient';
 import HttpStatusCode from '../../../enum/HttpStatusCode.enum';
-import IClientBindingStrategy from '../../../interfaces/Client/IClientBinding';
+import IClientBinding from '../../../interfaces/Client/IClientBinding';
 
 // https://docs.dapr.io/reference/api/bindings_api/
-export default class DaprClientBinding implements IClientBindingStrategy {
+export default class DaprClientBinding implements IClientBinding {
   client: HTTPClient;
 
   constructor(client: HTTPClient) {

@@ -1,9 +1,9 @@
 import GRPCClient from './GRPCClient';
 import { PublishEventRequest } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
-import IClientPubSubStrategy from "../../../interfaces/Client/IClientPubSub";
+import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
-export default class DaprPubSub implements IClientPubSubStrategy {
+export default class DaprPubSub implements IClientPubSub {
   client: GRPCClient;
 
   constructor(client: GRPCClient) {

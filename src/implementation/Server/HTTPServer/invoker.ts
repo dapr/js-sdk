@@ -2,10 +2,10 @@ import { TypeDaprInvokerCallback } from '../../../types/DaprInvokerCallback.type
 import { InvokerListenOptionsType } from '../../../types/InvokerListenOptions.type';
 import { HttpMethod } from '../../../enum/HttpMethod.enum';
 import HTTPServer from './HTTPServer';
-import IServerInvokerStrategy from '../../../interfaces/Server/IServerInvoker';
+import IServerInvoker from '../../../interfaces/Server/IServerInvoker';
 
 // https://docs.dapr.io/reference/api/service_invocation_api/
-export default class HTTPServerInvoker implements IServerInvokerStrategy {
+export default class HTTPServerInvoker implements IServerInvoker {
   server: HTTPServer;
 
   constructor(server: HTTPServer) {

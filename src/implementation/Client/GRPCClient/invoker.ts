@@ -5,10 +5,10 @@ import { HttpMethod } from '../../../enum/HttpMethod.enum';
 import { HTTPExtension, InvokeRequest, InvokeResponse } from '../../../proto/dapr/proto/common/v1/common_pb';
 import { InvokeServiceRequest } from '../../../proto/dapr/proto/runtime/v1/dapr_pb';
 import * as HttpVerbUtil from "../../../utils/HttpVerb.util";
-import IClientInvokerStrategy from '../../../interfaces/Client/IClientInvoker';
+import IClientInvoker from '../../../interfaces/Client/IClientInvoker';
 
 // https://docs.dapr.io/reference/api/service_invocation_api/
-export default class DaprInvoker implements IClientInvokerStrategy {
+export default class DaprInvoker implements IClientInvoker {
   client: GRPCClient;
 
   constructor(client: GRPCClient) {

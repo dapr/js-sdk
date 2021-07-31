@@ -2,19 +2,20 @@ import IServer from '../../interfaces/Server/IServer';
 import IServerPubSub from '../../interfaces/Server/IServerPubSub';
 import IServerBinding from '../../interfaces/Server/IServerBinding';
 import IServerInvoker from '../../interfaces/Server/IServerInvoker';
-// import IServerActor from '../../interfaces/Server/IServerActor';
+import IServerActor from '../../interfaces/Server/IServerActor';
 
 import CommunicationProtocolEnum from '../../enum/CommunicationProtocol.enum';
 import GRPCServer from './GRPCServer/GRPCServer';
 import GRPCServerPubSub from './GRPCServer/pubsub';
 import GRPCServerBinding from './GRPCServer/binding';
 import GRPCServerInvoker from './GRPCServer/invoker';
-// import GRPCServerActor from '../../../GRPCServer/actor';
+import GRPCServerActor from './GRPCServer/actor';
+
 import HTTPServer from './HTTPServer/HTTPServer';
 import HTTPServerPubSub from './HTTPServer/pubsub';
 import HTTPServerBinding from './HTTPServer/binding';
 import HTTPServerInvoker from './HTTPServer/invoker';
-// import HTTPServerActor from './HTTPServer/actor';
+import HTTPServerActor from './HTTPServer/actor';
 
 export default class DaprServer {
   readonly daprHost: string;
@@ -25,7 +26,7 @@ export default class DaprServer {
   readonly pubsub: IServerPubSub;
   readonly binding: IServerBinding;
   readonly invoker: IServerInvoker;
-  // actor: IServerActor;
+  readonly actor: IServerActor;
 
   constructor(
     serverHost: string = "127.0.0.1"
@@ -48,7 +49,7 @@ export default class DaprServer {
         this.pubsub = new GRPCServerPubSub(server);
         this.binding = new GRPCServerBinding(server);
         this.invoker = new GRPCServerInvoker(server);
-        // this.actor = new GRPCServerActor(this.daprServer);
+        this.actor = new GRPCServerActor(server);
         break;
       }
       case CommunicationProtocolEnum.HTTP: 
@@ -59,7 +60,7 @@ export default class DaprServer {
         this.pubsub = new HTTPServerPubSub(server);
         this.binding = new HTTPServerBinding(server);
         this.invoker = new HTTPServerInvoker(server);
-        // this.actor = new HTTPServerActor(this.daprServer);
+        this.actor = new HTTPServerActor(server);
         break;
       }
     }

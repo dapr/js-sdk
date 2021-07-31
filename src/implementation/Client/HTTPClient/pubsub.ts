@@ -1,8 +1,8 @@
 import HTTPClient from './HTTPClient';
-import IClientPubSubStrategy from '../../../interfaces/Client/IClientPubSub';
+import IClientPubSub from '../../../interfaces/Client/IClientPubSub';
 
 // https://docs.dapr.io/reference/api/pubsub_api/
-export default class DaprClientPubSub implements IClientPubSubStrategy {
+export default class DaprClientPubSub implements IClientPubSub {
   client: HTTPClient;
 
   constructor(client: HTTPClient) {

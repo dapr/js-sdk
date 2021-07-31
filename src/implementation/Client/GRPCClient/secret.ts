@@ -1,9 +1,9 @@
 import GRPCClient from './GRPCClient';
 import { GetBulkSecretRequest, GetBulkSecretResponse, GetSecretRequest, GetSecretResponse } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
-import IClientSecretStrategy from "../../../interfaces/Client/IClientSecret";
+import IClientSecret from "../../../interfaces/Client/IClientSecret";
 
 // https://docs.dapr.io/reference/api/secrets_api/
-export default class DaprSecret implements IClientSecretStrategy {
+export default class DaprSecret implements IClientSecret {
     client: GRPCClient;
 
     constructor(client: GRPCClient) {

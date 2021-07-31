@@ -1,10 +1,10 @@
 import HTTPClient from './HTTPClient';
 import { HttpMethod } from '../../../enum/HttpMethod.enum';
-import IClientInvokerStrategy from '../../../interfaces/Client/IClientInvoker';
+import IClientInvoker from '../../../interfaces/Client/IClientInvoker';
 import HttpStatusCode from '../../../enum/HttpStatusCode.enum';
 
 // https://docs.dapr.io/reference/api/service_invocation_api/
-export default class DaprClientInvoker implements IClientInvokerStrategy {
+export default class DaprClientInvoker implements IClientInvoker {
   client: HTTPClient;
 
   constructor(client: HTTPClient) {

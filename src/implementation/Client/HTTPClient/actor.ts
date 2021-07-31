@@ -3,12 +3,12 @@ import { InvokeFetchOptions } from '../../../types/InvokeFetchOptions';
 import { OperationType } from '../../../types/Operation.type';
 import { ActorReminderType } from '../../../types/ActorReminder.type';
 import { ActorTimerType } from '../../../types/ActorTimer.type';
-import IClientActorStrategy from '../../../interfaces/Client/IClientActor';
+import IClientActor from '../../../interfaces/Client/IClientActor';
 import HttpStatusCode from '../../../enum/HttpStatusCode.enum';
 import { KeyValueType } from '../../../types/KeyValue.type';
 
 // https://docs.dapr.io/reference/api/actors_api/
-export default class DaprClientActor implements IClientActorStrategy {
+export default class DaprClientActor implements IClientActor {
   client: HTTPClient;
 
   constructor(client: HTTPClient) {

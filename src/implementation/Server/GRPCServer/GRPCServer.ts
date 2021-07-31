@@ -1,14 +1,14 @@
 import * as grpc from "@grpc/grpc-js";
 import GRPCServerImpl from "./GRPCServerImpl";
 import { AppCallbackService } from "../../../proto/dapr/proto/runtime/v1/appcallback_grpc_pb";
-import IServerStrategy from "../../../interfaces/Server/IServer";
+import IServer from "../../../interfaces/Server/IServer";
 
 // tslint:disable-next-line
 export interface IServerType extends grpc.Server { };
 // tslint:disable-next-line
 export interface IServerImplType extends GRPCServerImpl { };
 
-export default class GRPCServer implements IServerStrategy {
+export default class GRPCServer implements IServer {
     isInitialized: boolean;
     serverHost: string;
     serverPort: string;

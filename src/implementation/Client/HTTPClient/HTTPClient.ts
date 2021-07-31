@@ -1,7 +1,7 @@
 import fetch from "node-fetch";
-import IClientStrategy from "../../../interfaces/Client/IClient";
+import IClient from "../../../interfaces/Client/IClient";
 
-export default class HTTPClient implements IClientStrategy {
+export default class HTTPClient implements IClient {
     isInitialized: boolean;
     client: typeof fetch;
     clientHost: string;

@@ -1,11 +1,11 @@
 import HTTPServer from './HTTPServer';
 import HttpStatusCode from '../../../enum/HttpStatusCode.enum';
-import IServerBindingStrategy from '../../../interfaces/Server/IServerBinding';
+import IServerBinding from '../../../interfaces/Server/IServerBinding';
 
 // https://docs.dapr.io/reference/api/bindings_api/
 type FunctionDaprInputCallback = (data: any) => Promise<any>;
 
-export default class HTTPServerBinding implements IServerBindingStrategy {
+export default class HTTPServerBinding implements IServerBinding {
   server: HTTPServer;
 
   constructor(server: HTTPServer) {

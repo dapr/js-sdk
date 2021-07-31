@@ -1,9 +1,9 @@
 import { TypeDaprPubSubCallback } from '../../../types/DaprPubSubCallback.type';
-import IServerPubSubStrategy from '../../../interfaces/Server/IServerPubSub';
+import IServerPubSub from '../../../interfaces/Server/IServerPubSub';
 import HTTPServer from './HTTPServer';
 
 // https://docs.dapr.io/reference/api/pubsub_api/
-export default class HTTPServerPubSub implements IServerPubSubStrategy {
+export default class HTTPServerPubSub implements IServerPubSub {
   server: HTTPServer;
 
   constructor(server: HTTPServer) {

@@ -1,9 +1,9 @@
 import HTTPClient from './HTTPClient';
 import HttpStatusCode from '../../../enum/HttpStatusCode.enum';
-import IClientSecretStrategy from '../../../interfaces/Client/IClientSecret';
+import IClientSecret from '../../../interfaces/Client/IClientSecret';
 
 // https://docs.dapr.io/reference/api/secrets_api/
-export default class DaprClientSecret implements IClientSecretStrategy {
+export default class DaprClientSecret implements IClientSecret {
   client: HTTPClient;
 
   constructor(client: HTTPClient) {

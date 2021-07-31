@@ -5,11 +5,11 @@ import GRPCClient from './GRPCClient';
 import { OperationType } from '../../../types/Operation.type';
 import { ActorReminderType } from '../../../types/ActorReminder.type';
 import { ActorTimerType } from '../../../types/ActorTimer.type';
-import IClientActorStrategy from '../../../interfaces/Client/IClientActor';
+import IClientActor from '../../../interfaces/Client/IClientActor';
 import { KeyValueType } from '../../../types/KeyValue.type';
 
 // https://docs.dapr.io/reference/api/actors_api/
-export default class DaprActor implements IClientActorStrategy {
+export default class DaprActor implements IClientActor {
     client: GRPCClient;
 
     constructor(client: GRPCClient) {
