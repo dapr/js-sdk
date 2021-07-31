@@ -4,7 +4,7 @@ import { KeyValueType } from "../../types/KeyValue.type";
 import { OperationType } from "../../types/Operation.type";
 
 export default interface IClientActor {
-    invoke(method: "GET" | "POST" | "PUT" | "DELETE", actorType: string, actorId: string, methodName: string, body?: object): Promise<object>;
+    invoke(method: "GET" | "POST" | "PUT" | "DELETE", actorType: string, actorId: string, methodName: string, body?: any): Promise<object>;
     stateTransaction(actorType: string, actorId: string, operations: OperationType[]): Promise<void>;
     stateGet(actorType: string, actorId: string, key: string): Promise<KeyValueType | string>;
     reminderCreate(actorType: string, actorId: string, name: string, reminder: ActorReminderType): Promise<void>;

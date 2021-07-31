@@ -43,10 +43,7 @@ export default class DaprClientBinding implements IClientBinding {
         }));
       case HttpStatusCode.INTERNAL_SERVER_ERROR: {
         const json = await res.json();
-        throw new Error(JSON.stringify({
-          error: "REQUEST_FAILED",
-          error_msg: `The request failed with error: ${json}`
-        }));
+        throw new Error(JSON.stringify(json));
       }
       default:
         throw new Error(JSON.stringify({

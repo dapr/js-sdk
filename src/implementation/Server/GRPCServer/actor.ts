@@ -10,6 +10,15 @@ export default class GRPCServerActor implements IServerActor {
   constructor(server: GRPCServer) {
       this.server = server;
   }
+
+  init(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+
+  getRegisteredActors(): Promise<string[]> {
+    throw new Error('Method not implemented.');
+  }
+  
   registerActor<T extends AbstractActor>(cls: Class<T>): Promise<void> {
     throw new Error('Method not implemented.');
   }

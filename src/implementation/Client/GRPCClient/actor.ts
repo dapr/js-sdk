@@ -16,14 +16,15 @@ export default class DaprActor implements IClientActor {
         this.client = client;
     }
 
-    async invoke(method: "GET" | "POST" | "PUT" | "DELETE", actorType: string, actorId: string, methodName: string, body?: object): Promise<object> {
+    async invoke(method: "GET" | "POST" | "PUT" | "DELETE", actorType: string, actorId: string, methodName: string, body?: any): Promise<object> {
         const msgService = new InvokeActorRequest();
         msgService.setActorId(actorId)
         msgService.setActorType(actorType);
         msgService.setMethod(methodName);
 
         if (body) {
-            msgService.setData(Buffer.from(JSON.stringify(body), "utf-8"));
+            // @todo: if body is any, do we have to figure out how to serialize in JS? (e.g. if object -> JSON.stringify?)
+            msgService.setData(body);
         }
 
         return new Promise(async (resolve, reject) => {

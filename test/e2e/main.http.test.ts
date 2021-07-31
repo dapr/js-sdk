@@ -6,7 +6,7 @@ const daprHost = "127.0.0.1";
 const daprPort = "50001"; // Dapr Sidecar Port of this Example Server
 const daprAppId = "test-suite";
 
-describe('http', () => {
+describe('http/main', () => {
     let server: DaprServer;
     let client: DaprClient;
     let mockBindingReceive = jest.fn(async (data: object) => console.log("mockBindingReceive"));

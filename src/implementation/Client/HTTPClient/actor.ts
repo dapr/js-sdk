@@ -15,16 +15,18 @@ export default class DaprClientActor implements IClientActor {
     this.client = client;
   }
 
-  async invoke(method: "GET" | "POST" | "PUT" | "DELETE" = "POST", actorType: string, actorId: string, methodName: string, body?: object): Promise<object> {
+  async invoke(method: "GET" | "POST" | "PUT" | "DELETE" = "POST", actorType: string, actorId: string, methodName: string, body?: any): Promise<object> {
     const fetchOptions: InvokeFetchOptions = {
       method,
+
+      // @todo: is this always application/json if we have a Buffer body? what about normal strings?
       headers: {
         "Content-Type": "application/json"
       }
     }
 
     if (body) {
-      fetchOptions.body = JSON.stringify(body);
+      fetchOptions.body = body;
     }
 
     const res = await this.client.execute(`/actors/${actorType}/${actorId}/method/${methodName}`, fetchOptions as object);
@@ -36,10 +38,7 @@ export default class DaprClientActor implements IClientActor {
         return json;
       case HttpStatusCode.INTERNAL_SERVER_ERROR: {
         const json = await res.json();
-        throw new Error(JSON.stringify({
-          error: "REQUEST_FAILED",
-          error_msg: `The request failed with error: ${json}`
-        }));
+        throw new Error(JSON.stringify(json));
       }
       default:
         // The status code from the upstream call
@@ -69,10 +68,7 @@ export default class DaprClientActor implements IClientActor {
         }));
       case HttpStatusCode.INTERNAL_SERVER_ERROR: {
         const json = await res.json();
-        throw new Error(JSON.stringify({
-          error: "REQUEST_FAILED",
-          error_msg: `The request failed with error: ${json}`
-        }));
+        throw new Error(JSON.stringify(json));
       }
       default:
         throw new Error(JSON.stringify({
@@ -99,10 +95,7 @@ export default class DaprClientActor implements IClientActor {
         }));
       case HttpStatusCode.INTERNAL_SERVER_ERROR: {
         const json = await res.json();
-        throw new Error(JSON.stringify({
-          error: "REQUEST_FAILED",
-          error_msg: `The request failed with error: ${json}`
-        }));
+        throw new Error(JSON.stringify(json));
       }
       default:
         throw new Error(JSON.stringify({
@@ -131,10 +124,7 @@ export default class DaprClientActor implements IClientActor {
         }));
       case HttpStatusCode.INTERNAL_SERVER_ERROR: {
         const json = await res.json();
-        throw new Error(JSON.stringify({
-          error: "REQUEST_FAILED",
-          error_msg: `The request failed with error: ${json}`
-        }));
+        throw new Error(JSON.stringify(json));
       }
       default:
         throw new Error(JSON.stringify({
@@ -153,10 +143,7 @@ export default class DaprClientActor implements IClientActor {
         return json;
       case HttpStatusCode.INTERNAL_SERVER_ERROR: {
         const json = await res.json();
-        throw new Error(JSON.stringify({
-          error: "REQUEST_FAILED",
-          error_msg: `The request failed with error: ${json}`
-        }));
+        throw new Error(JSON.stringify(json));
       }
       default:
         throw new Error(JSON.stringify({
@@ -176,10 +163,7 @@ export default class DaprClientActor implements IClientActor {
         return;
       case HttpStatusCode.INTERNAL_SERVER_ERROR: {
         const json = await res.json();
-        throw new Error(JSON.stringify({
-          error: "REQUEST_FAILED",
-          error_msg: `The request failed with error: ${json}`
-        }));
+        throw new Error(JSON.stringify(json));
       }
       default:
         throw new Error(JSON.stringify({
@@ -208,10 +192,7 @@ export default class DaprClientActor implements IClientActor {
         }));
       case HttpStatusCode.INTERNAL_SERVER_ERROR: {
         const json = await res.json();
-        throw new Error(JSON.stringify({
-          error: "REQUEST_FAILED",
-          error_msg: `The request failed with error: ${json}`
-        }));
+        throw new Error(JSON.stringify(json));
       }
       default:
         throw new Error(JSON.stringify({
@@ -231,10 +212,7 @@ export default class DaprClientActor implements IClientActor {
         return;
       case HttpStatusCode.INTERNAL_SERVER_ERROR: {
         const json = await res.json();
-        throw new Error(JSON.stringify({
-          error: "REQUEST_FAILED",
-          error_msg: `The request failed with error: ${json}`
-        }));
+        throw new Error(JSON.stringify(json));
       }
       default:
         throw new Error(JSON.stringify({
@@ -259,10 +237,7 @@ export default class DaprClientActor implements IClientActor {
         }));
       case HttpStatusCode.INTERNAL_SERVER_ERROR: {
         const json = await res.json();
-        throw new Error(JSON.stringify({
-          error: "REQUEST_FAILED",
-          error_msg: `The request failed with error: ${json}`
-        }));
+        throw new Error(JSON.stringify(json));
       }
       default:
         throw new Error(JSON.stringify({
@@ -282,10 +257,7 @@ export default class DaprClientActor implements IClientActor {
       }
       case HttpStatusCode.INTERNAL_SERVER_ERROR: {
         const json = await res.json();
-        throw new Error(JSON.stringify({
-          error: "REQUEST_FAILED",
-          error_msg: `The request failed with error: ${json}`
-        }));
+        throw new Error(JSON.stringify(json));
       }
       default:
         throw new Error(JSON.stringify({

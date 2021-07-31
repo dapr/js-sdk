@@ -75,4 +75,12 @@ export default class DaprClient {
       }
     }
   }
+
+  getDaprHost(): string {
+    return this.daprHost;
+  }
+
+  getDaprPort(): string {
+    return this.daprPort;
+  }
 }
