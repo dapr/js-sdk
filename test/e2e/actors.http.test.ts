@@ -19,8 +19,13 @@ describe('grpc', () => {
 
     describe('actors', () => {
         it('should be able to register an actor', async () => {
-            // const server = new DaprServer(serverHost, serverPort);
-            // server.actor.registerActor(DemoCounterActorImpl);
+            const server = new DaprServer(serverHost, serverPort);
+            server.actor.registerActor(DemoCounterActorImpl);
+
+            const actors = await server.actor.getRegisteredActors();
+            
+            expect(actors.length).toEqual(1);
+            expect(actors).toContain(DemoCounterActorImpl.name);
         })
     });
 })

@@ -19,4 +19,8 @@ export default class HTTPServerActor implements IServerActor {
     ActorRuntime.getInstance(this.client).registerActor(cls);
     console.log(`Registering actor ${cls.name}`);
   }
+  
+  async getRegisteredActors(): Promise<string[]> {
+    return await ActorRuntime.getInstance(this.client).getRegisteredActorTypes();
+  }
 }
