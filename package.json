@@ -5,9 +5,11 @@
   "types": "http/index.d.ts",
   "scripts": {
     "test": "jest --runInBand",
-    "test:e2e:common": "TEST_SECRET_1=secret_val_1 TEST_SECRET_2=secret_val_2 dapr run --app-id test-suite --app-protocol grpc --app-port 50051 --dapr-grpc-port 50050 --components-path ./components npm run test 'test/e2e/main.test.ts'",
+    "test:e2e:main:http": "TEST_SECRET_1=secret_val_1 TEST_SECRET_2=secret_val_2 dapr run --app-id test-suite --app-protocol http --app-port 50000 --dapr-http-port 50001 --components-path ./components npm run test 'test/e2e/main.http.test.ts'",
+    "test:e2e:main:grpc": "TEST_SECRET_1=secret_val_1 TEST_SECRET_2=secret_val_2 dapr run --app-id test-suite --app-protocol grpc --app-port 50000 --dapr-grpc-port 50001 --components-path ./components npm run test 'test/e2e/main.grpc.test.ts'",
+    "test:e2e:new": "TEST_SECRET_1=secret_val_1 TEST_SECRET_2=secret_val_2 dapr run --app-id test-suite --app-protocol grpc --app-port 50051 --dapr-grpc-port 50050 --components-path ./components npm run test 'test/e2e/new.test.ts'",
     "test:e2e:actors": "dapr run --app-id test-suite --app-protocol grpc --app-port 50051 --dapr-grpc-port 50050 --components-path ./components npm run test 'test/e2e/actor.test.ts'",
-    "test:unit:actors": "NODE_ENV=test npm run test 'test\/unit\/.*\\.test\\.ts'",
+    "test:unit:actors": "NODE_ENV=test npm run test 'test/unit/.*\\.test\\.ts'",
     "lint": "tslint -p tsconfig.json",
     "build": "npm run lint && tsc --outDir ./build/",
     "start:dev": "npm run build && nodemon --ext \".ts,.js\" --watch \"./src\" --exec \"npm run build\""

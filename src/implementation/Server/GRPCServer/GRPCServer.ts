@@ -1,13 +1,14 @@
 import * as grpc from "@grpc/grpc-js";
 import GRPCServerImpl from "./GRPCServerImpl";
-import { AppCallbackService } from "../proto/dapr/proto/runtime/v1/appcallback_grpc_pb";
+import { AppCallbackService } from "../../../proto/dapr/proto/runtime/v1/appcallback_grpc_pb";
+import IServerStrategy from "../../../interfaces/Server/IServer";
 
 // tslint:disable-next-line
 export interface IServerType extends grpc.Server { };
 // tslint:disable-next-line
 export interface IServerImplType extends GRPCServerImpl { };
 
-export default class GRPCServer {
+export default class GRPCServer implements IServerStrategy {
     isInitialized: boolean;
     serverHost: string;
     serverPort: string;
@@ -15,11 +16,11 @@ export default class GRPCServer {
     serverImpl: IServerImplType;
     serverCredentials: grpc.ServerCredentials;
 
-    constructor(serverHost: string = "127.0.0.1", serverPort: string = "50050") {
+    constructor() {
         this.isInitialized = false;
 
-        this.serverHost = serverHost;
-        this.serverPort = serverPort;
+        this.serverHost = "";
+        this.serverPort = "";
 
         // Create Server
         this.server = new grpc.Server();
@@ -81,7 +82,10 @@ export default class GRPCServer {
         })
     }
 
-    async startServer(): Promise<void> {
+    async startServer(host: string, port: string): Promise<void> {
+        this.serverHost = host;
+        this.serverPort = port;
+
         await this.initializeBind();
         this.server.start();
 

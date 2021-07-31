@@ -1,21 +1,22 @@
-import { DaprClient, DaprServer, HttpMethod } from '../src';
+import { CommunicationProtocolEnum, DaprClient, DaprServer, HttpMethod } from '../../src';
 
 const serverHost = "127.0.0.1";
-const serverPort = "50051";
+const serverPort = "50000";
 const daprHost = "127.0.0.1";
-const daprPort = "50050"; // Dapr Sidecar Port of this Example Server
-const daprPortActor = "10002"; // Dapr Sidecar Port of the Actor Server
+const daprPort = "50001"; // Dapr Sidecar Port of this Example Server
 const daprAppId = "test-suite";
 
-describe('grpc', () => {
+describe('http', () => {
     let server: DaprServer;
+    let client: DaprClient;
     let mockBindingReceive = jest.fn(async (data: object) => console.log("mockBindingReceive"));
     let mockPubSubSubscribe = jest.fn(async (data: object) => console.log("mockPubSubSubscribe"));
 
     // We need to start listening on some endpoints already
     // this because Dapr is not dynamic and registers endpoints on boot
     beforeAll(async () => {
-        server = new DaprServer(serverHost, serverPort);
+        server = new DaprServer(serverHost, serverPort, CommunicationProtocolEnum.HTTP);
+        client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.HTTP);
 
         await server.binding.receive("binding-mqtt", mockBindingReceive);
 
@@ -29,10 +30,8 @@ describe('grpc', () => {
 
     describe('binding', () => {
         it('should be able to receive events', async () => {
-            const client = new DaprClient(daprHost, daprPort);
             await client.binding.send("binding-mqtt", "create", { hello: "world" });
 
-            
             // Delay a bit for event to arrive
             await new Promise((resolve, reject) => setTimeout(resolve, 250));
             expect(mockBindingReceive.mock.calls.length).toBe(1);
@@ -45,7 +44,6 @@ describe('grpc', () => {
 
     describe('pubsub', () => {
         it('should be able to send and receive events', async () => {
-            const client = new DaprClient(daprHost, daprPort);
             await client.pubsub.publish("pubsub-redis", "test-topic", { hello: "world" });
 
             // Delay a bit for event to arrive
@@ -63,8 +61,6 @@ describe('grpc', () => {
         it('should be able to listen and invoke a service with GET', async () => {
             const mock = jest.fn(async (data: object) => ({ hello: "world" }));
 
-            const client = new DaprClient(daprHost, daprPort);
-
             await server.invoker.listen("hello-world", mock, { method: HttpMethod.GET });
             const res = await client.invoker.invoke(daprAppId, "hello-world", HttpMethod.GET);
 
@@ -77,8 +73,6 @@ describe('grpc', () => {
 
         it('should be able to listen and invoke a service with POST data', async () => {
             const mock = jest.fn(async (data: object) => ({ hello: "world" }));
-
-            const client = new DaprClient(daprHost, daprPort);
 
             await server.invoker.listen("hello-world", mock, { method: HttpMethod.POST });
             const res = await client.invoker.invoke(daprAppId, "hello-world", HttpMethod.POST, {
@@ -95,13 +89,11 @@ describe('grpc', () => {
 
     describe('secrets', () => {
         it('should be able to correctly fetch the secrets by a single key', async () => {
-            const client = new DaprClient(daprHost, daprPort);
             const res = await client.secret.get("secret-envvars", "TEST_SECRET_1");
             expect(JSON.stringify(res)).toEqual(`{\"TEST_SECRET_1\":\"secret_val_1\"}`);
         });
 
         it('should be able to correctly fetch the secrets in bulk', async () => {
-            const client = new DaprClient(daprHost, daprPort);
             const res = await client.secret.getBulk("secret-envvars");
             expect(Object.keys(res).length).toBeGreaterThan(1);
         });
@@ -109,7 +101,6 @@ describe('grpc', () => {
 
     describe('state', () => {
         it('should be able to save the state', async () => {
-            const client = new DaprClient(daprHost, daprPort);
             await client.state.save("state-redis", [
                 {
                     key: "key-1",
@@ -130,7 +121,6 @@ describe('grpc', () => {
         });
 
         it('should be able to get the state in bulk', async () => {
-            const client = new DaprClient(daprHost, daprPort);
             await client.state.save("state-redis", [
                 {
                     key: "key-1",
@@ -148,14 +138,13 @@ describe('grpc', () => {
 
             const res = await client.state.getBulk("state-redis", ["key-3", "key-2"]);
 
-            expect(res[0]["key"]).toEqual("key-2");
-            expect(res[0]["data"]).toEqual("value-2");
-            expect(res[1]["key"]).toEqual("key-3");
-            expect(res[1]["data"]).toEqual("value-3");
+            expect(res).toEqual(expect.arrayContaining([
+                expect.objectContaining({ key: "key-2", data: "value-2" }),
+                expect.objectContaining({ key: "key-3", data: "value-3" })
+            ]))
         });
 
         it('should be able to delete a key from the state store', async () => {
-            const client = new DaprClient(daprHost, daprPort);
             await client.state.save("state-redis", [
                 {
                     key: "key-1",
@@ -177,7 +166,6 @@ describe('grpc', () => {
         });
 
         it('should be able to perform a transaction that replaces a key and deletes another', async () => {
-            const client = new DaprClient(daprHost, daprPort);
             await client.state.transaction("state-redis", [
                 {
                     operation: "upsert",

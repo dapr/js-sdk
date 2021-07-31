@@ -54,7 +54,7 @@ const daprPort = 3500;
 // This library spins up an internal webserver running restana
 // We use this internal webserver for listening to dapr specific actions (e.g. method invocation, pub/sub, ...)
 // Note: make sure to utilize --app-port <daprInternalServerPort> if you don't run your own web server
-// Note 2: you can also set this port through the environment variable DAPR_INTERNAL_SERVER_PORT
+// Note 2: you can also set this port through the environment variable DAPR_SERVER_PORT
 const serverHost = "127.0.0.1";
 const serverPort = 4000; 
 

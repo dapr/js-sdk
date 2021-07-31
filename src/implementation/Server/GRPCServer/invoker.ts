@@ -1,10 +1,11 @@
-import { TypeDaprInvokerCallback } from '../types/DaprInvokerCallback.type';
-import { InvokerListenOptionsType } from '../types/InvokerListenOptions.type';
-import { HttpMethod } from '../enum/HttpMethod.enum';
 import GRPCServer from './GRPCServer';
+import { TypeDaprInvokerCallback } from '../../../types/DaprInvokerCallback.type';
+import { InvokerListenOptionsType } from '../../../types/InvokerListenOptions.type';
+import { HttpMethod } from '../../../enum/HttpMethod.enum';
+import IServerInvokerStrategy from '../../../interfaces/Server/IServerInvoker';
 
 // https://docs.dapr.io/reference/api/service_invocation_api/
-export default class GRPCServerInvoker {
+export default class DaprInvoker implements IServerInvokerStrategy {
   server: GRPCServer;
 
   constructor(server: GRPCServer) {

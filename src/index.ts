@@ -1,11 +1,11 @@
-import DaprClient from "./DaprClient";
-import DaprServer from "./DaprServer";
-import { HttpMethod } from "./enum/HttpMethod.enum";
-import AbstractActor from "./actors/runtime/AbstractActor";
+import HttpMethod from "./enum/HttpMethod.enum";
+import CommunicationProtocolEnum from "./enum/CommunicationProtocol.enum";
+import DaprClient from "./implementation/Client/DaprClient";
+import DaprServer from "./implementation/Server/DaprServer";
 
 export {
     DaprClient,
     DaprServer,
     HttpMethod,
-    AbstractActor
+    CommunicationProtocolEnum
 }

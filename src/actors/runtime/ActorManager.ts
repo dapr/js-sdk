@@ -1,8 +1,8 @@
-import { AbstractActor } from "../..";
-import DaprClient from "../../DaprClient";
+import { v4 as uuidv4 } from "uuid";
+import DaprClient from "../../implementation/Client/DaprClient";
 import Class from "../../types/Class";
 import ActorId from "../ActorId";
-import { v4 as uuidv4 } from "uuid";
+import AbstractActor from "./AbstractActor";
 import ActorReminderData from "./ActorReminderData";
 import ActorTimerData from "./ActorTimerData";
 

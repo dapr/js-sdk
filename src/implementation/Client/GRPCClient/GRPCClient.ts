@@ -1,8 +1,9 @@
 import * as grpc from "@grpc/grpc-js";
 import { ChannelCredentials } from "@grpc/grpc-js";
-import { DaprClient } from "../proto/dapr/proto/runtime/v1/dapr_grpc_pb"
+import { DaprClient } from "../../../proto/dapr/proto/runtime/v1/dapr_grpc_pb"
+import IClient from "../../../interfaces/Client/IClient";
 
-export default class GRPCClient {
+export default class GRPCClient implements IClient {
     isInitialized: boolean;
     client: DaprClient;
     clientCredentials: grpc.ChannelCredentials;

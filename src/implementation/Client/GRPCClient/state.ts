@@ -1,13 +1,14 @@
-import { KeyValuePairType } from '../types/KeyValuePair.type';
-import { OperationType } from '../types/Operation.type';
-import { IRequestMetadata } from '../types/RequestMetadata.type';
-import { DeleteStateRequest, ExecuteStateTransactionRequest, GetBulkStateRequest, GetBulkStateResponse, GetStateRequest, GetStateResponse, SaveStateRequest, TransactionalStateOperation } from '../proto/dapr/proto/runtime/v1/dapr_pb';
-import { Etag, StateItem, StateOptions } from '../proto/dapr/proto/common/v1/common_pb';
 import GRPCClient from './GRPCClient';
-import { KeyValueType } from '../types/KeyValue.type';
+import { DeleteStateRequest, ExecuteStateTransactionRequest, GetBulkStateRequest, GetBulkStateResponse, GetStateRequest, GetStateResponse, SaveStateRequest, TransactionalStateOperation } from '../../../proto/dapr/proto/runtime/v1/dapr_pb';
+import { Etag, StateItem, StateOptions } from '../../../proto/dapr/proto/common/v1/common_pb';
+import { KeyValuePairType } from '../../../types/KeyValuePair.type';
+import { OperationType } from '../../../types/Operation.type';
+import { IRequestMetadata } from '../../../types/RequestMetadata.type';
+import IClientStateStrategy from '../../../interfaces/Client/IClientState';
+import { KeyValueType } from '../../../types/KeyValue.type';
 
 // https://docs.dapr.io/reference/api/state_api/
-export default class GRPCClientState {
+export default class GRPCClientStateStrategy implements IClientStateStrategy {
     client: GRPCClient;
 
     constructor(client: GRPCClient) {

@@ -1,8 +1,9 @@
-import { TypeDaprBindingCallback } from '../types/DaprBindingCallback.type';
 import GRPCServer from './GRPCServer';
+import { TypeDaprBindingCallback } from '../../../types/DaprBindingCallback.type';
+import IServerBindingStrategy from '../../../interfaces/Server/IServerBinding';
 
 // https://docs.dapr.io/reference/api/bindings_api/
-export default class GRPCServerBinding {
+export default class DaprBinding implements IServerBindingStrategy {
   server: GRPCServer;
 
   constructor(server: GRPCServer) {

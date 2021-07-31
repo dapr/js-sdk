@@ -1,14 +1,15 @@
-import { OperationType } from '../types/Operation.type';
-import { ActorReminderType } from '../types/ActorReminder.type';
-import { ActorTimerType } from '../types/ActorTimer.type';
-import { ExecuteActorStateTransactionRequest, GetActorStateRequest, GetActorStateResponse, GetMetadataResponse, InvokeActorRequest, InvokeActorResponse, RegisterActorReminderRequest, RegisterActorTimerRequest, TransactionalActorStateOperation, UnregisterActorReminderRequest, UnregisterActorTimerRequest } from '../proto/dapr/proto/runtime/v1/dapr_pb';
 import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 import { Any } from "google-protobuf/google/protobuf/any_pb";
+import { ExecuteActorStateTransactionRequest, GetActorStateRequest, GetActorStateResponse, GetMetadataResponse, InvokeActorRequest, InvokeActorResponse, RegisterActorReminderRequest, RegisterActorTimerRequest, TransactionalActorStateOperation, UnregisterActorReminderRequest, UnregisterActorTimerRequest } from '../../../proto/dapr/proto/runtime/v1/dapr_pb';
 import GRPCClient from './GRPCClient';
-import { KeyValueType } from '../types/KeyValue.type';
+import { OperationType } from '../../../types/Operation.type';
+import { ActorReminderType } from '../../../types/ActorReminder.type';
+import { ActorTimerType } from '../../../types/ActorTimer.type';
+import IClientActorStrategy from '../../../interfaces/Client/IClientActor';
+import { KeyValueType } from '../../../types/KeyValue.type';
 
 // https://docs.dapr.io/reference/api/actors_api/
-export default class GRPCClientActor {
+export default class DaprActor implements IClientActorStrategy {
     client: GRPCClient;
 
     constructor(client: GRPCClient) {
@@ -110,7 +111,7 @@ export default class GRPCClientActor {
         msgService.setName(name);
 
         if (reminder.data) {
-            msgService.setData(reminder.data);
+            msgService.setData(Buffer.from(reminder?.data.toString(), "utf-8"))
         }
 
         if (reminder.period) {

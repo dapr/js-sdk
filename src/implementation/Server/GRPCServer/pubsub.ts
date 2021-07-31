@@ -1,8 +1,9 @@
-import { TypeDaprPubSubCallback } from "../types/DaprPubSubCallback.type";
 import GRPCServer from "./GRPCServer";
+import { TypeDaprPubSubCallback } from "../../../types/DaprPubSubCallback.type";
+import IServerPubSubStrategy from "../../../interfaces/Server/IServerPubSub";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
-export default class GRPCServerPubSub {
+export default class DaprPubSub implements IServerPubSubStrategy {
   server: GRPCServer;
 
   constructor(server: GRPCServer) {

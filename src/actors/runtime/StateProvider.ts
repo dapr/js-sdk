@@ -1,4 +1,4 @@
-import DaprClient from "../../DaprClient";
+import DaprClient from "../../implementation/Client/DaprClient";
 
 export default class StateProvider {
     stateClient: DaprClient;

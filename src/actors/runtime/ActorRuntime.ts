@@ -1,6 +1,7 @@
-import { AbstractActor, DaprClient } from "../..";
+import { DaprClient } from "../..";
 import Class from "../../types/Class";
 import ActorId from "../ActorId";
+import AbstractActor from "./AbstractActor";
 import ActorManager from "./ActorManager";
 import ActorRuntimeConfig from "./ActorRuntimeConfig";
 
