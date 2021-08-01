@@ -1,9 +1,9 @@
 import { CommunicationProtocolEnum, DaprClient, DaprServer, HttpMethod } from '../../src';
 
 const serverHost = "127.0.0.1";
-const serverPort = "50000";
+const serverPort = "50001";
 const daprHost = "127.0.0.1";
-const daprPort = "50001"; // Dapr Sidecar Port of this Example Server
+const daprPort = "50000"; // Dapr Sidecar Port of this Example Server
 const daprAppId = "test-suite";
 
 describe('grpc/main', () => {

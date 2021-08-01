@@ -111,7 +111,7 @@ export default class ActorManager<T extends AbstractActor> {
      * @returns 
      */
     async invoke(actorId: ActorId, actorMethodName: string, ...args: any): Promise<any> {
-        return await this.callActorMethod(actorId, actorMethodName, args);
+        return await this.callActorMethod(actorId, actorMethodName, ...args);
     }
 
     async fireReminder(actorId: ActorId, reminderName: string, requestBody?: Buffer): Promise<void> {
@@ -144,7 +144,7 @@ export default class ActorManager<T extends AbstractActor> {
 
         // Call the actor method, Skip type-checking as it's the power of Javascript
         // @ts-ignore
-        const res = await actorObject[actorMethodName](args);
+        const res = await actorObject[actorMethodName](...args);
 
         return res;
 

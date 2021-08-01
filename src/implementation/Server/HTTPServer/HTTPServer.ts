@@ -15,6 +15,7 @@ export default class HTTPServer implements IServer {
     server: IServerType;
     serverAddress: string;
     serverImpl: IServerImplType;
+    serverStartupDelay: number = 250;
 
     constructor() {
         this.serverHost = "";
@@ -23,6 +24,8 @@ export default class HTTPServer implements IServer {
         this.isInitialized = false;
 
         this.server = Restana();
+        this.server.use(bodyParser.text());
+        this.server.use(bodyParser.raw());
         this.server.use(bodyParser.json({
             type: [
                 "application/json",
@@ -103,9 +106,8 @@ export default class HTTPServer implements IServer {
 
         // We need to call the Singleton to start listening on the port, else Dapr will not pick it up correctly
         // Dapr will probe every 50ms to see if we are listening on our port: https://github.com/dapr/dapr/blob/a43712c97ead550ca2f733e9f7e7769ecb195d8b/pkg/runtime/runtime.go#L1694
-        console.log("Letting Dapr pick-up the server");
-        const delayMs = 100;
-        await (new Promise((resolve) => setTimeout(resolve, delayMs)));
+        console.log(`Letting Dapr pick-up the server (${this.serverStartupDelay}ms)`);
+        await (new Promise((resolve) => setTimeout(resolve, this.serverStartupDelay)));
 
         // We are initialized
         this.isInitialized = true;

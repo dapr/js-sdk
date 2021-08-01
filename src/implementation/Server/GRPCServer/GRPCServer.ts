@@ -92,7 +92,7 @@ export default class GRPCServer implements IServer {
         // We need to call the Singleton to start listening on the port, else Dapr will not pick it up correctly
         // Dapr will probe every 50ms to see if we are listening on our port: https://github.com/dapr/dapr/blob/a43712c97ead550ca2f733e9f7e7769ecb195d8b/pkg/runtime/runtime.go#L1694
         console.log("[Dapr-JS][gRPC] Letting Dapr pick-up the server");
-        const delayMs = 100;
+        const delayMs = 250;
         await (new Promise((resolve) => setTimeout(resolve, delayMs)));
 
         // We are initialized

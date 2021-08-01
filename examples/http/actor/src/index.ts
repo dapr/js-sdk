@@ -21,6 +21,8 @@ async function start() {
   console.log("===============================================================");
   // Creating actor bindings
   await server.actor.init();
+  server.actor.registerActor(DemoActorCounterImpl);
+  server.actor.registerActor(DemoActorSayImpl);
 
   // We initialize after registering our listeners since these should be defined upfront
   // this is how Dapr works, it waits until we are listening on the port. Once that is detected
@@ -31,15 +33,14 @@ async function start() {
   console.log("EXECUTING CLIENT - ACTORS");
   console.log("Note: we create new client for now since Actors are not supported internally!")
   console.log("===============================================================");
-  server.actor.registerActor(DemoActorCounterImpl);
-  server.actor.registerActor(DemoActorSayImpl);
+
 
   const resRegisteredActors = await server.actor.getRegisteredActors();
   console.log(`Registered Actor Types: ${JSON.stringify(resRegisteredActors)}`);
   
-  console.log("[Dapr-JS][Example][Actors] Trying to invoke method 'say' with msg 'hello world'");
-  const resActorInvokeSay = await client.actor.invoke("POST", DemoActorSayImpl.name, "MyActorId1", "say", "Hello World");
-  console.log(`[Dapr-JS][Example][Actors] Invoked Method and got data: ${resActorInvokeSay}`);
+  // console.log("[Dapr-JS][Example][Actors] Trying to invoke method 'say' with msg 'hello world'");
+  // const resActorInvokeSay = await client.actor.invoke("PUT", DemoActorSayImpl.name, "MyActorId1", "say", "Hello World");
+  // console.log(`[Dapr-JS][Example][Actors] Invoked Method and got data: ${resActorInvokeSay}`);
 
   // const resActorStateGet = await clientActor.actor.stateGet("DemoActor", "MyActorId1", "PropertyA");
   // await clientActor.actor.stateTransaction("DemoActor", "MyActorId1", [

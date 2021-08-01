@@ -86,7 +86,17 @@ export default class ActorRuntime {
     async invoke(actorTypeName: string, actorId: string, actorMethodName: string, requestBody?: Buffer): Promise<Buffer> {
         const actorIdObj = new ActorId(actorId);
         const manager = this.getActorManager(actorTypeName);
-        return await manager.invoke(actorIdObj, actorMethodName, requestBody);
+        let deserializedBody: string | object = requestBody?.toString() || "";
+
+        // Try to parse it to an object
+        // this way manager.invoke has string | object
+        try {
+            deserializedBody = JSON.parse(deserializedBody);
+        } catch (e) {
+        }
+
+        // Invoke, but we only support one parameter (deserializedBody) which is of type string | object
+        return await manager.invoke(actorIdObj, actorMethodName, deserializedBody);
     }
 
     /**

@@ -16,3 +16,5 @@ spec:
     value: "false"
   - name: failover
     value: "false"
+  - name: actorStateStore
+    value: "true"

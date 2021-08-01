@@ -26,7 +26,27 @@ export default class HTTPClient implements IClient {
         return this.client;
     }
 
-    async execute(url: string, ...params: any): Promise<any> {
-        return await fetch(`${this.clientUrl}${url}`, ...params);
+    async execute(url: string, params?: any): Promise<any> {
+        if (!params?.headers) {
+            params.headers = {};
+        }
+
+        if (params?.body && !params?.headers["Content-Type"]) {
+            switch (typeof params?.body) {
+                case "object":
+                    params.headers["Content-Type"] = "application/json";
+                    params.body = JSON.stringify(params?.body);
+                    break;
+                case "string":
+                    params.headers["Content-Type"] = "text/plain";
+                    break;
+                default:
+                    console.log(`Unknown body type: ${typeof params?.body}, defaulting to "text/plain"`);
+                    params.headers["Content-Type"] = "text/plain";
+                    break;
+            }
+        }
+
+        return await fetch(`${this.clientUrl}${url}`, params);
     }
 }

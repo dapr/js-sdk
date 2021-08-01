@@ -16,26 +16,21 @@ export default class DaprClientActor implements IClientActor {
   }
 
   async invoke(method: "GET" | "POST" | "PUT" | "DELETE" = "POST", actorType: string, actorId: string, methodName: string, body?: any): Promise<object> {
-    const fetchOptions: InvokeFetchOptions = {
+    const res = await this.client.execute(`/actors/${actorType}/${actorId}/method/${methodName}`, {
       method,
-
-      // @todo: is this always application/json if we have a Buffer body? what about normal strings?
-      headers: {
-        "Content-Type": "application/json"
-      }
-    }
-
-    if (body) {
-      fetchOptions.body = body;
-    }
-
-    const res = await this.client.execute(`/actors/${actorType}/${actorId}/method/${methodName}`, fetchOptions as object);
-
+      body: body
+    });
 
     switch (res.status) {
       case HttpStatusCode.OK:
-        const json = await res.json();
-        return json;
+        const txt = await res.text();
+
+        try {
+          const json = JSON.parse(txt);
+          return json;
+        } catch (e) {
+          return txt;
+        }
       case HttpStatusCode.INTERNAL_SERVER_ERROR: {
         const json = await res.json();
         throw new Error(JSON.stringify(json));

@@ -1,10 +1,12 @@
+import { Temporal } from "@js-temporal/polyfill";
+
 /**
  * Actor runtime configuration that configures the Actor behavior in the Dapr Runtime
  */
 export default class ActorRuntimeConfig {
-    private actorIdleTimeout: number;
-    private actorScanInterval: number;
-    private drainOngoingCallTimeout: number;
+    private actorIdleTimeout: Temporal.Duration;
+    private actorScanInterval: Temporal.Duration;
+    private drainOngoingCallTimeout: Temporal.Duration;
     private drainRebalancedActors: boolean;
 
     /**
@@ -18,26 +20,45 @@ export default class ActorRuntimeConfig {
      * @param drainRebalancedActors If true, Dapr will wait for drainOngoingCallTimeout
      * to allow a current actor call to complete before trying to deactivate an actor
      */
-    constructor(actorIdleTimeout = 1 * 60 * 60, actorScanInterval = 30, drainOngoingCallTimeout = 1 * 60, drainRebalancedActors = true) {
+    constructor(
+        actorIdleTimeout = Temporal.Duration.from({ hours: 1 })
+        , actorScanInterval = Temporal.Duration.from({ seconds: 30 })
+        , drainOngoingCallTimeout = Temporal.Duration.from({ minutes: 1 })
+        , drainRebalancedActors = true
+    ) {
         this.actorIdleTimeout = actorIdleTimeout;
         this.actorScanInterval = actorScanInterval;
         this.drainOngoingCallTimeout = drainOngoingCallTimeout;
         this.drainRebalancedActors = drainRebalancedActors;
     }
 
-    getActorIdleTimeout(): number { 
+    getActorIdleTimeout(): Temporal.Duration {
         return this.actorIdleTimeout;
     }
 
-    getActorScanInterval(): number { 
+    getActorScanInterval(): Temporal.Duration {
         return this.actorScanInterval;
     }
 
-    getDrainOngoingCallTimeout(): number { 
+    getDrainOngoingCallTimeout(): Temporal.Duration {
         return this.drainOngoingCallTimeout;
     }
 
-    getDrainRebalancedActors(): boolean { 
+    getDrainRebalancedActors(): boolean {
         return this.drainRebalancedActors;
+    }
+
+    toDictionary(): {
+        actorIdleTimeout: string,
+        actorScanInterval: string,
+        drainOngoingCallTimeout: string,
+        drainRebalancedActors: boolean,
+    } {
+        return {
+            actorIdleTimeout: this.actorIdleTimeout.toString(),
+            actorScanInterval: this.actorScanInterval.toString(),
+            drainOngoingCallTimeout: this.drainOngoingCallTimeout.toString(),
+            drainRebalancedActors: this.drainRebalancedActors
+        }
     }
 }
