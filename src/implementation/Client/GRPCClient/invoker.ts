@@ -8,7 +8,7 @@ import * as HttpVerbUtil from "../../../utils/HttpVerb.util";
 import IClientInvoker from '../../../interfaces/Client/IClientInvoker';
 
 // https://docs.dapr.io/reference/api/service_invocation_api/
-export default class DaprInvoker implements IClientInvoker {
+export default class GRPCClientInvoker implements IClientInvoker {
   client: GRPCClient;
 
   constructor(client: GRPCClient) {

@@ -3,13 +3,16 @@ import { InvokerListenOptionsType } from '../../../types/InvokerListenOptions.ty
 import { HttpMethod } from '../../../enum/HttpMethod.enum';
 import HTTPServer from './HTTPServer';
 import IServerInvoker from '../../../interfaces/Server/IServerInvoker';
+import HTTPClient from '../../Client/HTTPClient/HTTPClient';
 
 // https://docs.dapr.io/reference/api/service_invocation_api/
 export default class HTTPServerInvoker implements IServerInvoker {
-  server: HTTPServer;
+  private readonly server: HTTPServer;
+  private readonly client: HTTPClient;
 
-  constructor(server: HTTPServer) {
-      this.server = server;
+  constructor(server: HTTPServer, client: HTTPClient) {
+    this.client = client;
+    this.server = server;
   }
 
   async listen(methodName: string, cb: TypeDaprInvokerCallback, options: InvokerListenOptionsType = {}) {

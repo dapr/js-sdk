@@ -3,26 +3,29 @@ import IServerActor from '../../../interfaces/Server/IServerActor';
 import AbstractActor from '../../../actors/runtime/AbstractActor';
 import Class from '../../../types/Class';
 import ActorRuntime from '../../../actors/runtime/ActorRuntime';
-import DaprClient from '../../Client/DaprClient';
 import IRequest from '../../../types/http/IRequest';
 import IResponse from '../../../types/http/IResponse';
 import { GetRegisteredActorsType } from '../../../types/response/GetRegisteredActors.type';
+import BufferSerializer from '../../../actors/runtime/BufferSerializer';
+import HTTPClient from '../../Client/HTTPClient/HTTPClient';
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class HTTPServerActor implements IServerActor {
-  server: HTTPServer;
-  client: DaprClient;
+  private readonly server: HTTPServer;
+  private readonly client: HTTPClient;
+  private readonly serializer: BufferSerializer;
 
-  constructor(server: HTTPServer) {
-      this.server = server;
-      this.client = new DaprClient(this.server.serverHost, this.server.serverPort);
+  constructor(server: HTTPServer, client: HTTPClient) {
+    this.client = client;
+    this.server = server;
+    this.serializer = new BufferSerializer();
   }
 
   async registerActor<T extends AbstractActor>(cls: Class<T>): Promise<void> {
     ActorRuntime.getInstance(this.client).registerActor(cls);
     console.log(`Registering actor ${cls.name}`);
   }
-  
+
   async getRegisteredActors(): Promise<string[]> {
     return await ActorRuntime.getInstance(this.client).getRegisteredActorTypes();
   }
@@ -61,7 +64,7 @@ export default class HTTPServerActor implements IServerActor {
       entities: actorRuntime.getRegisteredActorTypes(),
       ...actorRuntime.getActorRuntimeConfig().toDictionary()
     }
-    
+
     return res.send(result);
   }
 
@@ -75,27 +78,30 @@ export default class HTTPServerActor implements IServerActor {
 
     // @todo: reentrancy id? (https://github.com/dapr/python-sdk/blob/master/ext/flask_dapr/flask_dapr/actor.py#L91)
 
-    let serializedBody: string;
-
-    if (typeof body === "object") {
-      serializedBody = JSON.stringify(body);
-    } else {
-      serializedBody = body?.toString() || "";
-    }
-
-    const result = await ActorRuntime.getInstance(this.client).invoke(actorTypeName, actorId, methodName, Buffer.from(serializedBody));
+    const dataSerialized = this.serializer.serialize(body);
+    const result = await ActorRuntime.getInstance(this.client).invoke(actorTypeName, actorId, methodName, dataSerialized);
     return res.send(result);
   }
 
   private async handlerTimer(req: IRequest, res: IResponse): Promise<void> {
     const { actorTypeName, actorId, timerName } = req.params;
-    console.log("Handling Timers")
+    const body = req.body;
 
+    console.log(`Handling Timer for actorId: ${actorId} and timerName: ${timerName}`)
+
+    const dataSerialized = this.serializer.serialize(body);
+    const result = await ActorRuntime.getInstance(this.client).fireTimer(actorTypeName, actorId, timerName, dataSerialized);
+    return res.send(result);
   }
 
   private async handlerReminder(req: IRequest, res: IResponse): Promise<void> {
-    const { actorTypeName, actorId, remindername } = req.params;
-    console.log("Handling Reminders")
+    const { actorTypeName, actorId, reminderName } = req.params;
+    const body = req.body;
 
+    console.log(`Handling Reminder for actorId: ${actorId} and reminderName: ${reminderName}`);
+
+    const dataSerialized = this.serializer.serialize(body);
+    const result = await ActorRuntime.getInstance(this.client).fireReminder(actorTypeName, actorId, reminderName, dataSerialized);
+    return res.send(result);
   }
 }

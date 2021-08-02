@@ -1,20 +1,22 @@
 import { v4 as uuidv4 } from "uuid";
 import DaprClient from "../../implementation/Client/DaprClient";
+import IClient from "../../interfaces/Client/IClient";
 import Class from "../../types/Class";
 import ActorId from "../ActorId";
 import AbstractActor from "./AbstractActor";
 import ActorReminderData from "./ActorReminderData";
 import ActorTimerData from "./ActorTimerData";
+import BufferSerializer from "./BufferSerializer";
 
 /**
  * The Actor Manager manages actor objects of a specific actor type
  */
-const TIMER_METHOD_NAME = 'fireTimer';
-const REMINDER_METHOD_NAME = 'receiveReminder';
+const REMINDER_METHOD_NAME = 'receiveReminder'; // the callback method name for the reminder
 
 export default class ActorManager<T extends AbstractActor> {
     readonly actorCls: Class<T>;
-    readonly daprClient: DaprClient;
+    readonly daprClient: IClient;
+    readonly serializer: BufferSerializer = new BufferSerializer();
 
     actors: Map<ActorId, T>;
 
@@ -22,7 +24,7 @@ export default class ActorManager<T extends AbstractActor> {
     // timerMethodContext: any;
     // reminderMethodContext: any;
 
-    constructor(actorCls: Class<T>, daprClient: DaprClient) {
+    constructor(actorCls: Class<T>, daprClient: IClient) {
         this.daprClient = daprClient;
         this.actorCls = actorCls;
 
@@ -44,58 +46,38 @@ export default class ActorManager<T extends AbstractActor> {
         // this.reminderMethodContext = ActorMethodContext.createForReminder(REMINDER_METHOD_NAME);
     }
 
-    // /**
-    //  * Invokes a given method in the Actor
-    //  * 
-    //  * @param actorId Identifier for the Actor being invoked
-    //  * @param actorMethodName The name of the method being invoked
-    //  * @param requestBody The Input object for the method being invoked
-    //  * @param actorMethodContext The method context to be invoked
-    //  * @returns Promise Buffer
-    //  */
-    // async invokeMethod(actorId: ActorId, actorMethodName: string, requestBody: Buffer, actorMethodContext?: ActorMethodContext): Promise<Buffer> {
-    //     if (!actorMethodContext) {
-    //         actorMethodContext = ActorMethodContext.createForActor(actorMethodName);
-    //     }
+    async activateActor(actorId: ActorId): Promise<void> {
+        const actor = new this.actorCls(this.daprClient, actorId);
+        
+        // @todo https://github.com/dapr/python-sdk/blob/0f0b6f6a1cf45d2ac0c519b48fc868898d81124e/dapr/actor/runtime/manager.py#L43
+        await actor.onActivateInternal();
 
-    //     const actor = await this.invoke<>(actorId, actorMethodContext, (actor) => {
+        this.actors.set(actorId, actor);
+    }
 
-    //     });
+    async deactivateActor(actorId: ActorId): Promise<void> {
+        const actor = this.getActiveActor(actorId);
 
-    //     // @todo
-    //     return Buffer.from("");
-    // }
+        // @todo: https://github.com/dapr/python-sdk/blob/0f0b6f6a1cf45d2ac0c519b48fc868898d81124e/dapr/actor/runtime/manager.py#L53
+        // actor.onDeactivateInternal();
 
-    // /**
-    //  * 
-    //  * @param actorId Identifier of the Actor
-    //  * @param actorMethodContext The method context for the method/timer/reminder call
-    //  * @returns 
-    //  */
-    // async invoke(actorId: ActorId, actorMethodContext: ActorMethodContext, func: any): Promise<T> {
-    //     if (!actorMethodContext) {
-    //         actorMethodContext = ActorMethodContext.createForActor(actorMethodName);
-    //     }
-
-    //     // @todo
-    //     return Buffer.from("");
-    // }
+        this.actors.delete(actorId);
+    }
 
     async getActiveActor(actorId: ActorId): Promise<T> {
-        let actor = this.actors.get(actorId);
+        const actor = this.actors.get(actorId);
 
         // @todo: Create an actor if it doesn't exist
         // see https://github.com/dapr/python-sdk/blob/2183122ce14eb53e41eaaa28a94f0c3a5e6b975d/dapr/actor/runtime/manager.py#L111
         if (!actor) {
             actorId = new ActorId(uuidv4());
-            actor = new this.actorCls(actorId);
-            this.actors.set(actorId, actor);
+            await this.activateActor(actorId)
         }
 
         // @todo: Make sure it was actually set
         // https://github.com/dapr/python-sdk/blob/2183122ce14eb53e41eaaa28a94f0c3a5e6b975d/dapr/actor/runtime/manager.py#L116
         if (!actor) {
-            throw new Error(`${actorId.id} was not activated correctly`);
+            throw new Error(`${actorId.getId()} was not activated correctly`);
         }
 
         return actor;
@@ -110,22 +92,22 @@ export default class ActorManager<T extends AbstractActor> {
      * @param actorMethodContext 
      * @returns 
      */
-    async invoke(actorId: ActorId, actorMethodName: string, ...args: any): Promise<any> {
-        return await this.callActorMethod(actorId, actorMethodName, ...args);
+    async invoke(actorId: ActorId, actorMethodName: string, requestBody?: Buffer): Promise<any> {
+        const requestBodyDeserialized = this.serializer.deserialize(requestBody || Buffer.from(""));
+        return await this.callActorMethod(actorId, actorMethodName, requestBodyDeserialized);
     }
 
     async fireReminder(actorId: ActorId, reminderName: string, requestBody?: Buffer): Promise<void> {
         // @todo: make sure we are remindable
-        const requestBodyDeserialized = requestBody; // @todo: deserialize?
+        const requestBodyDeserialized = this.serializer.deserialize(requestBody || Buffer.from(""));
         const reminderData = ActorReminderData.fromObject(reminderName, requestBodyDeserialized as object);
         await this.callActorMethod(actorId, REMINDER_METHOD_NAME, reminderData.reminderName, reminderData.state, reminderData.dueTime, reminderData.period);
     }
 
     async fireTimer(actorId: ActorId, timerName: string, requestBody?: Buffer): Promise<void> {
         // @todo: make sure we are remindable
-        const requestBodyDeserialized = requestBody; // @todo: deserialize?
+        const requestBodyDeserialized = this.serializer.deserialize(requestBody || Buffer.from(""));
         const timerData = ActorTimerData.fromObject(timerName, requestBodyDeserialized as object);
-        
         await this.callActorMethod(actorId, timerData.callback, timerData.state);
     }
 

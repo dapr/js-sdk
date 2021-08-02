@@ -1,7 +1,7 @@
 import { AbstractActor } from "../../src";
-import DemoActorCounterInterface from "./DemoActorCounterInterface";
+import DemoActorReminderInterface from "./DemoActorReminderInterface";
 
-export default class DemoActorCounterImpl extends AbstractActor implements DemoActorCounterInterface {
+export default class DemoActorReminderImpl extends AbstractActor implements DemoActorReminderInterface {
     counter: number = 0;
 
     async count(): Promise<void> {

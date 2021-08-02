@@ -3,7 +3,7 @@ import { InvokeBindingRequest, InvokeBindingResponse } from '../../../proto/dapr
 import IClientBinding from '../../../interfaces/Client/IClientBinding';
 
 // https://docs.dapr.io/reference/api/bindings_api/
-export default class DaprBinding implements IClientBinding {
+export default class GRPCClientBinding implements IClientBinding {
   client: GRPCClient;
 
   constructor(client: GRPCClient) {

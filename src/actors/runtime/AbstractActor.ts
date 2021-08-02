@@ -1,5 +1,11 @@
+import { Temporal } from "@js-temporal/polyfill";
+import CommunicationProtocolEnum from "../../enum/CommunicationProtocol.enum";
+import DaprClient from "../../implementation/Client/DaprClient";
+import IClient from "../../interfaces/Client/IClient";
 import ActorId from "../ActorId";
+import ActorRuntime from "./ActorRuntime";
 import ActorStateManager from "./ActorStateManager";
+import StateProvider from "./StateProvider";
 
 /**
  * Represents the base class for actors.
@@ -19,18 +25,26 @@ import ActorStateManager from "./ActorStateManager";
  * }
  */
 export default abstract class AbstractActor {
-  stateManager: ActorStateManager;
-  id: ActorId;
-  
+  private readonly stateManager: ActorStateManager<any>;
+  private readonly id: ActorId;
+  private readonly daprClient: IClient;
+  private readonly daprStateProvider: StateProvider;
+  private readonly actorType: any; // set at constructor level
+
   /**
    * Instantiates a new Actor
    * 
    * @param runtimeContext context for the runtime
    * @param id actor identifier
    */
-  constructor(id: ActorId) {
+  constructor(daprClient: IClient, id: ActorId) {
+    this.daprClient = daprClient;
     this.id = id;
     this.stateManager = new ActorStateManager(this);
+    this.daprStateProvider = new StateProvider(daprClient);
+
+    // Interesting one: get the Class Type of the child
+    this.actorType = this.constructor.name;
   }
 
   /**
@@ -68,4 +82,61 @@ export default abstract class AbstractActor {
   //   const actorType = this.runtimeCtx.actorTypeInfo.name;
   //   await this.runtimeCtx.daprClient.actor.reminderDelete(actorType, this.id.id, reminderName);
   // }
+
+  async registerTimer(timerName: string, callback: string, dueTime: Temporal.Duration, period: Temporal.Duration, state?: Buffer) {
+    // Make sure to activate the actor
+    const actor = await ActorRuntime.getInstance(this.daprClient).getActorManager(this.actorType).getActiveActor(this.id);
+    
+    // Register the timer in the sidecar
+    const clientDapr = DaprClient.create(this.daprClient);
+    await clientDapr.actor.timerCreate(this.actorType, this.id.getId(), timerName, {
+      period,
+      dueTime,
+      data: state,
+      callback
+    });
+  }
+
+  /**
+   * Clears all state cache, calls the overridden onActivate and then saves the states
+   * This method gets called when the actor is activated
+   * Note: we require this to save the state so that we know the actor got activated!
+   */
+  async onActivateInternal() {
+    await this.resetStateInternal();
+    await this.onActivate();
+    await this.saveStateInternal();
+  }
+
+  async resetStateInternal(): Promise<void> {
+    await this.stateManager.clearCache();
+  }
+
+  async saveStateInternal(): Promise<void> {
+    await this.stateManager.saveState();
+  }
+
+  /**
+   * This method gets called right after an actor gets activated
+   * and before a method call or reminders are dispatched on it
+   */
+  async onActivate(): Promise<void> {
+    // not implemented
+  }
+
+  getStateProvider(): StateProvider {
+    return this.daprStateProvider;
+  }
+
+  getStateManager(): ActorStateManager<any> {
+    return this.stateManager;
+  }
+
+  getId(): ActorId {
+    return this.id;
+  }
+
+  getActorType(): any {
+    return this.actorType;
+  }
 }

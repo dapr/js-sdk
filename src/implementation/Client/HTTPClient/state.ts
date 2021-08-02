@@ -6,7 +6,7 @@ import IClientState from '../../../interfaces/Client/IClientState';
 import { KeyValueType } from '../../../types/KeyValue.type';
 
 // https://docs.dapr.io/reference/api/state_api/
-export default class DaprClientState implements IClientState {
+export default class HTTPClientState implements IClientState {
   client: HTTPClient;
 
   constructor(client: HTTPClient) {

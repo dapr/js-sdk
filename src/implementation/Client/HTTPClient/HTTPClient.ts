@@ -1,13 +1,13 @@
 import fetch from "node-fetch";
-import HttpStatusCode from "../../../enum/HttpStatusCode.enum";
+import { CommunicationProtocolEnum } from "../../..";
 import IClient from "../../../interfaces/Client/IClient";
 
 export default class HTTPClient implements IClient {
-    isInitialized: boolean;
-    client: typeof fetch;
-    clientHost: string;
-    clientPort: string;
-    clientUrl: string;
+    private readonly isInitialized: boolean;
+    private readonly client: typeof fetch;
+    private readonly clientHost: string;
+    private readonly clientPort: string;
+    private readonly clientUrl: string;
 
     constructor(host: string = "127.0.0.1", port: string = "50050") {
         this.isInitialized = true;
@@ -25,6 +25,22 @@ export default class HTTPClient implements IClient {
 
     getClient(): typeof fetch {
         return this.client;
+    }
+
+    getClientHost(): string {
+        return this.clientHost;
+    }
+
+    getClientPort(): string {
+        return this.clientPort;
+    }
+
+    getClientUrl(): string {
+        return this.clientUrl;
+    }
+
+    getClientCommunicationProtocol(): CommunicationProtocolEnum {
+        return CommunicationProtocolEnum.HTTP;
     }
 
     async execute(url: string, params?: any): Promise<object | string> {

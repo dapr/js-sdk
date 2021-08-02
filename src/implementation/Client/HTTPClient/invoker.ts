@@ -3,7 +3,7 @@ import { HttpMethod } from '../../../enum/HttpMethod.enum';
 import IClientInvoker from '../../../interfaces/Client/IClientInvoker';
 
 // https://docs.dapr.io/reference/api/service_invocation_api/
-export default class DaprClientInvoker implements IClientInvoker {
+export default class HTTPClientInvoker implements IClientInvoker {
   client: HTTPClient;
 
   constructor(client: HTTPClient) {

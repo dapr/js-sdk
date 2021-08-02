@@ -2,13 +2,16 @@ import GRPCServer from './GRPCServer';
 import IServerActor from '../../../interfaces/Server/IServerActor';
 import AbstractActor from '../../../actors/runtime/AbstractActor';
 import Class from '../../../types/Class';
+import GRPCClient from '../../Client/GRPCClient/GRPCClient';
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class GRPCServerActor implements IServerActor {
   server: GRPCServer;
+  client: GRPCClient;
 
-  constructor(server: GRPCServer) {
+  constructor(server: GRPCServer, client: GRPCClient) {
       this.server = server;
+      this.client = client;
   }
 
   init(): Promise<void> {

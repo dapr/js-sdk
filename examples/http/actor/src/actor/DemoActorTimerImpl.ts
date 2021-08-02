@@ -1,7 +1,7 @@
 import { AbstractActor } from "@dapr/js-sdk";
-import DemoActorCounterInterface from "./DemoActorCounterInterface";
+import DemoActorTimerInterface from "./DemoActorTimerInterface";
 
-export default class DemoActorCounterImpl extends AbstractActor implements DemoActorCounterInterface {
+export default class DemoActorTimerImpl extends AbstractActor implements DemoActorTimerInterface {
     counter: number = 0;
 
     async count(): Promise<void> {

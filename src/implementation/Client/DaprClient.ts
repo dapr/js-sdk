@@ -76,6 +76,14 @@ export default class DaprClient {
     }
   }
 
+  static create(client: IClient): DaprClient {
+    return new DaprClient(client.getClientHost(), client.getClientPort(), client.getClientCommunicationProtocol());
+  }
+
+  getDaprClient(): IClient {
+    return this.daprClient;
+  }
+
   getDaprHost(): string {
     return this.daprHost;
   }

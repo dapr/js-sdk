@@ -7,13 +7,19 @@ import { ActorReminderType } from '../../../types/ActorReminder.type';
 import { ActorTimerType } from '../../../types/ActorTimer.type';
 import IClientActor from '../../../interfaces/Client/IClientActor';
 import { KeyValueType } from '../../../types/KeyValue.type';
+import { AbstractActor } from "../../..";
+import Class from "../../../types/Class";
 
 // https://docs.dapr.io/reference/api/actors_api/
-export default class DaprActor implements IClientActor {
+export default class GRPCClientActor implements IClientActor {
     client: GRPCClient;
 
     constructor(client: GRPCClient) {
         this.client = client;
+    }
+
+    createProxy<T extends AbstractActor>(actorType: Class<T>, actorId: string): Promise<T> {
+        throw new Error("Method not implemented since the actor runtime is not supported on gRPC");
     }
 
     async invoke(method: "GET" | "POST" | "PUT" | "DELETE", actorType: string, actorId: string, methodName: string, body?: any): Promise<object> {
@@ -116,11 +122,11 @@ export default class DaprActor implements IClientActor {
         }
 
         if (reminder.period) {
-            msgService.setPeriod(reminder.period);
+            msgService.setPeriod(reminder.period.toString());
         }
 
         if (reminder.dueTime) {
-            msgService.setDueTime(reminder.dueTime);
+            msgService.setDueTime(reminder.dueTime.toString());
         }
 
         return new Promise(async (resolve, reject) => {
@@ -202,11 +208,11 @@ export default class DaprActor implements IClientActor {
         }
 
         if (timer.period) {
-            msgService.setPeriod(timer.period);
+            msgService.setPeriod(timer.period.toString());
         }
 
         if (timer.dueTime) {
-            msgService.setDueTime(timer.dueTime);
+            msgService.setDueTime(timer.dueTime.toString());
         }
 
         return new Promise(async (resolve, reject) => {

@@ -16,11 +16,17 @@ import HTTPServerPubSub from './HTTPServer/pubsub';
 import HTTPServerBinding from './HTTPServer/binding';
 import HTTPServerInvoker from './HTTPServer/invoker';
 import HTTPServerActor from './HTTPServer/actor';
+import GRPCClient from '../Client/GRPCClient/GRPCClient';
+import HTTPClient from '../Client/HTTPClient/HTTPClient';
 
 export default class DaprServer {
-  readonly daprHost: string;
-  readonly daprPort: string;
-  readonly communicationProtocol: CommunicationProtocolEnum;
+  // App details
+  private readonly serverHost: string;
+  private readonly serverPort: string;
+  // Dapr Sidecar
+  private readonly daprHost: string;
+  private readonly daprPort: string;
+  private readonly communicationProtocol: CommunicationProtocolEnum;
 
   readonly daprServer: IServer;
   readonly pubsub: IServerPubSub;
@@ -31,42 +37,50 @@ export default class DaprServer {
   constructor(
     serverHost: string = "127.0.0.1"
     , serverPort: string = process.env.DAPR_SERVER_PORT || "50050"
+    , daprHost: string = "127.0.0.1"
+    , daprPort: string = "50051"
     , communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP
   ) {
-    this.daprHost = serverHost;
-    this.daprPort = serverPort;
+    this.serverHost = serverHost;
+    this.serverPort = serverPort;
+    this.daprHost = daprHost;
+    this.daprPort = daprPort;
+
     this.communicationProtocol = communicationProtocol;
 
     // If DAPR_SERVER_PORT was not set, we set it
-    process.env.DAPR_SERVER_PORT = this.daprPort;
+    process.env.DAPR_SERVER_PORT = this.serverPort;
+    process.env.DAPR_CLIENT_PORT = this.daprPort;
 
     // Builder
     switch (communicationProtocol) {
       case CommunicationProtocolEnum.GRPC:  {
+        const client = new GRPCClient(daprHost, daprPort);
         const server = new GRPCServer();
 
         this.daprServer = server;
-        this.pubsub = new GRPCServerPubSub(server);
-        this.binding = new GRPCServerBinding(server);
-        this.invoker = new GRPCServerInvoker(server);
-        this.actor = new GRPCServerActor(server);
+        this.pubsub = new GRPCServerPubSub(server, client);
+        this.binding = new GRPCServerBinding(server, client);
+        this.invoker = new GRPCServerInvoker(server, client);
+        this.actor = new GRPCServerActor(server, client);
         break;
       }
       case CommunicationProtocolEnum.HTTP: 
       default: {
+        const client = new HTTPClient(daprHost, daprPort);
         const server = new HTTPServer();
 
         this.daprServer = server;
-        this.pubsub = new HTTPServerPubSub(server);
-        this.binding = new HTTPServerBinding(server);
-        this.invoker = new HTTPServerInvoker(server);
-        this.actor = new HTTPServerActor(server);
+        this.pubsub = new HTTPServerPubSub(server, client);
+        this.binding = new HTTPServerBinding(server, client);
+        this.invoker = new HTTPServerInvoker(server, client);
+        this.actor = new HTTPServerActor(server, client);
         break;
       }
     }
   }
 
   async startServer() {
-    await this.daprServer.startServer(this.daprHost, this.daprPort.toString());
+    await this.daprServer.startServer(this.serverHost, this.serverPort.toString());
   }
 }

@@ -1,3 +1,4 @@
 export default interface DemoActorSayInterface {
-    say(msg: string): string
+    sayString(msg: string): string;
+    sayObject(msg: object): object;
 }

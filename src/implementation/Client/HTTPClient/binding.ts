@@ -2,7 +2,7 @@ import HTTPClient from './HTTPClient';
 import IClientBinding from '../../../interfaces/Client/IClientBinding';
 
 // https://docs.dapr.io/reference/api/bindings_api/
-export default class DaprClientBinding implements IClientBinding {
+export default class HTTPClientBinding implements IClientBinding {
   client: HTTPClient;
 
   constructor(client: HTTPClient) {

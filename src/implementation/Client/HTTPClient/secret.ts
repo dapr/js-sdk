@@ -2,7 +2,7 @@ import HTTPClient from './HTTPClient';
 import IClientSecret from '../../../interfaces/Client/IClientSecret';
 
 // https://docs.dapr.io/reference/api/secrets_api/
-export default class DaprClientSecret implements IClientSecret {
+export default class HTTPClientSecret implements IClientSecret {
   client: HTTPClient;
 
   constructor(client: HTTPClient) {

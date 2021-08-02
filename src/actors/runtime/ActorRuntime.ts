@@ -1,4 +1,6 @@
 import { DaprClient } from "../..";
+import CommunicationProtocolEnum from "../../enum/CommunicationProtocol.enum";
+import IClient from "../../interfaces/Client/IClient";
 import Class from "../../types/Class";
 import ActorId from "../ActorId";
 import AbstractActor from "./AbstractActor";
@@ -11,7 +13,7 @@ import ActorRuntimeConfig from "./ActorRuntimeConfig";
 export default class ActorRuntime {
     private static instance: ActorRuntime;
 
-    private readonly daprClient: DaprClient;
+    private readonly daprClient: IClient;
     private actorManagers: Map<string, ActorManager<any>>;
     private actorRuntimeConfig: ActorRuntimeConfig = new ActorRuntimeConfig();
 
@@ -26,18 +28,27 @@ export default class ActorRuntime {
     // NodeJS: https://nodejs.org/api/worker_threads.html
     // actorManagersLock
 
-    private constructor(daprClient: DaprClient) {
+    private constructor(daprClient: IClient) {
         this.daprClient = daprClient;
         this.actorManagers = new Map<string, ActorManager<any>>();
     }
 
-    static getInstance(daprClient: DaprClient): ActorRuntime {
+    static getInstance(daprClient: IClient): ActorRuntime {
         if (!ActorRuntime.instance) {
             ActorRuntime.instance = new ActorRuntime(daprClient);
         }
 
         return ActorRuntime.instance;
     }
+
+    // static getInstanceByHost(host: string, port: string, communicationProtocol: CommunicationProtocolEnum): ActorRuntime {
+    //     if (!ActorRuntime.instance) {
+    //         const daprClient = new DaprClient(host, port, communicationProtocol);
+    //         ActorRuntime.instance = new ActorRuntime(daprClient);
+    //     }
+
+    //     return ActorRuntime.instance;
+    // }
 
     registerActor<T extends AbstractActor>(actorCls: Class<T>): void {
         // Create an ActorManager if it hasn't been registered yet
@@ -69,7 +80,9 @@ export default class ActorRuntime {
             throw new Error(`ACTOR_TYPE_${actorTypeName}_NOT_REGISTERED`);
         }
 
-        return actorManager;
+        // We need to cast to ActorManager<T> since Map actorManagers
+        // is initialized with ActorManager<any> since we don't know the type there
+        return actorManager as ActorManager<T>;
     }
 
     /**
@@ -86,17 +99,7 @@ export default class ActorRuntime {
     async invoke(actorTypeName: string, actorId: string, actorMethodName: string, requestBody?: Buffer): Promise<Buffer> {
         const actorIdObj = new ActorId(actorId);
         const manager = this.getActorManager(actorTypeName);
-        let deserializedBody: string | object = requestBody?.toString() || "";
-
-        // Try to parse it to an object
-        // this way manager.invoke has string | object
-        try {
-            deserializedBody = JSON.parse(deserializedBody);
-        } catch (e) {
-        }
-
-        // Invoke, but we only support one parameter (deserializedBody) which is of type string | object
-        return await manager.invoke(actorIdObj, actorMethodName, deserializedBody);
+        return await manager.invoke(actorIdObj, actorMethodName, requestBody);
     }
 
     /**

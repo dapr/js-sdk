@@ -1,6 +1,8 @@
 import { DaprServer, DaprClient, HttpMethod } from "@dapr/js-sdk";
 import DemoActorCounterImpl from "./actor/DemoActorCounterImpl";
+import DemoActorReminderImpl from "./actor/DemoActorReminderImpl";
 import DemoActorSayImpl from "./actor/DemoActorSayImpl";
+import DemoActorTimerImpl from "./actor/DemoActorTimerImpl";
 
 const daprHost = "127.0.0.1";
 const daprPort = "50000"; // Dapr Sidecar Port of this Example Server
@@ -13,7 +15,7 @@ async function sleep(ms: number): Promise<void> {
 }
 
 async function start() {
-  const server = new DaprServer(serverHost, serverPort);
+  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
   const client = new DaprClient(daprHost, daprPort);
 
   console.log("===============================================================");
@@ -23,6 +25,8 @@ async function start() {
   await server.actor.init();
   server.actor.registerActor(DemoActorCounterImpl);
   server.actor.registerActor(DemoActorSayImpl);
+  server.actor.registerActor(DemoActorTimerImpl);
+  server.actor.registerActor(DemoActorReminderImpl);
 
   // We initialize after registering our listeners since these should be defined upfront
   // this is how Dapr works, it waits until we are listening on the port. Once that is detected

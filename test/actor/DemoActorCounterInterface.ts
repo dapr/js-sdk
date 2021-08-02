@@ -1,3 +1,4 @@
 export default interface DemoActorCounterInterface {
-    increment(amount: number): void;
+    count(): Promise<void>;
+    countBy(amount: number): Promise<void>;
 }

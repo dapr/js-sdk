@@ -1,9 +1,12 @@
+import AbstractActor from "../../actors/runtime/AbstractActor";
 import { ActorReminderType } from "../../types/ActorReminder.type";
 import { ActorTimerType } from "../../types/ActorTimer.type";
+import Class from "../../types/Class";
 import { KeyValueType } from "../../types/KeyValue.type";
 import { OperationType } from "../../types/Operation.type";
 
 export default interface IClientActor {
+    createProxy<T extends AbstractActor>(actorType: Class<T>, actorId: string): Promise<T>;
     invoke(method: "GET" | "POST" | "PUT" | "DELETE", actorType: string, actorId: string, methodName: string, body?: any): Promise<object>;
     stateTransaction(actorType: string, actorId: string, operations: OperationType[]): Promise<void>;
     stateGet(actorType: string, actorId: string, key: string): Promise<KeyValueType | string>;
