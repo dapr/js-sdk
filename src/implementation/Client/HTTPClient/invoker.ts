@@ -1,7 +1,6 @@
 import HTTPClient from './HTTPClient';
 import { HttpMethod } from '../../../enum/HttpMethod.enum';
 import IClientInvoker from '../../../interfaces/Client/IClientInvoker';
-import HttpStatusCode from '../../../enum/HttpStatusCode.enum';
 
 // https://docs.dapr.io/reference/api/service_invocation_api/
 export default class DaprClientInvoker implements IClientInvoker {
@@ -28,39 +27,7 @@ export default class DaprClientInvoker implements IClientInvoker {
       fetchOptions.body = JSON.stringify(data);
     }
 
-    const res = await this.client.execute(`/invoke/${appId}/method/${methodName}`, fetchOptions);
-
-    switch (res.status) {
-      case HttpStatusCode.OK: {
-        try {
-          const json = await res.json();
-          return json;
-        } catch (e) {
-          const text = await res.text();
-          return text;
-        }
-      }
-      case HttpStatusCode.NO_CONTENT:
-        return {}; // empty response
-      case HttpStatusCode.BAD_REQUEST:
-        throw new Error(JSON.stringify({
-          error: "MALFORMED_REQUEST",
-          error_msg: `The request was malformed and failed, was the method name given?`
-        }));
-      case HttpStatusCode.FORBIDDEN:
-        throw new Error(JSON.stringify({
-          error: "INVOCATION_FORBIDDEN",
-          error_msg: `The request was forbidden by access control`
-        }))
-      case HttpStatusCode.INTERNAL_SERVER_ERROR: {
-        const json = await res.json();
-        throw new Error(JSON.stringify(json));
-      }
-      default:
-        throw new Error(JSON.stringify({
-          error: "UNKNOWN",
-          error_msg: `An unknown problem occured upstream and we got the status ${res.statusCode} with response ${res}`
-        }));
-    }
+    const result = await this.client.execute(`/invoke/${appId}/method/${methodName}`, fetchOptions);
+    return result as object;
   }
 }
