@@ -106,7 +106,7 @@ export default class ActorManager<T extends AbstractActor> {
     // @todo: make sure we are remindable
     const requestBodyDeserialized = this.serializer.deserialize(requestBody || Buffer.from(""));
     const reminderData = ActorReminderData.fromObject(reminderName, requestBodyDeserialized as object);
-    await this.callActorMethod(actorId, REMINDER_METHOD_NAME, reminderData.reminderName, reminderData.state, reminderData.dueTime, reminderData.period);
+    await this.callActorMethod(actorId, REMINDER_METHOD_NAME, reminderData.state);
   }
 
   async fireTimer(actorId: ActorId, timerName: string, requestBody?: Buffer): Promise<void> {

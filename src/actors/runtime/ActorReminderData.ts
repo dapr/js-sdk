@@ -1,62 +1,64 @@
+import BufferSerializer from "./BufferSerializer";
+
 /**
  * Contains the actor reminder data
  */
 export default class ActorReminderData {
-    readonly reminderName: string;
-    readonly state: Buffer | undefined;
-    readonly dueTime: number;
-    readonly period: number;
-    
-    /**
-     * @param reminderName the name of the actor reminder
-     * @param state the state data passed to receiveReminder callback
-     * @param dueTime the amount of time to delay before invoking the reminder for the first time
-     * @param period the time interval between reminder invocations after the first invocation
-     */
-    constructor(reminderName: string, dueTime: number, period: number, state?: Buffer) {
-        this.reminderName = reminderName;
-        this.dueTime = dueTime;
-        this.period = period;
-        this.state = state;
-    }
+  readonly reminderName: string;
+  readonly state: string | object | undefined;
+  readonly dueTime: number;
+  readonly period: number;
 
-    getReminderName(): string {
-        return this.reminderName;
-    }
+  /**
+   * @param reminderName the name of the actor reminder
+   * @param state the state data passed to receiveReminder callback
+   * @param dueTime the amount of time to delay before invoking the reminder for the first time
+   * @param period the time interval between reminder invocations after the first invocation
+   */
+  constructor(reminderName: string, dueTime: number, period: number, state?: string | object) {
+    this.reminderName = reminderName;
+    this.dueTime = dueTime;
+    this.period = period;
+    this.state = state;
+  }
 
-    getState(): Buffer | undefined {
-        return this.state;
-    }
+  getReminderName(): string {
+    return this.reminderName;
+  }
 
-    getDueTime(): number {
-        return this.dueTime;
-    }
+  getState(): string | object | undefined {
+    return this.state;
+  }
 
-    getPeriod(): number {
-        return this.period;
-    }
+  getDueTime(): number {
+    return this.dueTime;
+  }
 
-    /**
-     * Return this class as an object
-     */
-    toObject(): object {
-        return {
-            reminderName: this.reminderName,
-            dueTime: this.dueTime,
-            period: this.period,
-            data: this.state?.toString("base64")
-        }
-    }
+  getPeriod(): number {
+    return this.period;
+  }
 
-    static fromObject(reminderName: string, obj: object): ActorReminderData {
-        // @ts-ignore
-        const { data, due_time, period } = obj;
-        
-        let stateBytes;
-        if (data?.length > 0) {
-            stateBytes = Buffer.from(data, 'base64');
-        }
-
-        return new ActorReminderData(reminderName, due_time, period, stateBytes);
+  /**
+   * Return this class as an object
+   */
+  toObject(): object {
+    return {
+      reminderName: this.reminderName,
+      dueTime: this.dueTime,
+      period: this.period,
+      data: this.state
     }
+  }
+
+  static fromObject(reminderName: string, obj: any): ActorReminderData {
+    const serializer = new BufferSerializer();
+
+    const data = obj?.data;
+    const dueTime = obj?.dueTime;
+    const period = obj?.period;
+
+    const deserializedData = serializer.deserialize(data);
+
+    return new ActorReminderData(reminderName, dueTime, period, deserializedData);
+  }
 }

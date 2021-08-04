@@ -87,8 +87,6 @@ export default class HTTPServerActor implements IServerActor {
     const { actorTypeName, actorId, timerName } = req.params;
     const body = req.body;
 
-    // console.log(`Handling Timer for actorId: ${actorId} and timerName: ${timerName}`)
-
     const dataSerialized = this.serializer.serialize(body);
     const result = await ActorRuntime.getInstance(this.client).fireTimer(actorTypeName, actorId, timerName, dataSerialized);
     return res.send(result, 200);
@@ -97,8 +95,6 @@ export default class HTTPServerActor implements IServerActor {
   private async handlerReminder(req: IRequest, res: IResponse): Promise<void> {
     const { actorTypeName, actorId, reminderName } = req.params;
     const body = req.body;
-
-    console.log(`Handling Reminder for actorId: ${actorId} and reminderName: ${reminderName}`);
 
     const dataSerialized = this.serializer.serialize(body);
     const result = await ActorRuntime.getInstance(this.client).fireReminder(actorTypeName, actorId, reminderName, dataSerialized);

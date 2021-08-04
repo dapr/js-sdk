@@ -43,7 +43,11 @@ export default class HTTPClientActor implements IClientActor {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(reminder),
+      body: JSON.stringify({
+        period: reminder.period.toString().toLocaleLowerCase().replace('pt', ''),
+        dueTime: reminder?.dueTime?.toString()?.toLocaleLowerCase().replace('pt', ''),
+        data: reminder.data
+      }),
     });
   }
 
