@@ -4,11 +4,6 @@ import { ActorReminderType } from '../../../types/ActorReminder.type';
 import { ActorTimerType } from '../../../types/ActorTimer.type';
 import IClientActor from '../../../interfaces/Client/IClientActor';
 import { KeyValueType } from '../../../types/KeyValue.type';
-import { AbstractActor } from '../../..';
-import ActorManager from '../../../actors/runtime/ActorManager';
-import Class from '../../../types/Class';
-import ActorRuntime from '../../../actors/runtime/ActorRuntime';
-import ActorId from '../../../actors/ActorId';
 
 // https://docs.dapr.io/reference/api/actors_api/
 export default class HTTPClientActor implements IClientActor {
@@ -16,15 +11,6 @@ export default class HTTPClientActor implements IClientActor {
 
   constructor(client: HTTPClient) {
     this.client = client;
-  }
-
-  async createProxy<T extends AbstractActor>(actorType: Class<T>, actorId: string): Promise<T> {
-    const mgr = ActorRuntime
-      .getInstance(this.client)
-      .getActorManager(actorType.name) as ActorManager<T>;
-
-    const actor = mgr.getActiveActor(new ActorId(actorId));
-    return actor;
   }
 
   async invoke(method: "GET" | "POST" | "PUT" | "DELETE" = "POST", actorType: string, actorId: string, methodName: string, body?: any): Promise<object> {
@@ -78,7 +64,12 @@ export default class HTTPClientActor implements IClientActor {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(timer),
+      body: JSON.stringify({
+        period: timer.period.toString().toLocaleLowerCase().replace('pt', ''),
+        dueTime: timer?.dueTime?.toString()?.toLocaleLowerCase().replace('pt', ''),
+        data: timer.data,
+        callback: timer.callback
+      }),
     });
   }
 

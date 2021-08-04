@@ -1,5 +1,5 @@
 {
-  "name": "@dapr/js-sdk-example-actor",
+  "name": "@dapr/js-sdk-example-http-actor",
   "version": "1.0.0",
   "description": "An example utilizing the Dapr JS SDK",
   "main": "index.js",

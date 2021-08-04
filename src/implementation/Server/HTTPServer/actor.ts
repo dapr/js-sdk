@@ -80,18 +80,18 @@ export default class HTTPServerActor implements IServerActor {
 
     const dataSerialized = this.serializer.serialize(body);
     const result = await ActorRuntime.getInstance(this.client).invoke(actorTypeName, actorId, methodName, dataSerialized);
-    return res.send(result);
+    return this.handleResult(res, result);
   }
 
   private async handlerTimer(req: IRequest, res: IResponse): Promise<void> {
     const { actorTypeName, actorId, timerName } = req.params;
     const body = req.body;
 
-    console.log(`Handling Timer for actorId: ${actorId} and timerName: ${timerName}`)
+    // console.log(`Handling Timer for actorId: ${actorId} and timerName: ${timerName}`)
 
     const dataSerialized = this.serializer.serialize(body);
     const result = await ActorRuntime.getInstance(this.client).fireTimer(actorTypeName, actorId, timerName, dataSerialized);
-    return res.send(result);
+    return res.send(result, 200);
   }
 
   private async handlerReminder(req: IRequest, res: IResponse): Promise<void> {
@@ -102,6 +102,15 @@ export default class HTTPServerActor implements IServerActor {
 
     const dataSerialized = this.serializer.serialize(body);
     const result = await ActorRuntime.getInstance(this.client).fireReminder(actorTypeName, actorId, reminderName, dataSerialized);
-    return res.send(result);
+    return res.send(result, 200);
+  }
+
+  private async handleResult(res: IResponse, result: any): Promise<void> {
+    if (result && typeof result === "object") {
+      return res.send(result, 200);
+    } else {
+      // @ts-ignore
+      return res.send(`${result}`, 200);
+    }
   }
 }

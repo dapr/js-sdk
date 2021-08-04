@@ -27,7 +27,7 @@ import StateProvider from "./StateProvider";
 export default abstract class AbstractActor {
   private readonly stateManager: ActorStateManager<any>;
   private readonly id: ActorId;
-  private readonly daprClient: IClient;
+  private readonly daprClient: DaprClient;
   private readonly daprStateProvider: StateProvider;
   private readonly actorType: any; // set at constructor level
 
@@ -37,11 +37,11 @@ export default abstract class AbstractActor {
    * @param runtimeContext context for the runtime
    * @param id actor identifier
    */
-  constructor(daprClient: IClient, id: ActorId) {
+  constructor(daprClient: DaprClient, id: ActorId) {
     this.daprClient = daprClient;
     this.id = id;
     this.stateManager = new ActorStateManager(this);
-    this.daprStateProvider = new StateProvider(daprClient);
+    this.daprStateProvider = new StateProvider(this.daprClient);
 
     // Interesting one: get the Class Type of the child
     this.actorType = this.constructor.name;
@@ -84,12 +84,12 @@ export default abstract class AbstractActor {
   // }
 
   async registerTimer(timerName: string, callback: string, dueTime: Temporal.Duration, period: Temporal.Duration, state?: Buffer) {
-    // Make sure to activate the actor
-    const actor = await ActorRuntime.getInstance(this.daprClient).getActorManager(this.actorType).getActiveActor(this.id);
-    
+    // // Make sure to activate the actor
+    // const actor = await ActorRuntime.getInstance(this.client).getActorManager(this.actorType).getActiveActor(this.id);
+
     // Register the timer in the sidecar
-    const clientDapr = DaprClient.create(this.daprClient);
-    await clientDapr.actor.timerCreate(this.actorType, this.id.getId(), timerName, {
+    console.log(`actorType: ${this.actorType}, actorId: ${this.id.getId()}, timerName: ${timerName}, callback: ${callback}, dueTime: ${dueTime.toString()}, period: ${period.toString()}`);
+    return await this.daprClient.actor.timerCreate(this.actorType, this.id.getId(), timerName, {
       period,
       dueTime,
       data: state,
@@ -102,16 +102,32 @@ export default abstract class AbstractActor {
    * This method gets called when the actor is activated
    * Note: we require this to save the state so that we know the actor got activated!
    */
-  async onActivateInternal() {
+  async onActivateInternal(): Promise<void> {
     await this.resetStateInternal();
     await this.onActivate();
     await this.saveStateInternal();
   }
 
+  /**
+   * Clears all state cache and calls the overridden method onDeactivate
+   * This callback is called when an actor is deactivated
+   */
+  async onDeactivateInternal(): Promise<void> {
+    await this.resetStateInternal();
+    await this.onDeactivate();
+  }
+
+  /**
+   * This will be called when an actor method invocation failed or the actor is activated
+   */
   async resetStateInternal(): Promise<void> {
     await this.stateManager.clearCache();
   }
 
+  /**
+   * Saves all the state changes (ADD/UPDATE/REMOVE) that were made since the last call
+   * to the actor state provider associated with teh actor
+   */
   async saveStateInternal(): Promise<void> {
     await this.stateManager.saveState();
   }
@@ -121,7 +137,14 @@ export default abstract class AbstractActor {
    * and before a method call or reminders are dispatched on it
    */
   async onActivate(): Promise<void> {
-    // not implemented
+    return;
+  }
+
+  /**
+   * This method gets called right before an actor gets deactivated
+   */
+  async onDeactivate(): Promise<void> {
+    return;
   }
 
   getStateProvider(): StateProvider {

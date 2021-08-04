@@ -54,7 +54,7 @@ export default class DaprServer {
 
     // Builder
     switch (communicationProtocol) {
-      case CommunicationProtocolEnum.GRPC:  {
+      case CommunicationProtocolEnum.GRPC: {
         const client = new GRPCClient(daprHost, daprPort);
         const server = new GRPCServer();
 
@@ -65,7 +65,7 @@ export default class DaprServer {
         this.actor = new GRPCServerActor(server, client);
         break;
       }
-      case CommunicationProtocolEnum.HTTP: 
+      case CommunicationProtocolEnum.HTTP:
       default: {
         const client = new HTTPClient(daprHost, daprPort);
         const server = new HTTPServer();
@@ -80,7 +80,7 @@ export default class DaprServer {
     }
   }
 
-  async startServer() {
+  async startServer(): Promise<void> {
     await this.daprServer.startServer(this.serverHost, this.serverPort.toString());
   }
 }

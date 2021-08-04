@@ -1,15 +1,13 @@
 import { DaprClient } from "../..";
-import IClient from "../../interfaces/Client/IClient";
 import { OperationType } from "../../types/Operation.type";
 import ActorStateChange from "./ActorStateChange";
-import BufferSerializer from "./BufferSerializer";
 import StateChangeKind from "./StateChangeKind";
 
 export default class StateProvider {
     stateClient: DaprClient;
     
-    constructor(actorClient: IClient) {
-        this.stateClient = DaprClient.create(actorClient);
+    constructor(daprClient: DaprClient) {
+        this.stateClient = daprClient;
     }
 
     async containsState(actorType: string, actorId: string, stateName: string): Promise<boolean> {

@@ -14,131 +14,136 @@ import BufferSerializer from "./BufferSerializer";
 const REMINDER_METHOD_NAME = 'receiveReminder'; // the callback method name for the reminder
 
 export default class ActorManager<T extends AbstractActor> {
-    readonly actorCls: Class<T>;
-    readonly daprClient: IClient;
-    readonly serializer: BufferSerializer = new BufferSerializer();
+  readonly actorCls: Class<T>;
+  readonly daprClient: DaprClient;
+  readonly serializer: BufferSerializer = new BufferSerializer();
 
-    actors: Map<ActorId, T>;
+  actors: Map<string, T>;
 
-    // dispatcher: ActorMethodDispatcher<T>;
-    // timerMethodContext: any;
-    // reminderMethodContext: any;
+  // dispatcher: ActorMethodDispatcher<T>;
+  // timerMethodContext: any;
+  // reminderMethodContext: any;
 
-    constructor(actorCls: Class<T>, daprClient: IClient) {
-        this.daprClient = daprClient;
-        this.actorCls = actorCls;
+  constructor(actorCls: Class<T>, daprClient: DaprClient) {
+    this.daprClient = daprClient;
+    this.actorCls = actorCls;
 
-        this.actors = new Map<ActorId, T>();
+    this.actors = new Map<string, T>();
 
-        // @todo: we need to make sure race condition cannot happen when accessing the active actors
-        // NodeJS has an event loop (main thread -> runs JS code) and a worker pool (threadpool -> automatically created for offloading work through libuv) threads
-        // we can have a new thread through the worker_thread module 
-        // https://medium.com/@mohllal/node-js-multithreading-a5cd74958a67
-        // 
-        //
-        // Python: asyncio.lock -> implements a mutex lock for asyncio tasks to guarantee exclusive access to a shared resource
-        // Java: Collections.synchronizedMap -> is a thread-saf synchronized map to guarantee serial access
-        // NodeJS: https://nodejs.org/api/worker_threads.html
-        // this.activeActorsLock = null; // Unknown in JS, states: asyncio.lock() in python @todo: we need a Mutex locking function
+    // @todo: we need to make sure race condition cannot happen when accessing the active actors
+    // NodeJS has an event loop (main thread -> runs JS code) and a worker pool (threadpool -> automatically created for offloading work through libuv) threads
+    // we can have a new thread through the worker_thread module 
+    // https://medium.com/@mohllal/node-js-multithreading-a5cd74958a67
+    // 
+    //
+    // Python: asyncio.lock -> implements a mutex lock for asyncio tasks to guarantee exclusive access to a shared resource
+    // Java: Collections.synchronizedMap -> is a thread-saf synchronized map to guarantee serial access
+    // NodeJS: https://nodejs.org/api/worker_threads.html
+    // this.activeActorsLock = null; // Unknown in JS, states: asyncio.lock() in python @todo: we need a Mutex locking function
 
-        // this.dispatcher = new ActorMethodDispatcher(this.runtimeCtx.getActorTypeInformation());
-        // this.timerMethodContext = ActorMethodContext.createForTimer(TIMER_METHOD_NAME);
-        // this.reminderMethodContext = ActorMethodContext.createForReminder(REMINDER_METHOD_NAME);
+    // this.dispatcher = new ActorMethodDispatcher(this.runtimeCtx.getActorTypeInformation());
+    // this.timerMethodContext = ActorMethodContext.createForTimer(TIMER_METHOD_NAME);
+    // this.reminderMethodContext = ActorMethodContext.createForReminder(REMINDER_METHOD_NAME);
+  }
+
+  async createActor(actorId: ActorId): Promise<T> {
+    return new this.actorCls(this.daprClient, actorId);
+  }
+
+  async activateActor(actorId: ActorId): Promise<void> {
+    const actor = await this.createActor(actorId);
+
+    // We activate the actor by calling the onActivateInternal method on it
+    // this will create its state object
+    await actor.onActivateInternal();
+
+    this.actors.set(actorId.getId(), actor);
+  }
+
+  async deactivateActor(actorId: ActorId): Promise<void> {
+    const actor = await this.getActiveActor(actorId);
+
+    // @todo: https://github.com/dapr/python-sdk/blob/0f0b6f6a1cf45d2ac0c519b48fc868898d81124e/dapr/actor/runtime/manager.py#L53
+    await actor.onDeactivateInternal();
+
+    this.actors.delete(actorId.getId());
+  }
+
+  async getActiveActor(actorId: ActorId): Promise<T> {
+    // @todo: Create an actor if it doesn't exist
+    // see https://github.com/dapr/python-sdk/blob/2183122ce14eb53e41eaaa28a94f0c3a5e6b975d/dapr/actor/runtime/manager.py#L111
+    if (!this.actors.has(actorId.getId())) {
+      console.log(`Doesn't have active actor (${actorId.getId()}), activating it`)
+      await this.activateActor(actorId);
     }
 
-    async activateActor(actorId: ActorId): Promise<void> {
-        const actor = new this.actorCls(this.daprClient, actorId);
-        
-        // @todo https://github.com/dapr/python-sdk/blob/0f0b6f6a1cf45d2ac0c519b48fc868898d81124e/dapr/actor/runtime/manager.py#L43
-        await actor.onActivateInternal();
+    const actor = this.actors.get(actorId.getId());
 
-        this.actors.set(actorId, actor);
+    // @todo: Make sure it was actually set
+    // https://github.com/dapr/python-sdk/blob/2183122ce14eb53e41eaaa28a94f0c3a5e6b975d/dapr/actor/runtime/manager.py#L116
+    if (!actor) {
+      throw new Error(`${actorId.getId()} was not activated correctly`);
     }
 
-    async deactivateActor(actorId: ActorId): Promise<void> {
-        const actor = this.getActiveActor(actorId);
+    return actor;
+  }
 
-        // @todo: https://github.com/dapr/python-sdk/blob/0f0b6f6a1cf45d2ac0c519b48fc868898d81124e/dapr/actor/runtime/manager.py#L53
-        // actor.onDeactivateInternal();
+  /**
+   * Execute the given method with requestBody on the given Actor
+   * 
+   * @param actorId 
+   * @param actorMethodName 
+   * @param requestBody 
+   * @param actorMethodContext 
+   * @returns 
+   */
+  async invoke(actorId: ActorId, actorMethodName: string, requestBody?: Buffer): Promise<any> {
+    const requestBodyDeserialized = this.serializer.deserialize(requestBody || Buffer.from(""));
+    return await this.callActorMethod(actorId, actorMethodName, requestBodyDeserialized);
+  }
 
-        this.actors.delete(actorId);
+  async fireReminder(actorId: ActorId, reminderName: string, requestBody?: Buffer): Promise<void> {
+    // @todo: make sure we are remindable
+    const requestBodyDeserialized = this.serializer.deserialize(requestBody || Buffer.from(""));
+    const reminderData = ActorReminderData.fromObject(reminderName, requestBodyDeserialized as object);
+    await this.callActorMethod(actorId, REMINDER_METHOD_NAME, reminderData.reminderName, reminderData.state, reminderData.dueTime, reminderData.period);
+  }
+
+  async fireTimer(actorId: ActorId, timerName: string, requestBody?: Buffer): Promise<void> {
+    // @todo: make sure we are remindable
+    const requestBodyDeserialized = this.serializer.deserialize(requestBody || Buffer.from(""));
+    const timerData = ActorTimerData.fromObject(timerName, requestBodyDeserialized as object);
+    await this.callActorMethod(actorId, timerData.callback, timerData.state);
+  }
+
+  // , dispatchAction: (actor: T) => Promise<Buffer>
+  async callActorMethod(actorId: ActorId, actorMethodName: string, ...args: any): Promise<Buffer> {
+    const actorObject = await this.getActiveActor(actorId);
+
+    // Check if the actor method exists? Skip type-checking as it's the power of Javascript
+    // @ts-ignore
+    if (typeof actorObject[actorMethodName] !== "function") {
+      throw new Error(JSON.stringify({
+        error: 'ACTOR_METHOD_DOES_NOT_EXIST',
+        errorMsg: `The actor method '${actorMethodName}' does not exist on ${this.actorCls.name}`
+      }));
     }
 
-    async getActiveActor(actorId: ActorId): Promise<T> {
-        const actor = this.actors.get(actorId);
+    // Call the actor method, Skip type-checking as it's the power of Javascript
+    // @ts-ignore
+    const res = await actorObject[actorMethodName](...args);
 
-        // @todo: Create an actor if it doesn't exist
-        // see https://github.com/dapr/python-sdk/blob/2183122ce14eb53e41eaaa28a94f0c3a5e6b975d/dapr/actor/runtime/manager.py#L111
-        if (!actor) {
-            actorId = new ActorId(uuidv4());
-            await this.activateActor(actorId)
-        }
+    return res;
 
-        // @todo: Make sure it was actually set
-        // https://github.com/dapr/python-sdk/blob/2183122ce14eb53e41eaaa28a94f0c3a5e6b975d/dapr/actor/runtime/manager.py#L116
-        if (!actor) {
-            throw new Error(`${actorId.getId()} was not activated correctly`);
-        }
+    // try {
+    //     // @todo: actor re-entrancy
+    //     // @todo: pre action hook
+    //     res = await dispatchAction(actor);
+    //     // @todo: post action hook
+    // } catch (e) {
+    //     // @todo: on_invoke failed hook
+    // }
 
-        return actor;
-    }
-
-    /**
-     * Execute the given method with requestBody on the given Actor
-     * 
-     * @param actorId 
-     * @param actorMethodName 
-     * @param requestBody 
-     * @param actorMethodContext 
-     * @returns 
-     */
-    async invoke(actorId: ActorId, actorMethodName: string, requestBody?: Buffer): Promise<any> {
-        const requestBodyDeserialized = this.serializer.deserialize(requestBody || Buffer.from(""));
-        return await this.callActorMethod(actorId, actorMethodName, requestBodyDeserialized);
-    }
-
-    async fireReminder(actorId: ActorId, reminderName: string, requestBody?: Buffer): Promise<void> {
-        // @todo: make sure we are remindable
-        const requestBodyDeserialized = this.serializer.deserialize(requestBody || Buffer.from(""));
-        const reminderData = ActorReminderData.fromObject(reminderName, requestBodyDeserialized as object);
-        await this.callActorMethod(actorId, REMINDER_METHOD_NAME, reminderData.reminderName, reminderData.state, reminderData.dueTime, reminderData.period);
-    }
-
-    async fireTimer(actorId: ActorId, timerName: string, requestBody?: Buffer): Promise<void> {
-        // @todo: make sure we are remindable
-        const requestBodyDeserialized = this.serializer.deserialize(requestBody || Buffer.from(""));
-        const timerData = ActorTimerData.fromObject(timerName, requestBodyDeserialized as object);
-        await this.callActorMethod(actorId, timerData.callback, timerData.state);
-    }
-
-    // , dispatchAction: (actor: T) => Promise<Buffer>
-    async callActorMethod(actorId: ActorId, actorMethodName: string, ...args: any): Promise<Buffer> {
-        const actorObject = await this.getActiveActor(actorId);
-
-        // Check if the actor method exists? Skip type-checking as it's the power of Javascript
-        // @ts-ignore
-        if (typeof actorObject[actorMethodName] !== "function") {
-            throw new Error(JSON.stringify({
-                error: 'ACTOR_METHOD_DOES_NOT_EXIST',
-                errorMsg: `The actor method '${actorMethodName}' does not exist on ${this.actorCls.name}`
-            }));
-        }
-
-        // Call the actor method, Skip type-checking as it's the power of Javascript
-        // @ts-ignore
-        const res = await actorObject[actorMethodName](...args);
-
-        return res;
-
-        // try {
-        //     // @todo: actor re-entrancy
-        //     // @todo: pre action hook
-        //     res = await dispatchAction(actor);
-        //     // @todo: post action hook
-        // } catch (e) {
-        //     // @todo: on_invoke failed hook
-        // }
-
-        // return res || Buffer.from("");
-    }
+    // return res || Buffer.from("");
+  }
 }
