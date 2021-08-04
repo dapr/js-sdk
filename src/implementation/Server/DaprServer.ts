@@ -52,6 +52,15 @@ export default class DaprServer {
     process.env.DAPR_SERVER_PORT = this.serverPort;
     process.env.DAPR_CLIENT_PORT = this.daprPort;
 
+    // Validation on port
+    if (!/^[0-9]+$/.test(this.serverPort)) {
+      throw new Error('DAPR_SERVER_INCORRECT_SERVER_PORT');
+    }
+
+    if (!/^[0-9]+$/.test(this.daprPort)) {
+      throw new Error('DAPR_SERVER_INCORRECT_SIDECAR_PORT');
+    }
+
     // Builder
     switch (communicationProtocol) {
       case CommunicationProtocolEnum.GRPC: {
@@ -82,5 +91,17 @@ export default class DaprServer {
 
   async startServer(): Promise<void> {
     await this.daprServer.startServer(this.serverHost, this.serverPort.toString());
+  }
+
+  getDaprClient(): IServer {
+    return this.daprServer;
+  }
+
+  getDaprHost(): string {
+    return this.daprHost;
+  }
+
+  getDaprPort(): string {
+    return this.daprPort;
   }
 }

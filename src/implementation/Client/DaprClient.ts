@@ -46,6 +46,11 @@ export default class DaprClient {
     this.daprPort = daprPort;
     this.communicationProtocol = communicationProtocol;
 
+    // Validation on port
+    if (!/^[0-9]+$/.test(this.daprPort)) {
+      throw new Error('DAPR_CLIENT_INCORRECT_PORT');
+    }
+
     // Builder
     switch (communicationProtocol) {
       case CommunicationProtocolEnum.GRPC: {
