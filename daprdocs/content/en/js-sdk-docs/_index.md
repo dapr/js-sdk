@@ -19,8 +19,7 @@ Install the SDK with npm:
 npm i @dapr/js-sdk
 ```
 
-Import the libraries for the the given protocol:  
-
+Import the libraries for the the given protocol:
 ```javascript
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
 const daprPort = "50050"; // Dapr Sidecar Port of this Example Server
@@ -38,6 +37,13 @@ const client = new DaprClient(daprHost, daprPort);
 const server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.GRPC); 
 const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
 ```
+
+##### Client Library
+A library that provides methods for how an application communicates with the Dapr sidecar.
+
+##### Server Library
+A library for how an application registers bindings / routes with Dapr. The `startServer` method is used to start the server and bind the routes. 
+
 
 ## Building blocks
 
@@ -61,7 +67,7 @@ async function start() {
     return { hello: "world received from POST" };
   }, { method: HttpMethod.POST });
 
-  //GET listener
+  // GET listener
   await server.invoker.listen("hello-world", async () => {
     return { hello: "world received from GET" };
   }, { method: HttpMethod.GET });
@@ -74,16 +80,16 @@ async function start() {
   const serviceAppId = "my-dapr-app-id";
   const serviceMethod = "say-hello";
   
-  //POST Request
+  // POST Request
   const response = await client.invoker.invoke(serviceAppId , serviceMethod , HttpMethod.POST, { hello: "world" });
 
-  //GET Request
+  // GET Request
   const response = await client.invoker.invoke(serviceAppId , serviceMethod , HttpMethod.GET);
 }
 ```
 - For a full guide on service invocation visit [How-To: Invoke a service]({{< ref howto-invoke-discover-services.md >}}).
 
-### Save & get application state
+### Save, get and delete application state
 
 ```javascript
 import { DaprClient } from "@dapr/js-sdk"; 
@@ -96,25 +102,25 @@ async function start() {
 
   const serviceStoreName = "my-dapr-state-store";
 
-  //Save state
+  // Save State
   const response = await client.state.save(serviceStoreName, [
     {
       key: "first-key-name",
-      value: "Hello"
+      value: "hello"
     },
     {
       key: "second-key-name",
-      value: "World!"
+      value: "world"
     }
   ]);
 
-  //Get State
+  // Get State
   const response = await client.state.get(serviceStoreName, "first-key-name");
 
-  //Get Bulk State
+  // Get Bulk State
   const response = await client.state.getBulk(serviceStoreName, ["first-key-name", "second-key-name"]);
 
-  //Delete State
+  // Delete State
   const response = await client.state.delete(serviceStoreName, "first-key-name");
 }
 ```
@@ -137,7 +143,8 @@ async function start() {
   const topic = "topic-a";
   const message = { hello: "world" }
 
-  const response = await client.pubsub.publish(pubSubName-redis, topic, message);
+  // Publish Message to Topic
+  const response = await client.pubsub.publish(pubSubName, topic, message);
 }
 ```
 
@@ -155,6 +162,7 @@ async function start() {
   const pubSubName = "my-dapr-pubsub";
   const topic = "topic-a";
 
+  // Configure Subscriber for a Topic
   await server.pubsub.subscribe(pubSubName, topic, async (data: any) => console.log(`Got Data: ${JSON.stringify(data)}`));
 
   await server.startServer();
@@ -228,7 +236,6 @@ async function start() {
 - For a full guide on secrets visit [How-To: Retrieve secrets]({{< ref howto-secrets.md >}}).
 
 ### Actors
-An actor is an isolated, independent unit of compute and state with single-threaded execution. Dapr provides an actor implementation based on the [Virtual Actor pattern](https://www.microsoft.com/en-us/research/project/orleans-virtual-actors/), which provides a single-threaded programming model and where actors are garbage collected when not in use. With Dapr's implementaiton, you write your Dapr actors according to the Actor model, and Dapr leverages the scalability and reliability that the underlying platform provides. 
 
 ```javascript
 ```
