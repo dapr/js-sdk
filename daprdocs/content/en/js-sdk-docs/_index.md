@@ -52,29 +52,12 @@ The JavaScript SDK allows you to interface with all of the [Dapr building blocks
 ### Invoke a service
 
 ```javascript
-import { DaprClient, DaprServer } from "@dapr/js-sdk"; 
+import { DaprClient } from "@dapr/js-sdk"; 
 
 const daprHost = "127.0.0.1"; 
 const daprPort = "50050"; 
-const serverHost = "127.0.0.1";
-const serverPort = "50051";
 
 async function start() {
-  const server = new DaprServer(serverHost, serverPort); 
-
-  //POST listener
-  await server.invoker.listen("hello-world", async (data: any) => {
-    return { hello: "world received from POST" };
-  }, { method: HttpMethod.POST });
-
-  // GET listener
-  await server.invoker.listen("hello-world", async () => {
-    return { hello: "world received from GET" };
-  }, { method: HttpMethod.GET });
-
-  // Start server after instantiating listeners
-  await server.startServer();
-
   const client = new DaprClient(daprHost, daprPort); 
 
   const serviceAppId = "my-dapr-app-id";
