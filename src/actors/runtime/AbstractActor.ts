@@ -115,6 +115,27 @@ export default abstract class AbstractActor {
   async onDeactivateInternal(): Promise<void> {
     await this.resetStateInternal();
     await this.onDeactivate();
+    await this.saveStateInternal();
+  }
+
+  /**
+   * Calls the onActorMethodPre hook on the actor implementation
+   * This gets called just before executing a method
+   */
+  async onActorMethodPreInternal(): Promise<void> {
+    await this.onActorMethodPre();
+  }
+
+  /**
+   * Calls the onActorMethodPost hook on the actor implementation
+   * This gets called just after executing a method
+   * It also persists the state changes of the actor
+   */
+  async onActorMethodPostInternal(): Promise<void> {
+    await this.onActorMethodPost();
+
+    // We need to save the state of the actor
+    await this.saveStateInternal();
   }
 
   /**
@@ -144,6 +165,22 @@ export default abstract class AbstractActor {
    * This method gets called right before an actor gets deactivated
    */
   async onDeactivate(): Promise<void> {
+    return;
+  }
+
+  /**
+   * Gets called before executing a method
+   * @returns 
+   */
+  async onActorMethodPre(): Promise<void> {
+    return;
+  }
+
+  /**
+   * Gets called after executing a method
+   * @returns 
+   */
+  async onActorMethodPost(): Promise<void> {
     return;
   }
 

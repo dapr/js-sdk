@@ -21,9 +21,12 @@ export default class HTTPServerActor implements IServerActor {
     this.serializer = new BufferSerializer();
   }
 
+  async deactivateActor(actorType: string, actorId: string): Promise<void> {
+    await this.client.execute(`http://localhost:${this.server.serverPort}/actors/${actorType}/${actorId}`, { method: "DELETE" });
+  }
+
   async registerActor<T extends AbstractActor>(cls: Class<T>): Promise<void> {
     ActorRuntime.getInstance(this.client).registerActor(cls);
-    console.log(`Registering actor ${cls.name}`);
   }
 
   async getRegisteredActors(): Promise<string[]> {
@@ -70,6 +73,8 @@ export default class HTTPServerActor implements IServerActor {
 
   private async handlerDeactivate(req: IRequest, res: IResponse): Promise<void> {
     const { actorTypeName, actorId } = req.params;
+    const result = await ActorRuntime.getInstance(this.client).deactivate(actorTypeName, actorId);
+    return this.handleResult(res, result);
   }
 
   private async handlerMethod(req: IRequest, res: IResponse): Promise<void> {
@@ -101,7 +106,7 @@ export default class HTTPServerActor implements IServerActor {
     return res.send(result, 200);
   }
 
-  private async handleResult(res: IResponse, result: any): Promise<void> {
+  private handleResult(res: IResponse, result: any) {
     if (result && typeof result === "object") {
       return res.send(result, 200);
     } else {

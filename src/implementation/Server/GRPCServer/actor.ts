@@ -13,6 +13,10 @@ export default class GRPCServerActor implements IServerActor {
       this.server = server;
       this.client = client;
   }
+  
+  deactivateActor(actorType: string, actorId: string): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
 
   init(): Promise<void> {
     throw new Error('Method not implemented.');

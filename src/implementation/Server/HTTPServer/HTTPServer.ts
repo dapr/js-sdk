@@ -64,14 +64,15 @@ export default class HTTPServer implements IServer {
   }
 
   getServer(): IServerType {
-    // if (!this.isInitialized) {
-    //     throw new Error(JSON.stringify({
-    //         error: "HTTP_SERVER_NOT_INITIALIZED",
-    //         error_message: "The HTTP server was not initialized, did you call `await HTTPServerSingleton.initialize()`?"
-    //     }));
-    // }
-
     return this.server as IServerType;
+  }
+
+  getServerPort(): string {
+    return this.serverPort;
+  }
+
+  getServerHost(): string {
+    return this.serverHost;
   }
 
   // We allow this, since this will register the routes and handlers!
@@ -93,6 +94,9 @@ export default class HTTPServer implements IServer {
   }
 
   async startServer(host: string, port: string): Promise<void> {
+    this.serverHost = host;
+    this.serverPort = port;
+
     // Initialize Server Listener
     await this.server.start(parseInt(port, 10));
     console.log(`[Dapr-JS] Listening on ${port}`);

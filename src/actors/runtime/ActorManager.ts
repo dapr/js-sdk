@@ -61,26 +61,27 @@ export default class ActorManager<T extends AbstractActor> {
   }
 
   async deactivateActor(actorId: ActorId): Promise<void> {
+    if (!this.actors.has(actorId.getId())) {
+      throw new Error(JSON.stringify({
+        error: 'ACTOR_NOT_ACTIVATED',
+        errorMsg: `The actor ${actorId.getId()} was not activated`
+      }));
+    }
+    
     const actor = await this.getActiveActor(actorId);
-
-    // @todo: https://github.com/dapr/python-sdk/blob/0f0b6f6a1cf45d2ac0c519b48fc868898d81124e/dapr/actor/runtime/manager.py#L53
     await actor.onDeactivateInternal();
 
     this.actors.delete(actorId.getId());
   }
 
   async getActiveActor(actorId: ActorId): Promise<T> {
-    // @todo: Create an actor if it doesn't exist
-    // see https://github.com/dapr/python-sdk/blob/2183122ce14eb53e41eaaa28a94f0c3a5e6b975d/dapr/actor/runtime/manager.py#L111
     if (!this.actors.has(actorId.getId())) {
-      console.log(`Doesn't have active actor (${actorId.getId()}), activating it`)
+      // console.log(`Doesn't have active actor (${actorId.getId()}), activating it`);
       await this.activateActor(actorId);
     }
 
     const actor = this.actors.get(actorId.getId());
 
-    // @todo: Make sure it was actually set
-    // https://github.com/dapr/python-sdk/blob/2183122ce14eb53e41eaaa28a94f0c3a5e6b975d/dapr/actor/runtime/manager.py#L116
     if (!actor) {
       throw new Error(`${actorId.getId()} was not activated correctly`);
     }
@@ -116,7 +117,6 @@ export default class ActorManager<T extends AbstractActor> {
     await this.callActorMethod(actorId, timerData.callback, timerData.state);
   }
 
-  // , dispatchAction: (actor: T) => Promise<Buffer>
   async callActorMethod(actorId: ActorId, actorMethodName: string, ...args: any): Promise<Buffer> {
     const actorObject = await this.getActiveActor(actorId);
 
@@ -129,21 +129,14 @@ export default class ActorManager<T extends AbstractActor> {
       }));
     }
 
+    // @todo: actor reentrancy
+
     // Call the actor method, Skip type-checking as it's the power of Javascript
+    await actorObject.onActorMethodPreInternal();
     // @ts-ignore
     const res = await actorObject[actorMethodName](...args);
+    await actorObject.onActorMethodPostInternal();
 
     return res;
-
-    // try {
-    //     // @todo: actor re-entrancy
-    //     // @todo: pre action hook
-    //     res = await dispatchAction(actor);
-    //     // @todo: post action hook
-    // } catch (e) {
-    //     // @todo: on_invoke failed hook
-    // }
-
-    // return res || Buffer.from("");
   }
 }

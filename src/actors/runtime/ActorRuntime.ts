@@ -128,4 +128,10 @@ export default class ActorRuntime {
     const manager = this.getActorManager(actorTypeName);
     return await manager.fireTimer(actorIdObj, name, requestBody);
   }
+
+  async deactivate(actorTypeName: string, actorId: string): Promise<void> {
+    const actorIdObj = new ActorId(actorId);
+    const manager = this.getActorManager(actorTypeName);
+    return await manager.deactivateActor(actorIdObj);
+  }
 }

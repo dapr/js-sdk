@@ -7,6 +7,7 @@ export default interface IServerActor {
     registerActor<T extends AbstractActor>(cls: Class<T>): Promise<void>;
     getRegisteredActors(): Promise<string[]>;
     init(): Promise<void>;
+    deactivateActor(actorType: string, actorId: string): Promise<void>;
 
     // @todo: do we want those in the interface? init should take care of it
     // handlerDeactivate(req: IRequest, res: IResponse): Promise<void>;

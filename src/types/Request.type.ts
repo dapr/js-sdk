@@ -4,7 +4,7 @@ import { IStateOptions } from "./StateOptions.type";
 
 export type IRequest = {
   key: string;
-  value?: string;
+  value?: any;
   etag?: IEtag;
   metadata?: IRequestMetadata;
   options?: IStateOptions;

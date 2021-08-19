@@ -57,13 +57,17 @@ export default class StateProvider {
             
             switch (state.getChangeKind()) {
                 case StateChangeKind.ADD:
-                    operation = "add";
+                    // dapr doesn't know add, we use upsert
+                    // https://github.com/dapr/dapr/blob/master/pkg/actors/transactional_state_request.go
+                    operation = "upsert"; 
                     break;
                 case StateChangeKind.REMOVE:
                     operation = "remove";
                     break;
                 case StateChangeKind.UPDATE:
-                    operation = "update";
+                    // dapr doesn't know add, we use upsert
+                    // https://github.com/dapr/dapr/blob/master/pkg/actors/transactional_state_request.go
+                    operation = "upsert";
                     break;
                 default: 
                     // skip
