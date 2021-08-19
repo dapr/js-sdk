@@ -64,7 +64,7 @@ export default class HTTPClient implements IClient {
       }
     }
 
-    let urlFull = url.startsWith("http") ? url : `${this.clientUrl}${url}`;
+    const urlFull = url.startsWith("http") ? url : `${this.clientUrl}${url}`;
     // console.log(`${params.method} - ${urlFull} (${params.body})`);
     const res = await fetch(urlFull, params);
 
