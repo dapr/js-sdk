@@ -15,7 +15,7 @@ describe('http/main', () => {
     // We need to start listening on some endpoints already
     // this because Dapr is not dynamic and registers endpoints on boot
     beforeAll(async () => {
-        server = new DaprServer(serverHost, serverPort, CommunicationProtocolEnum.HTTP);
+        server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.HTTP);
         client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.HTTP);
 
         await server.binding.receive("binding-mqtt", mockBindingReceive);
