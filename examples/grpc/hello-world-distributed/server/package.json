@@ -8,7 +8,7 @@
     "build": "rimraf ./dist && tsc",
     "start": "npm run build && node dist/index.js",
     "start:dev": "npm run build && nodemon --ext \".ts,.js\" --watch \"./src\" --exec \"ts-node ./src/index.ts\"",
-    "start:dapr": "dapr run --app-id my-server --app-port 4000 --app-protocol grpc npm run start"
+    "start:dapr": "dapr run --app-id my-server --app-port 50051 --app-protocol grpc npm run start"
   },
   "keywords": [],
   "author": "",

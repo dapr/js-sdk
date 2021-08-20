@@ -1,10 +1,12 @@
-import { DaprServer, HttpMethod } from "@dapr/js-sdk";
+import { DaprServer, HttpMethod, CommunicationProtocolEnum } from "@dapr/js-sdk";
 
-const serverHost = "127.0.0.1";
-const serverPort = "4000";
+const daprHost = "127.0.0.1";
+const daprPort = "50050"; // Dapr Sidecar Port of this Example Server
+const serverHost = "127.0.0.1"; // App Host of this Example Server
+const serverPort = "50051"; // App Port of this Example Server
 
 async function start() {
-  const server = new DaprServer(serverHost, serverPort);
+  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.GRPC);
   await server.startServer();
 
   await server.invoker.listen("hello-world", async (data: any) => {
