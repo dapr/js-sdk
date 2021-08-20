@@ -6,7 +6,7 @@ The official [Dapr](https://dapr.io) Node.js SDK that allows interfacing with th
 
 The Dapr JS SDK will allow you to interface with the Dapr process that abstracts several commonly used functionalities such as Service-to-Service invocation, State Management, PubSub, and more.
 
-![](./dapr-architecture.png)
+![](./documentation/assets/dapr-architecture.png)
 
 Looking at the illustration above, we can see there will always always be another process (the Dapr Sidecar) running that your application will interface with. This process can either be started manually (e.g. through Dapr CLI) or injected as a container (e.g. through Kubernetes Sidecar injection in your pod).
 
