@@ -34,10 +34,20 @@ describe('ActorRuntime', () => {
 
   it('should have an actor config that matches the default values', async () => {
     const config = runtime.getActorRuntimeConfig();
+
+    // Normal getter should return number
     expect(config.getActorIdleTimeout()).toEqual(1 * 60 * 60);
     expect(config.getActorScanInterval()).toEqual(30);
     expect(config.getDrainOngoingCallTimeout()).toEqual(1 * 60);
     expect(config.getDrainRebalancedActors()).toEqual(true);
+
+    // Dictionary should be ISO formatted
+    const dict = config.toDictionary();
+    expect(dict.actorIdleTimeout).toEqual("1h");
+    expect(dict.actorScanInterval).toEqual("30s");
+    expect(dict.drainOngoingCallTimeout).toEqual("1m");
+    expect(dict.drainRebalancedActors).toEqual(true);
+
   });
 
   it('should allow us to change the actor runtime config values', async () => {
@@ -51,10 +61,19 @@ describe('ActorRuntime', () => {
     runtime.setActorRuntimeConfig(newConfig);
 
     const config = runtime.getActorRuntimeConfig();
+
+    // Normal getter should return number
     expect(config.getActorIdleTimeout()).toEqual(3 * 60 * 60);
     expect(config.getActorScanInterval()).toEqual(10);
     expect(config.getDrainOngoingCallTimeout()).toEqual(2 * 60);
     expect(config.getDrainRebalancedActors()).toEqual(false);
+
+    // Dictionary should be ISO formatted
+    const dict = config.toDictionary();
+    expect(dict.actorIdleTimeout).toEqual("3h");
+    expect(dict.actorScanInterval).toEqual("10s");
+    expect(dict.drainOngoingCallTimeout).toEqual("2m");
+    expect(dict.drainRebalancedActors).toEqual(false);
   });
 
   it('should be able to register an actor', async () => {
@@ -76,10 +95,10 @@ describe('ActorRuntime', () => {
   it('should be able to invoke an actor', async () => {
     const actorId = uuidv4();
 
-    await runtime.registerActor(DemoActorCounterImpl);
+    await runtime.registerActor(DemoActorSayImpl);
 
-    const res = await runtime.invoke(DemoActorCounterImpl.name, actorId, "sayMessage", Buffer.from("Hello World"));
-    expect(res[0].toString()).toEqual("Hello World");
+    const res = await runtime.invoke(DemoActorSayImpl.name, actorId, "sayString", Buffer.from("Hello World"));
+    expect(res.toString()).toEqual(`Actor said: "Hello World"`);
   });
 
   it('should receive an error if the actor method does not exist', async () => {

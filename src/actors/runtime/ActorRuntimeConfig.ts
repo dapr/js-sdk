@@ -32,16 +32,16 @@ export default class ActorRuntimeConfig {
         this.drainRebalancedActors = drainRebalancedActors;
     }
 
-    getActorIdleTimeout(): Temporal.Duration {
-        return this.actorIdleTimeout;
+    getActorIdleTimeout(): number {
+        return this.actorIdleTimeout.total({ unit: 'second' });
     }
 
-    getActorScanInterval(): Temporal.Duration {
-        return this.actorScanInterval;
+    getActorScanInterval(): number {
+        return this.actorScanInterval.total({ unit: 'second' });
     }
 
-    getDrainOngoingCallTimeout(): Temporal.Duration {
-        return this.drainOngoingCallTimeout;
+    getDrainOngoingCallTimeout(): number {
+        return this.drainOngoingCallTimeout.total({ unit: 'second' });
     }
 
     getDrainRebalancedActors(): boolean {
@@ -55,9 +55,9 @@ export default class ActorRuntimeConfig {
         drainRebalancedActors: boolean,
     } {
         return {
-            actorIdleTimeout: this.actorIdleTimeout.toString(),
-            actorScanInterval: this.actorScanInterval.toString(),
-            drainOngoingCallTimeout: this.drainOngoingCallTimeout.toString(),
+            actorIdleTimeout: this.actorIdleTimeout.toString().replace("PT", "").toLocaleLowerCase(),
+            actorScanInterval: this.actorScanInterval.toString().replace("PT", "").toLocaleLowerCase(),
+            drainOngoingCallTimeout: this.drainOngoingCallTimeout.toString().replace("PT", "").toLocaleLowerCase(),
             drainRebalancedActors: this.drainRebalancedActors
         }
     }
