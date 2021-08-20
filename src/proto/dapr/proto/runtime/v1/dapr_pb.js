@@ -4030,7 +4030,8 @@ proto.dapr.proto.runtime.v1.RegisterActorTimerRequest.toObject = function(includ
     dueTime: jspb.Message.getFieldWithDefault(msg, 4, ""),
     period: jspb.Message.getFieldWithDefault(msg, 5, ""),
     callback: jspb.Message.getFieldWithDefault(msg, 6, ""),
-    data: msg.getData_asB64()
+    data: msg.getData_asB64(),
+    ttl: jspb.Message.getFieldWithDefault(msg, 8, "")
   };
 
   if (includeInstance) {
@@ -4094,6 +4095,10 @@ proto.dapr.proto.runtime.v1.RegisterActorTimerRequest.deserializeBinaryFromReade
     case 7:
       var value = /** @type {!Uint8Array} */ (reader.readBytes());
       msg.setData(value);
+      break;
+    case 8:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTtl(value);
       break;
     default:
       reader.skipField();
@@ -4170,6 +4175,13 @@ proto.dapr.proto.runtime.v1.RegisterActorTimerRequest.serializeBinaryToWriter = 
   if (f.length > 0) {
     writer.writeBytes(
       7,
+      f
+    );
+  }
+  f = message.getTtl();
+  if (f.length > 0) {
+    writer.writeString(
+      8,
       f
     );
   }
@@ -4302,6 +4314,21 @@ proto.dapr.proto.runtime.v1.RegisterActorTimerRequest.prototype.getData_asU8 = f
 /** @param {!(string|Uint8Array)} value */
 proto.dapr.proto.runtime.v1.RegisterActorTimerRequest.prototype.setData = function(value) {
   jspb.Message.setProto3BytesField(this, 7, value);
+};
+
+
+/**
+ * optional string ttl = 8;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.RegisterActorTimerRequest.prototype.getTtl = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 8, ""));
+};
+
+
+/** @param {string} value */
+proto.dapr.proto.runtime.v1.RegisterActorTimerRequest.prototype.setTtl = function(value) {
+  jspb.Message.setProto3StringField(this, 8, value);
 };
 
 

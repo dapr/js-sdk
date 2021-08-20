@@ -33,6 +33,7 @@ prerequisiteCheckHttpRequestCLI() {
 prerequisiteCheckProtobuf() {
     if ! type "protoc" > /dev/null; then
         echo "protoc is not installed, trying to install"
+        sudo apt update
         sudo apt install -y protobuf-compiler
         protoc --version
 
