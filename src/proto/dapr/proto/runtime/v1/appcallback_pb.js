@@ -21,6 +21,8 @@ goog.exportSymbol('proto.dapr.proto.runtime.v1.ListTopicSubscriptionsResponse', 
 goog.exportSymbol('proto.dapr.proto.runtime.v1.TopicEventRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.TopicEventResponse', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.TopicEventResponse.TopicEventResponseStatus', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.TopicRoutes', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.TopicRule', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.TopicSubscription', null, global);
 
 /**
@@ -76,7 +78,8 @@ proto.dapr.proto.runtime.v1.TopicEventRequest.toObject = function(includeInstanc
     dataContentType: jspb.Message.getFieldWithDefault(msg, 5, ""),
     data: msg.getData_asB64(),
     topic: jspb.Message.getFieldWithDefault(msg, 6, ""),
-    pubsubName: jspb.Message.getFieldWithDefault(msg, 8, "")
+    pubsubName: jspb.Message.getFieldWithDefault(msg, 8, ""),
+    path: jspb.Message.getFieldWithDefault(msg, 9, "")
   };
 
   if (includeInstance) {
@@ -144,6 +147,10 @@ proto.dapr.proto.runtime.v1.TopicEventRequest.deserializeBinaryFromReader = func
     case 8:
       var value = /** @type {string} */ (reader.readString());
       msg.setPubsubName(value);
+      break;
+    case 9:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setPath(value);
       break;
     default:
       reader.skipField();
@@ -227,6 +234,13 @@ proto.dapr.proto.runtime.v1.TopicEventRequest.serializeBinaryToWriter = function
   if (f.length > 0) {
     writer.writeString(
       8,
+      f
+    );
+  }
+  f = message.getPath();
+  if (f.length > 0) {
+    writer.writeString(
+      9,
       f
     );
   }
@@ -374,6 +388,21 @@ proto.dapr.proto.runtime.v1.TopicEventRequest.prototype.getPubsubName = function
 /** @param {string} value */
 proto.dapr.proto.runtime.v1.TopicEventRequest.prototype.setPubsubName = function(value) {
   jspb.Message.setProto3StringField(this, 8, value);
+};
+
+
+/**
+ * optional string path = 9;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.TopicEventRequest.prototype.getPath = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 9, ""));
+};
+
+
+/** @param {string} value */
+proto.dapr.proto.runtime.v1.TopicEventRequest.prototype.setPath = function(value) {
+  jspb.Message.setProto3StringField(this, 9, value);
 };
 
 
@@ -1289,7 +1318,8 @@ proto.dapr.proto.runtime.v1.TopicSubscription.toObject = function(includeInstanc
   var f, obj = {
     pubsubName: jspb.Message.getFieldWithDefault(msg, 1, ""),
     topic: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : []
+    metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : [],
+    routes: (f = msg.getRoutes()) && proto.dapr.proto.runtime.v1.TopicRoutes.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1340,6 +1370,11 @@ proto.dapr.proto.runtime.v1.TopicSubscription.deserializeBinaryFromReader = func
         jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
          });
       break;
+    case 5:
+      var value = new proto.dapr.proto.runtime.v1.TopicRoutes;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.TopicRoutes.deserializeBinaryFromReader);
+      msg.setRoutes(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -1386,6 +1421,14 @@ proto.dapr.proto.runtime.v1.TopicSubscription.serializeBinaryToWriter = function
   f = message.getMetadataMap(true);
   if (f && f.getLength() > 0) {
     f.serializeBinary(3, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+  f = message.getRoutes();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      proto.dapr.proto.runtime.v1.TopicRoutes.serializeBinaryToWriter
+    );
   }
 };
 
@@ -1435,6 +1478,400 @@ proto.dapr.proto.runtime.v1.TopicSubscription.prototype.getMetadataMap = functio
 
 proto.dapr.proto.runtime.v1.TopicSubscription.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
+};
+
+
+/**
+ * optional TopicRoutes routes = 5;
+ * @return {?proto.dapr.proto.runtime.v1.TopicRoutes}
+ */
+proto.dapr.proto.runtime.v1.TopicSubscription.prototype.getRoutes = function() {
+  return /** @type{?proto.dapr.proto.runtime.v1.TopicRoutes} */ (
+    jspb.Message.getWrapperField(this, proto.dapr.proto.runtime.v1.TopicRoutes, 5));
+};
+
+
+/** @param {?proto.dapr.proto.runtime.v1.TopicRoutes|undefined} value */
+proto.dapr.proto.runtime.v1.TopicSubscription.prototype.setRoutes = function(value) {
+  jspb.Message.setWrapperField(this, 5, value);
+};
+
+
+proto.dapr.proto.runtime.v1.TopicSubscription.prototype.clearRoutes = function() {
+  this.setRoutes(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.dapr.proto.runtime.v1.TopicSubscription.prototype.hasRoutes = function() {
+  return jspb.Message.getField(this, 5) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.TopicRoutes = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.dapr.proto.runtime.v1.TopicRoutes.repeatedFields_, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.TopicRoutes, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.dapr.proto.runtime.v1.TopicRoutes.displayName = 'proto.dapr.proto.runtime.v1.TopicRoutes';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.dapr.proto.runtime.v1.TopicRoutes.repeatedFields_ = [1];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.TopicRoutes.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.TopicRoutes.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.TopicRoutes} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.TopicRoutes.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    rulesList: jspb.Message.toObjectList(msg.getRulesList(),
+    proto.dapr.proto.runtime.v1.TopicRule.toObject, includeInstance),
+    pb_default: jspb.Message.getFieldWithDefault(msg, 2, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.TopicRoutes}
+ */
+proto.dapr.proto.runtime.v1.TopicRoutes.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.TopicRoutes;
+  return proto.dapr.proto.runtime.v1.TopicRoutes.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.TopicRoutes} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.TopicRoutes}
+ */
+proto.dapr.proto.runtime.v1.TopicRoutes.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.dapr.proto.runtime.v1.TopicRule;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.TopicRule.deserializeBinaryFromReader);
+      msg.addRules(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDefault(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.TopicRoutes.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.TopicRoutes.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.TopicRoutes} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.TopicRoutes.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getRulesList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      1,
+      f,
+      proto.dapr.proto.runtime.v1.TopicRule.serializeBinaryToWriter
+    );
+  }
+  f = message.getDefault();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * repeated TopicRule rules = 1;
+ * @return {!Array<!proto.dapr.proto.runtime.v1.TopicRule>}
+ */
+proto.dapr.proto.runtime.v1.TopicRoutes.prototype.getRulesList = function() {
+  return /** @type{!Array<!proto.dapr.proto.runtime.v1.TopicRule>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.dapr.proto.runtime.v1.TopicRule, 1));
+};
+
+
+/** @param {!Array<!proto.dapr.proto.runtime.v1.TopicRule>} value */
+proto.dapr.proto.runtime.v1.TopicRoutes.prototype.setRulesList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
+
+/**
+ * @param {!proto.dapr.proto.runtime.v1.TopicRule=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.dapr.proto.runtime.v1.TopicRule}
+ */
+proto.dapr.proto.runtime.v1.TopicRoutes.prototype.addRules = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.dapr.proto.runtime.v1.TopicRule, opt_index);
+};
+
+
+proto.dapr.proto.runtime.v1.TopicRoutes.prototype.clearRulesList = function() {
+  this.setRulesList([]);
+};
+
+
+/**
+ * optional string default = 2;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.TopicRoutes.prototype.getDefault = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.dapr.proto.runtime.v1.TopicRoutes.prototype.setDefault = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.TopicRule = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.TopicRule, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.dapr.proto.runtime.v1.TopicRule.displayName = 'proto.dapr.proto.runtime.v1.TopicRule';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.TopicRule.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.TopicRule.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.TopicRule} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.TopicRule.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    match: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    path: jspb.Message.getFieldWithDefault(msg, 2, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.TopicRule}
+ */
+proto.dapr.proto.runtime.v1.TopicRule.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.TopicRule;
+  return proto.dapr.proto.runtime.v1.TopicRule.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.TopicRule} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.TopicRule}
+ */
+proto.dapr.proto.runtime.v1.TopicRule.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setMatch(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setPath(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.TopicRule.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.TopicRule.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.TopicRule} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.TopicRule.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getMatch();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getPath();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string match = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.TopicRule.prototype.getMatch = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.dapr.proto.runtime.v1.TopicRule.prototype.setMatch = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string path = 2;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.TopicRule.prototype.getPath = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.dapr.proto.runtime.v1.TopicRule.prototype.setPath = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
