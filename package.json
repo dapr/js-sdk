@@ -22,7 +22,6 @@
     "@js-temporal/polyfill": "^0.1.0",
     "body-parser": "^1.19.0",
     "google-protobuf": "^3.15.8",
-    "grpc": "^1.24.10",
     "node-fetch": "^2.6.1",
     "restana": "^4.9.1",
     "uuid": "^8.3.2"
@@ -34,8 +33,8 @@
     "@types/node": "^15.0.3",
     "@types/node-fetch": "^2.5.8",
     "@types/uuid": "^8.3.1",
-    "grpc-tools": "^1.11.1",
     "grpc_tools_node_protoc_ts": "^5.2.2",
+    "grpc-tools": "^1.11.1",
     "jest": "^27.0.6",
     "nodemon": "^2.0.7",
     "prettier": "^2.2.1",
