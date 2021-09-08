@@ -4,21 +4,20 @@
 
 Each example can be ran in the following way:
 
-> ⚠ The `build` directory should exist! 
+> ⚠ The `build` directory should exist and should contain the `proto` directory! 
 
 ```bash
 # Build main library
 npm install
 npm run build
 
+# Build Proto files
+sh ./build.sh
+
 # Navigate to the example
-cd invoke/hello-world/
+cd examples/grpc/hello-world/
 
-# Install dependencies
-npm install
-
-# Run the example
-npm run start:dapr
+# Follow instructions in the example's README
 ```
 
 ## Creating an Example

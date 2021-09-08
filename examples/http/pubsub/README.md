@@ -1,5 +1,4 @@
-# Examples - Hello World
-
+# Examples - PubSub
 ## Running
 
 ```bash

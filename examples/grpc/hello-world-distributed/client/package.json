@@ -20,7 +20,6 @@
     "typescript": "^4.2.4"
   },
   "dependencies": {
-    "@dapr/js-sdk": "file:../../../build",
     "@types/node": "^15.3.0"
   }
 }

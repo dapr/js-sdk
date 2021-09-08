@@ -1,4 +1,4 @@
-# Examples - Hello World
+# Examples - Distributed Hello World Client
 
 ## Running
 
