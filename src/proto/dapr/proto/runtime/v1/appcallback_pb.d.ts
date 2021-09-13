@@ -27,6 +27,8 @@ export class TopicEventRequest extends jspb.Message {
     setTopic(value: string): TopicEventRequest;
     getPubsubName(): string;
     setPubsubName(value: string): TopicEventRequest;
+    getPath(): string;
+    setPath(value: string): TopicEventRequest;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): TopicEventRequest.AsObject;
@@ -48,6 +50,7 @@ export namespace TopicEventRequest {
         data: Uint8Array | string,
         topic: string,
         pubsubName: string,
+        path: string,
     }
 }
 
@@ -183,6 +186,11 @@ export class TopicSubscription extends jspb.Message {
     getMetadataMap(): jspb.Map<string, string>;
     clearMetadataMap(): void;
 
+    hasRoutes(): boolean;
+    clearRoutes(): void;
+    getRoutes(): TopicRoutes | undefined;
+    setRoutes(value?: TopicRoutes): TopicSubscription;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): TopicSubscription.AsObject;
     static toObject(includeInstance: boolean, msg: TopicSubscription): TopicSubscription.AsObject;
@@ -199,6 +207,55 @@ export namespace TopicSubscription {
         topic: string,
 
         metadataMap: Array<[string, string]>,
+        routes?: TopicRoutes.AsObject,
+    }
+}
+
+export class TopicRoutes extends jspb.Message { 
+    clearRulesList(): void;
+    getRulesList(): Array<TopicRule>;
+    setRulesList(value: Array<TopicRule>): TopicRoutes;
+    addRules(value?: TopicRule, index?: number): TopicRule;
+    getDefault(): string;
+    setDefault(value: string): TopicRoutes;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): TopicRoutes.AsObject;
+    static toObject(includeInstance: boolean, msg: TopicRoutes): TopicRoutes.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: TopicRoutes, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): TopicRoutes;
+    static deserializeBinaryFromReader(message: TopicRoutes, reader: jspb.BinaryReader): TopicRoutes;
+}
+
+export namespace TopicRoutes {
+    export type AsObject = {
+        rulesList: Array<TopicRule.AsObject>,
+        pb_default: string,
+    }
+}
+
+export class TopicRule extends jspb.Message { 
+    getMatch(): string;
+    setMatch(value: string): TopicRule;
+    getPath(): string;
+    setPath(value: string): TopicRule;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): TopicRule.AsObject;
+    static toObject(includeInstance: boolean, msg: TopicRule): TopicRule.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: TopicRule, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): TopicRule;
+    static deserializeBinaryFromReader(message: TopicRule, reader: jspb.BinaryReader): TopicRule;
+}
+
+export namespace TopicRule {
+    export type AsObject = {
+        match: string,
+        path: string,
     }
 }
 
