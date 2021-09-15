@@ -1,4 +1,4 @@
-import { DaprServer, DaprClient } from "@dapr/js-sdk";
+import { DaprServer, DaprClient } from "dapr-client";
 
 const daprHost = "127.0.0.1";
 const daprPort = "50000"; // Dapr Sidecar Port of this Example Server

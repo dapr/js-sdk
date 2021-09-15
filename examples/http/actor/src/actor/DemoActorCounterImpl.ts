@@ -1,4 +1,4 @@
-import { AbstractActor } from "@dapr/js-sdk";
+import { AbstractActor } from "dapr-client";
 import DemoActorCounterInterface from "./DemoActorCounterInterface";
 
 export default class DemoActorCounterImpl extends AbstractActor implements DemoActorCounterInterface {

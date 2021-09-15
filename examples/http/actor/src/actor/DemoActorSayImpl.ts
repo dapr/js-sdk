@@ -1,4 +1,4 @@
-import { AbstractActor } from "@dapr/js-sdk";
+import { AbstractActor } from "dapr-client";
 import DemoActorSayInterface from "./DemoActorSayInterface";
 
 export default class DemoActorSayImpl extends AbstractActor implements DemoActorSayInterface {
