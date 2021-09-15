@@ -79,7 +79,7 @@ generateGrpc() {
         --plugin="protoc-gen-ts=${PROTOC_GEN_TS_PATH}" \
         --plugin=protoc-gen-grpc=${PROTOC_GEN_GRPC_PATH} \
         --js_out="import_style=commonjs,binary:$PATH_PROTO" \
-        --ts_out="service=grpc-node,mode=grpc-js:$PATH_PROTO" \
+        --ts_out="grpc_js:$PATH_PROTO" \
         --grpc_out="grpc_js:$PATH_PROTO" \
         "$PATH_PROTO/$PATH_FILE"
 }

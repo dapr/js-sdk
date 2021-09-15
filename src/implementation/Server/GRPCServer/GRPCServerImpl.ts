@@ -1,4 +1,4 @@
-import * as grpc from "grpc";
+import * as grpc from "@grpc/grpc-js";
 import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 import { Any } from "google-protobuf/google/protobuf/any_pb";
 
@@ -11,6 +11,8 @@ import { TypeDaprBindingCallback } from "../../../types/DaprBindingCallback.type
 import { TypeDaprPubSubCallback } from "../../../types/DaprPubSubCallback.type";
 
 
+// https://github.com/badsyntax/grpc-js-typescript/issues/1#issuecomment-705419742
+// @ts-ignore
 export default class GRPCServerImpl implements IAppCallbackServer {
     handlersInvoke: { [key: string]: TypeDaprInvokerCallback };
     handlersBindings: { [key: string]: TypeDaprBindingCallback };
@@ -52,7 +54,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     // '(call: ServerUnaryCall<InvokeRequest, InvokeResponse>, callback: sendUnaryData<InvokeResponse>) => Promise<...>'
     // handleUnaryCall<InvokeRequest, InvokeResponse>'.
 
-    async onInvoke(call: grpc.ServerUnaryCall<InvokeRequest>, callback: grpc.sendUnaryData<InvokeResponse>): Promise<void> {
+    async onInvoke(call: grpc.ServerUnaryCall<InvokeRequest, InvokeResponse>, callback: grpc.sendUnaryData<InvokeResponse>): Promise<void> {
         const method = call.request.getMethod();
         const query = (call.request.getHttpExtension() as HTTPExtension).toObject();
         const methodStr = HttpVerbUtil.convertHttpVerbNumberToString(query.verb);
@@ -92,7 +94,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     }
 
     // @todo: WIP
-    async onBindingEvent(call: grpc.ServerUnaryCall<BindingEventRequest>, callback: grpc.sendUnaryData<BindingEventResponse>): Promise<void> {
+    async onBindingEvent(call: grpc.ServerUnaryCall<BindingEventRequest, BindingEventResponse>, callback: grpc.sendUnaryData<BindingEventResponse>): Promise<void> {
         const req = call.request;
         const handlerKey = this.createInputBindingHandlerKey(req.getName());
         
@@ -120,7 +122,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     }
 
     // @todo: WIP
-    async onTopicEvent(call: grpc.ServerUnaryCall<TopicEventRequest>, callback: grpc.sendUnaryData<TopicEventResponse>): Promise<void> {
+    async onTopicEvent(call: grpc.ServerUnaryCall<TopicEventRequest, TopicEventResponse>, callback: grpc.sendUnaryData<TopicEventResponse>): Promise<void> {
         const req = call.request;
         const handlerKey = this.createPubSubSubscriptionHandlerKey(req.getPubsubName(), req.getTopic());
         
@@ -153,7 +155,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     }
 
     // @todo: WIP
-    async listTopicSubscriptions(call: grpc.ServerUnaryCall<Empty>, callback: grpc.sendUnaryData<ListTopicSubscriptionsResponse>): Promise<void> {
+    async listTopicSubscriptions(call: grpc.ServerUnaryCall<Empty, ListTopicSubscriptionsResponse>, callback: grpc.sendUnaryData<ListTopicSubscriptionsResponse>): Promise<void> {
         const res = new ListTopicSubscriptionsResponse();
 
         const values = Object.keys(this.handlersTopics).map((i) => {
@@ -172,7 +174,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     }
 
     // @todo: WIP
-    async listInputBindings(call: grpc.ServerUnaryCall<Empty>, callback: grpc.sendUnaryData<ListInputBindingsResponse>): Promise<void> {
+    async listInputBindings(call: grpc.ServerUnaryCall<Empty, ListInputBindingsResponse>, callback: grpc.sendUnaryData<ListInputBindingsResponse>): Promise<void> {
         const res = new ListInputBindingsResponse();
         res.setBindingsList(Object.keys(this.handlersBindings));
         return callback(null, res);
