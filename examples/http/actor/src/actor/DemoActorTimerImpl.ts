@@ -1,4 +1,4 @@
-import { AbstractActor } from "@dapr/js-sdk";
+import { AbstractActor } from "dapr-client";
 import DemoActorTimerInterface from "./DemoActorTimerInterface";
 
 export default class DemoActorTimerImpl extends AbstractActor implements DemoActorTimerInterface {

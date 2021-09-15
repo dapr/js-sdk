@@ -1,5 +1,5 @@
 {
-  "name": "@dapr/js-sdk-example-http-pubsub",
+  "name": "dapr-client-example-http-pubsub",
   "version": "1.0.0",
   "description": "An example utilizing the Dapr JS SDK",
   "main": "index.js",
@@ -19,7 +19,7 @@
     "typescript": "^4.2.4"
   },
   "dependencies": {
-    "@dapr/js-sdk": "file:../../../build",
+    "dapr-client": "file:../../../build",
     "@types/node": "^15.3.0",
     "google-protobuf": "^3.17.0"
   }

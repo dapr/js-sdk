@@ -41,7 +41,7 @@ spec:
 **example.ts**
 
 ```javascript
-import { DaprClient, DaprServer } from "@dapr/js-sdk";
+import { DaprClient, DaprServer } from "dapr-client";
 
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
 const daprPort = "50000"; // Dapr Sidecar Port
