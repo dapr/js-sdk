@@ -169,7 +169,7 @@ export default class ActorStateManager<T> {
       return val;
     }
 
-    const changeKind = this.isStateMarkedForRemove(stateName) ? StateChangeKind.UPDATE : StateChangeKind.ADD;
+    const changeKind = await this.isStateMarkedForRemove(stateName) ? StateChangeKind.UPDATE : StateChangeKind.ADD;
     stateChangeTracker.set(stateName, new StateMetadata(value, changeKind));
 
     return value;

@@ -14,7 +14,8 @@ describe('DaprServer', () => {
     try {
       const server = new DaprServer(host, host);
     } catch (e) {
-      expect(e.message).toEqual("DAPR_SERVER_INCORRECT_SERVER_PORT");
+      let msg = (e as Error).message;
+      expect(msg).toEqual("DAPR_SERVER_INCORRECT_SERVER_PORT");
     }
   });
 
@@ -22,7 +23,8 @@ describe('DaprServer', () => {
     try {
       const server = new DaprServer(host, port, host, host);
     } catch (e) {
-      expect(e.message).toEqual("DAPR_SERVER_INCORRECT_SIDECAR_PORT");
+      let msg = (e as Error).message;
+      expect(msg).toEqual("DAPR_SERVER_INCORRECT_SIDECAR_PORT");
     }
   });
 });

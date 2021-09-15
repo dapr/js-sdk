@@ -37,9 +37,11 @@ export default class HTTPServerBinding implements IServerBinding {
       } catch (e) {
         res.statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
 
+        console.debug(e);
+
         return res.end(JSON.stringify({
           error: "COULD_NOT_PROCESS_CALLBACK",
-          error_msg: `Something happened while processing the input binding callback - ${e.message}`
+          error_msg: `Something happened while processing the input binding callback`
         }));
       }
     });
