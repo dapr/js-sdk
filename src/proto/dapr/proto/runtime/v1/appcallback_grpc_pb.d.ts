@@ -4,7 +4,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import * as grpc from "grpc";
+import * as grpc from "@grpc/grpc-js";
+import {handleClientStreamingCall} from "@grpc/grpc-js/build/src/server-call";
 import * as dapr_proto_runtime_v1_appcallback_pb from "../../../../dapr/proto/runtime/v1/appcallback_pb";
 import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
 import * as dapr_proto_common_v1_common_pb from "../../../../dapr/proto/common/v1/common_pb";
@@ -65,7 +66,7 @@ interface IAppCallbackService_IOnBindingEvent extends grpc.MethodDefinition<dapr
 
 export const AppCallbackService: IAppCallbackService;
 
-export interface IAppCallbackServer {
+export interface IAppCallbackServer extends grpc.UntypedServiceImplementation {
     onInvoke: grpc.handleUnaryCall<dapr_proto_common_v1_common_pb.InvokeRequest, dapr_proto_common_v1_common_pb.InvokeResponse>;
     listTopicSubscriptions: grpc.handleUnaryCall<google_protobuf_empty_pb.Empty, dapr_proto_runtime_v1_appcallback_pb.ListTopicSubscriptionsResponse>;
     onTopicEvent: grpc.handleUnaryCall<dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest, dapr_proto_runtime_v1_appcallback_pb.TopicEventResponse>;
@@ -92,7 +93,7 @@ export interface IAppCallbackClient {
 }
 
 export class AppCallbackClient extends grpc.Client implements IAppCallbackClient {
-    constructor(address: string, credentials: grpc.ChannelCredentials, options?: object);
+    constructor(address: string, credentials: grpc.ChannelCredentials, options?: Partial<grpc.ClientOptions>);
     public onInvoke(request: dapr_proto_common_v1_common_pb.InvokeRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_common_v1_common_pb.InvokeResponse) => void): grpc.ClientUnaryCall;
     public onInvoke(request: dapr_proto_common_v1_common_pb.InvokeRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_common_v1_common_pb.InvokeResponse) => void): grpc.ClientUnaryCall;
     public onInvoke(request: dapr_proto_common_v1_common_pb.InvokeRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_common_v1_common_pb.InvokeResponse) => void): grpc.ClientUnaryCall;

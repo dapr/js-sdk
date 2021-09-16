@@ -1,4 +1,4 @@
-import { DaprClient, HttpMethod } from "@dapr/js-sdk";
+import { DaprClient, HttpMethod } from "dapr-client";
 
 const daprHost = "127.0.0.1";
 const daprPort = "3500";
