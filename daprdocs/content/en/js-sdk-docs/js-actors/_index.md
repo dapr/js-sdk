@@ -1,6 +1,6 @@
----
+<!-- ---
 type: docs
-title: "JavaScript SDK for Actors"
+# title: "JavaScript SDK for Actors"
 linkTitle: "Actors"
 weight: 1000
 description: JavaScript SDK package for Actors
@@ -46,4 +46,4 @@ async function start() {
   console.log(`Registered Actor Types: ${JSON.stringify(resRegisteredActors)}`);
 ```
 
-- For a full guide on actors visit [How-To: Use virtual actors in Dapr]({{< ref howto-actors.md >}}).
+- For a full guide on actors visit [How-To: Use virtual actors in Dapr]({{< ref howto-actors.md >}}). -->
