@@ -6,7 +6,9 @@ weight: 1000
 description: JavaScript SDK packages for developing Dapr applications
 no_list: true
 ---
+
 The Dapr JS SDK will allow you to interface with the Dapr process that abstracts several commonly used functionalities such as Service-to-Service invocation, State Management, PubSub, and more.
+
 
 <div class="card-deck">
   <div class="card">
@@ -30,4 +32,9 @@ The Dapr JS SDK will allow you to interface with the Dapr process that abstracts
       <a href="https://github.com/dapr/js-sdk/blob/master/documentation/examples.md" class="stretched-link"></a>
     </div>
   </div>
-<!-- </div> -->
+</div>
+
+### Available packages
+- [DaprClient]({{< ref "js-client#installing-and-importing-daprs-js-sdk" >}}) is a package that for how your application interacts with the Dapr sidecar, or other Dapr powered applications.
+
+- [DaprServer]({{< ref "js-client#installing-and-importing-daprs-js-sdk" >}}) is a package for how the Dapr sidecar interacts with your application, forwarding event subscriptions, invokes and more.
