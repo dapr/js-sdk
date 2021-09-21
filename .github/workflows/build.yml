@@ -16,7 +16,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      NODE_VER: 12.18.2
+      NODE_VER: 14.17.6
     steps:
     - uses: actions/checkout@v2
     - name: Use Node.js
@@ -32,12 +32,14 @@ jobs:
       env:
         CI: true
     
+    - run: npm run test:unit
+    
     - name: Is Release?
       if: startswith(github.ref, 'refs/tags/v')
       run: echo "DEPLOY_PACKAGE=true" >> $GITHUB_ENV
       
     - name: Publish to npm
       if: env.DEPLOY_PACKAGE == 'true'
-      run: npm pack && npm publish --access public
+      run: npm run build && npm pack && npm publish build/ --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
