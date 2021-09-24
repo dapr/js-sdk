@@ -18,13 +18,13 @@ The Dapr JS SDK will allow you to interface with the Dapr process that abstracts
       <a href="{{< ref js-client >}}" class="stretched-link"></a>
     </div>
   </div>
-  <!-- <div class="card">
+  <div class="card">
     <div class="card-body">
       <h5 class="card-title"><b>Actors</b></h5>
       <p class="card-text">Create virtual actors with state, reminders/timers, and methods in JavaScript.</p>
       <a href="{{< ref js-actors >}}" class="stretched-link"></a>
     </div>
-  </div> -->
+  </div>
   <div class="card">
     <div class="card-body">
       <h5 class="card-title"><b>Examples</b></h5>
