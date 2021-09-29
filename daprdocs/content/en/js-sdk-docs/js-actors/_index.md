@@ -6,9 +6,9 @@ weight: 1000
 description: How to get up and running with Actors using the Dapr JavaScript SDK
 ---
 
-The Dapr actor package allows you to interact with Dapr virtual actors from a Python application. The below examples demonstarte how to use virtual actors through the Python SDK. 
+The Dapr actors package allows you to interact with Dapr virtual actors from a JavaScript application. The below examples demonstarte how to use the JavaScript SDK for interacting with virtual actors.
 
-For a more indepth overview of Dapr actors and  supported scenarios, visit the [actors overview]({{< ref actors-overview >}}) page.
+For a more in-depth overview of Dapr actors and supported scenarios, visit the [actors overview page]({{< ref actors-overview >}}).
 
 ## Pre-requisites
 - [Dapr CLI]({{< ref install-dapr-cli.md >}}) installed
@@ -70,10 +70,62 @@ async function start() {
 }
 ```
 
-## Actor Timers and Reminders
-The JS SDK supports actors that can schedule periodic work on themselves by registering either timers or reminders..
+## Saving and Getting State 
 
-The scheduling interface of timers and reminders is identical. 
+```javascript
+import { DaprServer, DaprClient } from "dapr-client";
+import DemoActor from "./actor/DemoActor";
+
+const daprHost = "127.0.0.1";
+const daprPort = "50000"; // Dapr Sidecar Port of this Example Server
+const serverHost = "127.0.0.1"; // App Host of this Example Server
+const serverPort = "50001"; // App Port of this Example Server
+const daprAppId = "example-hello-world";
+
+async function start() {
+  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
+  const client = new DaprClient(daprHost, daprPort);
+
+  // Creating actor bindings
+  await server.actor.init();
+  server.actor.registerActor(DemoActor);
+  await server.startServer();
+
+  const actorId = "actor-id";
+
+  await client.actor.stateTransaction("DemoActor", actorId, [
+    {
+      operation: "upsert",
+      request: {
+        key: "key-1",
+        value: "my-new-data-1"
+      }
+    },
+    {
+      operation: "upsert",
+      request: {
+        key: "key-to-delete",
+        value: "my-new-data-1"
+      }
+    },
+    {
+      operation: "delete",
+      request: {
+        key: "key-to-delete"
+      }
+    }
+  ]);
+
+  const ActorStateGet = await client.actor.stateGet("DemoActor", actorId, "key-to-delete");
+}
+```
+
+## Actor Timers and Reminders
+The JS SDK supports actors that can schedule periodic work on themselves by registering either timers or reminders. The main difference between timers and reminders is that the Dapr actor runtime is not retaining any information about timers after deactivation, while persisting the information about reminders using the Dapr actor state provider.
+
+This distintcion allows users to trade off between light-weight but stateless timers vs. more resource-demanding but stateful reminders.
+
+The scheduling interface of timers and reminders is identical. For an more in-depth look at the scheduling configurations see the [actors timers and reminders docs]({{< ref "howto-actors.md#actor-timers-and-reminders" >}}).
 
 ### Actor Timers
 ```javascript
@@ -116,7 +168,7 @@ async function start() {
 ### Actor Reminders
 ```javascript
 import { DaprServer, DaprClient } from "dapr-client";
-import ActorTimerImpl from "./actor/ActorSayImpl";
+import ActorReminderImpl from "./actor/ActorReminderImpl";
 
 const daprHost = "127.0.0.1";
 const daprPort = "50000"; // Dapr Sidecar Port of this Example Server
@@ -130,7 +182,7 @@ async function start() {
 
   // Creating actor bindings
   await server.actor.init();
-  server.actor.registerActor(ActorCounterImpl);
+  server.actor.registerActor(ActorReminderImpl);
   await server.startServer();
 
   const actorId = "actor-id";
