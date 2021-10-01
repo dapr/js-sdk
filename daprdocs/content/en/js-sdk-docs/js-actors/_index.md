@@ -74,7 +74,7 @@ async function start() {
 
 ```javascript
 import { DaprServer, DaprClient } from "dapr-client";
-import DemoActor from "./actor/DemoActor";
+import StateActor from "./actor/StateActor";
 
 const daprHost = "127.0.0.1";
 const daprPort = "50000"; // Dapr Sidecar Port of this Example Server
@@ -88,35 +88,35 @@ async function start() {
 
   // Creating actor bindings
   await server.actor.init();
-  server.actor.registerActor(DemoActor);
+  server.actor.registerActor(StateActor);
   await server.startServer();
 
   const actorId = "actor-id";
 
-  await client.actor.stateTransaction("DemoActor", actorId, [
+  await client.actor.stateTransaction("StateActor", actorId, [
     {
       operation: "upsert",
       request: {
-        key: "key-1",
-        value: "my-new-data-1"
+        key: "first-key",
+        value: "hello"
       }
     },
     {
       operation: "upsert",
       request: {
-        key: "key-to-delete",
-        value: "my-new-data-1"
+        key: "second-key",
+        value: "world"
       }
     },
     {
       operation: "delete",
       request: {
-        key: "key-to-delete"
+        key: "second-key"
       }
     }
   ]);
 
-  const ActorStateGet = await client.actor.stateGet("DemoActor", actorId, "key-to-delete");
+  const ActorStateGet = await client.actor.stateGet("StateActor", actorId, "first-key");
 }
 ```
 
@@ -160,7 +160,7 @@ async function start() {
     period: Temporal.Duration.from({ seconds: 1 })
   });
 
-  // Stop the timer
+  // Delete the timer
   await client.actor.timerDelete(ActorTimerImpl.name, actorId, timerId);
 }
 ```
@@ -186,7 +186,7 @@ async function start() {
   await server.startServer();
 
   const actorId = "actor-id";
-  const timerId = "actor-timer-id";
+  const reminderId = "actor-timer-id";
 
   // Activate our actor
   await client.actor.invoke("PUT", ActorReminderImpl.name, actorId, "init");
@@ -198,7 +198,7 @@ async function start() {
     data: 100
   });
 
-  const res0 = await client.actor.invoke("PUT", ActorReminderImpl.name, actorId, "getCounter");
+  // Delete the reminder
   await client.actor.reminderDelete(ActorReminderImpl.name, actorId, reminderId);
 ```
 
