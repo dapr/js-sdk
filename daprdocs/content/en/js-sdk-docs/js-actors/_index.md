@@ -21,18 +21,18 @@ The actor interface defines the contract that is shared between the actor implem
 
 ```javascript
 export default interface ActorSayInterface {
-    sayString(msg: string): string;
+    say(msg: string): string;
 }
 ```
 
 ## Actor Implementation
-An actor service hosts the virtual actor. It defines a class by extending the base type Actor and implements the interfaces defined in the actor interface.
+An actor implementation defines a class by extending the base type `AbstractActor` and implements the interfaces defined in the actor interface.
 
 ```javascript
 import { AbstractActor } from "dapr-client";
-import ActorSayMsgInterface from "./ActorSayMsgInterface";
+import ActorSayInterface from "./ActorSayInterface";
 
-export default class ActorSayMsgImp extends AbstractActor implements ActorSayMsgInterface {
+export default class ActorSayImp extends AbstractActor implements ActorSayInterface {
     say(msg: string): string {
         return `Actor said: "${msg}"`;
     }
@@ -40,11 +40,11 @@ export default class ActorSayMsgImp extends AbstractActor implements ActorSayMsg
 ```
 
 ## Invoking Actors
-An actor client contains the implementation of the actor client which calls the actor methods defined in the actor interface.
+Use the DaprServer package to create your actors bindings, which will initalize and register your actors. After Actors are registered, use the DaprClient to invoke methods on an actor. The will client call the actor methods defined in the actor interface.
 
 ```javascript
-import { DaprServer, DaprClient, HttpMethod } from "dapr-client";
-import ActorSayMsgImp from "./actor/ActorSayMsgImp";
+import { DaprServer, DaprClient } from "dapr-client";
+import ActorSayImp from "./actor/ActorSayImp";
 
 const daprHost = "127.0.0.1";
 const daprPort = "50000"; // Dapr Sidecar Port of this Example Server
@@ -58,7 +58,7 @@ async function start() {
 
   // Creating actor bindings
   await server.actor.init();
-  server.actor.registerActor(ActorSayMsgImp);
+  server.actor.registerActor(ActorSayImp);
 
   const actorId = "actor-id";
   const timerId = "actor-timer-id";
@@ -66,7 +66,7 @@ async function start() {
   await server.startServer();
 
   // Invoke method 'say' with msg 'Hello World'");
-  const resActorInvokeSay = await client.actor.invoke("PUT", ActorSayMsgImp.name, actorId, "method-to-invoke", "Hello World");
+  const resActorInvokeSay = await client.actor.invoke("PUT", ActorSayImp.name, actorId, "method-to-invoke", "Hello World");
 }
 ```
 
