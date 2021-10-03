@@ -225,7 +225,7 @@ describe('http/actors', () => {
 
   describe('reminders', () => {
     it('should be able to unregister a reminder', async () => {
-      const actorId = `my-actor`;
+      const actorId = `my-actor-for-reminder-unregistering`;
       const reminderId = `my-reminder`;
 
       // Activate our actor
@@ -261,7 +261,7 @@ describe('http/actors', () => {
     });
 
     it('should fire a reminder correctly', async () => {
-      const actorId = `my-actor-counter-id-${(new Date()).getTime()}}`;
+      const actorId = `my-actor-counter-id-for-reminder-firing`;
       const reminderId = `my-reminder`;
 
       // Activate our actor
@@ -290,7 +290,7 @@ describe('http/actors', () => {
     });
 
     it('should fire a reminder but with a warning if it\'s not implemented correctly', async () => {
-      const actorId = `my-actor-counter-id-${(new Date()).getTime()}}`;
+      const actorId = `my-actor-counter-id-for-reminder-implementation-check`;
       const reminderId = `my-reminder-2`;
 
       // Create spy object
@@ -315,7 +315,7 @@ describe('http/actors', () => {
       // The method receiveReminder on AbstractActor should be called at least once
       // this will state the not implemented function
       expect(spy.mock.calls[0].length).toBe(1);
-      expect(spy.mock.calls[0][0]).toEqual(`{"error":"ACTOR_METHOD_NOT_IMPLEMENTED","errorMsg":"A reminder was created for the actor with id: my-actor-counter-id-1633266216796%7D but the method 'receiveReminder' was not implemented"}`);
+      expect(spy.mock.calls[0][0]).toEqual(`{"error":"ACTOR_METHOD_NOT_IMPLEMENTED","errorMsg":"A reminder was created for the actor with id: ${actorId} but the method 'receiveReminder' was not implemented"}`);
 
       // Unregister the reminder
       await client.actor.reminderDelete(DemoActorReminder2Impl.name, actorId, reminderId);
