@@ -37,43 +37,45 @@ async function start() {
   console.log("EXECUTING CLIENT - ACTORS");
   console.log("Note: we create new client for now since Actors are not supported internally!")
   console.log("===============================================================");
+  const actorId = "MyActorId1";
 
 
   const resRegisteredActors = await server.actor.getRegisteredActors();
   console.log(`Registered Actor Types: ${JSON.stringify(resRegisteredActors)}`);
-  
-  // console.log("[Dapr-JS][Example][Actors] Trying to invoke method 'say' with msg 'hello world'");
-  // const resActorInvokeSay = await client.actor.invoke("PUT", DemoActorSayImpl.name, "MyActorId1", "say", "Hello World");
-  // console.log(`[Dapr-JS][Example][Actors] Invoked Method and got data: ${resActorInvokeSay}`);
 
-  // const resActorStateGet = await clientActor.actor.stateGet("DemoActor", "MyActorId1", "PropertyA");
-  // await clientActor.actor.stateTransaction("DemoActor", "MyActorId1", [
-  //   {
-  //     operation: "upsert",
-  //     request: {
-  //       key: "key-1",
-  //       value: "my-new-data-1"
-  //     }
-  //   },
-  //   {
-  //     operation: "upsert",
-  //     request: {
-  //       key: "key-to-delete",
-  //       value: "my-new-data-1"
-  //     }
-  //   },
-  //   {
-  //     operation: "delete",
-  //     request: {
-  //       key: "key-to-delete"
-  //     }
-  //   }
-  // ]);
+  console.log("[Dapr-JS][Example][Actors] Trying to invoke method 'say' with msg 'hello world'");
+  const resActorInvokeSay = await client.actor.invoke("PUT", DemoActorSayImpl.name, actorId, "sayString", "Hello World");
+  console.log(`[Dapr-JS][Example][Actors] Invoked Method and got data: ${resActorInvokeSay}`);
 
-  // const resActorStateGet = await clientActor.actor.stateGet("DemoActor", "MyActorId1", "key-to-delete");
-  // console.log(`[Dapr-JS][Example][Actors] Get State (should be empty): ${JSON.stringify(resActorStateGet)}`);
-  // const resActorStateGet2 = await clientActor.actor.stateGet("DemoActor", "MyActorId1", "key-1");
-  // console.log(`[Dapr-JS][Example][Actors] Get State (should be my-new-data-1): ${JSON.stringify(resActorStateGet2)}`);
+  let resActorStateGet = await client.actor.stateGet(DemoActorSayImpl.name, actorId, "PropertyA");
+  await client.actor.stateTransaction(DemoActorSayImpl.name, actorId, [
+    {
+      operation: "upsert",
+      request: {
+        key: "key-1",
+        value: "my-new-data-1"
+      }
+    },
+    {
+      operation: "upsert",
+      request: {
+        key: "key-to-delete",
+        value: "my-new-data-1"
+      }
+    },
+    {
+      operation: "delete",
+      request: {
+        key: "key-to-delete"
+      }
+    }
+  ]);
+
+  resActorStateGet = await client.actor.stateGet(DemoActorSayImpl.name, actorId, "key-to-delete");
+  console.log(`[Dapr-JS][Example][Actors] Get State (should be empty): ${JSON.stringify(resActorStateGet)}`);
+
+  const resActorStateGet2 = await client.actor.stateGet(DemoActorSayImpl.name, actorId, "key-1");
+  console.log(`[Dapr-JS][Example][Actors] Get State (should be my-new-data-1): ${JSON.stringify(resActorStateGet2)}`);
 }
 
 start().catch((e) => {
