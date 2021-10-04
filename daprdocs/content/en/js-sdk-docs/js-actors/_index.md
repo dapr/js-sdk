@@ -40,7 +40,7 @@ export default class ActorSayImp extends AbstractActor implements ActorSayInterf
 ```
 
 ## Invoking Actors
-Use the DaprServer package to create your actors bindings, which will initalize and register your actors. After Actors are registered, use the DaprClient to invoke methods on an actor. The will client call the actor methods defined in the actor interface.
+Use the DaprServer package to create your actors bindings, which will initalize and register your actors. After Actors are registered, use the DaprClient to invoke methods on an actor. The client will call the actor methods defined in the actor interface.
 
 ```javascript
 import { DaprServer, DaprClient } from "dapr-client";
@@ -60,7 +60,6 @@ async function start() {
   server.actor.registerActor(ActorSayImp);
 
   const actorId = "actor-id";
-  const timerId = "actor-timer-id";
 
   await server.startServer();
 
