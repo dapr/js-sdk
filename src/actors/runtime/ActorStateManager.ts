@@ -70,10 +70,12 @@ export default class ActorStateManager<T> {
         return [false, null];
       }
 
-      return [true, stateMetadata?.getValue() || null];
+      const val = stateMetadata?.getValue();
+      return [true, val !== undefined ? val : null];
     }
 
     const [hasValue, value] = await this.actor.getStateProvider().tryLoadState(this.actor.getActorType(), this.actor.getId().getId(), stateName);
+
 
     if (hasValue) {
       stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.NONE));
