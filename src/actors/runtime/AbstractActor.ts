@@ -188,6 +188,10 @@ export default abstract class AbstractActor {
     }));
   }
 
+  getDaprClient(): DaprClient {
+    return this.daprClient;
+  }
+
   getStateProvider(): StateProvider {
     return this.daprStateProvider;
   }
