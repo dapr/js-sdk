@@ -38,8 +38,9 @@ Tests are written per protocol layer: http or grpc. This is done because Dapr re
 docker run -d --rm --name emqx -p 1883:1883 -p 8081:8081 -p 8083:8083 -p 8883:8883 -p 8084:8084 -p 18083:18083 emqx/emqx
 
 # Start gRPC tests
-npm run test:dapr:grpc
+npm run test:e2e:grpc:main
 
 # Start HTTP tests
-npm run test:dapr:http
+npm run test:e2e:http:main
+npm run test:e2e:http:actors
 ```

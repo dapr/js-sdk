@@ -1,6 +1,6 @@
 {
     "name": "dapr-client",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "The official Dapr (https://dapr.io) SDK for Node.js",
     "types": "http/index.d.ts",
     "scripts": {
@@ -23,8 +23,8 @@
         "@js-temporal/polyfill": "^0.2.0",
         "body-parser": "^1.19.0",
         "google-protobuf": "^3.18.0",
-        "node-fetch": "^2.6.1",
         "grpc": "^1.24.10",
+        "node-fetch": "^2.6.1",
         "restana": "^4.9.1",
         "uuid": "^8.3.2"
     },
@@ -35,8 +35,8 @@
         "@types/node": "^16.9.1",
         "@types/node-fetch": "^2.5.8",
         "@types/uuid": "^8.3.1",
-        "grpc-tools": "^1.11.2",
         "grpc_tools_node_protoc_ts": "^5.3.2",
+        "grpc-tools": "^1.11.2",
         "jest": "^27.2.0",
         "nodemon": "^2.0.12",
         "prettier": "^2.4.0",
