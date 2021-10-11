@@ -16,13 +16,15 @@ For a more in-depth overview of Dapr actors and supported scenarios, visit the [
 - [Latest LTS version of Node or greater](https://nodejs.org/en/) d
 - [JavaScript NPM package installed](https://www.npmjs.com/package/dapr-client)
 
-## Code Scenario
-The below code examples loosely describe the scenario of a Parking Garage Spot Monitoring System, which can be explained in detail by Mark Russinovich in [this video](https://www.youtube.com/watch?v=eJCu6a-x9uo&t=3785). The parking garage consists of hundreds of parking spots, where each parking spot includes a sensor that provides updates to a centralized monitoring system. The parking space sensors (our actors) detect if a parking space is occupied, or available.
+## Scenario
+The below code examples loosely describe the scenario of a Parking Garage Spot Monitoring System, which can be seen in this [video by Mark Russinovich](https://www.youtube.com/watch?v=eJCu6a-x9uo&t=3785). 
 
-To run this example, source code can be found [here](https://github.com/XavierGeerinck/js-sdk/tree/23e1f0ee2bd4c60a4906e38427547c4b3840f89e/examples/http/actor-parking-sensor).
+A parking garage consists of hundreds of parking spots, where each parking spot includes a sensor that provides updates to a centralized monitoring system. The parking space sensors (our actors) detect if a parking space is occupied, or available.
+
+To jump in and run this example for yourself, the source code can be found in the [JavaScript SDK examples directory](https://github.com/dapr/js-sdk/tree/master/examples/http/actor-parking-sensor).
 
 ## Actor Interface 
-The actor interface defines the contract that is shared between the actor implementation and the clients calling the actor. In the example below, we have created an interace for a parking garage sensor. Each sensor has 2 methods: carEnter and carLeave, which defines the state of the sensor:
+The actor interface defines the contract that is shared between the actor implementation and the clients calling the actor. In the example below, we have created an interace for a parking garage sensor. Each sensor has 2 methods: carEnter and carLeave, which defines the state of the parking space:
 
 ```javascript
 export default interface ParkingSensorInterface {
@@ -32,7 +34,7 @@ export default interface ParkingSensorInterface {
 ```
 
 ## Actor Implementation
-An actor implementation defines a class by extending the base type `AbstractActor` and implements the interfaces defined in the actor interface. The example below implements the methods defined in the `ParkingSensorInterface`, but also adds extra helper methods:
+An actor implementation defines a class by extending the base type `AbstractActor` and implements the interfaces defined in the actor interface. The following code describes what an actor implmentation consists of by implementing the methods defined in the `ParkingSensorInterface`. It also defines a few extra helper methods:
 
 ```javascript
 import { AbstractActor } from "dapr-client";
@@ -75,45 +77,48 @@ async function start() {
   await server.actor.init(); // Let the server know we need actors
   server.actor.registerActor(ParkingSensorImpl); // Register the actor
   await server.startServer(); // Start the server
+}
 ```                                              
 
 ## Invoking Actors
 After Actors are registered, use the DaprClient to invoke methods on an actor. The client will call the actor methods defined in the actor interface.
 
 ```javascript
-  ...
-  // Initialize Dapr client
-  const client = new DaprClient(daprHost, daprPort);
+...
+// Initialize Dapr client
+const client = new DaprClient(daprHost, daprPort);
 
-  await client.actor.invoke("PUT", ParkingSensorImpl.name, `actor-id`, "carEnter");
-  ...
+await client.actor.invoke("PUT", ParkingSensorImpl.name, `actor-id`, "carEnter");
+...
 ```
 
 ## Saving and Getting State 
 
 ```javascript
-  ...
-  await client.actor.stateTransaction("ParkingSensorImpl", `actor-id`, [
-    {
-      operation: "upsert",
-      request: {
-        key: "parking-sensor-location-lat",
-        value: "location-x"
-      }
-    },
-    {
-      operation: "upsert",
-      request: {
-        key: "parking-sensor-location-lang",
-        value: "location-y"
-      }
+...
+const client = new DaprClient(`dapr-host`, `dapr-port`);
+
+await client.actor.stateTransaction("ParkingSensorImpl", `actor-id`, [
+  {
+    operation: "upsert",
+    request: {
+      key: "parking-sensor-location-lat",
+      value: "location-x"
     }
-  ]);
+  },
+  {
+    operation: "upsert",
+    request: {
+      key: "parking-sensor-location-lang",
+      value: "location-y"
+    }
+  }
+]);
 
 
-  await client.actor.stateGet("ParkingSensorImpl", `actor-id`, `parking-sensor-location-lat`)
-  await client.actor.stateGet("ParkingSensorImpl", `actor-id`, `parking-sensor-location-lang`)
-  ...
+await client.actor.stateGet("ParkingSensorImpl", `actor-id`, `parking-sensor-location-lat`)
+await client.actor.stateGet("ParkingSensorImpl", `actor-id`, `parking-sensor-location-lang`)
+...
 ```
 
 ## Actor Timers and Reminders
@@ -126,6 +131,8 @@ The scheduling interface of timers and reminders is identical. For an more in-de
 ### Actor Timers
 ```javascript
 ...
+const client = new DaprClient(`dapr-host`, `dapr-port`);
+
 // Register a timer
 await client.actor.timerCreate(ParkingSensorImpl.name, `actor-id`, `timer-id`, {
   callback: "method-to-excute-on-actor",
@@ -135,11 +142,15 @@ await client.actor.timerCreate(ParkingSensorImpl.name, `actor-id`, `timer-id`, {
 
 // Delete the timer
 await client.actor.timerDelete(ParkingSensorImpl.name, `actor-id`, `timer-id`);
+...
 }
 ```
 
 ### Actor Reminders
 ```javascript
+...
+const client = new DaprClient(`dapr-host`, `dapr-port`);
+
 // Register a reminder, it has a default callback
 await client.actor.reminderCreate(DemoActorImpl.name, `actor-id`, `timer-id`, {
   dueTime: Temporal.Duration.from({ seconds: 2 }),
@@ -149,6 +160,7 @@ await client.actor.reminderCreate(DemoActorImpl.name, `actor-id`, `timer-id`, {
 
 // Delete the reminder
 await client.actor.reminderDelete(DemoActorImpl.name, `actor-id`, `timer-id`);
+...
 ```
 
 - For a full guide on actors visit [How-To: Use virtual actors in Dapr]({{< ref howto-actors.md >}}).
