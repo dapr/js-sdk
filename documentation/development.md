@@ -44,3 +44,7 @@ npm run test:e2e:grpc:main
 npm run test:e2e:http:main
 npm run test:e2e:http:actors
 ```
+
+## Publishing
+
+./scripts/publish.sh
