@@ -1,8 +1,9 @@
-import { DaprClient, DaprServer, Temporal } from '../../src';
+import { AbstractActor, DaprClient, DaprServer, Temporal } from '../../src';
 
 import DemoActorActivateImpl from '../actor/DemoActorActivateImpl';
 import DemoActorCounterImpl from '../actor/DemoActorCounterImpl';
 import DemoActorReminderImpl from '../actor/DemoActorReminderImpl';
+import DemoActorReminder2Impl from '../actor/DemoActorReminder2Impl';
 import DemoActorSayImpl from '../actor/DemoActorSayImpl';
 import DemoActorTimerImpl from '../actor/DemoActorTimerImpl';
 
@@ -18,6 +19,7 @@ describe('http/actors', () => {
   // We need to start listening on some endpoints already
   // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
+    // Start server and client
     server = new DaprServer(serverHost, serverPort, sidecarHost, sidecarPort);
     client = new DaprClient(sidecarHost, sidecarPort);
 
@@ -28,6 +30,7 @@ describe('http/actors', () => {
     await server.actor.registerActor(DemoActorCounterImpl);
     await server.actor.registerActor(DemoActorSayImpl);
     await server.actor.registerActor(DemoActorReminderImpl);
+    await server.actor.registerActor(DemoActorReminder2Impl);
     await server.actor.registerActor(DemoActorTimerImpl);
     await server.actor.registerActor(DemoActorActivateImpl);
 
@@ -37,7 +40,7 @@ describe('http/actors', () => {
 
   describe('activation/deactivation', () => {
     it('should correctly deactivate and activate an actor', async () => {
-       // An actor is activated when we create the object and it has been added to the tracking table
+      // An actor is activated when we create the object and it has been added to the tracking table
       // for a good E2E test we thus check:
       // * has it been added to the tracking table?
       //   -> Indirectly, we expect this by calling the Dapr client, which should be able to find the Actor in its tracking table
@@ -122,7 +125,7 @@ describe('http/actors', () => {
     it('should register actors correctly', async () => {
       const actors = await server.actor.getRegisteredActors();
 
-      expect(actors.length).toEqual(5);
+      expect(actors.length).toEqual(6);
 
       expect(actors).toContain(DemoActorCounterImpl.name);
       expect(actors).toContain(DemoActorSayImpl.name);
@@ -222,7 +225,7 @@ describe('http/actors', () => {
 
   describe('reminders', () => {
     it('should be able to unregister a reminder', async () => {
-      const actorId = `my-actor`;
+      const actorId = `my-actor-for-reminder-unregistering`;
       const reminderId = `my-reminder`;
 
       // Activate our actor
@@ -258,7 +261,7 @@ describe('http/actors', () => {
     });
 
     it('should fire a reminder correctly', async () => {
-      const actorId = `my-actor-counter-id-${(new Date()).getTime()}}`;
+      const actorId = `my-actor-counter-id-for-reminder-firing`;
       const reminderId = `my-reminder`;
 
       // Activate our actor
@@ -284,6 +287,38 @@ describe('http/actors', () => {
 
       // Unregister the reminder
       await client.actor.reminderDelete(DemoActorReminderImpl.name, actorId, reminderId);
+    });
+
+    it('should fire a reminder but with a warning if it\'s not implemented correctly', async () => {
+      const actorId = `my-actor-counter-id-for-reminder-implementation-check`;
+      const reminderId = `my-reminder-2`;
+
+      // Create spy object
+      const spy = jest.spyOn(global.console, 'warn');
+
+      // Activate our actor
+      await client.actor.invoke("PUT", DemoActorReminder2Impl.name, actorId, "init");
+
+      // Register a reminder, it has a default callback
+      await client.actor.reminderCreate(DemoActorReminder2Impl.name, actorId, reminderId, {
+        dueTime: Temporal.Duration.from({ seconds: 2 }),
+        period: Temporal.Duration.from({ seconds: 1 }),
+        data: 100
+      });
+
+      const res0 = await client.actor.invoke("PUT", DemoActorReminder2Impl.name, actorId, "getCounter");
+      expect(res0).toEqual(0);
+
+      // Now we wait for dueTime (2s)
+      await (new Promise(resolve => setTimeout(resolve, 2000)));
+
+      // The method receiveReminder on AbstractActor should be called at least once
+      // this will state the not implemented function
+      expect(spy.mock.calls[0].length).toBe(1);
+      expect(spy.mock.calls[0][0]).toEqual(`{"error":"ACTOR_METHOD_NOT_IMPLEMENTED","errorMsg":"A reminder was created for the actor with id: ${actorId} but the method 'receiveReminder' was not implemented"}`);
+
+      // Unregister the reminder
+      await client.actor.reminderDelete(DemoActorReminder2Impl.name, actorId, reminderId);
     });
   });
 })

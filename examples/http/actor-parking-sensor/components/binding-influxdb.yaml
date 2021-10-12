@@ -1,0 +1,18 @@
+# https://docs.dapr.io/reference/components-reference/supported-bindings/influxdb/
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: binding-influxdb
+  namespace: default
+spec:
+  type: bindings.influx
+  version: v1
+  metadata:
+  - name: url # Required
+    value: "http://127.0.0.1:8086"
+  - name: token # Required
+    value: my-token
+  - name: org # Required
+    value: my-parking-garage
+  - name: bucket # Required
+    value: my-sensors

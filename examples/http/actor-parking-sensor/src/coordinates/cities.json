@@ -1,0 +1,6652 @@
+[
+    {
+        "city": "Adak",
+        "province": "Alaska",
+        "country": "United States",
+        "lat": 51.88,
+        "lng": -176.6580556
+    },
+    {
+        "city": "Honolulu",
+        "province": "Hawaii",
+        "country": "United States",
+        "lat": 21.3069444,
+        "lng": -157.8583333
+    },
+    {
+        "city": "Barrow",
+        "province": "Alaska",
+        "country": "United States",
+        "lat": 71.29055559999999,
+        "lng": -156.788611
+    },
+    {
+        "city": "Hilo",
+        "province": "Hawaii",
+        "country": "United States",
+        "lat": 19.7070942,
+        "lng": -155.0884869
+    },
+    {
+        "city": "Anchorage",
+        "province": "Alaska",
+        "country": "United States",
+        "lat": 61.2180556,
+        "lng": -149.9002778
+    },
+    {
+        "city": "Deadhorse",
+        "province": "Alaska",
+        "country": "United States",
+        "lat": 70.20019959999999,
+        "lng": -148.4597191
+    },
+    {
+        "city": "Fairbanks",
+        "province": "Alaska",
+        "country": "United States",
+        "lat": 64.8377778,
+        "lng": -147.7163888
+    },
+    {
+        "city": "Sitka",
+        "province": "Alaska",
+        "country": "United States",
+        "lat": 57.0530556,
+        "lng": -135.33
+    },
+    {
+        "city": "Whitehorse",
+        "province": "Yukon",
+        "country": "Canada",
+        "lat": 60.7211871,
+        "lng": -135.0568448
+    },
+    {
+        "city": "Juneau",
+        "province": "Alaska",
+        "country": "United States",
+        "lat": 58.3019444,
+        "lng": -134.4197221
+    },
+    {
+        "city": "Tuktoyaktuk",
+        "province": "Northwest Territories",
+        "country": "Canada",
+        "lat": 69.445358,
+        "lng": -133.034181
+    },
+    {
+        "city": "Victoria",
+        "province": "British Columbia",
+        "country": "Canada",
+        "lat": 48.4284207,
+        "lng": -123.3656444
+    },
+    {
+        "city": "Vancouver",
+        "province": "British Columbia",
+        "country": "Canada",
+        "lat": 49.2827291,
+        "lng": -123.1207375
+    },
+    {
+        "city": "Portland",
+        "province": "Oregon",
+        "country": "United States",
+        "lat": 45.5230622,
+        "lng": -122.6764815
+    },
+    {
+        "city": "San Francisco",
+        "province": "California",
+        "country": "United States",
+        "lat": 37.7749295,
+        "lng": -122.4194155
+    },
+    {
+        "city": "Seattle",
+        "province": "Washington",
+        "country": "United States",
+        "lat": 47.6062095,
+        "lng": -122.3320708
+    },
+    {
+        "city": "Sacramento",
+        "province": "California",
+        "country": "United States",
+        "lat": 38.5815719,
+        "lng": -121.4943996
+    },
+    {
+        "city": "Kamloops",
+        "province": "British Columbia",
+        "country": "Canada",
+        "lat": 50.674522,
+        "lng": -120.3272675
+    },
+    {
+        "city": "Reno",
+        "province": "Nevada",
+        "country": "United States",
+        "lat": 39.5296329,
+        "lng": -119.8138027
+    },
+    {
+        "city": "Santa Barbara",
+        "province": "California",
+        "country": "United States",
+        "lat": 34.4208305,
+        "lng": -119.6981901
+    },
+    {
+        "city": "Kelowna",
+        "province": "British Columbia",
+        "country": "Canada",
+        "lat": 49.8879519,
+        "lng": -119.4960106
+    },
+    {
+        "city": "Grande Prairie",
+        "province": "Alberta",
+        "country": "Canada",
+        "lat": 55.1699396,
+        "lng": -118.7986152
+    },
+    {
+        "city": "Los Angeles",
+        "province": "California",
+        "country": "United States",
+        "lat": 34.0522342,
+        "lng": -118.2436849
+    },
+    {
+        "city": "Riverside",
+        "province": "California",
+        "country": "United States",
+        "lat": 33.9533487,
+        "lng": -117.3961564
+    },
+    {
+        "city": "San Diego",
+        "province": "California",
+        "country": "United States",
+        "lat": 32.715738,
+        "lng": -117.1610838
+    },
+    {
+        "city": "Tijuana",
+        "province": "Baja California",
+        "country": "Mexico",
+        "lat": 32.5149469,
+        "lng": -117.0382471
+    },
+    {
+        "city": "Ensenada",
+        "province": "Baja California",
+        "country": "Mexico",
+        "lat": 31.8667427,
+        "lng": -116.5963713
+    },
+    {
+        "city": "Boise",
+        "province": "Idaho",
+        "country": "United States",
+        "lat": 43.6187102,
+        "lng": -116.2146068
+    },
+    {
+        "city": "Mexicali",
+        "province": "Baja California",
+        "country": "Mexico",
+        "lat": 32.6245389,
+        "lng": -115.4522623
+    },
+    {
+        "city": "Las Vegas",
+        "province": "Nevada",
+        "country": "United States",
+        "lat": 36.1699412,
+        "lng": -115.1398296
+    },
+    {
+        "city": "Yellowknife",
+        "province": "Northwest Territories",
+        "country": "Canada",
+        "lat": 62.4539717,
+        "lng": -114.3717887
+    },
+    {
+        "city": "Calgary",
+        "province": "Alberta",
+        "country": "Canada",
+        "lat": 51.0486151,
+        "lng": -114.0708459
+    },
+    {
+        "city": "Edmonton",
+        "province": "Alberta",
+        "country": "Canada",
+        "lat": 53.544389,
+        "lng": -113.4909267
+    },
+    {
+        "city": "Phoenix",
+        "province": "Arizona",
+        "country": "United States",
+        "lat": 33.4483771,
+        "lng": -112.0740373
+    },
+    {
+        "city": "Helena",
+        "province": "Montana",
+        "country": "United States",
+        "lat": 46.5883707,
+        "lng": -112.0245054
+    },
+    {
+        "city": "Salt Lake City",
+        "province": "Utah",
+        "country": "United States",
+        "lat": 40.7607793,
+        "lng": -111.8910474
+    },
+    {
+        "city": "Fort McMurray",
+        "province": "Alberta",
+        "country": "Canada",
+        "lat": 56.72637959999999,
+        "lng": -111.3803407
+    },
+    {
+        "city": "Hermosillo",
+        "province": "Sonora",
+        "country": "Mexico",
+        "lat": 29.0729673,
+        "lng": -110.9559192
+    },
+    {
+        "city": "Tucson",
+        "province": "Arizona",
+        "country": "United States",
+        "lat": 32.2217429,
+        "lng": -110.926479
+    },
+    {
+        "city": "Cabo San Lucas",
+        "province": "Baja California Sur",
+        "country": "Mexico",
+        "lat": 22.8905327,
+        "lng": -109.9167371
+    },
+    {
+        "city": "Culiacán",
+        "province": "Sinaloa",
+        "country": "Mexico",
+        "lat": 24.8090649,
+        "lng": -107.3940117
+    },
+    {
+        "city": "Saskatoon",
+        "province": "Saskatchewan",
+        "country": "Canada",
+        "lat": 52.1332144,
+        "lng": -106.6700458
+    },
+    {
+        "city": "Albuquerque",
+        "province": "New Mexico",
+        "country": "United States",
+        "lat": 35.0853336,
+        "lng": -106.6055534
+    },
+    {
+        "city": "Ciudad Juárez",
+        "province": "Chihuahua",
+        "country": "Mexico",
+        "lat": 31.6903638,
+        "lng": -106.4245478
+    },
+    {
+        "city": "El Paso",
+        "province": "Texas",
+        "country": "United States",
+        "lat": 31.7618778,
+        "lng": -106.4850217
+    },
+    {
+        "city": "Los Alamos",
+        "province": "New Mexico",
+        "country": "United States",
+        "lat": 35.8800364,
+        "lng": -106.3031138
+    },
+    {
+        "city": "Chihuahua",
+        "province": "Chihuahua",
+        "country": "Mexico",
+        "lat": 28.6329957,
+        "lng": -106.0691004
+    },
+    {
+        "city": "Santa Fe",
+        "province": "New Mexico",
+        "country": "United States",
+        "lat": 35.6869752,
+        "lng": -105.937799
+    },
+    {
+        "city": "Boulder",
+        "province": "Colorado",
+        "country": "United States",
+        "lat": 40.0149856,
+        "lng": -105.2705456
+    },
+    {
+        "city": "Puerto Vallarta",
+        "province": "Jalisco",
+        "country": "Mexico",
+        "lat": 20.653407,
+        "lng": -105.2253316
+    },
+    {
+        "city": "Denver",
+        "province": "Colorado",
+        "country": "United States",
+        "lat": 39.7392358,
+        "lng": -104.990251
+    },
+    {
+        "city": "Cheyenne",
+        "province": "Wyoming",
+        "country": "United States",
+        "lat": 41.1399814,
+        "lng": -104.8202462
+    },
+    {
+        "city": "Durango",
+        "province": "Durango",
+        "country": "Mexico",
+        "lat": 24.0277202,
+        "lng": -104.6531759
+    },
+    {
+        "city": "Regina",
+        "province": "Saskatchewan",
+        "country": "Canada",
+        "lat": 50.4452112,
+        "lng": -104.6188943
+    },
+    {
+        "city": "Torreón",
+        "province": "Coahuila",
+        "country": "Mexico",
+        "lat": 25.5428443,
+        "lng": -103.4067861
+    },
+    {
+        "city": "Zapopan",
+        "province": "Jalisco",
+        "country": "Mexico",
+        "lat": 20.6719563,
+        "lng": -103.416501
+    },
+    {
+        "city": "Guadalajara",
+        "province": "Jalisco",
+        "country": "Mexico",
+        "lat": 20.6596988,
+        "lng": -103.3496092
+    },
+    {
+        "city": "Aguascalientes",
+        "province": "Aguascalientes",
+        "country": "Mexico",
+        "lat": 21.8852562,
+        "lng": -102.2915677
+    },
+    {
+        "city": "León",
+        "province": "Guanajuato",
+        "country": "Mexico",
+        "lat": 21.1250077,
+        "lng": -101.6859605
+    },
+    {
+        "city": "San Luis Potosí",
+        "province": "San Luis Potosí",
+        "country": "Mexico",
+        "lat": 22.1564699,
+        "lng": -100.9855409
+    },
+    {
+        "city": "Bismarck",
+        "province": "North Dakota",
+        "country": "United States",
+        "lat": 46.8083268,
+        "lng": -100.7837392
+    },
+    {
+        "city": "Querétaro",
+        "province": "Querétaro",
+        "country": "Mexico",
+        "lat": 20.5887932,
+        "lng": -100.3898881
+    },
+    {
+        "city": "Pierre",
+        "province": "South Dakota",
+        "country": "United States",
+        "lat": 44.3683156,
+        "lng": -100.3509665
+    },
+    {
+        "city": "Monterrey",
+        "province": "Nuevo León",
+        "country": "Mexico",
+        "lat": 25.6866142,
+        "lng": -100.3161126
+    },
+    {
+        "city": "Acapulco",
+        "province": "Guerrero",
+        "country": "Mexico",
+        "lat": 16.8531086,
+        "lng": -99.8236533
+    },
+    {
+        "city": "Mexico City Mexico City",
+        "province": "",
+        "country": "Mexico",
+        "lat": 19.4326077,
+        "lng": -99.133208
+    },
+    {
+        "city": "San Antonio",
+        "province": "Texas",
+        "country": "United States",
+        "lat": 29.4241219,
+        "lng": -98.49362819999999
+    },
+    {
+        "city": "Puebla",
+        "province": "Puebla",
+        "country": "Mexico",
+        "lat": 19.0414398,
+        "lng": -98.2062727
+    },
+    {
+        "city": "Tampico",
+        "province": "Tamaulipas",
+        "country": "Mexico",
+        "lat": 22.2331041,
+        "lng": -97.861099
+    },
+    {
+        "city": "Austin",
+        "province": "Texas",
+        "country": "United States",
+        "lat": 30.267153,
+        "lng": -97.7430608
+    },
+    {
+        "city": "Oklahoma City",
+        "province": "Oklahoma",
+        "country": "United States",
+        "lat": 35.4675602,
+        "lng": -97.5164276
+    },
+    {
+        "city": "Wichita",
+        "province": "Kansas",
+        "country": "United States",
+        "lat": 37.68717609999999,
+        "lng": -97.33005299999999
+    },
+    {
+        "city": "Winnipeg",
+        "province": "Manitoba",
+        "country": "Canada",
+        "lat": 49.895136,
+        "lng": -97.13837439999999
+    },
+    {
+        "city": "Dallas",
+        "province": "Texas",
+        "country": "United States",
+        "lat": 32.7766642,
+        "lng": -96.79698789999999
+    },
+    {
+        "city": "Lincoln",
+        "province": "Nebraska",
+        "country": "United States",
+        "lat": 40.8257625,
+        "lng": -96.6851982
+    },
+    {
+        "city": "Veracruz",
+        "province": "Veracruz",
+        "country": "Mexico",
+        "lat": 19.173773,
+        "lng": -96.1342241
+    },
+    {
+        "city": "Tulsa",
+        "province": "Oklahoma",
+        "country": "United States",
+        "lat": 36.1539816,
+        "lng": -95.99277500000001
+    },
+    {
+        "city": "Houston",
+        "province": "Texas",
+        "country": "United States",
+        "lat": 29.7604267,
+        "lng": -95.3698028
+    },
+    {
+        "city": "Kansas City",
+        "province": "Missouri",
+        "country": "United States",
+        "lat": 39.0997265,
+        "lng": -94.5785667
+    },
+    {
+        "city": "Des Moines",
+        "province": "Iowa",
+        "country": "United States",
+        "lat": 41.6005448,
+        "lng": -93.6091064
+    },
+    {
+        "city": "Springfield",
+        "province": "Missouri",
+        "country": "United States",
+        "lat": 37.2089572,
+        "lng": -93.29229889999999
+    },
+    {
+        "city": "Minneapolis",
+        "province": "Minnesota",
+        "country": "United States",
+        "lat": 44.977753,
+        "lng": -93.2650108
+    },
+    {
+        "city": "Little Rock",
+        "province": "Arkansas",
+        "country": "United States",
+        "lat": 34.7464809,
+        "lng": -92.28959479999999
+    },
+    {
+        "city": "Tapachula",
+        "province": "Chiapas",
+        "country": "Mexico",
+        "lat": 14.9055599,
+        "lng": -92.26342059999999
+    },
+    {
+        "city": "Quetzaltenango",
+        "province": "",
+        "country": "Guatemala",
+        "lat": 14.8520705,
+        "lng": -91.5305465
+    },
+    {
+        "city": "Guatemala City",
+        "province": "",
+        "country": "Guatemala",
+        "lat": 14.6349149,
+        "lng": -90.5068824
+    },
+    {
+        "city": "St. Louis",
+        "province": "Missouri",
+        "country": "United States",
+        "lat": 38.6270025,
+        "lng": -90.19940419999999
+    },
+    {
+        "city": "Jackson",
+        "province": "Mississippi",
+        "country": "United States",
+        "lat": 32.2987573,
+        "lng": -90.1848103
+    },
+    {
+        "city": "New Orleans",
+        "province": "Louisiana",
+        "country": "United States",
+        "lat": 29.95106579999999,
+        "lng": -90.0715323
+    },
+    {
+        "city": "Memphis",
+        "province": "Tennessee",
+        "country": "United States",
+        "lat": 35.1495343,
+        "lng": -90.0489801
+    },
+    {
+        "city": "Mérida",
+        "province": "Yucatán",
+        "country": "Mexico",
+        "lat": 20.9673702,
+        "lng": -89.5925857
+    },
+    {
+        "city": "Thunder Bay",
+        "province": "Ontario",
+        "country": "Canada",
+        "lat": 48.3808951,
+        "lng": -89.2476823
+    },
+    {
+        "city": "San Salvador",
+        "province": "",
+        "country": "El Salvador",
+        "lat": 13.6929403,
+        "lng": -89.2181911
+    },
+    {
+        "city": "Belmopan",
+        "province": "",
+        "country": "Belize",
+        "lat": 17.2510114,
+        "lng": -88.7590201
+    },
+    {
+        "city": "Belize City",
+        "province": "",
+        "country": "Belize",
+        "lat": 17.5045661,
+        "lng": -88.1962133
+    },
+    {
+        "city": "Mobile",
+        "province": "Alabama",
+        "country": "United States",
+        "lat": 30.6953657,
+        "lng": -88.0398912
+    },
+    {
+        "city": "Milwaukee",
+        "province": "Wisconsin",
+        "country": "United States",
+        "lat": 43.0389025,
+        "lng": -87.9064736
+    },
+    {
+        "city": "Chicago",
+        "province": "Illinois",
+        "country": "United States",
+        "lat": 41.8781136,
+        "lng": -87.6297982
+    },
+    {
+        "city": "Tegucigalpa",
+        "province": "",
+        "country": "Honduras",
+        "lat": 14.0722751,
+        "lng": -87.19213599999999
+    },
+    {
+        "city": "Chinandega",
+        "province": "",
+        "country": "Nicaragua",
+        "lat": 12.6234721,
+        "lng": -87.1273253
+    },
+    {
+        "city": "Cancún",
+        "province": "Quintana Roo",
+        "country": "Mexico",
+        "lat": 21.161908,
+        "lng": -86.8515279
+    },
+    {
+        "city": "Birmingham",
+        "province": "Alabama",
+        "country": "United States",
+        "lat": 33.5206608,
+        "lng": -86.80248999999999
+    },
+    {
+        "city": "Nashville",
+        "province": "Tennessee",
+        "country": "United States",
+        "lat": 36.1626638,
+        "lng": -86.7816016
+    },
+    {
+        "city": "Managua",
+        "province": "",
+        "country": "Nicaragua",
+        "lat": 12.1149926,
+        "lng": -86.2361744
+    },
+    {
+        "city": "Indianapolis",
+        "province": "Indiana",
+        "country": "United States",
+        "lat": 39.768403,
+        "lng": -86.158068
+    },
+    {
+        "city": "Eureka",
+        "province": "Nunavut",
+        "country": "Canada",
+        "lat": 79.9888928,
+        "lng": -85.94076969999999
+    },
+    {
+        "city": "Louisville",
+        "province": "Kentucky",
+        "country": "United States",
+        "lat": 38.2526647,
+        "lng": -85.7584557
+    },
+    {
+        "city": "Liberia",
+        "province": "",
+        "country": "Costa Rica",
+        "lat": 10.6345964,
+        "lng": -85.4406747
+    },
+    {
+        "city": "Fort Wayne",
+        "province": "Indiana",
+        "country": "United States",
+        "lat": 41.079273,
+        "lng": -85.1393513
+    },
+    {
+        "city": "Puntarenas",
+        "province": "",
+        "country": "Costa Rica",
+        "lat": 9.9778439,
+        "lng": -84.82942109999999
+    },
+    {
+        "city": "Cincinnati",
+        "province": "Ohio",
+        "country": "United States",
+        "lat": 39.1031182,
+        "lng": -84.5120196
+    },
+    {
+        "city": "Atlanta",
+        "province": "Georgia",
+        "country": "United States",
+        "lat": 33.7489954,
+        "lng": -84.3879824
+    },
+    {
+        "city": "Sault Ste. Marie",
+        "province": "Ontario",
+        "country": "Canada",
+        "lat": 46.52185799999999,
+        "lng": -84.3460896
+    },
+    {
+        "city": "Alajuela",
+        "province": "",
+        "country": "Costa Rica",
+        "lat": 10.0159394,
+        "lng": -84.21417009999999
+    },
+    {
+        "city": "San José",
+        "province": "",
+        "country": "Costa Rica",
+        "lat": 9.9280694,
+        "lng": -84.0907246
+    },
+    {
+        "city": "Knoxville",
+        "province": "Tennessee",
+        "country": "United States",
+        "lat": 35.9606384,
+        "lng": -83.9207392
+    },
+    {
+        "city": "Detroit",
+        "province": "Michigan",
+        "country": "United States",
+        "lat": 42.331427,
+        "lng": -83.0457538
+    },
+    {
+        "city": "Limón",
+        "province": "",
+        "country": "Costa Rica",
+        "lat": 9.9913106,
+        "lng": -83.04150779999999
+    },
+    {
+        "city": "Windsor",
+        "province": "Ontario",
+        "country": "Canada",
+        "lat": 42.3149367,
+        "lng": -83.03636329999999
+    },
+    {
+        "city": "Columbus",
+        "province": "Ohio",
+        "country": "United States",
+        "lat": 39.9611755,
+        "lng": -82.99879419999999
+    },
+    {
+        "city": "Grise Fiord",
+        "province": "Nunavut",
+        "country": "Canada",
+        "lat": 76.4189856,
+        "lng": -82.90160829999999
+    },
+    {
+        "city": "Tampa",
+        "province": "Florida",
+        "country": "United States",
+        "lat": 27.950575,
+        "lng": -82.4571776
+    },
+    {
+        "city": "Havana",
+        "province": "",
+        "country": "Cuba",
+        "lat": 23.1135925,
+        "lng": -82.3665956
+    },
+    {
+        "city": "Key West",
+        "province": "Florida",
+        "country": "United States",
+        "lat": 24.5550593,
+        "lng": -81.7799871
+    },
+    {
+        "city": "Cleveland",
+        "province": "Ohio",
+        "country": "United States",
+        "lat": 41.49932,
+        "lng": -81.6943605
+    },
+    {
+        "city": "Jacksonville",
+        "province": "Florida",
+        "country": "United States",
+        "lat": 30.3321838,
+        "lng": -81.65565099999999
+    },
+    {
+        "city": "Charleston",
+        "province": "West Virginia",
+        "country": "United States",
+        "lat": 38.3498195,
+        "lng": -81.6326234
+    },
+    {
+        "city": "George Town",
+        "province": "Cayman Islands",
+        "country": "United Kingdom",
+        "lat": 0,
+        "lng": 0
+    },
+    {
+        "city": "Orlando",
+        "province": "Florida",
+        "country": "United States",
+        "lat": 28.5383355,
+        "lng": -81.3792365
+    },
+    {
+        "city": "Columbia",
+        "province": "South Carolina",
+        "country": "United States",
+        "lat": 34.0007104,
+        "lng": -81.0348144
+    },
+    {
+        "city": "Sudbury",
+        "province": "Ontario",
+        "country": "Canada",
+        "lat": 46.522099,
+        "lng": -80.9530353
+    },
+    {
+        "city": "Charlotte",
+        "province": "North Carolina",
+        "country": "United States",
+        "lat": 35.2270869,
+        "lng": -80.8431267
+    },
+    {
+        "city": "Miami",
+        "province": "Florida",
+        "country": "United States",
+        "lat": 25.7616798,
+        "lng": -80.1917902
+    },
+    {
+        "city": "Pittsburgh",
+        "province": "Pennsylvania",
+        "country": "United States",
+        "lat": 40.44062479999999,
+        "lng": -79.9958864
+    },
+    {
+        "city": "Panama City",
+        "province": "",
+        "country": "Panama",
+        "lat": 8.9823792,
+        "lng": -79.51986959999999
+    },
+    {
+        "city": "North Bay",
+        "province": "Ontario",
+        "country": "Canada",
+        "lat": 46.3091152,
+        "lng": -79.4608204
+    },
+    {
+        "city": "Toronto",
+        "province": "Ontario",
+        "country": "Canada",
+        "lat": 43.653226,
+        "lng": -79.3831843
+    },
+    {
+        "city": "Buffalo",
+        "province": "New York",
+        "country": "United States",
+        "lat": 42.88644679999999,
+        "lng": -78.8783689
+    },
+    {
+        "city": "Raleigh",
+        "province": "North Carolina",
+        "country": "United States",
+        "lat": 35.7795897,
+        "lng": -78.6381787
+    },
+    {
+        "city": "Wilmington",
+        "province": "North Carolina",
+        "country": "United States",
+        "lat": 34.2257255,
+        "lng": -77.9447102
+    },
+    {
+        "city": "Rochester",
+        "province": "New York",
+        "country": "United States",
+        "lat": 43.16103,
+        "lng": -77.6109219
+    },
+    {
+        "city": "Nassau",
+        "province": "",
+        "country": "Bahamas",
+        "lat": 25.0479835,
+        "lng": -77.355413
+    },
+    {
+        "city": "Washington",
+        "province": "District of Columbia",
+        "country": "United States",
+        "lat": 38.9071923,
+        "lng": -77.0368707
+    },
+    {
+        "city": "Kingston",
+        "province": "",
+        "country": "Jamaica",
+        "lat": 18.0178743,
+        "lng": -76.8099041
+    },
+    {
+        "city": "Baltimore",
+        "province": "Maryland",
+        "country": "United States",
+        "lat": 39.2903848,
+        "lng": -76.6121893
+    },
+    {
+        "city": "Santiago de Cali",
+        "province": "",
+        "country": "Colombia",
+        "lat": 3.4516467,
+        "lng": -76.5319854
+    },
+    {
+        "city": "Virginia Beach",
+        "province": "Virginia",
+        "country": "United States",
+        "lat": 36.8529263,
+        "lng": -75.97798499999999
+    },
+    {
+        "city": "Santiago de Cuba",
+        "province": "",
+        "country": "Cuba",
+        "lat": 20.01693,
+        "lng": -75.8301537
+    },
+    {
+        "city": "Ottawa",
+        "province": "Ontario",
+        "country": "Canada",
+        "lat": 45.4215296,
+        "lng": -75.69719309999999
+    },
+    {
+        "city": "Medellín",
+        "province": "",
+        "country": "Colombia",
+        "lat": 6.244203,
+        "lng": -75.5812119
+    },
+    {
+        "city": "Dover",
+        "province": "Delaware",
+        "country": "United States",
+        "lat": 39.158168,
+        "lng": -75.5243682
+    },
+    {
+        "city": "Cartagena",
+        "province": "",
+        "country": "Colombia",
+        "lat": 10.3910485,
+        "lng": -75.4794257
+    },
+    {
+        "city": "Philadelphia",
+        "province": "Pennsylvania",
+        "country": "United States",
+        "lat": 39.9525839,
+        "lng": -75.1652215
+    },
+    {
+        "city": "Barranquilla",
+        "province": "",
+        "country": "Colombia",
+        "lat": 11.0041072,
+        "lng": -74.80698129999999
+    },
+    {
+        "city": "Trenton",
+        "province": "New Jersey",
+        "country": "United States",
+        "lat": 40.2170534,
+        "lng": -74.7429384
+    },
+    {
+        "city": "Forked River",
+        "province": "New Jersey",
+        "country": "United States",
+        "lat": 39.8398413,
+        "lng": -74.19013989999999
+    },
+    {
+        "city": "Bogotá",
+        "province": "",
+        "country": "Colombia",
+        "lat": 4.710988599999999,
+        "lng": -74.072092
+    },
+    {
+        "city": "Jersey City",
+        "province": "New Jersey",
+        "country": "United States",
+        "lat": 40.72815749999999,
+        "lng": -74.0776417
+    },
+    {
+        "city": "New York City",
+        "province": "New York",
+        "country": "United States",
+        "lat": 40.7127753,
+        "lng": -74.0059728
+    },
+    {
+        "city": "Montreal",
+        "province": "Quebec",
+        "country": "Canada",
+        "lat": 45.5016889,
+        "lng": -73.567256
+    },
+    {
+        "city": "Hartford",
+        "province": "Connecticut",
+        "country": "United States",
+        "lat": 41.76371109999999,
+        "lng": -72.6850932
+    },
+    {
+        "city": "Montpelier",
+        "province": "Vermont",
+        "country": "United States",
+        "lat": 44.26005929999999,
+        "lng": -72.5753869
+    },
+    {
+        "city": "Cúcuta",
+        "province": "",
+        "country": "Colombia",
+        "lat": 7.8890971,
+        "lng": -72.4966896
+    },
+    {
+        "city": "Port-au-Prince",
+        "province": "",
+        "country": "Haiti",
+        "lat": 18.594395,
+        "lng": -72.3074326
+    },
+    {
+        "city": "Maracaibo",
+        "province": "",
+        "country": "Venezuela",
+        "lat": 10.6544509,
+        "lng": -71.7147951
+    },
+    {
+        "city": "Concord",
+        "province": "New Hampshire",
+        "country": "United States",
+        "lat": 43.2081366,
+        "lng": -71.5375718
+    },
+    {
+        "city": "Providence",
+        "province": "Rhode Island",
+        "country": "United States",
+        "lat": 41.8239891,
+        "lng": -71.4128343
+    },
+    {
+        "city": "Quebec City",
+        "province": "Quebec",
+        "country": "Canada",
+        "lat": 46.8138783,
+        "lng": -71.2079809
+    },
+    {
+        "city": "Cockburn Town",
+        "province": "Turks and Caicos Islands",
+        "country": "United Kingdom",
+        "lat": 21.4674584,
+        "lng": -71.13891009999999
+    },
+    {
+        "city": "Boston",
+        "province": "Massachusetts",
+        "country": "United States",
+        "lat": 42.3600825,
+        "lng": -71.0588801
+    },
+    {
+        "city": "Oranjestad",
+        "province": "Aruba",
+        "country": "Netherlands",
+        "lat": 12.5092044,
+        "lng": -70.0086306
+    },
+    {
+        "city": "Santo Domingo",
+        "province": "",
+        "country": "Dominican Republic",
+        "lat": 18.4860575,
+        "lng": -69.93121169999999
+    },
+    {
+        "city": "Augusta",
+        "province": "Maine",
+        "country": "United States",
+        "lat": 44.3106241,
+        "lng": -69.7794897
+    },
+    {
+        "city": "Qaanaaq",
+        "province": "Greenland",
+        "country": "Denmark",
+        "lat": 77.4670434,
+        "lng": -69.2284827
+    },
+    {
+        "city": "Willemstad",
+        "province": "Curaçao",
+        "country": "Netherlands",
+        "lat": 12.1224221,
+        "lng": -68.8824233
+    },
+    {
+        "city": "Iqaluit",
+        "province": "Nunavut",
+        "country": "Canada",
+        "lat": 63.74669300000001,
+        "lng": -68.5169669
+    },
+    {
+        "city": "Puerto Ayacucho",
+        "province": "",
+        "country": "Venezuela",
+        "lat": 5.6614718,
+        "lng": -67.58277439999999
+    },
+    {
+        "city": "Maracay",
+        "province": "",
+        "country": "Venezuela",
+        "lat": 10.2441931,
+        "lng": -67.60661640000001
+    },
+    {
+        "city": "Caracas",
+        "province": "",
+        "country": "Venezuela",
+        "lat": 10.4805937,
+        "lng": -66.90360629999999
+    },
+    {
+        "city": "Fredericton",
+        "province": "New Brunswick",
+        "country": "Canada",
+        "lat": 45.9635895,
+        "lng": -66.6431151
+    },
+    {
+        "city": "Yarmouth",
+        "province": "Nova Scotia",
+        "country": "Canada",
+        "lat": 43.8374576,
+        "lng": -66.11738199999999
+    },
+    {
+        "city": "Saint John",
+        "province": "New Brunswick",
+        "country": "Canada",
+        "lat": 45.2733153,
+        "lng": -66.06330799999999
+    },
+    {
+        "city": "San Juan",
+        "province": "Puerto Rico",
+        "country": "United States",
+        "lat": 18.4655394,
+        "lng": -66.1057355
+    },
+    {
+        "city": "Charlotte Amalie",
+        "province": "United States Virgin Islands",
+        "country": "United States",
+        "lat": 18.3419004,
+        "lng": -64.9307007
+    },
+    {
+        "city": "Hamilton",
+        "province": "Bermuda",
+        "country": "United Kingdom",
+        "lat": 52.4989983,
+        "lng": -1.4764289
+    },
+    {
+        "city": "Moncton",
+        "province": "New Brunswick",
+        "country": "Canada",
+        "lat": 46.0878165,
+        "lng": -64.7782313
+    },
+    {
+        "city": "Road Town",
+        "province": "British Virgin Islands",
+        "country": "United Kingdom",
+        "lat": 0,
+        "lng": 0
+    },
+    {
+        "city": "Ciudad Bolívar",
+        "province": "",
+        "country": "Venezuela",
+        "lat": 8.088279100000001,
+        "lng": -63.5535552
+    },
+    {
+        "city": "Halifax",
+        "province": "Nova Scotia",
+        "country": "Canada",
+        "lat": 44.64876350000001,
+        "lng": -63.5752387
+    },
+    {
+        "city": "Charlottetown",
+        "province": "Prince Edward Island",
+        "country": "Canada",
+        "lat": 46.23824,
+        "lng": -63.13107040000001
+    },
+    {
+        "city": "The Valley",
+        "province": "Anguilla",
+        "country": "United Kingdom",
+        "lat": 50.7875623,
+        "lng": 0.3289384
+    },
+    {
+        "city": "Basseterre",
+        "province": "",
+        "country": "Saint Kitts and Nevis",
+        "lat": 17.3026058,
+        "lng": -62.7176924
+    },
+    {
+        "city": "Alert",
+        "province": "Nunavut",
+        "country": "Canada",
+        "lat": 82.5017771,
+        "lng": -62.3480917
+    },
+    {
+        "city": "St. John's",
+        "province": "",
+        "country": "Antigua and Barbuda",
+        "lat": 17.1274104,
+        "lng": -61.84677199999999
+    },
+    {
+        "city": "St. George's",
+        "province": "",
+        "country": "Grenada",
+        "lat": 12.0560975,
+        "lng": -61.7487996
+    },
+    {
+        "city": "Basse-Terre",
+        "province": "Guadeloupe",
+        "country": "France",
+        "lat": 16.0341215,
+        "lng": -61.6947193
+    },
+    {
+        "city": "Port of Spain",
+        "province": "",
+        "country": "Trinidad and Tobago",
+        "lat": 10.6549013,
+        "lng": -61.50192559999999
+    },
+    {
+        "city": "San Fernando",
+        "province": "",
+        "country": "Trinidad and Tobago",
+        "lat": 10.2905853,
+        "lng": -61.4493842
+    },
+    {
+        "city": "Roseau",
+        "province": "",
+        "country": "Dominica",
+        "lat": 15.3091676,
+        "lng": -61.37935539999999
+    },
+    {
+        "city": "Chaguanas",
+        "province": "",
+        "country": "Trinidad and Tobago",
+        "lat": 10.5331201,
+        "lng": -61.39685979999999
+    },
+    {
+        "city": "Kingstown",
+        "province": "",
+        "country": "Saint Vincent and the Grenadines",
+        "lat": 13.1600249,
+        "lng": -61.2248157
+    },
+    {
+        "city": "Fort-de-France",
+        "province": "Martinique",
+        "country": "France",
+        "lat": 14.6160647,
+        "lng": -61.0587804
+    },
+    {
+        "city": "Castries",
+        "province": "",
+        "country": "Saint Lucia",
+        "lat": 14.0101094,
+        "lng": -60.98746869999999
+    },
+    {
+        "city": "Boa Vista",
+        "province": "Roraima",
+        "country": "Brazil",
+        "lat": 2.8235098,
+        "lng": -60.6758331
+    },
+    {
+        "city": "Bridgetown",
+        "province": "",
+        "country": "Barbados",
+        "lat": 13.0968511,
+        "lng": -59.61448189999999
+    },
+    {
+        "city": "Georgetown",
+        "province": "",
+        "country": "Guyana",
+        "lat": 6.8012793,
+        "lng": -58.1551255
+    },
+    {
+        "city": "Saint-Pierre",
+        "province": "Saint Pierre and Miquelon",
+        "country": "France",
+        "lat": 46.7758459,
+        "lng": -56.1806363
+    },
+    {
+        "city": "Upernavik",
+        "province": "Greenland",
+        "country": "Denmark",
+        "lat": 72.7862882,
+        "lng": -56.1375527
+    },
+    {
+        "city": "Paramaribo",
+        "province": "",
+        "country": "Suriname",
+        "lat": 5.8520355,
+        "lng": -55.2038278
+    },
+    {
+        "city": "St. John's",
+        "province": "Newfoundland and Labrador",
+        "country": "Canada",
+        "lat": 47.5615096,
+        "lng": -52.7125768
+    },
+    {
+        "city": "Cayenne",
+        "province": "French Guiana",
+        "country": "France",
+        "lat": 4.92242,
+        "lng": -52.3134531
+    },
+    {
+        "city": "Nuuk (Godthåb)",
+        "province": "Greenland",
+        "country": "Denmark",
+        "lat": 0,
+        "lng": 0
+    },
+    {
+        "city": "Macapá",
+        "province": "Amapá",
+        "country": "Brazil",
+        "lat": 0.0355735,
+        "lng": -51.070535
+    },
+    {
+        "city": "Qaqortoq",
+        "province": "Greenland",
+        "country": "Denmark",
+        "lat": 60.71898640000001,
+        "lng": -46.03534579999999
+    },
+    {
+        "city": "Flores Island",
+        "province": "Azores",
+        "country": "Portugal",
+        "lat": 39.4474713,
+        "lng": -31.193945
+    },
+    {
+        "city": "Horta",
+        "province": "Azores",
+        "country": "Portugal",
+        "lat": 38.5348447,
+        "lng": -28.6299812
+    },
+    {
+        "city": "Angra do Heroísmo",
+        "province": "Azores",
+        "country": "Portugal",
+        "lat": 38.6635375,
+        "lng": -27.2293969
+    },
+    {
+        "city": "Ponta Delgada",
+        "province": "Azores",
+        "country": "Portugal",
+        "lat": 37.7428301,
+        "lng": -25.6805868
+    },
+    {
+        "city": "Praia",
+        "province": "",
+        "country": "Cape Verde",
+        "lat": 14.93305,
+        "lng": -23.5133267
+    },
+    {
+        "city": "Ísafjörður",
+        "province": "",
+        "country": "Iceland",
+        "lat": 66.0611061,
+        "lng": -23.1888598
+    },
+    {
+        "city": "Reykjavík",
+        "province": "",
+        "country": "Iceland",
+        "lat": 64.12652059999999,
+        "lng": -21.8174392
+    },
+    {
+        "city": "Akureyri",
+        "province": "",
+        "country": "Iceland",
+        "lat": 65.68849209999999,
+        "lng": -18.1261694
+    },
+    {
+        "city": "Dakar",
+        "province": "",
+        "country": "Senegal",
+        "lat": 14.716677,
+        "lng": -17.4676861
+    },
+    {
+        "city": "Thiès",
+        "province": "",
+        "country": "Senegal",
+        "lat": 14.7910052,
+        "lng": -16.9358604
+    },
+    {
+        "city": "Funchal",
+        "province": "Madeira",
+        "country": "Portugal",
+        "lat": 32.6669328,
+        "lng": -16.9240554
+    },
+    {
+        "city": "Nord",
+        "province": "Greenland",
+        "country": "Denmark",
+        "lat": 71.706936,
+        "lng": -42.604303
+    },
+    {
+        "city": "Serekunda",
+        "province": "",
+        "country": "Gambia",
+        "lat": 13.4502991,
+        "lng": -16.6880841
+    },
+    {
+        "city": "Brikama",
+        "province": "",
+        "country": "Gambia",
+        "lat": 13.2747943,
+        "lng": -16.6409198
+    },
+    {
+        "city": "Banjul",
+        "province": "",
+        "country": "Gambia",
+        "lat": 13.4548761,
+        "lng": -16.5790323
+    },
+    {
+        "city": "Santa Cruz de Tenerife",
+        "province": "Canary Islands",
+        "country": "Spain",
+        "lat": 28.4636296,
+        "lng": -16.2518467
+    },
+    {
+        "city": "Nouakchott",
+        "province": "",
+        "country": "Mauritania",
+        "lat": 18.0735299,
+        "lng": -15.9582372
+    },
+    {
+        "city": "Bissau",
+        "province": "",
+        "country": "Guinea-Bissau",
+        "lat": 11.8816553,
+        "lng": -15.6177942
+    },
+    {
+        "city": "Las Palmas de Gran Canaria",
+        "province": "Canary Islands",
+        "country": "Spain",
+        "lat": 28.1235459,
+        "lng": -15.4362574
+    },
+    {
+        "city": "Conakry",
+        "province": "",
+        "country": "Guinea",
+        "lat": 9.641185499999999,
+        "lng": -13.5784012
+    },
+    {
+        "city": "Freetown",
+        "province": "",
+        "country": "Sierra Leone",
+        "lat": 8.4656765,
+        "lng": -13.2317225
+    },
+    {
+        "city": "El Aaiún",
+        "province": "Western Sahara",
+        "country": "Morocco",
+        "lat": 27.1500384,
+        "lng": -13.1990758
+    },
+    {
+        "city": "Monrovia",
+        "province": "",
+        "country": "Liberia",
+        "lat": 6.2907432,
+        "lng": -10.7605239
+    },
+    {
+        "city": "Lisbon",
+        "province": "",
+        "country": "Portugal",
+        "lat": 38.7222524,
+        "lng": -9.1393366
+    },
+    {
+        "city": "Nzérékoré",
+        "province": "",
+        "country": "Guinea",
+        "lat": 7.747835899999999,
+        "lng": -8.8252502
+    },
+    {
+        "city": "Porto",
+        "province": "",
+        "country": "Portugal",
+        "lat": 41.1579438,
+        "lng": -8.629105299999999
+    },
+    {
+        "city": "Cork",
+        "province": "",
+        "country": "Ireland",
+        "lat": 51.8968917,
+        "lng": -8.4863157
+    },
+    {
+        "city": "Marrakech",
+        "province": "",
+        "country": "Morocco",
+        "lat": 31.6294723,
+        "lng": -7.981084500000001
+    },
+    {
+        "city": "Bamako",
+        "province": "",
+        "country": "Mali",
+        "lat": 12.6392316,
+        "lng": -8.0028892
+    },
+    {
+        "city": "Casablanca",
+        "province": "",
+        "country": "Morocco",
+        "lat": 33.5731104,
+        "lng": -7.589843399999999
+    },
+    {
+        "city": "Koulikoro",
+        "province": "",
+        "country": "Mali",
+        "lat": 13.8018074,
+        "lng": -7.4381355
+    },
+    {
+        "city": "Rabat",
+        "province": "",
+        "country": "Morocco",
+        "lat": 33.9715904,
+        "lng": -6.8498129
+    },
+    {
+        "city": "Tórshavn",
+        "province": "Faroe Islands",
+        "country": "Denmark",
+        "lat": 62.0089826,
+        "lng": -6.7697024
+    },
+    {
+        "city": "Dublin",
+        "province": "",
+        "country": "Ireland",
+        "lat": 53.3498053,
+        "lng": -6.2603097
+    },
+    {
+        "city": "Sevilla",
+        "province": "Andalusia",
+        "country": "Spain",
+        "lat": 37.3890924,
+        "lng": -5.9844589
+    },
+    {
+        "city": "Belfast",
+        "province": "Northern Ireland",
+        "country": "United Kingdom",
+        "lat": 54.59728500000001,
+        "lng": -5.93012
+    },
+    {
+        "city": "Gibraltar",
+        "province": "Gibraltar",
+        "country": "United Kingdom",
+        "lat": 36.140751,
+        "lng": -5.353585
+    },
+    {
+        "city": "Yamoussoukro",
+        "province": "",
+        "country": "Ivory Coast",
+        "lat": 6.827622799999999,
+        "lng": -5.2893433
+    },
+    {
+        "city": "Douglas",
+        "province": "Isle of Man",
+        "country": "United Kingdom",
+        "lat": 54.1523372,
+        "lng": -4.4861228
+    },
+    {
+        "city": "Brest",
+        "province": "Brittany",
+        "country": "France",
+        "lat": 48.390394,
+        "lng": -4.486076
+    },
+    {
+        "city": "Málaga",
+        "province": "Andalusia",
+        "country": "Spain",
+        "lat": 36.7212737,
+        "lng": -4.4213988
+    },
+    {
+        "city": "Bobo-Dioulasso",
+        "province": "",
+        "country": "Burkina Faso",
+        "lat": 11.1649219,
+        "lng": -4.3051542
+    },
+    {
+        "city": "Glasgow",
+        "province": "Scotland",
+        "country": "United Kingdom",
+        "lat": 55.864237,
+        "lng": -4.251806
+    },
+    {
+        "city": "Inverness",
+        "province": "Scotland",
+        "country": "United Kingdom",
+        "lat": 57.477773,
+        "lng": -4.224721
+    },
+    {
+        "city": "Plymouth",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 50.3754565,
+        "lng": -4.1426565
+    },
+    {
+        "city": "Abidjan",
+        "province": "",
+        "country": "Ivory Coast",
+        "lat": 5.3599517,
+        "lng": -4.0082563
+    },
+    {
+        "city": "Swansea",
+        "province": "Wales",
+        "country": "United Kingdom",
+        "lat": 51.62144,
+        "lng": -3.943645999999999
+    },
+    {
+        "city": "Madrid",
+        "province": "Madrid",
+        "country": "Spain",
+        "lat": 40.4167754,
+        "lng": -3.7037902
+    },
+    {
+        "city": "Exeter",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 50.718412,
+        "lng": -3.533899
+    },
+    {
+        "city": "Edinburgh",
+        "province": "Scotland",
+        "country": "United Kingdom",
+        "lat": 55.953252,
+        "lng": -3.188267
+    },
+    {
+        "city": "Cardiff",
+        "province": "Wales",
+        "country": "United Kingdom",
+        "lat": 51.48158100000001,
+        "lng": -3.17909
+    },
+    {
+        "city": "Timbuktu",
+        "province": "",
+        "country": "Mali",
+        "lat": 16.7665887,
+        "lng": -3.0025615
+    },
+    {
+        "city": "Liverpool",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 53.4083714,
+        "lng": -2.9915726
+    },
+    {
+        "city": "Dundee",
+        "province": "Scotland",
+        "country": "United Kingdom",
+        "lat": 56.462018,
+        "lng": -2.970721
+    },
+    {
+        "city": "Bilbao",
+        "province": "Basque Country",
+        "country": "Spain",
+        "lat": 43.2630126,
+        "lng": -2.9349852
+    },
+    {
+        "city": "Bristol",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 51.454513,
+        "lng": -2.58791
+    },
+    {
+        "city": "Bath",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 51.375801,
+        "lng": -2.3599039
+    },
+    {
+        "city": "Gloucester",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 51.8642449,
+        "lng": -2.238156
+    },
+    {
+        "city": "Manchester",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 53.4807593,
+        "lng": -2.2426305
+    },
+    {
+        "city": "Aberdeen",
+        "province": "Scotland",
+        "country": "United Kingdom",
+        "lat": 57.149717,
+        "lng": -2.094278
+    },
+    {
+        "city": "Birmingham",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 52.48624299999999,
+        "lng": -1.890401
+    },
+    {
+        "city": "Sekondi-Takoradi",
+        "province": "",
+        "country": "Ghana",
+        "lat": 4.9015794,
+        "lng": -1.7830973
+    },
+    {
+        "city": "Bradford",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 53.795984,
+        "lng": -1.759398
+    },
+    {
+        "city": "Kumasi",
+        "province": "",
+        "country": "Ghana",
+        "lat": 6.6666004,
+        "lng": -1.6162709
+    },
+    {
+        "city": "Newcastle upon Tyne",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 54.978252,
+        "lng": -1.61778
+    },
+    {
+        "city": "Nantes",
+        "province": "",
+        "country": "France",
+        "lat": 47.218371,
+        "lng": -1.553621
+    },
+    {
+        "city": "Leeds",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 53.8007554,
+        "lng": -1.5490774
+    },
+    {
+        "city": "Ouagadougou",
+        "province": "",
+        "country": "Burkina Faso",
+        "lat": 12.3714277,
+        "lng": -1.5196603
+    },
+    {
+        "city": "Coventry",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 52.406822,
+        "lng": -1.519693
+    },
+    {
+        "city": "Sheffield",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 53.38112899999999,
+        "lng": -1.470085
+    },
+    {
+        "city": "Southampton",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 50.90970040000001,
+        "lng": -1.4043509
+    },
+    {
+        "city": "Oxford",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 51.7520209,
+        "lng": -1.2577263
+    },
+    {
+        "city": "Nottingham",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 52.95478319999999,
+        "lng": -1.1581086
+    },
+    {
+        "city": "Leicester",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 52.6368778,
+        "lng": -1.1397592
+    },
+    {
+        "city": "Portsmouth",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 50.8197675,
+        "lng": -1.0879769
+    },
+    {
+        "city": "Zaragoza",
+        "province": "Aragon",
+        "country": "Spain",
+        "lat": 41.6488226,
+        "lng": -0.8890853
+    },
+    {
+        "city": "Tamale",
+        "province": "",
+        "country": "Ghana",
+        "lat": 9.403422599999999,
+        "lng": -0.8424159999999999
+    },
+    {
+        "city": "Bordeaux",
+        "province": "",
+        "country": "France",
+        "lat": 44.837789,
+        "lng": -0.57918
+    },
+    {
+        "city": "Valencia",
+        "province": "Valencian Community",
+        "country": "Spain",
+        "lat": 39.4699075,
+        "lng": -0.3762881
+    },
+    {
+        "city": "Peterborough",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 52.56949849999999,
+        "lng": -0.2405299
+    },
+    {
+        "city": "Accra",
+        "province": "",
+        "country": "Ghana",
+        "lat": 5.6037168,
+        "lng": -0.1869644
+    },
+    {
+        "city": "Brighton and Hove",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 50.8226288,
+        "lng": -0.137047
+    },
+    {
+        "city": "London",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 51.5073509,
+        "lng": -0.1277583
+    },
+    {
+        "city": "Greenwich",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 51.48257659999999,
+        "lng": -0.0076589
+    },
+    {
+        "city": "Le Havre",
+        "province": "Normandy",
+        "country": "France",
+        "lat": 49.49437,
+        "lng": 0.107929
+    },
+    {
+        "city": "Cambridge",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 52.205337,
+        "lng": 0.121817
+    },
+    {
+        "city": "Lleida",
+        "province": "Catalonia",
+        "country": "Spain",
+        "lat": 41.6175899,
+        "lng": 0.6200146
+    },
+    {
+        "city": "Rouen",
+        "province": "Normandy",
+        "country": "France",
+        "lat": 49.44323199999999,
+        "lng": 1.099971
+    },
+    {
+        "city": "Lomé",
+        "province": "",
+        "country": "Togo",
+        "lat": 6.1724969,
+        "lng": 1.2313618
+    },
+    {
+        "city": "Norwich",
+        "province": "England",
+        "country": "United Kingdom",
+        "lat": 52.6308859,
+        "lng": 1.297355
+    },
+    {
+        "city": "Tiaret",
+        "province": "",
+        "country": "Algeria",
+        "lat": 35.3673553,
+        "lng": 1.3220322
+    },
+    {
+        "city": "Ibiza",
+        "province": "Balearic Islands",
+        "country": "Spain",
+        "lat": 39.0200099,
+        "lng": 1.4821482
+    },
+    {
+        "city": "Toulouse",
+        "province": "",
+        "country": "France",
+        "lat": 43.604652,
+        "lng": 1.444209
+    },
+    {
+        "city": "Andorra la Vella",
+        "province": "",
+        "country": "Andorra",
+        "lat": 42.50631740000001,
+        "lng": 1.5218355
+    },
+    {
+        "city": "Calais",
+        "province": "",
+        "country": "France",
+        "lat": 50.95129000000001,
+        "lng": 1.858686
+    },
+    {
+        "city": "Orléans",
+        "province": "",
+        "country": "France",
+        "lat": 47.902964,
+        "lng": 1.909251
+    },
+    {
+        "city": "Niamey",
+        "province": "",
+        "country": "Niger",
+        "lat": 13.5115963,
+        "lng": 2.1253854
+    },
+    {
+        "city": "Barcelona",
+        "province": "Catalonia",
+        "country": "Spain",
+        "lat": 41.3850639,
+        "lng": 2.1734035
+    },
+    {
+        "city": "Paris",
+        "province": "",
+        "country": "France",
+        "lat": 48.856614,
+        "lng": 2.3522219
+    },
+    {
+        "city": "Cotonou",
+        "province": "",
+        "country": "Benin",
+        "lat": 6.3702928,
+        "lng": 2.3912362
+    },
+    {
+        "city": "Porto-Novo",
+        "province": "",
+        "country": "Benin",
+        "lat": 6.4968574,
+        "lng": 2.6288523
+    },
+    {
+        "city": "Palma",
+        "province": "Balearic Islands",
+        "country": "Spain",
+        "lat": 39.5696005,
+        "lng": 2.6501603
+    },
+    {
+        "city": "Algiers",
+        "province": "",
+        "country": "Algeria",
+        "lat": 36.753768,
+        "lng": 3.0587561
+    },
+    {
+        "city": "Lagos",
+        "province": "",
+        "country": "Nigeria",
+        "lat": 6.5243793,
+        "lng": 3.3792057
+    },
+    {
+        "city": "Ghent",
+        "province": "",
+        "country": "Belgium",
+        "lat": 51.0543422,
+        "lng": 3.7174243
+    },
+    {
+        "city": "Ibadan",
+        "province": "",
+        "country": "Nigeria",
+        "lat": 7.3775355,
+        "lng": 3.9470396
+    },
+    {
+        "city": "The Hague",
+        "province": "South Holland",
+        "country": "Netherlands",
+        "lat": 52.0704978,
+        "lng": 4.3006999
+    },
+    {
+        "city": "Brussels",
+        "province": "",
+        "country": "Belgium",
+        "lat": 50.8503463,
+        "lng": 4.3517211
+    },
+    {
+        "city": "Antwerp",
+        "province": "",
+        "country": "Belgium",
+        "lat": 51.2194475,
+        "lng": 4.4024643
+    },
+    {
+        "city": "Charleroi",
+        "province": "",
+        "country": "Belgium",
+        "lat": 50.4108095,
+        "lng": 4.444643
+    },
+    {
+        "city": "Rotterdam",
+        "province": "South Holland",
+        "country": "Netherlands",
+        "lat": 51.9244201,
+        "lng": 4.4777326
+    },
+    {
+        "city": "Leiden",
+        "province": "South Holland",
+        "country": "Netherlands",
+        "lat": 52.1601144,
+        "lng": 4.4970097
+    },
+    {
+        "city": "Haarlem",
+        "province": "North Holland",
+        "country": "Netherlands",
+        "lat": 52.3873878,
+        "lng": 4.6462194
+    },
+    {
+        "city": "Lyon",
+        "province": "",
+        "country": "France",
+        "lat": 45.764043,
+        "lng": 4.835659
+    },
+    {
+        "city": "Amsterdam",
+        "province": "North Holland",
+        "country": "Netherlands",
+        "lat": 52.3702157,
+        "lng": 4.895167900000001
+    },
+    {
+        "city": "Utrecht",
+        "province": "Utrecht",
+        "country": "Netherlands",
+        "lat": 52.09073739999999,
+        "lng": 5.1214201
+    },
+    {
+        "city": "Bergen",
+        "province": "",
+        "country": "Norway",
+        "lat": 60.39126279999999,
+        "lng": 5.3220544
+    },
+    {
+        "city": "Marseille",
+        "province": "",
+        "country": "France",
+        "lat": 43.296482,
+        "lng": 5.36978
+    },
+    {
+        "city": "Benin City",
+        "province": "",
+        "country": "Nigeria",
+        "lat": 6.334986,
+        "lng": 5.6037465
+    },
+    {
+        "city": "Maastricht",
+        "province": "Limburg",
+        "country": "Netherlands",
+        "lat": 50.8513682,
+        "lng": 5.6909725
+    },
+    {
+        "city": "Luxembourg",
+        "province": "",
+        "country": "Luxembourg",
+        "lat": 49.61162100000001,
+        "lng": 6.1319346
+    },
+    {
+        "city": "Geneva",
+        "province": "",
+        "country": "Switzerland",
+        "lat": 46.2043907,
+        "lng": 6.1431577
+    },
+    {
+        "city": "Groningen",
+        "province": "Groningen",
+        "country": "Netherlands",
+        "lat": 53.2193835,
+        "lng": 6.5665017
+    },
+    {
+        "city": "Lausanne",
+        "province": "",
+        "country": "Switzerland",
+        "lat": 46.5196535,
+        "lng": 6.6322734
+    },
+    {
+        "city": "São Tomé",
+        "province": "",
+        "country": "São Tomé and Príncipe",
+        "lat": 0.3301924,
+        "lng": 6.733343
+    },
+    {
+        "city": "Düsseldorf",
+        "province": "North Rhine-Westphalia",
+        "country": "Germany",
+        "lat": 51.2277411,
+        "lng": 6.7734556
+    },
+    {
+        "city": "Enschede",
+        "province": "Overijssel",
+        "country": "Netherlands",
+        "lat": 52.2215372,
+        "lng": 6.8936619
+    },
+    {
+        "city": "Cologne",
+        "province": "North Rhine-Westphalia",
+        "country": "Germany",
+        "lat": 50.937531,
+        "lng": 6.9602786
+    },
+    {
+        "city": "Port Harcourt",
+        "province": "",
+        "country": "Nigeria",
+        "lat": 4.815554,
+        "lng": 7.0498442
+    },
+    {
+        "city": "Cannes",
+        "province": "",
+        "country": "France",
+        "lat": 43.552847,
+        "lng": 7.017369
+    },
+    {
+        "city": "Nice",
+        "province": "",
+        "country": "France",
+        "lat": 43.7101728,
+        "lng": 7.261953200000001
+    },
+    {
+        "city": "Monaco",
+        "province": "",
+        "country": "Monaco",
+        "lat": 43.73841760000001,
+        "lng": 7.424615799999999
+    },
+    {
+        "city": "Bern",
+        "province": "",
+        "country": "Switzerland",
+        "lat": 46.9479739,
+        "lng": 7.4474468
+    },
+    {
+        "city": "Abuja",
+        "province": "",
+        "country": "Nigeria",
+        "lat": 9.0764785,
+        "lng": 7.398574
+    },
+    {
+        "city": "Enugu",
+        "province": "",
+        "country": "Nigeria",
+        "lat": 6.4583661,
+        "lng": 7.5463885
+    },
+    {
+        "city": "Basel",
+        "province": "",
+        "country": "Switzerland",
+        "lat": 47.5595986,
+        "lng": 7.5885761
+    },
+    {
+        "city": "Turin",
+        "province": "Piedmont",
+        "country": "Italy",
+        "lat": 45.070312,
+        "lng": 7.686856499999999
+    },
+    {
+        "city": "Strasbourg",
+        "province": "",
+        "country": "France",
+        "lat": 48.5734053,
+        "lng": 7.752111299999999
+    },
+    {
+        "city": "Kristiansand",
+        "province": "",
+        "country": "Norway",
+        "lat": 58.15991189999999,
+        "lng": 8.0182064
+    },
+    {
+        "city": "Esbjerg",
+        "province": "",
+        "country": "Denmark",
+        "lat": 55.476466,
+        "lng": 8.459405
+    },
+    {
+        "city": "Kano",
+        "province": "",
+        "country": "Nigeria",
+        "lat": 12.0021794,
+        "lng": 8.591956099999999
+    },
+    {
+        "city": "Zürich",
+        "province": "",
+        "country": "Switzerland",
+        "lat": 47.3768866,
+        "lng": 8.541694
+    },
+    {
+        "city": "Frankfurt am Main",
+        "province": "Hesse",
+        "country": "Germany",
+        "lat": 50.1109221,
+        "lng": 8.6821267
+    },
+    {
+        "city": "Malabo",
+        "province": "",
+        "country": "Equatorial Guinea",
+        "lat": 3.7504118,
+        "lng": 8.7371039
+    },
+    {
+        "city": "Bremen",
+        "province": "Bremen",
+        "country": "Germany",
+        "lat": 53.07929619999999,
+        "lng": 8.8016936
+    },
+    {
+        "city": "Cagliari",
+        "province": "Sardinia",
+        "country": "Italy",
+        "lat": 39.2238411,
+        "lng": 9.1216613
+    },
+    {
+        "city": "Stuttgart",
+        "province": "Baden-Württemberg",
+        "country": "Germany",
+        "lat": 48.7758459,
+        "lng": 9.1829321
+    },
+    {
+        "city": "Milan",
+        "province": "Lombardy",
+        "country": "Italy",
+        "lat": 45.4642035,
+        "lng": 9.189982
+    },
+    {
+        "city": "Libreville",
+        "province": "",
+        "country": "Gabon",
+        "lat": 0.4161976,
+        "lng": 9.4672676
+    },
+    {
+        "city": "Vaduz",
+        "province": "",
+        "country": "Liechtenstein",
+        "lat": 47.1410303,
+        "lng": 9.5209277
+    },
+    {
+        "city": "Douala",
+        "province": "",
+        "country": "Cameroon",
+        "lat": 4.0510564,
+        "lng": 9.7678687
+    },
+    {
+        "city": "Hannover",
+        "province": "Lower Saxony",
+        "country": "Germany",
+        "lat": 52.3758916,
+        "lng": 9.732010400000002
+    },
+    {
+        "city": "Hamburg",
+        "province": "Hamburg",
+        "country": "Germany",
+        "lat": 53.5510846,
+        "lng": 9.9936819
+    },
+    {
+        "city": "Kiel",
+        "province": "Schleswig-Holstein",
+        "country": "Germany",
+        "lat": 54.3232927,
+        "lng": 10.1227651
+    },
+    {
+        "city": "Tunis",
+        "province": "",
+        "country": "Tunisia",
+        "lat": 36.8064948,
+        "lng": 10.1815316
+    },
+    {
+        "city": "Aarhus",
+        "province": "",
+        "country": "Denmark",
+        "lat": 56.162939,
+        "lng": 10.203921
+    },
+    {
+        "city": "Odense",
+        "province": "",
+        "country": "Denmark",
+        "lat": 55.40375599999999,
+        "lng": 10.40237
+    },
+    {
+        "city": "Trondheim",
+        "province": "",
+        "country": "Norway",
+        "lat": 63.4305149,
+        "lng": 10.3950528
+    },
+    {
+        "city": "Lillehammer",
+        "province": "",
+        "country": "Norway",
+        "lat": 61.1152713,
+        "lng": 10.4662306
+    },
+    {
+        "city": "Oslo",
+        "province": "",
+        "country": "Norway",
+        "lat": 59.9138688,
+        "lng": 10.7522454
+    },
+    {
+        "city": "Sfax",
+        "province": "",
+        "country": "Tunisia",
+        "lat": 34.739822,
+        "lng": 10.7600196
+    },
+    {
+        "city": "Stjørdal",
+        "province": "",
+        "country": "Norway",
+        "lat": 63.46777769999999,
+        "lng": 10.9175559
+    },
+    {
+        "city": "Sarpsborg",
+        "province": "",
+        "country": "Norway",
+        "lat": 59.28407290000001,
+        "lng": 11.1094028
+    },
+    {
+        "city": "Florence",
+        "province": "Tuscany",
+        "country": "Italy",
+        "lat": 43.7695604,
+        "lng": 11.2558136
+    },
+    {
+        "city": "Bologna",
+        "province": "Emilia-Romagna",
+        "country": "Italy",
+        "lat": 44.494887,
+        "lng": 11.3426162
+    },
+    {
+        "city": "Innsbruck",
+        "province": "",
+        "country": "Austria",
+        "lat": 47.2692124,
+        "lng": 11.4041024
+    },
+    {
+        "city": "Yaoundé",
+        "province": "",
+        "country": "Cameroon",
+        "lat": 3.8480325,
+        "lng": 11.5020752
+    },
+    {
+        "city": "Munich",
+        "province": "Bavaria",
+        "country": "Germany",
+        "lat": 48.1351253,
+        "lng": 11.5819805
+    },
+    {
+        "city": "Ny-Ålesund",
+        "province": "Svalbard",
+        "country": "Norway",
+        "lat": 78.9235381,
+        "lng": 11.9098952
+    },
+    {
+        "city": "Gothenburg",
+        "province": "",
+        "country": "Sweden",
+        "lat": 57.70887,
+        "lng": 11.97456
+    },
+    {
+        "city": "Venice",
+        "province": "Veneto",
+        "country": "Italy",
+        "lat": 45.4408474,
+        "lng": 12.3155151
+    },
+    {
+        "city": "Leipzig",
+        "province": "Saxony",
+        "country": "Germany",
+        "lat": 51.3396955,
+        "lng": 12.3730747
+    },
+    {
+        "city": "San Marino",
+        "province": "",
+        "country": "San Marino",
+        "lat": 43.9355907,
+        "lng": 12.4472806
+    },
+    {
+        "city": "Vatican City",
+        "province": "",
+        "country": "Vatican City",
+        "lat": 41.902916,
+        "lng": 12.453389
+    },
+    {
+        "city": "Rome",
+        "province": "Lazio",
+        "country": "Italy",
+        "lat": 41.9027835,
+        "lng": 12.4963655
+    },
+    {
+        "city": "Copenhagen",
+        "province": "",
+        "country": "Denmark",
+        "lat": 55.6760968,
+        "lng": 12.5683372
+    },
+    {
+        "city": "Malmö",
+        "province": "",
+        "country": "Sweden",
+        "lat": 55.604981,
+        "lng": 13.003822
+    },
+    {
+        "city": "Salzburg",
+        "province": "",
+        "country": "Austria",
+        "lat": 47.80949,
+        "lng": 13.05501
+    },
+    {
+        "city": "Tripoli",
+        "province": "",
+        "country": "Libya",
+        "lat": 32.8872094,
+        "lng": 13.1913383
+    },
+    {
+        "city": "Palermo",
+        "province": "Sicily",
+        "country": "Italy",
+        "lat": 38.1156879,
+        "lng": 13.3612671
+    },
+    {
+        "city": "Berlin",
+        "province": "Berlin",
+        "country": "Germany",
+        "lat": 52.52000659999999,
+        "lng": 13.404954
+    },
+    {
+        "city": "Dresden",
+        "province": "Saxony",
+        "country": "Germany",
+        "lat": 51.0504088,
+        "lng": 13.7372621
+    },
+    {
+        "city": "Naples",
+        "province": "Campania",
+        "country": "Italy",
+        "lat": 40.8517746,
+        "lng": 14.2681244
+    },
+    {
+        "city": "Linz",
+        "province": "",
+        "country": "Austria",
+        "lat": 48.30694,
+        "lng": 14.28583
+    },
+    {
+        "city": "Prague",
+        "province": "",
+        "country": "Czech Republic",
+        "lat": 50.0755381,
+        "lng": 14.4378005
+    },
+    {
+        "city": "Sabha",
+        "province": "",
+        "country": "Libya",
+        "lat": 27.0365406,
+        "lng": 14.4290236
+    },
+    {
+        "city": "Birkirkara",
+        "province": "",
+        "country": "Malta",
+        "lat": 35.8954706,
+        "lng": 14.4665072
+    },
+    {
+        "city": "Ljubljana",
+        "province": "",
+        "country": "Slovenia",
+        "lat": 46.0569465,
+        "lng": 14.5057515
+    },
+    {
+        "city": "Valletta",
+        "province": "",
+        "country": "Malta",
+        "lat": 35.8989085,
+        "lng": 14.5145528
+    },
+    {
+        "city": "Bodø",
+        "province": "",
+        "country": "Norway",
+        "lat": 67.2803556,
+        "lng": 14.404916
+    },
+    {
+        "city": "Östersund",
+        "province": "",
+        "country": "Sweden",
+        "lat": 63.1766832,
+        "lng": 14.6360681
+    },
+    {
+        "city": "N'Djamena",
+        "province": "",
+        "country": "Chad",
+        "lat": 12.1348457,
+        "lng": 15.0557415
+    },
+    {
+        "city": "Catania",
+        "province": "Sicily",
+        "country": "Italy",
+        "lat": 37.5078772,
+        "lng": 15.0830304
+    },
+    {
+        "city": "Graz",
+        "province": "",
+        "country": "Austria",
+        "lat": 47.070714,
+        "lng": 15.439504
+    },
+    {
+        "city": "Messina",
+        "province": "Sicily",
+        "country": "Italy",
+        "lat": 38.1938137,
+        "lng": 15.5540152
+    },
+    {
+        "city": "Longyearbyen",
+        "province": "Svalbard",
+        "country": "Norway",
+        "lat": 78.22317220000001,
+        "lng": 15.6267229
+    },
+    {
+        "city": "Zagreb",
+        "province": "",
+        "country": "Croatia",
+        "lat": 45.8150108,
+        "lng": 15.9819189
+    },
+    {
+        "city": "Moundou",
+        "province": "",
+        "country": "Chad",
+        "lat": 8.5914775,
+        "lng": 16.0757749
+    },
+    {
+        "city": "Norrköping",
+        "province": "",
+        "country": "Sweden",
+        "lat": 58.587745,
+        "lng": 16.192421
+    },
+    {
+        "city": "Vienna",
+        "province": "",
+        "country": "Austria",
+        "lat": 48.2081743,
+        "lng": 16.3738189
+    },
+    {
+        "city": "Split",
+        "province": "",
+        "country": "Croatia",
+        "lat": 43.5081323,
+        "lng": 16.4401935
+    },
+    {
+        "city": "Bratislava",
+        "province": "",
+        "country": "Slovakia",
+        "lat": 48.1485965,
+        "lng": 17.1077478
+    },
+    {
+        "city": "Sundsvall",
+        "province": "",
+        "country": "Sweden",
+        "lat": 62.390811,
+        "lng": 17.306927
+    },
+    {
+        "city": "Narvik",
+        "province": "",
+        "country": "Norway",
+        "lat": 68.4384984,
+        "lng": 17.4272613
+    },
+    {
+        "city": "Uppsala",
+        "province": "",
+        "country": "Sweden",
+        "lat": 59.85856380000001,
+        "lng": 17.6389267
+    },
+    {
+        "city": "Stockholm",
+        "province": "",
+        "country": "Sweden",
+        "lat": 59.32932349999999,
+        "lng": 18.0685808
+    },
+    {
+        "city": "Sarajevo",
+        "province": "",
+        "country": "Bosnia and Herzegovina",
+        "lat": 43.8562586,
+        "lng": 18.4130763
+    },
+    {
+        "city": "Gdynia",
+        "province": "",
+        "country": "Poland",
+        "lat": 54.5188898,
+        "lng": 18.5305409
+    },
+    {
+        "city": "Bangui",
+        "province": "",
+        "country": "Central African Republic",
+        "lat": 4.3946735,
+        "lng": 18.5581899
+    },
+    {
+        "city": "Gdańsk",
+        "province": "",
+        "country": "Poland",
+        "lat": 54.35202520000001,
+        "lng": 18.6466384
+    },
+    {
+        "city": "Örnsköldsvik",
+        "province": "",
+        "country": "Sweden",
+        "lat": 63.29004740000001,
+        "lng": 18.7166166
+    },
+    {
+        "city": "Tromsø",
+        "province": "",
+        "country": "Norway",
+        "lat": 69.6492047,
+        "lng": 18.9553239
+    },
+    {
+        "city": "Budapest",
+        "province": "",
+        "country": "Hungary",
+        "lat": 47.497912,
+        "lng": 19.040235
+    },
+    {
+        "city": "Podgorica",
+        "province": "",
+        "country": "Montenegro",
+        "lat": 42.4304196,
+        "lng": 19.2593642
+    },
+    {
+        "city": "Tirana",
+        "province": "",
+        "country": "Albania",
+        "lat": 41.3275459,
+        "lng": 19.8186982
+    },
+    {
+        "city": "Novi Sad",
+        "province": "Vojvodina",
+        "country": "Serbia",
+        "lat": 45.2671352,
+        "lng": 19.8335496
+    },
+    {
+        "city": "Kraków",
+        "province": "",
+        "country": "Poland",
+        "lat": 50.06465009999999,
+        "lng": 19.9449799
+    },
+    {
+        "city": "Benghazi",
+        "province": "",
+        "country": "Libya",
+        "lat": 32.1194242,
+        "lng": 20.0867909
+    },
+    {
+        "city": "Kiruna",
+        "province": "",
+        "country": "Sweden",
+        "lat": 67.8557995,
+        "lng": 20.225282
+    },
+    {
+        "city": "Umeå",
+        "province": "",
+        "country": "Sweden",
+        "lat": 63.8258471,
+        "lng": 20.2630354
+    },
+    {
+        "city": "Belgrade",
+        "province": "",
+        "country": "Serbia",
+        "lat": 44.786568,
+        "lng": 20.4489216
+    },
+    {
+        "city": "Kaliningrad",
+        "province": "Kaliningrad Oblast",
+        "country": "Russia",
+        "lat": 54.7104264,
+        "lng": 20.4522144
+    },
+    {
+        "city": "Skellefteå",
+        "province": "",
+        "country": "Sweden",
+        "lat": 64.750244,
+        "lng": 20.950917
+    },
+    {
+        "city": "Warsaw",
+        "province": "",
+        "country": "Poland",
+        "lat": 52.2296756,
+        "lng": 21.0122287
+    },
+    {
+        "city": "Pristina",
+        "province": "Kosovo",
+        "country": "Serbia",
+        "lat": 42.6629138,
+        "lng": 21.1655028
+    },
+    {
+        "city": "Skopje",
+        "province": "",
+        "country": "Macedonia",
+        "lat": 41.9973462,
+        "lng": 21.4279956
+    },
+    {
+        "city": "Piteå",
+        "province": "",
+        "country": "Sweden",
+        "lat": 65.316698,
+        "lng": 21.4800363
+    },
+    {
+        "city": "Vaasa",
+        "province": "",
+        "country": "Finland",
+        "lat": 63.09508899999999,
+        "lng": 21.6164564
+    },
+    {
+        "city": "Boden",
+        "province": "",
+        "country": "Sweden",
+        "lat": 65.8251188,
+        "lng": 21.6887028
+    },
+    {
+        "city": "Luleå",
+        "province": "",
+        "country": "Sweden",
+        "lat": 65.584819,
+        "lng": 22.1567026
+    },
+    {
+        "city": "Turku",
+        "province": "",
+        "country": "Finland",
+        "lat": 60.4518126,
+        "lng": 22.2666302
+    },
+    {
+        "city": "Thessaloniki",
+        "province": "",
+        "country": "Greece",
+        "lat": 40.6400629,
+        "lng": 22.9444191
+    },
+    {
+        "city": "Sofia",
+        "province": "",
+        "country": "Bulgaria",
+        "lat": 42.6977082,
+        "lng": 23.3218675
+    },
+    {
+        "city": "Cluj-Napoca",
+        "province": "",
+        "country": "Romania",
+        "lat": 46.7712101,
+        "lng": 23.6236353
+    },
+    {
+        "city": "Halkida",
+        "province": "",
+        "country": "Greece",
+        "lat": 38.4645245,
+        "lng": 23.6050695
+    },
+    {
+        "city": "Hammerfest",
+        "province": "",
+        "country": "Norway",
+        "lat": 70.6632359,
+        "lng": 23.6817268
+    },
+    {
+        "city": "Athena",
+        "province": "",
+        "country": "Greece",
+        "lat": 37.9838096,
+        "lng": 23.7275388
+    },
+    {
+        "city": "Tampere",
+        "province": "",
+        "country": "Finland",
+        "lat": 61.4977524,
+        "lng": 23.7609535
+    },
+    {
+        "city": "Craiova",
+        "province": "",
+        "country": "Romania",
+        "lat": 44.3301785,
+        "lng": 23.7948807
+    },
+    {
+        "city": "Lviv",
+        "province": "",
+        "country": "Ukraine",
+        "lat": 49.839683,
+        "lng": 24.029717
+    },
+    {
+        "city": "Riga",
+        "province": "",
+        "country": "Latvia",
+        "lat": 56.9496487,
+        "lng": 24.1051865
+    },
+    {
+        "city": "Haparanda",
+        "province": "",
+        "country": "Sweden",
+        "lat": 65.8417085,
+        "lng": 24.1276643
+    },
+    {
+        "city": "Tornio",
+        "province": "",
+        "country": "Finland",
+        "lat": 65.847301,
+        "lng": 24.1520236
+    },
+    {
+        "city": "Kemi",
+        "province": "",
+        "country": "Finland",
+        "lat": 65.73556789999999,
+        "lng": 24.5657426
+    },
+    {
+        "city": "Espoo",
+        "province": "",
+        "country": "Finland",
+        "lat": 60.2054911,
+        "lng": 24.6559
+    },
+    {
+        "city": "Tallinn",
+        "province": "",
+        "country": "Estonia",
+        "lat": 59.43696079999999,
+        "lng": 24.7535747
+    },
+    {
+        "city": "Helsinki",
+        "province": "",
+        "country": "Finland",
+        "lat": 60.16985569999999,
+        "lng": 24.9383791
+    },
+    {
+        "city": "Vantaa",
+        "province": "",
+        "country": "Finland",
+        "lat": 60.29335239999999,
+        "lng": 25.0377686
+    },
+    {
+        "city": "Heraklion",
+        "province": "",
+        "country": "Greece",
+        "lat": 35.3387352,
+        "lng": 25.1442126
+    },
+    {
+        "city": "Vilnius",
+        "province": "",
+        "country": "Lithuania",
+        "lat": 54.6871555,
+        "lng": 25.2796514
+    },
+    {
+        "city": "Oulu",
+        "province": "",
+        "country": "Finland",
+        "lat": 65.0120888,
+        "lng": 25.4650772
+    },
+    {
+        "city": "Lahti",
+        "province": "",
+        "country": "Finland",
+        "lat": 60.98267490000001,
+        "lng": 25.6612096
+    },
+    {
+        "city": "Rovaniemi",
+        "province": "",
+        "country": "Finland",
+        "lat": 66.50394779999999,
+        "lng": 25.7293906
+    },
+    {
+        "city": "Jyväskylä",
+        "province": "",
+        "country": "Finland",
+        "lat": 62.2426034,
+        "lng": 25.7472567
+    },
+    {
+        "city": "Bucharest",
+        "province": "",
+        "country": "Romania",
+        "lat": 44.4267674,
+        "lng": 26.1025384
+    },
+    {
+        "city": "Tartu",
+        "province": "",
+        "country": "Estonia",
+        "lat": 58.3776252,
+        "lng": 26.7290062
+    },
+    {
+        "city": "Pudasjärvi",
+        "province": "",
+        "country": "Finland",
+        "lat": 65.36185329999999,
+        "lng": 26.9858549
+    },
+    {
+        "city": "Utsjoki",
+        "province": "",
+        "country": "Finland",
+        "lat": 69.9090465,
+        "lng": 27.0285295
+    },
+    {
+        "city": "İzmir",
+        "province": "",
+        "country": "Turkey",
+        "lat": 38.423734,
+        "lng": 27.142826
+    },
+    {
+        "city": "Kemijärvi",
+        "province": "",
+        "country": "Finland",
+        "lat": 66.7136282,
+        "lng": 27.4292063
+    },
+    {
+        "city": "Minsk",
+        "province": "",
+        "country": "Belarus",
+        "lat": 53.90453979999999,
+        "lng": 27.5615244
+    },
+    {
+        "city": "Kuopio",
+        "province": "",
+        "country": "Finland",
+        "lat": 62.89796999999999,
+        "lng": 27.6781725
+    },
+    {
+        "city": "Nuorgam",
+        "province": "Lapland",
+        "country": "Finland",
+        "lat": 70.08209,
+        "lng": 27.8717747
+    },
+    {
+        "city": "Chişinău",
+        "province": "",
+        "country": "Moldova",
+        "lat": 47.0104529,
+        "lng": 28.8638102
+    },
+    {
+        "city": "Istanbul",
+        "province": "",
+        "country": "Turkey",
+        "lat": 41.0082376,
+        "lng": 28.9783589
+    },
+    {
+        "city": "Bursa",
+        "province": "",
+        "country": "Turkey",
+        "lat": 40.1885281,
+        "lng": 29.0609636
+    },
+    {
+        "city": "Kuusamo",
+        "province": "",
+        "country": "Finland",
+        "lat": 65.9645876,
+        "lng": 29.1886651
+    },
+    {
+        "city": "Tiraspol",
+        "province": "Transnistria",
+        "country": "Moldova",
+        "lat": 46.84818500000001,
+        "lng": 29.59680509999999
+    },
+    {
+        "city": "Vadsø",
+        "province": "",
+        "country": "Norway",
+        "lat": 70.15833409999999,
+        "lng": 29.8116708
+    },
+    {
+        "city": "Alexandria",
+        "province": "",
+        "country": "Egypt",
+        "lat": 31.2000924,
+        "lng": 29.9187387
+    },
+    {
+        "city": "Saint Petersburg",
+        "province": "",
+        "country": "Russia",
+        "lat": 59.9342802,
+        "lng": 30.3350986
+    },
+    {
+        "city": "Eskisehir",
+        "province": "",
+        "country": "Turkey",
+        "lat": 39.7667061,
+        "lng": 30.52563109999999
+    },
+    {
+        "city": "Kiev",
+        "province": "",
+        "country": "Ukraine",
+        "lat": 50.4501,
+        "lng": 30.5234
+    },
+    {
+        "city": "Odessa",
+        "province": "",
+        "country": "Ukraine",
+        "lat": 46.482526,
+        "lng": 30.7233095
+    },
+    {
+        "city": "Cairo",
+        "province": "",
+        "country": "Egypt",
+        "lat": 30.0444196,
+        "lng": 31.2357116
+    },
+    {
+        "city": "Juba",
+        "province": "",
+        "country": "South Sudan",
+        "lat": 4.859363,
+        "lng": 31.57125
+    },
+    {
+        "city": "Port Said",
+        "province": "",
+        "country": "Egypt",
+        "lat": 31.2652893,
+        "lng": 32.3018661
+    },
+    {
+        "city": "Entebbe",
+        "province": "",
+        "country": "Uganda",
+        "lat": 0.0511839,
+        "lng": 32.463708
+    },
+    {
+        "city": "Konya",
+        "province": "",
+        "country": "Turkey",
+        "lat": 37.8746429,
+        "lng": 32.4931554
+    },
+    {
+        "city": "Omdurman",
+        "province": "",
+        "country": "Sudan",
+        "lat": 15.6475782,
+        "lng": 32.4806894
+    },
+    {
+        "city": "Khartoum",
+        "province": "",
+        "country": "Sudan",
+        "lat": 15.5006544,
+        "lng": 32.5598994
+    },
+    {
+        "city": "Suez",
+        "province": "",
+        "country": "Egypt",
+        "lat": 29.9668343,
+        "lng": 32.5498069
+    },
+    {
+        "city": "Kampala",
+        "province": "",
+        "country": "Uganda",
+        "lat": 0.3475964,
+        "lng": 32.5825197
+    },
+    {
+        "city": "Luxor",
+        "province": "",
+        "country": "Egypt",
+        "lat": 25.6872431,
+        "lng": 32.6396357
+    },
+    {
+        "city": "Ankara",
+        "province": "",
+        "country": "Turkey",
+        "lat": 39.9333635,
+        "lng": 32.8597419
+    },
+    {
+        "city": "Murmansk",
+        "province": "Murmansk Oblast",
+        "country": "Russia",
+        "lat": 68.9585244,
+        "lng": 33.0826597
+    },
+    {
+        "city": "Nicosia",
+        "province": "",
+        "country": "Cyprus",
+        "lat": 35.1855659,
+        "lng": 33.38227639999999
+    },
+    {
+        "city": "Simferopol",
+        "province": "Crimea",
+        "country": "Russia",
+        "lat": 44.952117,
+        "lng": 34.102417
+    },
+    {
+        "city": "Gaza",
+        "province": "Gaza Strip",
+        "country": "Palestine",
+        "lat": 31.5016951,
+        "lng": 34.4668445
+    },
+    {
+        "city": "Mersin",
+        "province": "",
+        "country": "Turkey",
+        "lat": 36.8121041,
+        "lng": 34.6414811
+    },
+    {
+        "city": "Tel Aviv",
+        "province": "",
+        "country": "Israel",
+        "lat": 32.0852999,
+        "lng": 34.78176759999999
+    },
+    {
+        "city": "Eilat",
+        "province": "",
+        "country": "Israel",
+        "lat": 29.557669,
+        "lng": 34.951925
+    },
+    {
+        "city": "Jerusalem",
+        "province": "",
+        "country": "Israel",
+        "lat": 31.768319,
+        "lng": 35.21371
+    },
+    {
+        "city": "Adana",
+        "province": "",
+        "country": "Turkey",
+        "lat": 36.9914194,
+        "lng": 35.3308285
+    },
+    {
+        "city": "Beirut",
+        "province": "",
+        "country": "Lebanon",
+        "lat": 33.8937913,
+        "lng": 35.5017767
+    },
+    {
+        "city": "Latakia",
+        "province": "",
+        "country": "Syria",
+        "lat": 35.5407103,
+        "lng": 35.7952667
+    },
+    {
+        "city": "Amman",
+        "province": "",
+        "country": "Jordan",
+        "lat": 31.9453666,
+        "lng": 35.9283716
+    },
+    {
+        "city": "Kharkiv",
+        "province": "",
+        "country": "Ukraine",
+        "lat": 49.9935,
+        "lng": 36.230383
+    },
+    {
+        "city": "Damascus",
+        "province": "",
+        "country": "Syria",
+        "lat": 33.5138073,
+        "lng": 36.2765279
+    },
+    {
+        "city": "Gaziantep",
+        "province": "",
+        "country": "Turkey",
+        "lat": 37.065953,
+        "lng": 37.37811
+    },
+    {
+        "city": "Moscow",
+        "province": "",
+        "country": "Russia",
+        "lat": 55.755826,
+        "lng": 37.6172999
+    },
+    {
+        "city": "Addis Ababa",
+        "province": "",
+        "country": "Ethiopia",
+        "lat": 8.9806034,
+        "lng": 38.7577605
+    },
+    {
+        "city": "Asmara",
+        "province": "",
+        "country": "Eritrea",
+        "lat": 15.3228767,
+        "lng": 38.9250517
+    },
+    {
+        "city": "Krasnodar",
+        "province": "Krasnodar Krai",
+        "country": "Russia",
+        "lat": 45.03926740000001,
+        "lng": 38.9872209
+    },
+    {
+        "city": "Jeddah",
+        "province": "",
+        "country": "Saudi Arabia",
+        "lat": 21.2854067,
+        "lng": 39.2375507
+    },
+    {
+        "city": "Voronezh",
+        "province": "Voronezh Oblast",
+        "country": "Russia",
+        "lat": 51.6754966,
+        "lng": 39.2088823
+    },
+    {
+        "city": "Medina",
+        "province": "",
+        "country": "Saudi Arabia",
+        "lat": 24.5246542,
+        "lng": 39.5691841
+    },
+    {
+        "city": "Rostov-on-Don",
+        "province": "Rostov Oblast",
+        "country": "Russia",
+        "lat": 47.2357137,
+        "lng": 39.701505
+    },
+    {
+        "city": "Sochi",
+        "province": "Krasnodar Krai",
+        "country": "Russia",
+        "lat": 43.60280789999999,
+        "lng": 39.7341543
+    },
+    {
+        "city": "Mecca",
+        "province": "",
+        "country": "Saudi Arabia",
+        "lat": 21.3890824,
+        "lng": 39.8579118
+    },
+    {
+        "city": "Yaroslavl",
+        "province": "Yaroslavl Oblast",
+        "country": "Russia",
+        "lat": 57.62607440000001,
+        "lng": 39.8844709
+    },
+    {
+        "city": "Arkhangelsk",
+        "province": "Arkhangelsk Oblast",
+        "country": "Russia",
+        "lat": 64.54725069999999,
+        "lng": 40.5601553
+    },
+    {
+        "city": "Sukhumi",
+        "province": "Abkhazia",
+        "country": "Georgia",
+        "lat": 43.0015252,
+        "lng": 41.0234153
+    },
+    {
+        "city": "Mosul",
+        "province": "",
+        "country": "Iraq",
+        "lat": 36.3566484,
+        "lng": 43.1640004
+    },
+    {
+        "city": "Djibouti",
+        "province": "",
+        "country": "Djibouti",
+        "lat": 11.825138,
+        "lng": 42.590275
+    },
+    {
+        "city": "Tskhinvali",
+        "province": "South Ossetia",
+        "country": "Georgia",
+        "lat": 42.2214597,
+        "lng": 43.9644051
+    },
+    {
+        "city": "Nizhny Novgorod",
+        "province": "Nizhny Novgorod Oblast",
+        "country": "Russia",
+        "lat": 56.2965039,
+        "lng": 43.93605900000001
+    },
+    {
+        "city": "Arbil",
+        "province": "Iraqi Kurdistan",
+        "country": "Iraq",
+        "lat": 36.2062933,
+        "lng": 44.0088697
+    },
+    {
+        "city": "Hargeisa",
+        "province": "Somaliland",
+        "country": "Somalia",
+        "lat": 9.562389,
+        "lng": 44.0770134
+    },
+    {
+        "city": "Sana'a",
+        "province": "",
+        "country": "Yemen",
+        "lat": 15.3694451,
+        "lng": 44.1910066
+    },
+    {
+        "city": "Kirkuk",
+        "province": "",
+        "country": "Iraq",
+        "lat": 35.4655761,
+        "lng": 44.38039209999999
+    },
+    {
+        "city": "Baghdad",
+        "province": "",
+        "country": "Iraq",
+        "lat": 33.3128057,
+        "lng": 44.3614875
+    },
+    {
+        "city": "Volgograd",
+        "province": "Volgograd Oblast",
+        "country": "Russia",
+        "lat": 48.708048,
+        "lng": 44.5133035
+    },
+    {
+        "city": "Yerevan",
+        "province": "",
+        "country": "Armenia",
+        "lat": 40.1791857,
+        "lng": 44.4991029
+    },
+    {
+        "city": "Tbilisi",
+        "province": "",
+        "country": "Georgia",
+        "lat": 41.7151377,
+        "lng": 44.827096
+    },
+    {
+        "city": "Mogadishu",
+        "province": "",
+        "country": "Somalia",
+        "lat": 2.0469343,
+        "lng": 45.3181623
+    },
+    {
+        "city": "Saratov",
+        "province": "Saratov Oblast",
+        "country": "Russia",
+        "lat": 51.5923654,
+        "lng": 45.9608031
+    },
+    {
+        "city": "Tabriz",
+        "province": "",
+        "country": "Iran",
+        "lat": 38.096239,
+        "lng": 46.2738013
+    },
+    {
+        "city": "Riyadh",
+        "province": "",
+        "country": "Saudi Arabia",
+        "lat": 24.7135517,
+        "lng": 46.6752957
+    },
+    {
+        "city": "Stepanakert",
+        "province": "Artsakh",
+        "country": "Azerbaijan",
+        "lat": 39.82652789999999,
+        "lng": 46.7655746
+    },
+    {
+        "city": "Basra",
+        "province": "",
+        "country": "Iraq",
+        "lat": 30.5081033,
+        "lng": 47.7834888
+    },
+    {
+        "city": "Kuwait City",
+        "province": "",
+        "country": "Kuwait",
+        "lat": 29.375859,
+        "lng": 47.9774052
+    },
+    {
+        "city": "Kazan",
+        "province": "Republic of Tatarstan",
+        "country": "Russia",
+        "lat": 55.8304307,
+        "lng": 49.06608060000001
+    },
+    {
+        "city": "Tolyatti",
+        "province": "Samara Oblast",
+        "country": "Russia",
+        "lat": 53.5086002,
+        "lng": 49.4198344
+    },
+    {
+        "city": "Baku",
+        "province": "",
+        "country": "Azerbaijan",
+        "lat": 40.40926169999999,
+        "lng": 49.8670924
+    },
+    {
+        "city": "Samara",
+        "province": "Samara Oblast",
+        "country": "Russia",
+        "lat": 53.2415041,
+        "lng": 50.2212463
+    },
+    {
+        "city": "Dammam",
+        "province": "",
+        "country": "Saudi Arabia",
+        "lat": 26.3926665,
+        "lng": 49.9777136
+    },
+    {
+        "city": "Manama",
+        "province": "",
+        "country": "Bahrain",
+        "lat": 26.2285161,
+        "lng": 50.5860497
+    },
+    {
+        "city": "Tehran",
+        "province": "",
+        "country": "Iran",
+        "lat": 35.6891975,
+        "lng": 51.3889736
+    },
+    {
+        "city": "Doha",
+        "province": "",
+        "country": "Qatar",
+        "lat": 25.2854473,
+        "lng": 51.53103979999999
+    },
+    {
+        "city": "Isfahan",
+        "province": "",
+        "country": "Iran",
+        "lat": 32.6546275,
+        "lng": 51.66798259999999
+    },
+    {
+        "city": "Izhevsk",
+        "province": "Udmurt Republic",
+        "country": "Russia",
+        "lat": 56.86186009999999,
+        "lng": 53.2324284
+    },
+    {
+        "city": "Salalah",
+        "province": "",
+        "country": "Oman",
+        "lat": 17.0506675,
+        "lng": 54.1065864
+    },
+    {
+        "city": "Abu Dhabi",
+        "province": "",
+        "country": "United Arab Emirates",
+        "lat": 24.453884,
+        "lng": 54.3773438
+    },
+    {
+        "city": "Dubai",
+        "province": "",
+        "country": "United Arab Emirates",
+        "lat": 25.2048493,
+        "lng": 55.2707828
+    },
+    {
+        "city": "Ufa",
+        "province": "Republic of Bashkortostan",
+        "country": "Russia",
+        "lat": 54.7387621,
+        "lng": 55.9720554
+    },
+    {
+        "city": "Perm",
+        "province": "Perm Krai",
+        "country": "Russia",
+        "lat": 58.02968129999999,
+        "lng": 56.2667916
+    },
+    {
+        "city": "Ashgabat",
+        "province": "",
+        "country": "Turkmenistan",
+        "lat": 37.9600766,
+        "lng": 58.32606289999999
+    },
+    {
+        "city": "Muscat",
+        "province": "",
+        "country": "Oman",
+        "lat": 23.58589,
+        "lng": 58.4059227
+    },
+    {
+        "city": "Nukus",
+        "province": "Karakalpakstan",
+        "country": "Uzbekistan",
+        "lat": 42.461891,
+        "lng": 59.6166312
+    },
+    {
+        "city": "Mashhad",
+        "province": "",
+        "country": "Iran",
+        "lat": 36.2604623,
+        "lng": 59.6167549
+    },
+    {
+        "city": "Yekaterinburg",
+        "province": "Sverdlovsk Oblast",
+        "country": "Russia",
+        "lat": 56.83892609999999,
+        "lng": 60.6057025
+    },
+    {
+        "city": "Chelyabinsk",
+        "province": "Chelyabinsk Oblast",
+        "country": "Russia",
+        "lat": 55.1644419,
+        "lng": 61.4368432
+    },
+    {
+        "city": "Kandahar",
+        "province": "",
+        "country": "Afghanistan",
+        "lat": 31.628871,
+        "lng": 65.7371749
+    },
+    {
+        "city": "Karachi",
+        "province": "Sindh",
+        "country": "Pakistan",
+        "lat": 25.0700428,
+        "lng": 67.2847875
+    },
+    {
+        "city": "Hyderabad",
+        "province": "Sindh",
+        "country": "Pakistan",
+        "lat": 25.3959687,
+        "lng": 68.357776
+    },
+    {
+        "city": "Dushanbe",
+        "province": "",
+        "country": "Tajikistan",
+        "lat": 38.5597722,
+        "lng": 68.7870384
+    },
+    {
+        "city": "Kabul",
+        "province": "",
+        "country": "Afghanistan",
+        "lat": 34.5553494,
+        "lng": 69.207486
+    },
+    {
+        "city": "Tashkent",
+        "province": "",
+        "country": "Uzbekistan",
+        "lat": 41.2994958,
+        "lng": 69.2400734
+    },
+    {
+        "city": "Astana",
+        "province": "",
+        "country": "Kazakhstan",
+        "lat": 51.16052269999999,
+        "lng": 71.4703558
+    },
+    {
+        "city": "Multan",
+        "province": "Punjab",
+        "country": "Pakistan",
+        "lat": 30.157458,
+        "lng": 71.5249154
+    },
+    {
+        "city": "Peshawar",
+        "province": "Khyber Pakhtunkhwa",
+        "country": "Pakistan",
+        "lat": 34.0151366,
+        "lng": 71.5249154
+    },
+    {
+        "city": "Namangan",
+        "province": "",
+        "country": "Uzbekistan",
+        "lat": 41.0057729,
+        "lng": 71.6436028
+    },
+    {
+        "city": "Ahmedabad",
+        "province": "Gujarat",
+        "country": "India",
+        "lat": 23.022505,
+        "lng": 72.5713621
+    },
+    {
+        "city": "Mumbai (Bombay)",
+        "province": "Maharashtra",
+        "country": "India",
+        "lat": 19.0759837,
+        "lng": 72.8776559
+    },
+    {
+        "city": "Surat",
+        "province": "Gujarat",
+        "country": "India",
+        "lat": 21.1702401,
+        "lng": 72.83106070000001
+    },
+    {
+        "city": "Rawalpindi",
+        "province": "Punjab",
+        "country": "Pakistan",
+        "lat": 33.5651107,
+        "lng": 73.0169135
+    },
+    {
+        "city": "Islamabad",
+        "province": "Islamabad Capital Territory",
+        "country": "Pakistan",
+        "lat": 33.6600365,
+        "lng": 73.2293542
+    },
+    {
+        "city": "Faisalabad",
+        "province": "Punjab",
+        "country": "Pakistan",
+        "lat": 31.45036619999999,
+        "lng": 73.13496049999999
+    },
+    {
+        "city": "Omsk",
+        "province": "Omsk Oblast",
+        "country": "Russia",
+        "lat": 54.9884804,
+        "lng": 73.3242361
+    },
+    {
+        "city": "Malé",
+        "province": "",
+        "country": "Maldives",
+        "lat": 4.1754959,
+        "lng": 73.5093474
+    },
+    {
+        "city": "Pune",
+        "province": "Maharashtra",
+        "country": "India",
+        "lat": 18.5204303,
+        "lng": 73.8567437
+    },
+    {
+        "city": "Lahore",
+        "province": "Punjab",
+        "country": "Pakistan",
+        "lat": 31.5203696,
+        "lng": 74.35874729999999
+    },
+    {
+        "city": "Bishkek",
+        "province": "",
+        "country": "Kyrgyzstan",
+        "lat": 42.8746212,
+        "lng": 74.5697617
+    },
+    {
+        "city": "Srinagar",
+        "province": "Jammu and Kashmir",
+        "country": "India",
+        "lat": 34.0836708,
+        "lng": 74.7972825
+    },
+    {
+        "city": "Amritsar",
+        "province": "Punjab",
+        "country": "India",
+        "lat": 31.6339793,
+        "lng": 74.8722642
+    },
+    {
+        "city": "Jaipur",
+        "province": "Rajasthan",
+        "country": "India",
+        "lat": 26.9124336,
+        "lng": 75.7872709
+    },
+    {
+        "city": "Ludhiana",
+        "province": "Punjab",
+        "country": "India",
+        "lat": 30.900965,
+        "lng": 75.8572758
+    },
+    {
+        "city": "Kochi",
+        "province": "Kerala",
+        "country": "India",
+        "lat": 9.9312328,
+        "lng": 76.26730409999999
+    },
+    {
+        "city": "Chandigarh",
+        "province": "",
+        "country": "India",
+        "lat": 30.7333148,
+        "lng": 76.7794179
+    },
+    {
+        "city": "Almaty",
+        "province": "",
+        "country": "Kazakhstan",
+        "lat": 43.2220146,
+        "lng": 76.8512485
+    },
+    {
+        "city": "Trivandrum",
+        "province": "Kerala",
+        "country": "India",
+        "lat": 8.5241391,
+        "lng": 76.9366376
+    },
+    {
+        "city": "Shimla",
+        "province": "Himachal Pradesh",
+        "country": "India",
+        "lat": 31.1048145,
+        "lng": 77.17340329999999
+    },
+    {
+        "city": "New Delhi",
+        "province": "Delhi",
+        "country": "India",
+        "lat": 28.6139391,
+        "lng": 77.2090212
+    },
+    {
+        "city": "Bangalore",
+        "province": "Karnataka",
+        "country": "India",
+        "lat": 12.9715987,
+        "lng": 77.5945627
+    },
+    {
+        "city": "Agra",
+        "province": "Uttar Pradesh",
+        "country": "India",
+        "lat": 27.1766701,
+        "lng": 78.00807449999999
+    },
+    {
+        "city": "Hyderabad",
+        "province": "Andhra Pradesh",
+        "country": "India",
+        "lat": 17.385044,
+        "lng": 78.486671
+    },
+    {
+        "city": "Nagpur",
+        "province": "Maharashtra",
+        "country": "India",
+        "lat": 21.1458004,
+        "lng": 79.0881546
+    },
+    {
+        "city": "Kulpahar",
+        "province": "Uttar Pradesh",
+        "country": "India",
+        "lat": 25.3087385,
+        "lng": 79.63898209999999
+    },
+    {
+        "city": "Colombo",
+        "province": "",
+        "country": "Sri Lanka",
+        "lat": 6.9270786,
+        "lng": 79.861243
+    },
+    {
+        "city": "Sri Jayawardenapura-Kotte",
+        "province": "",
+        "country": "Sri Lanka",
+        "lat": 6.894002899999999,
+        "lng": 79.90515649999999
+    },
+    {
+        "city": "Chennai (Madras)",
+        "province": "Tamil Nadu",
+        "country": "India",
+        "lat": 13.0826802,
+        "lng": 80.2707184
+    },
+    {
+        "city": "Kanpur",
+        "province": "Uttar Pradesh",
+        "country": "India",
+        "lat": 26.449923,
+        "lng": 80.3318736
+    },
+    {
+        "city": "Kandy",
+        "province": "",
+        "country": "Sri Lanka",
+        "lat": 7.2905715,
+        "lng": 80.6337262
+    },
+    {
+        "city": "Lucknow",
+        "province": "Uttar Pradesh",
+        "country": "India",
+        "lat": 26.8466937,
+        "lng": 80.94616599999999
+    },
+    {
+        "city": "Batticaloa",
+        "province": "",
+        "country": "Sri Lanka",
+        "lat": 7.730997100000001,
+        "lng": 81.6747295
+    },
+    {
+        "city": "Novosibirsk",
+        "province": "Novosibirsk Oblast",
+        "country": "Russia",
+        "lat": 55.00835259999999,
+        "lng": 82.9357327
+    },
+    {
+        "city": "Visakhapatnam",
+        "province": "Andhra Pradesh",
+        "country": "India",
+        "lat": 17.6868159,
+        "lng": 83.2184815
+    },
+    {
+        "city": "Patna",
+        "province": "Bihar",
+        "country": "India",
+        "lat": 25.5940947,
+        "lng": 85.1375645
+    },
+    {
+        "city": "Kathmandu",
+        "province": "",
+        "country": "Nepal",
+        "lat": 27.7172453,
+        "lng": 85.3239605
+    },
+    {
+        "city": "Ürümqi",
+        "province": "Xinjiang",
+        "country": "People's Republic of China",
+        "lat": 43.825592,
+        "lng": 87.61684799999999
+    },
+    {
+        "city": "Norilsk",
+        "province": "Krasnoyarsk Krai",
+        "country": "Russia",
+        "lat": 69.35579,
+        "lng": 88.1892939
+    },
+    {
+        "city": "Kolkata (Calcutta)",
+        "province": "West Bengal",
+        "country": "India",
+        "lat": 22.572646,
+        "lng": 88.36389500000001
+    },
+    {
+        "city": "Siliguri",
+        "province": "West Bengal",
+        "country": "India",
+        "lat": 26.7271012,
+        "lng": 88.39528609999999
+    },
+    {
+        "city": "Gangtok",
+        "province": "Sikkim",
+        "country": "India",
+        "lat": 27.3389356,
+        "lng": 88.6065035
+    },
+    {
+        "city": "Shigatse",
+        "province": "Tibet",
+        "country": "People's Republic of China",
+        "lat": 29.266869,
+        "lng": 88.880583
+    },
+    {
+        "city": "Thimphu",
+        "province": "",
+        "country": "Bhutan",
+        "lat": 27.4727924,
+        "lng": 89.6392863
+    },
+    {
+        "city": "Dhaka",
+        "province": "",
+        "country": "Bangladesh",
+        "lat": 23.810332,
+        "lng": 90.4125181
+    },
+    {
+        "city": "Lhasa",
+        "province": "Tibet",
+        "country": "People's Republic of China",
+        "lat": 29.65483799999999,
+        "lng": 91.140552
+    },
+    {
+        "city": "Agartala",
+        "province": "Tripura",
+        "country": "India",
+        "lat": 23.831457,
+        "lng": 91.2867777
+    },
+    {
+        "city": "Guwahati",
+        "province": "Assam",
+        "country": "India",
+        "lat": 26.1445169,
+        "lng": 91.7362365
+    },
+    {
+        "city": "Chittagong",
+        "province": "",
+        "country": "Bangladesh",
+        "lat": 22.356851,
+        "lng": 91.7831819
+    },
+    {
+        "city": "Shillong",
+        "province": "Meghalaya",
+        "country": "India",
+        "lat": 25.5787726,
+        "lng": 91.8932535
+    },
+    {
+        "city": "Port Blair",
+        "province": "Andaman and Nicobar Islands",
+        "country": "India",
+        "lat": 11.6233774,
+        "lng": 92.7264828
+    },
+    {
+        "city": "Tezpur",
+        "province": "Assam",
+        "country": "India",
+        "lat": 26.6528495,
+        "lng": 92.7925592
+    },
+    {
+        "city": "Krasnoyarsk",
+        "province": "Krasnoyarsk Krai",
+        "country": "Russia",
+        "lat": 56.01528339999999,
+        "lng": 92.8932476
+    },
+    {
+        "city": "Dibrugarh",
+        "province": "Assam",
+        "country": "India",
+        "lat": 27.4728327,
+        "lng": 94.9119621
+    },
+    {
+        "city": "Banda Aceh",
+        "province": "Aceh",
+        "country": "Indonesia",
+        "lat": 5.5482904,
+        "lng": 95.3237559
+    },
+    {
+        "city": "Naypyidaw",
+        "province": "",
+        "country": "Myanmar",
+        "lat": 19.7633057,
+        "lng": 96.07851040000001
+    },
+    {
+        "city": "Yangon",
+        "province": "",
+        "country": "Myanmar",
+        "lat": 16.8660694,
+        "lng": 96.19513200000002
+    },
+    {
+        "city": "Phuket",
+        "province": "",
+        "country": "Thailand",
+        "lat": 7.9519331,
+        "lng": 98.33808839999999
+    },
+    {
+        "city": "Medan",
+        "province": "North Sumatera",
+        "country": "Indonesia",
+        "lat": 3.5951956,
+        "lng": 98.6722227
+    },
+    {
+        "city": "Chiang Mai",
+        "province": "",
+        "country": "Thailand",
+        "lat": 18.7060641,
+        "lng": 98.9817163
+    },
+    {
+        "city": "Surat Thani",
+        "province": "",
+        "country": "Thailand",
+        "lat": 9.134194899999999,
+        "lng": 99.3334198
+    },
+    {
+        "city": "Chiang Rai",
+        "province": "",
+        "country": "Thailand",
+        "lat": 19.9104798,
+        "lng": 99.840576
+    },
+    {
+        "city": "George Town",
+        "province": "Penang",
+        "country": "Malaysia",
+        "lat": 5.4356367,
+        "lng": 100.3091
+    },
+    {
+        "city": "Alor Setar",
+        "province": "Kedah",
+        "country": "Malaysia",
+        "lat": 6.1248,
+        "lng": 100.3678178
+    },
+    {
+        "city": "Bangkok",
+        "province": "",
+        "country": "Thailand",
+        "lat": 13.7563309,
+        "lng": 100.5017651
+    },
+    {
+        "city": "Hat Yai",
+        "province": "",
+        "country": "Thailand",
+        "lat": 7.0086472,
+        "lng": 100.4746879
+    },
+    {
+        "city": "Ayutthaya",
+        "province": "",
+        "country": "Thailand",
+        "lat": 14.3692325,
+        "lng": 100.5876634
+    },
+    {
+        "city": "Pattaya",
+        "province": "",
+        "country": "Thailand",
+        "lat": 12.9235557,
+        "lng": 100.8824551
+    },
+    {
+        "city": "Ipoh",
+        "province": "Perak",
+        "country": "Malaysia",
+        "lat": 4.597479,
+        "lng": 101.090106
+    },
+    {
+        "city": "Pekanbaru",
+        "province": "Riau",
+        "country": "Indonesia",
+        "lat": 0.5070677,
+        "lng": 101.4477793
+    },
+    {
+        "city": "Bratsk",
+        "province": "Irkutsk Oblast",
+        "country": "Russia",
+        "lat": 56.17376609999999,
+        "lng": 101.6038977
+    },
+    {
+        "city": "Kuala Lumpur",
+        "province": "Federal Territory (Malaysia) Federal Territory",
+        "country": "Malaysia",
+        "lat": 3.139003,
+        "lng": 101.686855
+    },
+    {
+        "city": "Xining",
+        "province": "Qinghai",
+        "country": "People's Republic of China",
+        "lat": 36.617134,
+        "lng": 101.778223
+    },
+    {
+        "city": "Nakhon Ratchasima",
+        "province": "",
+        "country": "Thailand",
+        "lat": 14.9738493,
+        "lng": 102.083652
+    },
+    {
+        "city": "Kota Bharu",
+        "province": "Kelantan",
+        "country": "Malaysia",
+        "lat": 6.1167855,
+        "lng": 102.2776838
+    },
+    {
+        "city": "Malacca Town",
+        "province": "Malacca",
+        "country": "Malaysia",
+        "lat": 2.189594,
+        "lng": 102.2500868
+    },
+    {
+        "city": "Vientiane",
+        "province": "",
+        "country": "Laos",
+        "lat": 17.9757058,
+        "lng": 102.6331035
+    },
+    {
+        "city": "Kunming",
+        "province": "Yunnan",
+        "country": "People's Republic of China",
+        "lat": 24.880095,
+        "lng": 102.832891
+    },
+    {
+        "city": "Udon Thani",
+        "province": "",
+        "country": "Thailand",
+        "lat": 17.4138413,
+        "lng": 102.7872325
+    },
+    {
+        "city": "Khon Kaen",
+        "province": "",
+        "country": "Thailand",
+        "lat": 16.4321938,
+        "lng": 102.8236214
+    },
+    {
+        "city": "Johor Bahru",
+        "province": "Johor",
+        "country": "Malaysia",
+        "lat": 1.492659,
+        "lng": 103.7413591
+    },
+    {
+        "city": "Lanzhou",
+        "province": "Gansu",
+        "country": "People's Republic of China",
+        "lat": 36.061089,
+        "lng": 103.834303
+    },
+    {
+        "city": "Singapore",
+        "province": "",
+        "country": "Singapore",
+        "lat": 1.352083,
+        "lng": 103.819836
+    },
+    {
+        "city": "Siem Reap",
+        "province": "",
+        "country": "Cambodia",
+        "lat": 13.3670968,
+        "lng": 103.8448134
+    },
+    {
+        "city": "Chengdu",
+        "province": "Sichuan",
+        "country": "People's Republic of China",
+        "lat": 30.572815,
+        "lng": 104.066801
+    },
+    {
+        "city": "Irkutsk",
+        "province": "Irkutsk Oblast",
+        "country": "Russia",
+        "lat": 52.28697409999999,
+        "lng": 104.3050183
+    },
+    {
+        "city": "Phnom Penh",
+        "province": "",
+        "country": "Cambodia",
+        "lat": 11.5448729,
+        "lng": 104.8921668
+    },
+    {
+        "city": "Hanoi",
+        "province": "",
+        "country": "Vietnam",
+        "lat": 21.0277644,
+        "lng": 105.8341598
+    },
+    {
+        "city": "Chongqing",
+        "province": "",
+        "country": "People's Republic of China",
+        "lat": 29.56305,
+        "lng": 106.551484
+    },
+    {
+        "city": "Ho Chi Minh City",
+        "province": "",
+        "country": "Vietnam",
+        "lat": 10.8230989,
+        "lng": 106.6296638
+    },
+    {
+        "city": "Hai Phong",
+        "province": "",
+        "country": "Vietnam",
+        "lat": 20.8449115,
+        "lng": 106.6880841
+    },
+    {
+        "city": "Ulaanbaatar",
+        "province": "",
+        "country": "Mongolia",
+        "lat": 47.88639879999999,
+        "lng": 106.9057439
+    },
+    {
+        "city": "Huế",
+        "province": "",
+        "country": "Vietnam",
+        "lat": 16.4498,
+        "lng": 107.5623501
+    },
+    {
+        "city": "Da Nang",
+        "province": "",
+        "country": "Vietnam",
+        "lat": 16.0544068,
+        "lng": 108.2021667
+    },
+    {
+        "city": "Nanning",
+        "province": "Guangxi",
+        "country": "People's Republic of China",
+        "lat": 22.817002,
+        "lng": 108.366543
+    },
+    {
+        "city": "Xi'an",
+        "province": "Shaanxi",
+        "country": "People's Republic of China",
+        "lat": 34.341574,
+        "lng": 108.93977
+    },
+    {
+        "city": "Kuching",
+        "province": "Sarawak",
+        "country": "Malaysia",
+        "lat": 1.6076812,
+        "lng": 110.3785438
+    },
+    {
+        "city": "Taiyuan",
+        "province": "Shanxi",
+        "country": "People's Republic of China",
+        "lat": 37.87059,
+        "lng": 112.548879
+    },
+    {
+        "city": "Guangzhou",
+        "province": "Guangdong",
+        "country": "People's Republic of China",
+        "lat": 23.12911,
+        "lng": 113.264385
+    },
+    {
+        "city": "Macau",
+        "province": "",
+        "country": "People's Republic of China",
+        "lat": 22.198745,
+        "lng": 113.543873
+    },
+    {
+        "city": "Zhengzhou",
+        "province": "Henan",
+        "country": "People's Republic of China",
+        "lat": 34.746611,
+        "lng": 113.625328
+    },
+    {
+        "city": "Dongguan",
+        "province": "Guangdong",
+        "country": "People's Republic of China",
+        "lat": 23.020673,
+        "lng": 113.751799
+    },
+    {
+        "city": "Miri",
+        "province": "Sarawak",
+        "country": "Malaysia",
+        "lat": 4.399493,
+        "lng": 113.9913832
+    },
+    {
+        "city": "Shenzhen",
+        "province": "Guangdong",
+        "country": "People's Republic of China",
+        "lat": 22.543096,
+        "lng": 114.057865
+    },
+    {
+        "city": "Hong Kong",
+        "province": "",
+        "country": "People's Republic of China",
+        "lat": 22.396428,
+        "lng": 114.109497
+    },
+    {
+        "city": "Wuhan",
+        "province": "Hubei",
+        "country": "People's Republic of China",
+        "lat": 30.592849,
+        "lng": 114.305539
+    },
+    {
+        "city": "Handan",
+        "province": "Hebei",
+        "country": "People's Republic of China",
+        "lat": 36.625656,
+        "lng": 114.538961
+    },
+    {
+        "city": "Shijiazhuang",
+        "province": "Hebei",
+        "country": "People's Republic of China",
+        "lat": 38.042805,
+        "lng": 114.514893
+    },
+    {
+        "city": "Bandar Seri Begawan",
+        "province": "",
+        "country": "Brunei",
+        "lat": 4.903052199999999,
+        "lng": 114.939821
+    },
+    {
+        "city": "Kota Kinabalu",
+        "province": "Sabah",
+        "country": "Malaysia",
+        "lat": 5.980408,
+        "lng": 116.0734568
+    },
+    {
+        "city": "Beijing",
+        "province": "",
+        "country": "People's Republic of China",
+        "lat": 39.90419989999999,
+        "lng": 116.4073963
+    },
+    {
+        "city": "Jinan",
+        "province": "Shandong",
+        "country": "People's Republic of China",
+        "lat": 36.6512,
+        "lng": 117.120095
+    },
+    {
+        "city": "Tianjin",
+        "province": "",
+        "country": "People's Republic of China",
+        "lat": 39.3433574,
+        "lng": 117.3616476
+    },
+    {
+        "city": "Nanjing",
+        "province": "Jiangsu",
+        "country": "People's Republic of China",
+        "lat": 32.060255,
+        "lng": 118.796877
+    },
+    {
+        "city": "Hangzhou",
+        "province": "Zhejiang",
+        "country": "People's Republic of China",
+        "lat": 30.274084,
+        "lng": 120.15507
+    },
+    {
+        "city": "Tainan",
+        "province": "",
+        "country": "Republic of China (Taiwan)",
+        "lat": 22.9997281,
+        "lng": 120.2270277
+    },
+    {
+        "city": "Kaohsiung",
+        "province": "",
+        "country": "Republic of China (Taiwan)",
+        "lat": 22.6272784,
+        "lng": 120.3014353
+    },
+    {
+        "city": "Qingdao",
+        "province": "Shandong",
+        "country": "People's Republic of China",
+        "lat": 36.067108,
+        "lng": 120.382609
+    },
+    {
+        "city": "Taichung",
+        "province": "",
+        "country": "Republic of China (Taiwan)",
+        "lat": 24.1477358,
+        "lng": 120.6736482
+    },
+    {
+        "city": "Manila",
+        "province": "",
+        "country": "Philippines",
+        "lat": 14.5995124,
+        "lng": 120.9842195
+    },
+    {
+        "city": "Quezon City",
+        "province": "",
+        "country": "Philippines",
+        "lat": 14.6760413,
+        "lng": 121.0437003
+    },
+    {
+        "city": "Makati",
+        "province": "",
+        "country": "Philippines",
+        "lat": 14.554729,
+        "lng": 121.0244452
+    },
+    {
+        "city": "Shanghai",
+        "province": "",
+        "country": "People's Republic of China",
+        "lat": 31.2303904,
+        "lng": 121.4737021
+    },
+    {
+        "city": "Taipei",
+        "province": "",
+        "country": "Republic of China (Taiwan)",
+        "lat": 25.0329694,
+        "lng": 121.5654177
+    },
+    {
+        "city": "Dalian",
+        "province": "Liaoning",
+        "country": "People's Republic of China",
+        "lat": 38.91400300000001,
+        "lng": 121.614682
+    },
+    {
+        "city": "Zamboanga City",
+        "province": "",
+        "country": "Philippines",
+        "lat": 6.9214424,
+        "lng": 122.0790267
+    },
+    {
+        "city": "Iloilo City",
+        "province": "Iloilo",
+        "country": "Philippines",
+        "lat": 10.7201501,
+        "lng": 122.5621063
+    },
+    {
+        "city": "Shenyang",
+        "province": "Liaoning",
+        "country": "People's Republic of China",
+        "lat": 41.805699,
+        "lng": 123.431472
+    },
+    {
+        "city": "Tagbilaran",
+        "province": "Bohol",
+        "country": "Philippines",
+        "lat": 9.672948,
+        "lng": 123.8730022
+    },
+    {
+        "city": "Cebu City",
+        "province": "Cebu",
+        "country": "Philippines",
+        "lat": 10.3156992,
+        "lng": 123.8854366
+    },
+    {
+        "city": "Changchun",
+        "province": "Jilin",
+        "country": "People's Republic of China",
+        "lat": 43.817071,
+        "lng": 125.323544
+    },
+    {
+        "city": "Davao City",
+        "province": "Davao del Sur",
+        "country": "Philippines",
+        "lat": 7.190708,
+        "lng": 125.455341
+    },
+    {
+        "city": "Pyongyang",
+        "province": "",
+        "country": "North Korea",
+        "lat": 39.0392193,
+        "lng": 125.7625241
+    },
+    {
+        "city": "Kaesong",
+        "province": "North Hwanghae",
+        "country": "North Korea",
+        "lat": 37.9381943,
+        "lng": 126.5877948
+    },
+    {
+        "city": "Harbin",
+        "province": "Heilongjiang",
+        "country": "People's Republic of China",
+        "lat": 45.80377499999999,
+        "lng": 126.534967
+    },
+    {
+        "city": "Incheon",
+        "province": "",
+        "country": "South Korea",
+        "lat": 37.4562557,
+        "lng": 126.7052062
+    },
+    {
+        "city": "Seoul",
+        "province": "",
+        "country": "South Korea",
+        "lat": 37.566535,
+        "lng": 126.9779692
+    },
+    {
+        "city": "Wonsan",
+        "province": "Kangwon",
+        "country": "North Korea",
+        "lat": 39.1538529,
+        "lng": 127.4460001
+    },
+    {
+        "city": "Naha",
+        "province": "Okinawa",
+        "country": "Japan",
+        "lat": 26.2123124,
+        "lng": 127.6791568
+    },
+    {
+        "city": "Daegu",
+        "province": "",
+        "country": "South Korea",
+        "lat": 35.8714354,
+        "lng": 128.601445
+    },
+    {
+        "city": "Busan",
+        "province": "",
+        "country": "South Korea",
+        "lat": 35.1795543,
+        "lng": 129.0756416
+    },
+    {
+        "city": "Yakutsk",
+        "province": "Sakha Republic",
+        "country": "Russia",
+        "lat": 62.0354523,
+        "lng": 129.6754745
+    },
+    {
+        "city": "Chongjin",
+        "province": "North Hamgyong",
+        "country": "North Korea",
+        "lat": 41.7669671,
+        "lng": 129.723402
+    },
+    {
+        "city": "Fukuoka",
+        "province": "Fukuoka",
+        "country": "Japan",
+        "lat": 33.5903547,
+        "lng": 130.4017155
+    },
+    {
+        "city": "Vladivostok",
+        "province": "Primorsky Krai",
+        "country": "Russia",
+        "lat": 43.1198091,
+        "lng": 131.8869243
+    },
+    {
+        "city": "Hiroshima",
+        "province": "Hiroshima",
+        "country": "Japan",
+        "lat": 34.3852029,
+        "lng": 132.4552927
+    },
+    {
+        "city": "Verkhoyansk",
+        "province": "Sakha Republic",
+        "country": "Russia",
+        "lat": 67.5505925,
+        "lng": 133.3993398
+    },
+    {
+        "city": "Koror",
+        "province": "",
+        "country": "Palau",
+        "lat": 7.3375646,
+        "lng": 134.4889469
+    },
+    {
+        "city": "Melekeok",
+        "province": "",
+        "country": "Palau",
+        "lat": 7.515028599999999,
+        "lng": 134.5972518
+    },
+    {
+        "city": "Kōbe",
+        "province": "Hyogo",
+        "country": "Japan",
+        "lat": 34.690083,
+        "lng": 135.1955112
+    },
+    {
+        "city": "Osaka",
+        "province": "Osaka",
+        "country": "Japan",
+        "lat": 34.6937378,
+        "lng": 135.5021651
+    },
+    {
+        "city": "Kyoto",
+        "province": "Kyoto",
+        "country": "Japan",
+        "lat": 35.0116363,
+        "lng": 135.7680294
+    },
+    {
+        "city": "Nagoya",
+        "province": "Aichi",
+        "country": "Japan",
+        "lat": 35.1814464,
+        "lng": 136.906398
+    },
+    {
+        "city": "Yokohama",
+        "province": "Kanagawa",
+        "country": "Japan",
+        "lat": 35.4437078,
+        "lng": 139.6380256
+    },
+    {
+        "city": "Tokyo",
+        "province": "",
+        "country": "Japan",
+        "lat": 35.6894875,
+        "lng": 139.6917064
+    },
+    {
+        "city": "Kawasaki",
+        "province": "Kanagawa",
+        "country": "Japan",
+        "lat": 35.52981980000001,
+        "lng": 139.7024039
+    },
+    {
+        "city": "Sendai",
+        "province": "Miyagi",
+        "country": "Japan",
+        "lat": 38.268215,
+        "lng": 140.8693558
+    },
+    {
+        "city": "Sapporo",
+        "province": "Hokkaido",
+        "country": "Japan",
+        "lat": 43.0620958,
+        "lng": 141.3543763
+    },
+    {
+        "city": "Hagåtña",
+        "province": "Guam",
+        "country": "United States",
+        "lat": 13.4762824,
+        "lng": 144.7502228
+    },
+    {
+        "city": "Dededo",
+        "province": "Guam",
+        "country": "United States",
+        "lat": 13.5452512,
+        "lng": 144.851121
+    },
+    {
+        "city": "Nemuro",
+        "province": "Hokkaido",
+        "country": "Japan",
+        "lat": 43.3300759,
+        "lng": 145.5827903
+    },
+    {
+        "city": "Saipan",
+        "province": "Northern Mariana Islands",
+        "country": "United States",
+        "lat": 15.0979,
+        "lng": 145.6739
+    },
+    {
+        "city": "Magadan",
+        "province": "Magadan Oblast",
+        "country": "Russia",
+        "lat": 59.5611525,
+        "lng": 150.8301413
+    },
+    {
+        "city": "Weno",
+        "province": "",
+        "country": "Federated States of Micronesia",
+        "lat": 7.4399983,
+        "lng": 151.8584892
+    },
+    {
+        "city": "Palikir",
+        "province": "",
+        "country": "Federated States of Micronesia",
+        "lat": 6.9147118,
+        "lng": 158.1610274
+    },
+    {
+        "city": "Petropavlovsk-Kamchatsky",
+        "province": "Kamchatka Krai",
+        "country": "Russia",
+        "lat": 53.0409109,
+        "lng": 158.677726
+    },
+    {
+        "city": "Majuro",
+        "province": "",
+        "country": "Marshall Islands",
+        "lat": 7.1164214,
+        "lng": 171.1857736
+    },
+    {
+        "city": "South Tarawa",
+        "province": "",
+        "country": "Kiribati",
+        "lat": 1.433333,
+        "lng": 173
+    },
+    {
+        "city": "Anadyr",
+        "province": "Chukotka Autonomous Okrug",
+        "country": "Russia",
+        "lat": 64.7336613,
+        "lng": 177.4968265
+    },
+    {
+        "city": "Rabi Island",
+        "province": "",
+        "country": "Fiji",
+        "lat": -16.4994837,
+        "lng": -179.9533441
+    },
+    {
+        "city": "Mata-Utu",
+        "province": "Wallis and Futuna",
+        "country": "France",
+        "lat": -13.2825091,
+        "lng": -176.1764475
+    },
+    {
+        "city": "Nukuʻalofa",
+        "province": "",
+        "country": "Tonga",
+        "lat": -21.1393418,
+        "lng": -175.204947
+    },
+    {
+        "city": "Apia",
+        "province": "",
+        "country": "Samoa",
+        "lat": -13.8506958,
+        "lng": -171.7513551
+    },
+    {
+        "city": "Pago Pago",
+        "province": "American Samoa",
+        "country": "United States",
+        "lat": -14.331389,
+        "lng": -170.711389
+    },
+    {
+        "city": "Alofi",
+        "province": "Niue",
+        "country": "New Zealand",
+        "lat": -19.0553711,
+        "lng": -169.9178709
+    },
+    {
+        "city": "Avarua",
+        "province": "Cook Islands",
+        "country": "New Zealand",
+        "lat": -21.2129007,
+        "lng": -159.7823059
+    },
+    {
+        "city": "Papeete",
+        "province": "French Polynesia",
+        "country": "France",
+        "lat": -17.5516251,
+        "lng": -149.5584758
+    },
+    {
+        "city": "Adamstown",
+        "province": "Pitcairn Islands",
+        "country": "United Kingdom",
+        "lat": 0,
+        "lng": 0
+    },
+    {
+        "city": "Hanga Roa",
+        "province": "Easter Island",
+        "country": "Chile",
+        "lat": -27.15,
+        "lng": -109.4333
+    },
+    {
+        "city": "Guayaquil",
+        "province": "",
+        "country": "Ecuador",
+        "lat": -2.1709979,
+        "lng": -79.9223592
+    },
+    {
+        "city": "Trujillo",
+        "province": "",
+        "country": "Peru",
+        "lat": -8.1090524,
+        "lng": -79.0215336
+    },
+    {
+        "city": "Quito",
+        "province": "",
+        "country": "Ecuador",
+        "lat": -0.1806532,
+        "lng": -78.4678382
+    },
+    {
+        "city": "Lima",
+        "province": "",
+        "country": "Peru",
+        "lat": -12.0463731,
+        "lng": -77.042754
+    },
+    {
+        "city": "Ayacucho",
+        "province": "",
+        "country": "Peru",
+        "lat": -13.1638737,
+        "lng": -74.22356409999999
+    },
+    {
+        "city": "Iquitos",
+        "province": "",
+        "country": "Peru",
+        "lat": -3.7436735,
+        "lng": -73.25163260000001
+    },
+    {
+        "city": "Valdivia",
+        "province": "",
+        "country": "Chile",
+        "lat": -39.8195857,
+        "lng": -73.2452103
+    },
+    {
+        "city": "Concepción",
+        "province": "",
+        "country": "Chile",
+        "lat": -36.8201352,
+        "lng": -73.0443904
+    },
+    {
+        "city": "Puerto Montt",
+        "province": "",
+        "country": "Chile",
+        "lat": -41.468917,
+        "lng": -72.94113639999999
+    },
+    {
+        "city": "Puerto Aisén",
+        "province": "",
+        "country": "Chile",
+        "lat": -45.4035437,
+        "lng": -72.6864154
+    },
+    {
+        "city": "Temuco",
+        "province": "",
+        "country": "Chile",
+        "lat": -38.7359018,
+        "lng": -72.5903739
+    },
+    {
+        "city": "Coihaique",
+        "province": "",
+        "country": "Chile",
+        "lat": -45.5712254,
+        "lng": -72.068265
+    },
+    {
+        "city": "Cusco",
+        "province": "",
+        "country": "Peru",
+        "lat": -13.53195,
+        "lng": -71.96746259999999
+    },
+    {
+        "city": "Valparaíso",
+        "province": "",
+        "country": "Chile",
+        "lat": -33.047238,
+        "lng": -71.61268849999999
+    },
+    {
+        "city": "Arequipa",
+        "province": "",
+        "country": "Peru",
+        "lat": -16.4090474,
+        "lng": -71.53745099999999
+    },
+    {
+        "city": "San Carlos de Bariloche",
+        "province": "Río Negro Province Río Negro",
+        "country": "Argentina",
+        "lat": -41.1334722,
+        "lng": -71.3102778
+    },
+    {
+        "city": "La Serena",
+        "province": "",
+        "country": "Chile",
+        "lat": -29.9026691,
+        "lng": -71.2519374
+    },
+    {
+        "city": "Punta Arenas",
+        "province": "",
+        "country": "Chile",
+        "lat": -53.1638329,
+        "lng": -70.9170683
+    },
+    {
+        "city": "Santiago",
+        "province": "",
+        "country": "Chile",
+        "lat": -33.4488897,
+        "lng": -70.6692655
+    },
+    {
+        "city": "Antofagasta",
+        "province": "",
+        "country": "Chile",
+        "lat": -23.6509279,
+        "lng": -70.39750219999999
+    },
+    {
+        "city": "Arica",
+        "province": "",
+        "country": "Chile",
+        "lat": -18.4782534,
+        "lng": -70.3125988
+    },
+    {
+        "city": "Copiapó",
+        "province": "",
+        "country": "Chile",
+        "lat": -27.3665763,
+        "lng": -70.3321587
+    },
+    {
+        "city": "Iquique",
+        "province": "",
+        "country": "Chile",
+        "lat": -20.2307033,
+        "lng": -70.1356692
+    },
+    {
+        "city": "Río Gallegos",
+        "province": "Santa Cruz",
+        "country": "Argentina",
+        "lat": -51.6230485,
+        "lng": -69.2168291
+    },
+    {
+        "city": "Calama",
+        "province": "",
+        "country": "Chile",
+        "lat": -22.4543923,
+        "lng": -68.9293819
+    },
+    {
+        "city": "Mendoza",
+        "province": "Mendoza",
+        "country": "Argentina",
+        "lat": -32.8894587,
+        "lng": -68.8458386
+    },
+    {
+        "city": "Ushuaia",
+        "province": "Tierra del Fuego",
+        "country": "Argentina",
+        "lat": -54.8019121,
+        "lng": -68.3029511
+    },
+    {
+        "city": "La Paz",
+        "province": "",
+        "country": "Bolivia",
+        "lat": -16.489689,
+        "lng": -68.11929359999999
+    },
+    {
+        "city": "Rio Branco",
+        "province": "Acre",
+        "country": "Brazil",
+        "lat": -9.975383700000002,
+        "lng": -67.824918
+    },
+    {
+        "city": "Puerto Williams",
+        "province": "",
+        "country": "Chile",
+        "lat": -54.9352098,
+        "lng": -67.6058537
+    },
+    {
+        "city": "Comodoro Rivadavia",
+        "province": "Chubut",
+        "country": "Argentina",
+        "lat": -45.8656149,
+        "lng": -67.4822429
+    },
+    {
+        "city": "Puerto Toro",
+        "province": "",
+        "country": "Chile",
+        "lat": -25.2083381,
+        "lng": -69.8432231
+    },
+    {
+        "city": "Salta",
+        "province": "Salta",
+        "country": "Argentina",
+        "lat": -24.7821269,
+        "lng": -65.4231976
+    },
+    {
+        "city": "Trelew",
+        "province": "Chubut",
+        "country": "Argentina",
+        "lat": -43.2493016,
+        "lng": -65.30763510000001
+    },
+    {
+        "city": "Sucre",
+        "province": "",
+        "country": "Bolivia",
+        "lat": -19.0195852,
+        "lng": -65.2619615
+    },
+    {
+        "city": "San Miguel de Tucumán",
+        "province": "Tucumán",
+        "country": "Argentina",
+        "lat": -26.8082848,
+        "lng": -65.2175903
+    },
+    {
+        "city": "Córdoba",
+        "province": "Córdoba",
+        "country": "Argentina",
+        "lat": -31.42008329999999,
+        "lng": -64.1887761
+    },
+    {
+        "city": "Porto Velho",
+        "province": "Rondônia",
+        "country": "Brazil",
+        "lat": -8.761160499999999,
+        "lng": -63.9004303
+    },
+    {
+        "city": "Santa Cruz de la Sierra",
+        "province": "",
+        "country": "Bolivia",
+        "lat": -17.8145819,
+        "lng": -63.1560853
+    },
+    {
+        "city": "Bahía Blanca",
+        "province": "Buenos Aires Province",
+        "country": "Argentina",
+        "lat": -38.7183177,
+        "lng": -62.2663478
+    },
+    {
+        "city": "Rosario",
+        "province": "Santa Fe",
+        "country": "Argentina",
+        "lat": -32.9442426,
+        "lng": -60.65053880000001
+    },
+    {
+        "city": "Manaus",
+        "province": "Amazonas",
+        "country": "Brazil",
+        "lat": -3.1190275,
+        "lng": -60.0217314
+    },
+    {
+        "city": "Buenos Aires",
+        "province": "",
+        "country": "Argentina",
+        "lat": -34.6036844,
+        "lng": -58.3815591
+    },
+    {
+        "city": "Stanley",
+        "province": "Falkland Islands",
+        "country": "United Kingdom",
+        "lat": -51.6922104,
+        "lng": -57.85634890000001
+    },
+    {
+        "city": "Asunción",
+        "province": "",
+        "country": "Paraguay",
+        "lat": -25.2637399,
+        "lng": -57.57592599999999
+    },
+    {
+        "city": "Montevideo",
+        "province": "",
+        "country": "Uruguay",
+        "lat": -34.9011127,
+        "lng": -56.16453139999999
+    },
+    {
+        "city": "Cuiabá",
+        "province": "Mato Grosso",
+        "country": "Brazil",
+        "lat": -15.6014109,
+        "lng": -56.0978917
+    },
+    {
+        "city": "Sinop",
+        "province": "Mato Grosso",
+        "country": "Brazil",
+        "lat": -11.8608456,
+        "lng": -55.5095451
+    },
+    {
+        "city": "Ciudad del Este",
+        "province": "",
+        "country": "Paraguay",
+        "lat": -25.5085286,
+        "lng": -54.6753231
+    },
+    {
+        "city": "Campo Grande",
+        "province": "Mato Grosso do Sul",
+        "country": "Brazil",
+        "lat": -20.4697105,
+        "lng": -54.6201211
+    },
+    {
+        "city": "Chuí",
+        "province": "Rio Grande do Sul",
+        "country": "Brazil",
+        "lat": -33.6895531,
+        "lng": -53.447315
+    },
+    {
+        "city": "Pelotas",
+        "province": "Rio Grande do Sul",
+        "country": "Brazil",
+        "lat": -31.7653989,
+        "lng": -52.3375886
+    },
+    {
+        "city": "Porto Alegre",
+        "province": "Rio Grande do Sul",
+        "country": "Brazil",
+        "lat": -30.0346471,
+        "lng": -51.2176584
+    },
+    {
+        "city": "Assis",
+        "province": "São Paulo",
+        "country": "Brazil",
+        "lat": -22.6604341,
+        "lng": -50.4187813
+    },
+    {
+        "city": "São José do Rio Preto",
+        "province": "São Paulo",
+        "country": "Brazil",
+        "lat": -20.811761,
+        "lng": -49.3762272
+    },
+    {
+        "city": "Goiânia",
+        "province": "Goiás",
+        "country": "Brazil",
+        "lat": -16.6868824,
+        "lng": -49.26478849999999
+    },
+    {
+        "city": "Curitiba",
+        "province": "Paraná",
+        "country": "Brazil",
+        "lat": -25.4244287,
+        "lng": -49.2653819
+    },
+    {
+        "city": "Bauru",
+        "province": "São Paulo",
+        "country": "Brazil",
+        "lat": -22.314459,
+        "lng": -49.0586951
+    },
+    {
+        "city": "Belém",
+        "province": "Pará",
+        "country": "Brazil",
+        "lat": -1.4557794,
+        "lng": -48.4901968
+    },
+    {
+        "city": "Florianópolis",
+        "province": "Santa Catarina",
+        "country": "Brazil",
+        "lat": -27.5948698,
+        "lng": -48.54821949999999
+    },
+    {
+        "city": "Palmas",
+        "province": "Tocantins",
+        "country": "Brazil",
+        "lat": -10.249091,
+        "lng": -48.32428580000001
+    },
+    {
+        "city": "Uberlândia",
+        "province": "Minas Gerais",
+        "country": "Brazil",
+        "lat": -18.9146078,
+        "lng": -48.2753801
+    },
+    {
+        "city": "Araraquara",
+        "province": "São Paulo",
+        "country": "Brazil",
+        "lat": -21.7848272,
+        "lng": -48.1786486
+    },
+    {
+        "city": "Brasília",
+        "province": "Federal District (Brazil) Distrito Federal",
+        "country": "Brazil",
+        "lat": -15.7942287,
+        "lng": -47.8821658
+    },
+    {
+        "city": "Ribeirão Preto",
+        "province": "São Paulo",
+        "country": "Brazil",
+        "lat": -21.1704008,
+        "lng": -47.8103238
+    },
+    {
+        "city": "Imperatriz",
+        "province": "Maranhão",
+        "country": "Brazil",
+        "lat": -5.5205508,
+        "lng": -47.4718408
+    },
+    {
+        "city": "Campinas",
+        "province": "São Paulo",
+        "country": "Brazil",
+        "lat": -22.9098833,
+        "lng": -47.0625812
+    },
+    {
+        "city": "São Paulo",
+        "province": "São Paulo",
+        "country": "Brazil",
+        "lat": -23.5505199,
+        "lng": -46.63330939999999
+    },
+    {
+        "city": "Poços de Caldas",
+        "province": "Minas Gerais",
+        "country": "Brazil",
+        "lat": -21.7853787,
+        "lng": -46.5619303
+    },
+    {
+        "city": "São José dos Campos",
+        "province": "São Paulo",
+        "country": "Brazil",
+        "lat": -23.223701,
+        "lng": -45.9009074
+    },
+    {
+        "city": "São Luís",
+        "province": "Maranhão",
+        "country": "Brazil",
+        "lat": -2.5391099,
+        "lng": -44.28290459999999
+    },
+    {
+        "city": "Belo Horizonte",
+        "province": "Minas Gerais",
+        "country": "Brazil",
+        "lat": -19.9245018,
+        "lng": -43.93523760000001
+    },
+    {
+        "city": "Juiz de Fora",
+        "province": "Minas Gerais",
+        "country": "Brazil",
+        "lat": -21.7624237,
+        "lng": -43.3433999
+    },
+    {
+        "city": "Rio de Janeiro",
+        "province": "Rio de Janeiro",
+        "country": "Brazil",
+        "lat": -22.9068467,
+        "lng": -43.1728965
+    },
+    {
+        "city": "Teresina",
+        "province": "Piauí",
+        "country": "Brazil",
+        "lat": -5.0920108,
+        "lng": -42.80375970000001
+    },
+    {
+        "city": "Governador Valadares",
+        "province": "Minas Gerais",
+        "country": "Brazil",
+        "lat": -18.8549317,
+        "lng": -41.95592329999999
+    },
+    {
+        "city": "Petrolina",
+        "province": "Pernambuco",
+        "country": "Brazil",
+        "lat": -9.389083,
+        "lng": -40.5030961
+    },
+    {
+        "city": "Vitória",
+        "province": "Espírito Santo",
+        "country": "Brazil",
+        "lat": -20.2976178,
+        "lng": -40.2957768
+    },
+    {
+        "city": "Sobral",
+        "province": "Ceará",
+        "country": "Brazil",
+        "lat": -3.701499,
+        "lng": -40.3496894
+    },
+    {
+        "city": "Juazeiro do Norte",
+        "province": "Ceará",
+        "country": "Brazil",
+        "lat": -7.228472699999999,
+        "lng": -39.3121233
+    },
+    {
+        "city": "Ilhéus",
+        "province": "Bahia",
+        "country": "Brazil",
+        "lat": -14.7935051,
+        "lng": -39.0463797
+    },
+    {
+        "city": "Fortaleza",
+        "province": "Ceará",
+        "country": "Brazil",
+        "lat": -3.7319029,
+        "lng": -38.5267393
+    },
+    {
+        "city": "Salvador",
+        "province": "Bahia",
+        "country": "Brazil",
+        "lat": -12.9722184,
+        "lng": -38.5014136
+    },
+    {
+        "city": "Aracaju",
+        "province": "Sergipe",
+        "country": "Brazil",
+        "lat": -10.9472468,
+        "lng": -37.0730823
+    },
+    {
+        "city": "Grytviken",
+        "province": "South Georgia and the South Sandwich Islands",
+        "country": "United Kingdom",
+        "lat": -54.281149,
+        "lng": -36.5087385
+    },
+    {
+        "city": "Garanhuns",
+        "province": "Pernambuco",
+        "country": "Brazil",
+        "lat": -8.882855100000002,
+        "lng": -36.4968966
+    },
+    {
+        "city": "Caruaru",
+        "province": "Pernambuco",
+        "country": "Brazil",
+        "lat": -8.2849639,
+        "lng": -35.9701874
+    },
+    {
+        "city": "Campina Grande",
+        "province": "Paraíba",
+        "country": "Brazil",
+        "lat": -7.2290752,
+        "lng": -35.8808337
+    },
+    {
+        "city": "Maceió",
+        "province": "Alagoas",
+        "country": "Brazil",
+        "lat": -9.6498487,
+        "lng": -35.7089492
+    },
+    {
+        "city": "Natal",
+        "province": "Rio Grande do Norte",
+        "country": "Brazil",
+        "lat": -5.7792569,
+        "lng": -35.200916
+    },
+    {
+        "city": "Recife",
+        "province": "Pernambuco",
+        "country": "Brazil",
+        "lat": -8.0475622,
+        "lng": -34.8769643
+    },
+    {
+        "city": "João Pessoa",
+        "province": "Paraíba",
+        "country": "Brazil",
+        "lat": -7.119495799999999,
+        "lng": -34.8450118
+    },
+    {
+        "city": "Fernando de Noronha",
+        "province": "Pernambuco",
+        "country": "Brazil",
+        "lat": -3.8447976,
+        "lng": -32.4268917
+    },
+    {
+        "city": "Jamestown",
+        "province": "Saint Helena",
+        "country": "United Kingdom",
+        "lat": -15.9286343,
+        "lng": -5.7151749
+    },
+    {
+        "city": "Luanda",
+        "province": "",
+        "country": "Angola",
+        "lat": -8.839987599999999,
+        "lng": 13.2894368
+    },
+    {
+        "city": "Brazzaville",
+        "province": "",
+        "country": "Republic of the Congo",
+        "lat": -4.2633597,
+        "lng": 15.2428853
+    },
+    {
+        "city": "Kinshasa",
+        "province": "",
+        "country": "Democratic Republic of the Congo",
+        "lat": -4.4419311,
+        "lng": 15.2662931
+    },
+    {
+        "city": "Huambo",
+        "province": "",
+        "country": "Angola",
+        "lat": -12.7739761,
+        "lng": 15.7468535
+    },
+    {
+        "city": "Windhoek",
+        "province": "",
+        "country": "Namibia",
+        "lat": -22.5608807,
+        "lng": 17.0657549
+    },
+    {
+        "city": "Cape Town",
+        "province": "Western Cape",
+        "country": "South Africa",
+        "lat": -33.9248685,
+        "lng": 18.4240553
+    },
+    {
+        "city": "Kimberley",
+        "province": "Northern Cape",
+        "country": "South Africa",
+        "lat": -28.7282384,
+        "lng": 24.7499112
+    },
+    {
+        "city": "Port Elizabeth",
+        "province": "Eastern Cape",
+        "country": "South Africa",
+        "lat": -33.7139247,
+        "lng": 25.5207358
+    },
+    {
+        "city": "Mafikeng",
+        "province": "North West",
+        "country": "South Africa",
+        "lat": -25.855978,
+        "lng": 25.64031
+    },
+    {
+        "city": "Livingstone",
+        "province": "",
+        "country": "Zambia",
+        "lat": -17.8519791,
+        "lng": 25.8285153
+    },
+    {
+        "city": "Gaborone",
+        "province": "",
+        "country": "Botswana",
+        "lat": -24.6282079,
+        "lng": 25.9231471
+    },
+    {
+        "city": "Bloemfontein",
+        "province": "Free State",
+        "country": "South Africa",
+        "lat": -29.085214,
+        "lng": 26.1595761
+    },
+    {
+        "city": "Bhisho",
+        "province": "Eastern Cape",
+        "country": "South Africa",
+        "lat": -32.849876,
+        "lng": 27.4409557
+    },
+    {
+        "city": "Lubumbashi",
+        "province": "",
+        "country": "Democratic Republic of the Congo",
+        "lat": -11.6876026,
+        "lng": 27.5026174
+    },
+    {
+        "city": "Maseru",
+        "province": "",
+        "country": "Lesotho",
+        "lat": -29.36321879999999,
+        "lng": 27.5143603
+    },
+    {
+        "city": "Francistown",
+        "province": "",
+        "country": "Botswana",
+        "lat": -21.1661005,
+        "lng": 27.5143603
+    },
+    {
+        "city": "Johannesburg",
+        "province": "Gauteng",
+        "country": "South Africa",
+        "lat": -26.2041028,
+        "lng": 28.0473051
+    },
+    {
+        "city": "Pretoria",
+        "province": "Gauteng",
+        "country": "South Africa",
+        "lat": -25.7478676,
+        "lng": 28.2292712
+    },
+    {
+        "city": "Lusaka",
+        "province": "",
+        "country": "Zambia",
+        "lat": -15.3875259,
+        "lng": 28.3228165
+    },
+    {
+        "city": "Bulawayo",
+        "province": "Bulawayo",
+        "country": "Zimbabwe",
+        "lat": -20.1325066,
+        "lng": 28.626479
+    },
+    {
+        "city": "Ndola",
+        "province": "",
+        "country": "Zambia",
+        "lat": -12.9906407,
+        "lng": 28.6498144
+    },
+    {
+        "city": "Bujumbura",
+        "province": "",
+        "country": "Burundi",
+        "lat": -3.361378,
+        "lng": 29.3598782
+    },
+    {
+        "city": "Polokwane",
+        "province": "Limpopo",
+        "country": "South Africa",
+        "lat": -23.8961708,
+        "lng": 29.4486263
+    },
+    {
+        "city": "Gweru",
+        "province": "Midlands",
+        "country": "Zimbabwe",
+        "lat": -19.468531,
+        "lng": 29.8120795
+    },
+    {
+        "city": "Kigali",
+        "province": "",
+        "country": "Rwanda",
+        "lat": -1.9705786,
+        "lng": 30.1044288
+    },
+    {
+        "city": "Pietermaritzburg",
+        "province": "KwaZulu-Natal",
+        "country": "South Africa",
+        "lat": -29.6006068,
+        "lng": 30.3794118
+    },
+    {
+        "city": "Nelspruit",
+        "province": "Mpumalanga",
+        "country": "South Africa",
+        "lat": -25.4752984,
+        "lng": 30.9694163
+    },
+    {
+        "city": "Harare",
+        "province": "Harare",
+        "country": "Zimbabwe",
+        "lat": -17.8251657,
+        "lng": 31.03351
+    },
+    {
+        "city": "Durban",
+        "province": "KwaZulu-Natal",
+        "country": "South Africa",
+        "lat": -29.85868039999999,
+        "lng": 31.0218404
+    },
+    {
+        "city": "Mbabane",
+        "province": "",
+        "country": "Swaziland",
+        "lat": -26.3054482,
+        "lng": 31.1366715
+    },
+    {
+        "city": "Lobamba",
+        "province": "",
+        "country": "Swaziland",
+        "lat": -26.400429,
+        "lng": 31.1824925
+    },
+    {
+        "city": "Manzini",
+        "province": "",
+        "country": "Swaziland",
+        "lat": -26.5081999,
+        "lng": 31.3713164
+    },
+    {
+        "city": "Mutare",
+        "province": "Manicaland",
+        "country": "Zimbabwe",
+        "lat": -18.9757714,
+        "lng": 32.650351
+    },
+    {
+        "city": "Maputo",
+        "province": "",
+        "country": "Mozambique",
+        "lat": -25.891968,
+        "lng": 32.6051351
+    },
+    {
+        "city": "Mwanza",
+        "province": "",
+        "country": "Tanzania",
+        "lat": -2.5164305,
+        "lng": 32.9174517
+    },
+    {
+        "city": "Lilongwe",
+        "province": "",
+        "country": "Malawi",
+        "lat": -13.9626121,
+        "lng": 33.7741195
+    },
+    {
+        "city": "Blantyre",
+        "province": "",
+        "country": "Malawi",
+        "lat": -15.7666707,
+        "lng": 35.0167866
+    },
+    {
+        "city": "Dodoma",
+        "province": "",
+        "country": "Tanzania",
+        "lat": -6.162959000000001,
+        "lng": 35.7516069
+    },
+    {
+        "city": "Nairobi",
+        "province": "",
+        "country": "Kenya",
+        "lat": -1.2920659,
+        "lng": 36.8219462
+    },
+    {
+        "city": "Zanzibar City",
+        "province": "",
+        "country": "Tanzania",
+        "lat": -6.165916999999999,
+        "lng": 39.202641
+    },
+    {
+        "city": "Dar es Salaam",
+        "province": "",
+        "country": "Tanzania",
+        "lat": -6.792354,
+        "lng": 39.2083284
+    },
+    {
+        "city": "Mombasa",
+        "province": "",
+        "country": "Kenya",
+        "lat": -4.0434771,
+        "lng": 39.6682065
+    },
+    {
+        "city": "Kismayo",
+        "province": "",
+        "country": "Somalia",
+        "lat": -0.3560455,
+        "lng": 42.5460573
+    },
+    {
+        "city": "Moroni",
+        "province": "",
+        "country": "Comoros",
+        "lat": -11.7172157,
+        "lng": 43.2473146
+    },
+    {
+        "city": "Mamoudzou",
+        "province": "Mayotte",
+        "country": "France",
+        "lat": -12.7809488,
+        "lng": 45.227872
+    },
+    {
+        "city": "Antananarivo",
+        "province": "",
+        "country": "Madagascar",
+        "lat": -18.8791902,
+        "lng": 47.5079055
+    },
+    {
+        "city": "Saint-Denis",
+        "province": "Réunion",
+        "country": "France",
+        "lat": -20.8906596,
+        "lng": 55.4550536
+    },
+    {
+        "city": "Victoria",
+        "province": "",
+        "country": "Seychelles",
+        "lat": -4.619143,
+        "lng": 55.4513149
+    },
+    {
+        "city": "Port Louis",
+        "province": "",
+        "country": "Mauritius",
+        "lat": -20.1608912,
+        "lng": 57.5012222
+    },
+    {
+        "city": "Padang",
+        "province": "West Sumatera",
+        "country": "Indonesia",
+        "lat": -0.9470831999999999,
+        "lng": 100.417181
+    },
+    {
+        "city": "Palembang",
+        "province": "South Sumatera",
+        "country": "Indonesia",
+        "lat": -2.9760735,
+        "lng": 104.7754307
+    },
+    {
+        "city": "Jakarta",
+        "province": "Jakarta",
+        "country": "Indonesia",
+        "lat": -6.17511,
+        "lng": 106.8650395
+    },
+    {
+        "city": "Bogor",
+        "province": "West Java",
+        "country": "Indonesia",
+        "lat": -6.597146899999999,
+        "lng": 106.8060388
+    },
+    {
+        "city": "Bandung",
+        "province": "West Java",
+        "country": "Indonesia",
+        "lat": -6.9174639,
+        "lng": 107.6191228
+    },
+    {
+        "city": "Pontianak",
+        "province": "West Kalimantan",
+        "country": "Indonesia",
+        "lat": -0.0263303,
+        "lng": 109.3425039
+    },
+    {
+        "city": "Yogyakarta",
+        "province": "Special Region of Yogyakarta",
+        "country": "Indonesia",
+        "lat": -7.7955798,
+        "lng": 110.3694896
+    },
+    {
+        "city": "Semarang",
+        "province": "Central Java",
+        "country": "Indonesia",
+        "lat": -7.0051453,
+        "lng": 110.4381254
+    },
+    {
+        "city": "Malang",
+        "province": "East Java",
+        "country": "Indonesia",
+        "lat": -7.9666204,
+        "lng": 112.6326321
+    },
+    {
+        "city": "Surabaya",
+        "province": "East Java",
+        "country": "Indonesia",
+        "lat": -7.2574719,
+        "lng": 112.7520883
+    },
+    {
+        "city": "Denpasar",
+        "province": "Bali",
+        "country": "Indonesia",
+        "lat": -8.670458199999999,
+        "lng": 115.2126293
+    },
+    {
+        "city": "Mandurah",
+        "province": "Western Australia",
+        "country": "Australia",
+        "lat": -32.5361038,
+        "lng": 115.7424077
+    },
+    {
+        "city": "Perth",
+        "province": "Western Australia",
+        "country": "Australia",
+        "lat": -31.9505269,
+        "lng": 115.8604572
+    },
+    {
+        "city": "Balikpapan",
+        "province": "East Kalimantan",
+        "country": "Indonesia",
+        "lat": -1.2379274,
+        "lng": 116.8528526
+    },
+    {
+        "city": "Port Hedland",
+        "province": "Western Australia",
+        "country": "Australia",
+        "lat": -20.3106621,
+        "lng": 118.5878223
+    },
+    {
+        "city": "Makassar",
+        "province": "South Sulawesi",
+        "country": "Indonesia",
+        "lat": -5.147665099999999,
+        "lng": 119.4327314
+    },
+    {
+        "city": "Dili",
+        "province": "",
+        "country": "Timor-Leste",
+        "lat": -8.5568557,
+        "lng": 125.5603143
+    },
+    {
+        "city": "Ambon",
+        "province": "Maluku",
+        "country": "Indonesia",
+        "lat": -3.6553932,
+        "lng": 128.1907723
+    },
+    {
+        "city": "Darwin",
+        "province": "Northern Territory",
+        "country": "Australia",
+        "lat": -12.4634403,
+        "lng": 130.8456418
+    },
+    {
+        "city": "Adelaide",
+        "province": "South Australia",
+        "country": "Australia",
+        "lat": -34.9284989,
+        "lng": 138.6007456
+    },
+    {
+        "city": "Jayapura",
+        "province": "Papua",
+        "country": "Indonesia",
+        "lat": -2.5916025,
+        "lng": 140.6689995
+    },
+    {
+        "city": "Geelong",
+        "province": "Victoria",
+        "country": "Australia",
+        "lat": -38.1499181,
+        "lng": 144.3617186
+    },
+    {
+        "city": "Melbourne",
+        "province": "Victoria (Australia) Victoria",
+        "country": "Australia",
+        "lat": -37.8136276,
+        "lng": 144.9630576
+    },
+    {
+        "city": "Cairns",
+        "province": "Queensland",
+        "country": "Australia",
+        "lat": -16.9185514,
+        "lng": 145.7780548
+    },
+    {
+        "city": "Townsville",
+        "province": "Queensland",
+        "country": "Australia",
+        "lat": -19.2589635,
+        "lng": 146.8169483
+    },
+    {
+        "city": "Port Moresby",
+        "province": "",
+        "country": "Papua New Guinea",
+        "lat": -9.4780123,
+        "lng": 147.1506542
+    },
+    {
+        "city": "Hobart",
+        "province": "Tasmania",
+        "country": "Australia",
+        "lat": -42.8821377,
+        "lng": 147.3271949
+    },
+    {
+        "city": "Canberra",
+        "province": "Australian Capital Territory",
+        "country": "Australia",
+        "lat": -35.2809368,
+        "lng": 149.1300092
+    },
+    {
+        "city": "Rockhampton",
+        "province": "Queensland",
+        "country": "Australia",
+        "lat": -23.3790772,
+        "lng": 150.510016
+    },
+    {
+        "city": "Wollongong",
+        "province": "New South Wales",
+        "country": "Australia",
+        "lat": -34.4278121,
+        "lng": 150.8930607
+    },
+    {
+        "city": "Sydney",
+        "province": "New South Wales",
+        "country": "Australia",
+        "lat": -33.8688197,
+        "lng": 151.2092955
+    },
+    {
+        "city": "Newcastle",
+        "province": "New South Wales",
+        "country": "Australia",
+        "lat": -32.9282712,
+        "lng": 151.7816802
+    },
+    {
+        "city": "Brisbane",
+        "province": "Queensland",
+        "country": "Australia",
+        "lat": -27.4697707,
+        "lng": 153.0251235
+    },
+    {
+        "city": "Gold Coast",
+        "province": "Queensland",
+        "country": "Australia",
+        "lat": -28.016667,
+        "lng": 153.4
+    },
+    {
+        "city": "Honiara",
+        "province": "",
+        "country": "Solomon Islands",
+        "lat": -9.4456381,
+        "lng": 159.9728999
+    },
+    {
+        "city": "Nouméa",
+        "province": "New Caledonia",
+        "country": "France",
+        "lat": -22.2558234,
+        "lng": 166.4505243
+    },
+    {
+        "city": "Yaren District",
+        "province": "",
+        "country": "Nauru",
+        "lat": -0.5466856999999999,
+        "lng": 166.9210913
+    },
+    {
+        "city": "Kingston",
+        "province": "Norfolk Island",
+        "country": "Australia",
+        "lat": -29.0563937,
+        "lng": 167.959588
+    },
+    {
+        "city": "Port Vila",
+        "province": "",
+        "country": "Vanuatu",
+        "lat": -17.7332512,
+        "lng": 168.3273245
+    },
+    {
+        "city": "Invercargill",
+        "province": "",
+        "country": "New Zealand",
+        "lat": -46.4131866,
+        "lng": 168.3537731
+    },
+    {
+        "city": "Dunedin",
+        "province": "",
+        "country": "New Zealand",
+        "lat": -45.8787605,
+        "lng": 170.5027976
+    },
+    {
+        "city": "Christchurch",
+        "province": "",
+        "country": "New Zealand",
+        "lat": -43.5320544,
+        "lng": 172.6362254
+    },
+    {
+        "city": "Nelson",
+        "province": "",
+        "country": "New Zealand",
+        "lat": -41.2706319,
+        "lng": 173.2839653
+    },
+    {
+        "city": "Auckland",
+        "province": "",
+        "country": "New Zealand",
+        "lat": -36.8484597,
+        "lng": 174.7633315
+    },
+    {
+        "city": "Wellington",
+        "province": "",
+        "country": "New Zealand",
+        "lat": -41.2864603,
+        "lng": 174.776236
+    },
+    {
+        "city": "Hamilton",
+        "province": "",
+        "country": "New Zealand",
+        "lat": -37.7870012,
+        "lng": 175.279253
+    },
+    {
+        "city": "Hastings",
+        "province": "",
+        "country": "New Zealand",
+        "lat": -39.6395783,
+        "lng": 176.8392322
+    },
+    {
+        "city": "Suva",
+        "province": "",
+        "country": "Fiji",
+        "lat": -18.1248086,
+        "lng": 178.4500789
+    },
+    {
+        "city": "Funafuti",
+        "province": "",
+        "country": "Tuvalu",
+        "lat": -8.5211471,
+        "lng": 179.1961926
+    },
+    {
+        "city": "Labasa",
+        "province": "",
+        "country": "Fiji",
+        "lat": -16.4307926,
+        "lng": 179.3629995
+    },
+    {
+        "city": "Nukulaelae",
+        "province": "",
+        "country": "Tuvalu",
+        "lat": -9.381110999999999,
+        "lng": 179.852222
+    }
+]

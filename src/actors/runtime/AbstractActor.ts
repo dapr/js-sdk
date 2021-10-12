@@ -1,9 +1,6 @@
 import { Temporal } from "@js-temporal/polyfill";
-import CommunicationProtocolEnum from "../../enum/CommunicationProtocol.enum";
 import DaprClient from "../../implementation/Client/DaprClient";
-import IClient from "../../interfaces/Client/IClient";
 import ActorId from "../ActorId";
-import ActorRuntime from "./ActorRuntime";
 import ActorStateManager from "./ActorStateManager";
 import StateProvider from "./StateProvider";
 
@@ -182,6 +179,17 @@ export default abstract class AbstractActor {
    */
   async onActorMethodPost(): Promise<void> {
     return;
+  }
+
+  async receiveReminder(data: string): Promise<void> {
+    console.warn(JSON.stringify({
+      error: "ACTOR_METHOD_NOT_IMPLEMENTED",
+      errorMsg: `A reminder was created for the actor with id: ${this.id.getId()} but the method 'receiveReminder' was not implemented`,
+    }));
+  }
+
+  getDaprClient(): DaprClient {
+    return this.daprClient;
   }
 
   getStateProvider(): StateProvider {

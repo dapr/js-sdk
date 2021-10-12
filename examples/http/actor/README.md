@@ -3,7 +3,10 @@
 ## Running
 
 ```bash
-# Install
+# Build the Source (from the root)
+./build.sh
+
+# Install (from the example directory)
 npm install
 
 # Start a RabbitMQ Container (for the binding example part)
