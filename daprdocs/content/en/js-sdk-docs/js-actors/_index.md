@@ -13,7 +13,7 @@ For a more in-depth overview of Dapr actors, visit the [actors overview page]({{
 ## Pre-requisites
 - [Dapr CLI]({{< ref install-dapr-cli.md >}}) installed
 - Initialized [Dapr environment]({{< ref install-dapr-selfhost.md >}})
-- [Latest LTS version of Node or greater](https://nodejs.org/en/) d
+- [Latest LTS version of Node or greater](https://nodejs.org/en/)
 - [JavaScript NPM package installed](https://www.npmjs.com/package/dapr-client)
 
 ## Scenario
