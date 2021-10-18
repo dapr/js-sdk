@@ -22,10 +22,12 @@ async function start() {
     CommunicationProtocolEnum.HTTP
   );
 
+  // Note that invoker listeners can be set up after startServer() has been called
   await server.startServer();
 
   console.log("Setting up invocation endpoints")
-  await server.invoker.listen("hello-world", async (data: any) => {
+  await server.invoker.listen("hello-world", async (data: Record<string, any>) => {
+    // Data is automatically parsed when received
     console.log(`Received: ${JSON.stringify(data.body)} on POST hello-world`);
     return { hello: "world received from POST" };
   }, { method: HttpMethod.POST });

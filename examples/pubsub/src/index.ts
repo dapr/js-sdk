@@ -22,13 +22,16 @@ async function start() {
   );
 
   // Initialize the subscription. Note that this must be done BEFORE calling .startServer()
-  await server.pubsub.subscribe("my-pubsub-component", "my-topic", async (data: any) => {
+  await server.pubsub.subscribe("my-pubsub-component", "my-topic", async (data: Record<string, any>) => {
+    // The library parses JSON when possible.
     console.log(`[Dapr-JS][Example] Received on subscription: ${JSON.stringify(data)}`)
   });
   await server.startServer();
 
   // Publish a message
   console.log("[Dapr-JS][Example] Publishing message")
+
+  // Internally, the message will be serialized using JSON.stringify()
   await client.pubsub.publish("my-pubsub-component", "my-topic", { hello: "world" });
 }
 
