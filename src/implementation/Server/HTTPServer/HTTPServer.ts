@@ -4,10 +4,10 @@ import HTTPServerImpl from "./HTTPServerImpl";
 import IServer from "../../../interfaces/Server/IServer";
 import * as NodeJSUtils from "../../../utils/NodeJS.util";
 
-// tslint:disable-next-line
-export interface IServerImplType extends HTTPServerImpl { };
-// tslint:disable-next-line
-export interface IServerType extends Restana.Service<Restana.Protocol.HTTP> { };
+// eslint-disable-next-line
+export interface IServerImplType extends HTTPServerImpl { }
+// eslint-disable-next-line
+export interface IServerType extends Restana.Service<Restana.Protocol.HTTP> { }
 
 export default class HTTPServer implements IServer {
   serverHost: string;
@@ -16,7 +16,7 @@ export default class HTTPServer implements IServer {
   server: IServerType;
   serverAddress: string;
   serverImpl: IServerImplType;
-  serverStartupDelay: number = 250;
+  serverStartupDelay = 250;
 
   constructor() {
     this.serverHost = "";

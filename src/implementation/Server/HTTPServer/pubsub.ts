@@ -13,14 +13,14 @@ export default class HTTPServerPubSub implements IServerPubSub {
     this.server = server;
   }
 
-  async subscribe(pubsubName: string, topic: string, cb: TypeDaprPubSubCallback, route: string = "") {
+  async subscribe(pubsubName: string, topic: string, cb: TypeDaprPubSubCallback, route = "") {
     if (!route) {
       route = `route-${pubsubName}-${topic}`;
     }
 
     // Register the handler
     await this.server.getServerImpl().registerPubSubSubscriptionRoute(pubsubName, topic, route);
- 
+
     this.server.getServer().post(`/${route}`, async (req, res) => {
       // Process our callback
       // @ts-ignore

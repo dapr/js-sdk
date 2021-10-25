@@ -9,7 +9,7 @@ export default class HTTPClientSecret implements IClientSecret {
     this.client = client;
   }
 
-  async get(secretStoreName: string, key: string, metadata: string = ""): Promise<object> {
+  async get(secretStoreName: string, key: string, metadata = ""): Promise<object> {
     const result = await this.client.execute(`/secrets/${secretStoreName}/${key}${metadata ? `?${metadata}` : ""}`);
     return result as object;
   }
