@@ -12,7 +12,7 @@ export default class GRPCClientInvoker implements IClientInvoker {
   client: GRPCClient;
 
   constructor(client: GRPCClient) {
-      this.client = client;
+    this.client = client;
   }
 
   // @todo: should return a specific typed Promise<TypeInvokerInvokeResponse> instead of Promise<nothing>
@@ -51,13 +51,13 @@ export default class GRPCClientInvoker implements IClientInvoker {
 
     msgInvokeService.setMessage(msgInvoke);
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const client = this.client.getClient();
       client.invokeService(msgInvokeService, (err, res: InvokeResponse) => {
         if (err) {
           return reject(err);
         }
-        
+
         // const res = await fetch(`${this.daprUrl}/invoke/${appId}/method/${methodName}`, fetchOptions);
         // return ResponseUtil.handleResponse(res);
         const resContentType = res.getContentType();

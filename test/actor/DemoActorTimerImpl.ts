@@ -2,7 +2,7 @@ import { AbstractActor } from "../../src";
 import DemoActorTimerInterface from "./DemoActorTimerInterface";
 
 export default class DemoActorTimerImpl extends AbstractActor implements DemoActorTimerInterface {
-  counter: number = 0;
+  counter = 0;
 
   async init(): Promise<string> {
     return "Actor Initialized";

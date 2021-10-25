@@ -9,7 +9,7 @@ export default class HTTPClient implements IClient {
   private readonly clientPort: string;
   private readonly clientUrl: string;
 
-  constructor(host: string = "127.0.0.1", port: string = "50050") {
+  constructor(host = "127.0.0.1", port = "50050") {
     this.isInitialized = true;
     this.clientHost = host;
     this.clientPort = port;

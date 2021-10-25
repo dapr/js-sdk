@@ -7,7 +7,7 @@ export default class GRPCClientBinding implements IClientBinding {
   client: GRPCClient;
 
   constructor(client: GRPCClient) {
-      this.client = client;
+    this.client = client;
   }
 
   // Send an event to an external system
@@ -19,7 +19,7 @@ export default class GRPCClientBinding implements IClientBinding {
     msgService.setOperation(operation);
     msgService.setData(Buffer.from(JSON.stringify(data), "utf-8"));
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const client = this.client.getClient();
       client.invokeBinding(msgService, (err, res: InvokeBindingResponse) => {
         if (err) {

@@ -37,6 +37,9 @@ Tests are written per protocol layer: http or grpc. This is done because Dapr re
 # Ports: 1883 = TCP MQTT Port | 8081 = HTTP API | 8083 = MQTT/SSL Port | 8883 = MQTT/Websocket/SSL Port | 8084 = MQTT/Websocket Port | 18083 = Dashboard
 docker run -d --rm --name emqx -p 1883:1883 -p 8081:8081 -p 8083:8083 -p 8883:8883 -p 8084:8084 -p 18083:18083 emqx/emqx
 
+# Run Unit Tests
+npm run test:unit
+
 # Start gRPC tests
 npm run test:e2e:grpc:main
 
@@ -47,4 +50,4 @@ npm run test:e2e:http:actors
 
 ## Publishing
 
-./scripts/publish.sh
+Publishing is automated in the CI/CD pipeline. Each time a version is release (GitHub ref starting with `refs/tags/v`) then the pipeline will deploy the package as described in [build.yml](./.github/workflows/build.yml).

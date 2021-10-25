@@ -37,7 +37,8 @@ async function start() {
   console.log("Waiting 10 seconds before starting");
   await sleep(10000);
 
-  while (true) {
+  const isRunning = true;
+  while (isRunning) {
     console.log("Simulating cars entering and leaving for 5% of the population");
 
     const populationSize = Math.floor(amount * 0.05);

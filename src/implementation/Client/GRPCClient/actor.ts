@@ -27,7 +27,7 @@ export default class GRPCClientActor implements IClientActor {
       msgService.setData(body);
     }
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const client = this.client.getClient();
       client.invokeActor(msgService, (err, res: InvokeActorResponse) => {
         if (err) {
@@ -66,7 +66,7 @@ export default class GRPCClientActor implements IClientActor {
     msgService.setActorId(actorId);
     msgService.setOperationsList(transactionItems);
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const client = this.client.getClient();
       client.executeActorStateTransaction(msgService, (err, res) => {
         if (err) {
@@ -85,7 +85,7 @@ export default class GRPCClientActor implements IClientActor {
     msgService.setActorId(actorId)
     msgService.setKey(key);
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const client = this.client.getClient();
       client.getActorState(msgService, (err, res: GetActorStateResponse) => {
         if (err) {
@@ -123,7 +123,7 @@ export default class GRPCClientActor implements IClientActor {
       msgService.setDueTime(reminder.dueTime.toString());
     }
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const client = this.client.getClient();
       client.registerActorReminder(msgService, (err, res) => {
         if (err) {
@@ -174,7 +174,7 @@ export default class GRPCClientActor implements IClientActor {
     msgService.setActorId(actorId);
     msgService.setName(name);
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const client = this.client.getClient();
       client.unregisterActorReminder(msgService, (err, res) => {
         if (err) {
@@ -209,7 +209,7 @@ export default class GRPCClientActor implements IClientActor {
       msgService.setDueTime(timer.dueTime.toString());
     }
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const client = this.client.getClient();
       client.registerActorTimer(msgService, (err, res) => {
         if (err) {
@@ -228,7 +228,7 @@ export default class GRPCClientActor implements IClientActor {
     msgService.setActorId(actorId);
     msgService.setName(name);
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const client = this.client.getClient();
       client.unregisterActorTimer(msgService, (err, res) => {
         if (err) {
@@ -262,7 +262,7 @@ export default class GRPCClientActor implements IClientActor {
   // }
 
   async getActors(): Promise<object> {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const client = this.client.getClient();
 
       client.getMetadata(new Empty(), (err, res: GetMetadataResponse) => {

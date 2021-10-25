@@ -14,7 +14,7 @@ describe('DaprClient', () => {
     try {
       const client = new DaprClient(host, host);
     } catch (e) {
-      let msg = (e as Error).message;
+      const msg = (e as Error).message;
       expect(msg).toEqual("DAPR_CLIENT_INCORRECT_PORT");
     }
   });
