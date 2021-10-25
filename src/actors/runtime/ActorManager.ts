@@ -1,6 +1,4 @@
-import { v4 as uuidv4 } from "uuid";
 import DaprClient from "../../implementation/Client/DaprClient";
-import IClient from "../../interfaces/Client/IClient";
 import Class from "../../types/Class";
 import ActorId from "../ActorId";
 import AbstractActor from "./AbstractActor";
@@ -67,7 +65,7 @@ export default class ActorManager<T extends AbstractActor> {
         errorMsg: `The actor ${actorId.getId()} was not activated`
       }));
     }
-    
+
     const actor = await this.getActiveActor(actorId);
     await actor.onDeactivateInternal();
 

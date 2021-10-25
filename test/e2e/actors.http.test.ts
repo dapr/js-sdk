@@ -1,4 +1,4 @@
-import { AbstractActor, DaprClient, DaprServer, Temporal } from '../../src';
+import { DaprClient, DaprServer, Temporal } from '../../src';
 
 import DemoActorActivateImpl from '../actor/DemoActorActivateImpl';
 import DemoActorCounterImpl from '../actor/DemoActorCounterImpl';
@@ -141,7 +141,7 @@ describe('http/actors', () => {
 
     it('should be able to invoke an actor through an object message', async () => {
       const res = await client.actor.invoke("PUT", DemoActorSayImpl.name, "my-actor-id", "sayObject", { hello: "world" });
-      expect(JSON.stringify(res)).toEqual(`{\"said\":{\"hello\":\"world\"}}`)
+      expect(JSON.stringify(res)).toEqual(`{"said":{"hello":"world"}}`)
     });
   });
 
