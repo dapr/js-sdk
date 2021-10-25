@@ -1,0 +1,24 @@
+{
+  "name": "dapr-example-pubsub",
+  "version": "1.0.0",
+  "description": "An example utilizing the Dapr JS SDK to invoke a service",
+  "main": "dist/index.js",
+  "private": true,
+  "scripts": {
+    "build": "rimraf ./dist && tsc",
+    "start": "npm run build && node dist/index.js",
+    "start:dapr-grpc": "dapr run --app-id example-pubsub --app-port 50051 --app-protocol grpc --components-path ./components npm run start",
+    "start:dapr-http": "dapr run --app-id example-pubsub --app-port 50051 --app-protocol http --components-path ./components npm run start"
+  },
+  "keywords": [],
+  "license": "ISC",
+  "devDependencies": {
+    "rimraf": "^3.0.2",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.4"
+  },
+  "dependencies": {
+    "dapr-client": "file:../../build",
+    "@types/node": "^15.3.0"
+  }
+}
