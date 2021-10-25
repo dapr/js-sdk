@@ -108,16 +108,41 @@ describe('http/main', () => {
                 },
                 {
                     key: "key-2",
-                    value: "value-2"
+                    value: 2
                 },
                 {
                     key: "key-3",
-                    value: "value-3"
+                    value: true
+                },
+                {
+                    key: "key-4",
+                    value: {
+                        nested: {
+                            str: "string",
+                            num: 123
+                        }
+                    }
                 }
             ]);
 
-            const res = await client.state.get("state-redis", "key-1");
-            expect(res).toEqual("value-1");
+            const res = await Promise.all([
+                client.state.get("state-redis", "key-1"),
+                client.state.get("state-redis", "key-2"),
+                client.state.get("state-redis", "key-3"),
+                client.state.get("state-redis", "key-4")
+            ])
+
+            expect(res).toEqual([
+                "value-1",
+                2,
+                true,
+                {
+                    nested: {
+                        str: "string",
+                        num: 123
+                    }
+                }
+            ]);
         });
 
         it('should be able to get the state in bulk', async () => {
@@ -128,19 +153,35 @@ describe('http/main', () => {
                 },
                 {
                     key: "key-2",
-                    value: "value-2"
+                    value: 2
                 },
                 {
                     key: "key-3",
-                    value: "value-3"
+                    value: true
+                },
+                {
+                    key: "key-4",
+                    value: {
+                        nested: {
+                            str: "string",
+                            num: 123
+                        }
+                    }
                 }
             ]);
 
-            const res = await client.state.getBulk("state-redis", ["key-3", "key-2"]);
+            const res = await client.state.getBulk("state-redis", ["key-3", "key-2", "key-1", "key-4"]);
 
             expect(res).toEqual(expect.arrayContaining([
-                expect.objectContaining({ key: "key-2", data: "value-2" }),
-                expect.objectContaining({ key: "key-3", data: "value-3" })
+                expect.objectContaining({ key: "key-1", data: "value-1" }),
+                expect.objectContaining({ key: "key-2", data: 2 }),
+                expect.objectContaining({ key: "key-3", data: true }),
+                expect.objectContaining({ key: "key-4", data: {
+                    nested: {
+                        str: "string",
+                        num: 123
+                    }
+                }})
             ]))
         });
 

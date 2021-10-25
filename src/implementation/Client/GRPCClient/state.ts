@@ -21,7 +21,7 @@ export default class GRPCClientState implements IClientState {
         for (const stateObject of stateObjects) {
             const si = new StateItem();
             si.setKey(stateObject.key);
-            si.setValue(Buffer.from(stateObject.value, "utf-8"));
+            si.setValue(Buffer.from(typeof stateObject.value === "object" ? JSON.stringify(stateObject.value) : stateObject.value.toString(), "utf-8"));
             stateList.push(si);
         }
 
@@ -89,11 +89,20 @@ export default class GRPCClientState implements IClientState {
                 // https://docs.dapr.io/reference/api/state_api/#http-response-2
                 const items = res.getItemsList();
 
-                return resolve(items.map(i => ({
-                    key: i.getKey(),
-                    data: Buffer.from(i.getData()).toString(),
-                    etag: i.getEtag()
-                })));
+                return resolve(items.map(i => {
+                    const resDataStr = Buffer.from(i.getData()).toString()
+                    try {
+                        var data = JSON.parse(resDataStr);
+                    } catch(e) {
+                        data = resDataStr;
+                    }
+
+                    return {
+                        key: i.getKey(),
+                        data,
+                        etag: i.getEtag()
+                    }
+                }));
             });
         })
     }
