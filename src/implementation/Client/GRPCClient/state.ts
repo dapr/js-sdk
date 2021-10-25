@@ -89,8 +89,9 @@ export default class GRPCClientState implements IClientState {
         const items = res.getItemsList();
         return resolve(items.map(i => {
           const resDataStr = Buffer.from(i.getData()).toString()
+          let data: string;
           try {
-            var data = JSON.parse(resDataStr);
+            data = JSON.parse(resDataStr);
           } catch(e) {
             data = resDataStr;
           }
