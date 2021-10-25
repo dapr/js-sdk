@@ -72,21 +72,24 @@ export default class GRPCClientState implements IClientState {
     })
   }
 
-  async getBulk(storeName: string, keys: string[], parallelism: number = 10, metadata: string = ""): Promise<KeyValueType[]> {
+  async getBulk(storeName: string, keys: string[], parallelism = 10, metadata = ""): Promise<KeyValueType[]> {
     const msgService = new GetBulkStateRequest();
     msgService.setStoreName(storeName);
     msgService.setKeysList(keys);
     msgService.setParallelism(parallelism);
     // @todo: https://docs.dapr.io/reference/api/state_api/#optional-behaviors
     // msgService.setConsistency()
-    return new Promise(async (resolve, reject) => {
+
+    return new Promise((resolve, reject) => {
       const client = this.client.getClient();
       client.getBulkState(msgService, (err, res: GetBulkStateResponse) => {
         if (err) {
           return reject(err);
         }
+
         // https://docs.dapr.io/reference/api/state_api/#http-response-2
         const items = res.getItemsList();
+
         return resolve(items.map(i => {
           const resDataStr = Buffer.from(i.getData()).toString()
           let data: string;
