@@ -47,4 +47,4 @@ npm run test:e2e:http:actors
 
 ## Publishing
 
-./scripts/publish.sh
+Publishing is automated in the CI/CD pipeline. Each time a version is release (GitHub ref starting with `refs/tags/v`) then the pipeline will deploy the package as described in [build.yml](./.github/workflows/build.yml).
