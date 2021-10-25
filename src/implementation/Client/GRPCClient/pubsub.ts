@@ -7,7 +7,7 @@ export default class GRPCClientPubSub implements IClientPubSub {
   client: GRPCClient;
 
   constructor(client: GRPCClient) {
-      this.client = client;
+    this.client = client;
   }
 
   // @todo: should return a specific typed Promise<TypePubSubPublishResponse> instead of Promise<any>
@@ -17,7 +17,7 @@ export default class GRPCClientPubSub implements IClientPubSub {
     msgService.setTopic(topic);
     msgService.setData(Buffer.from(JSON.stringify(data), "utf-8"));
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const client = this.client.getClient();
       client.publishEvent(msgService, (err, res) => {
         if (err) {

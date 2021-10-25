@@ -28,7 +28,7 @@ export default class HTTPClientState implements IClientState {
     return result as KeyValueType;
   }
 
-  async getBulk(storeName: string, keys: string[], parallelism: number = 10, metadata: string = ""): Promise<KeyValueType[]> {
+  async getBulk(storeName: string, keys: string[], parallelism = 10, metadata = ""): Promise<KeyValueType[]> {
     const result = await this.client.execute(`/state/${storeName}/bulk${metadata ? `?${metadata}` : ""}`, {
       method: 'POST',
       headers: {

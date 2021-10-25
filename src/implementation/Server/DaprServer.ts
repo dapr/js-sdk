@@ -35,10 +35,10 @@ export default class DaprServer {
   readonly actor: IServerActor;
 
   constructor(
-    serverHost: string = "127.0.0.1"
+    serverHost = "127.0.0.1"
     , serverPort: string = process.env.DAPR_SERVER_PORT || "50050"
-    , daprHost: string = "127.0.0.1"
-    , daprPort: string = "50051"
+    , daprHost = "127.0.0.1"
+    , daprPort = "50051"
     , communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP
   ) {
     this.serverHost = serverHost;

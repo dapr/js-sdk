@@ -109,7 +109,7 @@ describe('ActorRuntime', () => {
     try {
       await runtime.invoke(DemoActorCounterImpl.name, actorId, "someRandomMethod");
     } catch (e) {
-      let msg = (e as Error).message;
+      const msg = (e as Error).message;
       expect(msg).toEqual(`{"error":"ACTOR_METHOD_DOES_NOT_EXIST","errorMsg":"The actor method 'someRandomMethod' does not exist on ${DemoActorCounterImpl.name}"}`);
     }
   });
