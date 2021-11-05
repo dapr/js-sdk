@@ -39,6 +39,7 @@ export namespace HTTPExtension {
     CONNECT = 6,
     OPTIONS = 7,
     TRACE = 8,
+    PATCH = 9,
     }
 
 }
@@ -200,4 +201,35 @@ export namespace StateOptions {
     CONSISTENCY_STRONG = 2,
     }
 
+}
+
+export class ConfigurationItem extends jspb.Message { 
+    getKey(): string;
+    setKey(value: string): ConfigurationItem;
+    getValue(): string;
+    setValue(value: string): ConfigurationItem;
+    getVersion(): string;
+    setVersion(value: string): ConfigurationItem;
+
+    getMetadataMap(): jspb.Map<string, string>;
+    clearMetadataMap(): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ConfigurationItem.AsObject;
+    static toObject(includeInstance: boolean, msg: ConfigurationItem): ConfigurationItem.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ConfigurationItem, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ConfigurationItem;
+    static deserializeBinaryFromReader(message: ConfigurationItem, reader: jspb.BinaryReader): ConfigurationItem;
+}
+
+export namespace ConfigurationItem {
+    export type AsObject = {
+        key: string,
+        value: string,
+        version: string,
+
+        metadataMap: Array<[string, string]>,
+    }
 }
