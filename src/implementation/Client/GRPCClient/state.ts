@@ -6,6 +6,7 @@ import { OperationType } from '../../../types/Operation.type';
 import { IRequestMetadata } from '../../../types/RequestMetadata.type';
 import IClientState from '../../../interfaces/Client/IClientState';
 import { KeyValueType } from '../../../types/KeyValue.type';
+import { merge } from '../../../utils/Map.util';
 
 // https://docs.dapr.io/reference/api/state_api/
 export default class GRPCClientState implements IClientState {
@@ -16,7 +17,7 @@ export default class GRPCClientState implements IClientState {
   }
 
   async save(storeName: string, stateObjects: KeyValuePairType[]): Promise<void> {
-    const stateList = [];
+    const stateList: StateItem[] = [];
 
     for (const stateObject of stateObjects) {
       const si = new StateItem();
@@ -163,6 +164,9 @@ export default class GRPCClientState implements IClientState {
     const msgService = new ExecuteStateTransactionRequest();
     msgService.setStorename(storeName);
     msgService.setOperationsList(transactionItems);
+    if (metadata) {
+      merge(msgService.getMetadataMap(), metadata);
+    }
 
     return new Promise((resolve, reject) => {
       const client = this.client.getClient();
