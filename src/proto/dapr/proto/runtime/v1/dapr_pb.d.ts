@@ -277,6 +277,95 @@ export namespace SaveStateRequest {
     }
 }
 
+export class QueryStateRequest extends jspb.Message { 
+    getStoreName(): string;
+    setStoreName(value: string): QueryStateRequest;
+    getQuery(): string;
+    setQuery(value: string): QueryStateRequest;
+
+    getMetadataMap(): jspb.Map<string, string>;
+    clearMetadataMap(): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): QueryStateRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: QueryStateRequest): QueryStateRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: QueryStateRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): QueryStateRequest;
+    static deserializeBinaryFromReader(message: QueryStateRequest, reader: jspb.BinaryReader): QueryStateRequest;
+}
+
+export namespace QueryStateRequest {
+    export type AsObject = {
+        storeName: string,
+        query: string,
+
+        metadataMap: Array<[string, string]>,
+    }
+}
+
+export class QueryStateItem extends jspb.Message { 
+    getKey(): string;
+    setKey(value: string): QueryStateItem;
+    getData(): Uint8Array | string;
+    getData_asU8(): Uint8Array;
+    getData_asB64(): string;
+    setData(value: Uint8Array | string): QueryStateItem;
+    getEtag(): string;
+    setEtag(value: string): QueryStateItem;
+    getError(): string;
+    setError(value: string): QueryStateItem;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): QueryStateItem.AsObject;
+    static toObject(includeInstance: boolean, msg: QueryStateItem): QueryStateItem.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: QueryStateItem, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): QueryStateItem;
+    static deserializeBinaryFromReader(message: QueryStateItem, reader: jspb.BinaryReader): QueryStateItem;
+}
+
+export namespace QueryStateItem {
+    export type AsObject = {
+        key: string,
+        data: Uint8Array | string,
+        etag: string,
+        error: string,
+    }
+}
+
+export class QueryStateResponse extends jspb.Message { 
+    clearResultsList(): void;
+    getResultsList(): Array<QueryStateItem>;
+    setResultsList(value: Array<QueryStateItem>): QueryStateResponse;
+    addResults(value?: QueryStateItem, index?: number): QueryStateItem;
+    getToken(): string;
+    setToken(value: string): QueryStateResponse;
+
+    getMetadataMap(): jspb.Map<string, string>;
+    clearMetadataMap(): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): QueryStateResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: QueryStateResponse): QueryStateResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: QueryStateResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): QueryStateResponse;
+    static deserializeBinaryFromReader(message: QueryStateResponse, reader: jspb.BinaryReader): QueryStateResponse;
+}
+
+export namespace QueryStateResponse {
+    export type AsObject = {
+        resultsList: Array<QueryStateItem.AsObject>,
+        token: string,
+
+        metadataMap: Array<[string, string]>,
+    }
+}
+
 export class PublishEventRequest extends jspb.Message { 
     getPubsubName(): string;
     setPubsubName(value: string): PublishEventRequest;
@@ -632,6 +721,8 @@ export class RegisterActorReminderRequest extends jspb.Message {
     getData_asU8(): Uint8Array;
     getData_asB64(): string;
     setData(value: Uint8Array | string): RegisterActorReminderRequest;
+    getTtl(): string;
+    setTtl(value: string): RegisterActorReminderRequest;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): RegisterActorReminderRequest.AsObject;
@@ -651,6 +742,7 @@ export namespace RegisterActorReminderRequest {
         dueTime: string,
         period: string,
         data: Uint8Array | string,
+        ttl: string,
     }
 }
 
@@ -942,5 +1034,109 @@ export namespace SetMetadataRequest {
     export type AsObject = {
         key: string,
         value: string,
+    }
+}
+
+export class GetConfigurationRequest extends jspb.Message { 
+    getStoreName(): string;
+    setStoreName(value: string): GetConfigurationRequest;
+    clearKeysList(): void;
+    getKeysList(): Array<string>;
+    setKeysList(value: Array<string>): GetConfigurationRequest;
+    addKeys(value: string, index?: number): string;
+
+    getMetadataMap(): jspb.Map<string, string>;
+    clearMetadataMap(): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetConfigurationRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: GetConfigurationRequest): GetConfigurationRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetConfigurationRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetConfigurationRequest;
+    static deserializeBinaryFromReader(message: GetConfigurationRequest, reader: jspb.BinaryReader): GetConfigurationRequest;
+}
+
+export namespace GetConfigurationRequest {
+    export type AsObject = {
+        storeName: string,
+        keysList: Array<string>,
+
+        metadataMap: Array<[string, string]>,
+    }
+}
+
+export class GetConfigurationResponse extends jspb.Message { 
+    clearItemsList(): void;
+    getItemsList(): Array<dapr_proto_common_v1_common_pb.ConfigurationItem>;
+    setItemsList(value: Array<dapr_proto_common_v1_common_pb.ConfigurationItem>): GetConfigurationResponse;
+    addItems(value?: dapr_proto_common_v1_common_pb.ConfigurationItem, index?: number): dapr_proto_common_v1_common_pb.ConfigurationItem;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetConfigurationResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: GetConfigurationResponse): GetConfigurationResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetConfigurationResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetConfigurationResponse;
+    static deserializeBinaryFromReader(message: GetConfigurationResponse, reader: jspb.BinaryReader): GetConfigurationResponse;
+}
+
+export namespace GetConfigurationResponse {
+    export type AsObject = {
+        itemsList: Array<dapr_proto_common_v1_common_pb.ConfigurationItem.AsObject>,
+    }
+}
+
+export class SubscribeConfigurationRequest extends jspb.Message { 
+    getStoreName(): string;
+    setStoreName(value: string): SubscribeConfigurationRequest;
+    clearKeysList(): void;
+    getKeysList(): Array<string>;
+    setKeysList(value: Array<string>): SubscribeConfigurationRequest;
+    addKeys(value: string, index?: number): string;
+
+    getMetadataMap(): jspb.Map<string, string>;
+    clearMetadataMap(): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): SubscribeConfigurationRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: SubscribeConfigurationRequest): SubscribeConfigurationRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: SubscribeConfigurationRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): SubscribeConfigurationRequest;
+    static deserializeBinaryFromReader(message: SubscribeConfigurationRequest, reader: jspb.BinaryReader): SubscribeConfigurationRequest;
+}
+
+export namespace SubscribeConfigurationRequest {
+    export type AsObject = {
+        storeName: string,
+        keysList: Array<string>,
+
+        metadataMap: Array<[string, string]>,
+    }
+}
+
+export class SubscribeConfigurationResponse extends jspb.Message { 
+    clearItemsList(): void;
+    getItemsList(): Array<dapr_proto_common_v1_common_pb.ConfigurationItem>;
+    setItemsList(value: Array<dapr_proto_common_v1_common_pb.ConfigurationItem>): SubscribeConfigurationResponse;
+    addItems(value?: dapr_proto_common_v1_common_pb.ConfigurationItem, index?: number): dapr_proto_common_v1_common_pb.ConfigurationItem;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): SubscribeConfigurationResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: SubscribeConfigurationResponse): SubscribeConfigurationResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: SubscribeConfigurationResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): SubscribeConfigurationResponse;
+    static deserializeBinaryFromReader(message: SubscribeConfigurationResponse, reader: jspb.BinaryReader): SubscribeConfigurationResponse;
+}
+
+export namespace SubscribeConfigurationResponse {
+    export type AsObject = {
+        itemsList: Array<dapr_proto_common_v1_common_pb.ConfigurationItem.AsObject>,
     }
 }

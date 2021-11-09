@@ -134,6 +134,28 @@ function deserialize_dapr_proto_runtime_v1_GetBulkStateResponse(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.GetBulkStateResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_GetConfigurationRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.GetConfigurationRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.GetConfigurationRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_GetConfigurationRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.GetConfigurationRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_GetConfigurationResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.GetConfigurationResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.GetConfigurationResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_GetConfigurationResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.GetConfigurationResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_GetMetadataResponse(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.GetMetadataResponse)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.GetMetadataResponse');
@@ -255,6 +277,28 @@ function deserialize_dapr_proto_runtime_v1_PublishEventRequest(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.PublishEventRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_QueryStateRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.QueryStateRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.QueryStateRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_QueryStateRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.QueryStateRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_QueryStateResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.QueryStateResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.QueryStateResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_QueryStateResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.QueryStateResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_RegisterActorReminderRequest(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.RegisterActorReminderRequest)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.RegisterActorReminderRequest');
@@ -297,6 +341,28 @@ function serialize_dapr_proto_runtime_v1_SetMetadataRequest(arg) {
 
 function deserialize_dapr_proto_runtime_v1_SetMetadataRequest(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.SetMetadataRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_SubscribeConfigurationRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.SubscribeConfigurationRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_SubscribeConfigurationRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_SubscribeConfigurationResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.SubscribeConfigurationResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_SubscribeConfigurationResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_dapr_proto_runtime_v1_UnregisterActorReminderRequest(arg) {
@@ -382,6 +448,18 @@ saveState: {
     requestDeserialize: deserialize_dapr_proto_runtime_v1_SaveStateRequest,
     responseSerialize: serialize_google_protobuf_Empty,
     responseDeserialize: deserialize_google_protobuf_Empty,
+  },
+  // Queries the state.
+queryStateAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/QueryStateAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.QueryStateRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.QueryStateResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_QueryStateRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_QueryStateRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_QueryStateResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_QueryStateResponse,
   },
   // Deletes the state for a specific key.
 deleteState: {
@@ -550,6 +628,30 @@ invokeActor: {
     requestDeserialize: deserialize_dapr_proto_runtime_v1_InvokeActorRequest,
     responseSerialize: serialize_dapr_proto_runtime_v1_InvokeActorResponse,
     responseDeserialize: deserialize_dapr_proto_runtime_v1_InvokeActorResponse,
+  },
+  // GetConfiguration gets configuration from configuration store.
+getConfigurationAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/GetConfigurationAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.GetConfigurationRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.GetConfigurationResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_GetConfigurationRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_GetConfigurationRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_GetConfigurationResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_GetConfigurationResponse,
+  },
+  // SubscribeConfiguration gets configuration from configuration store and subscribe the updates event by grpc stream
+subscribeConfigurationAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/SubscribeConfigurationAlpha1',
+    requestStream: false,
+    responseStream: true,
+    requestType: dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_SubscribeConfigurationRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_SubscribeConfigurationRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_SubscribeConfigurationResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_SubscribeConfigurationResponse,
   },
   // Gets metadata of the sidecar
 getMetadata: {
