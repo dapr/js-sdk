@@ -42,6 +42,9 @@ jobs:
     - name: Dapr - Install CLI
       run: wget -q ${{ env.DAPR_INSTALL_URL }} -O - | /bin/bash -s ${{ env.DAPR_CLI_VER }}
 
+    - name: Dapr - Initialize
+      run: dapr init
+
     - name: Install Dependencies
       run: npm i
     
