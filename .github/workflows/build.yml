@@ -36,7 +36,8 @@ jobs:
       env:
         CI: true
     
-    - run: npm run test:unit
+    - run: npm run test:unit:main
+    - run: npm run test:unit:actors
     
     - name: Is Release?
       if: startswith(github.ref, 'refs/tags/v')

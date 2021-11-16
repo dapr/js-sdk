@@ -20,7 +20,7 @@ jobs:
       DAPR_INSTALL_URL: https://raw.githubusercontent.com/dapr/cli/master/install/install.sh
     services:
       emqx:
-        image: emqx:eqmx
+        image: emqx
         ports:
           - 1883:1883 
           - 8081:8081 
