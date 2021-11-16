@@ -1,0 +1,51 @@
+name: Test - E2E
+
+on:
+  push:
+    branches:
+      - master
+      - release-*
+    tags:
+      - v*
+  pull_request:
+    branches:
+      - master
+      - release-*
+
+jobs:
+  test-e2e:
+    runs-on: ubuntu-latest
+    env:
+      NODE_VER: 14.17.6
+      DAPR_INSTALL_URL: https://raw.githubusercontent.com/dapr/cli/master/install/install.sh
+    services:
+      emqx:
+        image: emqx:eqmx
+        ports:
+          - 1883:1883 
+          - 8081:8081 
+          - 8083:8083 
+          - 8883:8883 
+          - 8084:8084 
+          - 18083:18083
+    steps:
+    - uses: actions/checkout@v2
+
+    # Setup .npmrc file to publish to npm
+    # https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
+    - name: NodeJS - Install
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ env.NODE_VER }}
+        registry-url: 'https://registry.npmjs.org'
+
+    - name: Dapr - Install CLI
+      run: wget -q ${{ env.DAPR_INSTALL_URL }} -O - | /bin/bash -s ${{ env.DAPR_CLI_VER }}
+
+    - name: Install Dependencies
+      run: npm i
+    
+    - run: npm run test:unit
+    - run: npm run test:e2e:grpc:main
+    - run: npm run test:e2e:http:main
+    - run: npm run test:e2e:http:actors
