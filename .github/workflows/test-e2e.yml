@@ -26,7 +26,7 @@ jobs:
           - 8081:8081 
           - 8083:8083 
           - 8883:8883 
-          - 8084:8084 
+          # - 8084:8084 // this port is already used?
           - 18083:18083
     steps:
     - uses: actions/checkout@v2
