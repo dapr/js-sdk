@@ -1,6 +1,9 @@
 import { Temporal } from "@js-temporal/polyfill";
 import DaprClient from "../../implementation/Client/DaprClient";
+import HTTPClientActor from "../../implementation/Client/HTTPClient/actor";
+import HTTPClient from "../../implementation/Client/HTTPClient/HTTPClient";
 import ActorId from "../ActorId";
+import ActorClient from "../client/ActorClient/ActorClient";
 import ActorStateManager from "./ActorStateManager";
 import StateProvider from "./StateProvider";
 
@@ -25,6 +28,7 @@ export default abstract class AbstractActor {
   private readonly stateManager: ActorStateManager<any>;
   private readonly id: ActorId;
   private readonly daprClient: DaprClient;
+  private readonly actorClient: ActorClient;
   private readonly daprStateProvider: StateProvider;
   private readonly actorType: any; // set at constructor level
 
@@ -36,9 +40,12 @@ export default abstract class AbstractActor {
    */
   constructor(daprClient: DaprClient, id: ActorId) {
     this.daprClient = daprClient;
+    this.actorClient = new ActorClient(daprClient);
+
     this.id = id;
+
     this.stateManager = new ActorStateManager(this);
-    this.daprStateProvider = new StateProvider(this.daprClient);
+    this.daprStateProvider = new StateProvider(this.actorClient);
 
     // Interesting one: get the Class Type of the child
     this.actorType = this.constructor.name;
@@ -86,7 +93,7 @@ export default abstract class AbstractActor {
 
     // Register the timer in the sidecar
     console.log(`actorType: ${this.actorType}, actorId: ${this.id.getId()}, timerName: ${timerName}, callback: ${callback}, dueTime: ${dueTime.toString()}, period: ${period.toString()}`);
-    return await this.daprClient.actor.timerCreate(this.actorType, this.id.getId(), timerName, {
+    return await this.actorClient.actor.timerCreate(this.actorType, this.id.getId(), timerName, {
       period,
       dueTime,
       data: state,
