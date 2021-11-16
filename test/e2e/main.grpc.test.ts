@@ -301,6 +301,31 @@ describe('grpc/main', () => {
         expect(resTransactionDelete).toEqual('');
         expect(resTransactionUpsert).toEqual('my-new-data-1');
       });
+
+      it('should be able to perform a transaction with metadata', async () => {
+        await client.state.transaction('state-redis', [
+          {
+            operation: 'upsert',
+            request: {
+              key: 'key-with-metadata-1',
+              value: 'my-new-data-with-metadata-1',
+            },
+          },
+          {
+            operation: 'delete',
+            request: {
+              key: 'key-with-metadata-2',
+            },
+          },
+        ], {
+          trace_id: 'mock trace id here',
+        });
+
+        const resTransactionDelete = await client.state.get('state-redis', 'key-with-metadata-2');
+        const resTransactionUpsert = await client.state.get('state-redis', 'key-with-metadata-1');
+        expect(resTransactionDelete).toEqual('');
+        expect(resTransactionUpsert).toEqual('my-new-data-with-metadata-1');
+      });
     });
   });
 
