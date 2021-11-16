@@ -10,7 +10,6 @@ Run the following commands to configure the library
 
 ```bash
 npm install
-npm run test
 ```
 
 ## Running the Library
@@ -38,7 +37,8 @@ Tests are written per protocol layer: http or grpc. This is done because Dapr re
 docker run -d --rm --name emqx -p 1883:1883 -p 8081:8081 -p 8083:8083 -p 8883:8883 -p 8084:8084 -p 18083:18083 emqx/emqx
 
 # Run Unit Tests
-npm run test:unit
+npm run test:unit:main
+npm run test:unit:actors
 
 # Start gRPC tests
 npm run test:e2e:grpc:main
