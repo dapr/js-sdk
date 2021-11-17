@@ -15,22 +15,20 @@ export default class ActorProxyBuilder<T> {
   }
 
   build(actorId: ActorId): T {
-    const self = this;
+    const actorTypeClassName = this.actorTypeClass.name;
+    const actorClient = this.actorClient;
 
-    let handler = {
+    const handler = {
       get(target: any, propKey: any, receiver: any) {
         return async function (...args: any) {
-          // console.log(`Invoking Actor "${self.actorTypeClass.name}" method "${propKey}"" with ${JSON.stringify(args)}`)
-
           const method: "GET" | "PUT" = args.length > 0 ? "PUT" : "GET";
           const body = args.length > 0 ? args : null;
-          const res = await self.actorClient.actor.invoke(method, self.actorTypeClass.name, actorId.getId(), propKey, body);
+          const res = await actorClient.actor.invoke(method, actorTypeClassName, actorId.getId(), propKey, body);
 
           return res;
         };
       }
     };
-
 
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy
     // we implement a handler that will take a method and forward it to the actor client
