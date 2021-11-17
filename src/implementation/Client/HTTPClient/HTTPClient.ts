@@ -99,7 +99,7 @@ export default class HTTPClient implements IClient {
       console.log(txtParsed);
       throw new Error(JSON.stringify({
         error: "UNKNOWN",
-        error_msg: `An unknown problem occured and we got the status ${res.status} with response ${res}`
+        error_msg: `An unknown problem occured and we got the status ${res.status} with response ${JSON.stringify(res)}`
       }));
     }
   }

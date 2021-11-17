@@ -1,9 +1,6 @@
 export default class BufferSerializer {
-  // constructor() {
-  // }
-
-  deserialize(data: Buffer): string | object {
-    let deserializedBody: string | object = data?.toString() || "";
+  deserialize(data: Buffer): any {
+    let deserializedBody: any = data?.toString() || "";
 
     // Try to parse it to an object
     // this way manager.invoke has string | object
