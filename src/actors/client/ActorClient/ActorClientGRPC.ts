@@ -16,7 +16,7 @@ export default class ActorClientGRPC implements IClientActor {
     this.client = client;
   }
 
-  async invoke(method: "GET" | "POST" | "PUT" | "DELETE", actorType: string, actorId: string, methodName: string, body?: any): Promise<object> {
+  async invoke(actorType: string, actorId: string, methodName: string, body?: any): Promise<object> {
     const msgService = new InvokeActorRequest();
     msgService.setActorId(actorId)
     msgService.setActorType(actorType);

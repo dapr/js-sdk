@@ -13,9 +13,9 @@ export default class ActorClientHTTP implements IClientActor {
     this.client = client;
   }
 
-  async invoke(method: "GET" | "POST" | "PUT" | "DELETE" = "POST", actorType: string, actorId: string, methodName: string, body?: any): Promise<object> {
+  async invoke(actorType: string, actorId: string, methodName: string, body?: any): Promise<object> {
     const result = await this.client.execute(`/actors/${actorType}/${actorId}/method/${methodName}`, {
-      method,
+      method: "POST", // we always use POST calls for Invoking (ref: https://github.com/dapr/js-sdk/pull/137#discussion_r772636068)
       body
     });
 

@@ -21,9 +21,8 @@ export default class ActorProxyBuilder<T> {
     const handler = {
       get(target: any, propKey: any, receiver: any) {
         return async function (...args: any) {
-          const method: "GET" | "PUT" = args.length > 0 ? "PUT" : "GET";
           const body = args.length > 0 ? args : null;
-          const res = await actorClient.actor.invoke(method, actorTypeClassName, actorId.getId(), propKey, body);
+          const res = await actorClient.actor.invoke(actorTypeClassName, actorId.getId(), propKey, body);
 
           return res;
         };
