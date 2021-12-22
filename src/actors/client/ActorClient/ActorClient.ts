@@ -7,29 +7,29 @@ import ActorClientGRPC from './ActorClientGRPC';
 import ActorClientHTTP from './ActorClientHTTP';
 
 export default class ActorClient {
-  readonly daprClient: DaprClient;
+  readonly daprHost: string;
+  readonly daprPort: string;
+  readonly communicationProtocol: CommunicationProtocolEnum;
   readonly actor: IClientActor;
 
-  constructor(daprClient: DaprClient) {
-    this.daprClient = daprClient;
+  constructor(daprHost: string, daprPort: string, communicationProtocol: CommunicationProtocolEnum) {
+    this.daprHost = daprHost;
+    this.daprPort = daprPort;
+    this.communicationProtocol = communicationProtocol;
 
     // Builder
-    switch (daprClient.communicationProtocol) {
+    switch (communicationProtocol) {
       case CommunicationProtocolEnum.GRPC: {
-        const client = new GRPCClient(this.daprClient.daprHost, this.daprClient.daprPort);
+        const client = new GRPCClient(this.daprHost, this.daprPort);
         this.actor = new ActorClientGRPC(client);
         break;
       }
       case CommunicationProtocolEnum.HTTP:
       default: {
-        const client = new HTTPClient(this.daprClient.daprHost, this.daprClient.daprPort);
+        const client = new HTTPClient(this.daprHost, this.daprPort);
         this.actor = new ActorClientHTTP(client);
         break;
       }
     }
-  }
-
-  getDaprClient(): DaprClient {
-    return this.daprClient;
   }
 }

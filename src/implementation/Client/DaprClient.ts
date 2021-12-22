@@ -91,4 +91,8 @@ export default class DaprClient {
   getDaprPort(): string {
     return this.daprPort;
   }
+
+  getCommunicationProtocol(): CommunicationProtocolEnum {
+    return this.communicationProtocol;
+  }
 }
