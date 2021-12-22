@@ -2,7 +2,6 @@ import { DaprClient } from '../../..';
 import CommunicationProtocolEnum from '../../../enum/CommunicationProtocol.enum';
 import GRPCClient from '../../../implementation/Client/GRPCClient/GRPCClient';
 import HTTPClient from '../../../implementation/Client/HTTPClient/HTTPClient';
-import IClient from '../../../interfaces/Client/IClient';
 import IClientActor from '../../../interfaces/Client/IClientActor';
 import ActorClientGRPC from './ActorClientGRPC';
 import ActorClientHTTP from './ActorClientHTTP';

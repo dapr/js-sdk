@@ -37,7 +37,7 @@ export default class ActorClientHTTP implements IClientActor {
     return result as any;
   }
 
-  async reminderCreate(actorType: string, actorId: string, name: string, reminder: ActorReminderType): Promise<void> {
+  async registerActorReminder(actorType: string, actorId: string, name: string, reminder: ActorReminderType): Promise<void> {
     await this.client.execute(`/actors/${actorType}/${actorId}/reminders/${name}`, {
       method: 'POST',
       headers: {
@@ -56,13 +56,13 @@ export default class ActorClientHTTP implements IClientActor {
     return result as object;
   }
 
-  async reminderDelete(actorType: string, actorId: string, name: string): Promise<void> {
+  async unregisterActorReminder(actorType: string, actorId: string, name: string): Promise<void> {
     await this.client.execute(`/actors/${actorType}/${actorId}/reminders/${name}`, {
       method: 'DELETE',
     });
   }
 
-  async timerCreate(actorType: string, actorId: string, name: string, timer: ActorTimerType): Promise<void> {
+  async registerActorTimer(actorType: string, actorId: string, name: string, timer: ActorTimerType): Promise<void> {
     await this.client.execute(`/actors/${actorType}/${actorId}/timers/${name}`, {
       method: 'POST',
       headers: {
@@ -77,7 +77,7 @@ export default class ActorClientHTTP implements IClientActor {
     });
   }
 
-  async timerDelete(actorType: string, actorId: string, name: string): Promise<void> {
+  async unregisterActorTimer(actorType: string, actorId: string, name: string): Promise<void> {
     await this.client.execute(`/actors/${actorType}/${actorId}/timers/${name}`, {
       method: 'DELETE',
     });

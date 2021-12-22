@@ -1,7 +1,5 @@
 import { Temporal } from "@js-temporal/polyfill";
 import DaprClient from "../../implementation/Client/DaprClient";
-import HTTPClientActor from "../../implementation/Client/HTTPClient/actor";
-import HTTPClient from "../../implementation/Client/HTTPClient/HTTPClient";
 import ActorId from "../ActorId";
 import ActorClient from "../client/ActorClient/ActorClient";
 import ActorStateManager from "./ActorStateManager";
@@ -73,22 +71,22 @@ export default abstract class AbstractActor {
    * @param <Type> Type of the state object
    * @return Async void response
    */
-  async registerReminder<Type>(reminderName: string, dueTime: Temporal.Duration, period: Temporal.Duration, state?: any) {
-    await this.actorClient.actor.reminderCreate(this.actorType, this.id.getId(), reminderName, {
+  async registerActorReminder<Type>(reminderName: string, dueTime: Temporal.Duration, period: Temporal.Duration, state?: any) {
+    await this.actorClient.actor.registerActorReminder(this.actorType, this.id.getId(), reminderName, {
       period,
       dueTime,
       data: state
     });
   }
 
-  async unregisterReminder(reminderName: string) {
-    await this.actorClient.actor.reminderDelete(this.actorType, this.id.getId(), reminderName);
+  async unregisterActorReminder(reminderName: string) {
+    await this.actorClient.actor.unregisterActorReminder(this.actorType, this.id.getId(), reminderName);
   }
 
-  async registerTimer(timerName: string, callback: string, dueTime: Temporal.Duration, period: Temporal.Duration, state?: any) {
+  async registerActorTimer(timerName: string, callback: string, dueTime: Temporal.Duration, period: Temporal.Duration, state?: any) {
     // Register the timer in the sidecar
     // console.log(`actorType: ${this.actorType}, actorId: ${this.id.getId()}, timerName: ${timerName}, callback: ${callback}, dueTime: ${dueTime.toString()}, period: ${period.toString()}`);
-    return await this.actorClient.actor.timerCreate(this.actorType, this.id.getId(), timerName, {
+    return await this.actorClient.actor.registerActorTimer(this.actorType, this.id.getId(), timerName, {
       period,
       dueTime,
       data: state,
@@ -96,8 +94,8 @@ export default abstract class AbstractActor {
     });
   }
 
-  async unregisterTimer(timerName: string) {
-    await this.actorClient.actor.timerDelete(this.actorType, this.id.getId(), timerName);
+  async unregisterActorTimer(timerName: string) {
+    await this.actorClient.actor.unregisterActorTimer(this.actorType, this.id.getId(), timerName);
   }
 
   /**

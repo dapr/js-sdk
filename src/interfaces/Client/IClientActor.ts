@@ -7,9 +7,9 @@ export default interface IClientActor {
   invoke(method: "GET" | "POST" | "PUT" | "DELETE", actorType: string, actorId: string, methodName: string, body?: any): Promise<object>;
   stateTransaction(actorType: string, actorId: string, operations: OperationType[]): Promise<void>;
   stateGet(actorType: string, actorId: string, key: string): Promise<KeyValueType | string>;
-  reminderCreate(actorType: string, actorId: string, name: string, reminder: ActorReminderType): Promise<void>;
-  reminderDelete(actorType: string, actorId: string, name: string): Promise<void>;
-  timerCreate(actorType: string, actorId: string, name: string, timer: ActorTimerType): Promise<void>;
-  timerDelete(actorType: string, actorId: string, name: string): Promise<void>;
+  registerActorReminder(actorType: string, actorId: string, name: string, reminder: ActorReminderType): Promise<void>;
+  unregisterActorReminder(actorType: string, actorId: string, name: string): Promise<void>;
+  registerActorTimer(actorType: string, actorId: string, name: string, timer: ActorTimerType): Promise<void>;
+  unregisterActorTimer(actorType: string, actorId: string, name: string): Promise<void>;
   getActors(): Promise<object>;
 }

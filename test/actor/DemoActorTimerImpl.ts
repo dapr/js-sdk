@@ -5,7 +5,7 @@ export default class DemoActorTimerImpl extends AbstractActor implements DemoAct
   counter = 0;
 
   async init(): Promise<string> {
-    await super.registerTimer("my-timer-name", "countBy", Temporal.Duration.from({ seconds: 2 }), Temporal.Duration.from({ seconds: 1 }), 100);
+    await super.registerActorTimer("my-timer-name", "countBy", Temporal.Duration.from({ seconds: 2 }), Temporal.Duration.from({ seconds: 1 }), 100);
     return "Actor Initialized";
   }
 
@@ -22,6 +22,6 @@ export default class DemoActorTimerImpl extends AbstractActor implements DemoAct
   }
 
   async removeTimer(): Promise<void> {
-    return await this.unregisterTimer("my-timer-name");
+    return await this.unregisterActorTimer("my-timer-name");
   }
 }

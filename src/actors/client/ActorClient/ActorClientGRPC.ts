@@ -105,7 +105,7 @@ export default class ActorClientGRPC implements IClientActor {
     });
   }
 
-  async reminderCreate(actorType: string, actorId: string, name: string, reminder: ActorReminderType): Promise<void> {
+  async registerActorReminder(actorType: string, actorId: string, name: string, reminder: ActorReminderType): Promise<void> {
     const msgService = new RegisterActorReminderRequest();
     msgService.setActorType(actorType);
     msgService.setActorId(actorId);
@@ -136,39 +136,7 @@ export default class ActorClientGRPC implements IClientActor {
     });
   }
 
-  // @todo: not implemented, cannot find the gRPC bindings
-  // async reminderGet(actorType: string, actorId: string, name: string): Promise<void> {
-  //     const msgService = new RegisterActorReminderRequest();
-  //     msgService.setActorType(actorType);
-  //     msgService.setActorId(actorId);
-  //     msgService.setName(name);
-
-  //     if (reminder.data) {
-  //         msgService.setData(Buffer.from(reminder.data, "utf-8"))
-  //     }
-
-  //     if (reminder.period) {
-  //         msgService.setPeriod(reminder.period);
-  //     }
-
-  //     if (reminder.dueTime) {
-  //         msgService.setDueTime(reminder.dueTime);
-  //     }
-
-  //     return new Promise(async (resolve, reject) => {
-  //         const client = await GRPCClientSingleton.getClient();
-  //         client.registerActorReminder(msgService, (err, res) => {
-  //             if (err) {
-  //                 return reject(err);
-  //             }
-
-  //             // https://docs.dapr.io/reference/api/actors_api/#http-response-codes-3
-  //             return resolve();
-  //         });
-  //     });
-  // }
-
-  async reminderDelete(actorType: string, actorId: string, name: string): Promise<void> {
+  async unregisterActorReminder(actorType: string, actorId: string, name: string): Promise<void> {
     const msgService = new UnregisterActorReminderRequest();
     msgService.setActorType(actorType);
     msgService.setActorId(actorId);
@@ -187,7 +155,7 @@ export default class ActorClientGRPC implements IClientActor {
     });
   }
 
-  async timerCreate(actorType: string, actorId: string, name: string, timer: ActorTimerType): Promise<void> {
+  async registerActorTimer(actorType: string, actorId: string, name: string, timer: ActorTimerType): Promise<void> {
     const msgService = new RegisterActorTimerRequest();
     msgService.setActorType(actorType);
     msgService.setActorId(actorId);
@@ -222,7 +190,7 @@ export default class ActorClientGRPC implements IClientActor {
     });
   }
 
-  async timerDelete(actorType: string, actorId: string, name: string): Promise<void> {
+  async unregisterActorTimer(actorType: string, actorId: string, name: string): Promise<void> {
     const msgService = new UnregisterActorTimerRequest();
     msgService.setActorType(actorType);
     msgService.setActorId(actorId);
