@@ -3,7 +3,6 @@ import IClientPubSub from '../../interfaces/Client/IClientPubSub';
 import IClientState from '../../interfaces/Client/IClientState';
 import IClientInvoker from '../../interfaces/Client/IClientInvoker';
 import IClientSecret from '../../interfaces/Client/IClientSecret';
-import IClientActor from '../../interfaces/Client/IClientActor';
 import IClient from '../../interfaces/Client/IClient';
 
 import GRPCClientBinding from './GRPCClient/binding';

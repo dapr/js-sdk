@@ -1,4 +1,3 @@
-import { DaprClient } from '../../..';
 import CommunicationProtocolEnum from '../../../enum/CommunicationProtocol.enum';
 import GRPCClient from '../../../implementation/Client/GRPCClient/GRPCClient';
 import HTTPClient from '../../../implementation/Client/HTTPClient/HTTPClient';
