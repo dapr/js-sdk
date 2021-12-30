@@ -1,36 +1,20 @@
-import { CommunicationProtocolEnum, DaprClient, DaprServer, HttpMethod } from '../../src';
+import { CommunicationProtocolEnum, DaprClient } from '../../src';
 
-const serverHost = '127.0.0.1';
-const serverPort = '50001';
 const daprHost = '127.0.0.1';
 const daprPort = '50000'; // Dapr Sidecar Port of this Example Server
-const daprAppId = 'test-suite';
 
 describe('load/http', () => {
-  let server: DaprServer;
   let client: DaprClient;
-  // const mockBindingReceive = jest.fn(async (data: object) => console.log('mockBindingReceive'));
-  // const mockPubSubSubscribe = jest.fn(async (data: object) => console.log('mockPubSubSubscribe'));
 
   // We need to start listening on some endpoints already
   // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
-    server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.HTTP);
     client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.HTTP);
-
-    // await server.binding.receive('binding-mqtt', mockBindingReceive);
-
-    // Start server
-    await server.startServer();
   });
 
-  afterAll(async () => {
-    await server.stopServer();
-  })
-
   describe('pubsub', () => {
-    it('should be able to send 500 events as quickly as possible without errors', async () => {
-      const amountOfCalls = 1;
+    it('should be able to send 2500 events as quickly as possible without errors', async () => {
+      const amountOfCalls = 2500;
 
       // Create the promises
       let promises = [];
@@ -40,17 +24,13 @@ describe('load/http', () => {
       }
 
       // Await the promises
+      const tStart = Date.now();
       const res = await Promise.all(promises);
-      console.log(res);
+      const tEnd = Date.now();
 
-      // Delay a bit for event to arrive
-      // await new Promise((resolve, reject) => setTimeout(resolve, 250));
-
-      // expect(mockPubSubSubscribe.mock.calls.length).toBe(1);
-
-      // Also test for receiving data
-      // @ts-ignore
-      // expect(mockPubSubSubscribe.mock.calls[0][0]['hello']).toEqual('world');
-    });
+      expect(res.filter(i => i === true).length).toEqual(amountOfCalls);
+      console.log(`Execution time: ${tEnd - tStart}ms`);
+      // @todo: do we add an execution time test?
+    }, 30 * 1000);
   });
 });

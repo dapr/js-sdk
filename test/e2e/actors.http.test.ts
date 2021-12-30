@@ -38,86 +38,25 @@ describe('http/actors', () => {
     await server.startServer(); // Start the general server
   });
 
-  describe('activation/deactivation', () => {
-    it('should correctly deactivate and activate an actor', async () => {
-      // An actor is activated when we create the object and it has been added to the tracking table
-      // for a good E2E test we thus check:
-      // * has it been added to the tracking table?
-      //   -> Indirectly, we expect this by calling the Dapr client, which should be able to find the Actor in its tracking table
-      //   -> we thus use the client rather than the server methods
-      // * has the method onActivate been called on the implemented actor? 
-      //   -> create a specific actor implementation for this, since it's threaded and hard to mock else
+  afterAll(async () => {
+    await server.stopServer();
+  });
 
-      // Reset state store
-      // for this we activate and deactivate the actor first so we know it exists
-      await client.actor.invoke("GET", DemoActorActivateImpl.name, "my-actor-id", "getIsActivated");
-      await server.actor.deactivateActor(DemoActorActivateImpl.name, "my-actor-id");
-      await client.actor.stateTransaction(DemoActorActivateImpl.name, "my-actor-id", [
-        {
-          operation: "upsert",
-          request: {
-            key: "is_activated",
-            value: false
-          }
-        },
-        {
-          operation: "upsert",
-          request: {
-            key: "is_deactivated",
-            value: false
-          }
-        },
-        {
-          operation: "upsert",
-          request: {
-            key: "call_count_activated",
-            value: 0
-          }
-        },
-        {
-          operation: "upsert",
-          request: {
-            key: "call_count_deactivated",
-            value: 0
-          }
-        },
-      ]);
+  describe('actorProxy', () => {
+    it('should be able to create an actor object through the proxy', async () => {
+      const builder = new ActorProxyBuilder<DemoActorCounterImpl>(DemoActorCounterImpl, client);
+      const actor = builder.build(ActorId.createRandomId());
 
-      // Activate Actor
-      const res1 = await client.actor.invoke("GET", DemoActorActivateImpl.name, "my-actor-id", "getIsDeactivated");
-      const res2 = await client.actor.invoke("GET", DemoActorActivateImpl.name, "my-actor-id", "getIsActivated");
-      const res3 = await client.actor.invoke("GET", DemoActorActivateImpl.name, "my-actor-id", "getDeactivatedCallCount");
-      const res4 = await client.actor.invoke("GET", DemoActorActivateImpl.name, "my-actor-id", "getActivatedCallCount");
-      expect(res1).toEqual(false);
-      expect(res2).toEqual(true);
-      expect(res3).toEqual(0);
-      expect(res4).toEqual(1);
+      const c1 = await actor.getCounter();
+      expect(c1).toEqual(0);
 
-      // Deactivate Actor
-      await server.actor.deactivateActor(DemoActorActivateImpl.name, "my-actor-id");
+      await actor.countBy(1);
+      const c2 = await actor.getCounter();
+      expect(c2).toEqual(1);
 
-      // Now call the getIsDeactivated and getDeactivatedCallCount again, which should change since it was deactivated
-      // note: it will be reactivated again now since we call the invoke
-      const res5 = await client.actor.invoke("GET", DemoActorActivateImpl.name, "my-actor-id", "getIsDeactivated");
-      const res6 = await client.actor.invoke("GET", DemoActorActivateImpl.name, "my-actor-id", "getIsActivated");
-      const res7 = await client.actor.invoke("GET", DemoActorActivateImpl.name, "my-actor-id", "getDeactivatedCallCount");
-      const res8 = await client.actor.invoke("GET", DemoActorActivateImpl.name, "my-actor-id", "getActivatedCallCount");
-      expect(res5).toEqual(true);
-      expect(res6).toEqual(true);
-      expect(res7).toEqual(1);
-      expect(res8).toEqual(2);
-
-      // Deactivate Actor
-      await server.actor.deactivateActor(DemoActorActivateImpl.name, "my-actor-id");
-
-      const res9 = await client.actor.invoke("GET", DemoActorActivateImpl.name, "my-actor-id", "getIsDeactivated");
-      const res10 = await client.actor.invoke("GET", DemoActorActivateImpl.name, "my-actor-id", "getIsActivated");
-      const res11 = await client.actor.invoke("GET", DemoActorActivateImpl.name, "my-actor-id", "getDeactivatedCallCount");
-      const res12 = await client.actor.invoke("GET", DemoActorActivateImpl.name, "my-actor-id", "getActivatedCallCount");
-      expect(res9).toEqual(true);
-      expect(res10).toEqual(true);
-      expect(res11).toEqual(2);
-      expect(res12).toEqual(3);
+      await actor.countBy(5);
+      const c3 = await actor.getCounter();
+      expect(c3).toEqual(6);
     });
   });
 
