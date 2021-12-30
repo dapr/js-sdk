@@ -1,7 +1,8 @@
 export default interface IServer {
-    getServerAddress(): string;
-    getServer(): any; // this is dependent on the implementation
-    getServerImpl(): any; // this is dependent on the implementation
-    close(): Promise<void>;
-    startServer(host: string, port: string): Promise<void>;
+  getServerAddress(): string;
+  getServer(): any; // this is dependent on the implementation
+  getServerImpl(): any; // this is dependent on the implementation
+  close(): Promise<void>;
+  startServer(host: string, port: string): Promise<void>;
+  stopServer(): Promise<void>;
 }

@@ -11,7 +11,7 @@ export default class GRPCClientPubSub implements IClientPubSub {
   }
 
   // @todo: should return a specific typed Promise<TypePubSubPublishResponse> instead of Promise<any>
-  async publish(pubSubName: string, topic: string, data: object = {}): Promise<any> {
+  async publish(pubSubName: string, topic: string, data: object = {}): Promise<Boolean> {
     const msgService = new PublishEventRequest();
     msgService.setPubsubName(pubSubName);
     msgService.setTopic(topic);
@@ -21,11 +21,12 @@ export default class GRPCClientPubSub implements IClientPubSub {
       const client = this.client.getClient();
       client.publishEvent(msgService, (err, res) => {
         if (err) {
-          return reject(err);
+          console.error(err);
+          return reject(false);
         }
 
         // https://docs.dapr.io/reference/api/pubsub_api/#expected-http-response
-        return resolve({});
+        return resolve(true);
       });
     });
   }

@@ -55,6 +55,11 @@ describe('grpc/main', () => {
       // @ts-ignore
       expect(mockPubSubSubscribe.mock.calls[0][0]['hello']).toEqual('world');
     });
+
+    it('should receive if it was successful or not', async () => {
+      const res = await client.pubsub.publish('pubsub-redis', 'test-topic', { hello: 'world' });
+      expect(res).toEqual(true);
+    });
   });
 
   describe('invoker', () => {

@@ -99,6 +99,20 @@ export default class GRPCServer implements IServer {
     this.isInitialized = true;
   }
 
+  async stopServer(): Promise<void> {
+    return new Promise((resolve, reject) => {
+
+      this.server.tryShutdown((err) => {
+        if (err) {
+          return reject(err);
+        }
+
+        this.isInitialized = false;
+        return resolve();
+      });
+    });
+  }
+
   private async initializeBind(): Promise<void> {
     console.log(`[Dapr-JS][gRPC] Starting to listen on ${this.serverHost}:${this.serverPort}`);
     return new Promise((resolve, reject) => {
