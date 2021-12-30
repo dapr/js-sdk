@@ -28,6 +28,10 @@ describe('grpc/main', () => {
     await server.startServer();
   });
 
+  afterAll(async () => {
+    await server.stopServer();
+  });
+
   describe('binding', () => {
     it('should be able to receive events', async () => {
       await client.binding.send('binding-mqtt', 'create', { hello: 'world' });
@@ -54,6 +58,11 @@ describe('grpc/main', () => {
       // Also test for receiving data
       // @ts-ignore
       expect(mockPubSubSubscribe.mock.calls[0][0]['hello']).toEqual('world');
+    });
+
+    it('should receive if it was successful or not', async () => {
+      const res = await client.pubsub.publish('pubsub-redis', 'test-topic', { hello: 'world' });
+      expect(res).toEqual(true);
     });
   });
 

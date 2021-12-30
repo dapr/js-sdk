@@ -1,6 +1,8 @@
 import fetch from "node-fetch";
 import { CommunicationProtocolEnum } from "../../..";
 import IClient from "../../../interfaces/Client/IClient";
+import http from "node:http";
+import https from "node:https";
 
 export default class HTTPClient implements IClient {
   private readonly isInitialized: boolean;
@@ -8,6 +10,9 @@ export default class HTTPClient implements IClient {
   private readonly clientHost: string;
   private readonly clientPort: string;
   private readonly clientUrl: string;
+
+  private readonly httpAgent;
+  private readonly httpsAgent;
 
   constructor(host = "127.0.0.1", port = "50050") {
     this.isInitialized = true;
@@ -21,6 +26,9 @@ export default class HTTPClient implements IClient {
     }
 
     this.client = fetch;
+
+    this.httpAgent = new http.Agent({ keepAlive: true, keepAliveMsecs: 30 * 1000 });
+    this.httpsAgent = new https.Agent({ keepAlive: true, keepAliveMsecs: 30 * 1000 });
   }
 
   getClient(): typeof fetch {
@@ -64,7 +72,14 @@ export default class HTTPClient implements IClient {
       }
     }
 
+
     const urlFull = url.startsWith("http") ? url : `${this.clientUrl}${url}`;
+
+    // Decide which agent to use
+    // we use an agent so we can reuse an open connection, limiting handshake requirements
+    const agent = urlFull.startsWith("https") ? this.httpsAgent : this.httpAgent;
+    params.agent = agent;
+
     // console.log(`${params.method} - ${urlFull} (${params.body})`);
     const res = await fetch(urlFull, params);
 

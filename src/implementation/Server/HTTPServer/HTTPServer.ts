@@ -118,4 +118,9 @@ export default class HTTPServer implements IServer {
     // We are initialized
     this.isInitialized = true;
   }
+
+  async stopServer(): Promise<void> {
+    await this.server.close();
+    this.isInitialized = false;
+  }
 }

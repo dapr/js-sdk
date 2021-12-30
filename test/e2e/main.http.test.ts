@@ -28,6 +28,10 @@ describe('http/main', () => {
     await server.startServer();
   });
 
+  afterAll(async () => {
+    await server.stopServer();
+  });
+
   describe('binding', () => {
     it('should be able to receive events', async () => {
       await client.binding.send('binding-mqtt', 'create', { hello: 'world' });
@@ -54,6 +58,11 @@ describe('http/main', () => {
       // Also test for receiving data
       // @ts-ignore
       expect(mockPubSubSubscribe.mock.calls[0][0]['hello']).toEqual('world');
+    });
+
+    it('should receive if it was successful or not', async () => {
+      const res = await client.pubsub.publish('pubsub-redis', 'test-topic', { hello: 'world' });
+      expect(res).toEqual(true);
     });
   });
 
@@ -303,57 +312,4 @@ describe('http/main', () => {
       });
     });
   });
-
-  // Note: actors require an external dependency and are disabled by default for now until we can have actors in Javascript
-  // describe('actors', () => {
-  //     it('should be able to invoke a method on an actor', async () => {
-  //         const clientActor = new DaprClient(daprHost, daprPortActor);
-
-  //         await clientActor.actor.invoke("POST", "DemoActor", "MyActorId1", "SetDataAsync", { PropertyA: "hello", PropertyB: "world", ToNotExistKey: "this should not exist since we only have PropertyA and PropertyB" });
-  //         const res = await clientActor.actor.invoke("GET", "DemoActor", "MyActorId1", "GetDataAsync"); // will only return PropertyA and PropertyB since these are the only properties that can be set
-
-  //         expect(JSON.stringify(res)).toEqual(`{\"propertyA\":\"hello\",\"propertyB\":\"world\"}`);
-  //     });
-
-  //     it('should be able to manipulate the state through a transaction of an actor', async () => {
-  //         const clientActor = new DaprClient(daprHost, daprPortActor);
-  //         await clientActor.actor.stateTransaction("DemoActor", "MyActorId1", [
-  //             {
-  //                 operation: "upsert",
-  //                 request: {
-  //                     key: "key-1",
-  //                     value: "my-new-data-1"
-  //                 }
-  //             },
-  //             {
-  //                 operation: "upsert",
-  //                 request: {
-  //                     key: "key-to-delete",
-  //                     value: "my-new-data-1"
-  //                 }
-  //             },
-  //             {
-  //                 operation: "delete",
-  //                 request: {
-  //                     key: "key-to-delete"
-  //                 }
-  //             }
-  //         ]);
-
-  //         const resActorStateGet = await clientActor.actor.stateGet("DemoActor", "MyActorId1", "key-to-delete");
-  //         const resActorStateGet2 = await clientActor.actor.stateGet("DemoActor", "MyActorId1", "key-1");
-
-  //         expect(JSON.stringify(resActorStateGet)).toEqual(`{}`);
-  //         expect(JSON.stringify(resActorStateGet2)).toEqual(`\"my-new-data-1\"`);
-  //     });
-
-  //     it('should be able to get all the actors', async () => {
-  //         const clientActor = new DaprClient(daprHost, daprPortActor);
-
-  //         const res = await clientActor.actor.getActors();
-  //         console.log(res)
-
-  //         expect(JSON.stringify(res)).toEqual(`{}`);
-  //     });
-  // });
 });
