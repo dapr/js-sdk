@@ -11,7 +11,7 @@ export default class GRPCClientPubSub implements IClientPubSub {
   }
 
   // @todo: should return a specific typed Promise<TypePubSubPublishResponse> instead of Promise<any>
-  async publish(pubSubName: string, topic: string, data: object = {}): Promise<Boolean> {
+  async publish(pubSubName: string, topic: string, data: object = {}): Promise<boolean> {
     const msgService = new PublishEventRequest();
     msgService.setPubsubName(pubSubName);
     msgService.setTopic(topic);

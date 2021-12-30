@@ -9,7 +9,7 @@ export default class HTTPClientPubSub implements IClientPubSub {
     this.client = client;
   }
 
-  async publish(pubSubName: string, topic: string, data: object = {}): Promise<Boolean> {
+  async publish(pubSubName: string, topic: string, data: object = {}): Promise<boolean> {
     try {
       await this.client.execute(`/publish/${pubSubName}/${topic}`, {
         method: 'POST',
