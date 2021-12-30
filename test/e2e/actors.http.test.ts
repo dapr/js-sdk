@@ -40,6 +40,10 @@ describe('http/actors', () => {
     await server.startServer(); // Start the general server
   });
 
+  afterAll(async () => {
+    await server.stopServer();
+  });
+
   describe('actorProxy', () => {
     it('should be able to create an actor object through the proxy', async () => {
       const builder = new ActorProxyBuilder<DemoActorCounterImpl>(DemoActorCounterImpl, client);
