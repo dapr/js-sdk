@@ -7,30 +7,31 @@ import IRequest from '../../../types/http/IRequest';
 import IResponse from '../../../types/http/IResponse';
 import { GetRegisteredActorsType } from '../../../types/response/GetRegisteredActors.type';
 import BufferSerializer from '../../../actors/runtime/BufferSerializer';
-import HTTPClient from '../../Client/HTTPClient/HTTPClient';
+import { DaprClient } from '../../..';
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class HTTPServerActor implements IServerActor {
   private readonly server: HTTPServer;
-  private readonly client: HTTPClient;
+  private readonly client: DaprClient;
   private readonly serializer: BufferSerializer;
 
-  constructor(server: HTTPServer, client: HTTPClient) {
+  constructor(server: HTTPServer, client: DaprClient) {
     this.client = client;
     this.server = server;
     this.serializer = new BufferSerializer();
   }
 
-  async deactivateActor(actorType: string, actorId: string): Promise<void> {
-    await this.client.execute(`http://localhost:${this.server.serverPort}/actors/${actorType}/${actorId}`, { method: "DELETE" });
-  }
+  // async deactivateActor(actorType: string, actorId: string): Promise<void> {
+  //   await this.client.execute(`http://localhost:${this.server.serverPort}/actors/${actorType}/${actorId}`, { method: "DELETE" });
+  //   await this.client
+  // }
 
   async registerActor<T extends AbstractActor>(cls: Class<T>): Promise<void> {
-    ActorRuntime.getInstance(this.client).registerActor(cls);
+    ActorRuntime.getInstance(this.client.getDaprClient()).registerActor(cls);
   }
 
   async getRegisteredActors(): Promise<string[]> {
-    return await ActorRuntime.getInstance(this.client).getRegisteredActorTypes();
+    return await ActorRuntime.getInstance(this.client.getDaprClient()).getRegisteredActorTypes();
   }
 
   /**
@@ -61,7 +62,7 @@ export default class HTTPServerActor implements IServerActor {
   }
 
   private async handlerConfig(req: IRequest, res: IResponse): Promise<void> {
-    const actorRuntime = ActorRuntime.getInstance(this.client);
+    const actorRuntime = ActorRuntime.getInstance(this.client.getDaprClient());
 
     const result: GetRegisteredActorsType = {
       entities: actorRuntime.getRegisteredActorTypes(),
@@ -73,7 +74,7 @@ export default class HTTPServerActor implements IServerActor {
 
   private async handlerDeactivate(req: IRequest, res: IResponse): Promise<void> {
     const { actorTypeName, actorId } = req.params;
-    const result = await ActorRuntime.getInstance(this.client).deactivate(actorTypeName, actorId);
+    const result = await ActorRuntime.getInstance(this.client.getDaprClient()).deactivate(actorTypeName, actorId);
     return this.handleResult(res, result);
   }
 
@@ -84,7 +85,7 @@ export default class HTTPServerActor implements IServerActor {
     // @todo: reentrancy id? (https://github.com/dapr/python-sdk/blob/master/ext/flask_dapr/flask_dapr/actor.py#L91)
 
     const dataSerialized = this.serializer.serialize(body);
-    const result = await ActorRuntime.getInstance(this.client).invoke(actorTypeName, actorId, methodName, dataSerialized);
+    const result = await ActorRuntime.getInstance(this.client.getDaprClient()).invoke(actorTypeName, actorId, methodName, dataSerialized);
     return this.handleResult(res, result);
   }
 
@@ -93,7 +94,7 @@ export default class HTTPServerActor implements IServerActor {
     const body = req.body;
 
     const dataSerialized = this.serializer.serialize(body);
-    const result = await ActorRuntime.getInstance(this.client).fireTimer(actorTypeName, actorId, timerName, dataSerialized);
+    const result = await ActorRuntime.getInstance(this.client.getDaprClient()).fireTimer(actorTypeName, actorId, timerName, dataSerialized);
     return res.send(result, 200);
   }
 
@@ -102,7 +103,7 @@ export default class HTTPServerActor implements IServerActor {
     const body = req.body;
 
     const dataSerialized = this.serializer.serialize(body);
-    const result = await ActorRuntime.getInstance(this.client).fireReminder(actorTypeName, actorId, reminderName, dataSerialized);
+    const result = await ActorRuntime.getInstance(this.client.getDaprClient()).fireReminder(actorTypeName, actorId, reminderName, dataSerialized);
     return res.send(result, 200);
   }
 

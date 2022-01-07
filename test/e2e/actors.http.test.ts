@@ -45,12 +45,12 @@ describe('http/actors', () => {
 
     // Start server
     await server.start(); // Start the general server
-  });
+  }, 10 * 1000);
 
-  afterAll(async () => {
-    await server.stop();
-    await client.stop();
-  });
+  // afterAll(async () => {
+  //   await server.stop();
+  //   await client.stop();
+  // });
 
   describe('actorProxy', () => {
     it('should be able to create an actor object through the proxy', async () => {

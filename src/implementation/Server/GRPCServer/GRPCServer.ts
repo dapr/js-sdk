@@ -2,6 +2,8 @@ import * as grpc from "@grpc/grpc-js";
 import GRPCServerImpl from "./GRPCServerImpl";
 import { AppCallbackService } from "../../../proto/dapr/proto/runtime/v1/appcallback_grpc_pb";
 import IServer from "../../../interfaces/Server/IServer";
+import { DaprClient } from "../../..";
+import * as NodeJSUtils from "../../../utils/NodeJS.util";
 
 // eslint-disable-next-line
 export interface IServerType extends grpc.Server { }
@@ -15,12 +17,15 @@ export default class GRPCServer implements IServer {
   server: IServerType;
   serverImpl: IServerImplType;
   serverCredentials: grpc.ServerCredentials;
+  serverStartupDelay = 1000; // @todo: use health api https://docs.dapr.io/reference/api/health_api/
+  client: DaprClient;
 
-  constructor() {
+  constructor(client: DaprClient) {
     this.isInitialized = false;
 
     this.serverHost = "";
     this.serverPort = "";
+    this.client = client;
 
     // Create Server
     this.server = new grpc.Server();
@@ -69,9 +74,22 @@ export default class GRPCServer implements IServer {
 
     // We need to call the Singleton to start listening on the port, else Dapr will not pick it up correctly
     // Dapr will probe every 50ms to see if we are listening on our port: https://github.com/dapr/dapr/blob/a43712c97ead550ca2f733e9f7e7769ecb195d8b/pkg/runtime/runtime.go#L1694
-    console.log("[Dapr-JS][gRPC] Letting Dapr pick-up the server");
-    const delayMs = 250;
-    await (new Promise((resolve) => setTimeout(resolve, delayMs)));
+    // if we are using actors we will change this to 4s to let the placement tables update
+    let isHealthy = false;
+    let isHealthyRetryCount = 0;
+    let isHealthyMaxRetryCount = 60; // 1s startup delay and we try max for 60s
+
+    console.log(`[Dapr-JS] Letting Dapr pick-up the server (Maximum 60s wait time)`);
+    while (!isHealthy) {
+      console.log(`[Dapr-JS] - Waiting till Dapr Started (#${isHealthyRetryCount})`);
+      await NodeJSUtils.sleep(this.serverStartupDelay);
+      isHealthy = await this.client.health.isHealthy();
+      isHealthyRetryCount++;
+
+      if (isHealthyRetryCount > isHealthyMaxRetryCount) {
+        throw new Error("DAPR_SIDECAR_COULD_NOT_BE_STARTED");
+      }
+    }
 
     // We are initialized
     this.isInitialized = true;

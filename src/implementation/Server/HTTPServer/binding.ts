@@ -1,17 +1,14 @@
 import HTTPServer from './HTTPServer';
 import HttpStatusCode from '../../../enum/HttpStatusCode.enum';
 import IServerBinding from '../../../interfaces/Server/IServerBinding';
-import HTTPClient from '../../Client/HTTPClient/HTTPClient';
 
 // https://docs.dapr.io/reference/api/bindings_api/
 type FunctionDaprInputCallback = (data: any) => Promise<any>;
 
 export default class HTTPServerBinding implements IServerBinding {
   private readonly server: HTTPServer;
-  private readonly client: HTTPClient;
 
-  constructor(server: HTTPServer, client: HTTPClient) {
-    this.client = client;
+  constructor(server: HTTPServer) {
     this.server = server;
   }
 

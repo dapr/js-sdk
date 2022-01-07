@@ -4,6 +4,8 @@ import { OperationType } from '../../../types/Operation.type';
 import { IRequestMetadata } from '../../../types/RequestMetadata.type';
 import IClientState from '../../../interfaces/Client/IClientState';
 import { KeyValueType } from '../../../types/KeyValue.type';
+import { StateQueryType } from '../../../types/StateQuery.type';
+import { StateQueryResponseType } from '../../../types/StateQueryResponse.type';
 
 // https://docs.dapr.io/reference/api/state_api/
 export default class HTTPClientState implements IClientState {
@@ -60,5 +62,19 @@ export default class HTTPClientState implements IClientState {
         metadata
       })
     });
+  }
+
+  async query(storeName: string, query: StateQueryType): Promise<StateQueryResponseType> {
+    const result = await this.client.executeWithApiVersion("v1.0-alpha1", `/state/${storeName}/query`, {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        query
+      })
+    });
+
+    return result as StateQueryResponseType;
   }
 }
