@@ -1,5 +1,5 @@
 import GRPCClient from './GRPCClient';
-import { DeleteStateRequest, ExecuteStateTransactionRequest, GetBulkStateRequest, GetBulkStateResponse, GetStateRequest, GetStateResponse, SaveStateRequest, TransactionalStateOperation } from '../../../proto/dapr/proto/runtime/v1/dapr_pb';
+import { DeleteStateRequest, ExecuteStateTransactionRequest, GetBulkStateRequest, GetBulkStateResponse, GetStateRequest, GetStateResponse, QueryStateRequest, QueryStateResponse, SaveStateRequest, TransactionalStateOperation } from '../../../proto/dapr/proto/runtime/v1/dapr_pb';
 import { Etag, StateItem, StateOptions } from '../../../proto/dapr/proto/common/v1/common_pb';
 import { KeyValuePairType } from '../../../types/KeyValuePair.type';
 import { OperationType } from '../../../types/Operation.type';
@@ -7,6 +7,8 @@ import { IRequestMetadata } from '../../../types/RequestMetadata.type';
 import IClientState from '../../../interfaces/Client/IClientState';
 import { KeyValueType } from '../../../types/KeyValue.type';
 import { merge } from '../../../utils/Map.util';
+import { StateQueryType } from '../../../types/StateQuery.type';
+import { StateQueryResponseType } from '../../../types/StateQueryResponse.type';
 
 // https://docs.dapr.io/reference/api/state_api/
 export default class GRPCClientState implements IClientState {
@@ -25,7 +27,7 @@ export default class GRPCClientState implements IClientState {
       si.setValue(Buffer.from(typeof stateObject.value === "object" ? JSON.stringify(stateObject.value) : stateObject.value.toString(), "utf-8"));
       stateList.push(si);
     }
-    
+
     const msgService = new SaveStateRequest();
     msgService.setStoreName(storeName);
     msgService.setStatesList(stateList);
@@ -48,7 +50,7 @@ export default class GRPCClientState implements IClientState {
     msgService.setStoreName(storeName);
     msgService.setKey(key)
 
-    
+
     // @todo: https://docs.dapr.io/reference/api/state_api/#optional-behaviors
     // msgService.setConsistency()
 
@@ -96,7 +98,7 @@ export default class GRPCClientState implements IClientState {
           let data: string;
           try {
             data = JSON.parse(resDataStr);
-          } catch(e) {
+          } catch (e) {
             data = resDataStr;
           }
           return {
@@ -177,6 +179,35 @@ export default class GRPCClientState implements IClientState {
 
         // https://docs.dapr.io/reference/api/state_api/#request-body-1
         return resolve();
+      });
+    });
+  }
+
+  async query(storeName: string, query: StateQueryType): Promise<StateQueryResponseType> {
+    const msgService = new QueryStateRequest();
+    msgService.setStoreName(storeName);
+    msgService.setQuery(JSON.stringify(query))
+
+    return new Promise((resolve, reject) => {
+      const client = this.client.getClient();
+      client.queryStateAlpha1(msgService, (err, res: QueryStateResponse) => {
+        if (err) {
+          return reject(err);
+        }
+
+        // https://docs.dapr.io/reference/api/state_api/#response-body
+        // map the res from gRPC 
+        let resMapped: StateQueryResponseType = {
+          results: res.getResultsList().map((i) => ({
+            key: i.getKey(),
+            data: i.getData(),
+            etag: i.getEtag(),
+            error: i.getError(),
+          })),
+          token: res.getToken()
+        };
+
+        return resolve(resMapped);
       });
     });
   }

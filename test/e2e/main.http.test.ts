@@ -14,6 +14,7 @@ describe('http/main', () => {
 
   // We need to start listening on some endpoints already
   // this because Dapr is not dynamic and registers endpoints on boot
+  // we put a timeout of 10s since it takes around 4s for Dapr to boot up
   beforeAll(async () => {
     server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.HTTP);
 
@@ -29,7 +30,7 @@ describe('http/main', () => {
 
     // Start server
     await server.start();
-  });
+  }, 10 * 1000);
 
   afterAll(async () => {
     await server.stop();
@@ -38,6 +39,7 @@ describe('http/main', () => {
 
   describe('binding', () => {
     it('should be able to receive events', async () => {
+      console.log("STARTING TEST")
       await client.binding.send('binding-mqtt', 'create', { hello: 'world' });
 
       // Delay a bit for event to arrive

@@ -26,7 +26,7 @@ describe('grpc/main', () => {
 
     // Start server
     await server.start();
-  });
+  }, 10 * 1000);
 
   afterAll(async () => {
     await server.stop();

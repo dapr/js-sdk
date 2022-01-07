@@ -73,6 +73,11 @@ export default class HTTPClient implements IClient {
     this.httpsAgent.destroy();
   }
 
+  async executeWithApiVersion(apiVersion: string = "v1.0", url: string, params: any = {}): Promise<object | string> {
+    const newClientUrl = this.clientUrl.replace("v1.0", apiVersion);
+    return await this.execute(`${newClientUrl}${url}`, params);
+  }
+
   async execute(url: string, params: any = {}): Promise<object | string> {
     if (!params?.headers) {
       params.headers = {};
