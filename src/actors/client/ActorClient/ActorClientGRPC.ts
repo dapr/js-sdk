@@ -7,6 +7,7 @@ import { ActorReminderType } from '../../../types/ActorReminder.type';
 import { ActorTimerType } from '../../../types/ActorTimer.type';
 import IClientActor from '../../../interfaces/Client/IClientActor';
 import { KeyValueType } from '../../../types/KeyValue.type';
+import ActorId from "../../ActorId";
 
 // https://docs.dapr.io/reference/api/actors_api/
 export default class ActorClientGRPC implements IClientActor {
@@ -16,9 +17,9 @@ export default class ActorClientGRPC implements IClientActor {
     this.client = client;
   }
 
-  async invoke(actorType: string, actorId: string, methodName: string, body?: any): Promise<object> {
+  async invoke(actorType: string, actorId: ActorId, methodName: string, body?: any): Promise<object> {
     const msgService = new InvokeActorRequest();
-    msgService.setActorId(actorId)
+    msgService.setActorId(actorId.getId())
     msgService.setActorType(actorType);
     msgService.setMethod(methodName);
 
@@ -46,7 +47,7 @@ export default class ActorClientGRPC implements IClientActor {
     });
   }
 
-  async stateTransaction(actorType: string, actorId: string, operations: OperationType[]): Promise<void> {
+  async stateTransaction(actorType: string, actorId: ActorId, operations: OperationType[]): Promise<void> {
     const transactionItems: TransactionalActorStateOperation[] = [];
 
     for (const o of operations) {
@@ -63,7 +64,7 @@ export default class ActorClientGRPC implements IClientActor {
 
     const msgService = new ExecuteActorStateTransactionRequest();
     msgService.setActorType(actorType);
-    msgService.setActorId(actorId);
+    msgService.setActorId(actorId.getId());
     msgService.setOperationsList(transactionItems);
 
     return new Promise((resolve, reject) => {
@@ -79,10 +80,10 @@ export default class ActorClientGRPC implements IClientActor {
     });
   }
 
-  async stateGet(actorType: string, actorId: string, key: string): Promise<KeyValueType | string> {
+  async stateGet(actorType: string, actorId: ActorId, key: string): Promise<KeyValueType | string> {
     const msgService = new GetActorStateRequest();
     msgService.setActorType(actorType);
-    msgService.setActorId(actorId)
+    msgService.setActorId(actorId.getId())
     msgService.setKey(key);
 
     return new Promise((resolve, reject) => {
@@ -105,10 +106,10 @@ export default class ActorClientGRPC implements IClientActor {
     });
   }
 
-  async registerActorReminder(actorType: string, actorId: string, name: string, reminder: ActorReminderType): Promise<void> {
+  async registerActorReminder(actorType: string, actorId: ActorId, name: string, reminder: ActorReminderType): Promise<void> {
     const msgService = new RegisterActorReminderRequest();
     msgService.setActorType(actorType);
-    msgService.setActorId(actorId);
+    msgService.setActorId(actorId.getId());
     msgService.setName(name);
 
     if (reminder.data) {
@@ -136,10 +137,10 @@ export default class ActorClientGRPC implements IClientActor {
     });
   }
 
-  async unregisterActorReminder(actorType: string, actorId: string, name: string): Promise<void> {
+  async unregisterActorReminder(actorType: string, actorId: ActorId, name: string): Promise<void> {
     const msgService = new UnregisterActorReminderRequest();
     msgService.setActorType(actorType);
-    msgService.setActorId(actorId);
+    msgService.setActorId(actorId.getId());
     msgService.setName(name);
 
     return new Promise((resolve, reject) => {
@@ -155,10 +156,10 @@ export default class ActorClientGRPC implements IClientActor {
     });
   }
 
-  async registerActorTimer(actorType: string, actorId: string, name: string, timer: ActorTimerType): Promise<void> {
+  async registerActorTimer(actorType: string, actorId: ActorId, name: string, timer: ActorTimerType): Promise<void> {
     const msgService = new RegisterActorTimerRequest();
     msgService.setActorType(actorType);
-    msgService.setActorId(actorId);
+    msgService.setActorId(actorId.getId());
     msgService.setName(name);
 
     if (timer.callback) {
@@ -190,10 +191,10 @@ export default class ActorClientGRPC implements IClientActor {
     });
   }
 
-  async unregisterActorTimer(actorType: string, actorId: string, name: string): Promise<void> {
+  async unregisterActorTimer(actorType: string, actorId: ActorId, name: string): Promise<void> {
     const msgService = new UnregisterActorTimerRequest();
     msgService.setActorType(actorType);
-    msgService.setActorId(actorId);
+    msgService.setActorId(actorId.getId());
     msgService.setName(name);
 
     return new Promise((resolve, reject) => {

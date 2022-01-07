@@ -72,7 +72,7 @@ export default abstract class AbstractActor {
    * @return Async void response
    */
   async registerActorReminder<Type>(reminderName: string, dueTime: Temporal.Duration, period: Temporal.Duration, state?: any) {
-    await this.actorClient.actor.registerActorReminder(this.actorType, this.id.getId(), reminderName, {
+    await this.actorClient.actor.registerActorReminder(this.actorType, this.id, reminderName, {
       period,
       dueTime,
       data: state
@@ -80,13 +80,12 @@ export default abstract class AbstractActor {
   }
 
   async unregisterActorReminder(reminderName: string) {
-    await this.actorClient.actor.unregisterActorReminder(this.actorType, this.id.getId(), reminderName);
+    await this.actorClient.actor.unregisterActorReminder(this.actorType, this.id, reminderName);
   }
 
   async registerActorTimer(timerName: string, callback: string, dueTime: Temporal.Duration, period: Temporal.Duration, state?: any) {
     // Register the timer in the sidecar
-    // console.log(`actorType: ${this.actorType}, actorId: ${this.id.getId()}, timerName: ${timerName}, callback: ${callback}, dueTime: ${dueTime.toString()}, period: ${period.toString()}`);
-    return await this.actorClient.actor.registerActorTimer(this.actorType, this.id.getId(), timerName, {
+    return await this.actorClient.actor.registerActorTimer(this.actorType, this.id, timerName, {
       period,
       dueTime,
       data: state,
@@ -95,7 +94,7 @@ export default abstract class AbstractActor {
   }
 
   async unregisterActorTimer(timerName: string) {
-    await this.actorClient.actor.unregisterActorTimer(this.actorType, this.id.getId(), timerName);
+    await this.actorClient.actor.unregisterActorTimer(this.actorType, this.id, timerName);
   }
 
   /**
@@ -188,7 +187,7 @@ export default abstract class AbstractActor {
   async receiveReminder(data: string): Promise<void> {
     console.warn(JSON.stringify({
       error: "ACTOR_METHOD_NOT_IMPLEMENTED",
-      errorMsg: `A reminder was created for the actor with id: ${this.id.getId()} but the method 'receiveReminder' was not implemented`,
+      errorMsg: `A reminder was created for the actor with id: ${this.id} but the method 'receiveReminder' was not implemented`,
     }));
   }
 
@@ -202,10 +201,6 @@ export default abstract class AbstractActor {
 
   getStateManager(): ActorStateManager<any> {
     return this.stateManager;
-  }
-
-  getId(): string {
-    return this.id.getId();
   }
 
   getActorId(): ActorId {

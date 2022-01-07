@@ -1,4 +1,5 @@
 import { OperationType } from "../../types/Operation.type";
+import ActorId from "../ActorId";
 import ActorClient from "../client/ActorClient/ActorClient";
 import ActorStateChange from "./ActorStateChange";
 import StateChangeKind from "./StateChangeKind";
@@ -10,13 +11,13 @@ export default class StateProvider {
     this.actorClient = actorClient;
   }
 
-  async containsState(actorType: string, actorId: string, stateName: string): Promise<boolean> {
+  async containsState(actorType: string, actorId: ActorId, stateName: string): Promise<boolean> {
     const rawStateValue = await this.actorClient.actor.stateGet(actorType, actorId, stateName);
     return !!rawStateValue && rawStateValue.length > 0;
   }
 
   // SEE https://github.com/dapr/python-sdk/blob/0f0b6f6a1cf45d2ac0c519b48fc868898d81124e/dapr/actor/runtime/_state_provider.py#L24
-  async tryLoadState(actorType: string, actorId: string, stateName: string): Promise<[boolean, any]> {
+  async tryLoadState(actorType: string, actorId: ActorId, stateName: string): Promise<[boolean, any]> {
     const rawStateValue = await this.actorClient.actor.stateGet(actorType, actorId, stateName);
 
     if (!rawStateValue || rawStateValue.length === 0) {
@@ -49,7 +50,7 @@ export default class StateProvider {
    * @param actorId 
    * @param stateChanges 
    */
-  async saveState(actorType: string, actorId: string, stateChanges: ActorStateChange<any>[]): Promise<void> {
+  async saveState(actorType: string, actorId: ActorId, stateChanges: ActorStateChange<any>[]): Promise<void> {
     const jsonOutput: OperationType[] = [];
 
     for (const state of stateChanges) {

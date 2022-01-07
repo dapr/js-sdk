@@ -22,7 +22,7 @@ export default class ActorProxyBuilder<T> {
       get(target: any, propKey: any, receiver: any) {
         return async function (...args: any) {
           const body = args.length > 0 ? args : null;
-          const res = await actorClient.actor.invoke(actorTypeClassName, actorId.getId(), propKey, body);
+          const res = await actorClient.actor.invoke(actorTypeClassName, actorId, propKey, body);
 
           return res;
         };

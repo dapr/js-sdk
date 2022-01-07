@@ -40,7 +40,7 @@ export default class ActorStateManager<T> {
       return false;
     }
 
-    const didExist = await this.actor.getStateProvider().containsState(this.actor.getActorType(), this.actor.getId(), stateName);
+    const didExist = await this.actor.getStateProvider().containsState(this.actor.getActorType(), this.actor.getActorId(), stateName);
 
     if (!didExist) {
       return false;
@@ -74,7 +74,7 @@ export default class ActorStateManager<T> {
       return [true, val !== undefined ? val : null];
     }
 
-    const [hasValue, value] = await this.actor.getStateProvider().tryLoadState(this.actor.getActorType(), this.actor.getId(), stateName);
+    const [hasValue, value] = await this.actor.getStateProvider().tryLoadState(this.actor.getActorType(), this.actor.getActorId(), stateName);
 
 
     if (hasValue) {
@@ -106,7 +106,7 @@ export default class ActorStateManager<T> {
       return;
     }
 
-    const didExist = await this.actor.getStateProvider().containsState(this.actor.getActorType(), this.actor.getId(), stateName);
+    const didExist = await this.actor.getStateProvider().containsState(this.actor.getActorType(), this.actor.getActorId(), stateName);
 
     if (didExist) {
       stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.UPDATE));
@@ -141,7 +141,7 @@ export default class ActorStateManager<T> {
       return true;
     }
 
-    const didExist = await this.actor.getStateProvider().containsState(this.actor.getActorType(), this.actor.getId(), stateName);
+    const didExist = await this.actor.getStateProvider().containsState(this.actor.getActorType(), this.actor.getActorId(), stateName);
 
     if (didExist) {
       stateChangeTracker.set(stateName, new StateMetadata(null as any, StateChangeKind.REMOVE));
@@ -159,7 +159,7 @@ export default class ActorStateManager<T> {
       return stateMetadata?.getChangeKind() !== StateChangeKind.REMOVE;
     }
 
-    const doesContainState = await this.actor.getStateProvider().containsState(this.actor.getActorType(), this.actor.getId(), stateName);
+    const doesContainState = await this.actor.getStateProvider().containsState(this.actor.getActorType(), this.actor.getActorId(), stateName);
     return doesContainState;
   }
 
@@ -215,7 +215,7 @@ export default class ActorStateManager<T> {
       return newValue;
     }
 
-    const [hasValue, val] = await this.actor.getStateProvider().tryLoadState(this.actor.getActorType(), this.actor.getId(), stateName);
+    const [hasValue, val] = await this.actor.getStateProvider().tryLoadState(this.actor.getActorType(), this.actor.getActorId(), stateName);
 
     if (hasValue) {
       const newValue = updateValueFactory(stateName, val);
@@ -273,7 +273,7 @@ export default class ActorStateManager<T> {
     });
 
     if (stateChanges.length > 0) {
-      await this.actor.getStateProvider().saveState(this.actor.getActorType(), this.actor.getId(), stateChanges);
+      await this.actor.getStateProvider().saveState(this.actor.getActorType(), this.actor.getActorId(), stateChanges);
     }
 
     for (const stateName of statesToRemove) {
