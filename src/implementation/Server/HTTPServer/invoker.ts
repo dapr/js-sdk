@@ -3,15 +3,12 @@ import { InvokerListenOptionsType } from '../../../types/InvokerListenOptions.ty
 import { HttpMethod } from '../../../enum/HttpMethod.enum';
 import HTTPServer from './HTTPServer';
 import IServerInvoker from '../../../interfaces/Server/IServerInvoker';
-import HTTPClient from '../../Client/HTTPClient/HTTPClient';
 
 // https://docs.dapr.io/reference/api/service_invocation_api/
 export default class HTTPServerInvoker implements IServerInvoker {
   private readonly server: HTTPServer;
-  private readonly client: HTTPClient;
 
-  constructor(server: HTTPServer, client: HTTPClient) {
-    this.client = client;
+  constructor(server: HTTPServer) {
     this.server = server;
   }
 
@@ -28,10 +25,10 @@ export default class HTTPServerInvoker implements IServerInvoker {
           contentType: req.headers['content-type']
         }
       });
-      
+
       // Make sure we close the request after the callback
       // @TODO this should send header and http status code to client (same as grpc)
-      
+
       if (!res.writableEnded) {
         if (invokeResponse) {
           return res.end(JSON.stringify(invokeResponse));

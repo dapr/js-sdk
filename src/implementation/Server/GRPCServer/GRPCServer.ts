@@ -2,6 +2,8 @@ import * as grpc from "@grpc/grpc-js";
 import GRPCServerImpl from "./GRPCServerImpl";
 import { AppCallbackService } from "../../../proto/dapr/proto/runtime/v1/appcallback_grpc_pb";
 import IServer from "../../../interfaces/Server/IServer";
+import GRPCClient from "../../Client/GRPCClient/GRPCClient";
+import { DaprClient } from "../../..";
 
 // eslint-disable-next-line
 export interface IServerType extends grpc.Server { }
@@ -15,12 +17,14 @@ export default class GRPCServer implements IServer {
   server: IServerType;
   serverImpl: IServerImplType;
   serverCredentials: grpc.ServerCredentials;
+  client: DaprClient;
 
-  constructor() {
+  constructor(client: DaprClient) {
     this.isInitialized = false;
 
     this.serverHost = "";
     this.serverPort = "";
+    this.client = client;
 
     // Create Server
     this.server = new grpc.Server();

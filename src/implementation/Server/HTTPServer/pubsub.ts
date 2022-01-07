@@ -1,15 +1,12 @@
 import { TypeDaprPubSubCallback } from '../../../types/DaprPubSubCallback.type';
 import IServerPubSub from '../../../interfaces/Server/IServerPubSub';
 import HTTPServer from './HTTPServer';
-import HTTPClient from '../../Client/HTTPClient/HTTPClient';
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPServerPubSub implements IServerPubSub {
   private readonly server: HTTPServer;
-  private readonly client: HTTPClient;
 
-  constructor(server: HTTPServer, client: HTTPClient) {
-    this.client = client;
+  constructor(server: HTTPServer) {
     this.server = server;
   }
 
