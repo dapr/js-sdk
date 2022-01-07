@@ -32,6 +32,35 @@ describe('grpc/main', () => {
     await server.stop();
   });
 
+  describe('metadata', () => {
+    it('should be able to get the metadata of the Dapr sidecar', async () => {
+      const res = await client.metadata.get();
+
+      // app id is not set in grpc?
+      // expect(res.id.length).toBeGreaterThan(0);
+      // expect(res.components.length).toBeGreaterThan(0);
+    });
+
+    it('should be able to set a custom metadata value of the Dapr sidecar', async () => {
+      await client.metadata.set("testKey", "Hello World");
+
+      const res = await client.metadata.get();
+
+      // app id is not set in grpc?
+      // expect(res.id.length).toBeGreaterThan(0);
+      // expect(res.id.length).toBeGreaterThan(0);
+      // expect(res.components.length).toBeGreaterThan(0);
+      expect(res.extended["testKey"]).toEqual("Hello World");
+    });
+  });
+
+  describe('health', () => {
+    it('should return true if Dapr is ready', async () => {
+      const res = await client.health.isHealthy();
+      expect(res).toEqual(true);
+    });
+  });
+
   describe('binding', () => {
     it('should be able to receive events', async () => {
       await client.binding.send('binding-mqtt', 'create', { hello: 'world' });

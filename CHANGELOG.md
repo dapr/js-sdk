@@ -9,6 +9,8 @@ Version 2.0.0 brings a lot of changes to the Dapr JS SDK that were long due. Bel
 * Actor Support has been added
 * Actor Proxy has been added for Actor Access
 * The HTTP Connection is now being reused to reduce the CONNRESET errors when intensively using the JS SDK 
+* The [Metadata API](https://docs.dapr.io/reference/api/metadata_api/) is supported
+* The [Health API](https://docs.dapr.io/reference/api/health_api/) is supported 
 
 #### Breaking Changes
 
@@ -18,5 +20,8 @@ Version 2.0.0 brings a lot of changes to the Dapr JS SDK that were long due. Bel
 #### Major Changes
 
 * KeepAlive for HTTP has been added and a new method in the `DaprClient` has been added named `stop()` to stop the client and release the connections kept by the sockets.
+* `healthz` endpoint was implemented as `client.health.isHealthy()` for gRPC this checks the `getMetadata` function since it does not have a Health PROTO.
+* Server startup now ensures the Dapr Sidecar is healthy before starting
+* Add metadata API for gRPC and HTTP
 
 ## 1.x release
