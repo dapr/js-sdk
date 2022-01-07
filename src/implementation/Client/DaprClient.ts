@@ -21,6 +21,9 @@ import HTTPClient from './HTTPClient/HTTPClient';
 
 import CommunicationProtocolEnum from '../../enum/CommunicationProtocol.enum';
 import { DaprClientOptions } from '../../types/DaprClientOptions';
+import HTTPClientHealth from './HTTPClient/health';
+import IClientHealth from '../../interfaces/Client/IClientHealth';
+import GRPCClientHealth from './GRPCClient/health';
 
 export default class DaprClient {
   readonly daprHost: string;
@@ -34,6 +37,7 @@ export default class DaprClient {
   readonly binding: IClientBinding;
   readonly invoker: IClientInvoker;
   readonly secret: IClientSecret;
+  readonly health: IClientHealth;
 
   constructor(
     daprHost: string
@@ -64,6 +68,7 @@ export default class DaprClient {
         this.binding = new GRPCClientBinding(client);
         this.invoker = new GRPCClientInvoker(client);
         this.secret = new GRPCClientSecret(client);
+        this.health = new GRPCClientHealth(client);
         break;
       }
       case CommunicationProtocolEnum.HTTP:
@@ -76,6 +81,7 @@ export default class DaprClient {
         this.binding = new HTTPClientBinding(client);
         this.invoker = new HTTPClientInvoker(client);
         this.secret = new HTTPClientSecret(client);
+        this.health = new HTTPClientHealth(client);
         break;
       }
     }
