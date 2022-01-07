@@ -32,6 +32,10 @@ describe('grpc/main', () => {
     await server.stop();
   });
 
+  afterAll(async () => {
+    await server.stopServer();
+  });
+
   describe('binding', () => {
     it('should be able to receive events', async () => {
       await client.binding.send('binding-mqtt', 'create', { hello: 'world' });

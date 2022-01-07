@@ -94,6 +94,7 @@ export default class HTTPClient implements IClient {
       }
     }
 
+
     const urlFull = url.startsWith("http") ? url : `${this.clientUrl}${url}`;
     const agent = urlFull.startsWith("https") ? this.httpsAgent : this.httpAgent;
     params.agent = agent;
