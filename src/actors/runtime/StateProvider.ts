@@ -1,23 +1,24 @@
-import { DaprClient } from "../..";
 import { OperationType } from "../../types/Operation.type";
+import ActorId from "../ActorId";
+import ActorClient from "../client/ActorClient/ActorClient";
 import ActorStateChange from "./ActorStateChange";
 import StateChangeKind from "./StateChangeKind";
 
 export default class StateProvider {
-  stateClient: DaprClient;
+  actorClient: ActorClient;
 
-  constructor(daprClient: DaprClient) {
-    this.stateClient = daprClient;
+  constructor(actorClient: ActorClient) {
+    this.actorClient = actorClient;
   }
 
-  async containsState(actorType: string, actorId: string, stateName: string): Promise<boolean> {
-    const rawStateValue = await this.stateClient.actor.stateGet(actorType, actorId, stateName);
+  async containsState(actorType: string, actorId: ActorId, stateName: string): Promise<boolean> {
+    const rawStateValue = await this.actorClient.actor.stateGet(actorType, actorId, stateName);
     return !!rawStateValue && rawStateValue.length > 0;
   }
 
   // SEE https://github.com/dapr/python-sdk/blob/0f0b6f6a1cf45d2ac0c519b48fc868898d81124e/dapr/actor/runtime/_state_provider.py#L24
-  async tryLoadState(actorType: string, actorId: string, stateName: string): Promise<[boolean, any]> {
-    const rawStateValue = await this.stateClient.actor.stateGet(actorType, actorId, stateName);
+  async tryLoadState(actorType: string, actorId: ActorId, stateName: string): Promise<[boolean, any]> {
+    const rawStateValue = await this.actorClient.actor.stateGet(actorType, actorId, stateName);
 
     if (!rawStateValue || rawStateValue.length === 0) {
       return [false, undefined];
@@ -49,7 +50,7 @@ export default class StateProvider {
    * @param actorId 
    * @param stateChanges 
    */
-  async saveState(actorType: string, actorId: string, stateChanges: ActorStateChange<any>[]): Promise<void> {
+  async saveState(actorType: string, actorId: ActorId, stateChanges: ActorStateChange<any>[]): Promise<void> {
     const jsonOutput: OperationType[] = [];
 
     for (const state of stateChanges) {
@@ -83,6 +84,6 @@ export default class StateProvider {
       });
     }
 
-    await this.stateClient.actor.stateTransaction(actorType, actorId, jsonOutput);
+    await this.actorClient.actor.stateTransaction(actorType, actorId, jsonOutput);
   }
 }

@@ -1,6 +1,7 @@
 import { Temporal } from "@js-temporal/polyfill";
 import DaprClient from "../../implementation/Client/DaprClient";
 import ActorId from "../ActorId";
+import ActorClient from "../client/ActorClient/ActorClient";
 import ActorStateManager from "./ActorStateManager";
 import StateProvider from "./StateProvider";
 
@@ -25,6 +26,7 @@ export default abstract class AbstractActor {
   private readonly stateManager: ActorStateManager<any>;
   private readonly id: ActorId;
   private readonly daprClient: DaprClient;
+  private readonly actorClient: ActorClient;
   private readonly daprStateProvider: StateProvider;
   private readonly actorType: any; // set at constructor level
 
@@ -36,9 +38,12 @@ export default abstract class AbstractActor {
    */
   constructor(daprClient: DaprClient, id: ActorId) {
     this.daprClient = daprClient;
+    this.actorClient = new ActorClient(daprClient.getDaprHost(), daprClient.getDaprPort(), daprClient.getCommunicationProtocol(), daprClient.getOptions());
+
     this.id = id;
+
     this.stateManager = new ActorStateManager(this);
-    this.daprStateProvider = new StateProvider(this.daprClient);
+    this.daprStateProvider = new StateProvider(this.actorClient);
 
     // Interesting one: get the Class Type of the child
     this.actorType = this.constructor.name;
@@ -66,32 +71,30 @@ export default abstract class AbstractActor {
    * @param <Type> Type of the state object
    * @return Async void response
    */
-  // async registerReminder<Type>(reminderName: string, state: Buffer, dueTime: string, period: string) {
-  //   const actorType = this.runtimeCtx.actorTypeInfo.name;
-  //   await this.runtimeCtx.daprClient.actor.reminderCreate(actorType, this.id.id, reminderName, {
-  //     period,
-  //     dueTime,
-  //     data: state
-  //   });
-  // }
+  async registerActorReminder<Type>(reminderName: string, dueTime: Temporal.Duration, period: Temporal.Duration, state?: any) {
+    await this.actorClient.actor.registerActorReminder(this.actorType, this.id, reminderName, {
+      period,
+      dueTime,
+      data: state
+    });
+  }
 
-  // async unregisterReminder(reminderName: string) {
-  //   const actorType = this.runtimeCtx.actorTypeInfo.name;
-  //   await this.runtimeCtx.daprClient.actor.reminderDelete(actorType, this.id.id, reminderName);
-  // }
+  async unregisterActorReminder(reminderName: string) {
+    await this.actorClient.actor.unregisterActorReminder(this.actorType, this.id, reminderName);
+  }
 
-  async registerTimer(timerName: string, callback: string, dueTime: Temporal.Duration, period: Temporal.Duration, state?: Buffer) {
-    // // Make sure to activate the actor
-    // const actor = await ActorRuntime.getInstance(this.client).getActorManager(this.actorType).getActiveActor(this.id);
-
+  async registerActorTimer(timerName: string, callback: string, dueTime: Temporal.Duration, period: Temporal.Duration, state?: any) {
     // Register the timer in the sidecar
-    console.log(`actorType: ${this.actorType}, actorId: ${this.id.getId()}, timerName: ${timerName}, callback: ${callback}, dueTime: ${dueTime.toString()}, period: ${period.toString()}`);
-    return await this.daprClient.actor.timerCreate(this.actorType, this.id.getId(), timerName, {
+    return await this.actorClient.actor.registerActorTimer(this.actorType, this.id, timerName, {
       period,
       dueTime,
       data: state,
       callback
     });
+  }
+
+  async unregisterActorTimer(timerName: string) {
+    await this.actorClient.actor.unregisterActorTimer(this.actorType, this.id, timerName);
   }
 
   /**
@@ -184,7 +187,7 @@ export default abstract class AbstractActor {
   async receiveReminder(data: string): Promise<void> {
     console.warn(JSON.stringify({
       error: "ACTOR_METHOD_NOT_IMPLEMENTED",
-      errorMsg: `A reminder was created for the actor with id: ${this.id.getId()} but the method 'receiveReminder' was not implemented`,
+      errorMsg: `A reminder was created for the actor with id: ${this.id} but the method 'receiveReminder' was not implemented`,
     }));
   }
 
@@ -200,7 +203,7 @@ export default abstract class AbstractActor {
     return this.stateManager;
   }
 
-  getId(): ActorId {
+  getActorId(): ActorId {
     return this.id;
   }
 

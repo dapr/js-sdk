@@ -7,7 +7,7 @@ const serverPort = "50051"; // App Port of this Example Server
 
 async function start() {
   const server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.GRPC);
-  await server.startServer();
+  await server.start();
 
   await server.invoker.listen("hello-world", async (data: any) => {
     console.log("[Dapr-JS][Example] Received Hello World Method Call");
@@ -18,6 +18,6 @@ async function start() {
 }
 
 start().catch((e) => {
-    console.error(e);
-    process.exit(1);
+  console.error(e);
+  process.exit(1);
 });

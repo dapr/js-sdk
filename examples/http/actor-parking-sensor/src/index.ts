@@ -19,7 +19,7 @@ async function start() {
   console.log("===============================================================");
   await server.actor.init(); // Let the server know we need actors
   server.actor.registerActor(ParkingSensorImpl); // Register the actor
-  await server.startServer(); // Start the server
+  await server.start(); // Start the server
 
   console.log("===============================================================");
   console.log("CLIENT EXECUTION");

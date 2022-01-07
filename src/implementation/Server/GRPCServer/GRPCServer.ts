@@ -60,29 +60,7 @@ export default class GRPCServer implements IServer {
     return this.serverImpl;
   }
 
-  async close(): Promise<void> {
-    if (!this.isInitialized) {
-      throw new Error(JSON.stringify({
-        error: "GRPC_SERVER_NOT_INITIALIZED",
-        error_message: "The gRPC server was not initialized, did you call `await GRPCServerSingleton.initialize()`?"
-      }));
-    }
-
-    return new Promise((resolve, reject) => {
-      this.server.tryShutdown((err) => {
-        if (err) {
-          return reject(err);
-        }
-
-        console.log(`[Dapr-JS][gRPC] Closed Server`);
-        this.isInitialized = false;
-
-        return resolve();
-      })
-    })
-  }
-
-  async startServer(host: string, port: string): Promise<void> {
+  async start(host: string, port: string): Promise<void> {
     this.serverHost = host;
     this.serverPort = port;
 
@@ -99,7 +77,7 @@ export default class GRPCServer implements IServer {
     this.isInitialized = true;
   }
 
-  async stopServer(): Promise<void> {
+  async stop(): Promise<void> {
     return new Promise((resolve, reject) => {
 
       this.server.tryShutdown((err) => {

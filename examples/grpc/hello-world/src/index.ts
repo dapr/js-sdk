@@ -27,7 +27,7 @@ async function start() {
   // We initialize after registering our listeners since these should be defined upfront
   // this is how Dapr works, it waits until we are listening on the port. Once that is detected
   // it will scan the binding list and pubsub subscriptions list to process
-  await server.startServer();
+  await server.start();
 
   console.log("===============================================================");
   console.log("EXECUTING CLIENT -INVOKER")
@@ -94,7 +94,7 @@ async function start() {
   const resState = await client.state.get("state-redis", "key-1");
   console.log(`[Dapr-JS][Example][State] Fetched State: ${JSON.stringify(resState)}`);
 
-  const resStateBulk = await client.state.getBulk("state-redis", [ "key-3", "key-2"]);
+  const resStateBulk = await client.state.getBulk("state-redis", ["key-3", "key-2"]);
   console.log(`[Dapr-JS][Example][State] Fetched State Bulk: ${JSON.stringify(resStateBulk)}`);
 
   await client.state.delete("state-redis", "key-2");

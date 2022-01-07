@@ -25,7 +25,11 @@ describe('grpc/main', () => {
     await server.pubsub.subscribe('pubsub-redis', 'test-topic', mockPubSubSubscribe);
 
     // Start server
-    await server.startServer();
+    await server.start();
+  });
+
+  afterAll(async () => {
+    await server.stop();
   });
 
   afterAll(async () => {

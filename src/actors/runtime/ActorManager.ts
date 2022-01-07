@@ -115,7 +115,7 @@ export default class ActorManager<T extends AbstractActor> {
     await this.callActorMethod(actorId, timerData.callback, timerData.state);
   }
 
-  async callActorMethod(actorId: ActorId, actorMethodName: string, ...args: any): Promise<Buffer> {
+  async callActorMethod(actorId: ActorId, actorMethodName: string, args: any): Promise<Buffer> {
     const actorObject = await this.getActiveActor(actorId);
 
     // Check if the actor method exists? Skip type-checking as it's the power of Javascript
@@ -131,8 +131,17 @@ export default class ActorManager<T extends AbstractActor> {
 
     // Call the actor method, Skip type-checking as it's the power of Javascript
     await actorObject.onActorMethodPreInternal();
-    // @ts-ignore
-    const res = await actorObject[actorMethodName](...args);
+
+    let res;
+
+    if (typeof args === "object") {
+      // @ts-ignore
+      res = await actorObject[actorMethodName](...args);
+    } else {
+      // @ts-ignore
+      res = await actorObject[actorMethodName](args);
+    }
+
     await actorObject.onActorMethodPostInternal();
 
     return res;

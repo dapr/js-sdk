@@ -18,6 +18,7 @@ import HTTPServerInvoker from './HTTPServer/invoker';
 import HTTPServerActor from './HTTPServer/actor';
 import GRPCClient from '../Client/GRPCClient/GRPCClient';
 import HTTPClient from '../Client/HTTPClient/HTTPClient';
+import { DaprClientOptions } from '../../types/DaprClientOptions';
 
 export default class DaprServer {
   // App details
@@ -33,6 +34,7 @@ export default class DaprServer {
   readonly binding: IServerBinding;
   readonly invoker: IServerInvoker;
   readonly actor: IServerActor;
+  readonly clientOptions: DaprClientOptions;
 
   constructor(
     serverHost = "127.0.0.1"
@@ -40,11 +42,15 @@ export default class DaprServer {
     , daprHost = "127.0.0.1"
     , daprPort = "50051"
     , communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP
+    , clientOptions: DaprClientOptions = {
+      isKeepAlive: true
+    }
   ) {
     this.serverHost = serverHost;
     this.serverPort = serverPort;
     this.daprHost = daprHost;
     this.daprPort = daprPort;
+    this.clientOptions = clientOptions;
 
     this.communicationProtocol = communicationProtocol;
 
@@ -64,7 +70,7 @@ export default class DaprServer {
     // Builder
     switch (communicationProtocol) {
       case CommunicationProtocolEnum.GRPC: {
-        const client = new GRPCClient(daprHost, daprPort);
+        const client = new GRPCClient(daprHost, daprPort, this.clientOptions);
         const server = new GRPCServer();
 
         this.daprServer = server;
@@ -76,7 +82,7 @@ export default class DaprServer {
       }
       case CommunicationProtocolEnum.HTTP:
       default: {
-        const client = new HTTPClient(daprHost, daprPort);
+        const client = new HTTPClient(daprHost, daprPort, this.clientOptions);
         const server = new HTTPServer();
 
         this.daprServer = server;
@@ -89,8 +95,12 @@ export default class DaprServer {
     }
   }
 
-  async startServer(): Promise<void> {
-    await this.daprServer.startServer(this.serverHost, this.serverPort.toString());
+  async start(): Promise<void> {
+    await this.daprServer.start(this.serverHost, this.serverPort.toString());
+  }
+
+  async stop(): Promise<void> {
+    await this.daprServer.stop();
   }
 
   async stopServer(): Promise<void> {
