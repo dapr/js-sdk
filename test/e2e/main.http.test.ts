@@ -16,7 +16,10 @@ describe('http/main', () => {
   // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
     server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.HTTP);
-    client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.HTTP);
+
+    client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.HTTP, {
+      isKeepAlive: false
+    });
 
     await server.binding.receive('binding-mqtt', mockBindingReceive);
 
@@ -25,11 +28,12 @@ describe('http/main', () => {
     await server.pubsub.subscribe('pubsub-redis', 'test-topic', mockPubSubSubscribe);
 
     // Start server
-    await server.startServer();
+    await server.start();
   });
 
   afterAll(async () => {
-    await server.stopServer();
+    await server.stop();
+    await client.stop();
   });
 
   describe('binding', () => {

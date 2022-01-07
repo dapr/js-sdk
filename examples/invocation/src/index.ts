@@ -3,27 +3,27 @@ import { DaprServer, DaprClient, HttpMethod, CommunicationProtocolEnum } from "d
 // Common settings
 const daprAppId = "example-invocation";
 const serverHost = "127.0.0.1"; // App Host of this Example Server
-const daprHost = "127.0.0.1"; 
+const daprHost = "127.0.0.1";
 const serverPort = "50051"; // App Port of this Example Server
 
 async function start() {
   // Note that the DAPR_HTTP_PORT and DAPR_GRPC_PORT environment variables are set by DAPR itself. https://docs.dapr.io/reference/environment/
   const server = new DaprServer(
-    serverHost, 
-    serverPort, 
-    daprHost, 
-    process.env.DAPR_HTTP_PORT, 
+    serverHost,
+    serverPort,
+    daprHost,
+    process.env.DAPR_HTTP_PORT,
     CommunicationProtocolEnum.HTTP
   );
 
   const client = new DaprClient(
-    daprHost, 
-    process.env.DAPR_HTTP_PORT as string, 
+    daprHost,
+    process.env.DAPR_HTTP_PORT as string,
     CommunicationProtocolEnum.HTTP
   );
 
-  // Note that invoker listeners can be set up after startServer() has been called
-  await server.startServer();
+  // Note that invoker listeners can be set up after start() has been called
+  await server.start();
 
   console.log("Setting up invocation endpoints")
   await server.invoker.listen("hello-world", async (data: Record<string, any>) => {

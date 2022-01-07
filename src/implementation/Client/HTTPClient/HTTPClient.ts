@@ -3,21 +3,26 @@ import { CommunicationProtocolEnum } from "../../..";
 import IClient from "../../../interfaces/Client/IClient";
 import http from "node:http";
 import https from "node:https";
+import { DaprClientOptions } from "../../../types/DaprClientOptions";
 
 export default class HTTPClient implements IClient {
   private readonly isInitialized: boolean;
-  private readonly client: typeof fetch;
+  private client: typeof fetch;
   private readonly clientHost: string;
   private readonly clientPort: string;
   private readonly clientUrl: string;
+  private readonly options: DaprClientOptions;
 
   private readonly httpAgent;
   private readonly httpsAgent;
 
-  constructor(host = "127.0.0.1", port = "50050") {
+  constructor(host = "127.0.0.1", port = "50050", options: DaprClientOptions = {
+    isKeepAlive: true
+  }) {
     this.isInitialized = true;
     this.clientHost = host;
     this.clientPort = port;
+    this.options = options;
 
     if (!this.clientHost.startsWith('http://') && !this.clientHost.startsWith('https://')) {
       this.clientUrl = `http://${this.clientHost}:${this.clientPort}/v1.0`;
@@ -27,8 +32,16 @@ export default class HTTPClient implements IClient {
 
     this.client = fetch;
 
-    this.httpAgent = new http.Agent({ keepAlive: true, keepAliveMsecs: 30 * 1000 });
-    this.httpsAgent = new https.Agent({ keepAlive: true, keepAliveMsecs: 30 * 1000 });
+    // Add a custom agent so we can decide if we want to reuse connections or not
+    // we use an agent so we can reuse an open connection, limiting handshake requirements
+    // Note: when using an agent, we will encounter TCPWRAP since the connection doesn't get destroyed
+    if (this.options.isKeepAlive) {
+      this.httpAgent = new http.Agent({ keepAlive: true, keepAliveMsecs: 30 * 1000 });
+      this.httpsAgent = new https.Agent({ keepAlive: true, keepAliveMsecs: 30 * 1000 });
+    } else {
+      this.httpAgent = new http.Agent();
+      this.httpsAgent = new https.Agent();
+    }
   }
 
   getClient(): typeof fetch {
@@ -49,6 +62,15 @@ export default class HTTPClient implements IClient {
 
   getClientCommunicationProtocol(): CommunicationProtocolEnum {
     return CommunicationProtocolEnum.HTTP;
+  }
+
+  getOptions(): DaprClientOptions {
+    return this.options;
+  }
+
+  async stop(): Promise<void> {
+    this.httpAgent.destroy();
+    this.httpsAgent.destroy();
   }
 
   async execute(url: string, params: any = {}): Promise<object | string> {
@@ -72,11 +94,7 @@ export default class HTTPClient implements IClient {
       }
     }
 
-
     const urlFull = url.startsWith("http") ? url : `${this.clientUrl}${url}`;
-
-    // Decide which agent to use
-    // we use an agent so we can reuse an open connection, limiting handshake requirements
     const agent = urlFull.startsWith("https") ? this.httpsAgent : this.httpAgent;
     params.agent = agent;
 

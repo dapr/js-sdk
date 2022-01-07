@@ -20,10 +20,12 @@ import HTTPClientSecret from './HTTPClient/secret';
 import HTTPClient from './HTTPClient/HTTPClient';
 
 import CommunicationProtocolEnum from '../../enum/CommunicationProtocol.enum';
+import { DaprClientOptions } from '../../types/DaprClientOptions';
 
 export default class DaprClient {
   readonly daprHost: string;
   readonly daprPort: string;
+  readonly options: DaprClientOptions;
   readonly communicationProtocol: CommunicationProtocolEnum;
 
   readonly daprClient: IClient;
@@ -37,10 +39,14 @@ export default class DaprClient {
     daprHost: string
     , daprPort: string
     , communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP
+    , options: DaprClientOptions = {
+      isKeepAlive: true
+    }
   ) {
     this.daprHost = daprHost;
     this.daprPort = daprPort;
     this.communicationProtocol = communicationProtocol;
+    this.options = options;
 
     // Validation on port
     if (!/^[0-9]+$/.test(this.daprPort)) {
@@ -50,9 +56,9 @@ export default class DaprClient {
     // Builder
     switch (communicationProtocol) {
       case CommunicationProtocolEnum.GRPC: {
-        const client = new GRPCClient(this.daprHost, this.daprPort);
-
+        const client = new GRPCClient(this.daprHost, this.daprPort, this.options);
         this.daprClient = client;
+
         this.state = new GRPCClientState(client);
         this.pubsub = new GRPCClientPubSub(client);
         this.binding = new GRPCClientBinding(client);
@@ -62,9 +68,9 @@ export default class DaprClient {
       }
       case CommunicationProtocolEnum.HTTP:
       default: {
-        const client = new HTTPClient(this.daprHost, this.daprPort);
-
+        const client = new HTTPClient(this.daprHost, this.daprPort, this.options);
         this.daprClient = client;
+
         this.state = new HTTPClientState(client);
         this.pubsub = new HTTPClientPubSub(client);
         this.binding = new HTTPClientBinding(client);
@@ -76,7 +82,11 @@ export default class DaprClient {
   }
 
   static create(client: IClient): DaprClient {
-    return new DaprClient(client.getClientHost(), client.getClientPort(), client.getClientCommunicationProtocol());
+    return new DaprClient(client.getClientHost(), client.getClientPort(), client.getClientCommunicationProtocol(), client.getOptions());
+  }
+
+  async stop(): Promise<void> {
+    await this.daprClient.stop();
   }
 
   getDaprClient(): IClient {
@@ -89,6 +99,10 @@ export default class DaprClient {
 
   getDaprPort(): string {
     return this.daprPort;
+  }
+
+  getOptions(): DaprClientOptions {
+    return this.options;
   }
 
   getCommunicationProtocol(): CommunicationProtocolEnum {

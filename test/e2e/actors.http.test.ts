@@ -1,4 +1,4 @@
-import { DaprClient, DaprServer, Temporal } from '../../src';
+import { CommunicationProtocolEnum, DaprClient, DaprServer, Temporal } from '../../src';
 
 import DemoActorActivateImpl from '../actor/DemoActorActivateImpl';
 import DemoActorCounterImpl from '../actor/DemoActorCounterImpl';
@@ -21,9 +21,16 @@ describe('http/actors', () => {
   // We need to start listening on some endpoints already
   // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
-    // Start server and client
-    server = new DaprServer(serverHost, serverPort, sidecarHost, sidecarPort);
-    client = new DaprClient(sidecarHost, sidecarPort);
+    // Start server and client with keepAlive on the client set to false.
+    // this means that we won't re-use connections here which is necessary for the tests
+    // since it will keep handles open else
+    server = new DaprServer(serverHost, serverPort, sidecarHost, sidecarPort, CommunicationProtocolEnum.HTTP, {
+      isKeepAlive: false
+    });
+
+    client = new DaprClient(sidecarHost, sidecarPort, CommunicationProtocolEnum.HTTP, {
+      isKeepAlive: false
+    });
 
     // has to be initialized before the server started! 
     // This will initialize the actor routes. 
@@ -37,11 +44,12 @@ describe('http/actors', () => {
     await server.actor.registerActor(DemoActorActivateImpl);
 
     // Start server
-    await server.startServer(); // Start the general server
+    await server.start(); // Start the general server
   });
 
   afterAll(async () => {
-    await server.stopServer();
+    await server.stop();
+    await client.stop();
   });
 
   describe('actorProxy', () => {

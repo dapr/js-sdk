@@ -31,7 +31,7 @@ async function start() {
   // We initialize after registering our listeners since these should be defined upfront
   // this is how Dapr works, it waits until we are listening on the port. Once that is detected
   // it will scan the binding list and pubsub subscriptions list to process
-  await server.startServer();
+  await server.start();
 
   console.log("===============================================================");
   console.log("EXECUTING CLIENT - ACTORS");

@@ -11,7 +11,7 @@ export default class ActorProxyBuilder<T> {
   constructor(actorTypeClass: Class<T>, daprClient: DaprClient) {
     this.actorTypeClass = actorTypeClass;
     this.daprClient = daprClient;
-    this.actorClient = new ActorClient(daprClient.getDaprHost(), daprClient.getDaprPort(), daprClient.getCommunicationProtocol());
+    this.actorClient = new ActorClient(daprClient.getDaprHost(), daprClient.getDaprPort(), daprClient.getCommunicationProtocol(), daprClient.getOptions());
   }
 
   build(actorId: ActorId): T {

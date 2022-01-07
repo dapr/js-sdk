@@ -25,11 +25,11 @@ describe('grpc/main', () => {
     await server.pubsub.subscribe('pubsub-redis', 'test-topic', mockPubSubSubscribe);
 
     // Start server
-    await server.startServer();
+    await server.start();
   });
 
   afterAll(async () => {
-    await server.stopServer();
+    await server.stop();
   });
 
   describe('binding', () => {

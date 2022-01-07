@@ -80,20 +80,7 @@ export default class HTTPServer implements IServer {
     return this.serverImpl;
   }
 
-  async close(): Promise<void> {
-    if (!this.isInitialized) {
-      throw new Error(JSON.stringify({
-        error: "HTTP_SERVER_NOT_INITIALIZED",
-        error_message: "The HTTP server was not initialized, did you call `await HTTPServerSingleton.initialize()`?"
-      }));
-    }
-
-    await this.server.close();
-    this.isInitialized = false;
-    console.log(`[Dapr-JS] Closed Server`);
-  }
-
-  async startServer(host: string, port: string): Promise<void> {
+  async start(host: string, port: string): Promise<void> {
     this.serverHost = host;
     this.serverPort = port;
 
@@ -119,7 +106,7 @@ export default class HTTPServer implements IServer {
     this.isInitialized = true;
   }
 
-  async stopServer(): Promise<void> {
+  async stop(): Promise<void> {
     await this.server.close();
     this.isInitialized = false;
   }

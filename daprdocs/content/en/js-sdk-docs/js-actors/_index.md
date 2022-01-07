@@ -71,7 +71,7 @@ async function start() {
 
   await server.actor.init(); // Let the server know we need actors
   server.actor.registerActor(ParkingSensorImpl); // Register the actor
-  await server.startServer(); // Start the server
+  await server.start(); // Start the server
 }
 ```                                              
 
@@ -88,7 +88,7 @@ async function start() {
 
   await server.actor.init(); 
   server.actor.registerActor(ParkingSensorImpl); 
-  await server.startServer();
+  await server.start();
 
 
   await client.actor.invoke("PUT", ParkingSensorImpl.name, `actor-id`, "carEnter"); // Invoke the ParkingSensor Actor by calling the carEnter function
@@ -107,7 +107,7 @@ async function start() {
 
   await server.actor.init(); 
   server.actor.registerActor(ParkingSensorImpl); 
-  await server.startServer();
+  await server.start();
 
   // Perform state transaction
   await client.actor.stateTransaction("ParkingSensorImpl", `actor-id`, [
@@ -152,7 +152,7 @@ async function start()
 
   await server.actor.init(); 
   server.actor.registerActor(ParkingSensorImpl); 
-  await server.startServer();
+  await server.start();
 
   // Register a timer
   await client.actor.timerCreate(ParkingSensorImpl.name, `actor-id`, `timer-id`, {
@@ -177,7 +177,7 @@ async function start()
 
   await server.actor.init(); 
   server.actor.registerActor(ParkingSensorImpl); 
-  await server.startServer();
+  await server.start();
 
 
   // Register a reminder, it has a default callback

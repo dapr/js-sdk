@@ -41,7 +41,7 @@ const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC
 A library that provides methods for how an application communicates with the Dapr sidecar.
 
 ##### DaprServer Library
-A library for how an application registers bindings / routes with Dapr. The `startServer()` method is used to start the server and bind the routes. 
+A library for how an application registers bindings / routes with Dapr. The `start()` method is used to start the server and bind the routes. 
 
 ## Building blocks
 
@@ -165,7 +165,7 @@ async function start() {
   // Configure Subscriber for a Topic
   await server.pubsub.subscribe(pubSubName, topic, async (data: any) => console.log(`Got Data: ${JSON.stringify(data)}`));
 
-  await server.startServer();
+  await server.start();
 }
 ```
 
@@ -207,7 +207,7 @@ async function start() {
 
   const response = await server.binding.receive(bindingName, async (data: any) => console.log(`Got Data: ${JSON.stringify(data)}`));
 
-  await server.startServer();
+  await server.start();
 }
 ```
 

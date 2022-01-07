@@ -13,7 +13,7 @@ async function start() {
 
   // Initialize the server to subscribe (listen)
   await server.pubsub.subscribe("my-pubsub-component", "my-topic", async (data: any) => console.log(`Received: ${JSON.stringify(data)}`));
-  await server.startServer();
+  await server.start();
 
   // Send a message
   await client.pubsub.publish("my-pubsub-component", "my-topic", { hello: "world" });
