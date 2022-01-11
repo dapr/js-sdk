@@ -197,7 +197,7 @@ export default class GRPCClientState implements IClientState {
 
         // https://docs.dapr.io/reference/api/state_api/#response-body
         // map the res from gRPC 
-        let resMapped: StateQueryResponseType = {
+        const resMapped: StateQueryResponseType = {
           results: res.getResultsList().map((i) => ({
             key: i.getKey(),
             data: i.getData(),

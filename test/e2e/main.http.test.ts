@@ -207,273 +207,160 @@ describe('http/main', () => {
       expect(res).toEqual('');
     });
 
-    describe('state', () => {
-      it('should be able to save the state', async () => {
-        await client.state.save('state-redis', [
-          {
+    it('should be able to perform a transaction that replaces a key and deletes another', async () => {
+      await client.state.transaction('state-redis', [
+        {
+          operation: 'upsert',
+          request: {
             key: 'key-1',
-            value: 'value-1',
+            value: 'my-new-data-1',
           },
-          {
-            key: 'key-2',
-            value: 2,
-          },
-          {
+        },
+        {
+          operation: 'delete',
+          request: {
             key: 'key-3',
-            value: true,
           },
-          {
-            key: 'key-4',
-            value: {
-              nested: {
-                str: 'string',
-                num: 123,
-              },
-            },
-          },
-        ]);
+        },
+      ]);
 
-        const res = await Promise.all([
-          client.state.get('state-redis', 'key-1'),
-          client.state.get('state-redis', 'key-2'),
-          client.state.get('state-redis', 'key-3'),
-          client.state.get('state-redis', 'key-4'),
-        ]);
+      const resTransactionDelete = await client.state.get('state-redis', 'key-3');
+      const resTransactionUpsert = await client.state.get('state-redis', 'key-1');
+      expect(resTransactionDelete).toEqual('');
+      expect(resTransactionUpsert).toEqual('my-new-data-1');
+    });
 
-        expect(res).toEqual([
-          'value-1',
-          2,
-          true,
-          {
-            nested: {
-              str: 'string',
-              num: 123,
+    it('should be able to query state', async () => {
+      // First save our data
+      await client.state.save("state-mongodb", [
+        {
+          key: 'key-1',
+          value: {
+            person: {
+              id: 1036,
+              org: "Dev Ops"
             },
-          },
-        ]);
-      });
-
-      it('should be able to get the state in bulk', async () => {
-        await client.state.save('state-redis', [
-          {
-            key: 'key-1',
-            value: 'value-1',
-          },
-          {
-            key: 'key-2',
-            value: 2,
-          },
-          {
-            key: 'key-3',
-            value: true,
-          },
-          {
-            key: 'key-4',
-            value: {
-              nested: {
-                str: 'string',
-                num: 123,
-              },
-            },
-          },
-        ]);
-
-        const res = await client.state.getBulk('state-redis', ['key-3', 'key-2', 'key-1', 'key-4']);
-
-        expect(res).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({ key: 'key-1', data: 'value-1' }),
-            expect.objectContaining({ key: 'key-2', data: 2 }),
-            expect.objectContaining({ key: 'key-3', data: true }),
-            expect.objectContaining({
-              key: 'key-4',
-              data: {
-                nested: {
-                  str: 'string',
-                  num: 123,
-                },
-              },
-            }),
-          ]),
-        );
-      });
-
-      it('should be able to delete a key from the state store', async () => {
-        await client.state.save('state-redis', [
-          {
-            key: 'key-1',
-            value: 'value-1',
-          },
-          {
-            key: 'key-2',
-            value: 'value-2',
-          },
-          {
-            key: 'key-3',
-            value: 'value-3',
-          },
-        ]);
-
-        await client.state.delete('state-redis', 'key-2');
-        const res = await client.state.get('state-redis', 'key-2');
-        expect(res).toEqual('');
-      });
-
-      it('should be able to perform a transaction that replaces a key and deletes another', async () => {
-        await client.state.transaction('state-redis', [
-          {
-            operation: 'upsert',
-            request: {
-              key: 'key-1',
-              value: 'my-new-data-1',
-            },
-          },
-          {
-            operation: 'delete',
-            request: {
-              key: 'key-3',
-            },
-          },
-        ]);
-
-        const resTransactionDelete = await client.state.get('state-redis', 'key-3');
-        const resTransactionUpsert = await client.state.get('state-redis', 'key-1');
-        expect(resTransactionDelete).toEqual('');
-        expect(resTransactionUpsert).toEqual('my-new-data-1');
-      });
-
-      it('should be able to query state', async () => {
-        // First save our data
-        await client.state.save("state-mongodb", [
-          {
-            key: 'key-1',
-            value: {
-              person: {
-                id: 1036,
-                org: "Dev Ops"
-              },
-              city: "Seattle",
-              state: "WA"
-            }
-          },
-          {
-            key: 'key-2',
-            value: {
-              person: {
-                id: 1037,
-                org: "Developers"
-              },
-              city: "Seattle",
-              state: "WA"
-            },
-          },
-          {
-            key: 'key-3',
-            value: {
-              person: {
-                id: 1038,
-                org: "Developers"
-              },
-              city: "Seattle",
-              state: "WA"
-            },
-          },
-          {
-            key: 'key-4',
-            value: {
-              person: {
-                id: 1039,
-                org: "Dev Ops"
-              },
-              city: "Spokane",
-              state: "WA"
-            },
-          },
-          {
-            key: 'key-5',
-            value: {
-              person: {
-                id: 1040,
-                org: "Developers"
-              },
-              city: "Seattle",
-              state: "WA"
-            },
-          },
-          {
-            key: 'key-6',
-            value: {
-              person: {
-                id: 1041,
-                org: "Dev Ops"
-              },
-              city: "Seattle",
-              state: "WA"
-            },
-          },
-          {
-            key: 'key-7',
-            value: {
-              person: {
-                id: 1042,
-                org: "Finance"
-              },
-              city: "Brussels",
-              state: "Flemish-Brabant"
-            },
-          },
-          {
-            key: 'key-8',
-            value: {
-              person: {
-                id: 1043,
-                org: "Finance"
-              },
-              city: "San Francisco",
-              state: "CA"
-            },
+            city: "Seattle",
+            state: "WA"
           }
-        ]);
-
-        const res = await client.state.query("state-mongodb", {
-          filter: {
-            OR: [
-              {
-                EQ: { "value.person.org": "Dev Ops" }
-              },
-              {
-                "AND": [
-                  {
-                    "EQ": { "value.person.org": "Finance" }
-                  },
-                  {
-                    "IN": { "value.state": ["CA", "WA"] }
-                  }
-                ]
-              }
-            ]
+        },
+        {
+          key: 'key-2',
+          value: {
+            person: {
+              id: 1037,
+              org: "Developers"
+            },
+            city: "Seattle",
+            state: "WA"
           },
-          sort: [
+        },
+        {
+          key: 'key-3',
+          value: {
+            person: {
+              id: 1038,
+              org: "Developers"
+            },
+            city: "Seattle",
+            state: "WA"
+          },
+        },
+        {
+          key: 'key-4',
+          value: {
+            person: {
+              id: 1039,
+              org: "Dev Ops"
+            },
+            city: "Spokane",
+            state: "WA"
+          },
+        },
+        {
+          key: 'key-5',
+          value: {
+            person: {
+              id: 1040,
+              org: "Developers"
+            },
+            city: "Seattle",
+            state: "WA"
+          },
+        },
+        {
+          key: 'key-6',
+          value: {
+            person: {
+              id: 1041,
+              org: "Dev Ops"
+            },
+            city: "Seattle",
+            state: "WA"
+          },
+        },
+        {
+          key: 'key-7',
+          value: {
+            person: {
+              id: 1042,
+              org: "Finance"
+            },
+            city: "Brussels",
+            state: "Flemish-Brabant"
+          },
+        },
+        {
+          key: 'key-8',
+          value: {
+            person: {
+              id: 1043,
+              org: "Finance"
+            },
+            city: "San Francisco",
+            state: "CA"
+          },
+        }
+      ]);
+
+      const res = await client.state.query("state-mongodb", {
+        filter: {
+          OR: [
             {
-              key: "value.state",
-              order: "DESC"
+              EQ: { "value.person.org": "Dev Ops" }
+            },
+            {
+              "AND": [
+                {
+                  "EQ": { "value.person.org": "Finance" }
+                },
+                {
+                  "IN": { "value.state": ["CA", "WA"] }
+                }
+              ]
             }
-          ],
-          page: {
-            limit: 10
+          ]
+        },
+        sort: [
+          {
+            key: "value.state",
+            order: "DESC"
           }
-        });
-
-        expect(res.results.length).toEqual(4);
-        expect(res.results.map(i => i.key).indexOf("key-1")).toBeGreaterThan(-1);
-        expect(res.results.map(i => i.key).indexOf("key-4")).toBeGreaterThan(-1);
-        expect(res.results.map(i => i.key).indexOf("key-6")).toBeGreaterThan(-1);
-        expect(res.results.map(i => i.key).indexOf("key-8")).toBeGreaterThan(-1);
-
-        for (let i = 1; i <= 8; i++) {
-          await client.state.delete("state-mongodb", `key-${i}`)
+        ],
+        page: {
+          limit: 10
         }
       });
+
+      expect(res.results.length).toEqual(4);
+      expect(res.results.map(i => i.key).indexOf("key-1")).toBeGreaterThan(-1);
+      expect(res.results.map(i => i.key).indexOf("key-4")).toBeGreaterThan(-1);
+      expect(res.results.map(i => i.key).indexOf("key-6")).toBeGreaterThan(-1);
+      expect(res.results.map(i => i.key).indexOf("key-8")).toBeGreaterThan(-1);
+
+      for (let i = 1; i <= 8; i++) {
+        await client.state.delete("state-mongodb", `key-${i}`)
+      }
     });
   });
 });

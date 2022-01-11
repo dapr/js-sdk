@@ -205,165 +205,52 @@ describe('grpc/main', () => {
       expect(res).toEqual('');
     });
 
-    describe('state', () => {
-      it('should be able to save the state', async () => {
-        await client.state.save('state-redis', [
-          {
+    it('should be able to perform a transaction that replaces a key and deletes another', async () => {
+      await client.state.transaction('state-redis', [
+        {
+          operation: 'upsert',
+          request: {
             key: 'key-1',
-            value: 'value-1',
+            value: 'my-new-data-1',
           },
-          {
-            key: 'key-2',
-            value: 2,
-          },
-          {
+        },
+        {
+          operation: 'delete',
+          request: {
             key: 'key-3',
-            value: true,
           },
-          {
-            key: 'key-4',
-            value: {
-              nested: {
-                str: 'string',
-                num: 123,
-              },
-            },
-          },
-        ]);
+        },
+      ]);
 
-        const res = await Promise.all([
-          client.state.get('state-redis', 'key-1'),
-          client.state.get('state-redis', 'key-2'),
-          client.state.get('state-redis', 'key-3'),
-          client.state.get('state-redis', 'key-4'),
-        ]);
+      const resTransactionDelete = await client.state.get('state-redis', 'key-3');
+      const resTransactionUpsert = await client.state.get('state-redis', 'key-1');
+      expect(resTransactionDelete).toEqual('');
+      expect(resTransactionUpsert).toEqual('my-new-data-1');
+    });
 
-        expect(res).toEqual([
-          'value-1',
-          2,
-          true,
-          {
-            nested: {
-              str: 'string',
-              num: 123,
-            },
+    it('should be able to perform a transaction with metadata', async () => {
+      await client.state.transaction('state-redis', [
+        {
+          operation: 'upsert',
+          request: {
+            key: 'key-with-metadata-1',
+            value: 'my-new-data-with-metadata-1',
           },
-        ]);
+        },
+        {
+          operation: 'delete',
+          request: {
+            key: 'key-with-metadata-2',
+          },
+        },
+      ], {
+        trace_id: 'mock trace id here',
       });
 
-      it('should be able to get the state in bulk', async () => {
-        await client.state.save('state-redis', [
-          {
-            key: 'key-1',
-            value: 'value-1',
-          },
-          {
-            key: 'key-2',
-            value: 2,
-          },
-          {
-            key: 'key-3',
-            value: true,
-          },
-          {
-            key: 'key-4',
-            value: {
-              nested: {
-                str: 'string',
-                num: 123,
-              },
-            },
-          },
-        ]);
-
-        const res = await client.state.getBulk('state-redis', ['key-3', 'key-2', 'key-1', 'key-4']);
-
-        expect(res).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({ key: 'key-1', data: 'value-1' }),
-            expect.objectContaining({ key: 'key-2', data: 2 }),
-            expect.objectContaining({ key: 'key-3', data: true }),
-            expect.objectContaining({
-              key: 'key-4',
-              data: {
-                nested: {
-                  str: 'string',
-                  num: 123,
-                },
-              },
-            }),
-          ]),
-        );
-      });
-
-      it('should be able to delete a key from the state store', async () => {
-        await client.state.save('state-redis', [
-          {
-            key: 'key-1',
-            value: 'value-1',
-          },
-          {
-            key: 'key-2',
-            value: 'value-2',
-          },
-          {
-            key: 'key-3',
-            value: 'value-3',
-          },
-        ]);
-
-        await client.state.delete('state-redis', 'key-2');
-        const res = await client.state.get('state-redis', 'key-2');
-        expect(res).toEqual('');
-      });
-
-      it('should be able to perform a transaction that replaces a key and deletes another', async () => {
-        await client.state.transaction('state-redis', [
-          {
-            operation: 'upsert',
-            request: {
-              key: 'key-1',
-              value: 'my-new-data-1',
-            },
-          },
-          {
-            operation: 'delete',
-            request: {
-              key: 'key-3',
-            },
-          },
-        ]);
-
-        const resTransactionDelete = await client.state.get('state-redis', 'key-3');
-        const resTransactionUpsert = await client.state.get('state-redis', 'key-1');
-        expect(resTransactionDelete).toEqual('');
-        expect(resTransactionUpsert).toEqual('my-new-data-1');
-      });
-
-      it('should be able to perform a transaction with metadata', async () => {
-        await client.state.transaction('state-redis', [
-          {
-            operation: 'upsert',
-            request: {
-              key: 'key-with-metadata-1',
-              value: 'my-new-data-with-metadata-1',
-            },
-          },
-          {
-            operation: 'delete',
-            request: {
-              key: 'key-with-metadata-2',
-            },
-          },
-        ], {
-          trace_id: 'mock trace id here',
-        });
-
-        const resTransactionDelete = await client.state.get('state-redis', 'key-with-metadata-2');
-        const resTransactionUpsert = await client.state.get('state-redis', 'key-with-metadata-1');
-        expect(resTransactionDelete).toEqual('');
-        expect(resTransactionUpsert).toEqual('my-new-data-with-metadata-1');
-      });
+      const resTransactionDelete = await client.state.get('state-redis', 'key-with-metadata-2');
+      const resTransactionUpsert = await client.state.get('state-redis', 'key-with-metadata-1');
+      expect(resTransactionDelete).toEqual('');
+      expect(resTransactionUpsert).toEqual('my-new-data-with-metadata-1');
     });
   });
 
