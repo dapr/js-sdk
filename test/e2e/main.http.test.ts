@@ -341,6 +341,139 @@ describe('http/main', () => {
         expect(resTransactionDelete).toEqual('');
         expect(resTransactionUpsert).toEqual('my-new-data-1');
       });
+
+      it('should be able to query state', async () => {
+        // First save our data
+        await client.state.save("state-mongodb", [
+          {
+            key: 'key-1',
+            value: {
+              person: {
+                id: 1036,
+                org: "Dev Ops"
+              },
+              city: "Seattle",
+              state: "WA"
+            }
+          },
+          {
+            key: 'key-2',
+            value: {
+              person: {
+                id: 1037,
+                org: "Developers"
+              },
+              city: "Seattle",
+              state: "WA"
+            },
+          },
+          {
+            key: 'key-3',
+            value: {
+              person: {
+                id: 1038,
+                org: "Developers"
+              },
+              city: "Seattle",
+              state: "WA"
+            },
+          },
+          {
+            key: 'key-4',
+            value: {
+              person: {
+                id: 1039,
+                org: "Dev Ops"
+              },
+              city: "Spokane",
+              state: "WA"
+            },
+          },
+          {
+            key: 'key-5',
+            value: {
+              person: {
+                id: 1040,
+                org: "Developers"
+              },
+              city: "Seattle",
+              state: "WA"
+            },
+          },
+          {
+            key: 'key-6',
+            value: {
+              person: {
+                id: 1041,
+                org: "Dev Ops"
+              },
+              city: "Seattle",
+              state: "WA"
+            },
+          },
+          {
+            key: 'key-7',
+            value: {
+              person: {
+                id: 1042,
+                org: "Finance"
+              },
+              city: "Brussels",
+              state: "Flemish-Brabant"
+            },
+          },
+          {
+            key: 'key-8',
+            value: {
+              person: {
+                id: 1043,
+                org: "Finance"
+              },
+              city: "San Francisco",
+              state: "CA"
+            },
+          }
+        ]);
+
+        const res = await client.state.query("state-mongodb", {
+          filter: {
+            OR: [
+              {
+                EQ: { "value.person.org": "Dev Ops" }
+              },
+              {
+                "AND": [
+                  {
+                    "EQ": { "value.person.org": "Finance" }
+                  },
+                  {
+                    "IN": { "value.state": ["CA", "WA"] }
+                  }
+                ]
+              }
+            ]
+          },
+          sort: [
+            {
+              key: "value.state",
+              order: "DESC"
+            }
+          ],
+          page: {
+            limit: 10
+          }
+        });
+
+        expect(res.results.length).toEqual(4);
+        expect(res.results.map(i => i.key).indexOf("key-1")).toBeGreaterThan(-1);
+        expect(res.results.map(i => i.key).indexOf("key-4")).toBeGreaterThan(-1);
+        expect(res.results.map(i => i.key).indexOf("key-6")).toBeGreaterThan(-1);
+        expect(res.results.map(i => i.key).indexOf("key-8")).toBeGreaterThan(-1);
+
+        for (let i = 1; i <= 8; i++) {
+          await client.state.delete("state-mongodb", `key-${i}`)
+        }
+      });
     });
   });
 });

@@ -3,7 +3,7 @@ import { Enumerable } from "./Enumerable.type"
 export type StateQueryType = {
   filter: StateQueryFilter;
   sort: StateQuerySort[];
-  pagination: StateQueryPagination;
+  page: StateQueryPagination;
 }
 
 type StateQuerySort = {

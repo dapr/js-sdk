@@ -71,7 +71,7 @@ export default class HTTPClientState implements IClientState {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        query
+        ...query
       })
     });
 
