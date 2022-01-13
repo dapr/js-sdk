@@ -104,7 +104,7 @@ export default class HTTPServer implements IServer {
     // if we are using actors we will change this to 4s to let the placement tables update
     let isHealthy = false;
     let isHealthyRetryCount = 0;
-    let isHealthyMaxRetryCount = 60; // 1s startup delay and we try max for 60s
+    const isHealthyMaxRetryCount = 60; // 1s startup delay and we try max for 60s
 
     console.log(`[Dapr-JS] Letting Dapr pick-up the server (Maximum 60s wait time)`);
     while (!isHealthy) {

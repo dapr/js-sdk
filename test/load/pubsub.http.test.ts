@@ -17,7 +17,7 @@ describe('load/http', () => {
       const amountOfCalls = 2500;
 
       // Create the promises
-      let promises = [];
+      const promises = [];
 
       for (let i = 0; i < amountOfCalls; i++) {
         promises.push(client.pubsub.publish('pubsub-mqtt', 'test-topic', { hello: 'world' }));

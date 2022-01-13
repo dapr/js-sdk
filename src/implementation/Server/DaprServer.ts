@@ -99,10 +99,6 @@ export default class DaprServer {
     await this.daprServer.stop();
   }
 
-  async stopServer(): Promise<void> {
-    await this.daprServer.stopServer();
-  }
-
   getDaprClient(): IServer {
     return this.daprServer;
   }
