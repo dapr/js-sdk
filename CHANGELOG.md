@@ -11,7 +11,7 @@ Version 2.0.0 brings a lot of changes to the Dapr JS SDK that were long due. Bel
 * The HTTP Connection is now being reused to reduce the CONNRESET errors when intensively using the JS SDK 
 * The [Metadata API](https://docs.dapr.io/reference/api/metadata_api/) is supported
 * The [Health API](https://docs.dapr.io/reference/api/health_api/) is supported 
-* The `/v1.0/shutdown` [API endpoint](https://docs.dapr.io/operations/hosting/kubernetes/kubernetes-job/) is now supported
+* The `/v1.0/shutdown` [API endpoint](https://docs.dapr.io/operations/hosting/kubernetes/kubernetes-job/) is now supported by calling `await client.sidecar.shutdown()`
 
 #### Breaking Changes
 
