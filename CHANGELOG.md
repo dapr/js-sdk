@@ -11,6 +11,7 @@ Version 2.0.0 brings a lot of changes to the Dapr JS SDK that were long due. Bel
 * The HTTP Connection is now being reused to reduce the CONNRESET errors when intensively using the JS SDK 
 * The [Metadata API](https://docs.dapr.io/reference/api/metadata_api/) is supported
 * The [Health API](https://docs.dapr.io/reference/api/health_api/) is supported 
+* The `/v1.0/shutdown` [API endpoint](https://docs.dapr.io/operations/hosting/kubernetes/kubernetes-job/) is now supported
 
 #### Breaking Changes
 
@@ -23,5 +24,6 @@ Version 2.0.0 brings a lot of changes to the Dapr JS SDK that were long due. Bel
 * `healthz` endpoint was implemented as `client.health.isHealthy()` for gRPC this checks the `getMetadata` function since it does not have a Health PROTO.
 * Server startup now ensures the Dapr Sidecar is healthy before starting
 * Add metadata API for gRPC and HTTP
+* Add the SDK implementation for gRPC and HTTP for shutting down the Sidecar through the SDK
 
 ## 1.x release
