@@ -1,10 +1,17 @@
 // GENERATED CODE -- DO NOT EDIT!
 
 // Original file comments:
-// ------------------------------------------------------------
-// Copyright (c) Microsoft Corporation and Dapr Contributors.
-// Licensed under the MIT License.
-// ------------------------------------------------------------
+//
+// Copyright 2021 The Dapr Authors
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// http://www.apache.org/licenses/LICENSE-2.0
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 'use strict';
 var grpc = require('@grpc/grpc-js');
@@ -321,6 +328,17 @@ function deserialize_dapr_proto_runtime_v1_RegisterActorTimerRequest(buffer_arg)
   return dapr_proto_runtime_v1_dapr_pb.RegisterActorTimerRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_RenameActorReminderRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.RenameActorReminderRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.RenameActorReminderRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_RenameActorReminderRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.RenameActorReminderRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_SaveStateRequest(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SaveStateRequest)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.SaveStateRequest');
@@ -590,6 +608,18 @@ unregisterActorReminder: {
     responseType: google_protobuf_empty_pb.Empty,
     requestSerialize: serialize_dapr_proto_runtime_v1_UnregisterActorReminderRequest,
     requestDeserialize: deserialize_dapr_proto_runtime_v1_UnregisterActorReminderRequest,
+    responseSerialize: serialize_google_protobuf_Empty,
+    responseDeserialize: deserialize_google_protobuf_Empty,
+  },
+  // Rename an actor reminder.
+renameActorReminder: {
+    path: '/dapr.proto.runtime.v1.Dapr/RenameActorReminder',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.RenameActorReminderRequest,
+    responseType: google_protobuf_empty_pb.Empty,
+    requestSerialize: serialize_dapr_proto_runtime_v1_RenameActorReminderRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_RenameActorReminderRequest,
     responseSerialize: serialize_google_protobuf_Empty,
     responseDeserialize: deserialize_google_protobuf_Empty,
   },

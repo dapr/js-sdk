@@ -5,6 +5,7 @@ import IClientInvoker from '../../interfaces/Client/IClientInvoker';
 import IClientSecret from '../../interfaces/Client/IClientSecret';
 import IClientHealth from '../../interfaces/Client/IClientHealth';
 import IClientMetadata from '../../interfaces/Client/IClientMetadata';
+import IClientConfiguration from '../../interfaces/Client/IClientConfiguration';
 import IClient from '../../interfaces/Client/IClient';
 
 import GRPCClientBinding from './GRPCClient/binding';
@@ -14,6 +15,7 @@ import GRPCClientInvoker from './GRPCClient/invoker';
 import GRPCClientSecret from './GRPCClient/secret';
 import GRPCClientHealth from './GRPCClient/health';
 import GRPCClientMetadata from './GRPCClient/metadata';
+import GRPCClientConfiguration from './GRPCClient/configuration';
 import GRPCClient from './GRPCClient/GRPCClient';
 
 import HTTPClientBinding from './HTTPClient/binding';
@@ -23,6 +25,7 @@ import HTTPClientInvoker from './HTTPClient/invoker';
 import HTTPClientSecret from './HTTPClient/secret';
 import HTTPClientHealth from './HTTPClient/health';
 import HTTPClientMetadata from './HTTPClient/metadata';
+import HTTPClientConfiguration from './HTTPClient/configuration';
 import HTTPClient from './HTTPClient/HTTPClient';
 
 import CommunicationProtocolEnum from '../../enum/CommunicationProtocol.enum';
@@ -42,6 +45,7 @@ export default class DaprClient {
   readonly secret: IClientSecret;
   readonly health: IClientHealth;
   readonly metadata: IClientMetadata;
+  readonly configuration: IClientConfiguration;
 
   constructor(
     daprHost: string
@@ -74,6 +78,7 @@ export default class DaprClient {
         this.secret = new GRPCClientSecret(client);
         this.health = new GRPCClientHealth(client);
         this.metadata = new GRPCClientMetadata(client);
+        this.configuration = new GRPCClientConfiguration(client);
         break;
       }
       case CommunicationProtocolEnum.HTTP:
@@ -88,6 +93,7 @@ export default class DaprClient {
         this.secret = new HTTPClientSecret(client);
         this.health = new HTTPClientHealth(client);
         this.metadata = new HTTPClientMetadata(client);
+        this.configuration = new HTTPClientConfiguration(client);
         break;
       }
     }
