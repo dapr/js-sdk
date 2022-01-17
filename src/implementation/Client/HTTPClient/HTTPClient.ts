@@ -1,8 +1,8 @@
 import fetch from "node-fetch";
 import { CommunicationProtocolEnum } from "../../..";
 import IClient from "../../../interfaces/Client/IClient";
-import http from "node:http";
-import https from "node:https";
+import http from "http";
+import https from "https";
 import { DaprClientOptions } from "../../../types/DaprClientOptions";
 
 export default class HTTPClient implements IClient {
