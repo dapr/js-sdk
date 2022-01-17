@@ -58,11 +58,11 @@ export default class DaprServer {
 
     // Validation on port
     if (!/^[0-9]+$/.test(this.serverPort)) {
-      throw new Error('DAPR_SERVER_INCORRECT_SERVER_PORT');
+      throw new Error('DAPR_INCORRECT_SERVER_PORT');
     }
 
     if (!/^[0-9]+$/.test(this.daprPort)) {
-      throw new Error('DAPR_SERVER_INCORRECT_SIDECAR_PORT');
+      throw new Error('DAPR_INCORRECT_SIDECAR_PORT');
     }
 
     // Builder

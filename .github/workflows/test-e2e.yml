@@ -28,6 +28,10 @@ jobs:
           - 8883:8883 
           # - 8084:8084 // this port is already used?
           - 18083:18083
+      mongodb:
+        image: mongo
+        ports:
+          - 27017:27017
     steps:
     - uses: actions/checkout@v2
 

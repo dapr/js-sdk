@@ -58,7 +58,7 @@ export default class DaprClient {
 
     // Validation on port
     if (!/^[0-9]+$/.test(this.daprPort)) {
-      throw new Error('DAPR_CLIENT_INCORRECT_PORT');
+      throw new Error('DAPR_INCORRECT_SIDECAR_PORT');
     }
 
     // Builder
