@@ -234,7 +234,36 @@ async function start() {
   const response = await client.secret.getBulk(secretStoreName);
 }
 ```
+
+### Get configuration keys
+
+```javascript
+import { DaprClient, CommunicationProtocolEnum } from "dapr-client";
+
+const daprHost = "127.0.0.1";
+
+async function start() {
+
+  const client = new DaprClient(
+    daprHost,
+    process.env.DAPR_HTTP_PORT as string,
+    CommunicationProtocolEnum.HTTP
+  );
+
+  const config = await client.configuration.get('config-store', ['key1', 'key2']);
+  console.log(config); 
+
+  console.log(JSON.stringify(config));
+}
+
+start().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
+```
+
 - For a full guide on secrets visit [How-To: Retrieve secrets]({{< ref howto-secrets.md >}}).
 
 ## Related links
+
 - [JavaScript SDK examples](https://github.com/dapr/js-sdk/tree/master/examples)
