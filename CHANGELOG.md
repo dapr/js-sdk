@@ -2,6 +2,29 @@
 
 ## 2.x release
 
+### v2.1.0
+
+#### Actors
+
+To make development easier, Actors can now be called in 2 ways:
+
+1. By creating an actor through a helper method in the `DaprClient` class, removing the need of needing to know how a builder works.
+
+```javascript
+const actor = await client.actor.create<DemoActorSayImpl>(DemoActorSayImpl);
+const res = await actor.sayMulti(123, "123", { hello: "world 123" }, [1, 2, 3]);
+```
+
+2. By utilizing the Actor builder, where we create a Proxy object that does this for us.
+
+```javascript
+const builder = new ActorProxyBuilder<DemoActorSayImpl>(DemoActorSayImpl, client);
+const actor = builder.build(ActorId.createRandomId());
+const res = await actor.sayMulti(123, "123", { hello: "world 123" }, [1, 2, 3]);
+```
+
+Behind the hoods, method #1 will utilize method #2
+
 ### v2.0.0
 
 Version 2.0.0 brings a lot of changes to the Dapr JS SDK that were long due. Below an overview of the major contributions can be found, with a more detailed overview of the **Breaking Changes** under it.

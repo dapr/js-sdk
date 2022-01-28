@@ -103,6 +103,12 @@ describe('http/actors', () => {
       const res = await actor.sayMulti(123, "123", { hello: "world 123" }, [1, 2, 3]);
       expect(JSON.stringify(res)).toEqual(`{"a":{"value":123,"type":"number"},"b":{"value":"123","type":"string"},"c":{"value":{"hello":"world 123"},"type":"object"},"d":{"value":[1,2,3],"type":"object"}}`)
     });
+
+    it('should be able to invoke an actor through the client which abstracts the actor proxy builder for people unaware of patterns', async () => {
+      const actor = client.actor.create<DemoActorSayImpl>(DemoActorSayImpl);
+      const res = await actor.sayMulti(123, "123", { hello: "world 123" }, [1, 2, 3]);
+      expect(JSON.stringify(res)).toEqual(`{"a":{"value":123,"type":"number"},"b":{"value":"123","type":"string"},"c":{"value":{"hello":"world 123"},"type":"object"},"d":{"value":[1,2,3],"type":"object"}}`)
+    });
   });
 
   describe('timers', () => {

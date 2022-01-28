@@ -1,17 +1,25 @@
-import { DaprClient } from "../..";
+import { CommunicationProtocolEnum, DaprClient } from "../..";
 import Class from "../../types/Class";
 import ActorClient from "./ActorClient/ActorClient";
 import ActorId from "../ActorId";
+import { DaprClientOptions } from "../../types/DaprClientOptions";
 
 export default class ActorProxyBuilder<T> {
   actorClient: ActorClient;
-  daprClient: DaprClient;
   actorTypeClass: Class<T>;
 
-  constructor(actorTypeClass: Class<T>, daprClient: DaprClient) {
+  constructor(actorTypeClass: Class<T>, daprClient: DaprClient);
+  constructor(actorTypeClass: Class<T>, host: string, port: string, communicationProtocol: CommunicationProtocolEnum, clientOptions: DaprClientOptions);
+  constructor(actorTypeClass: Class<T>, ...args: any[]) {
     this.actorTypeClass = actorTypeClass;
-    this.daprClient = daprClient;
-    this.actorClient = new ActorClient(daprClient.getDaprHost(), daprClient.getDaprPort(), daprClient.getCommunicationProtocol(), daprClient.getOptions());
+
+    if (args.length == 1) {
+      const [daprClient] = args;
+      this.actorClient = new ActorClient(daprClient.getDaprHost(), daprClient.getDaprPort(), daprClient.getCommunicationProtocol(), daprClient.getOptions());
+    } else {
+      const [host, port, communicationProtocol, clientOptions] = args;
+      this.actorClient = new ActorClient(host, port, communicationProtocol, clientOptions);
+    }
   }
 
   build(actorId: ActorId): T {

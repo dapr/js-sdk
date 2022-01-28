@@ -10,10 +10,6 @@ const serverHost = "127.0.0.1"; // App Host of this Example Server
 const serverPort = "50001"; // App Port of this Example Server
 const daprAppId = "example-hello-world";
 
-async function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 async function start() {
   const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
   const client = new DaprClient(daprHost, daprPort);
@@ -39,43 +35,13 @@ async function start() {
   console.log("===============================================================");
   const actorId = "MyActorId1";
 
-
   const resRegisteredActors = await server.actor.getRegisteredActors();
   console.log(`Registered Actor Types: ${JSON.stringify(resRegisteredActors)}`);
 
   console.log("[Dapr-JS][Example][Actors] Trying to invoke method 'say' with msg 'hello world'");
-  const resActorInvokeSay = await client.actor.invoke("PUT", DemoActorSayImpl.name, actorId, "sayString", "Hello World");
+  const actor = client.actor.create<DemoActorSayImpl>(DemoActorSayImpl);
+  const resActorInvokeSay = await actor.sayString("Hello World");
   console.log(`[Dapr-JS][Example][Actors] Invoked Method and got data: ${resActorInvokeSay}`);
-
-  let resActorStateGet = await client.actor.stateGet(DemoActorSayImpl.name, actorId, "PropertyA");
-  await client.actor.stateTransaction(DemoActorSayImpl.name, actorId, [
-    {
-      operation: "upsert",
-      request: {
-        key: "key-1",
-        value: "my-new-data-1"
-      }
-    },
-    {
-      operation: "upsert",
-      request: {
-        key: "key-to-delete",
-        value: "my-new-data-1"
-      }
-    },
-    {
-      operation: "delete",
-      request: {
-        key: "key-to-delete"
-      }
-    }
-  ]);
-
-  resActorStateGet = await client.actor.stateGet(DemoActorSayImpl.name, actorId, "key-to-delete");
-  console.log(`[Dapr-JS][Example][Actors] Get State (should be empty): ${JSON.stringify(resActorStateGet)}`);
-
-  const resActorStateGet2 = await client.actor.stateGet(DemoActorSayImpl.name, actorId, "key-1");
-  console.log(`[Dapr-JS][Example][Actors] Get State (should be my-new-data-1): ${JSON.stringify(resActorStateGet2)}`);
 }
 
 start().catch((e) => {
