@@ -8,8 +8,8 @@ export default class DemoActorCounterImpl extends AbstractActor implements DemoA
     this.counter++;
   }
 
-  async countBy(amount: number): Promise<void> {
-    this.counter += amount;
+  async countBy(amount: number, multiplier: number = 1): Promise<void> {
+    this.counter += (amount * multiplier);
   }
 
   async getCounter(): Promise<number> {
