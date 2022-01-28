@@ -28,15 +28,15 @@ A custom script is utilized here since we have 2 libraries in one for HTTP and g
 
 ## Running Tests
 
-Tests are written per protocol layer: http or grpc. This is done because Dapr requires endpoints to be registered for for pubsub and bindings, making us having to start up the test, initialize those endpoints and then run. Since Dapr is a sidecar architecture, we thus have to start 2 test suites seperately.
+Tests are written per protocol layer: http or grpc. This is done because Dapr requires endpoints to be registered for for pubsub and bindings, making us having to start up the test, initialize those endpoints and then run. Since Dapr is a sidecar architecture, we thus have to start 2 test suites seperately. It requires the following containers:
+
+* **EMQX:** Used for Binding Tests
+    * Credentials: http://localhost:18083 (user: admin, pass: public)
+* **MongoDB:** Used for State Query API
 
 ```bash
-# Start MQTT for Binding tests
-# Dashboard: http://localhost:18083 (user: admin, pass: public)
-# Ports: 1883 = TCP MQTT Port | 8081 = HTTP API | 8083 = MQTT/SSL Port | 8883 = MQTT/Websocket/SSL Port | 8084 = MQTT/Websocket Port | 18083 = Dashboard
+# Start Container
 docker run -d --rm --name emqx -p 1883:1883 -p 8081:8081 -p 8083:8083 -p 8883:8883 -p 8084:8084 -p 18083:18083 emqx/emqx
-
-# Start MongoDB for State Query
 docker run -d --rm --name mongodb -p 27017:27017 mongo
 
 # Run Unit Tests
