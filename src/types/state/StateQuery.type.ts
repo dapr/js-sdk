@@ -1,4 +1,4 @@
-import { Enumerable } from "./Enumerable.type"
+import { Enumerable } from "../common/Enumerable.type"
 
 export type StateQueryType = {
   filter: StateQueryFilter;

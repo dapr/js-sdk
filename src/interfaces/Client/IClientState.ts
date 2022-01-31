@@ -2,8 +2,8 @@ import { OperationType } from "../../types/Operation.type";
 import { IRequestMetadata } from "../../types/RequestMetadata.type";
 import { KeyValuePairType } from "../../types/KeyValuePair.type";
 import { KeyValueType } from "../../types/KeyValue.type";
-import { StateQueryType } from "../../types/StateQuery.type";
-import { StateQueryResponseType } from "../../types/StateQueryResponse.type";
+import { StateQueryType } from "../../types/state/StateQuery.type";
+import { StateQueryResponseType } from "../../types/state/StateQueryResponse.type";
 
 export default interface IClientState {
   save(storeName: string, stateObjects: KeyValuePairType[]): Promise<void>;
