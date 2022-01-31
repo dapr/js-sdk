@@ -50,29 +50,25 @@ describe('grpc/configuration', () => {
 
   // @todo Note: seems to be a bug upstream? Cannot fetch this
   // @todo Note #2: JAVA sdk doesn't seem to check if this is set in the tests? https://github.com/dapr/java-sdk/commit/185cdba293de21f92855815792ce936c5164691a#diff-eab2bac5cf4c2f6deea0453b132eada833a4781dc96dcc09aa625d32464978c9R105
-  // it('should be able to get the configuration items with metadata', async () => {
-  //   // await server.configuration.subscribe();
-  //   const conf = await client.configuration.get("config-redis", ["myconfigkey1"], { "hello": "world" });
-  //   console.log(conf);
-  //   expect(conf.items.filter(i => i.key == "myconfigkey1")[0].metadata).toHaveProperty("hello");
-  // });
+  it('should be able to get the configuration items with metadata', async () => {
+    // await server.configuration.subscribe();
+    const conf = await client.configuration.get("config-redis", ["myconfigkey1"], { "hello": "world" });
+    console.log(conf);
+    expect(conf.items.filter(i => i.key == "myconfigkey1")[0].metadata).toHaveProperty("hello");
+  });
 
-  // // @todo: figure out, subscribe doesn't pass keys but doesn't listen to anything?
-  // it('should be able to subscribe to configuration item changes on all keys', async () => {
-  //   console.log("Creating Subscription");
-  //   await client.configuration.subscribe("config-redis", async (res: SubscribeConfigurationResponse) => {
-  //     console.log("Subscribe Got:")
-  //     console.log(res.items);
-  //   });
+  // @todo: figure out, subscribe doesn't pass keys but doesn't listen to anything?
+  it('should be able to subscribe to configuration item changes on all keys', async () => {
+    const m = jest.fn(async (res: SubscribeConfigurationResponse) => { });
 
-  //   // Change an item
-  //   console.log("Changing an item")
-  //   const res = await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey3 initialvalue||2");
-  //   console.log(res);
+    console.log("Creating Subscription");
+    await client.configuration.subscribe("config-redis", m);
 
-  //   // Wait a bit so we can pick up the callback
-  //   await sleep(500);
-  // });
+    // Change an item
+    await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey3 mynewvalue||1");
+
+    expect(m.mock.calls.length).toEqual(1);
+  });
 
   it('should be able to subscribe to configuration item changes on specific keys', async () => {
     const m = jest.fn(async (res: SubscribeConfigurationResponse) => { });
@@ -85,21 +81,26 @@ describe('grpc/configuration', () => {
     expect(m.mock.calls[0][0].items[0].value).toEqual("mynewvalue");
   });
 
+  // @todo: not working, it is not able to open a steram on the same items as before
+  it('should be able to subscribe to the same configuration item changes on identical specific keys through a second stream', async () => {
+    const m = jest.fn(async (res: SubscribeConfigurationResponse) => { });
 
-  // We fail here on a 2nd subscribe, this might be due to a stream already being open?
-  // what should we do if this happens? how does our sidecar handle this?
-  // it('should be able to subscribe to configuration item changes on specific keys with specific metadata', async () => {
-  //   const m = jest.fn(async (res: SubscribeConfigurationResponse) => { });
+    await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1", "myconfigkey2"], m);
+    await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey3 mynewvalue||1");
 
-  //   await client.configuration.subscribeWithMetadata("config-redis", ["myconfigkey1"], { hello: "world" }, m);
-  //   await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 mynewvalue||1");
+    expect(m.mock.calls.length).toEqual(1);
+    expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey2");
+    expect(m.mock.calls[0][0].items[0].value).toEqual("mynewvalue");
+  });
 
-  //   await sleep(100);
+  it('should be able to subscribe to configuration item changes on specific keys through a second stream', async () => {
+    const m = jest.fn(async (res: SubscribeConfigurationResponse) => { });
 
-  //   console.log(m.mock.calls);
+    await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey3"], m);
+    await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey3 mynewvalue||1");
 
-  //   expect(m.mock.calls.length).toEqual(1);
-  //   expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
-  //   expect(m.mock.calls[0][0].items[0].key).toEqual("mynewvalue");
-  // });
+    expect(m.mock.calls.length).toEqual(1);
+    expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey3");
+    expect(m.mock.calls[0][0].items[0].value).toEqual("mynewvalue");
+  });
 });

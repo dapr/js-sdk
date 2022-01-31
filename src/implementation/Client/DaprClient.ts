@@ -16,7 +16,7 @@ import GRPCClientState from './GRPCClient/state';
 import GRPCClientInvoker from './GRPCClient/invoker';
 import GRPCClientSecret from './GRPCClient/secret';
 import GRPCClientHealth from './GRPCClient/health';
-import GRPCClientMetadata from './GRPCClient/metadata
+import GRPCClientMetadata from './GRPCClient/metadata';
 import GRPCClientConfiguration from './GRPCClient/configuration';
 import GRPCClientSidecar from './GRPCClient/sidecar';
 import GRPCClientActor from './GRPCClient/actor';
@@ -86,7 +86,7 @@ export default class DaprClient {
         this.secret = new GRPCClientSecret(client);
         this.health = new GRPCClientHealth(client);
         this.metadata = new GRPCClientMetadata(client);
-        this.configuration = new GRPCClientConfiguration(client
+        this.configuration = new GRPCClientConfiguration(client);
         this.sidecar = new GRPCClientSidecar(client);
         this.actor = new GRPCClientActor(client); // we use a abstractor here since we interface through a builder with the Actor Runtime
         break;
