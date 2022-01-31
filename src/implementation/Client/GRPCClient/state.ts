@@ -7,8 +7,8 @@ import { IRequestMetadata } from '../../../types/RequestMetadata.type';
 import IClientState from '../../../interfaces/Client/IClientState';
 import { KeyValueType } from '../../../types/KeyValue.type';
 import { merge } from '../../../utils/Map.util';
-import { StateQueryType } from '../../../types/StateQuery.type';
-import { StateQueryResponseType } from '../../../types/StateQueryResponse.type';
+import { StateQueryType } from '../../../types/state/StateQuery.type';
+import { StateQueryResponseType } from '../../../types/state/StateQueryResponse.type';
 
 // https://docs.dapr.io/reference/api/state_api/
 export default class GRPCClientState implements IClientState {

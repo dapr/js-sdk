@@ -134,7 +134,8 @@ export default class ActorManager<T extends AbstractActor> {
 
     let res;
 
-    if (typeof args === "object") {
+    // If we have an array, we passed multiple parameters and should thus spread those
+    if (Array.isArray(args)) {
       // @ts-ignore
       res = await actorObject[actorMethodName](...args);
     } else {
