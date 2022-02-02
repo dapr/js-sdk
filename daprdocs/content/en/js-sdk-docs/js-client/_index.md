@@ -252,6 +252,7 @@ async function start() {
 import { DaprClient } from "dapr-client";
 
 const daprHost = "127.0.0.1";
+const daprAppId = "example-config";
 
 async function start() {
 
