@@ -37,13 +37,14 @@ const server = new DaprServer(serverHost, serverPort, daprHost, daprPort, Commun
 const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
 ```
 
-### Switching from HTTP to gRPC
-
+{{% alert title="Note" color="primary" %}}  
 By default the example will run using HTTP. To use gRPC, do the following:
 
 - Replace both occurrences of `process.env.DAPR_HTTP_PORT` with `process.env.DAPR_GRPC_PORT`
 - Replace both occurrences of `CommunicationProtocolEnum.HTTP` with `CommunicationProtocolEnum.GRPC`
 - Instead of `npm run start:dapr-http` run `npm run start:dapr-grpc`
+
+{{% /alert %}}
 
 ### DaprClient Library
 A library that provides methods for how an application communicates with the Dapr sidecar.
