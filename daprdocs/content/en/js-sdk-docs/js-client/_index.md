@@ -21,7 +21,7 @@ npm i dapr-client
 
 Import the libraries:
 ```javascript
-import { DaprClient, DaprServer, HttpMethod, CommunicationProtocolEnum } from "dapr-client";
+import { DaprClient, DaprServer, HttpMethod } from "dapr-client";
 
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
 const daprPort = "3500"; // Dapr Sidecar Port of this Example Server
@@ -33,15 +33,15 @@ const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
 const client = new DaprClient(daprHost, daprPort);
 
 // GRPC 
-const server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.GRPC);
-const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
+const client = new DaprClient(daprHost, daprPort);
 ```
 
 ##### DaprClient Library
 A library that provides methods for how an application communicates with the Dapr sidecar.
 
 ##### DaprServer Library
-A library for how an application registers bindings / routes with Dapr. The `start()` method is used to start the server and bind the routes. 
+A library for how an application registers bindings / routes with Dapr. The `start()` method is used to start the server and bind the routes.
 
 ## Building blocks
 
@@ -50,13 +50,13 @@ The JavaScript SDK allows you to interface with all of the [Dapr building blocks
 ### Invoke a service
 
 ```javascript
-import { DaprClient, HttpMethod, CommunicationProtocolEnum } from "dapr-client"; 
+import { DaprClient, HttpMethod } from "dapr-client"; 
 
 const daprHost = "127.0.0.1"; 
 const daprPort = "3500"; 
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC); 
+  const client = new DaprClient(daprHost, daprPort); 
 
   const serviceAppId = "my-app-id";
   const serviceMethod = "say-hello";
@@ -73,13 +73,13 @@ async function start() {
 ### Save, get and delete application state
 
 ```javascript
-import { DaprClient, CommunicationProtocolEnum } from "dapr-client"; 
+import { DaprClient } from "dapr-client"; 
 
 const daprHost = "127.0.0.1"; 
 const daprPort = "3500"; 
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC); 
+  const client = new DaprClient(daprHost, daprPort); 
 
   const serviceStoreName = "my-state-store-name";
 
@@ -129,13 +129,13 @@ async function start() {
 ##### Publish messages
 
 ```javascript
-import { DaprClient, CommunicationProtocolEnum } from "dapr-client"; 
+import { DaprClient } from "dapr-client"; 
 
 const daprHost = "127.0.0.1"; 
 const daprPort = "3500"; 
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC); 
+  const client = new DaprClient(daprHost, daprPort); 
 
   const pubSubName = "my-pubsub-name";
   const topic = "topic-a";
@@ -149,7 +149,7 @@ async function start() {
 ##### Subscribe to messages
 
 ```javascript
-import { DaprServer, CommunicationProtocolEnum } from "dapr-client";
+import { DaprServer } from "dapr-client";
 
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
 const daprPort = "3500"; // Dapr Sidecar Port of this Example Server
@@ -157,7 +157,7 @@ const serverHost = "127.0.0.1"; // App Host of this Example Server
 const serverPort = "50051"; // App Port of this Example Server "
 
 async function start() {
-  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
 
   const pubSubName = "my-pubsub-name";
   const topic = "topic-a";
@@ -175,13 +175,13 @@ async function start() {
 
 **Output Bindings**
 ```javascript
-import { DaprClient, CommunicationProtocolEnum } from "dapr-client"; 
+import { DaprClient } from "dapr-client"; 
 
 const daprHost = "127.0.0.1"; 
 const daprPort = "3500"; 
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC); 
+  const client = new DaprClient(daprHost, daprPort); 
 
   const bindingName = "my-binding-name";
   const bindingOperation = "create";
@@ -193,7 +193,7 @@ async function start() {
 
 **Input Bindings**
 ```javascript
-import { DaprServer, CommunicationProtocolEnum } from "dapr-client";;
+import { DaprServer } from "dapr-client";;
 
 const daprHost = "127.0.0.1"; 
 const daprPort = "3500"; 
@@ -201,7 +201,7 @@ const serverHost = "127.0.0.1";
 const serverPort = "5051";
 
 async function start() {
-  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.GRPC);;
+  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);;
 
   const bindingName = "my-binding-name";
 
@@ -216,13 +216,13 @@ async function start() {
 ### Retrieve secrets
 
 ```javascript
-import { DaprClient, CommunicationProtocolEnum } from "dapr-client"; 
+import { DaprClient } from "dapr-client"; 
 
 const daprHost = "127.0.0.1"; 
 const daprPort = "3500"; 
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC); 
+  const client = new DaprClient(daprHost, daprPort); 
 
   const secretStoreName = "my-secret-store";
   const secretKey = "secret-key";
@@ -235,10 +235,12 @@ async function start() {
 }
 ```
 
+- For a full guide on secrets visit [How-To: Retrieve secrets]({{< ref howto-secrets.md >}}).
+
 ### Get configuration keys
 
 ```javascript
-import { DaprClient, CommunicationProtocolEnum } from "dapr-client";
+import { DaprClient } from "dapr-client";
 
 const daprHost = "127.0.0.1";
 
@@ -246,8 +248,7 @@ async function start() {
 
   const client = new DaprClient(
     daprHost,
-    process.env.DAPR_HTTP_PORT as string,
-    CommunicationProtocolEnum.HTTP
+    process.env.DAPR_HTTP_PORT
   );
 
   const config = await client.configuration.get('config-store', ['key1', 'key2']);
@@ -261,8 +262,6 @@ start().catch((e) => {
   process.exit(1);
 });
 ```
-
-- For a full guide on secrets visit [How-To: Retrieve secrets]({{< ref howto-secrets.md >}}).
 
 ## Related links
 

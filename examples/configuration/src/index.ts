@@ -8,8 +8,7 @@ async function start() {
 
   const client = new DaprClient(
     daprHost,
-    process.env.DAPR_HTTP_PORT as string,
-    CommunicationProtocolEnum.HTTP
+    process.env.DAPR_HTTP_PORT
   );
 
   const config = await client.configuration.get('config-store', ['key1', 'key2']);

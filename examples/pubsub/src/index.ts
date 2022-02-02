@@ -12,12 +12,11 @@ async function start() {
     serverPort,
     daprHost,
     process.env.DAPR_HTTP_PORT,
-    CommunicationProtocolEnum.HTTP
   );
 
   const client = new DaprClient(
     daprHost,
-    process.env.DAPR_HTTP_PORT as string,
+    process.env.DAPR_HTTP_PORT,
     CommunicationProtocolEnum.HTTP
   );
 
