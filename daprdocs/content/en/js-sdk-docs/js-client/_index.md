@@ -21,7 +21,7 @@ npm i dapr-client
 
 Import the libraries:
 ```javascript
-import { DaprClient, DaprServer, HttpMethod } from "dapr-client";
+import { DaprClient, DaprServer, HttpMethod, CommunicationProtocolEnum } from "dapr-client";
 
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
 const daprPort = "3500"; // Dapr Sidecar Port of this Example Server
@@ -33,14 +33,22 @@ const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
 const client = new DaprClient(daprHost, daprPort);
 
 // GRPC 
-const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
-const client = new DaprClient(daprHost, daprPort);
+const server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
 ```
 
-##### DaprClient Library
+### Switching from HTTP to gRPC
+
+By default the example will run using HTTP. To use gRPC, do the following:
+
+- Replace both occurrences of `process.env.DAPR_HTTP_PORT` with `process.env.DAPR_GRPC_PORT`
+- Replace both occurrences of `CommunicationProtocolEnum.HTTP` with `CommunicationProtocolEnum.GRPC`
+- Instead of `npm run start:dapr-http` run `npm run start:dapr-grpc`
+
+### DaprClient Library
 A library that provides methods for how an application communicates with the Dapr sidecar.
 
-##### DaprServer Library
+### DaprServer Library
 A library for how an application registers bindings / routes with Dapr. The `start()` method is used to start the server and bind the routes.
 
 ## Building blocks
