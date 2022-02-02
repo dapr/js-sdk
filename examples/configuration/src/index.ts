@@ -2,6 +2,7 @@ import { DaprClient, CommunicationProtocolEnum } from "dapr-client";
 
 // Common settings
 const daprHost = "127.0.0.1";
+const daprAppId = "example-config";
 
 async function start() {
   // Note that the DAPR_HTTP_PORT and DAPR_GRPC_PORT environment variables are set by DAPR itself. https://docs.dapr.io/reference/environment/
