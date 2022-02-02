@@ -1,6 +1,6 @@
 # Examples - Invocation
 
-This example demonstrates how to use the Invocation API.
+This example demonstrates how to use API Configuration.
 
 ## Run
 
@@ -15,9 +15,9 @@ npm install
 npm run start:dapr-http
 ```
 
-## Switching to gRPC
+## Switching from HTTP to gRPC
 
 By default the example will run using HTTP. To use gRPC, do the following:
-* Replace both occurences of `process.env.DAPR_HTTP_PORT` with `process.env.DAPR_GRPC_PORT`
-* Replace both occurences of `CommunicationProtocolEnum.HTTP` with `CommunicationProtocolEnum.GRPC`
+* Replace both occurrences of `process.env.DAPR_HTTP_PORT` with `process.env.DAPR_GRPC_PORT`
+* Replace both occurrences of `CommunicationProtocolEnum.HTTP` with `CommunicationProtocolEnum.GRPC`
 * Instead of `npm run start:dapr-http` run `npm run start:dapr-grpc`
