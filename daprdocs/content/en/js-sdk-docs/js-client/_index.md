@@ -15,11 +15,13 @@ description: JavaScript Client SDK for developing Dapr applications
 ## Installing and importing Dapr's JS SDK
 
 Install the SDK with npm:
-```
+
+```bash
 npm i dapr-client
 ```
 
 Import the libraries:
+
 ```javascript
 import { DaprClient, DaprServer, HttpMethod, CommunicationProtocolEnum } from "dapr-client";
 
@@ -38,11 +40,10 @@ const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC
 ```
 
 {{% alert title="Note" color="primary" %}}  
-By default the example will run using HTTP. To use gRPC, do the following:
+By default, the example will run using HTTP. To use gRPC:
 
-- Replace both occurrences of `process.env.DAPR_HTTP_PORT` with `process.env.DAPR_GRPC_PORT`
-- Replace both occurrences of `CommunicationProtocolEnum.HTTP` with `CommunicationProtocolEnum.GRPC`
-- Instead of `npm run start:dapr-http` run `npm run start:dapr-grpc`
+- Add `CommunicationProtocolEnum.GRPC` to the DaprClient object creation.
+- Instead of `dapr run --app-protocol http`, run `dapr run --app-protocol grpc`.
 
 {{% /alert %}}
 
@@ -77,6 +78,7 @@ async function start() {
   const response = await client.invoker.invoke(serviceAppId , serviceMethod , HttpMethod.GET);
 }
 ```
+
 - For a full guide on service invocation visit [How-To: Invoke a service]({{< ref howto-invoke-discover-services.md >}}).
 
 ### Save, get and delete application state
@@ -131,6 +133,7 @@ async function start() {
   const response = await client.state.delete(serviceStoreName, "first-key-name");
 }
 ```
+
 - For a full list of state operations visit [How-To: Get & save state]({{< ref howto-get-save-state.md >}}).
 
 ### Publish & subscribe to messages
@@ -183,6 +186,7 @@ async function start() {
 ### Interact with bindings
 
 **Output Bindings**
+
 ```javascript
 import { DaprClient } from "dapr-client"; 
 
@@ -201,6 +205,7 @@ async function start() {
 ```
 
 **Input Bindings**
+
 ```javascript
 import { DaprServer } from "dapr-client";;
 

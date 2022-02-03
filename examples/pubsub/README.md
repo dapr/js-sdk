@@ -19,12 +19,12 @@ docker run -d --rm --hostname my-rabbitmq --name my-rabbitmq \
     rabbitmq:3-management
 
 # Run the example
-npm run start:dapr-http
+dapr run --app-protocol http
 ```
 
 ## Switching to gRPC
 
-By default the example will run using HTTP. To use gRPC, do the following:
-* Replace both occurences of `process.env.DAPR_HTTP_PORT` with `process.env.DAPR_GRPC_PORT`
-* Replace both occurences of `CommunicationProtocolEnum.HTTP` with `CommunicationProtocolEnum.GRPC`
-* Instead of `npm run start:dapr-http` run `npm run start:dapr-grpc`
+By default, the example will run using HTTP. To use gRPC:
+
+- Add `CommunicationProtocolEnum.GRPC` to the DaprClient object creation.
+- Instead of `dapr run --app-protocol http`, run `dapr run --app-protocol grpc`
