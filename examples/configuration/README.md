@@ -8,16 +8,16 @@ This example demonstrates how to use API Configuration.
 # If it is not already, initialize DAPR on the system
 dapr init
 
-# Install dependenies
+# Install dependencies
 npm install
 
 # Run the example
-npm run start:dapr-http
+dapr run --app-protocol http
 ```
 
 ## Switching from HTTP to gRPC
 
-By default the example will run using HTTP. To use gRPC, do the following:
-* Replace both occurrences of `process.env.DAPR_HTTP_PORT` with `process.env.DAPR_GRPC_PORT`
-* Replace both occurrences of `CommunicationProtocolEnum.HTTP` with `CommunicationProtocolEnum.GRPC`
-* Instead of `npm run start:dapr-http` run `npm run start:dapr-grpc`
+By default, the example will run using HTTP. To use gRPC:
+
+- Add `CommunicationProtocolEnum.GRPC` to the DaprClient object creation.
+- Instead of `dapr run --app-protocol http`, run `dapr run --app-protocol grpc`
