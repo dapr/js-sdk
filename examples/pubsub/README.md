@@ -18,12 +18,8 @@ docker run -d --rm --hostname my-rabbitmq --name my-rabbitmq \
     -p 0.0.0.0:5672:5672 -p 0.0.0.0:15672:15672 \
     rabbitmq:3-management
 
-# Run the example
-dapr run --app-protocol http
-
 # Run the example directly using dapr run
 dapr run --app-id example-pubsub --app-port 50051 --app-protocol http --components-path ./components npm run start
-
 
 # or, using npm script
 npm run start:dapr-http
