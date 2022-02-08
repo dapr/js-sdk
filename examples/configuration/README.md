@@ -28,4 +28,22 @@ By default, the example will run using HTTP. To use gRPC:
     const client = new DaprClient(daprHost, process.env.DAPR_HTTP_PORT, CommunicationProtocolEnum.GRPC);
   ```
 
-- Instead of `dapr run --app-protocol http`, run `dapr run --app-protocol grpc`.
+- Instead of running:
+
+  ```bash
+  # using dapr run
+  dapr run --app-id example-config --app-port 50051 --app-protocol http npm run start
+
+  # or npm script
+  npm run start:dapr-http
+  ```
+  
+  Run:
+
+  ```bash
+  # using dapr run
+  dapr run --app-id example-config --app-port 50051 --app-protocol grpc npm run start
+
+  # or npm script
+  npm run start:dapr-grpc
+  ```
