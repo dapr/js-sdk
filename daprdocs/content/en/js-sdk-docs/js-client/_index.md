@@ -42,7 +42,12 @@ const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC
 {{% alert title="Note" color="primary" %}}  
 By default, the example will run using HTTP. To use gRPC:
 
-- Add `CommunicationProtocolEnum.GRPC` to the DaprClient object creation.
+- Add `CommunicationProtocolEnum.GRPC` to the DaprClient object creation. For example:
+
+  ```javascript
+    const client = new DaprClient(daprHost, process.env.DAPR_HTTP_PORT, CommunicationProtocolEnum.GRPC);
+  ```
+
 - Instead of `dapr run --app-protocol http`, run `dapr run --app-protocol grpc`.
 
 {{% /alert %}}

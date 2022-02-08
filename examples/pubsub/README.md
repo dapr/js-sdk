@@ -20,6 +20,13 @@ docker run -d --rm --hostname my-rabbitmq --name my-rabbitmq \
 
 # Run the example
 dapr run --app-protocol http
+
+# Run the example directly using dapr run
+dapr run --app-id example-pubsub --app-port 50051 --app-protocol http --components-path ./components npm run start
+
+
+# or, using npm script
+npm run start:dapr-http
 ```
 
 ## Switching to gRPC

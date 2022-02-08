@@ -11,8 +11,11 @@ dapr init
 # Install dependenies
 npm install
 
-# Run the example
-dapr run --app-protocol http
+# Run the example directly using dapr run
+dapr run --app-id example-invocation --app-port 50051 --app-protocol http npm run start
+
+# or, using npm script
+npm run start:dapr-http
 ```
 
 ## Switching to gRPC
