@@ -1,4 +1,4 @@
-# Examples - Invocation
+# Examples - Configuration
 
 This example demonstrates how to use API Configuration.
 
@@ -11,13 +11,21 @@ dapr init
 # Install dependencies
 npm install
 
-# Run the example
-dapr run --app-protocol http
+# Run the example directly using dapr run
+dapr run --app-id example-config --app-port 50051 --app-protocol http npm run start
+
+# or, using npm script
+npm run start:dapr-http
 ```
 
 ## Switching from HTTP to gRPC
 
 By default, the example will run using HTTP. To use gRPC:
 
-- Add `CommunicationProtocolEnum.GRPC` to the DaprClient object creation.
-- Instead of `dapr run --app-protocol http`, run `dapr run --app-protocol grpc`
+- Add `CommunicationProtocolEnum.GRPC` to the DaprClient object creation. For example:
+
+  ```javascript
+    const client = new DaprClient(daprHost, process.env.DAPR_HTTP_PORT, CommunicationProtocolEnum.GRPC);
+  ```
+
+- Instead of `dapr run --app-protocol http`, run `dapr run --app-protocol grpc`.
