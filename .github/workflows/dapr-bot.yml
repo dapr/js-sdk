@@ -14,5 +14,5 @@ jobs:
         with:
           github-token: ${{secrets.DAPR_BOT_TOKEN}}
           script: |
-            const script = require('./.github/scripts/comment-analyzer.js')
+            const script = require('./.github/scripts/comment_analyzer.js')
             console.log(script({github, context}))
