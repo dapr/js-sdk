@@ -1,0 +1,18 @@
+name: dapr-bot
+
+on:
+  issue_comment: {types: created}
+
+
+jobs:
+  daprbot:
+    name: bot-processor
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment analyzer
+        uses: actions/github-script@v1
+        with:
+          github-token: ${{secrets.DAPR_BOT_TOKEN}}
+          script: |
+            const script = require('./.github/scripts/comment-analyzer.js')
+            console.log(script({github, context}))
