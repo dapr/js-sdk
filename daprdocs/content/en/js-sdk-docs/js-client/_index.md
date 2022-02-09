@@ -45,7 +45,7 @@ By default, the example uses HTTP. To run:
 
 ```bash
 # Using dapr run
-dapr run --app-id example-config --app-port 50051 --app-protocol http npm run start
+dapr run --app-id <example-sdk> --app-port 50051 --app-protocol http npm run start
 
 # or, using npm script
 npm run start:dapr-http
@@ -63,7 +63,7 @@ To use gRPC instead:
 
   ```bash
   # Using dapr run
-  dapr run --app-id example-config --app-port 50051 --app-protocol grpc npm run start
+  dapr run --app-id <example-sdk> --app-port 50051 --app-protocol grpc npm run start
 
   # or, using npm script
   npm run start:dapr-grpc
