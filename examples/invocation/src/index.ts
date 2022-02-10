@@ -12,14 +12,12 @@ async function start() {
     serverHost,
     serverPort,
     daprHost,
-    process.env.DAPR_HTTP_PORT,
-    CommunicationProtocolEnum.HTTP
+    process.env.DAPR_HTTP_PORT
   );
 
   const client = new DaprClient(
     daprHost,
-    process.env.DAPR_HTTP_PORT as string,
-    CommunicationProtocolEnum.HTTP
+    process.env.DAPR_HTTP_PORT
   );
 
   // Note that invoker listeners can be set up after start() has been called

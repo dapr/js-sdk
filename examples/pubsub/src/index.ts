@@ -12,13 +12,11 @@ async function start() {
     serverPort,
     daprHost,
     process.env.DAPR_HTTP_PORT,
-    CommunicationProtocolEnum.HTTP
   );
 
   const client = new DaprClient(
     daprHost,
-    process.env.DAPR_HTTP_PORT as string,
-    CommunicationProtocolEnum.HTTP
+    process.env.DAPR_HTTP_PORT,
   );
 
   // Initialize the subscription. Note that this must be done BEFORE calling .start()
