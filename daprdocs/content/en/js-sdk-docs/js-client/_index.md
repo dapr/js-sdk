@@ -39,9 +39,17 @@ const server = new DaprServer(serverHost, serverPort, daprHost, daprPort, Commun
 const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
 ```
 
-## Running using HTTP or gRPC
+## Running
 
-By default, the example uses HTTP. To run:
+To run the examples, you can use two different protocols to interact with the Dapr sidecar: HTTP (default) or gRPC.
+
+### Using HTTP (default)
+
+```javascript
+import { DaprClient, DaprServer } from "dapr-client";
+const client = new DaprClient(daprHost, daprPort);
+const server= new DaprServer(appHost, appPort, daprHost, daprPort);
+```
 
 ```bash
 # Using dapr run
@@ -51,23 +59,23 @@ dapr run --app-id <example-sdk> --app-port 50051 --app-protocol http npm run sta
 npm run start:dapr-http
 ```
 
-To use gRPC instead:
+### Using gRPC
 
-- Add `CommunicationProtocolEnum.GRPC` to the DaprClient object creation:
+Since HTTP is the default, you will have to adapt the communication protocol to use gRPC. You can do this by passing an extra argument to the client or server constructor.
 
-  ```javascript
-  const client = new DaprClient(daprHost, process.env.DAPR_HTTP_PORT, CommunicationProtocolEnum.GRPC);
-  ```
+```javascript
+import { DaprClient, DaprServer, CommunicationProtocol } from "dapr-client";
+const client = new DaprClient(daprHost, daprPort, CommunicationProtocol.GRPC);
+const server= new DaprServer(appHost, appPort, daprHost, daprPort, CommunicationProtocol.GRPC);
+```
 
-- To run:
+```bash
+# Using dapr run
+dapr run --app-id <example-sdk> --app-port 50051 --app-protocol grpc npm run start
 
-  ```bash
-  # Using dapr run
-  dapr run --app-id <example-sdk> --app-port 50051 --app-protocol grpc npm run start
-
-  # or, using npm script
-  npm run start:dapr-grpc
-  ```
+# or, using npm script
+npm run start:dapr-grpc
+```
 
 ### DaprClient Library
 A library that provides methods for how an application communicates with the Dapr sidecar.
