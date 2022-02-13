@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# Stop on first errror in execustion 
+set -e
+
 echo "====================================================="
 echo "==================== Dapr JS SDK ===================="
 echo "====================================================="
@@ -20,7 +24,7 @@ mkdir build/
 echo "Building Library"
 npm install > /dev/null
 npm run lint > /dev/null
-tsc --outDir ./build/ > /dev/null
+tsc --outDir ./build/
 
 # Prepare Publish
 echo "Preparing Publish"
