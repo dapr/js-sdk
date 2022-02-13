@@ -1,4 +1,4 @@
-import { KeyValuePairType } from "../KeyValuePair.type";
+import { KeyValueType } from "../KeyValue.type";
 
 export type GetMetadataResponse = {
   id: string;

@@ -1,0 +1,14 @@
+# https://docs.dapr.io/reference/components-reference/supported-bindings/rabbitmq/
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: config-redis
+  namespace: default
+spec:
+  type: configuration.redis
+  version: v1
+  metadata:
+  - name: redisHost
+    value: localhost:6379
+  - name: redisPassword
+    value: ""

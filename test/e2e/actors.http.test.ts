@@ -48,8 +48,8 @@ describe('http/actors', () => {
   }, 30 * 1000);
 
   afterAll(async () => {
-    // await server.stop();
-    // await client.stop();
+    await server.stop();
+    await client.stop();
   });
 
   describe('actorProxy', () => {

@@ -5,6 +5,7 @@ import IClientInvoker from '../../interfaces/Client/IClientInvoker';
 import IClientSecret from '../../interfaces/Client/IClientSecret';
 import IClientHealth from '../../interfaces/Client/IClientHealth';
 import IClientMetadata from '../../interfaces/Client/IClientMetadata';
+import IClientConfiguration from '../../interfaces/Client/IClientConfiguration';
 import IClientSidecar from '../../interfaces/Client/IClientSidecar';
 import IClientActorBuilder from '../../interfaces/Client/IClientActorBuilder';
 import IClient from '../../interfaces/Client/IClient';
@@ -16,6 +17,7 @@ import GRPCClientInvoker from './GRPCClient/invoker';
 import GRPCClientSecret from './GRPCClient/secret';
 import GRPCClientHealth from './GRPCClient/health';
 import GRPCClientMetadata from './GRPCClient/metadata';
+import GRPCClientConfiguration from './GRPCClient/configuration';
 import GRPCClientSidecar from './GRPCClient/sidecar';
 import GRPCClientActor from './GRPCClient/actor';
 import GRPCClient from './GRPCClient/GRPCClient';
@@ -27,6 +29,7 @@ import HTTPClientInvoker from './HTTPClient/invoker';
 import HTTPClientSecret from './HTTPClient/secret';
 import HTTPClientHealth from './HTTPClient/health';
 import HTTPClientMetadata from './HTTPClient/metadata';
+import HTTPClientConfiguration from './HTTPClient/configuration';
 import HTTPClientSidecar from './HTTPClient/sidecar';
 import HTTPClientActor from './HTTPClient/actor';
 import HTTPClient from './HTTPClient/HTTPClient';
@@ -48,6 +51,7 @@ export default class DaprClient {
   readonly secret: IClientSecret;
   readonly health: IClientHealth;
   readonly metadata: IClientMetadata;
+  readonly configuration: IClientConfiguration;
   readonly sidecar: IClientSidecar;
   readonly actor: IClientActorBuilder;
 
@@ -82,6 +86,7 @@ export default class DaprClient {
         this.secret = new GRPCClientSecret(client);
         this.health = new GRPCClientHealth(client);
         this.metadata = new GRPCClientMetadata(client);
+        this.configuration = new GRPCClientConfiguration(client);
         this.sidecar = new GRPCClientSidecar(client);
         this.actor = new GRPCClientActor(client); // we use a abstractor here since we interface through a builder with the Actor Runtime
         break;
@@ -98,6 +103,7 @@ export default class DaprClient {
         this.secret = new HTTPClientSecret(client);
         this.health = new HTTPClientHealth(client);
         this.metadata = new HTTPClientMetadata(client);
+        this.configuration = new HTTPClientConfiguration(client);
         this.sidecar = new HTTPClientSidecar(client);
         this.actor = new HTTPClientActor(client); // we use a abstractor here since we interface through a builder with the Actor Runtime
         break;
