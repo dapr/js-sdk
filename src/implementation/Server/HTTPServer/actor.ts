@@ -39,10 +39,7 @@ export default class HTTPServerActor implements IServerActor {
    * This will create the routes that get invoked by the Dapr Sidecar
    */
   async init(): Promise<void> {
-    // Change the server startupDelay to 3s since we want the placement tables to get updated correctly
-    // @todo: is there a better way to detect this?
-    this.server.serverStartupDelay = 4000;
-    console.log("[Actors] Initializing, changing startup delay to 4s to allow for placement tables to propagate");
+    console.log("[Actors] Initializing");
 
     // Probes the application for a response to state that the app is healthy and running
     // https://docs.dapr.io/reference/api/actors_api/#health-check
