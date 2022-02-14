@@ -13,7 +13,7 @@ echo "====================================================="
 echo "Installing Dependencies"
 echo "Note: if EEXIST: file already exists on tsc, run `npm uninstall -g tsc`"
 npm install -g typescript
-npm install
+npm install > /dev/null
 
 # Prepare build
 echo "Preparing Build"
