@@ -8,6 +8,7 @@ import DemoActorSayImpl from '../actor/DemoActorSayImpl';
 import DemoActorTimerImpl from '../actor/DemoActorTimerImpl';
 import ActorId from '../../src/actors/ActorId';
 import ActorProxyBuilder from '../../src/actors/client/ActorProxyBuilder';
+import * as NodeJSUtil from '../../src/utils/NodeJS.util';
 
 const serverHost = "127.0.0.1";
 const serverPort = "50001";
@@ -48,8 +49,24 @@ describe('http/actors', () => {
   }, 30 * 1000);
 
   afterAll(async () => {
-    // await server.stop();
+    await server.stop(); // if we hang here, it means connections are open that were not closed. Debug why
     // await client.stop();
+  });
+
+  describe('general', () => {
+    it('should allow us to use promises as some testing libraries have issues within the Node Ecosystem', async () => {
+      const mock = jest.fn(() => {
+        return new Promise((resolve) => setTimeout(resolve, 500));
+      });
+
+      const handler = jest.fn();
+
+      await mock().then(handler);
+
+      await (new Promise(resolve => setTimeout(resolve, 2000)));
+
+      expect(handler).toHaveBeenCalled();
+    });
   });
 
   describe('actorProxy', () => {
@@ -163,7 +180,7 @@ describe('http/actors', () => {
       expect(res0).toEqual(0);
 
       // Now we wait for dueTime (2s)
-      await (new Promise(resolve => setTimeout(resolve, 2000)));
+      await NodeJSUtil.sleep(2000);
 
       // After that the reminder callback will be called
       // In our case, the callback increments the count attribute

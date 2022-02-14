@@ -17,7 +17,7 @@ export default class GRPCServer implements IServer {
   server: IServerType;
   serverImpl: IServerImplType;
   serverCredentials: grpc.ServerCredentials;
-  serverStartupDelay = 1000; // @todo: use health api https://docs.dapr.io/reference/api/health_api/
+  serverStartupDelay = 1000;
   client: DaprClient;
 
   constructor(client: DaprClient) {
