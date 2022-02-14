@@ -43,11 +43,16 @@ RUN apt-get update \
     # Install Node 14.16 (latest LTS)
     && nvm install v14.16.1 \
     #
+    # Install Typescript Globally
+    && npm install -g typescript \
+    #
     # Install Dapr CLI
     && wget -q https://raw.githubusercontent.com/dapr/cli/master/install/install.sh -O - | /bin/bash \
+    #
     # Create a non-root user to use if preferred - see https://aka.ms/vscode-remote/containers/non-root-user.
     && groupadd --gid $USER_GID $USERNAME \
     && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \
+    #
     # [Optional] Add sudo support for the non-root user
     && apt-get install -y sudo \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME\
