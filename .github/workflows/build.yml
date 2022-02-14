@@ -28,7 +28,8 @@ jobs:
         node-version: ${{ env.NODE_VER }}
         registry-url: 'https://registry.npmjs.org'
     
-    - run: ./scripts/build.sh
+    - name: Build Package
+      run: ./scripts/build.sh
     
     - name: Is Release?
       if: startswith(github.ref, 'refs/tags/v')
