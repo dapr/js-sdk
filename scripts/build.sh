@@ -11,8 +11,6 @@ echo "Description: Build the package in build/"
 echo "====================================================="
 
 echo "Installing Dependencies"
-echo "Note: if EEXIST: file already exists on tsc, run `npm uninstall -g tsc`"
-npm install -g typescript
 npm install > /dev/null
 
 # Prepare build
