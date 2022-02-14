@@ -10,6 +10,11 @@ echo "Executing in $(pwd)"
 echo "Description: Build the package in build/"
 echo "====================================================="
 
+echo "Installing Dependencies"
+echo "Note: if EEXIST: file already exists on tsc, run `npm uninstall -g tsc`"
+npm install -g typescript
+npm install
+
 # Prepare build
 echo "Preparing Build"
 rm -rf build/
@@ -22,8 +27,7 @@ mkdir build/
 
 # Build Package
 echo "Building Library"
-npm install > /dev/null
-npm run lint > /dev/null
+npm run lint
 tsc --outDir ./build/
 
 # Prepare Publish

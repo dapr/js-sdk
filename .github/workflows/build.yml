@@ -28,16 +28,7 @@ jobs:
         node-version: ${{ env.NODE_VER }}
         registry-url: 'https://registry.npmjs.org'
     
-    - run: npm ci
-      env:
-        CI: true
-    
-    - run: npm run lint
-      env:
-        CI: true
-    
-    - run: npm run test:unit:main
-    - run: npm run test:unit:actors
+    - run: ./scripts/build.sh
     
     - name: Is Release?
       if: startswith(github.ref, 'refs/tags/v')
