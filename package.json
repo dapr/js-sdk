@@ -5,9 +5,9 @@
     "types": "http/index.d.ts",
     "scripts": {
         "test": "npm run test:unit:all && npm run test:e2e:all",
-        "test:load": "jest --runInBand --detectOpenHandles --forceExit",
+        "test:load": "jest --runInBand --detectOpenHandles",
         "test:load:http": "TEST_SECRET_1=secret_val_1 TEST_SECRET_2=secret_val_2 dapr run --app-id test-suite --app-protocol http --app-port 50001 --dapr-http-port 50000 --components-path ./test/components npm run test:load 'test/load'",
-        "test:e2e": "jest --runInBand --detectOpenHandles --forceExit",
+        "test:e2e": "jest --runInBand --detectOpenHandles",
         "test:e2e:all": "npm run test:e2e:grpc:main && npm run test:e2e:http:main && npm run test:e2e:http:actors",
         "test:e2e:grpc:main": "TEST_SECRET_1=secret_val_1 TEST_SECRET_2=secret_val_2 dapr run --app-id test-suite --app-protocol grpc --app-port 50001 --dapr-grpc-port 50000 --components-path ./test/components npm run test:e2e 'test/e2e/main.grpc.test.ts'",
         "test:e2e:http:main": "TEST_SECRET_1=secret_val_1 TEST_SECRET_2=secret_val_2 dapr run --app-id test-suite --app-protocol http --app-port 50001 --dapr-http-port 50000 --components-path ./test/components npm run test:e2e 'test/e2e/main.http.test.ts'",
@@ -28,6 +28,7 @@
         "@js-temporal/polyfill": "^0.3.0",
         "body-parser": "^1.19.0",
         "google-protobuf": "^3.18.0",
+        "http-terminator": "^3.0.4",
         "node-fetch": "^2.6.1",
         "restana": "^4.9.1",
         "uuid": "^8.3.2"
@@ -48,7 +49,7 @@
         "nodemon": "^2.0.12",
         "prettier": "^2.4.0",
         "ts-jest": "^27.0.5",
-        "typescript": "^4.4.4"
+        "typescript": "^4.5.5"
     },
     "repository": {
         "type": "git",

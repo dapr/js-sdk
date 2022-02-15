@@ -10,6 +10,9 @@ echo "Executing in $(pwd)"
 echo "Description: Build the package in build/"
 echo "====================================================="
 
+echo "Installing Dependencies"
+npm install > /dev/null
+
 # Prepare build
 echo "Preparing Build"
 rm -rf build/
@@ -22,8 +25,7 @@ mkdir build/
 
 # Build Package
 echo "Building Library"
-npm install > /dev/null
-npm run lint > /dev/null
+npm run lint
 tsc --outDir ./build/
 
 # Prepare Publish
