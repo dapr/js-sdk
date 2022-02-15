@@ -1,5 +1,4 @@
 import { CommunicationProtocolEnum, DaprClient, DaprServer, HttpMethod } from '../../src';
-import DemoActorCounterImpl from '../actor/DemoActorCounterImpl';
 
 const serverHost = '127.0.0.1';
 const serverPort = '50001';
@@ -36,22 +35,6 @@ describe('http/main', () => {
   afterAll(async () => {
     await server.stop();
     await client.stop();
-  });
-
-  describe('general', () => {
-    it('should allow us to use promises as some testing libraries have issues within the Node Ecosystem', async () => {
-      const mock = jest.fn(() => {
-        return new Promise((resolve) => setTimeout(resolve, 500));
-      });
-
-      const handler = jest.fn();
-
-      await mock().then(handler);
-
-      await (new Promise(resolve => setTimeout(resolve, 2000)));
-
-      expect(handler).toHaveBeenCalled();
-    });
   });
 
   describe('metadata', () => {
