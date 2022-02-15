@@ -64,4 +64,4 @@ Publishing is automated in the CI/CD pipeline. Each time a version is release (G
 
 |Secret|Value|Usage|
 |--|--|--|
-|DAPR_BOT_TOKEN|[Your Github Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)|[dapr-bot.yml](https://github.com/dapr/js-sdk/blob/master/.github/workflows/dapr-bot.yml) uses it for administrative actions|
+|DAPR_BOT_TOKEN|[Your Github Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) with repo access|[dapr-bot.yml](https://github.com/dapr/js-sdk/blob/master/.github/workflows/dapr-bot.yml) uses it for administrative actions|
