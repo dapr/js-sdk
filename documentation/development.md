@@ -58,7 +58,7 @@ Publishing is automated in the CI/CD pipeline. Each time a version is release (G
 ## Setup GitHub actions
 
 1. Fork the [js-sdk](https://github.com/dapr/js-sdk) repo to your GitHub account.
-1. Go to `Settings` in the forked repo and click on `Secrets`:
+1. Go to `Settings` in the forked repo and click on `Secrets` -> `Action`:
 ![GitHub Settings](./assets/github_setting.png)
 1. Add secret variables for Dapr CI
 
