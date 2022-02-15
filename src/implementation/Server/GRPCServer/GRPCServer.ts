@@ -17,7 +17,7 @@ export default class GRPCServer implements IServer {
   server: IServerType;
   serverImpl: IServerImplType;
   serverCredentials: grpc.ServerCredentials;
-  serverStartupDelay = 1000;
+  daprSidecarPollingDelayMs = 1000;
   client: DaprClient;
 
   constructor(client: DaprClient) {
@@ -82,7 +82,7 @@ export default class GRPCServer implements IServer {
     console.log(`[Dapr-JS] Letting Dapr pick-up the server (Maximum 60s wait time)`);
     while (!isHealthy) {
       console.log(`[Dapr-JS] - Waiting till Dapr Started (#${isHealthyRetryCount})`);
-      await NodeJSUtils.sleep(this.serverStartupDelay);
+      await NodeJSUtils.sleep(this.daprSidecarPollingDelayMs);
       isHealthy = await this.client.health.isHealthy();
       isHealthyRetryCount++;
 
