@@ -4,21 +4,20 @@ import { DaprClient } from "../../../proto/dapr/proto/runtime/v1/dapr_grpc_pb"
 import IClient from "../../../interfaces/Client/IClient";
 import CommunicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
 import { DaprClientOptions } from "../../../types/DaprClientOptions";
+import { Settings } from '../../../utils/Settings.util';
 
 export default class GRPCClient implements IClient {
-  private isInitialized: boolean;
   private readonly client: DaprClient;
   private readonly clientCredentials: grpc.ChannelCredentials;
   private readonly clientHost: string;
   private readonly clientPort: string;
   private readonly options: DaprClientOptions;
 
-  constructor(host = "127.0.0.1", port = "50050", options: DaprClientOptions = {
+  constructor(host?: string, port?: string, options: DaprClientOptions = {
     isKeepAlive: true
   }) {
-    this.isInitialized = true;
-    this.clientHost = host;
-    this.clientPort = port;
+    this.clientHost = host ?? Settings.getDefaultHost();
+    this.clientPort = port ?? Settings.getDefaultGrpcPort();
     this.clientCredentials = ChannelCredentials.createInsecure();
     this.options = options;
 
