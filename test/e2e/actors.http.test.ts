@@ -1,4 +1,4 @@
-import { CommunicationProtocolEnum, DaprClient, DaprServer, Temporal } from '../../src';
+import { CommunicationProtocolEnum, DaprClient, DaprServer } from '../../src';
 
 import DemoActorActivateImpl from '../actor/DemoActorActivateImpl';
 import DemoActorCounterImpl from '../actor/DemoActorCounterImpl';
