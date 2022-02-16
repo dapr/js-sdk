@@ -114,10 +114,12 @@ describe('ActorRuntime', () => {
   });
 
   it('should be able to fire a reminder', async () => {
+    // TODO: add this test
     new ActorId(uuidv4());
   });
 
   it('should be able to fire a timer', async () => {
+    // TODO: add this test
     new ActorId(uuidv4());
   });
 })

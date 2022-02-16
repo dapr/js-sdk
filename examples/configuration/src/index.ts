@@ -1,7 +1,7 @@
 import { DaprClient } from "dapr-client";
 
 const daprHost = "127.0.0.1";
-const daprPortDefault = "30000";
+const daprPortDefault = "3500";
 
 async function start() {
 
