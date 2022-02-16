@@ -53,14 +53,14 @@ export default class DaprClient {
   readonly actor: IClientActorBuilder;
 
   constructor(
-    daprHost?: string
+    daprHost = Settings.getDefaultHost()
     , daprPort?: string
     , communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP
     , options: DaprClientOptions = {
       isKeepAlive: true
     }
   ) {
-    this.daprHost = daprHost ?? Settings.getDefaultHost();
+    this.daprHost = daprHost;
     this.daprPort = daprPort ?? Settings.getDefaultPort(communicationProtocol);
     this.communicationProtocol = communicationProtocol;
     this.options = options;

@@ -16,11 +16,15 @@ export default class HTTPClient implements IClient {
   private readonly httpAgent;
   private readonly httpsAgent;
 
-  constructor(host?: string, port?: string, options: DaprClientOptions = {
-    isKeepAlive: true
-  }) {
-    this.clientHost = host ?? Settings.getDefaultHost();
-    this.clientPort = port ?? Settings.getDefaultHttpPort();
+  constructor(
+    host = Settings.getDefaultHost()
+    , port = Settings.getDefaultHttpPort()
+    , options: DaprClientOptions = {
+      isKeepAlive: true
+    }
+  ) {
+    this.clientHost = host;
+    this.clientPort = port ?? port;
     this.options = options;
 
     if (!this.clientHost.startsWith('http://') && !this.clientHost.startsWith('https://')) {

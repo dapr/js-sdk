@@ -13,9 +13,13 @@ export default class GRPCClient implements IClient {
   private readonly clientPort: string;
   private readonly options: DaprClientOptions;
 
-  constructor(host?: string, port?: string, options: DaprClientOptions = {
-    isKeepAlive: true
-  }) {
+  constructor(
+    host = Settings.getDefaultHost()
+    , port = Settings.getDefaultGrpcPort()
+    , options: DaprClientOptions = {
+      isKeepAlive: true
+    }
+  ) {
     this.clientHost = host ?? Settings.getDefaultHost();
     this.clientPort = port ?? Settings.getDefaultGrpcPort();
     this.clientCredentials = ChannelCredentials.createInsecure();
