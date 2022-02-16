@@ -40,8 +40,8 @@ RUN apt-get update \
     && export NVM_DIR="$HOME/.nvm" \
     && \. "$NVM_DIR/nvm.sh" \
     #
-    # Install Node 14.16 (latest LTS)
-    && nvm install v14.16.1 \
+    # Install Node 16.14.0 (latest LTS)
+    && nvm install v16.14.0 \
     #
     # Install Typescript Globally
     && npm install -g typescript \

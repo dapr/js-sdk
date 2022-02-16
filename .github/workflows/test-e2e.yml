@@ -16,7 +16,7 @@ jobs:
   test-e2e:
     runs-on: ubuntu-latest
     env:
-      NODE_VER: 14.17.6
+      NODE_VER: 16.14.0
       DAPR_INSTALL_URL: https://raw.githubusercontent.com/dapr/cli/master/install/install.sh
     services:
       emqx:
