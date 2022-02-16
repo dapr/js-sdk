@@ -33,6 +33,7 @@ import HTTPClient from './HTTPClient/HTTPClient';
 
 import CommunicationProtocolEnum from '../../enum/CommunicationProtocol.enum';
 import { DaprClientOptions } from '../../types/DaprClientOptions';
+import { Settings } from '../../utils/Settings.util';
 
 export default class DaprClient {
   readonly daprHost: string;
@@ -52,15 +53,15 @@ export default class DaprClient {
   readonly actor: IClientActorBuilder;
 
   constructor(
-    daprHost: string
-    , daprPort: string
+    daprHost?: string
+    , daprPort?: string
     , communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP
     , options: DaprClientOptions = {
       isKeepAlive: true
     }
   ) {
-    this.daprHost = daprHost;
-    this.daprPort = daprPort;
+    this.daprHost = daprHost ?? Settings.getDefaultHost();
+    this.daprPort = daprPort ?? Settings.getDefaultPort(communicationProtocol);
     this.communicationProtocol = communicationProtocol;
     this.options = options;
 
