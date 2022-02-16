@@ -16,7 +16,7 @@ export default class HTTPClientMetadata implements IClientMetadata {
   }
 
   async set(key: string, value: string): Promise<boolean> {
-    const result = await this.client.execute(`/metadata/${key}`, {
+    await this.client.execute(`/metadata/${key}`, {
       method: "PUT",
       headers: {
         "Content-Type": "text/plain"

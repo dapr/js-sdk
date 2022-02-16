@@ -18,13 +18,6 @@ const CURRENT_LOGGER_LEVEL = process.env.LOGGER_LEVEL || LoggerLevel.VERBOSE;
 
 console.log(`CURRENT LOG LEVEL: ${CURRENT_LOGGER_LEVEL}`)
 
-interface ILoggerMemory {
-  rss: number;
-  heapUsed: number;
-  heapTotal: number;
-  external: number;
-}
-
 export class Logger {
   static print(level: LoggerLevel, message: string, category = 'Server') {
     if (level > CURRENT_LOGGER_LEVEL) {

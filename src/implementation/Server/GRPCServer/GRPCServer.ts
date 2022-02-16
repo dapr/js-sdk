@@ -112,7 +112,7 @@ export default class GRPCServer implements IServer {
   private async initializeBind(): Promise<void> {
     console.log(`[Dapr-JS][gRPC] Starting to listen on ${this.serverHost}:${this.serverPort}`);
     return new Promise((resolve, reject) => {
-      this.server.bindAsync(`${this.serverHost}:${this.serverPort}`, this.serverCredentials, (err, port) => {
+      this.server.bindAsync(`${this.serverHost}:${this.serverPort}`, this.serverCredentials, (err, _port) => {
         if (err) {
           return reject(err);
         }

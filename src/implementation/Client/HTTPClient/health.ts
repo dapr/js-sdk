@@ -12,7 +12,7 @@ export default class HTTPClientHealth implements IClientHealth {
   // Send an event to an external system
   async isHealthy(): Promise<boolean> {
     try {
-      const result = await this.client.execute(`/healthz`, {
+      await this.client.execute(`/healthz`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
