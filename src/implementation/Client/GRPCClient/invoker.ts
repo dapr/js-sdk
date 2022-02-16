@@ -60,7 +60,6 @@ export default class GRPCClientInvoker implements IClientInvoker {
 
         // const res = await fetch(`${this.daprUrl}/invoke/${appId}/method/${methodName}`, fetchOptions);
         // return ResponseUtil.handleResponse(res);
-        const resContentType = res.getContentType();
         const resData = Buffer.from((res.getData() as Any).getValue()).toString();
 
         try {

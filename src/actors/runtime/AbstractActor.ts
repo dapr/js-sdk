@@ -71,7 +71,7 @@ export default abstract class AbstractActor {
    * @param <Type> Type of the state object
    * @return Async void response
    */
-  async registerActorReminder<Type>(reminderName: string, dueTime: Temporal.Duration, period: Temporal.Duration, state?: any) {
+  async registerActorReminder<_Type>(reminderName: string, dueTime: Temporal.Duration, period: Temporal.Duration, state?: any) {
     await this.actorClient.actor.registerActorReminder(this.actorType, this.id, reminderName, {
       period,
       dueTime,
@@ -184,7 +184,7 @@ export default abstract class AbstractActor {
     return;
   }
 
-  async receiveReminder(data: string): Promise<void> {
+  async receiveReminder(_data: string): Promise<void> {
     console.warn(JSON.stringify({
       error: "ACTOR_METHOD_NOT_IMPLEMENTED",
       errorMsg: `A reminder was created for the actor with id: ${this.id} but the method 'receiveReminder' was not implemented`,

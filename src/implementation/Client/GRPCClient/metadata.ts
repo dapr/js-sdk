@@ -51,7 +51,7 @@ export default class GRPCClientMetadata implements IClientMetadata {
 
     return new Promise((resolve, reject) => {
       const client = this.client.getClient();
-      client.setMetadata(msg, (err, res: Empty) => {
+      client.setMetadata(msg, (err, _res: Empty) => {
         if (err) {
           return reject(false);
         }

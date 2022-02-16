@@ -4,7 +4,6 @@ const daprHost = "127.0.0.1";
 const daprPort = "50000"; // Dapr Sidecar Port of this Example Server
 const serverHost = "127.0.0.1"; // App Host of this Example Server
 const serverPort = "50001"; // App Port of this Example Server
-const daprAppId = "example-http-pubsub";
 
 async function start() {
   // Create a Server (will subscribe) and Client (will publish)

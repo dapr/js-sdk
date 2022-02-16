@@ -13,7 +13,7 @@ export default class GRPCClientSidecar implements IClientSidecar {
   async shutdown(): Promise<void> {
     return new Promise((resolve, reject) => {
       const client = this.client.getClient();
-      client.shutdown(new Empty(), (err, res: Empty) => {
+      client.shutdown(new Empty(), (err, _res: Empty) => {
         if (err) {
           return reject(err);
         }

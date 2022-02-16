@@ -19,7 +19,7 @@ export default class GRPCClientPubSub implements IClientPubSub {
 
     return new Promise((resolve, reject) => {
       const client = this.client.getClient();
-      client.publishEvent(msgService, (err, res) => {
+      client.publishEvent(msgService, (err, _res) => {
         if (err) {
           console.error(err);
           return reject(false);
