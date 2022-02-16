@@ -24,7 +24,7 @@ export default class HTTPClient implements IClient {
     }
   ) {
     this.clientHost = host;
-    this.clientPort = port ?? port;
+    this.clientPort = port;
     this.options = options;
 
     if (!this.clientHost.startsWith('http://') && !this.clientHost.startsWith('https://')) {

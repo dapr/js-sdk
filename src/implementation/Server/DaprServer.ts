@@ -36,18 +36,18 @@ export default class DaprServer {
   readonly client: DaprClient;
 
   constructor(
-    serverHost = Settings.getDefaultHost()
+    serverHost?: string
     , serverPort?: string
-    , daprHost = Settings.getDefaultHost()
+    , daprHost?: string
     , daprPort?: string
     , communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP
     , clientOptions: DaprClientOptions = {
       isKeepAlive: true
     }
   ) {
-    this.serverHost = serverHost;
+    this.serverHost = serverHost ?? Settings.getDefaultHost();
     this.serverPort = serverPort ?? Settings.getDefaultAppPort(communicationProtocol);
-    this.daprHost = daprHost;
+    this.daprHost = daprHost ?? Settings.getDefaultHost();
     this.daprPort = daprPort ?? Settings.getDefaultPort(communicationProtocol);
 
     // Create a client to interface with the sidecar from the server side

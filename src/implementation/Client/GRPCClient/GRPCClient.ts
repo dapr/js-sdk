@@ -20,8 +20,8 @@ export default class GRPCClient implements IClient {
       isKeepAlive: true
     }
   ) {
-    this.clientHost = host ?? Settings.getDefaultHost();
-    this.clientPort = port ?? Settings.getDefaultGrpcPort();
+    this.clientHost = host;
+    this.clientPort = port;
     this.clientCredentials = ChannelCredentials.createInsecure();
     this.options = options;
 
