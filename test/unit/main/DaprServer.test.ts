@@ -12,7 +12,7 @@ describe('DaprServer', () => {
 
   it('should throw an error on a wrong port for server', () => {
     try {
-      const server = new DaprServer(host, host);
+      new DaprServer(host, host);
     } catch (e) {
       const msg = (e as Error).message;
       expect(msg).toEqual("DAPR_INCORRECT_SERVER_PORT");
@@ -21,7 +21,7 @@ describe('DaprServer', () => {
 
   it('should throw an error on a wrong port for client', () => {
     try {
-      const server = new DaprServer(host, port, host, host);
+      new DaprServer(host, port, host, host);
     } catch (e) {
       const msg = (e as Error).message;
       expect(msg).toEqual("DAPR_INCORRECT_SIDECAR_PORT");

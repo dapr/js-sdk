@@ -1,13 +1,13 @@
-import { DaprClient, CommunicationProtocolEnum } from "dapr-client";
+import { DaprClient } from "dapr-client";
 
 const daprHost = "127.0.0.1";
-const daprAppId = "example-config";
+const daprPortDefault = "30000";
 
 async function start() {
 
   const client = new DaprClient(
     daprHost,
-    process.env.DAPR_HTTP_PORT
+    process.env.DAPR_HTTP_PORT ?? daprPortDefault
   );
 
   const config = await client.configuration.get('config-store', ['key1', 'key2']);

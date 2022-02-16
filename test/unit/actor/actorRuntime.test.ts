@@ -19,14 +19,13 @@ describe('ActorRuntime', () => {
     runtime = ActorRuntime.getInstanceByDaprClient(client);
 
     // Reset the runtime config
-    const config = runtime.getActorRuntimeConfig();
-    const newConfig = new ActorRuntimeConfig(
+    const config = new ActorRuntimeConfig(
       Temporal.Duration.from({ hours: 1 })
       , Temporal.Duration.from({ seconds: 30 })
       , Temporal.Duration.from({ minutes: 1 })
       , true
     );
-    runtime.setActorRuntimeConfig(newConfig);
+    runtime.setActorRuntimeConfig(config);
 
     // Clear the Actor Managers
     runtime.clearActorManagers();
@@ -115,10 +114,10 @@ describe('ActorRuntime', () => {
   });
 
   it('should be able to fire a reminder', async () => {
-    const actorId = new ActorId(uuidv4());
+    new ActorId(uuidv4());
   });
 
   it('should be able to fire a timer', async () => {
-    const actorId = new ActorId(uuidv4());
+    new ActorId(uuidv4());
   });
 })

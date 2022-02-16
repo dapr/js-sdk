@@ -2,7 +2,7 @@ import { DaprServer, DaprClient, HttpMethod, CommunicationProtocolEnum } from "d
 
 const daprHost = "127.0.0.1";
 const daprPort = "50050"; // Dapr Sidecar Port of this Example Server
-const daprPortActor = "10002"; // Dapr Sidecar Port of the Actor Server
+// const daprPortActor = "10002"; // Dapr Sidecar Port of the Actor Server
 const serverHost = "127.0.0.1"; // App Host of this Example Server
 const serverPort = "50051"; // App Port of this Example Server
 const daprAppId = "example-hello-world";
