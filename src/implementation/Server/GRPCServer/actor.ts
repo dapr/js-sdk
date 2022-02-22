@@ -2,7 +2,6 @@ import GRPCServer from './GRPCServer';
 import IServerActor from '../../../interfaces/Server/IServerActor';
 import AbstractActor from '../../../actors/runtime/AbstractActor';
 import Class from '../../../types/Class';
-import GRPCClient from '../../Client/GRPCClient/GRPCClient';
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class GRPCServerActor implements IServerActor {
@@ -12,7 +11,7 @@ export default class GRPCServerActor implements IServerActor {
     this.server = server;
   }
 
-  deactivateActor(actorType: string, actorId: string): Promise<void> {
+  deactivateActor(_actorType: string, _actorId: string): Promise<void> {
     throw new Error('Method not implemented.');
   }
 
@@ -24,7 +23,7 @@ export default class GRPCServerActor implements IServerActor {
     throw new Error('Method not implemented.');
   }
 
-  registerActor<T extends AbstractActor>(cls: Class<T>): Promise<void> {
+  registerActor<T extends AbstractActor>(_cls: Class<T>): Promise<void> {
     throw new Error('Method not implemented.');
   }
 }

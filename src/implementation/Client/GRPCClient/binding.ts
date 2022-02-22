@@ -13,7 +13,7 @@ export default class GRPCClientBinding implements IClientBinding {
   // Send an event to an external system
   // @todo: should pass the metadata object
   // @todo: should return a specific typed Promise<TypeBindingResponse> instead of Promise<object>
-  async send(bindingName: string, operation: string, data: any, metadata: object = {}): Promise<object> {
+  async send(bindingName: string, operation: string, data: any, _metadata: object = {}): Promise<object> {
     const msgService = new InvokeBindingRequest();
     msgService.setName(bindingName);
     msgService.setOperation(operation);

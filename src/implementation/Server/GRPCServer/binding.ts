@@ -1,7 +1,6 @@
 import GRPCServer from './GRPCServer';
 import { TypeDaprBindingCallback } from '../../../types/DaprBindingCallback.type';
 import IServerBinding from '../../../interfaces/Server/IServerBinding';
-import GRPCClient from '../../Client/GRPCClient/GRPCClient';
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class DaprBinding implements IServerBinding {

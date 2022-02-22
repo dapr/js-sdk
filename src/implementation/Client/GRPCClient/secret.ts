@@ -11,7 +11,7 @@ export default class GRPCClientSecret implements IClientSecret {
   }
 
   // @todo: implement metadata
-  async get(secretStoreName: string, key: string, metadata = ""): Promise<object> {
+  async get(secretStoreName: string, key: string, _metadata = ""): Promise<object> {
     const msgService = new GetSecretRequest();
     msgService.setStoreName(secretStoreName);
     msgService.setKey(key);

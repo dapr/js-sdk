@@ -69,7 +69,7 @@ export default class ActorClientGRPC implements IClientActor {
 
     return new Promise((resolve, reject) => {
       const client = this.client.getClient();
-      client.executeActorStateTransaction(msgService, (err, res) => {
+      client.executeActorStateTransaction(msgService, (err, _res) => {
         if (err) {
           return reject(err);
         }
@@ -126,7 +126,7 @@ export default class ActorClientGRPC implements IClientActor {
 
     return new Promise((resolve, reject) => {
       const client = this.client.getClient();
-      client.registerActorReminder(msgService, (err, res) => {
+      client.registerActorReminder(msgService, (err, _res) => {
         if (err) {
           return reject(err);
         }
@@ -145,7 +145,7 @@ export default class ActorClientGRPC implements IClientActor {
 
     return new Promise((resolve, reject) => {
       const client = this.client.getClient();
-      client.unregisterActorReminder(msgService, (err, res) => {
+      client.unregisterActorReminder(msgService, (err, _res) => {
         if (err) {
           return reject(err);
         }
@@ -180,7 +180,7 @@ export default class ActorClientGRPC implements IClientActor {
 
     return new Promise((resolve, reject) => {
       const client = this.client.getClient();
-      client.registerActorTimer(msgService, (err, res) => {
+      client.registerActorTimer(msgService, (err, _res) => {
         if (err) {
           return reject(err);
         }
@@ -199,7 +199,7 @@ export default class ActorClientGRPC implements IClientActor {
 
     return new Promise((resolve, reject) => {
       const client = this.client.getClient();
-      client.unregisterActorTimer(msgService, (err, res) => {
+      client.unregisterActorTimer(msgService, (err, _res) => {
         if (err) {
           return reject(err);
         }

@@ -1,4 +1,4 @@
-import { DaprServer, DaprClient, CommunicationProtocolEnum } from "dapr-client";
+import { DaprServer, DaprClient } from "dapr-client";
 
 // Common settings
 const serverHost = "127.0.0.1"; // App Host of this Example Server

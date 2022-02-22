@@ -34,7 +34,7 @@ export default class GRPCClientState implements IClientState {
 
     return new Promise((resolve, reject) => {
       const client = this.client.getClient();
-      client.saveState(msgService, (err, res) => {
+      client.saveState(msgService, (err, _res) => {
         if (err) {
           return reject(err);
         }
@@ -75,7 +75,7 @@ export default class GRPCClientState implements IClientState {
     })
   }
 
-  async getBulk(storeName: string, keys: string[], parallelism = 10, metadata = ""): Promise<KeyValueType[]> {
+  async getBulk(storeName: string, keys: string[], parallelism = 10, _metadata = ""): Promise<KeyValueType[]> {
     const msgService = new GetBulkStateRequest();
     msgService.setStoreName(storeName);
     msgService.setKeysList(keys);
@@ -122,7 +122,7 @@ export default class GRPCClientState implements IClientState {
 
     return new Promise((resolve, reject) => {
       const client = this.client.getClient();
-      client.deleteState(msgService, (err, res) => {
+      client.deleteState(msgService, (err, _res) => {
         if (err) {
           return reject(err);
         }
@@ -172,7 +172,7 @@ export default class GRPCClientState implements IClientState {
 
     return new Promise((resolve, reject) => {
       const client = this.client.getClient();
-      client.executeStateTransaction(msgService, (err, res) => {
+      client.executeStateTransaction(msgService, (err, _res) => {
         if (err) {
           return reject(err);
         }

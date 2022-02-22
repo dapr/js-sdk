@@ -9,8 +9,8 @@ const daprAppId = 'test-suite';
 describe('http/main', () => {
   let server: DaprServer;
   let client: DaprClient;
-  const mockBindingReceive = jest.fn(async (data: object) => console.log('mockBindingReceive'));
-  const mockPubSubSubscribe = jest.fn(async (data: object) => console.log('mockPubSubSubscribe'));
+  const mockBindingReceive = jest.fn(async (_data: object) => console.log('mockBindingReceive'));
+  const mockPubSubSubscribe = jest.fn(async (_data: object) => console.log('mockPubSubSubscribe'));
 
   // We need to start listening on some endpoints already
   // this because Dapr is not dynamic and registers endpoints on boot
@@ -68,7 +68,7 @@ describe('http/main', () => {
       await client.binding.send('binding-mqtt', 'create', { hello: 'world' });
 
       // Delay a bit for event to arrive
-      await new Promise((resolve, reject) => setTimeout(resolve, 250));
+      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
       expect(mockBindingReceive.mock.calls.length).toBe(1);
 
       // Also test for receiving data
@@ -82,7 +82,7 @@ describe('http/main', () => {
       await client.pubsub.publish('pubsub-redis', 'test-topic', { hello: 'world' });
 
       // Delay a bit for event to arrive
-      await new Promise((resolve, reject) => setTimeout(resolve, 250));
+      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
 
       expect(mockPubSubSubscribe.mock.calls.length).toBe(1);
 
@@ -99,7 +99,7 @@ describe('http/main', () => {
 
   describe('invoker', () => {
     it('should be able to listen and invoke a service with GET', async () => {
-      const mock = jest.fn(async (data: object) => ({ hello: 'world' }));
+      const mock = jest.fn(async (_data: object) => ({ hello: 'world' }));
 
       await server.invoker.listen('hello-world', mock, { method: HttpMethod.GET });
       const res = await client.invoker.invoke(daprAppId, 'hello-world', HttpMethod.GET);
@@ -112,7 +112,7 @@ describe('http/main', () => {
     });
 
     it('should be able to listen and invoke a service with POST data', async () => {
-      const mock = jest.fn(async (data: object) => ({ hello: 'world' }));
+      const mock = jest.fn(async (_data: object) => ({ hello: 'world' }));
 
       await server.invoker.listen('hello-world', mock, { method: HttpMethod.POST });
       const res = await client.invoker.invoke(daprAppId, 'hello-world', HttpMethod.POST, {
