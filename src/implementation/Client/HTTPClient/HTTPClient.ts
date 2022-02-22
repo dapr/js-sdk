@@ -4,9 +4,9 @@ import IClient from "../../../interfaces/Client/IClient";
 import http from "http";
 import https from "https";
 import { DaprClientOptions } from "../../../types/DaprClientOptions";
+import { Settings } from '../../../utils/Settings.util';
 
 export default class HTTPClient implements IClient {
-  private readonly isInitialized: boolean;
   private client: typeof fetch;
   private readonly clientHost: string;
   private readonly clientPort: string;
@@ -16,10 +16,13 @@ export default class HTTPClient implements IClient {
   private readonly httpAgent;
   private readonly httpsAgent;
 
-  constructor(host = "127.0.0.1", port = "50050", options: DaprClientOptions = {
-    isKeepAlive: true
-  }) {
-    this.isInitialized = true;
+  constructor(
+    host = Settings.getDefaultHost()
+    , port = Settings.getDefaultHttpPort()
+    , options: DaprClientOptions = {
+      isKeepAlive: true
+    }
+  ) {
     this.clientHost = host;
     this.clientPort = port;
     this.options = options;

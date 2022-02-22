@@ -18,6 +18,7 @@ import HTTPServerInvoker from './HTTPServer/invoker';
 import HTTPServerActor from './HTTPServer/actor';
 import { DaprClientOptions } from '../../types/DaprClientOptions';
 import { DaprClient } from '../..';
+import { Settings } from '../../utils/Settings.util';
 
 export default class DaprServer {
   // App details
@@ -35,19 +36,19 @@ export default class DaprServer {
   readonly client: DaprClient;
 
   constructor(
-    serverHost = "127.0.0.1"
-    , serverPort: string = process.env.DAPR_SERVER_PORT || "50050"
-    , daprHost = "127.0.0.1"
-    , daprPort = "50051"
+    serverHost?: string
+    , serverPort?: string
+    , daprHost?: string
+    , daprPort?: string
     , communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP
     , clientOptions: DaprClientOptions = {
       isKeepAlive: true
     }
   ) {
-    this.serverHost = serverHost;
-    this.serverPort = serverPort;
-    this.daprHost = daprHost;
-    this.daprPort = daprPort;
+    this.serverHost = serverHost ?? Settings.getDefaultHost();
+    this.serverPort = serverPort ?? Settings.getDefaultAppPort(communicationProtocol);
+    this.daprHost = daprHost ?? Settings.getDefaultHost();
+    this.daprPort = daprPort ?? Settings.getDefaultPort(communicationProtocol);
 
     // Create a client to interface with the sidecar from the server side
     this.client = new DaprClient(daprHost, daprPort, communicationProtocol, clientOptions);
