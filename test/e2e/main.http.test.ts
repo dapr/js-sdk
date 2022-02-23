@@ -352,6 +352,7 @@ describe('http/main', () => {
         }
       });
 
+      expect(res.results).toBeDefined();
       expect(res.results.length).toEqual(4);
       expect(res.results.map(i => i.key).indexOf("key-1")).toBeGreaterThan(-1);
       expect(res.results.map(i => i.key).indexOf("key-4")).toBeGreaterThan(-1);
