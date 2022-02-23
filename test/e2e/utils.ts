@@ -1,4 +1,4 @@
-export async function testIt(name: string, fn?: Function, timeout?: number): Promise<void> {
+export async function testIt(name: string, fn?: any, timeout?: number): Promise<void> {
     test(name, async () => {
         try {
             fn()
