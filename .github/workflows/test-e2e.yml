@@ -100,8 +100,12 @@ jobs:
     - name: Run E2E tests
       id: tests
       run: npm run test:e2e:all
-    - name: Check test failure in PR
-      if: github.event_name == 'pull_request' && steps.tests.outcome != 'success'
-      run: exit 1
+    - name: Check E2E test failure
+      continue-on-error: false
+      run: |
+        echo "E2E_TEST_FAILURE=$E2E_TEST_FAILURE"
+        if [[ -v E2E_TEST_FAILURE ]]; then
+          exit 1
+        fi
     - name: Upload test coverage
       uses: codecov/codecov-action@v1
