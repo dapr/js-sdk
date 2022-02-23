@@ -327,15 +327,15 @@ describe('http/main', () => {
         filter: {
           OR: [
             {
-              EQ: { "value.person.org": "Dev Ops" }
+              EQ: { "person.org": "Dev Ops" }
             },
             {
               "AND": [
                 {
-                  "EQ": { "value.person.org": "Finance" }
+                  "EQ": { "person.org": "Finance" }
                 },
                 {
-                  "IN": { "value.state": ["CA", "WA"] }
+                  "IN": { "state": ["CA", "WA"] }
                 }
               ]
             }
@@ -343,7 +343,7 @@ describe('http/main', () => {
         },
         sort: [
           {
-            key: "value.state",
+            key: "state",
             order: "DESC"
           }
         ],
