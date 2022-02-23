@@ -38,6 +38,10 @@ describe('http/main', () => {
   });
 
   describe('metadata', () => {
+    it('this will fail', () => {
+      expect(false).toBe(true);
+    });
+
     it('should be able to get the metadata of the Dapr sidecar', async () => {
       const res = await client.metadata.get();
 
