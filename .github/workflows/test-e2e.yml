@@ -60,30 +60,30 @@ jobs:
         ref: ${{ env.DAPR_REF }}
         path: dapr
     - name: Build and override dapr cli with referenced commit
-        if: env.DAPR_CLI_REF != ''
-        run: |
-          cd cli
-          make
-          sudo cp dist/linux_amd64/release/dapr /usr/local/bin/dapr
-          cd ..
-      - name: Initialize Dapr runtime ${{ env.DAPR_RUNTIME_VER }}
-        run: |
-          dapr uninstall --all
-          dapr init --runtime-version ${{ env.DAPR_RUNTIME_VER }}
-      - name: Build and override daprd with referenced commit.
-        if: env.DAPR_REF != ''
-        run: |
-          cd dapr
-          make
-          mkdir -p $HOME/.dapr/bin/
-          cp dist/linux_amd64/release/daprd $HOME/.dapr/bin/daprd
-          cd ..
-      - name: Override placement service.
-        if: env.DAPR_REF != ''
-        run: |
-          docker stop dapr_placement
-          cd dapr
-          ./dist/linux_amd64/release/placement &    
+      if: env.DAPR_CLI_REF != ''
+      run: |
+        cd cli
+        make
+        sudo cp dist/linux_amd64/release/dapr /usr/local/bin/dapr
+        cd ..
+    - name: Initialize Dapr runtime ${{ env.DAPR_RUNTIME_VER }}
+      run: |
+        dapr uninstall --all
+        dapr init --runtime-version ${{ env.DAPR_RUNTIME_VER }}
+    - name: Build and override daprd with referenced commit.
+      if: env.DAPR_REF != ''
+      run: |
+        cd dapr
+        make
+        mkdir -p $HOME/.dapr/bin/
+        cp dist/linux_amd64/release/daprd $HOME/.dapr/bin/daprd
+        cd ..
+    - name: Override placement service.
+      if: env.DAPR_REF != ''
+      run: |
+        docker stop dapr_placement
+        cd dapr
+        ./dist/linux_amd64/release/placement &    
     - name: Checkout JS-SDK
       uses: actions/checkout@v2
     - name: NodeJS - Install
