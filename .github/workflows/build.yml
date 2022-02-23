@@ -30,6 +30,9 @@ jobs:
     
     - name: Build Package
       run: ./scripts/build.sh
+
+    - name: Run unit tests
+      run: npm run test:unit:all
     
     - name: Is Release?
       if: startswith(github.ref, 'refs/tags/v')
