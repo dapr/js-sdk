@@ -22,4 +22,7 @@ describe('Settings', () => {
                 .toEqual(Settings.getDefaultHttpAppPort())
         });
     });
+    it('this always fails', () => {
+        expect(false).toBe(true);
+    })
 })
