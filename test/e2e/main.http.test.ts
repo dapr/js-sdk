@@ -327,15 +327,15 @@ describe('http/main', () => {
         filter: {
           OR: [
             {
-              EQ: { "person.org": "Dev Ops" }
+              EQ: { "value.person.org": "Dev Ops" }
             },
             {
               "AND": [
                 {
-                  "EQ": { "person.org": "Finance" }
+                  "EQ": { "value.person.org": "Finance" }
                 },
                 {
-                  "IN": { "state": ["CA", "WA"] }
+                  "IN": { "value.state": ["CA", "WA"] }
                 }
               ]
             }
@@ -343,7 +343,7 @@ describe('http/main', () => {
         },
         sort: [
           {
-            key: "state",
+            key: "value.state",
             order: "DESC"
           }
         ],
@@ -352,7 +352,6 @@ describe('http/main', () => {
         }
       });
 
-      expect(res.results).toBeDefined();
       expect(res.results.length).toEqual(4);
       expect(res.results.map(i => i.key).indexOf("key-1")).toBeGreaterThan(-1);
       expect(res.results.map(i => i.key).indexOf("key-4")).toBeGreaterThan(-1);
