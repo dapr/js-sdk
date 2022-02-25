@@ -1,4 +1,5 @@
 import { CommunicationProtocolEnum, DaprClient, DaprServer, HttpMethod } from '../../src';
+import { testIt } from './utils';
 
 const serverHost = '127.0.0.1';
 const serverPort = '50001';
@@ -33,7 +34,7 @@ describe('grpc/main', () => {
   });
 
   describe('metadata', () => {
-    it('should be able to get the metadata of the Dapr sidecar', async () => {
+    testIt('should be able to get the metadata of the Dapr sidecar', async () => {
       await client.metadata.get();
 
       // app id is not set in grpc?
@@ -41,7 +42,7 @@ describe('grpc/main', () => {
       // expect(res.components.length).toBeGreaterThan(0);
     });
 
-    it('should be able to set a custom metadata value of the Dapr sidecar', async () => {
+    testIt('should be able to set a custom metadata value of the Dapr sidecar', async () => {
       await client.metadata.set("testKey", "Hello World");
 
       const res = await client.metadata.get();
@@ -55,14 +56,14 @@ describe('grpc/main', () => {
   });
 
   describe('health', () => {
-    it('should return true if Dapr is ready', async () => {
+    testIt('should return true if Dapr is ready', async () => {
       const res = await client.health.isHealthy();
       expect(res).toEqual(true);
     });
   });
 
   describe('binding', () => {
-    it('should be able to receive events', async () => {
+    testIt('should be able to receive events', async () => {
       await client.binding.send('binding-mqtt', 'create', { hello: 'world' });
 
       // Delay a bit for event to arrive
@@ -76,7 +77,7 @@ describe('grpc/main', () => {
   });
 
   describe('pubsub', () => {
-    it('should be able to send and receive events', async () => {
+    testIt('should be able to send and receive events', async () => {
       await client.pubsub.publish('pubsub-redis', 'test-topic', { hello: 'world' });
 
       // Delay a bit for event to arrive
@@ -89,14 +90,14 @@ describe('grpc/main', () => {
       expect(mockPubSubSubscribe.mock.calls[0][0]['hello']).toEqual('world');
     });
 
-    it('should receive if it was successful or not', async () => {
+    testIt('should receive if it was successful or not', async () => {
       const res = await client.pubsub.publish('pubsub-redis', 'test-topic', { hello: 'world' });
       expect(res).toEqual(true);
     });
   });
 
   describe('invoker', () => {
-    it('should be able to listen and invoke a service with GET', async () => {
+    testIt('should be able to listen and invoke a service with GET', async () => {
       const mock = jest.fn(async (_data: object) => ({ hello: 'world' }));
 
       await server.invoker.listen('hello-world', mock, { method: HttpMethod.GET });
@@ -109,7 +110,7 @@ describe('grpc/main', () => {
       expect(JSON.stringify(res)).toEqual(`{"hello":"world"}`);
     });
 
-    it('should be able to listen and invoke a service with POST data', async () => {
+    testIt('should be able to listen and invoke a service with POST data', async () => {
       const mock = jest.fn(async (_data: object) => ({ hello: 'world' }));
 
       await server.invoker.listen('hello-world', mock, { method: HttpMethod.POST });
@@ -126,19 +127,19 @@ describe('grpc/main', () => {
   });
 
   describe('secrets', () => {
-    it('should be able to correctly fetch the secrets by a single key', async () => {
+    testIt('should be able to correctly fetch the secrets by a single key', async () => {
       const res = await client.secret.get('secret-envvars', 'TEST_SECRET_1');
       expect(JSON.stringify(res)).toEqual(`{"TEST_SECRET_1":"secret_val_1"}`);
     });
 
-    it('should be able to correctly fetch the secrets in bulk', async () => {
+    testIt('should be able to correctly fetch the secrets in bulk', async () => {
       const res = await client.secret.getBulk('secret-envvars');
       expect(Object.keys(res).length).toBeGreaterThan(1);
     });
   });
 
   describe('state', () => {
-    it('should be able to save the state', async () => {
+    testIt('should be able to save the state', async () => {
       await client.state.save('state-redis', [
         {
           key: 'key-1',
@@ -158,7 +159,7 @@ describe('grpc/main', () => {
       expect(res).toEqual('value-1');
     });
 
-    it('should be able to get the state in bulk', async () => {
+    testIt('should be able to get the state in bulk', async () => {
       await client.state.save('state-redis', [
         {
           key: 'key-1',
@@ -184,7 +185,7 @@ describe('grpc/main', () => {
       );
     });
 
-    it('should be able to delete a key from the state store', async () => {
+    testIt('should be able to delete a key from the state store', async () => {
       await client.state.save('state-redis', [
         {
           key: 'key-1',
@@ -205,7 +206,7 @@ describe('grpc/main', () => {
       expect(res).toEqual('');
     });
 
-    it('should be able to perform a transaction that replaces a key and deletes another', async () => {
+    testIt('should be able to perform a transaction that replaces a key and deletes another', async () => {
       await client.state.transaction('state-redis', [
         {
           operation: 'upsert',
@@ -228,7 +229,7 @@ describe('grpc/main', () => {
       expect(resTransactionUpsert).toEqual('my-new-data-1');
     });
 
-    it('should be able to perform a transaction with metadata', async () => {
+    testIt('should be able to perform a transaction with metadata', async () => {
       await client.state.transaction('state-redis', [
         {
           operation: 'upsert',
@@ -256,7 +257,7 @@ describe('grpc/main', () => {
 
   // Note: actors require an external dependency and are disabled by default for now until we can have actors in Javascript
   // describe('actors', () => {
-  //     it('should be able to invoke a method on an actor', async () => {
+  //     testIt('should be able to invoke a method on an actor', async () => {
   //         const clientActor = new DaprClient(daprHost, daprPortActor);
 
   //         await clientActor.actor.invoke("POST", "DemoActor", "MyActorId1", "SetDataAsync", { PropertyA: "hello", PropertyB: "world", ToNotExistKey: "this should not exist since we only have PropertyA and PropertyB" });
@@ -265,7 +266,7 @@ describe('grpc/main', () => {
   //         expect(JSON.stringify(res)).toEqual(`{\"propertyA\":\"hello\",\"propertyB\":\"world\"}`);
   //     });
 
-  //     it('should be able to manipulate the state through a transaction of an actor', async () => {
+  //     testIt('should be able to manipulate the state through a transaction of an actor', async () => {
   //         const clientActor = new DaprClient(daprHost, daprPortActor);
   //         await clientActor.actor.stateTransaction("DemoActor", "MyActorId1", [
   //             {
@@ -297,7 +298,7 @@ describe('grpc/main', () => {
   //         expect(JSON.stringify(resActorStateGet2)).toEqual(`\"my-new-data-1\"`);
   //     });
 
-  //     it('should be able to get all the actors', async () => {
+  //     testIt('should be able to get all the actors', async () => {
   //         const clientActor = new DaprClient(daprHost, daprPortActor);
 
   //         const res = await clientActor.actor.getActors();
