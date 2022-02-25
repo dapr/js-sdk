@@ -113,8 +113,8 @@ jobs:
     - name: Check E2E test failure
       continue-on-error: false
       run: |
-        echo "E2E_TEST_FAILURE=$E2E_TEST_FAILURE"
-        if [[ -v E2E_TEST_FAILURE ]]; then
+        FILENAME=E2E_TEST_ERROR
+        if [[ -f "$FILENAME" ]]; then
           exit 1
         fi
 
