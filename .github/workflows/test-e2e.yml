@@ -115,6 +115,7 @@ jobs:
       run: |
         FILENAME=E2E_TEST_ERROR
         if [[ -f "$FILENAME" ]]; then
+          echo "Detected error in E2E tests. Please check the above step for error logs."
           exit 1
         fi
 

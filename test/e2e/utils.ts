@@ -1,4 +1,4 @@
-var fs = require("fs");
+import fs from "fs";
 
 const errorFilePath = "E2E_TEST_ERROR";
 
@@ -17,5 +17,5 @@ export async function testIt(name: string, fn?: any, timeout?: number): Promise<
 
 // Creates an empty file at filepath.
 function touchFile(filepath: string) {
-    fs.write(fs.openSync(filepath, 'w'));
+    fs.writeFileSync(filepath, '');
 }
