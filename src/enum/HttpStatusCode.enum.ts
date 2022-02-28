@@ -11,7 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
+/**
+ * Hypertext Transfer Protocol (HTTP) response status codes.
+ * @see {@link https://en.wikipedia.org/wiki/List_of_HTTP_status_codes}
+ */
 enum HttpStatusCode {
 
   /**

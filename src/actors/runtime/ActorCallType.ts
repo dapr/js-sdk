@@ -11,7 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
+/**
+ * Represents the call-type associated with the method invoked by the actor runtime
+ */
 export enum ActorCallType {
     /**
      * Specifies that the method invoked is an actor interface method for a given

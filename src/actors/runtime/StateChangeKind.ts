@@ -11,7 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
+/**
+ * A enumeration that represents the kind of state change for an actor state
+ * when saves change is called to a set of actor states.
+ */
 enum StateChangeKind {
     // No change in state
     NONE = 0,
