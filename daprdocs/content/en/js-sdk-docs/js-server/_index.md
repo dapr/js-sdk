@@ -18,13 +18,13 @@ The Dapr Server will allow you to receive communication from the Dapr Sidecar an
 
 ## Installing and importing Dapr's JS SDK
 
-1. First install the SDK with `npm`:
+1. Install the SDK with `npm`:
 
 ```bash
-npm i dapr-client
+npm i dapr-client --save
 ```
 
-2. Then, Import the libraries:
+2. Import the libraries:
 
 ```javascript
 import { DaprServer, CommunicationProtocolEnum } from "dapr-client";
