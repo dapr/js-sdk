@@ -16,4 +16,5 @@ export default interface DemoActorTimerInterface {
   getCounter(): Promise<number>;
   count(): Promise<void>;
   countBy(amount: string): Promise<void>;
+  removeTimer(): Promise<void>;
 }
