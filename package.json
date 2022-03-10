@@ -1,6 +1,6 @@
 {
     "name": "dapr-client",
-    "version": "2.0.2",
+    "version": "2.1.0",
     "description": "The official Dapr (https://dapr.io) SDK for Node.js",
     "types": "http/index.d.ts",
     "scripts": {
@@ -44,6 +44,7 @@
         "@typescript-eslint/eslint-plugin": "^5.1.0",
         "@typescript-eslint/parser": "^5.1.0",
         "eslint": "^8.1.0",
+        "eslint-plugin-header": "^3.1.1",
         "grpc_tools_node_protoc_ts": "^5.3.2",
         "grpc-tools": "^1.11.2",
         "jest": "^27.2.0",
