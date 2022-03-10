@@ -33,7 +33,7 @@ jobs:
       DAPR_CLI_VER: 1.6.0
       DAPR_RUNTIME_VER: 1.6.0
       DAPR_INSTALL_URL: https://raw.githubusercontent.com/dapr/cli/master/install/install.sh
-      DAPR_CLI_REF: ''
+      DAPR_CLI_REF: '9472e6d977817243d6da28af3e3ca744414c54e6' # TODO, remove once DAPR CLI is upgraded to v1.7
       DAPR_REF: ''
       NODE_VER: 16.14.0
     services:
