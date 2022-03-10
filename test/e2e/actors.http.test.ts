@@ -31,6 +31,7 @@ const serverHost = "127.0.0.1";
 const serverPort = "50001";
 const sidecarHost = "127.0.0.1";
 const sidecarPort = "50000";
+const serverStartWaitTimeMs = 5 * 1000;
 
 describe('http/actors', () => {
   let server: DaprServer;
@@ -63,6 +64,10 @@ describe('http/actors', () => {
 
     // Start server
     await server.start(); // Start the general server, this can take a while
+
+    // Wait for actor placement tables to fully start up
+    // TODO: Remove this once healthz is fixed (https://github.com/dapr/dapr/issues/3451)
+    await NodeJSUtil.sleep(serverStartWaitTimeMs);
   }, 30 * 1000);
 
   afterAll(async () => {
