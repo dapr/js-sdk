@@ -22,7 +22,6 @@ import DemoActorTimerImpl from '../actor/DemoActorTimerImpl';
 import ActorId from '../../src/actors/ActorId';
 import ActorProxyBuilder from '../../src/actors/client/ActorProxyBuilder';
 import * as NodeJSUtil from '../../src/utils/NodeJS.util';
-import { testIt } from './utils';
 
 const serverHost = "127.0.0.1";
 const serverPort = "50001";
@@ -68,7 +67,7 @@ describe('http/actors', () => {
   });
 
   describe('actorProxy', () => {
-    testIt('should be able to create an actor object through the proxy', async () => {
+    it('should be able to create an actor object through the proxy', async () => {
       const builder = new ActorProxyBuilder<DemoActorCounterImpl>(DemoActorCounterImpl, client);
       const actor = builder.build(ActorId.createRandomId());
 
@@ -86,7 +85,7 @@ describe('http/actors', () => {
   });
 
   describe('invoke', () => {
-    testIt('should register actors correctly', async () => {
+    it('should register actors correctly', async () => {
       const actors = await server.actor.getRegisteredActors();
 
       expect(actors.length).toEqual(6);
@@ -98,28 +97,28 @@ describe('http/actors', () => {
       expect(actors).toContain(DemoActorActivateImpl.name);
     });
 
-    testIt('should be able to invoke an actor through a text message', async () => {
+    it('should be able to invoke an actor through a text message', async () => {
       const builder = new ActorProxyBuilder<DemoActorSayImpl>(DemoActorSayImpl, client);
       const actor = builder.build(ActorId.createRandomId());
       const res = await actor.sayString("Hello World");
       expect(res).toEqual(`Actor said: "Hello World"`)
     });
 
-    testIt('should be able to invoke an actor through an object message', async () => {
+    it('should be able to invoke an actor through an object message', async () => {
       const builder = new ActorProxyBuilder<DemoActorSayImpl>(DemoActorSayImpl, client);
       const actor = builder.build(ActorId.createRandomId());
       const res = await actor.sayObject({ hello: "world" });
       expect(JSON.stringify(res)).toEqual(`{"said":{"hello":"world"}}`)
     });
 
-    testIt('should be able to invoke an actor through multiple parameters', async () => {
+    it('should be able to invoke an actor through multiple parameters', async () => {
       const builder = new ActorProxyBuilder<DemoActorSayImpl>(DemoActorSayImpl, client);
       const actor = builder.build(ActorId.createRandomId());
       const res = await actor.sayMulti(123, "123", { hello: "world 123" }, [1, 2, 3]);
       expect(JSON.stringify(res)).toEqual(`{"a":{"value":123,"type":"number"},"b":{"value":"123","type":"string"},"c":{"value":{"hello":"world 123"},"type":"object"},"d":{"value":[1,2,3],"type":"object"}}`)
     });
 
-    testIt('should be able to invoke an actor through the client which abstracts the actor proxy builder for people unaware of patterns', async () => {
+    it('should be able to invoke an actor through the client which abstracts the actor proxy builder for people unaware of patterns', async () => {
       const actor = client.actor.create<DemoActorSayImpl>(DemoActorSayImpl);
       const res = await actor.sayMulti(123, "123", { hello: "world 123" }, [1, 2, 3]);
       expect(JSON.stringify(res)).toEqual(`{"a":{"value":123,"type":"number"},"b":{"value":"123","type":"string"},"c":{"value":{"hello":"world 123"},"type":"object"},"d":{"value":[1,2,3],"type":"object"}}`)
@@ -127,7 +126,7 @@ describe('http/actors', () => {
   });
 
   describe('timers', () => {
-    testIt('should fire a timer correctly (expected execution time > 5s)', async () => {
+    it('should fire a timer correctly (expected execution time > 5s)', async () => {
       const builder = new ActorProxyBuilder<DemoActorTimerImpl>(DemoActorTimerImpl, client);
       const actor = builder.build(ActorId.createRandomId());
 
@@ -166,7 +165,7 @@ describe('http/actors', () => {
   });
 
   describe('reminders', () => {
-    testIt('should be able to unregister a reminder', async () => {
+    it('should be able to unregister a reminder', async () => {
       const builder = new ActorProxyBuilder<DemoActorReminderImpl>(DemoActorReminderImpl, client);
       const actor = builder.build(ActorId.createRandomId());
 
@@ -195,7 +194,7 @@ describe('http/actors', () => {
       expect(res2).toEqual(123);
     });
 
-    testIt('should fire a reminder but with a warning if it\'s not implemented correctly', async () => {
+    it('should fire a reminder but with a warning if it\'s not implemented correctly', async () => {
       const builder = new ActorProxyBuilder<DemoActorReminder2Impl>(DemoActorReminder2Impl, client);
       const actorId = ActorId.createRandomId();
       const actor = builder.build(actorId);

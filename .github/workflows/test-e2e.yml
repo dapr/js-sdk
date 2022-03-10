@@ -123,14 +123,5 @@ jobs:
       id: tests
       run: npm run test:e2e:all
 
-    - name: Check E2E test failure
-      continue-on-error: false
-      run: |
-        FILENAME=E2E_TEST_ERROR
-        if [[ -f "$FILENAME" ]]; then
-          echo "Detected error in E2E tests. Please check the above step for error logs."
-          exit 1
-        fi
-
     - name: Upload test coverage
       uses: codecov/codecov-action@v1

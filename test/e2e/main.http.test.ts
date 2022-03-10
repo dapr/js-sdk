@@ -12,7 +12,6 @@ limitations under the License.
 */
 
 import { CommunicationProtocolEnum, DaprClient, DaprServer, HttpMethod } from '../../src';
-import { testIt } from './utils';
 
 const serverHost = '127.0.0.1';
 const serverPort = '50001';
@@ -52,14 +51,14 @@ describe('http/main', () => {
   });
 
   describe('metadata', () => {
-    testIt('should be able to get the metadata of the Dapr sidecar', async () => {
+    it('should be able to get the metadata of the Dapr sidecar', async () => {
       const res = await client.metadata.get();
 
       expect(res.id.length).toBeGreaterThan(0);
       expect(res.components.length).toBeGreaterThan(0);
     });
 
-    testIt('should be able to set a custom metadata value of the Dapr sidecar', async () => {
+    it('should be able to set a custom metadata value of the Dapr sidecar', async () => {
       await client.metadata.set("testKey", "Hello World");
 
       const res = await client.metadata.get();
@@ -71,14 +70,14 @@ describe('http/main', () => {
   });
 
   describe('health', () => {
-    testIt('should return true if Dapr is ready', async () => {
+    it('should return true if Dapr is ready', async () => {
       const res = await client.health.isHealthy();
       expect(res).toEqual(true);
     });
   });
 
   describe('binding', () => {
-    testIt('should be able to receive events', async () => {
+    it('should be able to receive events', async () => {
       await client.binding.send('binding-mqtt', 'create', { hello: 'world' });
 
       // Delay a bit for event to arrive
@@ -92,7 +91,7 @@ describe('http/main', () => {
   });
 
   describe('pubsub', () => {
-    testIt('should be able to send and receive events', async () => {
+    it('should be able to send and receive events', async () => {
       await client.pubsub.publish('pubsub-redis', 'test-topic', { hello: 'world' });
 
       // Delay a bit for event to arrive
@@ -105,14 +104,14 @@ describe('http/main', () => {
       expect(mockPubSubSubscribe.mock.calls[0][0]['hello']).toEqual('world');
     });
 
-    testIt('should receive if it was successful or not', async () => {
+    it('should receive if it was successful or not', async () => {
       const res = await client.pubsub.publish('pubsub-redis', 'test-topic', { hello: 'world' });
       expect(res).toEqual(true);
     });
   });
 
   describe('invoker', () => {
-    testIt('should be able to listen and invoke a service with GET', async () => {
+    it('should be able to listen and invoke a service with GET', async () => {
       const mock = jest.fn(async (_data: object) => ({ hello: 'world' }));
 
       await server.invoker.listen('hello-world', mock, { method: HttpMethod.GET });
@@ -125,7 +124,7 @@ describe('http/main', () => {
       expect(JSON.stringify(res)).toEqual(`{"hello":"world"}`);
     });
 
-    testIt('should be able to listen and invoke a service with POST data', async () => {
+    it('should be able to listen and invoke a service with POST data', async () => {
       const mock = jest.fn(async (_data: object) => ({ hello: 'world' }));
 
       await server.invoker.listen('hello-world', mock, { method: HttpMethod.POST });
@@ -142,19 +141,19 @@ describe('http/main', () => {
   });
 
   describe('secrets', () => {
-    testIt('should be able to correctly fetch the secrets by a single key', async () => {
+    it('should be able to correctly fetch the secrets by a single key', async () => {
       const res = await client.secret.get('secret-envvars', 'TEST_SECRET_1');
       expect(JSON.stringify(res)).toEqual(`{"TEST_SECRET_1":"secret_val_1"}`);
     });
 
-    testIt('should be able to correctly fetch the secrets in bulk', async () => {
+    it('should be able to correctly fetch the secrets in bulk', async () => {
       const res = await client.secret.getBulk('secret-envvars');
       expect(Object.keys(res).length).toBeGreaterThan(1);
     });
   });
 
   describe('state', () => {
-    testIt('should be able to save the state', async () => {
+    it('should be able to save the state', async () => {
       await client.state.save('state-redis', [
         {
           key: 'key-1',
@@ -174,7 +173,7 @@ describe('http/main', () => {
       expect(res).toEqual('value-1');
     });
 
-    testIt('should be able to get the state in bulk', async () => {
+    it('should be able to get the state in bulk', async () => {
       await client.state.save('state-redis', [
         {
           key: 'key-1',
@@ -200,7 +199,7 @@ describe('http/main', () => {
       );
     });
 
-    testIt('should be able to delete a key from the state store', async () => {
+    it('should be able to delete a key from the state store', async () => {
       await client.state.save('state-redis', [
         {
           key: 'key-1',
@@ -221,7 +220,7 @@ describe('http/main', () => {
       expect(res).toEqual('');
     });
 
-    testIt('should be able to perform a transaction that replaces a key and deletes another', async () => {
+    it('should be able to perform a transaction that replaces a key and deletes another', async () => {
       await client.state.transaction('state-redis', [
         {
           operation: 'upsert',
@@ -244,7 +243,7 @@ describe('http/main', () => {
       expect(resTransactionUpsert).toEqual('my-new-data-1');
     });
 
-    testIt('should be able to query state', async () => {
+    it('should be able to query state', async () => {
       // First save our data
       await client.state.save("state-mongodb", [
         {
