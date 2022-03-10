@@ -13,20 +13,25 @@ limitations under the License.
 
 import { CommunicationProtocolEnum, DaprClient, DaprServer } from '../../src';
 
-import DemoActorActivateImpl from '../actor/DemoActorActivateImpl';
-import DemoActorCounterImpl from '../actor/DemoActorCounterImpl';
-import DemoActorReminderImpl from '../actor/DemoActorReminderImpl';
-import DemoActorReminder2Impl from '../actor/DemoActorReminder2Impl';
-import DemoActorSayImpl from '../actor/DemoActorSayImpl';
-import DemoActorTimerImpl from '../actor/DemoActorTimerImpl';
+import * as NodeJSUtil from '../../src/utils/NodeJS.util';
 import ActorId from '../../src/actors/ActorId';
 import ActorProxyBuilder from '../../src/actors/client/ActorProxyBuilder';
-import * as NodeJSUtil from '../../src/utils/NodeJS.util';
+import DemoActorActivateImpl from '../actor/DemoActorActivateImpl';
+import DemoActorCounterImpl from '../actor/DemoActorCounterImpl';
+import DemoActorCounterInterface from '../actor/DemoActorCounterInterface';
+import DemoActorReminderImpl from '../actor/DemoActorReminderImpl';
+import DemoActorReminder2Impl from '../actor/DemoActorReminder2Impl';
+import DemoActorReminderInterface from '../actor/DemoActorReminderInterface';
+import DemoActorSayImpl from '../actor/DemoActorSayImpl';
+import DemoActorSayInterface from '../actor/DemoActorSayInterface';
+import DemoActorTimerImpl from '../actor/DemoActorTimerImpl';
+import DemoActorTimerInterface from '../actor/DemoActorTimerInterface';
 
 const serverHost = "127.0.0.1";
 const serverPort = "50001";
 const sidecarHost = "127.0.0.1";
 const sidecarPort = "50000";
+const serverStartWaitTimeMs = 5 * 1000;
 
 describe('http/actors', () => {
   let server: DaprServer;
@@ -59,6 +64,10 @@ describe('http/actors', () => {
 
     // Start server
     await server.start(); // Start the general server, this can take a while
+
+    // Wait for actor placement tables to fully start up
+    // TODO: Remove this once healthz is fixed (https://github.com/dapr/dapr/issues/3451)
+    await NodeJSUtil.sleep(serverStartWaitTimeMs);
   }, 30 * 1000);
 
   afterAll(async () => {
@@ -68,13 +77,13 @@ describe('http/actors', () => {
 
   describe('actorProxy', () => {
     it('should be able to create an actor object through the proxy', async () => {
-      const builder = new ActorProxyBuilder<DemoActorCounterImpl>(DemoActorCounterImpl, client);
+      const builder = new ActorProxyBuilder<DemoActorCounterInterface>(DemoActorCounterImpl, client);
       const actor = builder.build(ActorId.createRandomId());
 
       const c1 = await actor.getCounter();
       expect(c1).toEqual(0);
 
-      await actor.countBy(1);
+      await actor.countBy(1, 1);
       const c2 = await actor.getCounter();
       expect(c2).toEqual(1);
 
@@ -98,28 +107,28 @@ describe('http/actors', () => {
     });
 
     it('should be able to invoke an actor through a text message', async () => {
-      const builder = new ActorProxyBuilder<DemoActorSayImpl>(DemoActorSayImpl, client);
+      const builder = new ActorProxyBuilder<DemoActorSayInterface>(DemoActorSayImpl, client);
       const actor = builder.build(ActorId.createRandomId());
       const res = await actor.sayString("Hello World");
       expect(res).toEqual(`Actor said: "Hello World"`)
     });
 
     it('should be able to invoke an actor through an object message', async () => {
-      const builder = new ActorProxyBuilder<DemoActorSayImpl>(DemoActorSayImpl, client);
+      const builder = new ActorProxyBuilder<DemoActorSayInterface>(DemoActorSayImpl, client);
       const actor = builder.build(ActorId.createRandomId());
       const res = await actor.sayObject({ hello: "world" });
       expect(JSON.stringify(res)).toEqual(`{"said":{"hello":"world"}}`)
     });
 
     it('should be able to invoke an actor through multiple parameters', async () => {
-      const builder = new ActorProxyBuilder<DemoActorSayImpl>(DemoActorSayImpl, client);
+      const builder = new ActorProxyBuilder<DemoActorSayInterface>(DemoActorSayImpl, client);
       const actor = builder.build(ActorId.createRandomId());
       const res = await actor.sayMulti(123, "123", { hello: "world 123" }, [1, 2, 3]);
       expect(JSON.stringify(res)).toEqual(`{"a":{"value":123,"type":"number"},"b":{"value":"123","type":"string"},"c":{"value":{"hello":"world 123"},"type":"object"},"d":{"value":[1,2,3],"type":"object"}}`)
     });
 
     it('should be able to invoke an actor through the client which abstracts the actor proxy builder for people unaware of patterns', async () => {
-      const actor = client.actor.create<DemoActorSayImpl>(DemoActorSayImpl);
+      const actor = client.actor.create<DemoActorSayInterface>(DemoActorSayImpl);
       const res = await actor.sayMulti(123, "123", { hello: "world 123" }, [1, 2, 3]);
       expect(JSON.stringify(res)).toEqual(`{"a":{"value":123,"type":"number"},"b":{"value":"123","type":"string"},"c":{"value":{"hello":"world 123"},"type":"object"},"d":{"value":[1,2,3],"type":"object"}}`)
     });
@@ -127,7 +136,7 @@ describe('http/actors', () => {
 
   describe('timers', () => {
     it('should fire a timer correctly (expected execution time > 5s)', async () => {
-      const builder = new ActorProxyBuilder<DemoActorTimerImpl>(DemoActorTimerImpl, client);
+      const builder = new ActorProxyBuilder<DemoActorTimerInterface>(DemoActorTimerImpl, client);
       const actor = builder.build(ActorId.createRandomId());
 
       // Activate our actor
@@ -166,7 +175,7 @@ describe('http/actors', () => {
 
   describe('reminders', () => {
     it('should be able to unregister a reminder', async () => {
-      const builder = new ActorProxyBuilder<DemoActorReminderImpl>(DemoActorReminderImpl, client);
+      const builder = new ActorProxyBuilder<DemoActorReminderInterface>(DemoActorReminderImpl, client);
       const actor = builder.build(ActorId.createRandomId());
 
       // Activate our actor
@@ -195,7 +204,7 @@ describe('http/actors', () => {
     });
 
     it('should fire a reminder but with a warning if it\'s not implemented correctly', async () => {
-      const builder = new ActorProxyBuilder<DemoActorReminder2Impl>(DemoActorReminder2Impl, client);
+      const builder = new ActorProxyBuilder<DemoActorReminderInterface>(DemoActorReminder2Impl, client);
       const actorId = ActorId.createRandomId();
       const actor = builder.build(actorId);
 
