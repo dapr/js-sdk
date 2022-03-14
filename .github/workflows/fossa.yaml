@@ -18,6 +18,8 @@ on:
 jobs:
   fossa-scan:
     runs-on: ubuntu-latest
+    env:
+      FOSSA_API_KEY: b88e1f4287c3108c8751bf106fb46db6 
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v3
@@ -25,4 +27,10 @@ jobs:
       - name: "Run FOSSA Scan"
         uses: fossas/fossa-action@main # Use a specific version if locking is preferred
         with:
-          api-key: b88e1f4287c3108c8751bf106fb46db6 # This is a PUSH ONLY token that is safe to be shared with the public
+          api-key: ${{ env.FOSSA_API_KEY }} # This is a PUSH ONLY token that is safe to be shared with the public
+          
+      - name: "Run FOSSA Test"
+        uses: fossas/fossa-action@main # Use a specific version if locking is preferred
+        with:
+          api-key: ${{ env.FOSSA_API_KEY }}
+          run-tests: true
