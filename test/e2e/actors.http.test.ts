@@ -155,7 +155,7 @@ describe('http/actors', () => {
       // In our case, the callback increments the count attribute
       // the count attribute is +100 due to the passed state
       const res1 = await actor.getCounter();
-      expect(res1).toEqual(100);
+      expect(res1).toEqual(300);
 
       // Every 1 second the timer gets called again, so the count attribute should change
       // we check this twice to ensure correct calling
