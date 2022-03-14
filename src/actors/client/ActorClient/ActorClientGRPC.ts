@@ -137,8 +137,8 @@ export default class ActorClientGRPC implements IClientActor {
       msgService.setDueTime(reminder.dueTime.toString());
     }
 
-    if (reminder.TTL) {
-      msgService.setTtl(reminder.TTL.toString());
+    if (reminder.ttl) {
+      msgService.setTtl(reminder.ttl.toString());
     }
 
     return new Promise((resolve, reject) => {
