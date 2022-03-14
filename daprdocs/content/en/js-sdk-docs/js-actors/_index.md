@@ -158,7 +158,8 @@ async function start()
   await client.actor.timerCreate(ParkingSensorImpl.name, `actor-id`, `timer-id`, {
     callback: "method-to-excute-on-actor",
     dueTime: Temporal.Duration.from({ seconds: 2 }),
-    period: Temporal.Duration.from({ seconds: 1 })
+    period: Temporal.Duration.from({ seconds: 1 }),
+    ttl?: Temporal.Duration.from({ seconds: 1 }),
   });
 
   // Delete the timer
@@ -184,6 +185,7 @@ async function start()
   await client.actor.reminderCreate(DemoActorImpl.name, `actor-id`, `timer-id`, {
     dueTime: Temporal.Duration.from({ seconds: 2 }),
     period: Temporal.Duration.from({ seconds: 1 }),
+    ttl?: Temporal.Duration.from({ seconds: 1 }),
     data: 100
   });
 

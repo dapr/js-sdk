@@ -148,6 +148,9 @@ describe('http/actors', () => {
       // Now we wait for dueTime (2s)
       await (new Promise(resolve => setTimeout(resolve, 2000)));
 
+      // Add time to live (2s)
+      await (new Promise(resolve => setTimeout(resolve, 2000)));
+
       // After that the timer callback will be called
       // In our case, the callback increments the count attribute
       // the count attribute is +100 due to the passed state
