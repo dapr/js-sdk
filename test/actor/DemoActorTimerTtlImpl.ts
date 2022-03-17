@@ -14,12 +14,15 @@ limitations under the License.
 import { AbstractActor, Temporal } from "../../src";
 import DemoActorTimerInterface from "./DemoActorTimerInterface";
 
-export default class DemoActorTimerImpl extends AbstractActor implements DemoActorTimerInterface {
+export default class DemoActorTimerTtlImpl extends AbstractActor implements DemoActorTimerInterface {
   counter = 0;
 
   async init(): Promise<string> {
-    await super.registerActorTimer("my-timer-name", "countBy", Temporal.Duration.from({ seconds: 2 }), Temporal.Duration.from({ seconds: 1 }), 
-                                  undefined, 100);
+    await super.registerActorTimer("my-timer-name", "countBy", 
+                                Temporal.Duration.from({ seconds: 2 }), //dueTime
+                                Temporal.Duration.from({ seconds: 0.5 }), //period
+                                Temporal.Duration.from({ seconds: 0.5 }), //ttl
+                                100);
     return "Actor Initialized";
   }
 

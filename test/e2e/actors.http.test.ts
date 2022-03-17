@@ -26,6 +26,8 @@ import DemoActorSayImpl from '../actor/DemoActorSayImpl';
 import DemoActorSayInterface from '../actor/DemoActorSayInterface';
 import DemoActorTimerImpl from '../actor/DemoActorTimerImpl';
 import DemoActorTimerInterface from '../actor/DemoActorTimerInterface';
+import DemoActorTimerTtlImpl from '../actor/DemoActorTimerTtlImpl';
+import DemoActorReminderTtlImpl from '../actor/DemoActorReminderTtlImpl';
 
 const serverHost = "127.0.0.1";
 const serverPort = "50001";
@@ -171,6 +173,42 @@ describe('http/actors', () => {
       const res4 = await actor.getCounter();
       expect(res4).toEqual(300);
     }, 10000);
+
+
+    it('should apply the ttl when it is set (expected execution time > 5s)', async () => {
+      const builder = new ActorProxyBuilder<DemoActorTimerInterface>(DemoActorTimerTtlImpl, client);
+      const actor = builder.build(ActorId.createRandomId());
+
+      // Activate our actor
+      await actor.init();
+
+      const res0 = await actor.getCounter();
+      expect(res0).toEqual(0);
+
+      // Now we wait for dueTime (2s)
+      await (new Promise(resolve => setTimeout(resolve, 500)));
+
+      // After that the timer callback will be called
+      // In our case, the callback increments the count attribute
+      // the count attribute is +100 due to the passed state
+      const res1 = await actor.getCounter();
+      expect(res1).toEqual(100);
+
+      // Every 1 second the timer gets called again, so the count attribute should change
+      // we check this twice to ensure correct calling
+      await (new Promise(resolve => setTimeout(resolve, 500)));
+      const res2 = await actor.getCounter();
+      expect(res2).toEqual(200);
+
+      await (new Promise(resolve => setTimeout(resolve, 500)));
+      try {
+        const res3 = await actor.getCounter();
+      } catch(e) {
+        //@ts-ignore
+        console.log(e.message)
+      }
+      // expect(res3).toEqual(300);
+    }, 10000);
   });
 
   describe('reminders', () => {
@@ -227,6 +265,37 @@ describe('http/actors', () => {
 
       // Unregister the reminder
       await actor.removeReminder();
+    });
+
+    it('should apply the ttl when it is set to a reminder', async () => {
+      const builder = new ActorProxyBuilder<DemoActorReminderInterface>(DemoActorReminderTtlImpl, client);
+      const actor = builder.build(ActorId.createRandomId());
+
+      // Activate our actor
+      // this will initialize the reminder to be called
+      await actor.init();
+
+      const res0 = await actor.getCounter();
+      expect(res0).toEqual(0);
+
+      // Now we wait for dueTime (2s)
+      await NodeJSUtil.sleep(2000);
+
+      // After that the reminder callback will be called
+      // In our case, the callback increments the count attribute
+      const res1 = await actor.getCounter();
+      expect(res1).toEqual(123);
+
+      await actor.removeReminder();
+
+      await (new Promise(resolve => setTimeout(resolve, 500)));
+      try {
+        const res2 = await actor.getCounter();
+      } catch(e) {
+        //@ts-ignore
+        console.log(e.message)
+      }
+      // expect(res2).toEqual(123);
     });
   });
 });

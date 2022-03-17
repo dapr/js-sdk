@@ -80,12 +80,12 @@ export default abstract class AbstractActor {
    * @param reminderName name of the reminder
    * @param state the state to be send along with the reminder trigger
    * @param dueTime due time for the first trigger
-   * @param ttl time to live
+   * @param ttl time to duration after which the reminder will be expired and deleted
    * @param period frequency for the triggers
    * @param <Type> Type of the state object
    * @return Async void response
    */
-  async registerActorReminder<_Type>(reminderName: string, dueTime: Temporal.Duration, ttl: Temporal.Duration, period: Temporal.Duration, state?: any) {
+  async registerActorReminder<_Type>(reminderName: string, dueTime: Temporal.Duration, period: Temporal.Duration, ttl?: Temporal.Duration, state?: any) {
     await this.actorClient.actor.registerActorReminder(this.actorType, this.id, reminderName, {
       period,
       dueTime,
@@ -98,7 +98,7 @@ export default abstract class AbstractActor {
     await this.actorClient.actor.unregisterActorReminder(this.actorType, this.id, reminderName);
   }
 
-  async registerActorTimer(timerName: string, callback: string, dueTime: Temporal.Duration, ttl: Temporal.Duration, period: Temporal.Duration, state?: any) {
+  async registerActorTimer(timerName: string, callback: string, dueTime: Temporal.Duration, period: Temporal.Duration, ttl?: Temporal.Duration, state?: any) {
     // Register the timer in the sidecar
     return await this.actorClient.actor.registerActorTimer(this.actorType, this.id, timerName, {
       period,

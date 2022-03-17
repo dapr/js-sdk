@@ -20,17 +20,17 @@ export default class ActorReminderData {
   readonly reminderName: string;
   readonly state: string | object | undefined;
   readonly dueTime: number;
-  readonly ttl: number;
+  readonly ttl: number | undefined;
   readonly period: number;
 
   /**
    * @param reminderName the name of the actor reminder
    * @param state the state data passed to receiveReminder callback
    * @param dueTime the amount of time to delay before invoking the reminder for the first time
-   * @param ttl time to live
+   * @param ttl time to duration after which the reminder will be expired and deleted
    * @param period the time interval between reminder invocations after the first invocation
    */
-  constructor(reminderName: string, dueTime: number, ttl: number, period: number, state?: string | object) {
+  constructor(reminderName: string, dueTime: number, period: number, ttl?: number, state?: string | object) {
     this.reminderName = reminderName;
     this.dueTime = dueTime;
     this.ttl = ttl;
@@ -50,7 +50,7 @@ export default class ActorReminderData {
     return this.dueTime;
   }
 
-  getTtl(): number {
+  getTtl(): number | undefined {
     return this.ttl;
   }
 
