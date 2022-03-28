@@ -22,10 +22,11 @@ jobs:
     name: bot-processor
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2 # to make the JS script available for the next step
       - name: Comment analyzer
-        uses: actions/github-script@v1
+        uses: actions/github-script@v4
         with:
           github-token: ${{secrets.DAPR_BOT_TOKEN}}
           script: |
-            const script = require('${process.env.GITHUB_WORKSPACE}/.github/scripts/dapr_bot.js')
+            const script = require('./.github/scripts/dapr_bot.js')
             await script({github, context})

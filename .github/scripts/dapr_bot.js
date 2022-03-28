@@ -1,4 +1,27 @@
-export default async ({github, context}) => {
+/**
+ * Execute fn if label exists on an issue.
+ * @param {*} github GitHub object reference
+ * @param {*} label label name
+ * @param {*} issue GitHub issue reference
+ * @param {*} fn async function
+ */
+ async function executeIfIssueHasLabel(github, issue, label, fn) {
+    var response = await github.issues.listLabelsOnIssue({
+        issue_number: issue.number,
+        owner: issue.owner,
+        repo: issue.repo,
+    });
+
+    var labelNames = response.data.map((i) => i.name)
+    for (const labelName of labelNames) {
+        if (labelName == label) {
+            await fn()
+        }
+    }
+}
+
+
+module.exports = async ({ github, context }) => {
     // list of owner who can control dapr-bot workflow
     // TODO: Read owners from OWNERS file.
     const owners = [
@@ -49,51 +72,26 @@ export default async ({github, context}) => {
     if (!isFromPulls && context.actor == issue.owner) {
         // if there is a 'needs-author-feedback' label,
         // replace it with 'needs-team-attention' label.
-        var labels = await github.issues.listLabelsOnIssue({
-            issue_number: issue.number,
-            owner: issue.owner,
-            repo: issue.repo,
-        });
-        labels.forEach(label => {
-            if (label.name == 'needs-author-feedback') {
-                await github.issues.removeLabel({
-                    issue_number: issue.number,
-                    owner: issue.owner,
-                    repo: issue.repo,
-                    name: 'needs-author-feedback'
-                });
-                await github.issues.addLabels({
-                    issue_number: issue.number,
-                    owner: issue.owner,
-                    repo: issue.repo,
-                    labels: ['needs-team-attention']
-                })
-            }
-        });
+        await executeIfIssueHasLabel(github, issue, 'needs-author-feedback', async () => {
+            await github.issues.removeLabel({
+                issue_number: issue.number,
+                owner: issue.owner,
+                repo: issue.repo,
+                name: 'needs-author-feedback'
+            });
+            await github.issues.addLabels({
+                issue_number: issue.number,
+                owner: issue.owner,
+                repo: issue.repo,
+                labels: ['needs-team-attention']
+            })
+        })
     }
 
     // actions above this check are enabled for everyone.
     if (owners.indexOf(context.actor) < 0) {
         return;
     }
-
-    // Pollyfill: register createDispatchEvent because actions/github-script@0.3.0 
-    // does not have createDispatchEvent.
-    github.registerEndpoints({
-        repos: {
-            createDispatchEvent: {
-                "headers": { "accept": "application/vnd.github.everest-preview+json" },
-                "method": "POST",
-                "params": {
-                    "client_payload": { "type": "object" },
-                    "event_type": { "type": "string" },
-                    "owner": { "required": true, "type": "string" },
-                    "repo": { "required": true, "type": "string" }
-                },
-                "url": "/repos/:owner/:repo/dispatches"
-            }
-        }
-    });
 
     if (!isFromPulls && commentBody) {
         if (commentBody.indexOf("/ok-to-e2e-test") == 0) {
@@ -123,13 +121,15 @@ export default async ({github, context}) => {
                 console.log(`Trigger E2E test for ${JSON.stringify(testPayload)}`);
             }
         } else if (commentBody.indexOf("/ping-author") == 0) {
-            // Delete the label if exists
-            await github.issues.removeLabel({
-                issue_number: issue.number,
-                owner: issue.owner,
-                repo: issue.repo,
-                name: 'needs-team-attention'
-            });
+            // if there is a 'needs-team-attention' label, remove it.
+            await executeIfIssueHasLabel(github, issue, 'needs-team-attention', async () => {
+                await github.issues.removeLabel({
+                    issue_number: issue.number,
+                    owner: issue.owner,
+                    repo: issue.repo,
+                    name: 'needs-team-attention'
+                });
+            })
             // Add new label
             await github.issues.addLabels({
                 issue_number: issue.number,
