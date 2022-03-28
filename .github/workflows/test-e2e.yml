@@ -24,6 +24,11 @@ on:
     branches:
       - master
       - release-*
+  # Manual trigger
+  workflow_dispatch:
+  # Dispatch on external events
+  repository_dispatch:
+    types: [e2e-test]
 
 jobs:
   test-e2e:
