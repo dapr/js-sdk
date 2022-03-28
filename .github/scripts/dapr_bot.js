@@ -93,34 +93,9 @@ module.exports = async ({ github, context }) => {
         return;
     }
 
+    // commands for GH issues
     if (!isFromPulls && commentBody) {
-        if (commentBody.indexOf("/ok-to-e2e-test") == 0) {
-            // Get pull request
-            const pull = await github.pulls.get({
-                owner: issue.owner,
-                repo: issue.repo,
-                pull_number: issue.number
-            });
-            if (pull && pull.data) {
-                // Get commit id and repo from pull head
-                const testPayload = {
-                    pull_head_ref: pull.data.head.sha,
-                    pull_head_repo: pull.data.head.repo.full_name,
-                    command: "ok-to-e2e-test",
-                    issue: issue,
-                };
-
-                // Fire repository_dispatch event to trigger e2e test
-                await github.repos.createDispatchEvent({
-                    owner: issue.owner,
-                    repo: issue.repo,
-                    event_type: "e2e-test",
-                    client_payload: testPayload,
-                });
-
-                console.log(`Trigger E2E test for ${JSON.stringify(testPayload)}`);
-            }
-        } else if (commentBody.indexOf("/ping-author") == 0) {
+        if (commentBody.indexOf("/ping-author") == 0) {
             // if there is a 'needs-team-attention' label, remove it.
             await executeIfIssueHasLabel(github, issue, 'needs-team-attention', async () => {
                 await github.issues.removeLabel({
@@ -138,6 +113,37 @@ module.exports = async ({ github, context }) => {
                 labels: ['needs-author-feedback']
             })
             return;
+        }
+    }
+
+    // commands for GH pull requests
+    if (isFromPulls && commentBody) {
+        if (commentBody.indexOf("/ok-to-e2e-test") == 0) {
+            // Get pull request
+            const pull = await github.pulls.get({
+                owner: issue.owner,
+                repo: issue.repo,
+                pull_number: issue.number
+            });
+            if (pull && pull.data) {
+                 // Get commit id and repo from pull head
+                 const clientPayload = {
+                    pull_head_ref: pull.data.head.sha,
+                    pull_head_repo: pull.data.head.repo.full_name,
+                    command: "ok-to-e2e-test",
+                    issue: issue,
+                  };
+
+                // Fire repository_dispatch event to trigger e2e test
+                await github.repos.createDispatchEvent({
+                    owner: issue.owner,
+                    repo: issue.repo,
+                    event_type: "e2e-test",
+                    client_payload: clientPayload,
+                });
+
+                console.log(`Trigger E2E test for ${JSON.stringify(clientPayload)}`);
+            }
         }
     }
 }
