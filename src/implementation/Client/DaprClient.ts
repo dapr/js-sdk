@@ -1,3 +1,16 @@
+/*
+Copyright 2022 The Dapr Authors
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 import IClientBinding from '../../interfaces/Client/IClientBinding';
 import IClientPubSub from '../../interfaces/Client/IClientPubSub';
 import IClientState from '../../interfaces/Client/IClientState';
@@ -33,6 +46,7 @@ import HTTPClient from './HTTPClient/HTTPClient';
 
 import CommunicationProtocolEnum from '../../enum/CommunicationProtocol.enum';
 import { DaprClientOptions } from '../../types/DaprClientOptions';
+import { Settings } from '../../utils/Settings.util';
 
 export default class DaprClient {
   readonly daprHost: string;
@@ -52,15 +66,15 @@ export default class DaprClient {
   readonly actor: IClientActorBuilder;
 
   constructor(
-    daprHost: string
-    , daprPort: string
+    daprHost?: string
+    , daprPort?: string
     , communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP
     , options: DaprClientOptions = {
       isKeepAlive: true
     }
   ) {
-    this.daprHost = daprHost;
-    this.daprPort = daprPort;
+    this.daprHost = daprHost ?? Settings.getDefaultHost();
+    this.daprPort = daprPort ?? Settings.getDefaultPort(communicationProtocol);
     this.communicationProtocol = communicationProtocol;
     this.options = options;
 

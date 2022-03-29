@@ -1,9 +1,23 @@
+/*
+Copyright 2022 The Dapr Authors
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 import Restana from "restana";
 import bodyParser from "body-parser";
 import HTTPServerImpl from "./HTTPServerImpl";
 import IServer from "../../../interfaces/Server/IServer";
 import * as NodeJSUtils from "../../../utils/NodeJS.util";
 import { DaprClient } from "../../..";
+import { createHttpTerminator } from 'http-terminator';
 
 // eslint-disable-next-line
 export interface IServerImplType extends HTTPServerImpl { }
@@ -17,7 +31,7 @@ export default class HTTPServer implements IServer {
   server: IServerType;
   serverAddress: string;
   serverImpl: IServerImplType;
-  serverStartupDelay = 1000; // @todo: use health api https://docs.dapr.io/reference/api/health_api/
+  daprSidecarPollingDelayMs = 1000;
   client: DaprClient;
 
   constructor(client: DaprClient) {
@@ -109,7 +123,7 @@ export default class HTTPServer implements IServer {
     console.log(`[Dapr-JS] Letting Dapr pick-up the server (Maximum 60s wait time)`);
     while (!isHealthy) {
       console.log(`[Dapr-JS] - Waiting till Dapr Started (#${isHealthyRetryCount})`);
-      await NodeJSUtils.sleep(this.serverStartupDelay);
+      await NodeJSUtils.sleep(this.daprSidecarPollingDelayMs);
       isHealthy = await this.client.health.isHealthy();
       isHealthyRetryCount++;
 
@@ -124,7 +138,9 @@ export default class HTTPServer implements IServer {
   }
 
   async stop(): Promise<void> {
-    await this.server.close();
+    const httpTerminator = createHttpTerminator({ server: this.server.getServer() });
+    await httpTerminator.terminate();
+    // await this.server.close();
     this.isInitialized = false;
   }
 }

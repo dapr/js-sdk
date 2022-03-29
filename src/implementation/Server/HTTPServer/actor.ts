@@ -1,3 +1,16 @@
+/*
+Copyright 2022 The Dapr Authors
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 import HTTPServer from './HTTPServer';
 import IServerActor from '../../../interfaces/Server/IServerActor';
 import AbstractActor from '../../../actors/runtime/AbstractActor';
@@ -39,10 +52,7 @@ export default class HTTPServerActor implements IServerActor {
    * This will create the routes that get invoked by the Dapr Sidecar
    */
   async init(): Promise<void> {
-    // Change the server startupDelay to 3s since we want the placement tables to get updated correctly
-    // @todo: is there a better way to detect this?
-    this.server.serverStartupDelay = 4000;
-    console.log("[Actors] Initializing, changing startup delay to 4s to allow for placement tables to propagate");
+    console.log("[Actors] Initializing");
 
     // Probes the application for a response to state that the app is healthy and running
     // https://docs.dapr.io/reference/api/actors_api/#health-check

@@ -1,4 +1,8 @@
-# Dapr Node.js SDK
+[![Discord](https://img.shields.io/discord/778680217417809931)]()
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/dapr/js-sdk/blob/master/LICENSE)
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B162%2Fgithub.com%2Fdapr%2Fcomponents-contrib.svg?type=shield)](https://app.fossa.com/projects/custom%2B162%2Fgithub.com%2Fdapr%2Fcomponents-contrib?ref=badge_shield)
+
+# Dapr Node.js SDKs
 
 The official [Dapr](https://dapr.io) Node.js SDK that allows interfacing with the Dapr sidecar for easy application building.
 

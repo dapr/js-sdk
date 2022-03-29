@@ -1,3 +1,16 @@
+/*
+Copyright 2022 The Dapr Authors
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 import * as grpc from "@grpc/grpc-js";
 import GRPCServerImpl from "./GRPCServerImpl";
 import { AppCallbackService } from "../../../proto/dapr/proto/runtime/v1/appcallback_grpc_pb";
@@ -17,7 +30,7 @@ export default class GRPCServer implements IServer {
   server: IServerType;
   serverImpl: IServerImplType;
   serverCredentials: grpc.ServerCredentials;
-  serverStartupDelay = 1000; // @todo: use health api https://docs.dapr.io/reference/api/health_api/
+  daprSidecarPollingDelayMs = 1000;
   client: DaprClient;
 
   constructor(client: DaprClient) {
@@ -82,7 +95,7 @@ export default class GRPCServer implements IServer {
     console.log(`[Dapr-JS] Letting Dapr pick-up the server (Maximum 60s wait time)`);
     while (!isHealthy) {
       console.log(`[Dapr-JS] - Waiting till Dapr Started (#${isHealthyRetryCount})`);
-      await NodeJSUtils.sleep(this.serverStartupDelay);
+      await NodeJSUtils.sleep(this.daprSidecarPollingDelayMs);
       isHealthy = await this.client.health.isHealthy();
       isHealthyRetryCount++;
 
@@ -112,7 +125,7 @@ export default class GRPCServer implements IServer {
   private async initializeBind(): Promise<void> {
     console.log(`[Dapr-JS][gRPC] Starting to listen on ${this.serverHost}:${this.serverPort}`);
     return new Promise((resolve, reject) => {
-      this.server.bindAsync(`${this.serverHost}:${this.serverPort}`, this.serverCredentials, (err, port) => {
+      this.server.bindAsync(`${this.serverHost}:${this.serverPort}`, this.serverCredentials, (err, _port) => {
         if (err) {
           return reject(err);
         }

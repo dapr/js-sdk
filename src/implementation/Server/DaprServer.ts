@@ -1,3 +1,16 @@
+/*
+Copyright 2022 The Dapr Authors
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 import IServer from '../../interfaces/Server/IServer';
 import IServerPubSub from '../../interfaces/Server/IServerPubSub';
 import IServerBinding from '../../interfaces/Server/IServerBinding';
@@ -18,6 +31,7 @@ import HTTPServerInvoker from './HTTPServer/invoker';
 import HTTPServerActor from './HTTPServer/actor';
 import { DaprClientOptions } from '../../types/DaprClientOptions';
 import { DaprClient } from '../..';
+import { Settings } from '../../utils/Settings.util';
 
 export default class DaprServer {
   // App details
@@ -35,19 +49,19 @@ export default class DaprServer {
   readonly client: DaprClient;
 
   constructor(
-    serverHost = "127.0.0.1"
-    , serverPort: string = process.env.DAPR_SERVER_PORT || "50050"
-    , daprHost = "127.0.0.1"
-    , daprPort = "50051"
+    serverHost?: string
+    , serverPort?: string
+    , daprHost?: string
+    , daprPort?: string
     , communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP
     , clientOptions: DaprClientOptions = {
       isKeepAlive: true
     }
   ) {
-    this.serverHost = serverHost;
-    this.serverPort = serverPort;
-    this.daprHost = daprHost;
-    this.daprPort = daprPort;
+    this.serverHost = serverHost ?? Settings.getDefaultHost();
+    this.serverPort = serverPort ?? Settings.getDefaultAppPort(communicationProtocol);
+    this.daprHost = daprHost ?? Settings.getDefaultHost();
+    this.daprPort = daprPort ?? Settings.getDefaultPort(communicationProtocol);
 
     // Create a client to interface with the sidecar from the server side
     this.client = new DaprClient(daprHost, daprPort, communicationProtocol, clientOptions);

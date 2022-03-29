@@ -1,7 +1,15 @@
-#-------------------------------------------------------------------------------------------------------------
-# Copyright (c) Microsoft Corporation and Dapr Contributors. All rights reserved.
-# Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
-#-------------------------------------------------------------------------------------------------------------
+#
+# Copyright 2022 The Dapr Authors
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#     http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 
 FROM ubuntu:20.04
 
@@ -40,14 +48,19 @@ RUN apt-get update \
     && export NVM_DIR="$HOME/.nvm" \
     && \. "$NVM_DIR/nvm.sh" \
     #
-    # Install Node 14.16 (latest LTS)
-    && nvm install v14.16.1 \
+    # Install Node 16.14.0 (latest LTS)
+    && nvm install v16.14.0 \
+    #
+    # Install Typescript Globally
+    && npm install -g typescript \
     #
     # Install Dapr CLI
     && wget -q https://raw.githubusercontent.com/dapr/cli/master/install/install.sh -O - | /bin/bash \
+    #
     # Create a non-root user to use if preferred - see https://aka.ms/vscode-remote/containers/non-root-user.
     && groupadd --gid $USER_GID $USERNAME \
     && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \
+    #
     # [Optional] Add sudo support for the non-root user
     && apt-get install -y sudo \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME\

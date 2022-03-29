@@ -5,17 +5,18 @@
     "types": "http/index.d.ts",
     "scripts": {
         "test": "npm run test:unit:all && npm run test:e2e:all",
-        "test:load": "jest --runInBand --detectOpenHandles --forceExit",
+        "test:load": "jest --runInBand --detectOpenHandles",
         "test:load:http": "TEST_SECRET_1=secret_val_1 TEST_SECRET_2=secret_val_2 dapr run --app-id test-suite --app-protocol http --app-port 50001 --dapr-http-port 50000 --components-path ./test/components npm run test:load 'test/load'",
-        "test:e2e": "jest --runInBand --detectOpenHandles --forceExit",
+        "test:e2e": "jest --runInBand --detectOpenHandles",
         "test:e2e:all": "npm run test:e2e:grpc:main && npm run test:e2e:http:main && npm run test:e2e:http:actors",
         "test:e2e:grpc:main": "TEST_SECRET_1=secret_val_1 TEST_SECRET_2=secret_val_2 dapr run --app-id test-suite --app-protocol grpc --app-port 50001 --dapr-grpc-port 50000 --components-path ./test/components npm run test:e2e 'test/e2e/main.grpc.test.ts'",
         "test:e2e:http:main": "TEST_SECRET_1=secret_val_1 TEST_SECRET_2=secret_val_2 dapr run --app-id test-suite --app-protocol http --app-port 50001 --dapr-http-port 50000 --components-path ./test/components npm run test:e2e 'test/e2e/main.http.test.ts'",
         "test:e2e:http:actors": "dapr run --app-id test-suite --app-protocol http --app-port 50001 --dapr-http-port 50000 --components-path ./test/components npm run test:e2e 'test/e2e/actors.http.test.ts'",
         "test:unit": "jest --runInBand --detectOpenHandles",
-        "test:unit:all": "npm run test:unit:main && npm run test:unit:actors",
+        "test:unit:all": "npm run test:unit:main && npm run test:unit:actors && npm run test:unit:utils",
         "test:unit:main": "NODE_ENV=test npm run test:unit 'test/unit/main/.*\\.test\\.ts'",
         "test:unit:actors": "NODE_ENV=test npm run test:unit 'test/unit/actor/.*\\.test\\.ts'",
+        "test:unit:utils": "NODE_ENV=test npm run test:unit 'test/unit/utils/.*\\.test\\.ts'",
         "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
         "build": "./scripts/build.sh",
         "start:dev": "npm run build && nodemon --ext \".ts,.js\" --watch \"./src\" --exec \"npm run build\""
@@ -28,6 +29,7 @@
         "@js-temporal/polyfill": "^0.3.0",
         "body-parser": "^1.19.0",
         "google-protobuf": "^3.18.0",
+        "http-terminator": "^3.0.4",
         "node-fetch": "^2.6.1",
         "restana": "^4.9.1",
         "uuid": "^8.3.2"
@@ -42,13 +44,14 @@
         "@typescript-eslint/eslint-plugin": "^5.1.0",
         "@typescript-eslint/parser": "^5.1.0",
         "eslint": "^8.1.0",
+        "eslint-plugin-header": "^3.1.1",
         "grpc_tools_node_protoc_ts": "^5.3.2",
         "grpc-tools": "^1.11.2",
         "jest": "^27.2.0",
         "nodemon": "^2.0.12",
         "prettier": "^2.4.0",
         "ts-jest": "^27.0.5",
-        "typescript": "^4.4.4"
+        "typescript": "^4.5.5"
     },
     "repository": {
         "type": "git",

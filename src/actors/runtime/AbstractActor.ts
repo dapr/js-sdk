@@ -1,3 +1,16 @@
+/*
+Copyright 2022 The Dapr Authors
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 import { Temporal } from "@js-temporal/polyfill";
 import DaprClient from "../../implementation/Client/DaprClient";
 import ActorId from "../ActorId";
@@ -71,7 +84,7 @@ export default abstract class AbstractActor {
    * @param <Type> Type of the state object
    * @return Async void response
    */
-  async registerActorReminder<Type>(reminderName: string, dueTime: Temporal.Duration, period: Temporal.Duration, state?: any) {
+  async registerActorReminder<_Type>(reminderName: string, dueTime: Temporal.Duration, period: Temporal.Duration, state?: any) {
     await this.actorClient.actor.registerActorReminder(this.actorType, this.id, reminderName, {
       period,
       dueTime,
@@ -184,7 +197,7 @@ export default abstract class AbstractActor {
     return;
   }
 
-  async receiveReminder(data: string): Promise<void> {
+  async receiveReminder(_data: string): Promise<void> {
     console.warn(JSON.stringify({
       error: "ACTOR_METHOD_NOT_IMPLEMENTED",
       errorMsg: `A reminder was created for the actor with id: ${this.id} but the method 'receiveReminder' was not implemented`,

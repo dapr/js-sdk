@@ -1,3 +1,16 @@
+#
+# Copyright 2022 The Dapr Authors
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#     http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 name: Node.js CI
 
 on:
@@ -16,7 +29,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      NODE_VER: 14.17.6
+      NODE_VER: 16.14.0
     steps:
     - uses: actions/checkout@v2
 
@@ -28,16 +41,15 @@ jobs:
         node-version: ${{ env.NODE_VER }}
         registry-url: 'https://registry.npmjs.org'
     
-    - run: npm ci
-      env:
-        CI: true
-    
-    - run: npm run lint
-      env:
-        CI: true
-    
-    - run: npm run test:unit:main
-    - run: npm run test:unit:actors
+    - name: Build Package
+      run: ./scripts/build.sh
+
+    - name: Run unit tests
+      id: tests
+      run: npm run test:unit:all
+
+    - name: Upload test coverage
+      uses: codecov/codecov-action@v1
     
     - name: Is Release?
       if: startswith(github.ref, 'refs/tags/v')
