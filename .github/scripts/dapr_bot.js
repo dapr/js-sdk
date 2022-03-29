@@ -167,21 +167,6 @@ export default async ({ github, context }) => {
         return;
     }
 
-    switch (commentBody) {
-        case "/assign":
-            executeAssign(github, context, isFromPulls);
-            break;
-        case "/ping-author":
-            executePingAuthor(github, context, isFromPulls);
-            break;
-        case "/ok-to-e2e-test":
-            executeEndToEndTests(github, context, isFromPulls);
-            break;
-        default:
-            console.log(`[main] command ${commentBody} not found, exiting.`);
-            break;
-    }
-
     // the author of this issue is interacting with it
     if (!isFromPulls && context.actor == issue.owner) {
         // if there is a 'needs-author-feedback' label,
@@ -200,5 +185,20 @@ export default async ({ github, context }) => {
                 labels: ['needs-team-attention']
             });
         });
+    }
+
+    switch (commentBody) {
+        case "/assign":
+            executeAssign(github, context, isFromPulls);
+            break;
+        case "/ping-author":
+            executePingAuthor(github, context, isFromPulls);
+            break;
+        case "/ok-to-e2e-test":
+            executeEndToEndTests(github, context, isFromPulls);
+            break;
+        default:
+            console.log(`[main] command ${commentBody} not found, exiting.`);
+            break;
     }
 };
