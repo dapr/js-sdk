@@ -43,8 +43,14 @@ jobs:
       if: startswith(github.ref, 'refs/tags/v')
       run: echo "DEPLOY_PACKAGE=true" >> $GITHUB_ENV
       
-    - name: Publish to npm
+    - name: Publish to npm (@dapr/dapr)
       if: env.DEPLOY_PACKAGE == 'true'
       run: npm run build && npm pack && npm publish build/ --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      
+    - name: Publish to npm (dapr-client)
+      if: env.DEPLOY_PACKAGE == 'true'
+      run: npm run build && npm pack && npm publish build/ --access public
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_OLD }}
