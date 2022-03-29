@@ -1,4 +1,4 @@
-import { DaprServer, DaprClient, HttpMethod, CommunicationProtocolEnum } from "dapr-client";
+import { DaprServer, DaprClient, HttpMethod, CommunicationProtocolEnum } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1";
 const daprPort = "50050"; // Dapr Sidecar Port of this Example Server

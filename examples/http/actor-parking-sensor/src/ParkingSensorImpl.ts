@@ -1,4 +1,4 @@
-import { AbstractActor } from "dapr-client";
+import { AbstractActor } from "@dapr/dapr";
 import ParkingSensorInterface from "./ParkingSensorInterface";
 
 // Coordinates pool to pick from as center of the radius circle

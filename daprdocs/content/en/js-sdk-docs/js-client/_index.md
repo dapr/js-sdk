@@ -27,7 +27,7 @@ npm i dapr-client --save
 2. Import the libraries:
 
 ```javascript
-import { DaprClient, DaprServer, HttpMethod, CommunicationProtocolEnum } from "dapr-client";
+import { DaprClient, DaprServer, HttpMethod, CommunicationProtocolEnum } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
 const daprPort = "3500"; // Dapr Sidecar Port of this Example Server
@@ -48,7 +48,7 @@ To run the examples, you can use two different protocols to interact with the Da
 ### Using HTTP (default)
 
 ```javascript
-import { DaprClient } from "dapr-client";
+import { DaprClient } from "@dapr/dapr";
 const client = new DaprClient(daprHost, daprPort);
 ```
 
@@ -65,7 +65,7 @@ npm run start:dapr-http
 Since HTTP is the default, you will have to adapt the communication protocol to use gRPC. You can do this by passing an extra argument to the client or server constructor.
 
 ```javascript
-import { DaprClient, CommunicationProtocol } from "dapr-client";
+import { DaprClient, CommunicationProtocol } from "@dapr/dapr";
 const client = new DaprClient(daprHost, daprPort, CommunicationProtocol.GRPC);
 ```
 
@@ -86,7 +86,7 @@ The JavaScript Client SDK allows you to interface with all of the [Dapr building
 #### Invoke a Service
 
 ```javascript
-import { DaprClient, HttpMethod } from "dapr-client"; 
+import { DaprClient, HttpMethod } from "@dapr/dapr"; 
 
 const daprHost = "127.0.0.1"; 
 const daprPort = "3500"; 
@@ -118,7 +118,7 @@ start().catch((e) => {
 #### Save, Get and Delete application state
 
 ```javascript
-import { DaprClient } from "dapr-client"; 
+import { DaprClient } from "@dapr/dapr"; 
 
 const daprHost = "127.0.0.1"; 
 const daprPort = "3500"; 
@@ -179,7 +179,7 @@ start().catch((e) => {
 #### Query State API
 
 ```javascript
-import { DaprClient } from "dapr-client";
+import { DaprClient } from "@dapr/dapr";
 
 async function start() {
   const client = new DaprClient(daprHost, daprPort);
@@ -227,7 +227,7 @@ start().catch((e) => {
 #### Publish messages
 
 ```javascript
-import { DaprClient } from "dapr-client"; 
+import { DaprClient } from "@dapr/dapr"; 
 
 const daprHost = "127.0.0.1"; 
 const daprPort = "3500"; 
@@ -252,7 +252,7 @@ start().catch((e) => {
 ##### Subscribe to messages
 
 ```javascript
-import { DaprServer } from "dapr-client";
+import { DaprServer } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
 const daprPort = "3500"; // Dapr Sidecar Port of this Example Server
@@ -281,7 +281,7 @@ async function start() {
 **Output Bindings**
 
 ```javascript
-import { DaprClient } from "dapr-client"; 
+import { DaprClient } from "@dapr/dapr"; 
 
 const daprHost = "127.0.0.1"; 
 const daprPort = "3500"; 
@@ -309,7 +309,7 @@ start().catch((e) => {
 #### Retrieve secrets
 
 ```javascript
-import { DaprClient } from "dapr-client"; 
+import { DaprClient } from "@dapr/dapr"; 
 
 const daprHost = "127.0.0.1"; 
 const daprPort = "3500"; 
@@ -340,7 +340,7 @@ start().catch((e) => {
 #### Get Configuration Keys
 
 ```javascript
-import { DaprClient } from "dapr-client";
+import { DaprClient } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1";
 const daprAppId = "example-config";

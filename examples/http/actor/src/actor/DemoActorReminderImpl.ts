@@ -1,4 +1,4 @@
-import { AbstractActor } from "dapr-client";
+import { AbstractActor } from "@dapr/dapr";
 
 export default class DemoActorReminderImpl extends AbstractActor {
   counter = 0;

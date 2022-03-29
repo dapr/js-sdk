@@ -1,4 +1,4 @@
-import { DaprServer, DaprClient, HttpMethod, CommunicationProtocolEnum } from "dapr-client";
+import { DaprServer, DaprClient, HttpMethod, CommunicationProtocolEnum } from "@dapr/dapr";
 
 // Common settings
 const daprAppId = "example-invocation";

@@ -1,4 +1,4 @@
-import { DaprServer, DaprClient, HttpMethod } from "dapr-client";
+import { DaprServer, DaprClient, HttpMethod } from "@dapr/dapr";
 import DemoActorCounterImpl from "./actor/DemoActorCounterImpl";
 import DemoActorReminderImpl from "./actor/DemoActorReminderImpl";
 import DemoActorSayImpl from "./actor/DemoActorSayImpl";

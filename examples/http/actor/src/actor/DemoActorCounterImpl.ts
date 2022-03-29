@@ -1,4 +1,4 @@
-import { AbstractActor } from "dapr-client";
+import { AbstractActor } from "@dapr/dapr";
 import DemoActorCounterInterface from "./DemoActorCounterInterface";
 
 export default class DemoActorCounterImpl extends AbstractActor implements DemoActorCounterInterface {
