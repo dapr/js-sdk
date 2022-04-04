@@ -67,11 +67,11 @@ export default class HTTPServerActor implements IServerActor {
     this.server.getServer().put("/actors/:actorTypeName/:actorId/method/remind/:reminderName", this.handlerReminder.bind(this));
   }
 
-  private async handlerHealth(req: IRequest, res: IResponse): Promise<void> {
+  private async handlerHealth(_: IRequest, res: IResponse): Promise<void> {
     return res.send("ok");
   }
 
-  private async handlerConfig(req: IRequest, res: IResponse): Promise<void> {
+  private async handlerConfig(_: IRequest, res: IResponse): Promise<void> {
     const actorRuntime = ActorRuntime.getInstance(this.client.getDaprClient());
 
     const result: GetRegisteredActorsType = {

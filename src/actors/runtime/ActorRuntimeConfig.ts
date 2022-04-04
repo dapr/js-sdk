@@ -12,6 +12,7 @@ limitations under the License.
 */
 
 import { Temporal } from "@js-temporal/polyfill";
+import ActorReentrancyConfig from "./ActorReentrancyConfig";
 
 /**
  * Actor runtime configuration that configures the Actor behavior in the Dapr Runtime
@@ -21,6 +22,7 @@ export default class ActorRuntimeConfig {
     private actorScanInterval: Temporal.Duration;
     private drainOngoingCallTimeout: Temporal.Duration;
     private drainRebalancedActors: boolean;
+    private reentrancy: ActorReentrancyConfig;
 
     /**
      * 
@@ -32,17 +34,20 @@ export default class ActorRuntimeConfig {
      * If there is no current actor method call, this is ignored.
      * @param drainRebalancedActors If true, Dapr will wait for drainOngoingCallTimeout
      * to allow a current actor call to complete before trying to deactivate an actor
+     * @param reentrancy Optional reentrancy configuration for an actor.
      */
     constructor(
         actorIdleTimeout = Temporal.Duration.from({ hours: 1 })
         , actorScanInterval = Temporal.Duration.from({ seconds: 30 })
         , drainOngoingCallTimeout = Temporal.Duration.from({ minutes: 1 })
         , drainRebalancedActors = true
+        , reentrancy: ActorReentrancyConfig = new ActorReentrancyConfig()
     ) {
         this.actorIdleTimeout = actorIdleTimeout;
         this.actorScanInterval = actorScanInterval;
         this.drainOngoingCallTimeout = drainOngoingCallTimeout;
         this.drainRebalancedActors = drainRebalancedActors;
+        this.reentrancy = reentrancy;
     }
 
     getActorIdleTimeout(): number {
@@ -60,18 +65,24 @@ export default class ActorRuntimeConfig {
     getDrainRebalancedActors(): boolean {
         return this.drainRebalancedActors;
     }
+    
+    getReentrancy(): ActorReentrancyConfig {
+        return this.reentrancy;
+    }
 
     toDictionary(): {
         actorIdleTimeout: string,
         actorScanInterval: string,
         drainOngoingCallTimeout: string,
         drainRebalancedActors: boolean,
+        reentrancy: string,
     } {
         return {
             actorIdleTimeout: this.actorIdleTimeout.toString().replace("PT", "").toLocaleLowerCase(),
             actorScanInterval: this.actorScanInterval.toString().replace("PT", "").toLocaleLowerCase(),
             drainOngoingCallTimeout: this.drainOngoingCallTimeout.toString().replace("PT", "").toLocaleLowerCase(),
-            drainRebalancedActors: this.drainRebalancedActors
+            drainRebalancedActors: this.drainRebalancedActors,
+            reentrancy: JSON.stringify(this.reentrancy),
         }
     }
 }

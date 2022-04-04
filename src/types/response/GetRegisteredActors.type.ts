@@ -17,4 +17,5 @@ export type GetRegisteredActorsType = {
     actorScanInterval: string;
     drainOngoingCallTimeout: string;
     drainRebalancedActors: boolean;
+    reentrancy: string;
 }
