@@ -105,13 +105,20 @@ export default class ActorRuntime {
    * @param actorTypeName 
    * @param actorId 
    * @param actorMethodName 
-   * @param payload 
+   * @param requestBody
+   * @param reentrancyId
    * @returns 
    */
-  async invoke(actorTypeName: string, actorId: string, actorMethodName: string, requestBody?: Buffer): Promise<Buffer> {
+  async invoke(
+      actorTypeName: string,
+      actorId: string, 
+      actorMethodName: string, 
+      requestBody?: Buffer,
+      reentrancyId?: string,
+    ): Promise<Buffer> {
     const actorIdObj = new ActorId(actorId);
     const manager = this.getActorManager(actorTypeName);
-    return await manager.invoke(actorIdObj, actorMethodName, requestBody);
+    return await manager.invoke(actorIdObj, actorMethodName, requestBody, reentrancyId);
   }
 
   /**

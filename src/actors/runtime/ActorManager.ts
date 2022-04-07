@@ -106,12 +106,12 @@ export default class ActorManager<T extends AbstractActor> {
    * @param actorId 
    * @param actorMethodName 
    * @param requestBody 
-   * @param actorMethodContext 
+   * @param reentrancyId
    * @returns 
    */
-  async invoke(actorId: ActorId, actorMethodName: string, requestBody?: Buffer): Promise<any> {
+  async invoke(actorId: ActorId, actorMethodName: string, requestBody?: Buffer, reentrancyId?: string): Promise<any> {
     const requestBodyDeserialized = this.serializer.deserialize(requestBody || Buffer.from(""));
-    return await this.callActorMethod(actorId, actorMethodName, requestBodyDeserialized);
+    return await this.callActorMethod(actorId, actorMethodName, [requestBodyDeserialized, reentrancyId]);
   }
 
   async fireReminder(actorId: ActorId, reminderName: string, requestBody?: Buffer): Promise<void> {

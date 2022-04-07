@@ -23,13 +23,17 @@ import ActorId from '../../ActorId';
 export default class ActorClientHTTP implements IClientActor {
   client: HTTPClient;
 
+  private readonly DaprReintrancyIdHeader: string = "Dapr-Reentrancy-Id";
+
   constructor(client: HTTPClient) {
     this.client = client;
   }
 
-  async invoke(actorType: string, actorId: ActorId, methodName: string, body?: any): Promise<object> {
+  async invoke(actorType: string, actorId: ActorId, methodName: string, body?: any, reentrancyId?: string): Promise<object> {
+    var headers = reentrancyId ? {[this.DaprReintrancyIdHeader]: reentrancyId} : {};
     const result = await this.client.execute(`/actors/${actorType}/${actorId.getId()}/method/${methodName}`, {
       method: "POST", // we always use POST calls for Invoking (ref: https://github.com/dapr/js-sdk/pull/137#discussion_r772636068)
+      headers: headers,
       body
     });
 

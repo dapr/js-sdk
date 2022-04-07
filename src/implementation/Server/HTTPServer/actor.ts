@@ -28,6 +28,8 @@ export default class HTTPServerActor implements IServerActor {
   private readonly client: DaprClient;
   private readonly serializer: BufferSerializer;
 
+  private readonly DaprReintrancyIdHeader: string = "Dapr-Reentrancy-Id";
+
   constructor(server: HTTPServer, client: DaprClient) {
     this.client = client;
     this.server = server;
@@ -91,11 +93,15 @@ export default class HTTPServerActor implements IServerActor {
   private async handlerMethod(req: IRequest, res: IResponse): Promise<void> {
     const { actorTypeName, actorId, methodName } = req.params;
     const body = req.body;
-
-    // @todo: reentrancy id? (https://github.com/dapr/python-sdk/blob/master/ext/flask_dapr/flask_dapr/actor.py#L91)
-
     const dataSerialized = this.serializer.serialize(body);
-    const result = await ActorRuntime.getInstance(this.client.getDaprClient()).invoke(actorTypeName, actorId, methodName, dataSerialized);
+    
+    var reentrancyId = req.headers["DaprReintrancyIdHeader"]
+    if (reentrancyId && Array.isArray(reentrancyId)) {
+      // reentrancy ID cannot be an array
+      reentrancyId = undefined
+    }
+
+    const result = await ActorRuntime.getInstance(this.client.getDaprClient()).invoke(actorTypeName, actorId, methodName, dataSerialized, reentrancyId);
     return this.handleResult(res, result);
   }
 
