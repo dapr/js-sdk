@@ -95,7 +95,7 @@ export default class HTTPServerActor implements IServerActor {
     const body = req.body;
     const dataSerialized = this.serializer.serialize(body);
     
-    var reentrancyId = req.headers[this.DaprReintrancyIdHeader]
+    let reentrancyId = req.headers[this.DaprReintrancyIdHeader]
     if (reentrancyId && Array.isArray(reentrancyId)) {
       // reentrancy ID cannot be an array
       reentrancyId = undefined

@@ -25,7 +25,7 @@ export default class ActorReentrancyConfig {
      * to an actor are stopped. This is a safety measure against infinite reentrant calls.
      */
     constructor(
-        public enabled: Boolean = false,
-        public maxStackDepth?: Number,
+        public enabled: boolean = false,
+        public maxStackDepth?: number,
     ){}
 }
