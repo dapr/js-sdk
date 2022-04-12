@@ -1,17 +1,10 @@
 // GENERATED CODE -- DO NOT EDIT!
 
 // Original file comments:
-//
-// Copyright 2021 The Dapr Authors
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-// http://www.apache.org/licenses/LICENSE-2.0
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation and Dapr Contributors.
+// Licensed under the MIT License.
+// ------------------------------------------------------------
 //
 'use strict';
 var grpc = require('@grpc/grpc-js');
@@ -328,17 +321,6 @@ function deserialize_dapr_proto_runtime_v1_RegisterActorTimerRequest(buffer_arg)
   return dapr_proto_runtime_v1_dapr_pb.RegisterActorTimerRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
-function serialize_dapr_proto_runtime_v1_RenameActorReminderRequest(arg) {
-  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.RenameActorReminderRequest)) {
-    throw new Error('Expected argument of type dapr.proto.runtime.v1.RenameActorReminderRequest');
-  }
-  return Buffer.from(arg.serializeBinary());
-}
-
-function deserialize_dapr_proto_runtime_v1_RenameActorReminderRequest(buffer_arg) {
-  return dapr_proto_runtime_v1_dapr_pb.RenameActorReminderRequest.deserializeBinary(new Uint8Array(buffer_arg));
-}
-
 function serialize_dapr_proto_runtime_v1_SaveStateRequest(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SaveStateRequest)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.SaveStateRequest');
@@ -403,28 +385,6 @@ function serialize_dapr_proto_runtime_v1_UnregisterActorTimerRequest(arg) {
 
 function deserialize_dapr_proto_runtime_v1_UnregisterActorTimerRequest(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.UnregisterActorTimerRequest.deserializeBinary(new Uint8Array(buffer_arg));
-}
-
-function serialize_dapr_proto_runtime_v1_UnsubscribeConfigurationRequest(arg) {
-  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationRequest)) {
-    throw new Error('Expected argument of type dapr.proto.runtime.v1.UnsubscribeConfigurationRequest');
-  }
-  return Buffer.from(arg.serializeBinary());
-}
-
-function deserialize_dapr_proto_runtime_v1_UnsubscribeConfigurationRequest(buffer_arg) {
-  return dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationRequest.deserializeBinary(new Uint8Array(buffer_arg));
-}
-
-function serialize_dapr_proto_runtime_v1_UnsubscribeConfigurationResponse(arg) {
-  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse)) {
-    throw new Error('Expected argument of type dapr.proto.runtime.v1.UnsubscribeConfigurationResponse');
-  }
-  return Buffer.from(arg.serializeBinary());
-}
-
-function deserialize_dapr_proto_runtime_v1_UnsubscribeConfigurationResponse(buffer_arg) {
-  return dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_google_protobuf_Empty(arg) {
@@ -633,18 +593,6 @@ unregisterActorReminder: {
     responseSerialize: serialize_google_protobuf_Empty,
     responseDeserialize: deserialize_google_protobuf_Empty,
   },
-  // Rename an actor reminder.
-renameActorReminder: {
-    path: '/dapr.proto.runtime.v1.Dapr/RenameActorReminder',
-    requestStream: false,
-    responseStream: false,
-    requestType: dapr_proto_runtime_v1_dapr_pb.RenameActorReminderRequest,
-    responseType: google_protobuf_empty_pb.Empty,
-    requestSerialize: serialize_dapr_proto_runtime_v1_RenameActorReminderRequest,
-    requestDeserialize: deserialize_dapr_proto_runtime_v1_RenameActorReminderRequest,
-    responseSerialize: serialize_google_protobuf_Empty,
-    responseDeserialize: deserialize_google_protobuf_Empty,
-  },
   // Gets the state for a specific actor.
 getActorState: {
     path: '/dapr.proto.runtime.v1.Dapr/GetActorState',
@@ -704,18 +652,6 @@ subscribeConfigurationAlpha1: {
     requestDeserialize: deserialize_dapr_proto_runtime_v1_SubscribeConfigurationRequest,
     responseSerialize: serialize_dapr_proto_runtime_v1_SubscribeConfigurationResponse,
     responseDeserialize: deserialize_dapr_proto_runtime_v1_SubscribeConfigurationResponse,
-  },
-  // UnSubscribeConfiguration unsubscribe the subscription of configuration
-unsubscribeConfigurationAlpha1: {
-    path: '/dapr.proto.runtime.v1.Dapr/UnsubscribeConfigurationAlpha1',
-    requestStream: false,
-    responseStream: false,
-    requestType: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationRequest,
-    responseType: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse,
-    requestSerialize: serialize_dapr_proto_runtime_v1_UnsubscribeConfigurationRequest,
-    requestDeserialize: deserialize_dapr_proto_runtime_v1_UnsubscribeConfigurationRequest,
-    responseSerialize: serialize_dapr_proto_runtime_v1_UnsubscribeConfigurationResponse,
-    responseDeserialize: deserialize_dapr_proto_runtime_v1_UnsubscribeConfigurationResponse,
   },
   // Gets metadata of the sidecar
 getMetadata: {

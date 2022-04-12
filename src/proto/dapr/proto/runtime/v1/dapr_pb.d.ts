@@ -772,35 +772,6 @@ export namespace UnregisterActorReminderRequest {
     }
 }
 
-export class RenameActorReminderRequest extends jspb.Message { 
-    getActorType(): string;
-    setActorType(value: string): RenameActorReminderRequest;
-    getActorId(): string;
-    setActorId(value: string): RenameActorReminderRequest;
-    getOldName(): string;
-    setOldName(value: string): RenameActorReminderRequest;
-    getNewName(): string;
-    setNewName(value: string): RenameActorReminderRequest;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): RenameActorReminderRequest.AsObject;
-    static toObject(includeInstance: boolean, msg: RenameActorReminderRequest): RenameActorReminderRequest.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: RenameActorReminderRequest, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): RenameActorReminderRequest;
-    static deserializeBinaryFromReader(message: RenameActorReminderRequest, reader: jspb.BinaryReader): RenameActorReminderRequest;
-}
-
-export namespace RenameActorReminderRequest {
-    export type AsObject = {
-        actorType: string,
-        actorId: string,
-        oldName: string,
-        newName: string,
-    }
-}
-
 export class GetActorStateRequest extends jspb.Message { 
     getActorType(): string;
     setActorType(value: string): GetActorStateRequest;
@@ -1148,32 +1119,7 @@ export namespace SubscribeConfigurationRequest {
     }
 }
 
-export class UnsubscribeConfigurationRequest extends jspb.Message { 
-    getStoreName(): string;
-    setStoreName(value: string): UnsubscribeConfigurationRequest;
-    getId(): string;
-    setId(value: string): UnsubscribeConfigurationRequest;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): UnsubscribeConfigurationRequest.AsObject;
-    static toObject(includeInstance: boolean, msg: UnsubscribeConfigurationRequest): UnsubscribeConfigurationRequest.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: UnsubscribeConfigurationRequest, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): UnsubscribeConfigurationRequest;
-    static deserializeBinaryFromReader(message: UnsubscribeConfigurationRequest, reader: jspb.BinaryReader): UnsubscribeConfigurationRequest;
-}
-
-export namespace UnsubscribeConfigurationRequest {
-    export type AsObject = {
-        storeName: string,
-        id: string,
-    }
-}
-
 export class SubscribeConfigurationResponse extends jspb.Message { 
-    getId(): string;
-    setId(value: string): SubscribeConfigurationResponse;
     clearItemsList(): void;
     getItemsList(): Array<dapr_proto_common_v1_common_pb.ConfigurationItem>;
     setItemsList(value: Array<dapr_proto_common_v1_common_pb.ConfigurationItem>): SubscribeConfigurationResponse;
@@ -1191,30 +1137,6 @@ export class SubscribeConfigurationResponse extends jspb.Message {
 
 export namespace SubscribeConfigurationResponse {
     export type AsObject = {
-        id: string,
         itemsList: Array<dapr_proto_common_v1_common_pb.ConfigurationItem.AsObject>,
-    }
-}
-
-export class UnsubscribeConfigurationResponse extends jspb.Message { 
-    getOk(): boolean;
-    setOk(value: boolean): UnsubscribeConfigurationResponse;
-    getMessage(): string;
-    setMessage(value: string): UnsubscribeConfigurationResponse;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): UnsubscribeConfigurationResponse.AsObject;
-    static toObject(includeInstance: boolean, msg: UnsubscribeConfigurationResponse): UnsubscribeConfigurationResponse.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: UnsubscribeConfigurationResponse, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): UnsubscribeConfigurationResponse;
-    static deserializeBinaryFromReader(message: UnsubscribeConfigurationResponse, reader: jspb.BinaryReader): UnsubscribeConfigurationResponse;
-}
-
-export namespace UnsubscribeConfigurationResponse {
-    export type AsObject = {
-        ok: boolean,
-        message: string,
     }
 }

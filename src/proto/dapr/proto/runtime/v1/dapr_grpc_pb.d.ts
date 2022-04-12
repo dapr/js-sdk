@@ -27,13 +27,11 @@ interface IDaprService extends grpc.ServiceDefinition<grpc.UntypedServiceImpleme
     unregisterActorTimer: IDaprService_IUnregisterActorTimer;
     registerActorReminder: IDaprService_IRegisterActorReminder;
     unregisterActorReminder: IDaprService_IUnregisterActorReminder;
-    renameActorReminder: IDaprService_IRenameActorReminder;
     getActorState: IDaprService_IGetActorState;
     executeActorStateTransaction: IDaprService_IExecuteActorStateTransaction;
     invokeActor: IDaprService_IInvokeActor;
     getConfigurationAlpha1: IDaprService_IGetConfigurationAlpha1;
     subscribeConfigurationAlpha1: IDaprService_ISubscribeConfigurationAlpha1;
-    unsubscribeConfigurationAlpha1: IDaprService_IUnsubscribeConfigurationAlpha1;
     getMetadata: IDaprService_IGetMetadata;
     setMetadata: IDaprService_ISetMetadata;
     shutdown: IDaprService_IShutdown;
@@ -183,15 +181,6 @@ interface IDaprService_IUnregisterActorReminder extends grpc.MethodDefinition<da
     responseSerialize: grpc.serialize<google_protobuf_empty_pb.Empty>;
     responseDeserialize: grpc.deserialize<google_protobuf_empty_pb.Empty>;
 }
-interface IDaprService_IRenameActorReminder extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.RenameActorReminderRequest, google_protobuf_empty_pb.Empty> {
-    path: "/dapr.proto.runtime.v1.Dapr/RenameActorReminder";
-    requestStream: false;
-    responseStream: false;
-    requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.RenameActorReminderRequest>;
-    requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.RenameActorReminderRequest>;
-    responseSerialize: grpc.serialize<google_protobuf_empty_pb.Empty>;
-    responseDeserialize: grpc.deserialize<google_protobuf_empty_pb.Empty>;
-}
 interface IDaprService_IGetActorState extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.GetActorStateRequest, dapr_proto_runtime_v1_dapr_pb.GetActorStateResponse> {
     path: "/dapr.proto.runtime.v1.Dapr/GetActorState";
     requestStream: false;
@@ -236,15 +225,6 @@ interface IDaprService_ISubscribeConfigurationAlpha1 extends grpc.MethodDefiniti
     requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationRequest>;
     responseSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationResponse>;
     responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationResponse>;
-}
-interface IDaprService_IUnsubscribeConfigurationAlpha1 extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationRequest, dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse> {
-    path: "/dapr.proto.runtime.v1.Dapr/UnsubscribeConfigurationAlpha1";
-    requestStream: false;
-    responseStream: false;
-    requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationRequest>;
-    requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationRequest>;
-    responseSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse>;
-    responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse>;
 }
 interface IDaprService_IGetMetadata extends grpc.MethodDefinition<google_protobuf_empty_pb.Empty, dapr_proto_runtime_v1_dapr_pb.GetMetadataResponse> {
     path: "/dapr.proto.runtime.v1.Dapr/GetMetadata";
@@ -293,13 +273,11 @@ export interface IDaprServer extends grpc.UntypedServiceImplementation {
     unregisterActorTimer: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.UnregisterActorTimerRequest, google_protobuf_empty_pb.Empty>;
     registerActorReminder: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.RegisterActorReminderRequest, google_protobuf_empty_pb.Empty>;
     unregisterActorReminder: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.UnregisterActorReminderRequest, google_protobuf_empty_pb.Empty>;
-    renameActorReminder: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.RenameActorReminderRequest, google_protobuf_empty_pb.Empty>;
     getActorState: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.GetActorStateRequest, dapr_proto_runtime_v1_dapr_pb.GetActorStateResponse>;
     executeActorStateTransaction: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.ExecuteActorStateTransactionRequest, google_protobuf_empty_pb.Empty>;
     invokeActor: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.InvokeActorRequest, dapr_proto_runtime_v1_dapr_pb.InvokeActorResponse>;
     getConfigurationAlpha1: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.GetConfigurationRequest, dapr_proto_runtime_v1_dapr_pb.GetConfigurationResponse>;
     subscribeConfigurationAlpha1: grpc.handleServerStreamingCall<dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationRequest, dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationResponse>;
-    unsubscribeConfigurationAlpha1: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationRequest, dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse>;
     getMetadata: grpc.handleUnaryCall<google_protobuf_empty_pb.Empty, dapr_proto_runtime_v1_dapr_pb.GetMetadataResponse>;
     setMetadata: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.SetMetadataRequest, google_protobuf_empty_pb.Empty>;
     shutdown: grpc.handleUnaryCall<google_protobuf_empty_pb.Empty, google_protobuf_empty_pb.Empty>;
@@ -354,9 +332,6 @@ export interface IDaprClient {
     unregisterActorReminder(request: dapr_proto_runtime_v1_dapr_pb.UnregisterActorReminderRequest, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
     unregisterActorReminder(request: dapr_proto_runtime_v1_dapr_pb.UnregisterActorReminderRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
     unregisterActorReminder(request: dapr_proto_runtime_v1_dapr_pb.UnregisterActorReminderRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
-    renameActorReminder(request: dapr_proto_runtime_v1_dapr_pb.RenameActorReminderRequest, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
-    renameActorReminder(request: dapr_proto_runtime_v1_dapr_pb.RenameActorReminderRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
-    renameActorReminder(request: dapr_proto_runtime_v1_dapr_pb.RenameActorReminderRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
     getActorState(request: dapr_proto_runtime_v1_dapr_pb.GetActorStateRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetActorStateResponse) => void): grpc.ClientUnaryCall;
     getActorState(request: dapr_proto_runtime_v1_dapr_pb.GetActorStateRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetActorStateResponse) => void): grpc.ClientUnaryCall;
     getActorState(request: dapr_proto_runtime_v1_dapr_pb.GetActorStateRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetActorStateResponse) => void): grpc.ClientUnaryCall;
@@ -371,9 +346,6 @@ export interface IDaprClient {
     getConfigurationAlpha1(request: dapr_proto_runtime_v1_dapr_pb.GetConfigurationRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetConfigurationResponse) => void): grpc.ClientUnaryCall;
     subscribeConfigurationAlpha1(request: dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationResponse>;
     subscribeConfigurationAlpha1(request: dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationResponse>;
-    unsubscribeConfigurationAlpha1(request: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse) => void): grpc.ClientUnaryCall;
-    unsubscribeConfigurationAlpha1(request: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse) => void): grpc.ClientUnaryCall;
-    unsubscribeConfigurationAlpha1(request: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse) => void): grpc.ClientUnaryCall;
     getMetadata(request: google_protobuf_empty_pb.Empty, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetMetadataResponse) => void): grpc.ClientUnaryCall;
     getMetadata(request: google_protobuf_empty_pb.Empty, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetMetadataResponse) => void): grpc.ClientUnaryCall;
     getMetadata(request: google_protobuf_empty_pb.Empty, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetMetadataResponse) => void): grpc.ClientUnaryCall;
@@ -435,9 +407,6 @@ export class DaprClient extends grpc.Client implements IDaprClient {
     public unregisterActorReminder(request: dapr_proto_runtime_v1_dapr_pb.UnregisterActorReminderRequest, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
     public unregisterActorReminder(request: dapr_proto_runtime_v1_dapr_pb.UnregisterActorReminderRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
     public unregisterActorReminder(request: dapr_proto_runtime_v1_dapr_pb.UnregisterActorReminderRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
-    public renameActorReminder(request: dapr_proto_runtime_v1_dapr_pb.RenameActorReminderRequest, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
-    public renameActorReminder(request: dapr_proto_runtime_v1_dapr_pb.RenameActorReminderRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
-    public renameActorReminder(request: dapr_proto_runtime_v1_dapr_pb.RenameActorReminderRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
     public getActorState(request: dapr_proto_runtime_v1_dapr_pb.GetActorStateRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetActorStateResponse) => void): grpc.ClientUnaryCall;
     public getActorState(request: dapr_proto_runtime_v1_dapr_pb.GetActorStateRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetActorStateResponse) => void): grpc.ClientUnaryCall;
     public getActorState(request: dapr_proto_runtime_v1_dapr_pb.GetActorStateRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetActorStateResponse) => void): grpc.ClientUnaryCall;
@@ -452,9 +421,6 @@ export class DaprClient extends grpc.Client implements IDaprClient {
     public getConfigurationAlpha1(request: dapr_proto_runtime_v1_dapr_pb.GetConfigurationRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetConfigurationResponse) => void): grpc.ClientUnaryCall;
     public subscribeConfigurationAlpha1(request: dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationResponse>;
     public subscribeConfigurationAlpha1(request: dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationResponse>;
-    public unsubscribeConfigurationAlpha1(request: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse) => void): grpc.ClientUnaryCall;
-    public unsubscribeConfigurationAlpha1(request: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse) => void): grpc.ClientUnaryCall;
-    public unsubscribeConfigurationAlpha1(request: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse) => void): grpc.ClientUnaryCall;
     public getMetadata(request: google_protobuf_empty_pb.Empty, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetMetadataResponse) => void): grpc.ClientUnaryCall;
     public getMetadata(request: google_protobuf_empty_pb.Empty, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetMetadataResponse) => void): grpc.ClientUnaryCall;
     public getMetadata(request: google_protobuf_empty_pb.Empty, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetMetadataResponse) => void): grpc.ClientUnaryCall;
