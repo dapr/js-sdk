@@ -63,6 +63,8 @@ describe('http/actors', () => {
     await server.actor.registerActor(DemoActorReminder2Impl);
     await server.actor.registerActor(DemoActorTimerImpl);
     await server.actor.registerActor(DemoActorActivateImpl);
+    await server.actor.registerActor(DemoActorTimerTtlImpl);
+    await server.actor.registerActor(DemoActorReminderTtlImpl);
 
     // Start server
     await server.start(); // Start the general server, this can take a while
@@ -99,13 +101,15 @@ describe('http/actors', () => {
     it('should register actors correctly', async () => {
       const actors = await server.actor.getRegisteredActors();
 
-      expect(actors.length).toEqual(6);
+      expect(actors.length).toEqual(8);
 
       expect(actors).toContain(DemoActorCounterImpl.name);
       expect(actors).toContain(DemoActorSayImpl.name);
       expect(actors).toContain(DemoActorReminderImpl.name);
       expect(actors).toContain(DemoActorTimerImpl.name);
       expect(actors).toContain(DemoActorActivateImpl.name);
+      expect(actors).toContain(DemoActorTimerTtlImpl.name);
+      expect(actors).toContain(DemoActorReminderTtlImpl.name);
     });
 
     it('should be able to invoke an actor through a text message', async () => {
@@ -186,7 +190,7 @@ describe('http/actors', () => {
       expect(res0).toEqual(0);
 
       // Now we wait for dueTime (2s)
-      await (new Promise(resolve => setTimeout(resolve, 500)));
+      await (new Promise(resolve => setTimeout(resolve, 1000)));
 
       // After that the timer callback will be called
       // In our case, the callback increments the count attribute
@@ -196,18 +200,10 @@ describe('http/actors', () => {
 
       // Every 1 second the timer gets called again, so the count attribute should change
       // we check this twice to ensure correct calling
-      await (new Promise(resolve => setTimeout(resolve, 500)));
+      await (new Promise(resolve => setTimeout(resolve, 1000)));
       const res2 = await actor.getCounter();
       expect(res2).toEqual(200);
 
-      await (new Promise(resolve => setTimeout(resolve, 500)));
-      try {
-        const res3 = await actor.getCounter();
-      } catch(e) {
-        //@ts-ignore
-        console.log(e.message)
-      }
-      // expect(res3).toEqual(300);
     }, 10000);
   });
 
@@ -288,14 +284,11 @@ describe('http/actors', () => {
 
       await actor.removeReminder();
 
-      await (new Promise(resolve => setTimeout(resolve, 500)));
-      try {
-        const res2 = await actor.getCounter();
-      } catch(e) {
-        //@ts-ignore
-        console.log(e.message)
-      }
-      // expect(res2).toEqual(123);
+      await (new Promise(resolve => setTimeout(resolve, 2000)));
+
+      // Make sure the counter didn't change
+      const res2 = await actor.getCounter();
+      expect(res2).toEqual(123);
     });
   });
 });

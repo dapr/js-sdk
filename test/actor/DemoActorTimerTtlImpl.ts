@@ -20,8 +20,8 @@ export default class DemoActorTimerTtlImpl extends AbstractActor implements Demo
   async init(): Promise<string> {
     await super.registerActorTimer("my-timer-name", "countBy", 
                                 Temporal.Duration.from({ seconds: 2 }), //dueTime
-                                Temporal.Duration.from({ seconds: 0.5 }), //period
-                                Temporal.Duration.from({ seconds: 0.5 }), //ttl
+                                Temporal.Duration.from({ seconds: 2 }), //period
+                                Temporal.Duration.from({ seconds: 1 }), //ttl
                                 100);
     return "Actor Initialized";
   }
