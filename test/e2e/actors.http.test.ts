@@ -190,7 +190,7 @@ describe('http/actors', () => {
       expect(res0).toEqual(0);
 
       // Now we wait for dueTime (2s)
-      await (new Promise(resolve => setTimeout(resolve, 1000)));
+      await (new Promise(resolve => setTimeout(resolve, 2000)));
 
       // After that the timer callback will be called
       // In our case, the callback increments the count attribute
@@ -198,11 +198,13 @@ describe('http/actors', () => {
       const res1 = await actor.getCounter();
       expect(res1).toEqual(100);
 
-      // Every 1 second the timer gets called again, so the count attribute should change
-      // we check this twice to ensure correct calling
+      // Stop the timer
+      await actor.removeTimer();
+
+      // We then expect the counter to stop increasing
       await (new Promise(resolve => setTimeout(resolve, 1000)));
-      const res2 = await actor.getCounter();
-      expect(res2).toEqual(200);
+      const res4 = await actor.getCounter();
+      expect(res4).toEqual(100);
 
     }, 10000);
   });
