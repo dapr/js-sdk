@@ -198,13 +198,22 @@ describe('http/actors', () => {
       const res1 = await actor.getCounter();
       expect(res1).toEqual(100);
 
+      // Every 1 second the timer gets called again, so the count attribute should change
+      // we check this twice to ensure correct calling
+      await (new Promise(resolve => setTimeout(resolve, 1000)));
+      const res2 = await actor.getCounter();
+      expect(res2).toEqual(100);
+      await (new Promise(resolve => setTimeout(resolve, 1000)));
+      const res3 = await actor.getCounter();
+      expect(res3).toEqual(200);
+
       // Stop the timer
       await actor.removeTimer();
 
       // We then expect the counter to stop increasing
       await (new Promise(resolve => setTimeout(resolve, 1000)));
       const res4 = await actor.getCounter();
-      expect(res4).toEqual(100);
+      expect(res4).toEqual(200);
 
     }, 10000);
   });

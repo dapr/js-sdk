@@ -18,7 +18,7 @@ export default class DemoActorReminderImpl extends AbstractActor implements Demo
   counter = 0;
 
   async init(): Promise<string> {
-    await super.registerActorReminder("my-reminder-name", Temporal.Duration.from({ seconds: 2 }), Temporal.Duration.from({ seconds: 2 }), 
+    await super.registerActorReminder("my-reminder-name", Temporal.Duration.from({ seconds: 2 }), Temporal.Duration.from({ seconds: 3 }), 
                                       undefined, 123);
     return "Actor Initialized";
   }
