@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { InvokeBindingResponse } from "../../types/binding/InvokeBindingResponse.type";
-
-export default interface IClientBinding {
-    send(bindingName: string, operation: string, data: any, metadata?: object): Promise<InvokeBindingResponse>;
+export type InvokeBindingResponse = {
+    data: any;
+    operation: string;
+    metadata: Record<string, string>;
 }

@@ -13,6 +13,7 @@ limitations under the License.
 
 import HTTPClient from './HTTPClient';
 import IClientBinding from '../../../interfaces/Client/IClientBinding';
+import { InvokeBindingResponse } from '../../../types/binding/InvokeBindingResponse.type';
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class HTTPClientBinding implements IClientBinding {
@@ -23,7 +24,7 @@ export default class HTTPClientBinding implements IClientBinding {
   }
 
   // Send an event to an external system
-  async send(bindingName: string, operation: string, data: any, metadata: object = {}): Promise<object> {
+  async send(bindingName: string, operation: string, data: any, metadata: object = {}): Promise<InvokeBindingResponse> {
     const result = await this.client.execute(`/bindings/${bindingName}`, {
       method: 'POST',
       headers: {
@@ -32,10 +33,14 @@ export default class HTTPClientBinding implements IClientBinding {
       body: JSON.stringify({
         operation,
         data,
-        metadata
+        metadata,
       }),
     });
 
-    return result as object;
+    return {
+      data: result,
+      operation,
+      metadata: {},
+    };
   }
 }
