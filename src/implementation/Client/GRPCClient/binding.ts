@@ -14,7 +14,7 @@ limitations under the License.
 import GRPCClient from './GRPCClient';
 import { InvokeBindingRequest, InvokeBindingResponse } from '../../../proto/dapr/proto/runtime/v1/dapr_pb';
 import IClientBinding from '../../../interfaces/Client/IClientBinding';
-import { isTypedArray } from 'util/types';
+import { types } from 'util';
 
 export class BindingRequest {
   public readonly bindingName: string;
@@ -95,7 +95,7 @@ export default class GRPCClientBinding implements IClientBinding {
   async invoke(request: BindingRequest): Promise<BindingResponse> {
     // Sometimes we need to upload files to the object storage through binding, do not serialize binary data.
     let payload = request.data;
-    if (!isTypedArray(request.data)) {
+    if (!types.isTypedArray(request.data)) {
       payload = Buffer.from(JSON.stringify(request.data), 'utf-8');
     }
 
