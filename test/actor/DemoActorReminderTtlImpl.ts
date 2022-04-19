@@ -14,12 +14,15 @@ limitations under the License.
 import { AbstractActor, Temporal } from "../../src";
 import DemoActorReminderInterface from "./DemoActorReminderInterface";
 
-export default class DemoActorReminderImpl extends AbstractActor implements DemoActorReminderInterface {
+export default class DemoActorReminderTtlImpl extends AbstractActor implements DemoActorReminderInterface {
   counter = 0;
 
   async init(): Promise<string> {
-    await super.registerActorReminder("my-reminder-name", Temporal.Duration.from({ seconds: 2 }), Temporal.Duration.from({ seconds: 3 }), 
-                                      undefined, 123);
+    await super.registerActorReminder("my-reminder-name", 
+                                     Temporal.Duration.from({ seconds: 2 }), //dueTime
+                                     Temporal.Duration.from({ seconds: 2 }), //period
+                                     Temporal.Duration.from({ seconds: 1 }), //ttl
+                                     123);
     return "Actor Initialized";
   }
 

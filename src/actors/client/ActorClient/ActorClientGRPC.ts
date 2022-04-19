@@ -137,6 +137,10 @@ export default class ActorClientGRPC implements IClientActor {
       msgService.setDueTime(reminder.dueTime.toString());
     }
 
+    if (reminder.ttl) {
+      msgService.setTtl(reminder.ttl.toString());
+    }
+
     return new Promise((resolve, reject) => {
       const client = this.client.getClient();
       client.registerActorReminder(msgService, (err, _res) => {
@@ -189,6 +193,10 @@ export default class ActorClientGRPC implements IClientActor {
 
     if (timer.dueTime) {
       msgService.setDueTime(timer.dueTime.toString());
+    }
+
+    if (timer.ttl) {
+      msgService.setTtl(timer.ttl.toString());
     }
 
     return new Promise((resolve, reject) => {
