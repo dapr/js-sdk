@@ -123,9 +123,6 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
 
       await cb(wrapped);
     });
-
-    // Do not do anything on resolve
-    // stream.on("end", resolve);
   }
 
 }
