@@ -17,7 +17,6 @@ import { GetConfigurationResponse as GetConfigurationResponseResult } from '../.
 import HTTPClient from './HTTPClient';
 import { SubscribeConfigurationCallback } from '../../../types/configuration/SubscribeConfigurationCallback';
 
-// https://docs.dapr.io/reference/api/configuration_api
 export default class HTTPClientConfiguration implements IClientConfiguration {
   client: HTTPClient;
 
@@ -26,18 +25,18 @@ export default class HTTPClientConfiguration implements IClientConfiguration {
   }
 
   async subscribe(_storeName: string, _cb: SubscribeConfigurationCallback): Promise<void> {
-    throw new Error('Method not implemented.');
+    throw new Error('HTTP is currently not supported.');
   }
 
   async subscribeWithKeys(_storeName: string, _keys: string[], _cb: SubscribeConfigurationCallback): Promise<void> {
-    throw new Error('Method not implemented.');
+    throw new Error('HTTP is currently not supported.');
   }
 
   async subscribeWithMetadata(_storeName: string, _keys: string[], _metadata: KeyValueType, _cb: SubscribeConfigurationCallback): Promise<void> {
-    throw new Error('Method not implemented.');
+    throw new Error('HTTP is currently not supported.');
   }
 
   async get(_storeName: string, _keys: string[], _metadata?: KeyValueType): Promise<GetConfigurationResponseResult> {
-    throw new Error('Method not implemented.');
+    throw new Error('HTTP is currently not supported.');
   }
 }
