@@ -78,7 +78,7 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
   }
 
   async subscribeWithMetadata(storeName: string, keys: string[], metadata: KeyValueType, cb: SubscribeConfigurationCallback): Promise<void> {
-    return this._subscribe(storeName, cb, keys)
+    return this._subscribe(storeName, cb, keys, metadata)
   }
 
   async _subscribe(storeName: string, cb: SubscribeConfigurationCallback, keys?: string[], metadataObj?: KeyValueType): Promise<void> {
