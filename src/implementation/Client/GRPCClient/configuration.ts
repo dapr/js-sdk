@@ -1,4 +1,5 @@
 import GRPCClient from './GRPCClient';
+import * as grpc from "@grpc/grpc-js";
 import { GetConfigurationRequest, GetConfigurationResponse, SubscribeConfigurationRequest, SubscribeConfigurationResponse } from '../../../proto/dapr/proto/runtime/v1/dapr_pb';
 import IClientConfiguration from '../../../interfaces/Client/IClientConfiguration';
 import { KeyValueType } from '../../../types/KeyValue.type';
@@ -15,18 +16,25 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
     this.client = client;
   }
 
-  async get(storeName: string, keys: string[], metadata?: KeyValueType): Promise<GetConfigurationResponseResult> {
-    const msg = new GetConfigurationRequest();
-    msg.setStoreName(storeName);
-    msg.setKeysList(keys.filter(i => i !== ""));
+  async get(storeName: string, keys: string[], metadataObj?: KeyValueType): Promise<GetConfigurationResponseResult> {
+    const metadata = new grpc.Metadata();
 
-    if (metadata) {
-      merge(msg.getMetadataMap(), metadata);
+    let msg = new GetConfigurationRequest();
+    msg.setStoreName(storeName);
+
+    if (keys && keys.length > 0) {
+      msg.setKeysList(keys.filter(i => i !== ""));
+    }
+
+    if (metadataObj) {
+      for (const [key, value] of Object.entries(metadataObj)) {
+        metadata.add(key, value);
+      }
     }
 
     return new Promise((resolve, reject) => {
       const client = this.client.getClient();
-      client.getConfigurationAlpha1(msg, (err, res: GetConfigurationResponse) => {
+      client.getConfigurationAlpha1(msg, metadata, (err, res: GetConfigurationResponse) => {
         if (err) {
           return reject(err);
         }
@@ -61,16 +69,22 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
     return this._subscribe(storeName, cb, keys)
   }
 
-  async _subscribe(storeName: string, cb: SubscribeConfigurationCallback, keys?: string[], metadata?: KeyValueType): Promise<void> {
+  async _subscribe(storeName: string, cb: SubscribeConfigurationCallback, keys?: string[], metadataObj?: KeyValueType): Promise<void> {
+    const metadata = new grpc.Metadata();
+
     const msg = new SubscribeConfigurationRequest();
     msg.setStoreName(storeName);
 
     if (keys && keys.length > 0) {
       msg.setKeysList(keys.filter(i => i !== ""));
+    } else {
+      msg.setKeysList([]);
     }
 
-    if (metadata) {
-      merge(msg.getMetadataMap(), metadata);
+    if (metadataObj) {
+      for (const [key, value] of Object.entries(metadataObj)) {
+        metadata.add(key, value);
+      }
     }
 
     const client = this.client.getClient();
@@ -79,7 +93,7 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
     // and will stay open as long as the client is open
     // we will thus create a set with our listeners so we don't 
     // break on multi listeners
-    const stream = client.subscribeConfigurationAlpha1(msg);
+    const stream = client.subscribeConfigurationAlpha1(msg, metadata);
 
     stream.on("data", async (data: SubscribeConfigurationResponse) => {
       const wrapped: SubscribeConfigurationResponseResult = {
