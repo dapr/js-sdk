@@ -276,20 +276,19 @@ describe('grpc/main', () => {
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 initialvalue||1");
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey2 initialvalue||1");
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey3 initialvalue||1");
-    })
+    });
 
     it('should be able to get the configuration items', async () => {
-      // await server.configuration.subscribe();
-      const conf = await client.configuration.get("config-redis", ["myconfigkey1", "myconfigkey2", "myconfigkey3"]);
-      expect(conf.items.length).toEqual(3);
+      const config = await client.configuration.get("config-redis", ["myconfigkey1", "myconfigkey2", "myconfigkey3"]);
+      expect(config.items.length).toEqual(3);
 
-      expect(conf.items.map(i => i.key).indexOf("myconfigkey1")).toBeGreaterThan(-1);
-      expect(conf.items.map(i => i.key).indexOf("myconfigkey2")).toBeGreaterThan(-1);
-      expect(conf.items.map(i => i.key).indexOf("myconfigkey3")).toBeGreaterThan(-1);
+      expect(config.items.map(i => i.key).indexOf("myconfigkey1")).toBeGreaterThan(-1);
+      expect(config.items.map(i => i.key).indexOf("myconfigkey2")).toBeGreaterThan(-1);
+      expect(config.items.map(i => i.key).indexOf("myconfigkey3")).toBeGreaterThan(-1);
 
-      expect(conf.items.filter(i => i.key == "myconfigkey1")[0].value).toEqual("initialvalue");
-      expect(conf.items.filter(i => i.key == "myconfigkey2")[0].value).toEqual("initialvalue");
-      expect(conf.items.filter(i => i.key == "myconfigkey3")[0].value).toEqual("initialvalue");
+      expect(config.items.filter(i => i.key == "myconfigkey1")[0].value).toEqual("initialvalue");
+      expect(config.items.filter(i => i.key == "myconfigkey2")[0].value).toEqual("initialvalue");
+      expect(config.items.filter(i => i.key == "myconfigkey3")[0].value).toEqual("initialvalue");
     });
 
     // OK (temp)

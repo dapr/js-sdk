@@ -29,6 +29,6 @@ export function executeDockerCommand(cmd: string): Promise<string> {
       }
 
       return resolve(stdout);
-    })
+    });
   });
 }
