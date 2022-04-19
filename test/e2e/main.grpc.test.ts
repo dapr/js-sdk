@@ -295,7 +295,7 @@ describe('grpc/main', () => {
     // OK (temp)
     it('should be able to get the configuration items with metadata', async () => {
       // await server.configuration.subscribe();
-      const conf = await client.configuration.get("config-redis", ["myconfigkey1"], { "hello": "world" });
+      await client.configuration.get("config-redis", ["myconfigkey1"], { "hello": "world" });
 
       // Disabled for now as I am unsure if Dapr returns the metadata items
       // Java SDK: https://github.com/dapr/java-sdk/blob/06d92dafca62a6b48e74ccf939feeac7189e360f/sdk/src/test/java/io/dapr/client/DaprPreviewClientGrpcTest.java#L119
@@ -318,7 +318,7 @@ describe('grpc/main', () => {
     // });
 
     it('should be able to subscribe to configuration item changes on specific keys', async () => {
-      const m = jest.fn(async (res: SubscribeConfigurationResponse) => { });
+      const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
 
       await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1", "myconfigkey2"], m);
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 mynewvalue||1");
@@ -329,8 +329,8 @@ describe('grpc/main', () => {
     });
 
     it('should be able to subscribe to configuration items through multiple streams', async () => {
-      const m1 = jest.fn(async (res: SubscribeConfigurationResponse) => { });
-      const m2 = jest.fn(async (res: SubscribeConfigurationResponse) => { });
+      const m1 = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
+      const m2 = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
 
       await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1"], m1);
       await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1"], m2);
@@ -347,7 +347,7 @@ describe('grpc/main', () => {
     });
 
     it('should be able to subscribe to configuration item changes on specific keys through a second stream', async () => {
-      const m = jest.fn(async (res: SubscribeConfigurationResponse) => { });
+      const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
 
       await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1"], m);
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 mynewvalue||1");
