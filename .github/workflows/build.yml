@@ -31,7 +31,7 @@ jobs:
     env:
       NODE_VER: 16.14.0
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Configure to publish to @dapr/dapr
       run: sed -i s#"dapr-client"#"@dapr/dapr"# package.json 
@@ -64,10 +64,10 @@ jobs:
         always-auth: true
         scope: "@dapr"
 
-    - name: Configure .npmrc for NPM publish to @dapr
-      run: npm whoami --registry https://registry.npmjs.org --scope=@dapr
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_NEW }}
+    # - name: Configure .npmrc for NPM publish to @dapr
+    #   run: npm whoami --registry https://registry.npmjs.org --scope=@dapr
+    #   env:
+    #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_NEW }}
 
       
     # - name: Publish to npm (dapr-client)
