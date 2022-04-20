@@ -61,8 +61,6 @@ jobs:
       with:
         node-version: ${{ env.NODE_VER }}
         registry-url: 'https://registry.npmjs.org'
-        always-auth: true
-        scope: "@dapr"
 
     # - name: Configure .npmrc for NPM publish to @dapr
     #   run: npm whoami --registry https://registry.npmjs.org --scope=@dapr
