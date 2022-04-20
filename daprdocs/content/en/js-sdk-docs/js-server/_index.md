@@ -27,7 +27,7 @@ npm i dapr-client --save
 2. Import the libraries:
 
 ```javascript
-import { DaprServer, CommunicationProtocolEnum } from "dapr-client";
+import { DaprServer, CommunicationProtocolEnum } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
 const daprPort = "3500"; // Dapr Sidecar Port of this Example Server
@@ -48,7 +48,7 @@ To run the examples, you can use two different protocols to interact with the Da
 ### Using HTTP (default)
 
 ```javascript
-import { DaprServer } from "dapr-client";
+import { DaprServer } from "@dapr/dapr";
 
 const server= new DaprServer(appHost, appPort, daprHost, daprPort);
 // initialize subscribtions, ... before server start
@@ -71,7 +71,7 @@ npm run start:dapr-http
 Since HTTP is the default, you will have to adapt the communication protocol to use gRPC. You can do this by passing an extra argument to the client or server constructor.
 
 ```javascript
-import { DaprServer, CommunicationProtocol } from "dapr-client";
+import { DaprServer, CommunicationProtocol } from "@dapr/dapr";
 
 const server = new DaprServer(appHost, appPort, daprHost, daprPort, CommunicationProtocol.GRPC);
 // initialize subscribtions, ... before server start
@@ -98,7 +98,7 @@ The JavaScript Server SDK allows you to interface with all of the [Dapr building
 #### Listen to an Invocation
 
 ```javascript
-import { DaprServer } from "dapr-client";
+import { DaprServer } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
 const daprPort = "3500"; // Dapr Sidecar Port of this Example Server
@@ -128,7 +128,7 @@ start().catch((e) => {
 #### Subscribe to messages
 
 ```javascript
-import { DaprServer } from "dapr-client";
+import { DaprServer } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
 const daprPort = "3500"; // Dapr Sidecar Port of this Example Server
@@ -160,7 +160,7 @@ start().catch((e) => {
 #### Receive an Input Binding
 
 ```javascript
-import { DaprServer } from "dapr-client";
+import { DaprServer } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1"; 
 const daprPort = "3500"; 
