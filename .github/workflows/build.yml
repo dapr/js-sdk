@@ -72,4 +72,4 @@ jobs:
       # if: env.DEPLOY_PACKAGE == 'true'
       run: sed -i s#"dapr-client"#"@dapr/dapr"# package.json && ls -la && pwd && cat package.json && npm publish build/ --access public
       env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_NEW }}
