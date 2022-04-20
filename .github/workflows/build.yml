@@ -70,6 +70,6 @@ jobs:
     # note: package.json gets updated here for the new package name
     - name: Publish to npm (@dapr/dapr)
       # if: env.DEPLOY_PACKAGE == 'true'
-      run: sed -i s#"dapr-client"#"@dapr/dapr"# package.json && cat ~/.npmrc && cat package.json && npm publish build/ --access public
+      run: sed -i s#"dapr-client"#"@dapr/dapr"# package.json && cat .npmrc && cat package.json && npm publish build/ --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
