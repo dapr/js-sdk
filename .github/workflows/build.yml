@@ -64,7 +64,7 @@ jobs:
         scope: "@dapr"
 
     - name: Configure .npmrc for NPM publish to @dapr
-      run: echo "//registry.npmjs.org/:_authToken=${{ env.NODE_AUTH_TOKEN }}" > ~/.npmrc
+      run: echo "//registry.npmjs.org/:_authToken=${{ env.NODE_AUTH_TOKEN }}" > .npmrc
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_NEW }}
     
