@@ -65,8 +65,8 @@ jobs:
 
     - name: Authorize us to @dapr/dapr
       run: |
-        echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
-        cat .npmrc
+        echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+        cat ~/.npmrc
       env: 
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
      
