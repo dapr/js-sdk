@@ -61,9 +61,12 @@ jobs:
     #   with:
     #     node-version: ${{ env.NODE_VER }}
     #     registry-url: 'https://registry.npmjs.org'
+    # run: npm set //registry.npmjs.org/:_authToken $NODE_AUTH_TOKEN
 
     - name: Authorize us to @dapr/dapr
-      run: npm set //registry.npmjs.org/:_authToken $NODE_AUTH_TOKEN
+      run: |
+        echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
+        cat .npmrc
       env: 
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
      
