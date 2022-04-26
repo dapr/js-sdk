@@ -65,7 +65,7 @@ jobs:
 
     - name: Authorize us to @dapr/dapr
       run: |
-        npm set //registry.npmjs.org/:_authToken ${{ secrets.MY_SECRET }}
+        npm set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN_NEW }}
 
     - name: Show NPM Config
       run: cat ~/.npmrc
