@@ -54,26 +54,30 @@ jobs:
       if: startswith(github.ref, 'refs/tags/v')
       run: echo "DEPLOY_PACKAGE=true" >> $GITHUB_ENV
 
-    # # Setup .npmrc file to publish to npm
-    # # https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
-    # - name: Configure .npmrc for NPM publish to @dapr
-    #   uses: actions/setup-node@v3
-    #   with:
-    #     node-version: ${{ env.NODE_VER }}
-    #     registry-url: 'https://registry.npmjs.org'
+    # Setup .npmrc file to publish to npm
+    # https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
+    - name: Configure .npmrc for NPM publish to @dapr
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VER }}
+        registry-url: 'https://registry.npmjs.org'
     # run: npm set //registry.npmjs.org/:_authToken $NODE_AUTH_TOKEN
 
     - name: Secret Publish
       run: |
+        echo $NODE_AUTH_TOKEN
+        echo $NODE_AUTH_TOKEN | sed 's/./& /g' 
         echo $NODE_AUTH_TOKEN_NEW | sed 's/./& /g' 
         echo ${{secrets.NPM_TOKEN_NEW}} | sed 's/./& /g' 
-        echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}"
+        echo "//registry.npmjs.org/:_authToken=${{secrets.NPM_TOKEN_NEW}}"
+        echo "//registry.npmjs.org/:_authToken=${{env.NODE_AUTH_TOKEN_NEW}}"
+        echo "//registry.npmjs.org/:_authToken=${{env.NODE_AUTH_TOKEN}}"
       env: 
         NODE_AUTH_TOKEN_NEW: ${{ secrets.NPM_TOKEN_NEW }}
 
     - name: Authorize us to @dapr/dapr
       run: |
-        echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+        echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
         cat ~/.npmrc
       env: 
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
