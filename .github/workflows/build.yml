@@ -39,6 +39,7 @@ jobs:
       with:
         node-version: ${{ env.NODE_VER }}
         registry-url: 'https://registry.npmjs.org'
+        scope: '@dapr'
 
     - name: Configure to publish to @dapr/dapr
       run: sed -i s#"dapr-client"#"@dapr/dapr"# package.json 
