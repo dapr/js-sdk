@@ -35,7 +35,7 @@ jobs:
     # Setup .npmrc file to publish to npm
     # https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
     - name: Configure .npmrc for NPM publish to @dapr
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v1
       with:
         node-version: ${{ env.NODE_VER }}
         registry-url: 'https://registry.npmjs.org'
