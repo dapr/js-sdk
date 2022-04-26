@@ -32,6 +32,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    # Setup .npmrc file to publish to npm
+    # https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
+    - name: Configure .npmrc for NPM publish to @dapr
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VER }}
+        registry-url: 'https://registry.npmjs.org'
+
     - name: Configure to publish to @dapr/dapr
       run: sed -i s#"dapr-client"#"@dapr/dapr"# package.json 
     
@@ -53,25 +61,17 @@ jobs:
       if: startswith(github.ref, 'refs/tags/v')
       run: echo "DEPLOY_PACKAGE=true" >> $GITHUB_ENV
 
-    # # Setup .npmrc file to publish to npm
-    # # https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
-    # - name: Configure .npmrc for NPM publish to @dapr
-    #   uses: actions/setup-node@v3
-    #   with:
-    #     node-version: ${{ env.NODE_VER }}
-    #     registry-url: 'https://registry.npmjs.org/'
-
     # run: npm set //registry.npmjs.org/:_authToken $NODE_AUTH_TOKEN
 
-    - name: Authorize us to @dapr/dapr
-      run: |
-        npm set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN_NEW }}
+    # - name: Authorize us to @dapr/dapr
+    #   run: |
+    #     npm set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN_NEW }}
 
-    - name: Show NPM Config
-      run: cat ~/.npmrc
+    # - name: Show NPM Config
+    #   run: cat ~/.npmrc
 
-    - name: Show NPM Config
-      run: npm whoami
+    # - name: Show NPM Config
+    #   run: npm whoami
 
       
     # - name: Publish to npm (dapr-client)
@@ -85,3 +85,5 @@ jobs:
     - name: Publish to npm (@dapr/dapr)
       # if: env.DEPLOY_PACKAGE == 'true'
       run: npm publish build/ --access public
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_NEW }}
