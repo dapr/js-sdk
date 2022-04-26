@@ -39,7 +39,9 @@ jobs:
         echo "$MY_ENV"
         echo '$MY_ENV'
         echo ${MY_ENV}
+        echo ${MY_ENV_2}
         echo ${{ env.MY_ENV }}
+        echo ${{ env.MY_ENV_2 }}
         echo ${{ secrets.MY_SECRET }}
 
         echo $MY_ENV | sed 's/./& /g' 
@@ -50,6 +52,7 @@ jobs:
         echo ${{ secrets.MY_SECRET }} | sed 's/./& /g' 
       env:
         MY_ENV: ${{ secrets.MY_SECRET }}
+        MY_ENV_2: TESTING
 
 # name: Publish to NPM
 
