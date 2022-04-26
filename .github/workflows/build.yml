@@ -38,7 +38,6 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ env.NODE_VER }}
-        registry-url: 'https://registry.npmjs.org'
         scope: '@dapr'
 
     - name: Configure to publish to @dapr/dapr
