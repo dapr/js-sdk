@@ -71,8 +71,8 @@ jobs:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
      
 
-    - name: Show NPM Config
-      run: cat ~/.npmrc
+    # - name: Show NPM Config
+    #   run: cat ~/.npmrc
 
     - name: Show NPM Config
       run: npm whoami
