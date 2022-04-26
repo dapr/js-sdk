@@ -62,6 +62,12 @@ jobs:
         node-version: ${{ env.NODE_VER }}
         registry-url: 'https://registry.npmjs.org'
 
+    - name: Authorize us to @dapr/dapr
+      run: npm set //registry.npmjs.org/:_authToken $NODE_AUTH_TOKEN && npm whoami
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_NEW }}
+     
+
     # - name: Configure .npmrc for NPM publish to @dapr
     #   run: npm whoami --registry https://registry.npmjs.org --scope=@dapr
     #   env:
@@ -78,6 +84,4 @@ jobs:
     # note: package.json gets updated here for the new package name
     - name: Publish to npm (@dapr/dapr)
       # if: env.DEPLOY_PACKAGE == 'true'
-      run: cat package.json && npm publish build/ --access public
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_NEW }}
+      run: npm publish build/ --access public
