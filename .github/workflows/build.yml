@@ -63,7 +63,7 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
 
     - name: Authorize us to @dapr/dapr
-      run: npm set //registry.npmjs.org/:_authToken $NODE_AUTH_TOKEN && npm whoami
+      run: npm set //registry.npmjs.org/:_authToken ${{ env.NODE_AUTH_TOKEN }} && npm whoami
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_NEW }}
      
