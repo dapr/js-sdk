@@ -13,17 +13,17 @@
 
 name: Publish to NPM
 
-# on:
-#   push:
-#     branches:
-#       - master
-#       - release-*
-#     tags:
-#       - v*
-#   pull_request:
-#     branches:
-#       - master
-#       - release-*
+on:
+  push:
+    branches:
+      - master
+      - release-*
+    tags:
+      - v*
+  pull_request:
+    branches:
+      - master
+      - release-*
 
 jobs:
   build:
