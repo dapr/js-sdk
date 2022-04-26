@@ -60,7 +60,7 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ env.NODE_VER }}
-        registry-url: 'https://registry.npmjs.org'
+        registry-url: 'https://registry.npmjs.org/'
     # run: npm set //registry.npmjs.org/:_authToken $NODE_AUTH_TOKEN
 
     - name: Secret Publish
