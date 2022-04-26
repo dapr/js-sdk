@@ -69,7 +69,7 @@ jobs:
      
 
     - name: Show NPM Config
-      run: cat ~/.npmrc; cat .npmrc
+      run: cat ~/.npmrc
 
     - name: Show NPM Config
       run: npm whoami
