@@ -54,13 +54,13 @@ jobs:
       if: startswith(github.ref, 'refs/tags/v')
       run: echo "DEPLOY_PACKAGE=true" >> $GITHUB_ENV
 
-    # Setup .npmrc file to publish to npm
-    # https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
-    - name: Configure .npmrc for NPM publish to @dapr
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ env.NODE_VER }}
-        registry-url: 'https://registry.npmjs.org'
+    # # Setup .npmrc file to publish to npm
+    # # https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
+    # - name: Configure .npmrc for NPM publish to @dapr
+    #   uses: actions/setup-node@v3
+    #   with:
+    #     node-version: ${{ env.NODE_VER }}
+    #     registry-url: 'https://registry.npmjs.org'
 
     - name: Authorize us to @dapr/dapr
       run: npm set //registry.npmjs.org/:_authToken $NODE_SECRET_TOKEN && npm whoami
