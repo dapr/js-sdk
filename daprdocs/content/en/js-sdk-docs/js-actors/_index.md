@@ -17,9 +17,9 @@ For a more in-depth overview of Dapr actors, visit the [actors overview page]({{
 - [JavaScript NPM package installed](https://www.npmjs.com/package/dapr-client)
 
 ## Scenario
-The below code examples loosely describe the scenario of a Parking Garage Spot Monitoring System, which can be seen in this [video] by Mark Russinovich(https://www.youtube.com/watch?v=eJCu6a-x9uo&t=3785). 
+The below code examples loosely describe the scenario of a Parking Garage Spot Monitoring System, which can be seen in this [video](https://www.youtube.com/watch?v=eJCu6a-x9uo&t=3785) by Mark Russinovich. 
 
-A parking garage consists of hundreds of parking spaces, where each parking space includes a sensor that provides updates to a centralized monitoring system. The parking space sensors (our actors) detect if a parking space is occupied, or available.
+A parking garage consists of hundreds of parking spaces, where each parking space includes a sensor that provides updates to a centralized monitoring system. The parking space sensors (our actors) detect if a parking space is occupied or available.
 
 To jump in and run this example yourself, clone the source code, which can be found in the [JavaScript SDK examples directory](https://github.com/dapr/js-sdk/tree/master/examples/http/actor-parking-sensor).
 
@@ -34,7 +34,9 @@ export default interface ParkingSensorInterface {
 ```
 
 ## Actor Implementation
-An actor implementation defines a class by extending the base type `AbstractActor` and implements the actor interface. The following code describes what an actor implmentation consists of by implementing the methods defined in the `ParkingSensorInterface`. It also defines a few extra helper methods:
+An actor implementation defines a class by extending the base type `AbstractActor` and implementing the actor interface (`ParkingSensorInterface` in this case). 
+
+The following code describes an actor implementation along with a few helper methods.
 
 ```javascript
 import { AbstractActor } from "dapr-client";
@@ -49,7 +51,7 @@ export default class ParkingSensorImpl extends AbstractActor implements ParkingS
     // Implementation that updates state that this parking spaces is available.
   }
 
-  async getParkingSpaceUpdate(): Promise<object> {
+  async getInfo(): Promise<object> {
     // Implementation of requesting an update from the parking space sensor.
   }
 
@@ -60,38 +62,37 @@ export default class ParkingSensorImpl extends AbstractActor implements ParkingS
 ```
 
 ## Registering Actors
-Initialize and register your actors by using the DaprServer package:
+Initialize and register your actors by using the `DaprServer` package:
 
 ```javascript
 import { DaprServer } from "dapr-server";
 import ParkingSensorImpl from "./ParkingSensorImpl";
 
-async function start() {
-  const server = new DaprServer(`server-host`, `server-port`, `dapr-host`, `dapr-port`);
+const daprHost = "127.0.0.1";
+const daprPort = "50000";
+const serverHost = "127.0.0.1";
+const serverPort = "50001";
 
-  await server.actor.init(); // Let the server know we need actors
-  server.actor.registerActor(ParkingSensorImpl); // Register the actor
-  await server.start(); // Start the server
-}
+const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
+
+await server.actor.init(); // Let the server know we need actors
+server.actor.registerActor(ParkingSensorImpl); // Register the actor
+await server.start(); // Start the server
 ```                                              
 
 ## Invoking Actors
-After Actors are registered, use the DaprClient to invoke methods on an actor. The client will call the actor methods defined in the actor interface.
+After Actors are registered, use the `DaprClient` to invoke methods on an actor. The client will call the actor methods defined in the actor interface.
 
 ```javascript
-import { DaprClient, DaprServer } from "dapr-client";
+import { DaprClient } from "dapr-client";
 import ParkingSensorImpl from "./ParkingSensorImpl";
 
-async function start() {
-  const server = new DaprServer(`server-host`, `server-port`, `dapr-host`, `dapr-port`);
-  const client = new DaprClient(`dapr-host`, `dapr-port`);
+const daprHost = "127.0.0.1";
+const daprPort = "50000";
 
-  await server.actor.init(); 
-  server.actor.registerActor(ParkingSensorImpl); 
-  await server.start();
+const client = new DaprClient(daprHost, daprPort);
 
-
-  await client.actor.invoke("PUT", ParkingSensorImpl.name, `actor-id`, "carEnter"); // Invoke the ParkingSensor Actor by calling the carEnter function
+await client.actor.invoke("PUT", ParkingSensorImpl.name, `actor-id`, "carEnter"); // Invoke the ParkingSensor Actor by calling the carEnter function
 }
 ```
 
