@@ -17,12 +17,16 @@ import DaprClient from "./implementation/Client/DaprClient";
 import DaprServer from "./implementation/Server/DaprServer";
 import AbstractActor from "./actors/runtime/AbstractActor";
 import { Temporal } from "@js-temporal/polyfill";
+import ActorProxyBuilder from "./actors/client/ActorProxyBuilder";
+import ActorId from "./actors/ActorId";
 
 export {
     DaprClient,
     DaprServer,
     HttpMethod,
     AbstractActor,
+    ActorId,
+    ActorProxyBuilder,
     CommunicationProtocolEnum,
     Temporal
 }
