@@ -16,7 +16,7 @@ import ActorTimerInterface from "../interfaces/ActorTimerInterface";
 
 export default class ActorTimerImpl extends AbstractActor implements ActorTimerInterface {
   private timerName: string | undefined;
-  private counter: number = 0;
+  private counter = 0;
 
   async init(
     timerName: string,
