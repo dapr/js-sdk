@@ -11,21 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { AbstractActor } from "dapr-client";
-import DemoActorTimerInterface from "./DemoActorTimerInterface";
-
-export default class DemoActorTimerImpl extends AbstractActor implements DemoActorTimerInterface {
-  counter = 0;
-
-  async init(): Promise<string> {
-    return "Actor Activated";
-  }
-
-  async count(): Promise<void> {
-    this.counter++;
-  }
-
-  async countBy(amount: number): Promise<void> {
-    this.counter += amount;
-  }
+export default interface ActorCounterInterface {
+    count(): Promise<void>;
+    countBy(amount: number, multiplier: number): Promise<void>;
+    getCounter(): Promise<number>;
 }

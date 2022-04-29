@@ -11,16 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { AbstractActor } from "dapr-client";
-
-export default class DemoActorReminderImpl extends AbstractActor {
-  counter = 0;
-
-  async count(): Promise<void> {
-    this.counter++;
-  }
-
-  async countBy(amount: number): Promise<void> {
-    this.counter += amount;
-  }
+export default interface ActorSayInterface {
+    sayString(msg: string): string;
+    sayObject(msg: object): object;
 }
