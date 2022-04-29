@@ -18,6 +18,14 @@ For your application to interface with this, 2 components should be taken into a
 * **DaprServer:** Dapr Sidecar -> our Application - When we Subscribe to a Topic, Create an Actor, ... we receive an event from the Dapr process that abstracted its implementation. Our application should thus listen to this (which this SDK helps you with).
 * **DaprClient:** Your Application -> Dapr Sidecar - When we want to Publish an Event, Execute a Binding, ... we will talk with the Dapr process that calls its implementation for us so that we don't have to write it ourself!
 
+## Getting Started
+
+Install the Dapr JS SDK by running:
+
+```bash
+npm install --save @dapr/dapr
+```
+
 ## Simple Example
 
 > [Full version](./examples/http/pubsub)
@@ -45,7 +53,7 @@ spec:
 **example.ts**
 
 ```javascript
-import { DaprClient, DaprServer } from "dapr-client";
+import { DaprClient, DaprServer } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
 const daprPort = "50000"; // Dapr Sidecar Port
