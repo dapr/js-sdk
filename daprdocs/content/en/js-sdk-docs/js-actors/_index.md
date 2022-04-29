@@ -101,7 +101,7 @@ const daprPort = "50000";
 const client = new DaprClient(daprHost, daprPort);
 
 // Create a new actor builder. It can be used to create multiple actors of a type.
-const builder = new ActorProxyBuilder<ParkingSensorInterface>(ActorSayImpl, client);
+const builder = new ActorProxyBuilder<ParkingSensorInterface>(ParkingSensorImpl, client);
 
 // Create a new actor instance.
 const actor = builder.build(new ActorId("my-actor"));
