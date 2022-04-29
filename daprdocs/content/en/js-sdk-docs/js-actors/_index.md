@@ -68,7 +68,7 @@ export default class ParkingSensorImpl extends AbstractActor implements ParkingS
 Initialize and register your actors by using the `DaprServer` package:
 
 ```javascript
-import { DaprServer } from "dapr-server";
+import { DaprServer } from "dapr-client";
 import ParkingSensorImpl from "./ParkingSensorImpl";
 
 const daprHost = "127.0.0.1";
@@ -88,11 +88,12 @@ console.log(`Registered Actors: ${JSON.stringify(resRegisteredActors)}`);
 ```                                              
 
 ## Invoking Actor Methods
-After Actors are registered, use the `DaprClient` to invoke methods on an actor. The client will call the actor methods defined in the actor interface.
+After Actors are registered, create a Proxy object that implements `ParkingSensorInterface` using the `ActorProxyBuilder`. You can invoke the actor methods by directly calling methods on the Proxy object. Internally, it translates to making a network call to the Actor API and fetches the result back.
 
 ```javascript
 import { DaprClient, ActorId } from "dapr-client";
 import ParkingSensorImpl from "./ParkingSensorImpl";
+import ParkingSensorInterface from "./ParkingSensorInterface";
 
 const daprHost = "127.0.0.1";
 const daprPort = "50000";
@@ -100,7 +101,7 @@ const daprPort = "50000";
 const client = new DaprClient(daprHost, daprPort);
 
 // Create a new actor builder. It can be used to create multiple actors of a type.
-const builder = new ActorProxyBuilder<ActorSayInterface>(ActorSayImpl, client);
+const builder = new ActorProxyBuilder<ParkingSensorInterface>(ActorSayImpl, client);
 
 // Create a new actor instance.
 const actor = builder.build(new ActorId("my-actor"));
@@ -125,7 +126,7 @@ await actor.getStateManager().setState(PARKING_SENSOR_PARKED_STATE_NAME, true);
 
 // GET state
 const value = await actor.getStateManager().getState(PARKING_SENSOR_PARKED_STATE_NAME);
-if (value !== null) {
+if (!value) {
   console.log(`Received: ${value}!`);
 }
 

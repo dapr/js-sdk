@@ -26,10 +26,10 @@ npm run start:dapr
 
 ## Visualize
 
-Start grafana on localhost:3001 and use `admin`/`password` to login and visualize the dashboard!
+Start Grafana on [localhost:3001](localhost:3001) and use the credentials `admin`:`password` to login and visualize the dashboard!
 
-Sample:
-![output.png](./output.png "Sample output")
+Sample output:
+![Sample Output](./output.png)
 
 ## References
 1. Original blog post: https://xaviergeerinck.com/post/2021/10/09/parking-garage
