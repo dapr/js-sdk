@@ -45,6 +45,7 @@ async function start() {
   // Dapr waits until we are listening on the port. Once that is detected it scans the binding list to process.
   await server.start();
 
+  log("Init", "Waiting for actors to be ready");
   await new Promise((resolve) => {setTimeout(resolve, 5*1000);});
 
   const resRegisteredActors = await server.actor.getRegisteredActors();

@@ -31,7 +31,7 @@ export default class ParkingSensorImpl extends AbstractActor implements ParkingS
 
     await this.getDaprClient().binding.send("binding-influxdb", "create", {
       measurement: "sensor-states",
-      tags: `sensor=${this.getId().getId()}`,
+      tags: `sensor=${this.getActorId().getId()}`,
       values: `lat=${sensorLocationLat},lng=${sensorLocationLng},isParked=1`
     });
   }
@@ -44,7 +44,7 @@ export default class ParkingSensorImpl extends AbstractActor implements ParkingS
 
     await this.getDaprClient().binding.send("binding-influxdb", "create", {
       measurement: "sensor-states",
-      tags: `sensor=${this.getId().getId()}`,
+      tags: `sensor=${this.getActorId().getId()}`,
       values: `lat=${sensorLocationLat},lng=${sensorLocationLng},isParked=0`
     });
   }
@@ -61,6 +61,9 @@ export default class ParkingSensorImpl extends AbstractActor implements ParkingS
     }
   }
 
+  /**
+   * @override
+   */
   async onActivate(): Promise<void> {
     const coordIdx = Math.floor(Math.random() * COORDINATES.length);
     const lat = COORDINATES[coordIdx]["lat"];
@@ -72,7 +75,7 @@ export default class ParkingSensorImpl extends AbstractActor implements ParkingS
     await this.getStateManager().setState(STATE_NAME_PARKING_SENSOR_LOCATION_LNG, spotLocation.lng);
   }
 
-  generateRandomPoint(center: { lat: number, lng: number }, radius: number) {
+  private generateRandomPoint(center: { lat: number, lng: number }, radius: number) {
     const x0 = center.lng;
     const y0 = center.lat;
 

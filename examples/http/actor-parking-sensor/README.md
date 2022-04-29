@@ -1,34 +1,13 @@
-# Examples - Hello World
+# Actor Parking Sensor
 
-## TODO
+This example shows a car parking area where cars (virtual actors) enter and leave randomly. The car sensor data is sent via Dapr actors to InfluxDB and displayed on Grafana.
+
+## Prerequisites
+
+Start influxdb, telegraf and grafana using docker-compose. 
 
 ```bash
-# Run InfluxDB
-# Note: it auto removes after shutdown
-# Note: non-persistent volume, add "-v influxdb2:/var/lib/influxdb2" to make it persistent
-docker run --rm -it -d \
-    -e DOCKER_INFLUXDB_INIT_MODE=setup \
-    -e DOCKER_INFLUXDB_INIT_USERNAME=admin \
-    -e DOCKER_INFLUXDB_INIT_PASSWORD=MyAdmin@123! \
-    -e DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=my-token \
-    -e DOCKER_INFLUXDB_INIT_ORG=my-parking-garage \
-    -e DOCKER_INFLUXDB_INIT_BUCKET=my-sensors \
-    --net=host \
-    --name influxdb \
-    influxdb:2.0
-
-# Run Telegraf
-docker run --rm -it -d \
-    --net=host \
-    --name=telegraf \
-    telegraf
-
-# Run Grafana
-# Note: non-persistent volume, add "-v influxdb2:/var/lib/influxdb2" to make it persistent
-docker run --rm -it -d \
-    --name=grafana \
-    --net=host \
-    grafana/grafana
+docker-compose up
 ```
 
 ## Running
@@ -40,22 +19,18 @@ docker run --rm -it -d \
 # Install (from the example directory)
 npm install
 
-# Start a RabbitMQ Container (for the binding example part)
-# note: mgmt interface at http://localhost:15672 
-docker run -d --rm --hostname my-rabbitmq --name my-rabbitmq \
-    -e RABBITMQ_DEFAULT_USER=test-user -e RABBITMQ_DEFAULT_PASS=test-password \
-    -p 0.0.0.0:5672:5672 -p 0.0.0.0:15672:15672 \
-    rabbitmq:3-management
-
-# Run the example
+# Build and run the example
+npm run build
 npm run start:dapr
 ```
 
-```
-from(bucket: "my-sensors")
-  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
-  |> filter(fn: (r) => r["_measurement"] == "sensor-states")
-  |> pivot(columnKey: ["_field"], rowKey: ["_time"], valueColumn: "_value")
-  |> group()
-  |> yield(name: "last")
-```
+## Visualize
+
+Start grafana on localhost:3001 and use `admin`/`password` to login and visualize the dashboard!
+
+Sample:
+![output.png](./output.png "Sample output")
+
+## References
+1. Original blog post: https://xaviergeerinck.com/post/2021/10/09/parking-garage
+1. Influx/Telgraf/Grafana setup inspired from: https://github.com/bcremer/docker-telegraf-influx-grafana-stack
