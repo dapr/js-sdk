@@ -37,7 +37,7 @@ export default interface ParkingSensorInterface {
 An actor implementation defines a class by extending the base type `AbstractActor` and implements the actor interface. The following code describes what an actor implmentation consists of by implementing the methods defined in the `ParkingSensorInterface`. It also defines a few extra helper methods:
 
 ```javascript
-import { AbstractActor } from "dapr-client";
+import { AbstractActor } from "@dapr/dapr";
 import ParkingSensorInterface from "./ParkingSensorInterface";
 
 export default class ParkingSensorImpl extends AbstractActor implements ParkingSensorInterface {
@@ -79,7 +79,7 @@ async function start() {
 After Actors are registered, use the DaprClient to invoke methods on an actor. The client will call the actor methods defined in the actor interface.
 
 ```javascript
-import { DaprClient, DaprServer } from "dapr-client";
+import { DaprClient, DaprServer } from "@dapr/dapr";
 import ParkingSensorImpl from "./ParkingSensorImpl";
 
 async function start() {
@@ -98,7 +98,7 @@ async function start() {
 ## Saving and Getting State 
 
 ```javascript
-import { DaprClient, DaprServer } from "dapr-client";
+import { DaprClient, DaprServer } from "@dapr/dapr";
 import ParkingSensorImpl from "./ParkingSensorImpl";
 
 async function start() {
@@ -143,7 +143,7 @@ The scheduling interface of timers and reminders is identical. For an more in-de
 
 ### Actor Timers
 ```javascript
-import { DaprClient, DaprServer } from "dapr-client";
+import { DaprClient, DaprServer } from "@dapr/dapr";
 import ParkingSensorImpl from "./ParkingSensorImpl";
 
 async function start() 
@@ -168,7 +168,7 @@ async function start()
 
 ### Actor Reminders
 ```javascript
-import { DaprClient, DaprServer } from "dapr-client";
+import { DaprClient, DaprServer } from "@dapr/dapr";
 import ParkingSensorImpl from "./ParkingSensorImpl";
 
 async function start() 

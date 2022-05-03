@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { DaprClient } from "dapr-client";
+import { DaprClient } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1";
 const daprPortDefault = "3500";
@@ -24,7 +24,7 @@ async function start() {
   );
 
   const config = await client.configuration.get('config-store', ['key1', 'key2']);
-  console.log(config); 
+  console.log(config);
 
   console.log(JSON.stringify(config));
 }

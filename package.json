@@ -1,5 +1,5 @@
 {
-    "name": "dapr-client",
+    "name": @dapr/dapr",
     "version": "2.2.0-rc.0",
     "description": "The official Dapr (https://dapr.io) SDK for Node.js",
     "types": "http/index.d.ts",

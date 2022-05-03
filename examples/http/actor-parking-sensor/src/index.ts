@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { DaprServer, DaprClient } from "dapr-client";
+import { DaprServer, DaprClient } from "@dapr/dapr";
 import ParkingSensorImpl from "./ParkingSensorImpl";
 
 const daprHost = "127.0.0.1";

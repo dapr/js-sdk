@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { AbstractActor } from "dapr-client";
+import { AbstractActor } from "@dapr/dapr";
 
 export default class DemoActorReminderImpl extends AbstractActor {
   counter = 0;
