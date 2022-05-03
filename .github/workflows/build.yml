@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-name: Publish to NPM
+name: Build
 
 on:
   push:
@@ -33,21 +33,17 @@ jobs:
     - uses: actions/checkout@v3
 
     # Setup .npmrc file to publish to npm
-    # https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
     - name: Configure .npmrc for NPM publish to @dapr
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ env.NODE_VER }}
-        scope: '@dapr'
+        registry-url: 'https://registry.npmjs.org'
 
-    - name: Configure to publish to @dapr/dapr
-      run: sed -i s#"dapr-client"#"@dapr/dapr"# package.json 
+    # - name: Configure to publish to @dapr/dapr
+    #   run: sed -i s#"dapr-client"#"@dapr/dapr"# package.json 
     
     - name: Build Package
       run: ./scripts/build.sh
-
-    - name: Create NPM Build
-      run: npm run build && npm pack
 
     # @TODO: add a depend on the test-e2e pipeline?
     # - name: Run unit tests
@@ -57,9 +53,9 @@ jobs:
     # - name: Upload test coverage
     #   uses: codecov/codecov-action@v1
     
-    - name: Is Release?
-      if: startswith(github.ref, 'refs/tags/v')
-      run: echo "DEPLOY_PACKAGE=true" >> $GITHUB_ENV
+    # - name: Is Release?
+    #   if: startswith(github.ref, 'refs/tags/v')
+    #   run: echo "DEPLOY_PACKAGE=true" >> $GITHUB_ENV
 
     # run: npm set //registry.npmjs.org/:_authToken $NODE_AUTH_TOKEN
 
@@ -84,6 +80,6 @@ jobs:
     # note: package.json gets updated here for the new package name
     - name: Publish to npm (@dapr/dapr)
       # if: env.DEPLOY_PACKAGE == 'true'
-      run: npm publish build/ --access public
+      run: npm publish --access public
       env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_NEW }}
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
