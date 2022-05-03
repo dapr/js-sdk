@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { AbstractActor, Temporal } from "dapr-client";
+import { AbstractActor, Temporal } from "@dapr/dapr";
 import ActorReminderInterface from "../interfaces/ActorReminderInterface";
 
 export default class ActorReminderImpl extends AbstractActor implements ActorReminderInterface {
@@ -19,18 +19,18 @@ export default class ActorReminderImpl extends AbstractActor implements ActorRem
 
   async init(
     reminderName: string,
-    dueTimeSeconds: number, 
-    periodSeconds: number, 
+    dueTimeSeconds: number,
+    periodSeconds: number,
     ttlSeconds: number): Promise<string> {
-      this.reminderName = reminderName;
+    this.reminderName = reminderName;
 
-      await super.registerActorReminder(
-        this.reminderName, 
-        Temporal.Duration.from({seconds: dueTimeSeconds}), 
-        Temporal.Duration.from({seconds: periodSeconds}), 
-        Temporal.Duration.from({seconds: ttlSeconds}));
+    await super.registerActorReminder(
+      this.reminderName,
+      Temporal.Duration.from({ seconds: dueTimeSeconds }),
+      Temporal.Duration.from({ seconds: periodSeconds }),
+      Temporal.Duration.from({ seconds: ttlSeconds }));
 
-      return "Actor Initialized";
+    return "Actor Initialized";
   }
 
   async stop(): Promise<void> {

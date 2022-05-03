@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { ActorId, ActorProxyBuilder, DaprServer, DaprClient } from "dapr-client";
+import { ActorId, ActorProxyBuilder, DaprServer, DaprClient } from "@dapr/dapr";
 import ActorCounterImpl from "./actor/implementations/ActorCounterImpl";
 import ActorReminderImpl from "./actor/implementations/ActorReminderImpl";
 import ActorSayImpl from "./actor/implementations/ActorSayImpl";
@@ -31,10 +31,10 @@ async function start() {
   const client = new DaprClient(daprHost, daprPort);
 
   logHeader("INITIALIZING");
-  
+
   // Creating actor bindings
   await server.actor.init();
-  
+
   // Register the actor bindings.
   server.actor.registerActor(ActorSayImpl);
   server.actor.registerActor(ActorCounterImpl);
@@ -46,7 +46,7 @@ async function start() {
   await server.start();
 
   log("Init", "Waiting for actors to be ready");
-  await new Promise((resolve) => {setTimeout(resolve, 5*1000);});
+  await new Promise((resolve) => { setTimeout(resolve, 5 * 1000); });
 
   const resRegisteredActors = await server.actor.getRegisteredActors();
   log("Init", `Registered Actor Types: ${JSON.stringify(resRegisteredActors)}`);
@@ -119,7 +119,7 @@ async function exampleActorReminder(client: DaprClient) {
   await reminderActor.init(reminderName, 5, 1, 10);
 
   // Wait for 8 seconds
-  await new Promise((resolve) => {setTimeout(resolve, 8*1000);});
+  await new Promise((resolve) => { setTimeout(resolve, 8 * 1000); });
 
   // Stop the reminder.
   log("Example3", "Invoking 'stop' and unregistering the reminder");
@@ -138,7 +138,7 @@ async function exampleActorTimer(client: DaprClient) {
   await timerActor.init(timerName, 100, 5, 1, 10);
 
   // Wait for 2 seconds
-  await new Promise((resolve) => {setTimeout(resolve, 2*1000);});
+  await new Promise((resolve) => { setTimeout(resolve, 2 * 1000); });
 
   // Get the value of the counter
   log("Example4", "Invoking 'getCounter'");
@@ -146,7 +146,7 @@ async function exampleActorTimer(client: DaprClient) {
   log("Example4", `Invoked 'getCounter' and got data: ${resTimerGetCounter}`);
 
   // Wait for 5 seconds
-  await new Promise((resolve) => {setTimeout(resolve, 5*1000);});
+  await new Promise((resolve) => { setTimeout(resolve, 5 * 1000); });
 
   // Get the value of the counter
   log("Example4", "Invoking 'getCounter'");

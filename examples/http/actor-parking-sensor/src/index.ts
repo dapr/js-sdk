@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { DaprServer, DaprClient, ActorProxyBuilder, ActorId } from "dapr-client";
+import { DaprServer, DaprClient, ActorProxyBuilder, ActorId } from "@dapr/dapr";
 import ParkingSensorImpl from "./ParkingSensorImpl";
 import ParkingSensorInterface from "./ParkingSensorInterface";
 
@@ -31,17 +31,17 @@ async function start() {
   await server.start(); // Start the server
 
   log("Init", "Waiting for actors to be ready");
-  await sleep(5*1000);
+  await sleep(5 * 1000);
 
   const resRegisteredActors = await server.actor.getRegisteredActors();
   log("Init", `Registered Actor Types: ${JSON.stringify(resRegisteredActors)}`);
 
   logHeader("REGISTER ACTORS");
-  
+
   const amount = 250;
   const actors = new Array(amount);
   const builder = new ActorProxyBuilder<ParkingSensorInterface>(ParkingSensorImpl, client);
-  
+
   log("Registration", `Creating ${amount} Actors`);
   for (let i = 0; i < amount; i++) {
     actors[i] = builder.build(new ActorId(`parking-sensor-${i}`));
@@ -51,7 +51,7 @@ async function start() {
   logHeader("UPDATE SENSOR STATES");
 
   log("Simulate", "Waiting 10 seconds before starting");
-  await sleep(10*1000);
+  await sleep(10 * 1000);
 
   const isRunning = true;
   while (isRunning) {
@@ -71,7 +71,7 @@ async function start() {
       await actors[id].carLeave();
     }
 
-    await sleep(5*1000);
+    await sleep(5 * 1000);
   }
 }
 
