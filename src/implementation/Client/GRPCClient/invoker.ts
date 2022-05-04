@@ -29,16 +29,14 @@ export default class GRPCClientInvoker implements IClientInvoker {
   }
 
   // @todo: should return a specific typed Promise<TypeInvokerInvokeResponse> instead of Promise<nothing>
-  async invoke(appId: string, methodName: string, method: HttpMethod = HttpMethod.GET, data: object = {}): Promise<object> {
-    const fetchOptions = {
-      method
+  async invoke(appId: string, methodName: string, method: HttpMethod = HttpMethod.GET, data: object = {}, headers: any = {}): Promise<object> {
+    const fetchOptions:any = {
+      method,
+      headers
     };
 
     if (method !== HttpMethod.GET) {
-      // @ts-ignore
-      fetchOptions.headers = {
-        'Content-Type': 'application/json'
-      };
+      fetchOptions.headers['Content-Type'] = 'application/json';
     }
 
     if (method !== HttpMethod.GET && data !== {}) {
