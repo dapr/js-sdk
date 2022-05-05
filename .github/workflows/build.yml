@@ -57,7 +57,7 @@ jobs:
       run: echo "DEPLOY_PACKAGE=true" >> $GITHUB_ENV
       
     - name: Publish to npm
-      if: env.DEPLOY_PACKAGE == 'true'
+      # if: env.DEPLOY_PACKAGE == 'true'
       run: npm run build && npm pack && npm publish build/ --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
