@@ -291,9 +291,7 @@ describe('grpc/main', () => {
       expect(config.items.filter(i => i.key == "myconfigkey3")[0].value).toEqual("key3_initialvalue");
     });
 
-    // OK (temp)
     it('should be able to get the configuration items with metadata', async () => {
-      // await server.configuration.subscribe();
       await client.configuration.get("config-redis", ["myconfigkey1"], { "hello": "world" });
 
       // Disabled for now as I am unsure if Dapr returns the metadata items
@@ -320,6 +318,17 @@ describe('grpc/main', () => {
       const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
 
       await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1", "myconfigkey2"], m);
+      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
+
+      expect(m.mock.calls.length).toEqual(1);
+      expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
+      expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
+    });
+
+    it('should be able to subscribe with metadata', async () => {
+      const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
+
+      await client.configuration.subscribeWithMetadata("config-redis", ["myconfigkey1", "myconfigkey2"], { "hello": "world" }, m);
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
 
       expect(m.mock.calls.length).toEqual(1);

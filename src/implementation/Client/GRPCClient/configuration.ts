@@ -20,7 +20,6 @@ import { GetConfigurationResponse as GetConfigurationResponseResult } from '../.
 import { SubscribeConfigurationResponse as SubscribeConfigurationResponseResult } from '../../../types/configuration/SubscribeConfigurationResponse';
 import { SubscribeConfigurationCallback } from '../../../types/configuration/SubscribeConfigurationCallback';
 
-// https://docs.dapr.io/reference/api/configuration_api
 export default class GRPCClientConfiguration implements IClientConfiguration {
   client: GRPCClient;
 
