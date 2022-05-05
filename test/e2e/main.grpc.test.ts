@@ -344,17 +344,6 @@ describe('grpc/main', () => {
       expect(m2.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
       expect(m2.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
     });
-
-    it('should be able to subscribe to configuration item changes on specific keys through a second stream', async () => {
-      const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
-
-      await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1"], m);
-      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
-
-      expect(m.mock.calls.length).toEqual(1);
-      expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
-      expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
-    });
   });
 
   // Note: actors require an external dependency and are disabled by default for now until we can have actors in Javascript
