@@ -45,7 +45,7 @@ jobs:
     - name: Build Package
       run: ./scripts/build.sh
 
-     - name: Run unit tests
+    - name: Run unit tests
       id: tests
       run: npm run test:unit:all
 
