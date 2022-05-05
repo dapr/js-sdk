@@ -226,7 +226,7 @@ async function start() {
         // Received a key update
     });
 
-    // When you are ready to stop listening, call teh following
+    // When you are ready to stop listening, call the following
     await stream.close();
 }
 
