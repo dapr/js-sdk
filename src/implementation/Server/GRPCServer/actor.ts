@@ -25,18 +25,18 @@ export default class GRPCServerActor implements IServerActor {
   }
 
   deactivateActor(_actorType: string, _actorId: string): Promise<void> {
-    throw new Error('Method not implemented.');
+    throw new Error('GRPC is currently not supported.');
   }
 
   init(): Promise<void> {
-    throw new Error('Method not implemented.');
+    throw new Error('GRPC is currently not supported.');
   }
 
   getRegisteredActors(): Promise<string[]> {
-    throw new Error('Method not implemented.');
+    throw new Error('GRPC is currently not supported.');
   }
 
   registerActor<T extends AbstractActor>(_cls: Class<T>): Promise<void> {
-    throw new Error('Method not implemented.');
+    throw new Error('GRPC is currently not supported.');
   }
 }

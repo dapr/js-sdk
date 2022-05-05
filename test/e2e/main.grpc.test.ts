@@ -12,6 +12,8 @@ limitations under the License.
 */
 
 import { CommunicationProtocolEnum, DaprClient, DaprServer, HttpMethod } from '../../src';
+import { SubscribeConfigurationResponse } from '../../src/types/configuration/SubscribeConfigurationResponse';
+import * as DockerUtils from '../utils/DockerUtil';
 
 const serverHost = '127.0.0.1';
 const serverPort = '50001';
@@ -43,6 +45,7 @@ describe('grpc/main', () => {
 
   afterAll(async () => {
     await server.stop();
+    await client.stop();
   });
 
   describe('metadata', () => {
@@ -264,6 +267,118 @@ describe('grpc/main', () => {
       const resTransactionUpsert = await client.state.get('state-redis', 'key-with-metadata-1');
       expect(resTransactionDelete).toEqual('');
       expect(resTransactionUpsert).toEqual('my-new-data-with-metadata-1');
+    });
+  });
+
+  describe('configuration', () => {
+    beforeEach(async () => {
+      // Reset the Configuration API
+      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_initialvalue||1");
+      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey2 key2_initialvalue||1");
+      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey3 key3_initialvalue||1");
+    });
+
+    it('should be able to get the configuration items', async () => {
+      const config = await client.configuration.get("config-redis", ["myconfigkey1", "myconfigkey2", "myconfigkey3"]);
+      expect(config.items.length).toEqual(3);
+
+      expect(config.items.map(i => i.key).indexOf("myconfigkey1")).toBeGreaterThan(-1);
+      expect(config.items.map(i => i.key).indexOf("myconfigkey2")).toBeGreaterThan(-1);
+      expect(config.items.map(i => i.key).indexOf("myconfigkey3")).toBeGreaterThan(-1);
+
+      expect(config.items.filter(i => i.key == "myconfigkey1")[0].value).toEqual("key1_initialvalue");
+      expect(config.items.filter(i => i.key == "myconfigkey2")[0].value).toEqual("key2_initialvalue");
+      expect(config.items.filter(i => i.key == "myconfigkey3")[0].value).toEqual("key3_initialvalue");
+    });
+
+    it('should be able to get the configuration items with metadata', async () => {
+      await client.configuration.get("config-redis", ["myconfigkey1"], { "hello": "world" });
+
+      // Disabled for now as I am unsure if Dapr returns the metadata items
+      // Java SDK: https://github.com/dapr/java-sdk/blob/06d92dafca62a6b48e74ccf939feeac7189e360f/sdk/src/test/java/io/dapr/client/DaprPreviewClientGrpcTest.java#L119
+      // ^ shows that it is not being tested, it tries but doesn't assert
+      // expect(conf.items.filter(i => i.key == "myconfigkey1")[0].metadata).toHaveProperty("hello");
+    });
+
+    // // @todo: figure out, subscribe doesn't pass keys but doesn't listen to anything?
+    // // https://github.com/dapr/dapr/issues/4529
+    // it('should be able to subscribe to configuration item changes on all keys', async () => {
+    //   const m = jest.fn(async (res: SubscribeConfigurationResponse) => { });
+
+    //   console.log("Creating Subscription");
+    //   await client.configuration.subscribe("config-redis", m);
+
+    //   // Change an item
+    //   await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey3 mynewvalue||1");
+
+    //   expect(m.mock.calls.length).toEqual(1);
+    // });
+
+    it('should be able to subscribe to configuration item changes on specific keys', async () => {
+      const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
+
+      const stream1 = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1", "myconfigkey2"], m);
+      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
+
+      expect(m.mock.calls.length).toEqual(1);
+      expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
+      expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
+
+      await stream1.stop();
+    });
+
+    it('should be able to subscribe with metadata', async () => {
+      const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
+
+      const stream1 = await client.configuration.subscribeWithMetadata("config-redis", ["myconfigkey1", "myconfigkey2"], { "hello": "world" }, m);
+      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
+
+      expect(m.mock.calls.length).toEqual(1);
+      expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
+      expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
+
+      await stream1.stop();
+    });
+
+    it('should be able to unsubscribe', async () => {
+      const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
+
+      const stream1 = await client.configuration.subscribeWithMetadata("config-redis", ["myconfigkey1", "myconfigkey2"], { "hello": "world" }, m);
+      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
+
+      expect(m.mock.calls.length).toEqual(1);
+      expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
+      expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
+
+      await stream1.stop();
+
+      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue2||1");
+
+      // Expect no change after stop
+      expect(m.mock.calls.length).toEqual(1);
+      expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
+      expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
+    });
+
+    it('should be able to subscribe to configuration items through multiple streams', async () => {
+      const m1 = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
+      const m2 = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
+
+      const stream1 = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1"], m1);
+      const stream2 = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1"], m2);
+
+      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
+
+      expect(m1.mock.calls.length).toEqual(1);
+      expect(m1.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
+      expect(m1.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
+
+      expect(m2.mock.calls.length).toEqual(1);
+      expect(m2.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
+      expect(m2.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
+
+      await stream1.stop();
+      await stream2.stop();
     });
   });
 

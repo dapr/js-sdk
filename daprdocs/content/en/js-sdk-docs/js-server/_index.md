@@ -168,7 +168,7 @@ const serverHost = "127.0.0.1";
 const serverPort = "5051";
 
 async function start() {
-  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);;
+  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
 
   const bindingName = "my-binding-name";
 
@@ -184,6 +184,58 @@ start().catch((e) => {
 ```
 
 > For a full guide on output bindings visit [How-To: Use bindings]({{< ref howto-bindings.md >}}).
+
+### Configuration API
+
+> 💡 The configuration API is currently only available through gRPC
+
+#### Getting a configuration value
+
+```javascript
+import { DaprServer } from "dapr-client";
+
+const daprHost = "127.0.0.1"; 
+const daprPort = "3500"; 
+const serverHost = "127.0.0.1";
+const serverPort = "5051";
+
+async function start() {
+    const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+    const config = await client.configuration.get("config-redis", ["myconfigkey1", "myconfigkey2"]);
+}
+
+start().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
+```
+
+#### Subscribing to Key Changes
+
+```javascript
+import { DaprServer } from "dapr-client";
+
+const daprHost = "127.0.0.1"; 
+const daprPort = "3500"; 
+const serverHost = "127.0.0.1";
+const serverPort = "5051";
+
+async function start() {
+    const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+    const stream = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1", "myconfigkey2"], () => {
+        // Received a key update
+    });
+
+    // When you are ready to stop listening, call the following
+    await stream.close();
+}
+
+start().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
+```
+
 
 ## Related links
 
