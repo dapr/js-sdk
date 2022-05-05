@@ -13,12 +13,13 @@ limitations under the License.
 
 import GRPCClient from './GRPCClient';
 import * as grpc from "@grpc/grpc-js";
-import { GetConfigurationRequest, GetConfigurationResponse, SubscribeConfigurationRequest, SubscribeConfigurationResponse } from '../../../proto/dapr/proto/runtime/v1/dapr_pb';
+import { GetConfigurationRequest, GetConfigurationResponse, SubscribeConfigurationRequest, SubscribeConfigurationResponse, UnsubscribeConfigurationRequest, UnsubscribeConfigurationResponse } from '../../../proto/dapr/proto/runtime/v1/dapr_pb';
 import IClientConfiguration from '../../../interfaces/Client/IClientConfiguration';
 import { KeyValueType } from '../../../types/KeyValue.type';
 import { GetConfigurationResponse as GetConfigurationResponseResult } from '../../../types/configuration/GetConfigurationResponse';
 import { SubscribeConfigurationResponse as SubscribeConfigurationResponseResult } from '../../../types/configuration/SubscribeConfigurationResponse';
 import { SubscribeConfigurationCallback } from '../../../types/configuration/SubscribeConfigurationCallback';
+import { SubscribeConfigurationStream } from '../../../types/configuration/SubscribeConfigurationStream';
 
 export default class GRPCClientConfiguration implements IClientConfiguration {
   client: GRPCClient;
@@ -68,19 +69,19 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
     });
   }
 
-  async subscribe(storeName: string, cb: SubscribeConfigurationCallback): Promise<void> {
+  async subscribe(storeName: string, cb: SubscribeConfigurationCallback): Promise<SubscribeConfigurationStream> {
     return this._subscribe(storeName, cb)
   }
 
-  async subscribeWithKeys(storeName: string, keys: string[], cb: SubscribeConfigurationCallback): Promise<void> {
+  async subscribeWithKeys(storeName: string, keys: string[], cb: SubscribeConfigurationCallback): Promise<SubscribeConfigurationStream> {
     return this._subscribe(storeName, cb, keys)
   }
 
-  async subscribeWithMetadata(storeName: string, keys: string[], metadata: KeyValueType, cb: SubscribeConfigurationCallback): Promise<void> {
+  async subscribeWithMetadata(storeName: string, keys: string[], metadata: KeyValueType, cb: SubscribeConfigurationCallback): Promise<SubscribeConfigurationStream> {
     return this._subscribe(storeName, cb, keys, metadata)
   }
 
-  async _subscribe(storeName: string, cb: SubscribeConfigurationCallback, keys?: string[], metadataObj?: KeyValueType): Promise<void> {
+  async _subscribe(storeName: string, cb: SubscribeConfigurationCallback, keys?: string[], metadataObj?: KeyValueType): Promise<SubscribeConfigurationStream> {
     const metadata = new grpc.Metadata();
 
     const msg = new SubscribeConfigurationRequest();
@@ -105,8 +106,11 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
     // we will thus create a set with our listeners so we don't 
     // break on multi listeners
     const stream = client.subscribeConfigurationAlpha1(msg, metadata);
+    let streamId: string;
 
     stream.on("data", async (data: SubscribeConfigurationResponse) => {
+      streamId = data.getId();
+
       const wrapped: SubscribeConfigurationResponseResult = {
         items: data.getItemsList().map((item) => ({
           key: item.getKey(),
@@ -122,6 +126,27 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
 
       await cb(wrapped);
     });
-  }
 
+    return {
+      stop: async () => {
+        return new Promise((resolve, reject) => {
+          const req = new UnsubscribeConfigurationRequest();
+          req.setStoreName(storeName);
+          req.setId(streamId);
+
+          client.unsubscribeConfigurationAlpha1(req, (err, res: UnsubscribeConfigurationResponse) => {
+            if (err || !res.getOk()) {
+              return reject(res.getMessage());
+            }
+
+            // Clean up the node.js event emitter
+            stream.removeAllListeners();
+            stream.destroy();
+
+            return resolve();
+          });
+        })
+      }
+    };
+  }
 }
