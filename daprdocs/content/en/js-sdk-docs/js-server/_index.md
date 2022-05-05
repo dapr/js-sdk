@@ -222,9 +222,12 @@ const serverPort = "5051";
 
 async function start() {
     const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
-    await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1", "myconfigkey2"], () => {
+    const stream = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1", "myconfigkey2"], () => {
         // Received a key update
     });
+
+    // When you are ready to stop listening, call teh following
+    await stream.close();
 }
 
 start().catch((e) => {
