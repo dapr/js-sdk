@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { DaprClient, HttpMethod } from "dapr-client";
+import { DaprClient, HttpMethod } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1";
 const daprPort = "3500";
@@ -23,9 +23,10 @@ async function start() {
   const res = await client.invoker.invoke(daprAppId, "hello-world", HttpMethod.POST, {
     hello: "world"
   });
-  console.log(`[Dapr-JS][Example] ${JSON.stringify(res)}`);}
+  console.log(`[Dapr-JS][Example] ${JSON.stringify(res)}`);
+}
 
 start().catch((e) => {
-    console.error(e);
-    process.exit(1);
+  console.error(e);
+  process.exit(1);
 });

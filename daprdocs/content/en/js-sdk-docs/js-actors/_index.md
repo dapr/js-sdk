@@ -14,7 +14,7 @@ For a more in-depth overview of Dapr actors, visit the [actors overview page]({{
 - [Dapr CLI]({{< ref install-dapr-cli.md >}}) installed
 - Initialized [Dapr environment]({{< ref install-dapr-selfhost.md >}})
 - [Latest LTS version of Node or greater](https://nodejs.org/en/)
-- [JavaScript NPM package installed](https://www.npmjs.com/package/dapr-client)
+- [JavaScript NPM package installed](https://www.npmjs.com/package/@dapr/dapr)
 
 ## Scenario
 The below code examples loosely describe the scenario of a Parking Garage Spot Monitoring System, which can be seen in this [video](https://www.youtube.com/watch?v=eJCu6a-x9uo&t=3785) by Mark Russinovich. 
@@ -39,7 +39,7 @@ An actor implementation defines a class by extending the base type `AbstractActo
 The following code describes an actor implementation along with a few helper methods.
 
 ```ts
-import { AbstractActor } from "dapr-client";
+import { AbstractActor } from "@dapr/dapr";
 import ParkingSensorInterface from "./ParkingSensorInterface";
 
 export default class ParkingSensorImpl extends AbstractActor implements ParkingSensorInterface {
@@ -68,7 +68,7 @@ export default class ParkingSensorImpl extends AbstractActor implements ParkingS
 Initialize and register your actors by using the `DaprServer` package:
 
 ```javascript
-import { DaprServer } from "dapr-client";
+import { DaprServer } from "@dapr/dapr";
 import ParkingSensorImpl from "./ParkingSensorImpl";
 
 const daprHost = "127.0.0.1";
@@ -91,7 +91,7 @@ console.log(`Registered Actors: ${JSON.stringify(resRegisteredActors)}`);
 After Actors are registered, create a Proxy object that implements `ParkingSensorInterface` using the `ActorProxyBuilder`. You can invoke the actor methods by directly calling methods on the Proxy object. Internally, it translates to making a network call to the Actor API and fetches the result back.
 
 ```javascript
-import { DaprClient, ActorId } from "dapr-client";
+import { DaprClient, ActorId } from "@dapr/dapr";
 import ParkingSensorImpl from "./ParkingSensorImpl";
 import ParkingSensorInterface from "./ParkingSensorInterface";
 

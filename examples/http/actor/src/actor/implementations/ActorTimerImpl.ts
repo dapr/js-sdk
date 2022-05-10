@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { AbstractActor, Temporal } from "dapr-client";
+import { AbstractActor, Temporal } from "@dapr/dapr";
 import ActorTimerInterface from "../interfaces/ActorTimerInterface";
 
 export default class ActorTimerImpl extends AbstractActor implements ActorTimerInterface {
@@ -21,20 +21,20 @@ export default class ActorTimerImpl extends AbstractActor implements ActorTimerI
   async init(
     timerName: string,
     incrementBy: number,
-    dueTimeSeconds: number, 
-    periodSeconds: number, 
+    dueTimeSeconds: number,
+    periodSeconds: number,
     ttlSeconds: number): Promise<string> {
-      this.timerName = timerName;
+    this.timerName = timerName;
 
-      await super.registerActorTimer(
-        this.timerName,
-        "countBy",
-        Temporal.Duration.from({seconds: dueTimeSeconds}), 
-        Temporal.Duration.from({seconds: periodSeconds}), 
-        Temporal.Duration.from({seconds: ttlSeconds}),
-        incrementBy);
+    await super.registerActorTimer(
+      this.timerName,
+      "countBy",
+      Temporal.Duration.from({ seconds: dueTimeSeconds }),
+      Temporal.Duration.from({ seconds: periodSeconds }),
+      Temporal.Duration.from({ seconds: ttlSeconds }),
+      incrementBy);
 
-      return "Actor Initialized";
+    return "Actor Initialized";
   }
 
   async countBy(value: string): Promise<void> {
