@@ -41,35 +41,35 @@ jobs:
       run: ./scripts/build.sh
 
     # @TODO: add a depend on the test-e2e pipeline?
-    # - name: Run unit tests
-    #   id: tests
-    #   run: npm run test:unit:all
+    - name: Run unit tests
+      id: tests
+      run: npm run test:unit:all
 
-    # - name: Upload test coverage
-    #   uses: codecov/codecov-action@v1
+    - name: Upload test coverage
+      uses: codecov/codecov-action@v1
     
-    # - name: Is Release?
-    #   if: startswith(github.ref, 'refs/tags/v')
-    #   run: echo "DEPLOY_PACKAGE=true" >> $GITHUB_ENV
+    - name: Is Release?
+      if: startswith(github.ref, 'refs/tags/v')
+      run: echo "DEPLOY_PACKAGE=true" >> $GITHUB_ENV
 
     # note: package.json gets updated here for the new package name
     - name: Publish to npm (@dapr/dapr)
-      # if: env.DEPLOY_PACKAGE == 'true'
+      if: env.DEPLOY_PACKAGE == 'true'
       run: npm publish --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     - name: "[dapr-client] Configure to publish to dapr-client for deprecation notice reasons"
-      # if: env.DEPLOY_PACKAGE == 'true'
+      if: env.DEPLOY_PACKAGE == 'true'
       run: sed -i s#"@dapr/dapr"#"dapr-client"# package.json 
     
     - name: "[dapr-client] Build Package"
-      # if: env.DEPLOY_PACKAGE == 'true'
+      if: env.DEPLOY_PACKAGE == 'true'
       run: ./scripts/build.sh
 
     # note: package.json gets updated here for the new package name
     - name: "[dapr-client] Publish to npm (dapr-client)"
-      # if: env.DEPLOY_PACKAGE == 'true'
+      if: env.DEPLOY_PACKAGE == 'true'
       run: npm publish --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
