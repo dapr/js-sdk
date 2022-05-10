@@ -20,10 +20,6 @@ on:
       - issue_223
     tags:
       - v*
-  pull_request:
-    branches:
-      - master
-      - release-*
 
 jobs:
   build:
@@ -40,9 +36,6 @@ jobs:
       with:
         node-version: ${{ env.NODE_VER }}
         registry-url: 'https://registry.npmjs.org'
-
-    # - name: Configure to publish to @dapr/dapr
-    #   run: sed -i s#"dapr-client"#"@dapr/dapr"# package.json 
     
     - name: Build Package
       run: ./scripts/build.sh
@@ -59,28 +52,23 @@ jobs:
     #   if: startswith(github.ref, 'refs/tags/v')
     #   run: echo "DEPLOY_PACKAGE=true" >> $GITHUB_ENV
 
-    # run: npm set //registry.npmjs.org/:_authToken $NODE_AUTH_TOKEN
-
-    # - name: Authorize us to @dapr/dapr
-    #   run: |
-    #     npm set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN_NEW }}
-
-    # - name: Show NPM Config
-    #   run: cat ~/.npmrc
-
-    # - name: Show NPM Config
-    #   run: npm whoami
-
-      
-    # - name: Publish to npm (dapr-client)
-    #   if: env.DEPLOY_PACKAGE == 'true'
-    #   run: npm run build && npm pack && npm publish build/ --access public
-    #   env:
-    #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-    # Publish to @dapr/dapr
     # note: package.json gets updated here for the new package name
     - name: Publish to npm (@dapr/dapr)
+      # if: env.DEPLOY_PACKAGE == 'true'
+      run: npm publish --access public
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    - name: [dapr-client] Configure to publish to dapr-client for deprecation notice reasons
+      # if: env.DEPLOY_PACKAGE == 'true'
+      run: sed -i s#"@dapr/dapr"#"dapr-client"# package.json 
+    
+    - name: [dapr-client] Build Package
+      # if: env.DEPLOY_PACKAGE == 'true'
+      run: ./scripts/build.sh
+
+    # note: package.json gets updated here for the new package name
+    - name: [dapr-client] Publish to npm (dapr-client)
       # if: env.DEPLOY_PACKAGE == 'true'
       run: npm publish --access public
       env:
