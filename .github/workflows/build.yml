@@ -28,6 +28,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: production
     env:
       NODE_VER: 16.14.0
     steps:
