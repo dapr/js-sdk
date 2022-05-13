@@ -54,7 +54,7 @@ jobs:
     # note: package.json gets updated here for the new package name
     - name: Publish to npm (@dapr/dapr)
       if: env.DEPLOY_PACKAGE == 'true'
-      run: npm publish --access public
+      run: npm publish build/ --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -69,6 +69,6 @@ jobs:
     # note: package.json gets updated here for the new package name
     - name: "[dapr-client] Publish to npm (dapr-client)"
       if: env.DEPLOY_PACKAGE == 'true'
-      run: npm publish --access public
+      run: npm publish build/ --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
