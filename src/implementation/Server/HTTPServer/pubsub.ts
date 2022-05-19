@@ -32,9 +32,14 @@ export default class HTTPServerPubSub implements IServerPubSub {
     await this.server.getServerImpl().registerPubSubSubscriptionRoute(pubsubName, topic, route);
 
     this.server.getServer().post(`/${route}`, async (req, res) => {
-      // Process our callback
       // @ts-ignore
-      await cb(req?.body?.data);
+      // Parse the data of the body, we prioritize fetching the data key in body if possible
+      // i.e. Redis returns { data: {} } and other services return {}
+      // @todo: This will be deprecated in an upcoming major version and only req.body will be returned
+      const data = req?.body?.data || req?.body;
+
+      // Process our callback
+      await cb(data);
 
       // Let Dapr know that the message was processed correctly
       // console.log(`[Dapr API][PubSub][route-${topic}] Ack'ing the message`);
