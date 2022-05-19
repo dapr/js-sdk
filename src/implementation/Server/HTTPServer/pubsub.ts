@@ -39,7 +39,11 @@ export default class HTTPServerPubSub implements IServerPubSub {
       const data = req?.body?.data || req?.body;
 
       // Process our callback
-      await cb(data);
+      try {
+        await cb(data);
+      } catch (e) {
+        console.error(e);
+      }
 
       // Let Dapr know that the message was processed correctly
       // console.log(`[Dapr API][PubSub][route-${topic}] Ack'ing the message`);
