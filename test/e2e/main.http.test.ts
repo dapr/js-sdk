@@ -42,6 +42,7 @@ describe('http/main', () => {
     await server.pubsub.subscribe('pubsub-redis', 'test-topic', mockPubSubSubscribe);
 
     // Start server
+    await client.start();
     await server.start();
   }, 10 * 1000);
 

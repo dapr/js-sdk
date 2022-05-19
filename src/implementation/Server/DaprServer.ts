@@ -32,6 +32,7 @@ import HTTPServerActor from './HTTPServer/actor';
 import { DaprClientOptions } from '../../types/DaprClientOptions';
 import { DaprClient } from '../..';
 import { Settings } from '../../utils/Settings.util';
+import * as NodeJSUtils from "../../utils/NodeJS.util";
 
 export default class DaprServer {
   // App details
@@ -47,6 +48,8 @@ export default class DaprServer {
   readonly invoker: IServerInvoker;
   readonly actor: IServerActor;
   readonly client: DaprClient;
+
+  readonly daprSidecarPollingDelayMs = 1000;
 
   constructor(
     serverHost?: string
@@ -106,7 +109,30 @@ export default class DaprServer {
   }
 
   async start(): Promise<void> {
+    // First start the server as we need to initialize routes for PubSub, Bindings, ...
     await this.daprServer.start(this.serverHost, this.serverPort.toString());
+
+    // Ensure our sidecar starts
+    // Dapr will probe every 50ms to see if we are listening on our port: https://github.com/dapr/dapr/blob/a43712c97ead550ca2f733e9f7e7769ecb195d8b/pkg/runtime/runtime.go#L1694
+    // if we are using actors we will change this to 4s to let the placement tables update
+    let isHealthy = false;
+    let isHealthyRetryCount = 0;
+    const isHealthyMaxRetryCount = 60; // 1s startup delay and we try max for 60s
+
+    console.log(`[Dapr-JS][Server] Awaiting Sidecar to be Started`);
+    while (!isHealthy) {
+      console.log(`[Dapr-JS][Server] Waiting till Dapr Sidecar Started (#${isHealthyRetryCount})`);
+      await NodeJSUtils.sleep(this.daprSidecarPollingDelayMs);
+      isHealthy = await this.client.health.isHealthy();
+      isHealthyRetryCount++;
+
+      if (isHealthyRetryCount > isHealthyMaxRetryCount) {
+        throw new Error("DAPR_SIDECAR_COULD_NOT_BE_STARTED");
+      }
+    }
+
+    // We are initialized
+    console.log(`[Dapr-JS][Server] Sidecar Started`);
   }
 
   async stop(): Promise<void> {
