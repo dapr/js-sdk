@@ -43,6 +43,7 @@ export default class HTTPServerPubSub implements IServerPubSub {
         await cb(data);
       } catch (e) {
         console.error(e);
+        return res.send({ success: false });
       }
 
       // Let Dapr know that the message was processed correctly
