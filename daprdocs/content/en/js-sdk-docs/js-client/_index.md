@@ -39,6 +39,10 @@ const client = new DaprClient(daprHost, daprPort);
 
 // GRPC Example
 const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+
+// Start the client
+// this will ensure that the Dapr Sidecar has been started so we can communicate with it
+await client.start();
 ```
 
 ## Running
@@ -50,6 +54,7 @@ To run the examples, you can use two different protocols to interact with the Da
 ```javascript
 import { DaprClient } from "@dapr/dapr";
 const client = new DaprClient(daprHost, daprPort);
+await client.start();
 ```
 
 ```bash
@@ -67,6 +72,7 @@ Since HTTP is the default, you will have to adapt the communication protocol to 
 ```javascript
 import { DaprClient, CommunicationProtocol } from "@dapr/dapr";
 const client = new DaprClient(daprHost, daprPort, CommunicationProtocol.GRPC);
+await client.start();
 ```
 
 ```bash
@@ -93,6 +99,7 @@ const daprPort = "3500";
 
 async function start() {
   const client = new DaprClient(daprHost, daprPort); 
+  await client.start();
 
   const serviceAppId = "my-app-id";
   const serviceMethod = "say-hello";
@@ -125,6 +132,7 @@ const daprPort = "3500";
 
 async function start() {
   const client = new DaprClient(daprHost, daprPort); 
+  await client.start();
 
   const serviceStoreName = "my-state-store-name";
 
@@ -183,6 +191,7 @@ import { DaprClient } from "@dapr/dapr";
 
 async function start() {
   const client = new DaprClient(daprHost, daprPort);
+  await client.start();
 
   const res = await client.state.query("state-mongodb", {
     filter: {
@@ -234,6 +243,7 @@ const daprPort = "3500";
 
 async function start() {
   const client = new DaprClient(daprHost, daprPort); 
+  await client.start();
 
   const pubSubName = "my-pubsub-name";
   const topic = "topic-a";
@@ -288,6 +298,7 @@ const daprPort = "3500";
 
 async function start() {
   const client = new DaprClient(daprHost, daprPort); 
+  await client.start();
 
   const bindingName = "my-binding-name";
   const bindingOperation = "create";
@@ -316,6 +327,7 @@ const daprPort = "3500";
 
 async function start() {
   const client = new DaprClient(daprHost, daprPort); 
+  await client.start();
 
   const secretStoreName = "my-secret-store";
   const secretKey = "secret-key";
@@ -347,10 +359,8 @@ const daprAppId = "example-config";
 
 async function start() {
 
-  const client = new DaprClient(
-    daprHost,
-    process.env.DAPR_HTTP_PORT
-  );
+  const client = new DaprClient(daprHost, process.env.DAPR_HTTP_PORT);
+  await client.start();
 
   const config = await client.configuration.get('config-store', ['key1', 'key2']);
   console.log(config);
