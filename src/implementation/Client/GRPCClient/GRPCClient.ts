@@ -65,8 +65,4 @@ export default class GRPCClient implements IClient {
   async stop(): Promise<void> {
     this.client.close();
   }
-
-  async start(): Promise<void> {
-    this.client.close();
-  }
 }

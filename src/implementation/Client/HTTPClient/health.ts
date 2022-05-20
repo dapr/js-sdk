@@ -28,22 +28,7 @@ export default class HTTPClientHealth implements IClientHealth {
       const result = await this.client.execute(`/metadata`);
       return !!result;
     } catch (e) {
-      // console.error((e as Error).message);
       return false;
     }
-
-    // try {
-    //   const res = await this.client.execute(`/healthz`, {
-    //     method: 'GET',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     }
-    //   });
-
-    //   return true;
-    // } catch (e) {
-    //   // console.error((e as Error).message);
-    //   return false;
-    // }
   }
 }
