@@ -32,6 +32,8 @@ async function start() {
     process.env.DAPR_HTTP_PORT,
   );
 
+  await client.start();
+
   // Initialize the subscription. Note that this must be done BEFORE calling .start()
   await server.pubsub.subscribe("my-pubsub-component", "my-topic", async (data: Record<string, any>) => {
     // The library parses JSON when possible.

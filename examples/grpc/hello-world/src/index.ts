@@ -27,6 +27,7 @@ async function sleep(ms: number): Promise<void> {
 async function start() {
   const server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.GRPC);
   const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+  await client.start();
 
   console.log("===============================================================");
   console.log("REGISTERING SERVER HANDLERS")

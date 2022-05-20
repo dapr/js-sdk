@@ -32,6 +32,7 @@ async function start() {
     daprHost,
     process.env.DAPR_HTTP_PORT
   );
+  await client.start();
 
   // Note that invoker listeners can be set up after start() has been called
   await server.start();

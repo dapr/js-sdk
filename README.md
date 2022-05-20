@@ -52,15 +52,14 @@ const daprPort = "50000"; // Dapr Sidecar Port
 const serverHost = "127.0.0.1"; // App Host of this Example Server
 const serverPort = "50001"; // App Port of this Example Server
 
-// Create a Server (will subscribe) and Client (will publish)
+// Create a Server (will subscribe)
 const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
-const client = new DaprClient(daprHost, daprPort);
-
-// Initialize the server to subscribe (listen)
 await server.pubsub.subscribe("my-pubsub-component", "my-topic", async (data: any) => console.log(`Received: ${JSON.stringify(data)}`));
 await server.start();
 
-// Send a message
+// Create a Client (will publish)
+const client = new DaprClient(daprHost, daprPort);
+await client.start()
 await client.pubsub.publish("my-pubsub-component", "my-topic", { hello: "world" });
 ```
 
