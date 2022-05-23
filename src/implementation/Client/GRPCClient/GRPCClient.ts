@@ -12,7 +12,6 @@ limitations under the License.
 */
 
 import * as grpc from "@grpc/grpc-js";
-import { ChannelCredentials } from "@grpc/grpc-js";
 import { DaprClient } from "../../../proto/dapr/proto/runtime/v1/dapr_grpc_pb"
 import IClient from "../../../interfaces/Client/IClient";
 import CommunicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
@@ -40,7 +39,7 @@ export default class GRPCClient implements IClient {
   ) {
     this.clientHost = host;
     this.clientPort = port;
-    this.clientCredentials = ChannelCredentials.createInsecure();
+    this.clientCredentials = grpc.ChannelCredentials.createInsecure();
     this.options = options;
     this.isInitialized = false;
 
@@ -88,7 +87,23 @@ export default class GRPCClient implements IClient {
     this.client.close();
   }
 
+  async _startWaitForClientReady(): Promise<void> {
+    const deadline = Date.now() + Settings.getDaprSidecarStartupTimeoutMs();
+
+    return new Promise((resolve, reject) => {
+      this.client.waitForReady(deadline, (err?) => {
+        if (err) {
+          return reject();
+        }
+
+        return resolve();
+      });
+    })
+  }
+
   async start(): Promise<void> {
+    await this._startWaitForClientReady();
+
     // Dapr will probe every 50ms to see if we are listening on our port: https://github.com/dapr/dapr/blob/a43712c97ead550ca2f733e9f7e7769ecb195d8b/pkg/runtime/runtime.go#L1694
     // if we are using actors we will change this to 4s to let the placement tables update
     let isHealthy = false;

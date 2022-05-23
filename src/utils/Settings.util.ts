@@ -21,9 +21,14 @@ export class Settings {
   private static readonly defaultGrpcPort: string = "50001";
 
   private static readonly daprSidecarPollingDelayMs: number = 500;
+  private static readonly daprSidecarStartupTimeoutMs: number = 10 * 1000;
 
   static getDaprSidecarPollingDelayMs(): number {
     return Settings.daprSidecarPollingDelayMs;
+  }
+
+  static getDaprSidecarStartupTimeoutMs(): number {
+    return Settings.daprSidecarStartupTimeoutMs;
   }
 
   static getDefaultHost(): string {

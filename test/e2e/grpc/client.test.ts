@@ -76,19 +76,6 @@ describe('grpc/client', () => {
       const res = await client.pubsub.publish('pubsub-redis', 'test-topic', { hello: 'world' });
       expect(res).toEqual(true);
     });
-
-    it('should not crash if the callback throws an error', async () => {
-      await client.pubsub.publish('pubsub-redis', 'test-topic-error', { hello: 'world' });
-
-      // Delay a bit for event to arrive
-      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
-
-      expect(mockPubSubSubscribeError.mock.calls.length).toBe(1);
-
-      // Also test for receiving data
-      // @ts-ignore
-      expect(mockPubSubSubscribeError.mock.calls[0][0]['hello']).toEqual('world');
-    });
   });
 
   describe('secrets', () => {
@@ -283,7 +270,6 @@ describe('grpc/client', () => {
       const stream1 = await client.configuration.subscribeWithMetadata("config-redis", ["myconfigkey1", "myconfigkey2"], { "hello": "world" }, m);
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
 
-      console.log(m.mock.calls)
       expect(m.mock.calls.length).toEqual(1);
       expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
       expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
