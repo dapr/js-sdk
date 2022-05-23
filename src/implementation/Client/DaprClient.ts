@@ -50,7 +50,6 @@ import HTTPClient from './HTTPClient/HTTPClient';
 import CommunicationProtocolEnum from '../../enum/CommunicationProtocol.enum';
 import { DaprClientOptions } from '../../types/DaprClientOptions';
 import { Settings } from '../../utils/Settings.util';
-import * as NodeJSUtils from "../../utils/NodeJS.util";
 
 export default class DaprClient {
   readonly daprHost: string;
@@ -69,8 +68,6 @@ export default class DaprClient {
   readonly sidecar: IClientSidecar;
   readonly configuration: IClientConfiguration;
   readonly actor: IClientActorBuilder;
-
-  readonly daprSidecarPollingDelayMs = 1000;
 
   constructor(
     daprHost?: string
@@ -132,31 +129,17 @@ export default class DaprClient {
     return new DaprClient(client.getClientHost(), client.getClientPort(), client.getClientCommunicationProtocol(), client.getOptions());
   }
 
-  async start(): Promise<void> {
-    // Dapr will probe every 50ms to see if we are listening on our port: https://github.com/dapr/dapr/blob/a43712c97ead550ca2f733e9f7e7769ecb195d8b/pkg/runtime/runtime.go#L1694
-    // if we are using actors we will change this to 4s to let the placement tables update
-    let isHealthy = false;
-    let isHealthyRetryCount = 0;
-    const isHealthyMaxRetryCount = 60; // 1s startup delay and we try max for 60s
-
-    console.log(`[Dapr-JS][Client] Awaiting Sidecar to be Started`);
-    while (!isHealthy) {
-      console.log(`[Dapr-JS][Client] Waiting till Dapr Sidecar Started (#${isHealthyRetryCount})`);
-      await NodeJSUtils.sleep(this.daprSidecarPollingDelayMs);
-      isHealthy = await this.health.isHealthy();
-      isHealthyRetryCount++;
-
-      if (isHealthyRetryCount > isHealthyMaxRetryCount) {
-        throw new Error("DAPR_SIDECAR_COULD_NOT_BE_STARTED");
-      }
-    }
-
-    // We are initialized
-    console.log(`[Dapr-JS][Client] Sidecar Started`);
-  }
-
   async stop(): Promise<void> {
     await this.daprClient.stop();
+  }
+
+  /**
+   * Ensure the sidecar connection has been initialized
+   * this method is not mandatory to be utilized as we will 
+   * ensure the sidecar connection is initialized in the methods that require it
+   */
+  async start(): Promise<void> {
+    await this.daprClient.start();
   }
 
   getDaprClient(): IClient {

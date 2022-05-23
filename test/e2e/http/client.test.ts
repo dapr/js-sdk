@@ -11,44 +11,36 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { CommunicationProtocolEnum, DaprClient, DaprServer, HttpMethod } from '../../src';
+import { CommunicationProtocolEnum, DaprClient } from '../../../src';
 
-const serverHost = '127.0.0.1';
-const serverPort = '50001';
 const daprHost = '127.0.0.1';
 const daprPort = '50000'; // Dapr Sidecar Port of this Example Server
-const daprAppId = 'test-suite';
 
-describe('http/main', () => {
-  let server: DaprServer;
+describe('http/client', () => {
   let client: DaprClient;
-  const mockBindingReceive = jest.fn(async (_data: object) => console.log('mockBindingReceive'));
-  const mockPubSubSubscribe = jest.fn(async (_data: object) => console.log('mockPubSubSubscribe'));
 
   // We need to start listening on some endpoints already
   // this because Dapr is not dynamic and registers endpoints on boot
   // we put a timeout of 10s since it takes around 4s for Dapr to boot up
   beforeAll(async () => {
-    server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.HTTP);
-
     client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.HTTP, {
       isKeepAlive: false
     });
-
-    await server.binding.receive('binding-mqtt', mockBindingReceive);
-
-    // Test with:
-    // dapr publish --publish-app-id test-suite --pubsub pubsub-redis --topic test-topic --data '{ "hello": "world" }'
-    await server.pubsub.subscribe('pubsub-redis', 'test-topic', mockPubSubSubscribe);
-
-    // Start server
-    await client.start();
-    await server.start();
   }, 10 * 1000);
 
   afterAll(async () => {
-    await server.stop();
     await client.stop();
+  });
+
+  describe('sidecar', () => {
+    it('should return true if the sidecar has been started', async () => {
+      // Note: difficult to test as we start up dapr with dapr run, which starts the sidecar for us automatically
+      // there is however a delay between the sidecar being ready and the app starting as they are started asynchronously
+      // if Dapr has to connect to a component, it might introduce a delay
+      // the test will thus randomly have isStarted = true or isStarted = false depending on the startup delay of the sidecar
+      await client.getDaprClient().isSidecarStarted();
+      // expect(isStarted).toBe(false);
+    })
   });
 
   describe('metadata', () => {
@@ -77,67 +69,10 @@ describe('http/main', () => {
     });
   });
 
-  describe('binding', () => {
-    it('should be able to receive events', async () => {
-      await client.binding.send('binding-mqtt', 'create', { hello: 'world' });
-
-      // Delay a bit for event to arrive
-      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
-      expect(mockBindingReceive.mock.calls.length).toBe(1);
-
-      // Also test for receiving data
-      // @ts-ignore
-      expect(mockBindingReceive.mock.calls[0][0]['hello']).toEqual('world');
-    });
-  });
-
   describe('pubsub', () => {
-    it('should be able to send and receive events', async () => {
-      await client.pubsub.publish('pubsub-redis', 'test-topic', { hello: 'world' });
-
-      // Delay a bit for event to arrive
-      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
-
-      expect(mockPubSubSubscribe.mock.calls.length).toBe(1);
-
-      // Also test for receiving data
-      // @ts-ignore
-      expect(mockPubSubSubscribe.mock.calls[0][0]['hello']).toEqual('world');
-    });
-
     it('should receive if it was successful or not', async () => {
       const res = await client.pubsub.publish('pubsub-redis', 'test-topic', { hello: 'world' });
       expect(res).toEqual(true);
-    });
-  });
-
-  describe('invoker', () => {
-    it('should be able to listen and invoke a service with GET', async () => {
-      const mock = jest.fn(async (_data: object) => ({ hello: 'world' }));
-
-      await server.invoker.listen('hello-world', mock, { method: HttpMethod.GET });
-      const res = await client.invoker.invoke(daprAppId, 'hello-world', HttpMethod.GET);
-
-      // Delay a bit for event to arrive
-      // await new Promise((resolve, reject) => setTimeout(resolve, 250));
-
-      expect(mock.mock.calls.length).toBe(1);
-      expect(JSON.stringify(res)).toEqual(`{"hello":"world"}`);
-    });
-
-    it('should be able to listen and invoke a service with POST data', async () => {
-      const mock = jest.fn(async (_data: object) => ({ hello: 'world' }));
-
-      await server.invoker.listen('hello-world', mock, { method: HttpMethod.POST });
-      const res = await client.invoker.invoke(daprAppId, 'hello-world', HttpMethod.POST, {
-        hello: 'world',
-      });
-
-      // Delay a bit for event to arrive
-      // await new Promise((resolve, reject) => setTimeout(resolve, 250));
-
-      expect(mock.mock.calls.length).toBe(1);
-      expect(JSON.stringify(res)).toEqual(`{"hello":"world"}`);
     });
   });
 

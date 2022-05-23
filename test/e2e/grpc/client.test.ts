@@ -11,42 +11,35 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { CommunicationProtocolEnum, DaprClient, DaprServer, HttpMethod } from '../../src';
-import { SubscribeConfigurationResponse } from '../../src/types/configuration/SubscribeConfigurationResponse';
-import * as DockerUtils from '../utils/DockerUtil';
+import { CommunicationProtocolEnum, DaprClient } from '../../../src';
+import { SubscribeConfigurationResponse } from '../../../src/types/configuration/SubscribeConfigurationResponse';
+import * as DockerUtils from '../../utils/DockerUtil';
 
-const serverHost = '127.0.0.1';
-const serverPort = '50001';
 const daprHost = '127.0.0.1';
 const daprPort = '50000'; // Dapr Sidecar Port of this Example Server
-const daprAppId = 'test-suite';
 
-describe('grpc/main', () => {
-  let server: DaprServer;
+describe('grpc/client', () => {
   let client: DaprClient;
-  const mockBindingReceive = jest.fn(async (_data: object) => console.log('mockBindingReceive'));
-  const mockPubSubSubscribe = jest.fn(async (_data: object) => console.log('mockPubSubSubscribe'));
 
   // We need to start listening on some endpoints already
   // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
-    server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.GRPC);
     client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
-
-    await server.binding.receive('binding-mqtt', mockBindingReceive);
-
-    // Test with:
-    // dapr publish --publish-app-id test-suite --pubsub pubsub-redis --topic test-topic --data '{ "hello": "world" }'
-    await server.pubsub.subscribe('pubsub-redis', 'test-topic', mockPubSubSubscribe);
-
-    // Start server
-    await server.start();
-    await client.start();
   }, 10 * 1000);
 
   afterAll(async () => {
-    await server.stop();
     await client.stop();
+  });
+
+  describe('sidecar', () => {
+    it('should return true if the sidecar has been started', async () => {
+      // Note: difficult to test as we start up dapr with dapr run, which starts the sidecar for us automatically
+      // there is however a delay between the sidecar being ready and the app starting as they are started asynchronously
+      // if Dapr has to connect to a component, it might introduce a delay
+      // the test will thus randomly have isStarted = true or isStarted = false depending on the startup delay of the sidecar
+      await client.getDaprClient().isSidecarStarted();
+      // expect(isStarted).toBe(false);
+    })
   });
 
   describe('metadata', () => {
@@ -78,67 +71,10 @@ describe('grpc/main', () => {
     });
   });
 
-  describe('binding', () => {
-    it('should be able to receive events', async () => {
-      await client.binding.send('binding-mqtt', 'create', { hello: 'world' });
-
-      // Delay a bit for event to arrive
-      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
-      expect(mockBindingReceive.mock.calls.length).toBe(1);
-
-      // Also test for receiving data
-      // @ts-ignore
-      expect(mockBindingReceive.mock.calls[0][0]['hello']).toEqual('world');
-    });
-  });
-
   describe('pubsub', () => {
-    it('should be able to send and receive events', async () => {
-      await client.pubsub.publish('pubsub-redis', 'test-topic', { hello: 'world' });
-
-      // Delay a bit for event to arrive
-      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
-
-      expect(mockPubSubSubscribe.mock.calls.length).toBe(1);
-
-      // Also test for receiving data
-      // @ts-ignore
-      expect(mockPubSubSubscribe.mock.calls[0][0]['hello']).toEqual('world');
-    });
-
     it('should receive if it was successful or not', async () => {
       const res = await client.pubsub.publish('pubsub-redis', 'test-topic', { hello: 'world' });
       expect(res).toEqual(true);
-    });
-  });
-
-  describe('invoker', () => {
-    it('should be able to listen and invoke a service with GET', async () => {
-      const mock = jest.fn(async (_data: object) => ({ hello: 'world' }));
-
-      await server.invoker.listen('hello-world', mock, { method: HttpMethod.GET });
-      const res = await client.invoker.invoke(daprAppId, 'hello-world', HttpMethod.GET);
-
-      // Delay a bit for event to arrive
-      // await new Promise((resolve, reject) => setTimeout(resolve, 250));
-
-      expect(mock.mock.calls.length).toBe(1);
-      expect(JSON.stringify(res)).toEqual(`{"hello":"world"}`);
-    });
-
-    it('should be able to listen and invoke a service with POST data', async () => {
-      const mock = jest.fn(async (_data: object) => ({ hello: 'world' }));
-
-      await server.invoker.listen('hello-world', mock, { method: HttpMethod.POST });
-      const res = await client.invoker.invoke(daprAppId, 'hello-world', HttpMethod.POST, {
-        hello: 'world',
-      });
-
-      // Delay a bit for event to arrive
-      // await new Promise((resolve, reject) => setTimeout(resolve, 250));
-
-      expect(mock.mock.calls.length).toBe(1);
-      expect(JSON.stringify(res)).toEqual(`{"hello":"world"}`);
     });
   });
 
@@ -334,6 +270,7 @@ describe('grpc/main', () => {
       const stream1 = await client.configuration.subscribeWithMetadata("config-redis", ["myconfigkey1", "myconfigkey2"], { "hello": "world" }, m);
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
 
+      console.log(m.mock.calls)
       expect(m.mock.calls.length).toEqual(1);
       expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
       expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
@@ -382,57 +319,4 @@ describe('grpc/main', () => {
       await stream2.stop();
     });
   });
-
-  // Note: actors require an external dependency and are disabled by default for now until we can have actors in Javascript
-  // describe('actors', () => {
-  //     it('should be able to invoke a method on an actor', async () => {
-  //         const clientActor = new DaprClient(daprHost, daprPortActor);
-
-  //         await clientActor.actor.invoke("POST", "DemoActor", "MyActorId1", "SetDataAsync", { PropertyA: "hello", PropertyB: "world", ToNotExistKey: "this should not exist since we only have PropertyA and PropertyB" });
-  //         const res = await clientActor.actor.invoke("GET", "DemoActor", "MyActorId1", "GetDataAsync"); // will only return PropertyA and PropertyB since these are the only properties that can be set
-
-  //         expect(JSON.stringify(res)).toEqual(`{\"propertyA\":\"hello\",\"propertyB\":\"world\"}`);
-  //     });
-
-  //     it('should be able to manipulate the state through a transaction of an actor', async () => {
-  //         const clientActor = new DaprClient(daprHost, daprPortActor);
-  //         await clientActor.actor.stateTransaction("DemoActor", "MyActorId1", [
-  //             {
-  //                 operation: "upsert",
-  //                 request: {
-  //                     key: "key-1",
-  //                     value: "my-new-data-1"
-  //                 }
-  //             },
-  //             {
-  //                 operation: "upsert",
-  //                 request: {
-  //                     key: "key-to-delete",
-  //                     value: "my-new-data-1"
-  //                 }
-  //             },
-  //             {
-  //                 operation: "delete",
-  //                 request: {
-  //                     key: "key-to-delete"
-  //                 }
-  //             }
-  //         ]);
-
-  //         const resActorStateGet = await clientActor.actor.stateGet("DemoActor", "MyActorId1", "key-to-delete");
-  //         const resActorStateGet2 = await clientActor.actor.stateGet("DemoActor", "MyActorId1", "key-1");
-
-  //         expect(JSON.stringify(resActorStateGet)).toEqual(`{}`);
-  //         expect(JSON.stringify(resActorStateGet2)).toEqual(`\"my-new-data-1\"`);
-  //     });
-
-  //     it('should be able to get all the actors', async () => {
-  //         const clientActor = new DaprClient(daprHost, daprPortActor);
-
-  //         const res = await clientActor.actor.getActors();
-  //         console.log(res)
-
-  //         expect(JSON.stringify(res)).toEqual(`{}`);
-  //     });
-  // });
 });

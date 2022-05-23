@@ -11,23 +11,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { CommunicationProtocolEnum, DaprClient, DaprServer } from '../../src';
+import { CommunicationProtocolEnum, DaprClient, DaprServer } from '../../../src';
 
-import * as NodeJSUtil from '../../src/utils/NodeJS.util';
-import ActorId from '../../src/actors/ActorId';
-import ActorProxyBuilder from '../../src/actors/client/ActorProxyBuilder';
-import DemoActorActivateImpl from '../actor/DemoActorActivateImpl';
-import DemoActorCounterImpl from '../actor/DemoActorCounterImpl';
-import DemoActorCounterInterface from '../actor/DemoActorCounterInterface';
-import DemoActorReminderImpl from '../actor/DemoActorReminderImpl';
-import DemoActorReminder2Impl from '../actor/DemoActorReminder2Impl';
-import DemoActorReminderInterface from '../actor/DemoActorReminderInterface';
-import DemoActorSayImpl from '../actor/DemoActorSayImpl';
-import DemoActorSayInterface from '../actor/DemoActorSayInterface';
-import DemoActorTimerImpl from '../actor/DemoActorTimerImpl';
-import DemoActorTimerInterface from '../actor/DemoActorTimerInterface';
-import DemoActorTimerTtlImpl from '../actor/DemoActorTimerTtlImpl';
-import DemoActorReminderTtlImpl from '../actor/DemoActorReminderTtlImpl';
+import * as NodeJSUtil from '../../../src/utils/NodeJS.util';
+import ActorId from '../../../src/actors/ActorId';
+import ActorProxyBuilder from '../../../src/actors/client/ActorProxyBuilder';
+import DemoActorActivateImpl from '../../actor/DemoActorActivateImpl';
+import DemoActorCounterImpl from '../../actor/DemoActorCounterImpl';
+import DemoActorCounterInterface from '../../actor/DemoActorCounterInterface';
+import DemoActorReminderImpl from '../../actor/DemoActorReminderImpl';
+import DemoActorReminder2Impl from '../../actor/DemoActorReminder2Impl';
+import DemoActorReminderInterface from '../../actor/DemoActorReminderInterface';
+import DemoActorSayImpl from '../../actor/DemoActorSayImpl';
+import DemoActorSayInterface from '../../actor/DemoActorSayInterface';
+import DemoActorTimerImpl from '../../actor/DemoActorTimerImpl';
+import DemoActorTimerInterface from '../../actor/DemoActorTimerInterface';
+import DemoActorTimerTtlImpl from '../../actor/DemoActorTimerTtlImpl';
+import DemoActorReminderTtlImpl from '../../actor/DemoActorReminderTtlImpl';
 
 const serverHost = "127.0.0.1";
 const serverPort = "50001";

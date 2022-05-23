@@ -22,8 +22,6 @@ async function start() {
     process.env.DAPR_HTTP_PORT ?? daprPortDefault
   );
 
-  await client.start();
-
   const config = await client.configuration.get('config-store', ['key1', 'key2']);
   console.log(config);
 

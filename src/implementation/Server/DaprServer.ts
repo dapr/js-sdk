@@ -123,7 +123,7 @@ export default class DaprServer {
     while (!isHealthy) {
       console.log(`[Dapr-JS][Server] Waiting till Dapr Sidecar Started (#${isHealthyRetryCount})`);
       await NodeJSUtils.sleep(this.daprSidecarPollingDelayMs);
-      isHealthy = await this.client.health.isHealthy();
+      isHealthy = await this.client.getDaprClient().isSidecarStarted();
       isHealthyRetryCount++;
 
       if (isHealthyRetryCount > isHealthyMaxRetryCount) {

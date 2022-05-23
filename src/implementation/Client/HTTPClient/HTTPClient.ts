@@ -18,13 +18,18 @@ import http from "http";
 import https from "https";
 import { DaprClientOptions } from "../../../types/DaprClientOptions";
 import { Settings } from '../../../utils/Settings.util';
+import * as NodeJSUtils from "../../../utils/NodeJS.util";
+import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type"
 
 export default class HTTPClient implements IClient {
-  private client: typeof fetch;
+  private isInitialized: boolean;
+
+  private readonly client: typeof fetch;
   private readonly clientHost: string;
   private readonly clientPort: string;
   private readonly clientUrl: string;
   private readonly options: DaprClientOptions;
+  private readonly daprSidecarPollingDelayMs = 1000;
 
   private readonly httpAgent;
   private readonly httpsAgent;
@@ -39,6 +44,7 @@ export default class HTTPClient implements IClient {
     this.clientHost = host;
     this.clientPort = port;
     this.options = options;
+    this.isInitialized = false;
 
     if (!this.clientHost.startsWith('http://') && !this.clientHost.startsWith('https://')) {
       this.clientUrl = `http://${this.clientHost}:${this.clientPort}/v1.0`;
@@ -89,14 +95,70 @@ export default class HTTPClient implements IClient {
     this.httpsAgent.destroy();
   }
 
+  async isSidecarStarted(): Promise<boolean> {
+    try {
+      await this.execute(`/metadata`, null, false);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async start(): Promise<void> {
+    // Dapr will probe every 50ms to see if we are listening on our port: https://github.com/dapr/dapr/blob/a43712c97ead550ca2f733e9f7e7769ecb195d8b/pkg/runtime/runtime.go#L1694
+    // if we are using actors we will change this to 4s to let the placement tables update
+    let isHealthy = false;
+    let isHealthyRetryCount = 0;
+    const isHealthyMaxRetryCount = 60; // 1s startup delay and we try max for 60s
+
+    console.log(`[Dapr-JS][Client] Awaiting Sidecar to be Started`);
+    while (!isHealthy) {
+      console.log(`[Dapr-JS][Client] Waiting till Dapr Sidecar Started (#${isHealthyRetryCount})`);
+      await NodeJSUtils.sleep(this.daprSidecarPollingDelayMs);
+
+      // Implement API call manually as we need to enable calling without initialization
+      // everything routes through the `execute` method
+      // to check health, we just ping the /metadata endpoint and see if we get a response
+      isHealthy = await this.isSidecarStarted();
+
+      // Finally, Handle the retry logic
+      isHealthyRetryCount++;
+
+      if (isHealthyRetryCount > isHealthyMaxRetryCount) {
+        throw new Error("DAPR_SIDECAR_COULD_NOT_BE_STARTED");
+      }
+    }
+
+    // We are initialized
+    this.isInitialized = true;
+    console.log(`[Dapr-JS][Client] Sidecar Started`);
+  }
+
   async executeWithApiVersion(apiVersion = "v1.0", url: string, params: any = {}): Promise<object | string> {
     const newClientUrl = this.clientUrl.replace("v1.0", apiVersion);
     return await this.execute(`${newClientUrl}${url}`, params);
   }
 
-  async execute(url: string, params: any = {}): Promise<object | string> {
+  /**
+   * 
+   * @param url The URL to call
+   * @param params The parameters to pass to our URL
+   * @param requiresInitialization If false, it doesn't require the Dapr sidecar to be started and might fail
+   * @returns The result of the call
+   */
+  async execute(url: string, params?: THTTPExecuteParams | undefined | null, requiresInitialization: boolean = true): Promise<object | string> {
+    if (!params || typeof params !== "object") {
+      params = {
+        method: "GET"
+      };
+    }
+
     if (!params?.headers) {
       params.headers = {};
+    }
+
+    if (!params?.method) {
+      params.method = "GET";
     }
 
     if (params?.body && !params?.headers["Content-Type"]) {
@@ -115,10 +177,14 @@ export default class HTTPClient implements IClient {
       }
     }
 
-
     const urlFull = url.startsWith("http") ? url : `${this.clientUrl}${url}`;
     const agent = urlFull.startsWith("https") ? this.httpsAgent : this.httpAgent;
     params.agent = agent;
+
+    // Ensure the sidecar has been started
+    if (!this.isInitialized && requiresInitialization) {
+      await this.start();
+    }
 
     // console.log(`${params.method} - ${urlFull} (${params.body})`);
     const res = await fetch(urlFull, params);

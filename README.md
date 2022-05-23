@@ -59,7 +59,6 @@ await server.start();
 
 // Create a Client (will publish)
 const client = new DaprClient(daprHost, daprPort);
-await client.start()
 await client.pubsub.publish("my-pubsub-component", "my-topic", { hello: "world" });
 ```
 
