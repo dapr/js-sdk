@@ -26,6 +26,7 @@ describe('http/client', () => {
     client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.HTTP, {
       isKeepAlive: false
     });
+
   }, 10 * 1000);
 
   afterAll(async () => {
@@ -73,6 +74,19 @@ describe('http/client', () => {
     it('should receive if it was successful or not', async () => {
       const res = await client.pubsub.publish('pubsub-redis', 'test-topic', { hello: 'world' });
       expect(res).toEqual(true);
+    });
+
+    it('should not crash if the callback throws an error', async () => {
+      await client.pubsub.publish('pubsub-redis', 'test-topic-error', { hello: 'world' });
+
+      // Delay a bit for event to arrive
+      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+
+      expect(mockPubSubSubscribeError.mock.calls.length).toBe(1);
+
+      // Also test for receiving data
+      // @ts-ignore
+      expect(mockPubSubSubscribeError.mock.calls[0][0]['hello']).toEqual('world');
     });
   });
 

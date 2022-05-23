@@ -23,6 +23,7 @@ describe('grpc/server', () => {
   let server: DaprServer;
   const mockBindingReceive = jest.fn(async (_data: object) => console.log('mockBindingReceive'));
   const mockPubSubSubscribe = jest.fn(async (_data: object) => console.log('mockPubSubSubscribe'));
+  const mockPubSubSubscribeError = jest.fn(async (_data: object) => { throw new Error("mockPubSubSubscribeError") });
 
   // We need to start listening on some endpoints already
   // this because Dapr is not dynamic and registers endpoints on boot
@@ -34,6 +35,7 @@ describe('grpc/server', () => {
     // Test with:
     // dapr publish --publish-app-id test-suite --pubsub pubsub-redis --topic test-topic --data '{ "hello": "world" }'
     await server.pubsub.subscribe('pubsub-redis', 'test-topic', mockPubSubSubscribe);
+    await server.pubsub.subscribe('pubsub-redis', 'test-topic-error', mockPubSubSubscribeError);
 
     // Start server
     await server.start();
