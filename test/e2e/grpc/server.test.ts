@@ -68,8 +68,6 @@ describe('grpc/server', () => {
 
       // Delay a bit for event to arrive
       await new Promise((resolve, _reject) => setTimeout(resolve, 250));
-      console.log(mockPubSubSubscribe.mock.calls)
-
       expect(mockPubSubSubscribe.mock.calls.length).toBe(1);
 
       // Also test for receiving data

@@ -69,7 +69,6 @@ describe('http/server', () => {
 
       // Delay a bit for event to arrive
       await new Promise((resolve, _reject) => setTimeout(resolve, 250));
-
       expect(mockPubSubSubscribe.mock.calls.length).toBe(1);
 
       // Also test for receiving data

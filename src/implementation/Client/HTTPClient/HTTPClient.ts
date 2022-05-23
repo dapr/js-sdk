@@ -29,7 +29,6 @@ export default class HTTPClient implements IClient {
   private readonly clientPort: string;
   private readonly clientUrl: string;
   private readonly options: DaprClientOptions;
-  private readonly daprSidecarPollingDelayMs = 1000;
 
   private readonly httpAgent;
   private readonly httpsAgent;
@@ -114,7 +113,7 @@ export default class HTTPClient implements IClient {
     console.log(`[Dapr-JS][Client] Awaiting Sidecar to be Started`);
     while (!isHealthy) {
       console.log(`[Dapr-JS][Client] Waiting till Dapr Sidecar Started (#${isHealthyRetryCount})`);
-      await NodeJSUtils.sleep(this.daprSidecarPollingDelayMs);
+      await NodeJSUtils.sleep(Settings.getDaprSidecarPollingDelayMs());
 
       // Implement API call manually as we need to enable calling without initialization
       // everything routes through the `execute` method

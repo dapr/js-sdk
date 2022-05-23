@@ -29,7 +29,6 @@ export default class GRPCServer implements IServer {
   server: IServerType;
   serverImpl: IServerImplType;
   serverCredentials: grpc.ServerCredentials;
-  daprSidecarPollingDelayMs = 1000;
   client: DaprClient;
 
   constructor(client: DaprClient) {

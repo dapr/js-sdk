@@ -30,7 +30,6 @@ export default class HTTPServer implements IServer {
   server: IServerType;
   serverAddress: string;
   serverImpl: IServerImplType;
-  daprSidecarPollingDelayMs = 1000;
   client: DaprClient;
 
   constructor(client: DaprClient) {

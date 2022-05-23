@@ -49,8 +49,6 @@ export default class DaprServer {
   readonly actor: IServerActor;
   readonly client: DaprClient;
 
-  readonly daprSidecarPollingDelayMs = 1000;
-
   constructor(
     serverHost?: string
     , serverPort?: string
@@ -122,7 +120,7 @@ export default class DaprServer {
     console.log(`[Dapr-JS][Server] Awaiting Sidecar to be Started`);
     while (!isHealthy) {
       console.log(`[Dapr-JS][Server] Waiting till Dapr Sidecar Started (#${isHealthyRetryCount})`);
-      await NodeJSUtils.sleep(this.daprSidecarPollingDelayMs);
+      await NodeJSUtils.sleep(Settings.getDaprSidecarPollingDelayMs());
       isHealthy = await this.client.getDaprClient().isSidecarStarted();
       isHealthyRetryCount++;
 

@@ -30,7 +30,6 @@ export default class GRPCClient implements IClient {
   private readonly clientHost: string;
   private readonly clientPort: string;
   private readonly options: DaprClientOptions;
-  private readonly daprSidecarPollingDelayMs = 1000;
 
   constructor(
     host = Settings.getDefaultHost()
@@ -99,7 +98,7 @@ export default class GRPCClient implements IClient {
     console.log(`[Dapr-JS][Client] Awaiting Sidecar to be Started`);
     while (!isHealthy) {
       console.log(`[Dapr-JS][Client] Waiting till Dapr Sidecar Started (#${isHealthyRetryCount})`);
-      await NodeJSUtils.sleep(this.daprSidecarPollingDelayMs);
+      await NodeJSUtils.sleep(Settings.getDaprSidecarPollingDelayMs());
 
       // Implement API call manually as we need to enable calling without initialization
       // everything routes through the `execute` method
