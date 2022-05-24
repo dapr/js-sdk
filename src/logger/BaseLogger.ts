@@ -13,9 +13,36 @@ limitations under the License.
 
 import { LogLevel } from "./LogLevel";
 
+type argsT = 
+    [message: string, ...params: any[]] | 
+    [error: Error, message: string, ...params: any[]] | 
+    [eventId: number, message: string, ...params: any[]] | 
+    [eventId: number, error: Error, message: string, ...params: any[]];
+
 export abstract class BaseLogger {
 
+    private logLevel: LogLevel = LogLevel.VERBOSE;
+
     abstract log(level: LogLevel, eventId: number, error?: Error, message?: string, ...params: any[]): void;
+
+    /**
+     * Sets the log level. All logs with a level less than or equal to the log level will be logged.
+     * For example, if the log level is set to LogLevel.WARN, only WARN and ERROR logs will be logged.
+     * 
+     * @param level The log level to set.
+     */
+    setLogLevel(level: LogLevel) {
+        this.logLevel = level;
+    }
+
+    /**
+     * Gets the log level.
+     *
+     * @returns The current log level.
+     */
+    getLogLevel(): LogLevel {
+        return this.logLevel;
+    }
 
     /**
      * Log an error message.
@@ -56,12 +83,8 @@ export abstract class BaseLogger {
      * @param params Format parameters.
      */
     error(eventId: number, error: Error, message: string, ...params: any[]): void;
-    error(...args: 
-        [message: string, ...params: any[]] | 
-        [error: Error, message: string, ...params: any[]] | 
-        [eventId: number, message: string, ...params: any[]] | 
-        [eventId: number, error: Error, message: string, ...params: any[]]): void {
-
+    error(...args: argsT): void {
+        this._log(LogLevel.ERROR, args);
     }
 
     /**
@@ -104,11 +127,8 @@ export abstract class BaseLogger {
      */
     warn(eventId: number, error: Error, message: string, ...params: any[]): void;
 
-    warn(...args: 
-        [message: string, ...params: any[]] |
-        [error: Error, message: string, ...params: any[]] |
-        [eventId: number, message: string, ...params: any[]] |
-        [eventId: number, error: Error, message: string, ...params: any[]]): void {
+    warn(...args: argsT): void {
+        this._log(LogLevel.WARN, args);
     }
 
     /**
@@ -151,12 +171,53 @@ export abstract class BaseLogger {
      */
     info(eventId: number, error: Error, message: string, ...params: any[]): void;
 
-    info(...args:
-        [message: string, ...params: any[]] |
-        [error: Error, message: string, ...params: any[]] |
-        [eventId: number, message: string, ...params: any[]] |
-        [eventId: number, error: Error, message: string, ...params: any[]]): void {
+    info(...args: argsT): void {
+        this._log(LogLevel.INFO, args);
     }
+
+    /**
+     * Log a verbose message.
+     * Example, logger.verbose("Entering '{0}'", funcName);
+     * 
+     * @param message Verbose message.
+     * @param params Format parameters.
+     */
+     verbose(message: string, ...params: any[]): void;
+
+     /**
+      * Log a verbose message with an error object.
+      * Example, logger.verbose(err, "Error entering '{0}'", funcName);
+      * 
+      * @param error Error object.
+      * @param message Verbose message.
+      * @param params Format parameters.
+      */
+     verbose(error: Error, message: string, ...params: any[]): void;
+ 
+     /**
+      * Log a verbose message with an event ID.
+      * Example, logger.verbose(FILENAME_LOAD_EVENT, "Loading '{0}'", fileName);
+      * 
+      * @param eventId Event ID of the log entry.
+      * @param message Verbose message.
+      * @param params Format parameters.
+      */
+     verbose(eventId: number, message: string, ...params: any[]): void;
+ 
+     /**
+      * Log a verbose message with an error object and an event ID.
+      * Example, logger.verbose(FILENAME_LOAD_ERROR, err, "Error loading '{0}'", fileName);
+      * 
+      * @param eventId Event ID of the log entry.
+      * @param error Error object.
+      * @param message Verbose message.
+      * @param params Format parameters.
+      */
+     verbose(eventId: number, error: Error, message: string, ...params: any[]): void;
+ 
+     verbose(...args: argsT): void {
+         this._log(LogLevel.VERBOSE, args);
+     }
 
     /**
      * Log a debug message.
@@ -198,57 +259,30 @@ export abstract class BaseLogger {
      */
     debug(eventId: number, error: Error, message: string, ...params: any[]): void;
 
-    debug(...args:
-        [message: string, ...params: any[]] |
-        [error: Error, message: string, ...params: any[]] |
-        [eventId: number, message: string, ...params: any[]] |
-        [eventId: number, error: Error, message: string, ...params: any[]]): void {
+    debug(...args: argsT): void {
+        this._log(LogLevel.DEBUG, args);
     }
 
-    /**
-     * Log a trace message.
-     * Example, logger.trace("Entering '{0}'", funcName);
-     * 
-     * @param message Trace message.
-     * @param params Format parameters.
-     */
-    trace(message: string, ...params: any[]): void;
+    private _log(level: LogLevel, args: argsT) {
+        if (this.logLevel < level) {
+            return;
+        }
+        
+        // Is the next argument an event ID?
+        let eventId: number = 0;
+        if (typeof args[0] === "number") {
+            eventId = args.shift();
+        }
 
-    /**
-     * Log a trace message with an error object.
-     * Example, logger.trace(err, "Error entering '{0}'", funcName);
-     * 
-     * @param error Error object.
-     * @param message Trace message.
-     * @param params Format parameters.
-     */
-    trace(error: Error, message: string, ...params: any[]): void;
+        // Is the next argument an error object?
+        let error: Error | undefined = undefined;
+        if (args[0] instanceof Error) {
+            error = args.shift();
+        }
 
-    /**
-     * Log a trace message with an event ID.
-     * Example, logger.trace(FILENAME_LOAD_EVENT, "Loading '{0}'", fileName);
-     * 
-     * @param eventId Event ID of the log entry.
-     * @param message Trace message.
-     * @param params Format parameters.
-     */
-    trace(eventId: number, message: string, ...params: any[]): void;
+        // Next argument is the message.
+        let message = args.shift();
 
-    /**
-     * Log a trace message with an error object and an event ID.
-     * Example, logger.trace(FILENAME_LOAD_ERROR, err, "Error loading '{0}'", fileName);
-     * 
-     * @param eventId Event ID of the log entry.
-     * @param error Error object.
-     * @param message Trace message.
-     * @param params Format parameters.
-     */
-    trace(eventId: number, error: Error, message: string, ...params: any[]): void;
-
-    trace(...args:
-        [message: string, ...params: any[]] |
-        [error: Error, message: string, ...params: any[]] |
-        [eventId: number, message: string, ...params: any[]] |
-        [eventId: number, error: Error, message: string, ...params: any[]]): void {
+        this.log(level, eventId, error, message, args);
     }
 }
