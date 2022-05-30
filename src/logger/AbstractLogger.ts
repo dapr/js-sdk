@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { LogLevel } from "./LogLevel";
+import { LogLevel } from "../types/logger/LogLevel";
 
 type argsT = 
     [message: string, ...params: any[]] | 
@@ -19,7 +19,7 @@ type argsT =
     [eventId: number, message: string, ...params: any[]] | 
     [eventId: number, error: Error, message: string, ...params: any[]];
 
-export abstract class BaseLogger {
+export abstract class AbstractLogger {
 
     private logLevel: LogLevel = LogLevel.VERBOSE;
 

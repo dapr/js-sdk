@@ -19,6 +19,9 @@ import AbstractActor from "./actors/runtime/AbstractActor";
 import { Temporal } from "@js-temporal/polyfill";
 import ActorProxyBuilder from "./actors/client/ActorProxyBuilder";
 import ActorId from "./actors/ActorId";
+import { AbstractLogger } from "./logger/AbstractLogger";
+import { LogLevel } from "./types/logger/LogLevel";
+import { ConsoleLogger } from "./logger/ConsoleLogger";
 
 export {
     DaprClient,
@@ -28,5 +31,8 @@ export {
     ActorId,
     ActorProxyBuilder,
     CommunicationProtocolEnum,
-    Temporal
+    Temporal,
+    LogLevel,
+    AbstractLogger,
+    ConsoleLogger,
 }

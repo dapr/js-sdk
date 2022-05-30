@@ -11,16 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { AbstractLogger } from "./AbstractLogger";
 import { LogLevel } from "../types/logger/LogLevel";
+import { AbstractLogger } from "./AbstractLogger";
 
-export class ConsoleLogger extends AbstractLogger {
-    constructor(level: LogLevel = LogLevel.VERBOSE) {
-        super();
-        this.setLogLevel(level);
-    }
-
-    log(level: LogLevel, eventId: number, error?: Error, message?: string, ...params: any[]): void {
-        console.log(level, eventId, error, message, ...params);
+export class WinstonLogger extends AbstractLogger {
+    log(level: LogLevel, eventId: number, error?: Error | undefined, message?: string | undefined, ...params: any[]): void {
+        throw new Error("Method not implemented.");
     }
 }
