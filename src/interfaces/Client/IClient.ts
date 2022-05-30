@@ -15,7 +15,7 @@ import CommunicationProtocolEnum from "../../enum/CommunicationProtocol.enum";
 import { DaprClientOptions } from "../../types/DaprClientOptions";
 
 export default interface IClient {
-  getClient(): any; //s dependent on implementation
+  getClient(): any;
   getClientHost(): string;
   getClientPort(): string;
   getClientCommunicationProtocol(): CommunicationProtocolEnum;
