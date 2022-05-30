@@ -24,11 +24,6 @@ export default class HTTPClientHealth implements IClientHealth {
 
   // Send an event to an external system
   async isHealthy(): Promise<boolean> {
-    try {
-      const result = await this.client.execute(`/metadata`);
-      return !!result;
-    } catch (e) {
-      return false;
-    }
+    return this.client.isSidecarStarted();
   }
 }
