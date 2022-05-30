@@ -18,7 +18,6 @@ import http from "http";
 import https from "https";
 import { DaprClientOptions } from "../../../types/DaprClientOptions";
 import { Settings } from '../../../utils/Settings.util';
-import * as NodeJSUtils from "../../../utils/NodeJS.util";
 import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type"
 
 export default class HTTPClient implements IClient {
@@ -89,48 +88,16 @@ export default class HTTPClient implements IClient {
     return this.options;
   }
 
+  setIsInitialized(isInitialized: boolean): void {
+    this.isInitialized = isInitialized;
+  }
+
   async stop(): Promise<void> {
     this.httpAgent.destroy();
     this.httpsAgent.destroy();
   }
 
-  async isSidecarStarted(): Promise<boolean> {
-    try {
-      await this.execute(`/metadata`, null, false);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
   async start(): Promise<void> {
-    // Dapr will probe every 50ms to see if we are listening on our port: https://github.com/dapr/dapr/blob/a43712c97ead550ca2f733e9f7e7769ecb195d8b/pkg/runtime/runtime.go#L1694
-    // if we are using actors we will change this to 4s to let the placement tables update
-    let isHealthy = false;
-    let isHealthyRetryCount = 0;
-    const isHealthyMaxRetryCount = 60; // 1s startup delay and we try max for 60s
-
-    console.log(`[Dapr-JS][Client] Awaiting Sidecar to be Started`);
-    while (!isHealthy) {
-      console.log(`[Dapr-JS][Client] Waiting till Dapr Sidecar Started (#${isHealthyRetryCount})`);
-      await NodeJSUtils.sleep(Settings.getDaprSidecarPollingDelayMs());
-
-      // Implement API call manually as we need to enable calling without initialization
-      // everything routes through the `execute` method
-      // to check health, we just ping the /metadata endpoint and see if we get a response
-      isHealthy = await this.isSidecarStarted();
-
-      // Finally, Handle the retry logic
-      isHealthyRetryCount++;
-
-      if (isHealthyRetryCount > isHealthyMaxRetryCount) {
-        throw new Error("DAPR_SIDECAR_COULD_NOT_BE_STARTED");
-      }
-    }
-
-    // We are initialized
-    this.isInitialized = true;
-    console.log(`[Dapr-JS][Client] Sidecar Started`);
   }
 
   async executeWithApiVersion(apiVersion = "v1.0", url: string, params: any = {}): Promise<object | string> {

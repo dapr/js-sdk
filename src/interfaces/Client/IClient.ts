@@ -20,7 +20,7 @@ export default interface IClient {
   getClientPort(): string;
   getClientCommunicationProtocol(): CommunicationProtocolEnum;
   getOptions(): DaprClientOptions;
-  isSidecarStarted(): Promise<boolean>;
+  setIsInitialized(isInitialized: boolean): void;
   stop(): Promise<void>;
   start(): Promise<void>;
 }

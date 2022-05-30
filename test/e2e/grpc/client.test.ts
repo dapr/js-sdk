@@ -37,7 +37,7 @@ describe('grpc/client', () => {
       // there is however a delay between the sidecar being ready and the app starting as they are started asynchronously
       // if Dapr has to connect to a component, it might introduce a delay
       // the test will thus randomly have isStarted = true or isStarted = false depending on the startup delay of the sidecar
-      await client.getDaprClient().isSidecarStarted();
+      await client.health.isHealthy();
       // expect(isStarted).toBe(false);
     })
   });
