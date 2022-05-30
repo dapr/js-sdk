@@ -12,26 +12,36 @@ limitations under the License.
 */
 
 /**
- * ConsoleLogger uses the in-built console module to log messages.
+ * LoggerExtensions is a wrapper class around LoggerService to provide additional functionality.
  */
-class ConsoleLogger implements LoggerService {
+class LoggerExtensions {
+    private logger: LoggerService;
+    private component: string;
+    private area: string;
+
+    constructor(logger: LoggerService, component: string, area: string) {
+        this.logger = logger;
+        this.component = component;
+        this.area = area;
+    }
+
     error(message: any, ...optionalParams: any[]): void {
-        console.error(message, ...optionalParams);
+        this.logger.error(`[${this.component}] ${this.area}: ${message}`, ...optionalParams);
     }
 
     warn(message: any, ...optionalParams: any[]): void {
-        console.warn(message, ...optionalParams);
+        this.logger.warn(`[${this.component}] ${this.area}: ${message}`, ...optionalParams);
     }
 
     info(message: any, ...optionalParams: any[]): void {
-        console.info(message, ...optionalParams);
+        this.logger.info(`[${this.component}] ${this.area}: ${message}`, ...optionalParams);
     }
 
     verbose(message: any, ...optionalParams: any[]): void {
-        console.log(message, ...optionalParams);
+        this.logger.verbose(`[${this.component}] ${this.area}: ${message}`, ...optionalParams);
     }
 
     debug(message: any, ...optionalParams: any[]): void {
-        console.debug(message, ...optionalParams);
+        this.logger.debug(`[${this.component}] ${this.area}: ${message}`, ...optionalParams);
     }
 }
