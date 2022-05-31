@@ -33,18 +33,16 @@ Visit [https://docs.dapr.io/developing-applications/sdks/js/](https://docs.dapr.
 
 Dapr is used by the world's leading companies. 
 
-<div align="center" style="display: flex; justify-content: space-around; align-content: center;">               
-    <img src="https://dapr.io/images/bosch.png" style="flex-grow: 0; flex-shrink: 0;" width="100px">      
-    <img src="https://dapr.io/images/zeiss.png" style="flex-grow: 0; flex-shrink: 0;" width="100px">        
-    <img src="https://dapr.io/images/alibaba.png" style="flex-grow: 0; flex-shrink: 0;" width="100px">       
-    <img src="https://dapr.io/images/ignition-group.png" style="flex-grow: 0; flex-shrink: 0;" width="100px">      
-    <img src="https://dapr.io/images/roadwork.png" style="flex-grow: 0; flex-shrink: 0;" width="100px">     
-    <img src="https://dapr.io/images/autonavi.png" style="flex-grow: 0; flex-shrink: 0;" width="100px">     
-    <img src="https://dapr.io/images/legentic.png" style="flex-grow: 0; flex-shrink: 0;" width="100px">      
-    <img src="https://dapr.io/images/man-group.png" style="flex-grow: 0; flex-shrink: 0;" width="100px">
+<div align="center">               
+    <img src="https://dapr.io/images/bosch.png" width="100px">      
+    <img src="https://dapr.io/images/zeiss.png" width="100px">        
+    <img src="https://dapr.io/images/alibaba.png" width="100px">       
+    <img src="https://dapr.io/images/ignition-group.png" width="100px">      
+    <img src="https://dapr.io/images/roadwork.png" width="100px">     
+    <img src="https://dapr.io/images/autonavi.png" width="100px">     
+    <img src="https://dapr.io/images/legentic.png" width="100px">      
+    <img src="https://dapr.io/images/man-group.png" width="100px">
 </div>
-
-<br />
 
 View the main site [https://dapr.io/](https://dapr.io/) to learn more.
 
