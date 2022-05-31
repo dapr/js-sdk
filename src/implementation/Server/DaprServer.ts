@@ -32,7 +32,6 @@ import HTTPServerActor from './HTTPServer/actor';
 import { DaprClientOptions } from '../../types/DaprClientOptions';
 import { DaprClient } from '../..';
 import { Settings } from '../../utils/Settings.util';
-import * as NodeJSUtils from "../../utils/NodeJS.util";
 
 export default class DaprServer {
   // App details

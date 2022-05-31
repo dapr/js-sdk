@@ -98,6 +98,7 @@ export default class HTTPClient implements IClient {
   }
 
   async start(): Promise<void> {
+    return;
   }
 
   async executeWithApiVersion(apiVersion = "v1.0", url: string, params: any = {}): Promise<object | string> {
@@ -112,7 +113,7 @@ export default class HTTPClient implements IClient {
    * @param requiresInitialization If false, it doesn't require the Dapr sidecar to be started and might fail
    * @returns The result of the call
    */
-  async execute(url: string, params?: THTTPExecuteParams | undefined | null, requiresInitialization: boolean = true): Promise<object | string> {
+  async execute(url: string, params?: THTTPExecuteParams | undefined | null, requiresInitialization = true): Promise<object | string> {
     if (!params || typeof params !== "object") {
       params = {
         method: "GET"
