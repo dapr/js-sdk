@@ -25,6 +25,8 @@ Instantly get started by installing the Dapr JS SDK and reading the [getting sta
 npm install --save @dapr/dapr
 ```
 
+> ⚠️ the old `dapr-client` package has been deprecated
+
 ## Documentation
 
 Visit [https://docs.dapr.io/developing-applications/sdks/js/](https://docs.dapr.io/developing-applications/sdks/js/) to view the full documentation.
