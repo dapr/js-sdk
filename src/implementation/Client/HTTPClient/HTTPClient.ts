@@ -18,9 +18,12 @@ import http from "http";
 import https from "https";
 import { DaprClientOptions } from "../../../types/DaprClientOptions";
 import { Settings } from '../../../utils/Settings.util';
+import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type"
 
 export default class HTTPClient implements IClient {
-  private client: typeof fetch;
+  private isInitialized: boolean;
+
+  private readonly client: typeof fetch;
   private readonly clientHost: string;
   private readonly clientPort: string;
   private readonly clientUrl: string;
@@ -39,6 +42,7 @@ export default class HTTPClient implements IClient {
     this.clientHost = host;
     this.clientPort = port;
     this.options = options;
+    this.isInitialized = false;
 
     if (!this.clientHost.startsWith('http://') && !this.clientHost.startsWith('https://')) {
       this.clientUrl = `http://${this.clientHost}:${this.clientPort}/v1.0`;
@@ -84,9 +88,16 @@ export default class HTTPClient implements IClient {
     return this.options;
   }
 
+  setIsInitialized(isInitialized: boolean): void {
+    this.isInitialized = isInitialized;
+  }
+
   async stop(): Promise<void> {
     this.httpAgent.destroy();
     this.httpsAgent.destroy();
+  }
+
+  async start(): Promise<void> {
   }
 
   async executeWithApiVersion(apiVersion = "v1.0", url: string, params: any = {}): Promise<object | string> {
@@ -94,9 +105,26 @@ export default class HTTPClient implements IClient {
     return await this.execute(`${newClientUrl}${url}`, params);
   }
 
-  async execute(url: string, params: any = {}): Promise<object | string> {
+  /**
+   * 
+   * @param url The URL to call
+   * @param params The parameters to pass to our URL
+   * @param requiresInitialization If false, it doesn't require the Dapr sidecar to be started and might fail
+   * @returns The result of the call
+   */
+  async execute(url: string, params?: THTTPExecuteParams | undefined | null, requiresInitialization: boolean = true): Promise<object | string> {
+    if (!params || typeof params !== "object") {
+      params = {
+        method: "GET"
+      };
+    }
+
     if (!params?.headers) {
       params.headers = {};
+    }
+
+    if (!params?.method) {
+      params.method = "GET";
     }
 
     if (params?.body && !params?.headers["Content-Type"]) {
@@ -115,10 +143,14 @@ export default class HTTPClient implements IClient {
       }
     }
 
-
     const urlFull = url.startsWith("http") ? url : `${this.clientUrl}${url}`;
     const agent = urlFull.startsWith("https") ? this.httpsAgent : this.httpAgent;
     params.agent = agent;
+
+    // Ensure the sidecar has been started
+    if (!this.isInitialized && requiresInitialization) {
+      await this.start();
+    }
 
     // console.log(`${params.method} - ${urlFull} (${params.body})`);
     const res = await fetch(urlFull, params);

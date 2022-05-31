@@ -32,6 +32,7 @@ import HTTPServerActor from './HTTPServer/actor';
 import { DaprClientOptions } from '../../types/DaprClientOptions';
 import { DaprClient } from '../..';
 import { Settings } from '../../utils/Settings.util';
+import * as NodeJSUtils from "../../utils/NodeJS.util";
 
 export default class DaprServer {
   // App details
@@ -106,7 +107,14 @@ export default class DaprServer {
   }
 
   async start(): Promise<void> {
+    // First start the server as we need to initialize routes for PubSub, Bindings, ...
     await this.daprServer.start(this.serverHost, this.serverPort.toString());
+
+    // Ensure our sidecar starts and the client is ready
+    await this.client.start();
+
+    // We are initialized
+    console.log(`[Dapr-JS][Server] Sidecar Started`);
   }
 
   async stop(): Promise<void> {

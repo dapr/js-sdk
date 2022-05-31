@@ -15,10 +15,12 @@ import CommunicationProtocolEnum from "../../enum/CommunicationProtocol.enum";
 import { DaprClientOptions } from "../../types/DaprClientOptions";
 
 export default interface IClient {
-  getClient(): any; // dependent on implementation
+  getClient(): any;
   getClientHost(): string;
   getClientPort(): string;
   getClientCommunicationProtocol(): CommunicationProtocolEnum;
   getOptions(): DaprClientOptions;
+  setIsInitialized(isInitialized: boolean): void;
   stop(): Promise<void>;
+  start(): Promise<void>;
 }
