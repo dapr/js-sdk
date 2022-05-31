@@ -48,7 +48,9 @@ View the main site [https://dapr.io/](https://dapr.io/) to learn more.
 
 ## Community
 
-The Dapr community can be found on [Discord](https://discord.com/invite/ptHhX6jc34), where you can ask questions, propose features, and share your thoughts.
+For the JS SDK we are utilizing [GitHub Communities](https://github.com/dapr/js-sdk/discussions) to track Announcements, Articles, and more! 
+
+The General Dapr community can be found on [Discord](https://discord.com/invite/ptHhX6jc34), where you can ask questions, propose features, and share your thoughts.
 
 ## Contributing
 
