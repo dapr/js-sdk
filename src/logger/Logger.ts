@@ -22,7 +22,7 @@ export class Logger {
      * Creates a new instance of the Logger class.
      * If an options is missing, it falls back to the default values.
      * The default log level is 'info'.
-     * The default log service is the ConsoleLogger.
+     * The default log service is the ConsoleLoggerService.
      * @param options Logger options
      */
     constructor(options?: LoggerOptions) {
@@ -35,37 +35,37 @@ export class Logger {
         if (options && options.logService) {
             this.logService = options.logService;
         } else {
-            this.logService = new ConsoleLogger();
+            this.logService = new ConsoleLoggerService();
         }
     }
 
     error(component: string, area: string, message: any, ...optionalParams: any[]): void {
         if (this.logLevel >= LogLevel.error) {
-            this.logService.error(`[${component}] ${area}: ${message}`, ...optionalParams);
+            this.logService.error(`[${component}, ${area}] ${message}`, ...optionalParams);
         }
     }
 
     warn(component: string, area: string, message: any, ...optionalParams: any[]): void {
         if (this.logLevel >= LogLevel.warn) {
-            this.logService.warn(`[${component}] ${area}: ${message}`, ...optionalParams);
+            this.logService.warn(`[${component}, ${area}] ${message}`, ...optionalParams);
         }
     }
 
     info(component: string, area: string, message: any, ...optionalParams: any[]): void {
         if (this.logLevel >= LogLevel.info) {
-            this.logService.info(`[${component}] ${area}: ${message}`, ...optionalParams);
+            this.logService.info(`[${component}, ${area}] ${message}`, ...optionalParams);
         }
     }
 
     verbose(component: string, area: string, message: any, ...optionalParams: any[]): void {
         if (this.logLevel >= LogLevel.verbose) {
-            this.logService.verbose(`[${component}] ${area}: ${message}`, ...optionalParams);
+            this.logService.verbose(`[${component}, ${area}] ${message}`, ...optionalParams);
         }
     }
 
     debug(component: string, area: string, message: any, ...optionalParams: any[]): void {
         if (this.logLevel >= LogLevel.debug) {
-            this.logService.debug(`[${component}] ${area}: ${message}`, ...optionalParams);
+            this.logService.debug(`[${component}, ${area}]: ${message}`, ...optionalParams);
         }
     }
 }

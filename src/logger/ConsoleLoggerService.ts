@@ -12,26 +12,30 @@ limitations under the License.
 */
 
 /**
- * ConsoleLogger uses the in-built console module to log messages.
+ * ConsoleLoggerService uses the in-built console module to log messages.
  */
-class ConsoleLogger implements LoggerService {
+class ConsoleLoggerService implements LoggerService {
     error(message: any, ...optionalParams: any[]): void {
-        console.error(message, ...optionalParams);
+        console.error(`${this.getTime()} ERROR ${message}`, ...optionalParams);
     }
 
     warn(message: any, ...optionalParams: any[]): void {
-        console.warn(message, ...optionalParams);
+        console.warn(`${this.getTime()} WARN ${message}`, ...optionalParams);
     }
 
     info(message: any, ...optionalParams: any[]): void {
-        console.info(message, ...optionalParams);
+        console.info(`${this.getTime()} INFO ${message}`, ...optionalParams);
     }
 
     verbose(message: any, ...optionalParams: any[]): void {
-        console.log(message, ...optionalParams);
+        console.log(`${this.getTime()} VERBOSE ${message}`, ...optionalParams);
     }
 
     debug(message: any, ...optionalParams: any[]): void {
-        console.debug(message, ...optionalParams);
+        console.debug(`${this.getTime()} DEBUG ${message}`, ...optionalParams);
+    }
+
+    private getTime(): string {
+        return new Date().toISOString();
     }
 }
