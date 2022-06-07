@@ -28,13 +28,13 @@ export class Logger {
      * @param options Logger options
      */
     constructor(options?: LoggerOptions) {
-        if (options && options.logLevel) {
+        if (options !== undefined && options.logLevel !== undefined) {
             this.logLevel = options.logLevel;
         } else {
             this.logLevel = LogLevel.info;
         }
 
-        if (options && options.logService) {
+        if (options !== undefined && options.logService !== undefined) {
             this.logService = options.logService;
         } else {
             this.logService = new ConsoleLoggerService();
