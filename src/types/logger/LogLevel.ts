@@ -15,9 +15,9 @@ limitations under the License.
  * LogLevel sets the level of logging that should be used.
  */
  export enum LogLevel {
-    error = 0,
-    warn = 1,
-    info = 2,
-    verbose = 3,
-    debug = 4,
+    Error = 0,
+    Warn = 1,
+    Info = 2,
+    Verbose = 3,
+    Debug = 4,
 }

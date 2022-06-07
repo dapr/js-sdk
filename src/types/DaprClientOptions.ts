@@ -15,5 +15,5 @@ import { LoggerOptions } from "./logger/LoggerOptions";
 
 export type DaprClientOptions = {
   isKeepAlive: boolean;
-  loggerOptions?: LoggerOptions;
+  logger?: LoggerOptions;
 }

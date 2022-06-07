@@ -68,7 +68,7 @@ export default class DaprServer {
     this.serverPort = serverPort ?? Settings.getDefaultAppPort(communicationProtocol);
     this.daprHost = daprHost ?? Settings.getDefaultHost();
     this.daprPort = daprPort ?? Settings.getDefaultPort(communicationProtocol);
-    this.logger = new Logger(clientOptions.loggerOptions);
+    this.logger = new Logger(clientOptions.logger);
 
     // Create a client to interface with the sidecar from the server side
     this.client = new DaprClient(daprHost, daprPort, communicationProtocol, clientOptions);

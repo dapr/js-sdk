@@ -35,7 +35,7 @@ export default class ActorClient {
     this.communicationProtocol = communicationProtocol;
     this.options = options;
 
-    const logger = new Logger(this.options.loggerOptions);
+    const logger = new Logger(this.options.logger);
 
     // Builder
     switch (communicationProtocol) {

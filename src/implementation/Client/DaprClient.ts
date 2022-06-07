@@ -88,7 +88,7 @@ export default class DaprClient {
     this.daprPort = daprPort ?? Settings.getDefaultPort(communicationProtocol);
     this.communicationProtocol = communicationProtocol;
     this.options = options;
-    this.logger = new Logger(this.options.loggerOptions);
+    this.logger = new Logger(this.options.logger);
 
     // Validation on port
     if (!/^[0-9]+$/.test(this.daprPort)) {

@@ -18,6 +18,6 @@ import { LogLevel } from "./LogLevel"
  * LoggerOptions provides options for configuring the logger.
  */
 export type LoggerOptions = {
-    logLevel?: LogLevel
-    logService?: LoggerService
+    level?: LogLevel
+    service?: LoggerService
 }

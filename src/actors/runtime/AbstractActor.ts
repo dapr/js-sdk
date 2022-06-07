@@ -57,7 +57,7 @@ export default abstract class AbstractActor {
   constructor(daprClient: DaprClient, id: ActorId) {
     this.daprClient = daprClient;
     this.actorClient = new ActorClient(daprClient.getDaprHost(), daprClient.getDaprPort(), daprClient.getCommunicationProtocol(), daprClient.getOptions());
-    this.logger = new Logger(daprClient.getOptions().loggerOptions)
+    this.logger = new Logger(daprClient.getOptions().logger)
     this.id = id;
 
     this.stateManager = new ActorStateManager(this);

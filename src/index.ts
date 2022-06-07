@@ -23,6 +23,7 @@ import { DaprClientOptions } from "./types/DaprClientOptions";
 import { LoggerOptions } from "./types/logger/LoggerOptions";
 import { LoggerService } from "./types/logger/LoggerService";
 import { ConsoleLoggerService } from "./logger/ConsoleLoggerService";
+import { LogLevel } from "./types/logger/LogLevel";
 
 export {
     DaprClient,
@@ -34,6 +35,7 @@ export {
     CommunicationProtocolEnum,
     Temporal,
     DaprClientOptions,
+    LogLevel,
     LoggerOptions,
     LoggerService,
     ConsoleLoggerService,
