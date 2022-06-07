@@ -14,13 +14,19 @@ limitations under the License.
 import GRPCClient from './GRPCClient';
 import { PublishEventRequest } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
+import { Logger } from '../../../logger/Logger';
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class GRPCClientPubSub implements IClientPubSub {
   client: GRPCClient;
+  
+  private readonly logger: Logger;
+  private readonly LOG_COMPONENT: string = "GRPCClient";
+  private readonly LOG_AREA: string = "PubSub";
 
-  constructor(client: GRPCClient) {
+  constructor(client: GRPCClient, logger: Logger) {
     this.client = client;
+    this.logger = logger;
   }
 
   // @todo: should return a specific typed Promise<TypePubSubPublishResponse> instead of Promise<any>
@@ -34,7 +40,7 @@ export default class GRPCClientPubSub implements IClientPubSub {
       const client = this.client.getClient();
       client.publishEvent(msgService, (err, _res) => {
         if (err) {
-          console.error(err);
+          this.logger.error(this.LOG_COMPONENT, this.LOG_AREA, `publish failed: ${err}`);
           return reject(false);
         }
 

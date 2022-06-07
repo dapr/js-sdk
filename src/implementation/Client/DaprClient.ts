@@ -50,12 +50,14 @@ import HTTPClient from './HTTPClient/HTTPClient';
 import CommunicationProtocolEnum from '../../enum/CommunicationProtocol.enum';
 import { DaprClientOptions } from '../../types/DaprClientOptions';
 import { Settings } from '../../utils/Settings.util';
+import { Logger } from '../../logger/Logger';
 
 export default class DaprClient {
   readonly daprHost: string;
   readonly daprPort: string;
   readonly options: DaprClientOptions;
   readonly communicationProtocol: CommunicationProtocolEnum;
+  readonly logger: Logger;
 
   readonly daprClient: IClient;
   readonly pubsub: IClientPubSub;
@@ -74,13 +76,14 @@ export default class DaprClient {
     , daprPort?: string
     , communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP
     , options: DaprClientOptions = {
-      isKeepAlive: true
-    }
+      isKeepAlive: true,
+    },
   ) {
     this.daprHost = daprHost ?? Settings.getDefaultHost();
     this.daprPort = daprPort ?? Settings.getDefaultPort(communicationProtocol);
     this.communicationProtocol = communicationProtocol;
     this.options = options;
+    this.logger = new Logger(this.options.loggerOptions);
 
     // Validation on port
     if (!/^[0-9]+$/.test(this.daprPort)) {
@@ -90,11 +93,11 @@ export default class DaprClient {
     // Builder
     switch (communicationProtocol) {
       case CommunicationProtocolEnum.GRPC: {
-        const client = new GRPCClient(this.daprHost, this.daprPort, this.options);
+        const client = new GRPCClient(this.daprHost, this.daprPort, this.options, this.logger);
         this.daprClient = client;
 
         this.state = new GRPCClientState(client);
-        this.pubsub = new GRPCClientPubSub(client);
+        this.pubsub = new GRPCClientPubSub(client, this.logger);
         this.binding = new GRPCClientBinding(client);
         this.invoker = new GRPCClientInvoker(client);
         this.secret = new GRPCClientSecret(client);
@@ -107,11 +110,11 @@ export default class DaprClient {
       }
       case CommunicationProtocolEnum.HTTP:
       default: {
-        const client = new HTTPClient(this.daprHost, this.daprPort, this.options);
+        const client = new HTTPClient(this.daprHost, this.daprPort, this.options, this.logger);
         this.daprClient = client;
 
         this.state = new HTTPClientState(client);
-        this.pubsub = new HTTPClientPubSub(client);
+        this.pubsub = new HTTPClientPubSub(client, this.logger);
         this.binding = new HTTPClientBinding(client);
         this.invoker = new HTTPClientInvoker(client);
         this.secret = new HTTPClientSecret(client);

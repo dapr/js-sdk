@@ -18,6 +18,7 @@ import IClient from "../../../interfaces/Client/IClient";
 import CommunicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
 import { DaprClientOptions } from "../../../types/DaprClientOptions";
 import { Settings } from '../../../utils/Settings.util';
+import { Logger } from "../../../logger/Logger";
 
 export default class GRPCClient implements IClient {
   private readonly client: DaprClient;
@@ -25,20 +26,26 @@ export default class GRPCClient implements IClient {
   private readonly clientHost: string;
   private readonly clientPort: string;
   private readonly options: DaprClientOptions;
+  private readonly logger: Logger;
+
+  private readonly LOG_COMPONENT: string = "GRPCClient";
+  private readonly LOG_AREA: string = "GRPCClient";
 
   constructor(
     host = Settings.getDefaultHost()
     , port = Settings.getDefaultGrpcPort()
     , options: DaprClientOptions = {
       isKeepAlive: true
-    }
+    },
+    logger: Logger,
   ) {
     this.clientHost = host;
     this.clientPort = port;
     this.clientCredentials = ChannelCredentials.createInsecure();
     this.options = options;
+    this.logger = logger;
 
-    console.log(`[Dapr-JS][gRPC] Opening connection to ${this.clientHost}:${this.clientPort}`);
+    this.logger.info(this.LOG_COMPONENT, this.LOG_AREA,`Opening connection to ${this.clientHost}:${this.clientPort}`);
     this.client = new DaprClient(`${this.clientHost}:${this.clientPort}`, this.clientCredentials);
   }
 

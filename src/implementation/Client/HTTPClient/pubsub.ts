@@ -13,13 +13,18 @@ limitations under the License.
 
 import HTTPClient from './HTTPClient';
 import IClientPubSub from '../../../interfaces/Client/IClientPubSub';
+import { Logger } from '../../../logger/Logger';
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPClientPubSub implements IClientPubSub {
   client: HTTPClient;
+  private readonly logger: Logger;
+  private readonly LOG_COMPONENT: string = "HTTPClient";
+  private readonly LOG_AREA: string = "PubSub";
 
-  constructor(client: HTTPClient) {
+  constructor(client: HTTPClient, logger: Logger) {
     this.client = client;
+    this.logger = logger;
   }
 
   async publish(pubSubName: string, topic: string, data: object = {}): Promise<boolean> {
@@ -31,8 +36,8 @@ export default class HTTPClientPubSub implements IClientPubSub {
         },
         body: JSON.stringify(data),
       });
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      this.logger.error(this.LOG_COMPONENT, this.LOG_AREA, `publish failed: ${e}`);
       return false;
     }
 

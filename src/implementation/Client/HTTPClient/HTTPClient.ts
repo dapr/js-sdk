@@ -18,6 +18,7 @@ import http from "http";
 import https from "https";
 import { DaprClientOptions } from "../../../types/DaprClientOptions";
 import { Settings } from '../../../utils/Settings.util';
+import { Logger } from "../../../logger/Logger";
 
 export default class HTTPClient implements IClient {
   private client: typeof fetch;
@@ -25,20 +26,26 @@ export default class HTTPClient implements IClient {
   private readonly clientPort: string;
   private readonly clientUrl: string;
   private readonly options: DaprClientOptions;
+  private readonly logger: Logger;
 
   private readonly httpAgent;
   private readonly httpsAgent;
+
+  private readonly LOG_COMPONENT: string = "HTTPClient";
+  private readonly LOG_AREA: string = "HTTPClient";
 
   constructor(
     host = Settings.getDefaultHost()
     , port = Settings.getDefaultHttpPort()
     , options: DaprClientOptions = {
       isKeepAlive: true
-    }
+    },
+    logger: Logger,
   ) {
     this.clientHost = host;
     this.clientPort = port;
     this.options = options;
+    this.logger = logger;
 
     if (!this.clientHost.startsWith('http://') && !this.clientHost.startsWith('https://')) {
       this.clientUrl = `http://${this.clientHost}:${this.clientPort}/v1.0`;
@@ -109,7 +116,7 @@ export default class HTTPClient implements IClient {
           params.headers["Content-Type"] = "text/plain";
           break;
         default:
-          console.log(`Unknown body type: ${typeof params?.body}, defaulting to "text/plain"`);
+          this.logger.warn(this.LOG_COMPONENT, this.LOG_AREA, `Unknown body type: ${typeof params?.body}, defaulting to "text/plain"`);
           params.headers["Content-Type"] = "text/plain";
           break;
       }
@@ -120,7 +127,7 @@ export default class HTTPClient implements IClient {
     const agent = urlFull.startsWith("https") ? this.httpsAgent : this.httpAgent;
     params.agent = agent;
 
-    // console.log(`${params.method} - ${urlFull} (${params.body})`);
+    this.logger.debug(this.LOG_COMPONENT, this.LOG_AREA, `Fetching ${params.method} ${urlFull} with body: (${params.body})`);
     const res = await fetch(urlFull, params);
 
     // Parse body
@@ -151,7 +158,7 @@ export default class HTTPClient implements IClient {
     }
     // All the others
     else {
-      console.log(txtParsed);
+      this.logger.debug(this.LOG_COMPONENT, this.LOG_AREA, "Response text: %s", txtParsed);
       throw new Error(JSON.stringify({
         error: "UNKNOWN",
         error_msg: `An unknown problem occured and we got the status ${res.status} with response ${JSON.stringify(res)}`
