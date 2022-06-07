@@ -12,7 +12,9 @@ limitations under the License.
 */
 
 import { LoggerOptions } from "../types/logger/LoggerOptions";
+import { LoggerService } from "../types/logger/LoggerService";
 import { LogLevel } from "../types/logger/LogLevel";
+import { ConsoleLoggerService } from "./ConsoleLoggerService";
 
 export class Logger {
     private readonly logLevel: LogLevel;

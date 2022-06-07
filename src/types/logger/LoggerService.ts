@@ -14,7 +14,7 @@ limitations under the License.
 /**
  * LoggerService provides an interface to log SDK messages.
  */
-interface LoggerService {
+export interface LoggerService {
 
     /**
      * Write an 'error' level log.

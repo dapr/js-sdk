@@ -11,10 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { LoggerService } from "../types/logger/LoggerService";
+
 /**
  * ConsoleLoggerService uses the in-built console module to log messages.
  */
-class ConsoleLoggerService implements LoggerService {
+export class ConsoleLoggerService implements LoggerService {
     error(message: any, ...optionalParams: any[]): void {
         console.error(`${this.getTime()} ERROR ${message}`, ...optionalParams);
     }

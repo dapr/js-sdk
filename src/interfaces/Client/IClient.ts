@@ -13,7 +13,6 @@ limitations under the License.
 
 import CommunicationProtocolEnum from "../../enum/CommunicationProtocol.enum";
 import { DaprClientOptions } from "../../types/DaprClientOptions";
-import { LoggerOptions } from "../../types/logger/LoggerOptions";
 
 export default interface IClient {
   getClient(): any;
