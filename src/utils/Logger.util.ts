@@ -31,7 +31,7 @@ const CURRENT_LOGGER_LEVEL = process.env.LOGGER_LEVEL || LoggerLevel.VERBOSE;
 
 console.log(`CURRENT LOG LEVEL: ${CURRENT_LOGGER_LEVEL}`)
 
-export class Logger {
+export class LoggerOld {
   static print(level: LoggerLevel, message: string, category = 'Server') {
     if (level > CURRENT_LOGGER_LEVEL) {
       return;
