@@ -22,16 +22,23 @@ import { TypeDaprInvokerCallback } from "../../../types/DaprInvokerCallback.type
 import * as HttpVerbUtil from "../../../utils/HttpVerb.util";
 import { TypeDaprBindingCallback } from "../../../types/DaprBindingCallback.type";
 import { TypeDaprPubSubCallback } from "../../../types/DaprPubSubCallback.type";
+import { Logger } from "../../../logger/Logger";
 
 
 // https://github.com/badsyntax/grpc-js-typescript/issues/1#issuecomment-705419742
 // @ts-ignore
 export default class GRPCServerImpl implements IAppCallbackServer {
+    private readonly logger: Logger;
+
+    private readonly LOG_COMPONENT: string = "GRPCServer";
+    private readonly LOG_AREA: string = "GRPCServerImpl";
+
     handlersInvoke: { [key: string]: TypeDaprInvokerCallback };
     handlersBindings: { [key: string]: TypeDaprBindingCallback };
     handlersTopics: { [key: string]: TypeDaprPubSubCallback };
 
-    constructor() {
+    constructor(logger: Logger) {
+        this.logger = logger;
         this.handlersInvoke = {};
         this.handlersBindings = {};
         this.handlersTopics = {};
@@ -74,7 +81,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         const handlersInvokeKey = `${methodStr.toLowerCase()}|${method.toLowerCase()}`;
 
         if (!this.handlersInvoke[handlersInvokeKey]) {
-            console.warn(`[Dapr-JS][gRPC][Invoke] ${methodStr} /${method} was not handled`);
+            this.logger.warn(this.LOG_COMPONENT, this.LOG_AREA, `${methodStr} /${method} was not handled`)
             return;
         }
 
@@ -112,7 +119,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         const handlerKey = this.createInputBindingHandlerKey(req.getName());
         
         if (!this.handlersBindings[handlerKey]) {
-            console.warn(`[Dapr-JS][gRPC][Bindings] Event for binding: "${handlerKey}" was not handled`);
+            this.logger.warn(this.LOG_COMPONENT, this.LOG_AREA, `Event for binding: "${handlerKey}" was not handled`);
             return;
         }
 
@@ -140,7 +147,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         const handlerKey = this.createPubSubSubscriptionHandlerKey(req.getPubsubName(), req.getTopic());
         
         if (!this.handlersTopics[handlerKey]) {
-            console.warn(`[Dapr-JS][gRPC][PubSub] Event from topic: "${handlerKey}" was not handled`);
+            this.logger.warn(this.LOG_COMPONENT, this.LOG_AREA, `Event from topic: "${handlerKey}" was not handled`);
             return;
         }
 
@@ -160,7 +167,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
             res.setStatus(TopicEventResponse.TopicEventResponseStatus.SUCCESS);
         } catch (e) {
             // @todo: for now we drop, maybe we should allow retrying as well more easily?
-            console.error(e);
+            this.logger.error(this.LOG_COMPONENT, this.LOG_AREA, `Error handling topic event: ${e}`);
             res.setStatus(TopicEventResponse.TopicEventResponseStatus.DROP);
         }
 

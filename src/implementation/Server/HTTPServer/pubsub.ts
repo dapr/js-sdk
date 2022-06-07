@@ -14,13 +14,19 @@ limitations under the License.
 import { TypeDaprPubSubCallback } from '../../../types/DaprPubSubCallback.type';
 import IServerPubSub from '../../../interfaces/Server/IServerPubSub';
 import HTTPServer from './HTTPServer';
+import { Logger } from '../../../logger/Logger';
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPServerPubSub implements IServerPubSub {
   private readonly server: HTTPServer;
+  private readonly logger: Logger;
 
-  constructor(server: HTTPServer) {
+  private readonly LOG_COMPONENT: string = "HTTPServer";
+  private readonly LOG_AREA: string = "PubSub";
+
+  constructor(server: HTTPServer, logger: Logger) {
     this.server = server;
+    this.logger = logger;
   }
 
   async subscribe(pubsubName: string, topic: string, cb: TypeDaprPubSubCallback, route = "") {
@@ -42,7 +48,7 @@ export default class HTTPServerPubSub implements IServerPubSub {
       try {
         await cb(data);
       } catch (e) {
-        console.error(e);
+        this.logger.error(this.LOG_COMPONENT, this.LOG_AREA, `subscribe failed: ${e}`);
         return res.send({ success: false });
       }
 

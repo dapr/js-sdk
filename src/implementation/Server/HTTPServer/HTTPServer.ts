@@ -18,6 +18,7 @@ import IServer from "../../../interfaces/Server/IServer";
 import * as NodeJSUtils from "../../../utils/NodeJS.util";
 import { DaprClient } from "../../..";
 import { createHttpTerminator } from 'http-terminator';
+import { Logger } from "../../../logger/Logger";
 
 // eslint-disable-next-line
 export interface IServerImplType extends HTTPServerImpl { }
@@ -33,11 +34,16 @@ export default class HTTPServer implements IServer {
   serverImpl: IServerImplType;
   daprSidecarPollingDelayMs = 1000;
   client: DaprClient;
+  private readonly logger: Logger;
 
-  constructor(client: DaprClient) {
+  private readonly LOG_COMPONENT: string = "HTTPServer";
+  private readonly LOG_AREA: string = "HTTPServer";
+
+  constructor(client: DaprClient, logger: Logger) {
     this.serverHost = "";
     this.serverPort = "";
     this.client = client;
+    this.logger = logger;
 
     this.isInitialized = false;
 
@@ -103,14 +109,14 @@ export default class HTTPServer implements IServer {
 
     // Initialize Server Listener
     await this.server.start(parseInt(port, 10));
-    console.log(`[Dapr-JS] Listening on ${port}`);
+    this.logger.info(this.LOG_COMPONENT, this.LOG_AREA, `Listening on ${port}`);
     this.serverAddress = `http://${host}:${port}`;
 
     // Add PubSub Routes
-    console.log(`[Dapr API][PubSub] Registering ${this.serverImpl.pubSubSubscriptionRoutes.length} PubSub Subscriptions`);
+    this.logger.info(this.LOG_COMPONENT, this.LOG_AREA, `Registering ${this.serverImpl.pubSubSubscriptionRoutes.length} PubSub Subscriptions`);
     this.server.get('/dapr/subscribe', (req, res) => {
       res.send(this.serverImpl.pubSubSubscriptionRoutes);
-      console.log(`[Dapr API][PubSub] Registered ${this.serverImpl.pubSubSubscriptionRoutes.length} PubSub Subscriptions`);
+      this.logger.info(this.LOG_COMPONENT, this.LOG_AREA, `Registered ${this.serverImpl.pubSubSubscriptionRoutes.length} PubSub Subscriptions`);
     });
 
     // We need to call the Singleton to start listening on the port, else Dapr will not pick it up correctly
@@ -120,9 +126,9 @@ export default class HTTPServer implements IServer {
     let isHealthyRetryCount = 0;
     const isHealthyMaxRetryCount = 60; // 1s startup delay and we try max for 60s
 
-    console.log(`[Dapr-JS] Letting Dapr pick-up the server (Maximum 60s wait time)`);
+    this.logger.info(this.LOG_COMPONENT, this.LOG_AREA, `Letting Dapr pick-up the server (Maximum 60s wait time)`);
     while (!isHealthy) {
-      console.log(`[Dapr-JS] - Waiting till Dapr Started (#${isHealthyRetryCount})`);
+      this.logger.verbose(this.LOG_COMPONENT, this.LOG_AREA, `Waiting for Dapr to start, retry counter is (#${isHealthyRetryCount})`);
       await NodeJSUtils.sleep(this.daprSidecarPollingDelayMs);
       isHealthy = await this.client.health.isHealthy();
       isHealthyRetryCount++;
@@ -133,7 +139,7 @@ export default class HTTPServer implements IServer {
     }
 
     // We are initialized
-    console.log(`[Dapr-JS] Server Started`);
+    this.logger.info(this.LOG_COMPONENT, this.LOG_AREA, "Server Started");
     this.isInitialized = true;
   }
 

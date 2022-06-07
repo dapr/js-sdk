@@ -32,6 +32,7 @@ import HTTPServerActor from './HTTPServer/actor';
 import { DaprClientOptions } from '../../types/DaprClientOptions';
 import { DaprClient } from '../..';
 import { Settings } from '../../utils/Settings.util';
+import { Logger } from '../../logger/Logger';
 
 export default class DaprServer {
   // App details
@@ -40,6 +41,8 @@ export default class DaprServer {
   // Dapr Sidecar
   private readonly daprHost: string;
   private readonly daprPort: string;
+
+  private readonly logger: Logger;
 
   readonly daprServer: IServer;
   readonly pubsub: IServerPubSub;
@@ -62,6 +65,7 @@ export default class DaprServer {
     this.serverPort = serverPort ?? Settings.getDefaultAppPort(communicationProtocol);
     this.daprHost = daprHost ?? Settings.getDefaultHost();
     this.daprPort = daprPort ?? Settings.getDefaultPort(communicationProtocol);
+    this.logger = new Logger(clientOptions.loggerOptions);
 
     // Create a client to interface with the sidecar from the server side
     this.client = new DaprClient(daprHost, daprPort, communicationProtocol, clientOptions);
@@ -82,24 +86,24 @@ export default class DaprServer {
     // Builder
     switch (communicationProtocol) {
       case CommunicationProtocolEnum.GRPC: {
-        const server = new GRPCServer(this.client);
+        const server = new GRPCServer(this.client, this.logger);
         this.daprServer = server;
 
-        this.pubsub = new GRPCServerPubSub(server);
-        this.binding = new GRPCServerBinding(server);
-        this.invoker = new GRPCServerInvoker(server);
+        this.pubsub = new GRPCServerPubSub(server, this.logger);
+        this.binding = new GRPCServerBinding(server, this.logger);
+        this.invoker = new GRPCServerInvoker(server, this.logger);
         this.actor = new GRPCServerActor(server);
         break;
       }
       case CommunicationProtocolEnum.HTTP:
       default: {
-        const server = new HTTPServer(this.client);
+        const server = new HTTPServer(this.client, this.logger);
         this.daprServer = server;
 
-        this.pubsub = new HTTPServerPubSub(server);
-        this.binding = new HTTPServerBinding(server);
-        this.invoker = new HTTPServerInvoker(server);
-        this.actor = new HTTPServerActor(server, this.client);
+        this.pubsub = new HTTPServerPubSub(server, this.logger);
+        this.binding = new HTTPServerBinding(server, this.logger);
+        this.invoker = new HTTPServerInvoker(server, this.logger);
+        this.actor = new HTTPServerActor(server, this.client, this.logger);
         break;
       }
     }

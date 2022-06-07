@@ -14,15 +14,21 @@ limitations under the License.
 import HTTPServer from './HTTPServer';
 import HttpStatusCode from '../../../enum/HttpStatusCode.enum';
 import IServerBinding from '../../../interfaces/Server/IServerBinding';
+import { Logger } from '../../../logger/Logger';
 
 // https://docs.dapr.io/reference/api/bindings_api/
 type FunctionDaprInputCallback = (data: any) => Promise<any>;
 
 export default class HTTPServerBinding implements IServerBinding {
   private readonly server: HTTPServer;
+  private readonly logger: Logger;
 
-  constructor(server: HTTPServer) {
+  private readonly LOG_COMPONENT: string = "HTTPServer";
+  private readonly LOG_AREA: string = "Binding";
+
+  constructor(server: HTTPServer, logger: Logger) {
     this.server = server;
+    this.logger = logger;
   }
 
   // Receive an input from an external system
@@ -47,7 +53,7 @@ export default class HTTPServerBinding implements IServerBinding {
       } catch (e) {
         res.statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
 
-        console.debug(e);
+        this.logger.error(this.LOG_COMPONENT, this.LOG_AREA, `receive failed: ${e}`);
 
         return res.end(JSON.stringify({
           error: "COULD_NOT_PROCESS_CALLBACK",

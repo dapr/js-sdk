@@ -14,18 +14,24 @@ limitations under the License.
 import GRPCServer from './GRPCServer';
 import { TypeDaprBindingCallback } from '../../../types/DaprBindingCallback.type';
 import IServerBinding from '../../../interfaces/Server/IServerBinding';
+import { Logger } from '../../../logger/Logger';
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class DaprBinding implements IServerBinding {
   server: GRPCServer;
+  private readonly logger: Logger;
 
-  constructor(server: GRPCServer) {
+  private readonly LOG_COMPONENT: string = "GRPCServer";
+  private readonly LOG_AREA: string = "Binding";
+
+  constructor(server: GRPCServer, logger: Logger) {
     this.server = server;
+    this.logger = logger;
   }
 
   // Receive an input from an external system
   async receive(bindingName: string, cb: TypeDaprBindingCallback): Promise<any> {
-    console.log(`Registering GRPC onBindingInput Handler: Binding = ${bindingName}`);
+    this.logger.info(this.LOG_COMPONENT, this.LOG_AREA, `Registering GRPC onBindingInput Handler: Binding = ${bindingName}`);
     this.server.getServerImpl().registerInputBindingHandler(bindingName, cb);
   }
 }
