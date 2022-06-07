@@ -19,6 +19,12 @@ on:
       - release-*
     tags:
       - v*
+  pull_request:
+    branches:
+      - master
+      - release-*
+  # Manual trigger
+  workflow_dispatch: {}
 
 jobs:
   build:
