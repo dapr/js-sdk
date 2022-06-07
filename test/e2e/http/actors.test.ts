@@ -11,23 +11,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { CommunicationProtocolEnum, DaprClient, DaprServer } from '../../src';
+import { CommunicationProtocolEnum, DaprClient, DaprServer } from '../../../src';
 
-import * as NodeJSUtil from '../../src/utils/NodeJS.util';
-import ActorId from '../../src/actors/ActorId';
-import ActorProxyBuilder from '../../src/actors/client/ActorProxyBuilder';
-import DemoActorActivateImpl from '../actor/DemoActorActivateImpl';
-import DemoActorCounterImpl from '../actor/DemoActorCounterImpl';
-import DemoActorCounterInterface from '../actor/DemoActorCounterInterface';
-import DemoActorReminderImpl from '../actor/DemoActorReminderImpl';
-import DemoActorReminder2Impl from '../actor/DemoActorReminder2Impl';
-import DemoActorReminderInterface from '../actor/DemoActorReminderInterface';
-import DemoActorSayImpl from '../actor/DemoActorSayImpl';
-import DemoActorSayInterface from '../actor/DemoActorSayInterface';
-import DemoActorTimerImpl from '../actor/DemoActorTimerImpl';
-import DemoActorTimerInterface from '../actor/DemoActorTimerInterface';
-import DemoActorTimerTtlImpl from '../actor/DemoActorTimerTtlImpl';
-import DemoActorReminderTtlImpl from '../actor/DemoActorReminderTtlImpl';
+import * as NodeJSUtil from '../../../src/utils/NodeJS.util';
+import ActorId from '../../../src/actors/ActorId';
+import ActorProxyBuilder from '../../../src/actors/client/ActorProxyBuilder';
+import DemoActorActivateImpl from '../../actor/DemoActorActivateImpl';
+import DemoActorCounterImpl from '../../actor/DemoActorCounterImpl';
+import DemoActorCounterInterface from '../../actor/DemoActorCounterInterface';
+import DemoActorReminderImpl from '../../actor/DemoActorReminderImpl';
+import DemoActorReminder2Impl from '../../actor/DemoActorReminder2Impl';
+import DemoActorReminderInterface from '../../actor/DemoActorReminderInterface';
+import DemoActorSayImpl from '../../actor/DemoActorSayImpl';
+import DemoActorSayInterface from '../../actor/DemoActorSayInterface';
+import DemoActorTimerImpl from '../../actor/DemoActorTimerImpl';
+import DemoActorTimerInterface from '../../actor/DemoActorTimerInterface';
+import DemoActorTimerTtlImpl from '../../actor/DemoActorTimerTtlImpl';
+import DemoActorReminderTtlImpl from '../../actor/DemoActorReminderTtlImpl';
 
 const serverHost = "127.0.0.1";
 const serverPort = "50001";
@@ -230,8 +230,8 @@ describe('http/actors', () => {
       const res0 = await actor.getCounter();
       expect(res0).toEqual(0);
 
-      // Now we wait for dueTime (2s)
-      await NodeJSUtil.sleep(2000);
+      // Now we wait for dueTime (1.5s)
+      await NodeJSUtil.sleep(1500);
 
       // After that the reminder callback will be called
       // In our case, the callback increments the count attribute
@@ -240,8 +240,8 @@ describe('http/actors', () => {
 
       await actor.removeReminder();
 
-      // Now we wait an extra period (2s)
-      await (new Promise(resolve => setTimeout(resolve, 2000)));
+      // Now we wait an extra period - duration (1s)
+      await (new Promise(resolve => setTimeout(resolve, 1000)));
 
       // Make sure the counter didn't change
       const res2 = await actor.getCounter();
@@ -285,8 +285,8 @@ describe('http/actors', () => {
       const res0 = await actor.getCounter();
       expect(res0).toEqual(0);
 
-      // Now we wait for dueTime (2s)
-      await NodeJSUtil.sleep(2000);
+      // Now we wait for dueTime (1.5s)
+      await NodeJSUtil.sleep(1500);
 
       // After that the reminder callback will be called
       // In our case, the callback increments the count attribute
@@ -295,7 +295,7 @@ describe('http/actors', () => {
 
       await actor.removeReminder();
 
-      await (new Promise(resolve => setTimeout(resolve, 2000)));
+      await (new Promise(resolve => setTimeout(resolve, 1000)));
 
       // Make sure the counter didn't change
       const res2 = await actor.getCounter();

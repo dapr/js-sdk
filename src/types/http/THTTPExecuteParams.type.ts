@@ -11,24 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import HTTPClient from './HTTPClient';
-import IClientHealth from '../../../interfaces/Client/IClientHealth';
+import http from "http";
+import https from "https";
 
-// https://docs.dapr.io/reference/api/health_api/
-export default class HTTPClientHealth implements IClientHealth {
-  client: HTTPClient;
-
-  constructor(client: HTTPClient) {
-    this.client = client;
-  }
-
-  // Send an event to an external system
-  async isHealthy(): Promise<boolean> {
-    try {
-      const result = await this.client.execute(`/metadata`);
-      return !!result;
-    } catch (e) {
-      return false;
-    }
-  }
+export type THTTPExecuteParams = {
+  body?: string;
+  headers?: { [key: string]: any };
+  method: string;
+  agent?: http.Agent | https.Agent;
 }

@@ -15,9 +15,8 @@
 
 # Start gRPC tests
 echo "Running gRPC tests"
-npm run test:e2e:grpc:main
+npm run test:e2e:grpc
 
 # Start HTTP tests
 echo "Running HTTP tests"
-npm run test:e2e:http:main
-npm run test:e2e:http:actors
+npm run test:e2e:http

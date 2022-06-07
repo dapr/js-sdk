@@ -110,7 +110,14 @@ export default class DaprServer {
   }
 
   async start(): Promise<void> {
+    // First start the server as we need to initialize routes for PubSub, Bindings, ...
     await this.daprServer.start(this.serverHost, this.serverPort.toString());
+
+    // Ensure our sidecar starts and the client is ready
+    await this.client.start();
+
+    // We are initialized
+    console.log(`[Dapr-JS][Server] Sidecar Started`);
   }
 
   async stop(): Promise<void> {
