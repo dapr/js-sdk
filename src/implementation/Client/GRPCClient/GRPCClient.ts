@@ -85,7 +85,7 @@ export default class GRPCClient implements IClient {
     return new Promise((resolve, reject) => {
       this.client.waitForReady(deadline, (err?) => {
         if (err) {
-          console.error(err);
+          this.logger.error(this.LOG_COMPONENT, this.LOG_AREA, `Error waiting for client to be ready: ${err}`);
           return reject();
         }
 

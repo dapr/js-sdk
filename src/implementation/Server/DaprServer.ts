@@ -51,6 +51,9 @@ export default class DaprServer {
   readonly actor: IServerActor;
   readonly client: DaprClient;
 
+  private readonly LOG_COMPONENT: string = "DaprServer";
+  private readonly LOG_AREA: string = "DaprServer";
+
   constructor(
     serverHost?: string
     , serverPort?: string
@@ -117,7 +120,7 @@ export default class DaprServer {
     await this.client.start();
 
     // We are initialized
-    console.log(`[Dapr-JS][Server] Sidecar Started`);
+    this.logger.info(this.LOG_COMPONENT, this.LOG_AREA, "Sidecar Started");
   }
 
   async stop(): Promise<void> {

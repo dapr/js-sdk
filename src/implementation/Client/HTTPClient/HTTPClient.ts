@@ -162,7 +162,6 @@ export default class HTTPClient implements IClient {
 
     this.logger.debug(this.LOG_COMPONENT, this.LOG_AREA, `Fetching ${params.method} ${urlFull} with body: (${params.body})`);
 
-    // console.log(`${params.method} - ${urlFull} (${params.body})`);
     const res = await fetch(urlFull, params);
 
     // Parse body

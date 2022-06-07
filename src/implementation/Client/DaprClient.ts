@@ -73,6 +73,9 @@ export default class DaprClient {
   readonly configuration: IClientConfiguration;
   readonly actor: IClientActorBuilder;
 
+  private readonly LOG_COMPONENT: string = "DaprClient";
+  private readonly LOG_AREA: string = "DaprClient";
+
   constructor(
     daprHost?: string
     , daprPort?: string
@@ -145,9 +148,9 @@ export default class DaprClient {
     let isHealthyRetryCount = 0;
     const isHealthyMaxRetryCount = 60; // 1s startup delay and we try max for 60s
 
-    console.log(`[Dapr-JS][Client] Awaiting Sidecar to be Started`);
+    this.logger.info(this.LOG_COMPONENT, this.LOG_AREA, `Awaiting Sidecar to be Started`);
     while (!isHealthy) {
-      console.log(`[Dapr-JS][Client] Waiting till Dapr Sidecar Started (#${isHealthyRetryCount})`);
+      this.logger.verbose(this.LOG_COMPONENT, this.LOG_AREA,`Waiting for the Dapr Sidecar to start, retry count: (#${isHealthyRetryCount})`);
       await NodeJSUtils.sleep(Settings.getDaprSidecarPollingDelayMs());
 
       // Implement API call manually as we need to enable calling without initialization
@@ -174,7 +177,7 @@ export default class DaprClient {
     await this.awaitSidecarStarted();
     await this.daprClient.start();
     await this.daprClient.setIsInitialized(true);
-    console.log(`[Dapr-JS][Client] Sidecar Started`);
+    this.logger.info(this.LOG_COMPONENT, this.LOG_AREA, "Sidecar Started");
   }
 
   getDaprClient(): IClient {

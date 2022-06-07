@@ -53,7 +53,7 @@ export default class HTTPServerPubSub implements IServerPubSub {
       }
 
       // Let Dapr know that the message was processed correctly
-      // console.log(`[Dapr API][PubSub][route-${topic}] Ack'ing the message`);
+      this.logger.debug(this.LOG_COMPONENT, this.LOG_AREA, `[route-${topic}] Ack'ing the message`);
       return res.send({ success: true });
     });
   }
