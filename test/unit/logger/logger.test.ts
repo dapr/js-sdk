@@ -19,9 +19,9 @@ describe('Logger', () => {
     it('should not display logs below the set log level', () => {
         // arrange
         const mockLoggerService = new MockLoggerService();
-        const errorLogger = new Logger({ logLevel: LogLevel.error, logService: mockLoggerService })
-        const infoLogger = new Logger({ logLevel: LogLevel.info, logService: mockLoggerService })
-        const debugLogger = new Logger({ logLevel: LogLevel.debug, logService: mockLoggerService })
+        const errorLogger = new Logger({ level: LogLevel.Error, service: mockLoggerService })
+        const infoLogger = new Logger({ level: LogLevel.Info, service: mockLoggerService })
+        const debugLogger = new Logger({ level: LogLevel.Debug, service: mockLoggerService })
 
         // act
         callAllLogLevels(errorLogger)
