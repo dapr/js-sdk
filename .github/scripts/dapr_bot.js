@@ -156,7 +156,7 @@ async function executeEndToEndTests(github, context, isPullRequest) {
 }
 
 
-export default async ({ github, context }) => {
+module.exports = async ({ github, context }) => {
     const payload = context.payload;
     const issue = context.issue;
     const isFromPulls = !!payload.issue.pull_request;

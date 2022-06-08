@@ -11,15 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { AbstractActor } from "dapr-client";
-import DemoActorSayInterface from "./DemoActorSayInterface";
-
-export default class DemoActorSayImpl extends AbstractActor implements DemoActorSayInterface {
-    sayString(msg: string): string {
-        return `Actor said: "${msg}"`;
-    }
-
-    sayObject(msg: object): object {
-        return { said: msg };
-    }
+export type SubscribeConfigurationStream = {
+  stop: () => void;
 }

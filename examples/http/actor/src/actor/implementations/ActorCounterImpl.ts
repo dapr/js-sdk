@@ -11,7 +11,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-export default interface DemoActorCounterInterface {
-    count(): Promise<void>;
-    countBy(amount: number): Promise<void>;
+import { AbstractActor } from "@dapr/dapr";
+import ActorCounterInterface from "../interfaces/ActorCounterInterface";
+
+export default class ActorCounterImpl extends AbstractActor implements ActorCounterInterface {
+  counter = 0;
+
+  async count(): Promise<void> {
+    this.counter++;
+  }
+
+  async countBy(amount: number, multiplier = 1): Promise<void> {
+    this.counter += (amount * multiplier);
+  }
+
+  async getCounter(): Promise<number> {
+    return this.counter;
+  }
 }

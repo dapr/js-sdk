@@ -21,13 +21,13 @@ The Dapr Server will allow you to receive communication from the Dapr Sidecar an
 1. Install the SDK with `npm`:
 
 ```bash
-npm i dapr-client --save
+npm i @dapr/dapr --save
 ```
 
 2. Import the libraries:
 
 ```javascript
-import { DaprServer, CommunicationProtocolEnum } from "dapr-client";
+import { DaprServer, CommunicationProtocolEnum } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
 const daprPort = "3500"; // Dapr Sidecar Port of this Example Server
@@ -48,7 +48,7 @@ To run the examples, you can use two different protocols to interact with the Da
 ### Using HTTP (default)
 
 ```javascript
-import { DaprServer } from "dapr-client";
+import { DaprServer } from "@dapr/dapr";
 
 const server= new DaprServer(appHost, appPort, daprHost, daprPort);
 // initialize subscribtions, ... before server start
@@ -71,7 +71,7 @@ npm run start:dapr-http
 Since HTTP is the default, you will have to adapt the communication protocol to use gRPC. You can do this by passing an extra argument to the client or server constructor.
 
 ```javascript
-import { DaprServer, CommunicationProtocol } from "dapr-client";
+import { DaprServer, CommunicationProtocol } from "@dapr/dapr";
 
 const server = new DaprServer(appHost, appPort, daprHost, daprPort, CommunicationProtocol.GRPC);
 // initialize subscribtions, ... before server start
@@ -98,7 +98,7 @@ The JavaScript Server SDK allows you to interface with all of the [Dapr building
 #### Listen to an Invocation
 
 ```javascript
-import { DaprServer } from "dapr-client";
+import { DaprServer } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
 const daprPort = "3500"; // Dapr Sidecar Port of this Example Server
@@ -128,7 +128,7 @@ start().catch((e) => {
 #### Subscribe to messages
 
 ```javascript
-import { DaprServer } from "dapr-client";
+import { DaprServer } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
 const daprPort = "3500"; // Dapr Sidecar Port of this Example Server
@@ -160,7 +160,7 @@ start().catch((e) => {
 #### Receive an Input Binding
 
 ```javascript
-import { DaprServer } from "dapr-client";
+import { DaprServer } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1"; 
 const daprPort = "3500"; 
@@ -168,7 +168,7 @@ const serverHost = "127.0.0.1";
 const serverPort = "5051";
 
 async function start() {
-  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);;
+  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
 
   const bindingName = "my-binding-name";
 
@@ -184,6 +184,58 @@ start().catch((e) => {
 ```
 
 > For a full guide on output bindings visit [How-To: Use bindings]({{< ref howto-bindings.md >}}).
+
+### Configuration API
+
+> 💡 The configuration API is currently only available through gRPC
+
+#### Getting a configuration value
+
+```javascript
+import { DaprServer } from "dapr-client";
+
+const daprHost = "127.0.0.1"; 
+const daprPort = "3500"; 
+const serverHost = "127.0.0.1";
+const serverPort = "5051";
+
+async function start() {
+    const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+    const config = await client.configuration.get("config-redis", ["myconfigkey1", "myconfigkey2"]);
+}
+
+start().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
+```
+
+#### Subscribing to Key Changes
+
+```javascript
+import { DaprServer } from "dapr-client";
+
+const daprHost = "127.0.0.1"; 
+const daprPort = "3500"; 
+const serverHost = "127.0.0.1";
+const serverPort = "5051";
+
+async function start() {
+    const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+    const stream = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1", "myconfigkey2"], () => {
+        // Received a key update
+    });
+
+    // When you are ready to stop listening, call the following
+    await stream.close();
+}
+
+start().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
+```
+
 
 ## Related links
 

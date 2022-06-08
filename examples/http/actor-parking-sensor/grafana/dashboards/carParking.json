@@ -1,0 +1,133 @@
+{
+    "annotations": {
+        "list": [
+            {
+                "builtIn": 1,
+                "datasource": "-- Grafana --",
+                "enable": true,
+                "hide": true,
+                "iconColor": "rgba(0, 211, 255, 1)",
+                "name": "Annotations & Alerts",
+                "target": {
+                    "limit": 100,
+                    "matchAny": false,
+                    "tags": [],
+                    "type": "dashboard"
+                },
+                "type": "dashboard"
+            }
+        ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "gnetId": null,
+    "graphTooltip": 0,
+    "id": 1,
+    "links": [],
+    "liveNow": false,
+    "panels": [
+        {
+            "datasource": null,
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "red",
+                                "value": 1
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 25,
+                "w": 24,
+                "x": 0,
+                "y": 0
+            },
+            "id": 2,
+            "options": {
+                "basemap": {
+                    "config": {},
+                    "type": "osm-standard"
+                },
+                "controls": {
+                    "mouseWheelZoom": true,
+                    "showAttribution": true,
+                    "showDebug": false,
+                    "showScale": false,
+                    "showZoom": true
+                },
+                "layers": [
+                    {
+                        "config": {
+                            "color": {
+                                "field": "isParked",
+                                "fixed": "dark-green"
+                            },
+                            "fillOpacity": 0.4,
+                            "shape": "circle",
+                            "showLegend": true,
+                            "size": {
+                                "fixed": 3,
+                                "max": 15,
+                                "min": 2
+                            },
+                            "style": {
+                                "color": {
+                                    "field": "isParked",
+                                    "fixed": "dark-green"
+                                }
+                            }
+                        },
+                        "location": {
+                            "mode": "auto"
+                        },
+                        "type": "markers"
+                    }
+                ],
+                "view": {
+                    "id": "coords",
+                    "lat": 47.641728,
+                    "lon": -122.140278,
+                    "zoom": 19.24
+                }
+            },
+            "targets": [
+                {
+                    "query": "from(bucket: \"my-sensors\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"sensor-states\")\r\n  |> pivot(columnKey: [\"_field\"], rowKey: [\"_time\"], valueColumn: \"_value\")\r\n  |> group()\r\n  |> yield(name: \"last\")",
+                    "refId": "A"
+                }
+            ],
+            "title": "Car Parking",
+            "type": "geomap"
+        }
+    ],
+    "refresh": "5s",
+    "schemaVersion": 31,
+    "style": "dark",
+    "tags": [],
+    "templating": {
+        "list": []
+    },
+    "time": {
+        "from": "now-6h",
+        "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "",
+    "title": "Parking Garage",
+    "uid": "Px36rBv7z",
+    "version": 5
+}

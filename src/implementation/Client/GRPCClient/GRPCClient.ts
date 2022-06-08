@@ -12,7 +12,6 @@ limitations under the License.
 */
 
 import * as grpc from "@grpc/grpc-js";
-import { ChannelCredentials } from "@grpc/grpc-js";
 import { DaprClient } from "../../../proto/dapr/proto/runtime/v1/dapr_grpc_pb"
 import IClient from "../../../interfaces/Client/IClient";
 import CommunicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
@@ -20,6 +19,8 @@ import { DaprClientOptions } from "../../../types/DaprClientOptions";
 import { Settings } from '../../../utils/Settings.util';
 
 export default class GRPCClient implements IClient {
+  private isInitialized: boolean;
+
   private readonly client: DaprClient;
   private readonly clientCredentials: grpc.ChannelCredentials;
   private readonly clientHost: string;
@@ -35,8 +36,9 @@ export default class GRPCClient implements IClient {
   ) {
     this.clientHost = host;
     this.clientPort = port;
-    this.clientCredentials = ChannelCredentials.createInsecure();
+    this.clientCredentials = grpc.ChannelCredentials.createInsecure();
     this.options = options;
+    this.isInitialized = false;
 
     console.log(`[Dapr-JS][gRPC] Opening connection to ${this.clientHost}:${this.clientPort}`);
     this.client = new DaprClient(`${this.clientHost}:${this.clientPort}`, this.clientCredentials);
@@ -62,7 +64,30 @@ export default class GRPCClient implements IClient {
     return this.options;
   }
 
+  setIsInitialized(isInitialized: boolean): void {
+    this.isInitialized = isInitialized;
+  }
+
   async stop(): Promise<void> {
     this.client.close();
+  }
+
+  async _startWaitForClientReady(): Promise<void> {
+    const deadline = Date.now() + Settings.getDaprSidecarStartupTimeoutMs();
+
+    return new Promise((resolve, reject) => {
+      this.client.waitForReady(deadline, (err?) => {
+        if (err) {
+          console.error(err);
+          return reject();
+        }
+
+        return resolve();
+      });
+    })
+  }
+
+  async start(): Promise<void> {
+    await this._startWaitForClientReady();
   }
 }

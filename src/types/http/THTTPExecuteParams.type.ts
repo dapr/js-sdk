@@ -11,16 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { AbstractActor } from "dapr-client";
+import http from "http";
+import https from "https";
 
-export default class DemoActorReminderImpl extends AbstractActor {
-  counter = 0;
-
-  async count(): Promise<void> {
-    this.counter++;
-  }
-
-  async countBy(amount: number): Promise<void> {
-    this.counter += amount;
-  }
+export type THTTPExecuteParams = {
+  body?: string;
+  headers?: { [key: string]: any };
+  method: string;
+  agent?: http.Agent | https.Agent;
 }

@@ -11,7 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-export default interface DemoActorSayInterface {
-    sayString(msg: string): string;
-    sayObject(msg: object): object;
+import { KeyValueType } from "../KeyValue.type";
+
+export type ConfigurationItem = {
+  key: string;
+  value: string;
+  version: string;
+  metadata: KeyValueType;
 }

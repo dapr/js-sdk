@@ -16,7 +16,6 @@ import GRPCServerImpl from "./GRPCServerImpl";
 import { AppCallbackService } from "../../../proto/dapr/proto/runtime/v1/appcallback_grpc_pb";
 import IServer from "../../../interfaces/Server/IServer";
 import { DaprClient } from "../../..";
-import * as NodeJSUtils from "../../../utils/NodeJS.util";
 
 // eslint-disable-next-line
 export interface IServerType extends grpc.Server { }
@@ -30,7 +29,6 @@ export default class GRPCServer implements IServer {
   server: IServerType;
   serverImpl: IServerImplType;
   serverCredentials: grpc.ServerCredentials;
-  daprSidecarPollingDelayMs = 1000;
   client: DaprClient;
 
   constructor(client: DaprClient) {
@@ -84,25 +82,6 @@ export default class GRPCServer implements IServer {
 
     await this.initializeBind();
     this.server.start();
-
-    // We need to call the Singleton to start listening on the port, else Dapr will not pick it up correctly
-    // Dapr will probe every 50ms to see if we are listening on our port: https://github.com/dapr/dapr/blob/a43712c97ead550ca2f733e9f7e7769ecb195d8b/pkg/runtime/runtime.go#L1694
-    // if we are using actors we will change this to 4s to let the placement tables update
-    let isHealthy = false;
-    let isHealthyRetryCount = 0;
-    const isHealthyMaxRetryCount = 60; // 1s startup delay and we try max for 60s
-
-    console.log(`[Dapr-JS] Letting Dapr pick-up the server (Maximum 60s wait time)`);
-    while (!isHealthy) {
-      console.log(`[Dapr-JS] - Waiting till Dapr Started (#${isHealthyRetryCount})`);
-      await NodeJSUtils.sleep(this.daprSidecarPollingDelayMs);
-      isHealthy = await this.client.health.isHealthy();
-      isHealthyRetryCount++;
-
-      if (isHealthyRetryCount > isHealthyMaxRetryCount) {
-        throw new Error("DAPR_SIDECAR_COULD_NOT_BE_STARTED");
-      }
-    }
 
     // We are initialized
     this.isInitialized = true;

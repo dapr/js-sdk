@@ -11,7 +11,7 @@
 # limitations under the License.
 #
 
-# https://docs.dapr.io/reference/components-reference/supported-bindings/rabbitmq/
+# https://docs.dapr.io/reference/components-reference/supported-state-stores/setup-redis/
 apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
@@ -25,9 +25,5 @@ spec:
     value: localhost:6379
   - name: redisPassword
     value: ""
-  - name: enableTLS
-    value: "false"
-  - name: failover
-    value: "false"
   - name: actorStateStore
     value: "true"

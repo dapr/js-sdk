@@ -14,4 +14,5 @@ limitations under the License.
 export default interface ParkingSensorInterface {
   carEnter(): Promise<void>;
   carLeave(): Promise<void>;
+  getInfo(): Promise<object>;
 }

@@ -11,21 +11,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { CommunicationProtocolEnum, DaprClient, DaprServer } from '../../src';
+import { CommunicationProtocolEnum, DaprClient, DaprServer } from '../../../src';
 
-import * as NodeJSUtil from '../../src/utils/NodeJS.util';
-import ActorId from '../../src/actors/ActorId';
-import ActorProxyBuilder from '../../src/actors/client/ActorProxyBuilder';
-import DemoActorActivateImpl from '../actor/DemoActorActivateImpl';
-import DemoActorCounterImpl from '../actor/DemoActorCounterImpl';
-import DemoActorCounterInterface from '../actor/DemoActorCounterInterface';
-import DemoActorReminderImpl from '../actor/DemoActorReminderImpl';
-import DemoActorReminder2Impl from '../actor/DemoActorReminder2Impl';
-import DemoActorReminderInterface from '../actor/DemoActorReminderInterface';
-import DemoActorSayImpl from '../actor/DemoActorSayImpl';
-import DemoActorSayInterface from '../actor/DemoActorSayInterface';
-import DemoActorTimerImpl from '../actor/DemoActorTimerImpl';
-import DemoActorTimerInterface from '../actor/DemoActorTimerInterface';
+import * as NodeJSUtil from '../../../src/utils/NodeJS.util';
+import ActorId from '../../../src/actors/ActorId';
+import ActorProxyBuilder from '../../../src/actors/client/ActorProxyBuilder';
+import DemoActorActivateImpl from '../../actor/DemoActorActivateImpl';
+import DemoActorCounterImpl from '../../actor/DemoActorCounterImpl';
+import DemoActorCounterInterface from '../../actor/DemoActorCounterInterface';
+import DemoActorReminderImpl from '../../actor/DemoActorReminderImpl';
+import DemoActorReminder2Impl from '../../actor/DemoActorReminder2Impl';
+import DemoActorReminderInterface from '../../actor/DemoActorReminderInterface';
+import DemoActorSayImpl from '../../actor/DemoActorSayImpl';
+import DemoActorSayInterface from '../../actor/DemoActorSayInterface';
+import DemoActorTimerImpl from '../../actor/DemoActorTimerImpl';
+import DemoActorTimerInterface from '../../actor/DemoActorTimerInterface';
+import DemoActorTimerTtlImpl from '../../actor/DemoActorTimerTtlImpl';
+import DemoActorReminderTtlImpl from '../../actor/DemoActorReminderTtlImpl';
 
 const serverHost = "127.0.0.1";
 const serverPort = "50001";
@@ -61,6 +63,8 @@ describe('http/actors', () => {
     await server.actor.registerActor(DemoActorReminder2Impl);
     await server.actor.registerActor(DemoActorTimerImpl);
     await server.actor.registerActor(DemoActorActivateImpl);
+    await server.actor.registerActor(DemoActorTimerTtlImpl);
+    await server.actor.registerActor(DemoActorReminderTtlImpl);
 
     // Start server
     await server.start(); // Start the general server, this can take a while
@@ -97,13 +101,15 @@ describe('http/actors', () => {
     it('should register actors correctly', async () => {
       const actors = await server.actor.getRegisteredActors();
 
-      expect(actors.length).toEqual(6);
+      expect(actors.length).toEqual(8);
 
       expect(actors).toContain(DemoActorCounterImpl.name);
       expect(actors).toContain(DemoActorSayImpl.name);
       expect(actors).toContain(DemoActorReminderImpl.name);
       expect(actors).toContain(DemoActorTimerImpl.name);
       expect(actors).toContain(DemoActorActivateImpl.name);
+      expect(actors).toContain(DemoActorTimerTtlImpl.name);
+      expect(actors).toContain(DemoActorReminderTtlImpl.name);
     });
 
     it('should be able to invoke an actor through a text message', async () => {
@@ -171,6 +177,45 @@ describe('http/actors', () => {
       const res4 = await actor.getCounter();
       expect(res4).toEqual(300);
     }, 10000);
+
+
+    it('should apply the ttl when it is set (expected execution time > 5s)', async () => {
+      const builder = new ActorProxyBuilder<DemoActorTimerInterface>(DemoActorTimerTtlImpl, client);
+      const actor = builder.build(ActorId.createRandomId());
+
+      // Activate our actor
+      await actor.init();
+
+      const res0 = await actor.getCounter();
+      expect(res0).toEqual(0);
+
+      // Now we wait for dueTime (2s)
+      await (new Promise(resolve => setTimeout(resolve, 2000)));
+
+      // After that the timer callback will be called
+      // In our case, the callback increments the count attribute
+      // the count attribute is +100 due to the passed state
+      const res1 = await actor.getCounter();
+      expect(res1).toEqual(100);
+
+      // Every 1 second the timer gets called again, so the count attribute should change
+      // we check this twice to ensure correct calling
+      await (new Promise(resolve => setTimeout(resolve, 1000)));
+      const res2 = await actor.getCounter();
+      expect(res2).toEqual(100);
+      await (new Promise(resolve => setTimeout(resolve, 1000)));
+      const res3 = await actor.getCounter();
+      expect(res3).toEqual(200);
+
+      // Stop the timer
+      await actor.removeTimer();
+
+      // We then expect the counter to stop increasing
+      await (new Promise(resolve => setTimeout(resolve, 1000)));
+      const res4 = await actor.getCounter();
+      expect(res4).toEqual(200);
+
+    }, 10000);
   });
 
   describe('reminders', () => {
@@ -185,8 +230,8 @@ describe('http/actors', () => {
       const res0 = await actor.getCounter();
       expect(res0).toEqual(0);
 
-      // Now we wait for dueTime (2s)
-      await NodeJSUtil.sleep(2000);
+      // Now we wait for dueTime (1.5s)
+      await NodeJSUtil.sleep(1500);
 
       // After that the reminder callback will be called
       // In our case, the callback increments the count attribute
@@ -195,8 +240,8 @@ describe('http/actors', () => {
 
       await actor.removeReminder();
 
-      // Now we wait an extra period (2s)
-      await (new Promise(resolve => setTimeout(resolve, 2000)));
+      // Now we wait an extra period - duration (1s)
+      await (new Promise(resolve => setTimeout(resolve, 1000)));
 
       // Make sure the counter didn't change
       const res2 = await actor.getCounter();
@@ -227,6 +272,34 @@ describe('http/actors', () => {
 
       // Unregister the reminder
       await actor.removeReminder();
+    });
+
+    it('should apply the ttl when it is set to a reminder', async () => {
+      const builder = new ActorProxyBuilder<DemoActorReminderInterface>(DemoActorReminderTtlImpl, client);
+      const actor = builder.build(ActorId.createRandomId());
+
+      // Activate our actor
+      // this will initialize the reminder to be called
+      await actor.init();
+
+      const res0 = await actor.getCounter();
+      expect(res0).toEqual(0);
+
+      // Now we wait for dueTime (1.5s)
+      await NodeJSUtil.sleep(1500);
+
+      // After that the reminder callback will be called
+      // In our case, the callback increments the count attribute
+      const res1 = await actor.getCounter();
+      expect(res1).toEqual(123);
+
+      await actor.removeReminder();
+
+      await (new Promise(resolve => setTimeout(resolve, 1000)));
+
+      // Make sure the counter didn't change
+      const res2 = await actor.getCounter();
+      expect(res2).toEqual(123);
     });
   });
 });

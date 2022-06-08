@@ -11,6 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import * as NodeJSUtils from "../../utils/NodeJS.util";
+
 import IClientBinding from '../../interfaces/Client/IClientBinding';
 import IClientPubSub from '../../interfaces/Client/IClientPubSub';
 import IClientState from '../../interfaces/Client/IClientState';
@@ -19,6 +21,7 @@ import IClientSecret from '../../interfaces/Client/IClientSecret';
 import IClientHealth from '../../interfaces/Client/IClientHealth';
 import IClientMetadata from '../../interfaces/Client/IClientMetadata';
 import IClientSidecar from '../../interfaces/Client/IClientSidecar';
+import IClientConfiguration from '../../interfaces/Client/IClientConfiguration';
 import IClientActorBuilder from '../../interfaces/Client/IClientActorBuilder';
 import IClient from '../../interfaces/Client/IClient';
 
@@ -30,6 +33,7 @@ import GRPCClientSecret from './GRPCClient/secret';
 import GRPCClientHealth from './GRPCClient/health';
 import GRPCClientMetadata from './GRPCClient/metadata';
 import GRPCClientSidecar from './GRPCClient/sidecar';
+import GRPCClientConfiguration from './GRPCClient/configuration';
 import GRPCClientActor from './GRPCClient/actor';
 import GRPCClient from './GRPCClient/GRPCClient';
 
@@ -41,6 +45,7 @@ import HTTPClientSecret from './HTTPClient/secret';
 import HTTPClientHealth from './HTTPClient/health';
 import HTTPClientMetadata from './HTTPClient/metadata';
 import HTTPClientSidecar from './HTTPClient/sidecar';
+import HTTPClientConfiguration from './HTTPClient/configuration';
 import HTTPClientActor from './HTTPClient/actor';
 import HTTPClient from './HTTPClient/HTTPClient';
 
@@ -63,6 +68,7 @@ export default class DaprClient {
   readonly health: IClientHealth;
   readonly metadata: IClientMetadata;
   readonly sidecar: IClientSidecar;
+  readonly configuration: IClientConfiguration;
   readonly actor: IClientActorBuilder;
 
   constructor(
@@ -97,6 +103,7 @@ export default class DaprClient {
         this.health = new GRPCClientHealth(client);
         this.metadata = new GRPCClientMetadata(client);
         this.sidecar = new GRPCClientSidecar(client);
+        this.configuration = new GRPCClientConfiguration(client);
         this.actor = new GRPCClientActor(client); // we use a abstractor here since we interface through a builder with the Actor Runtime
         break;
       }
@@ -113,6 +120,7 @@ export default class DaprClient {
         this.health = new HTTPClientHealth(client);
         this.metadata = new HTTPClientMetadata(client);
         this.sidecar = new HTTPClientSidecar(client);
+        this.configuration = new HTTPClientConfiguration(client);
         this.actor = new HTTPClientActor(client); // we use a abstractor here since we interface through a builder with the Actor Runtime
         break;
       }
@@ -125,6 +133,45 @@ export default class DaprClient {
 
   async stop(): Promise<void> {
     await this.daprClient.stop();
+  }
+
+  async awaitSidecarStarted(): Promise<void> {
+    // Dapr will probe every 50ms to see if we are listening on our port: https://github.com/dapr/dapr/blob/a43712c97ead550ca2f733e9f7e7769ecb195d8b/pkg/runtime/runtime.go#L1694
+    // if we are using actors we will change this to 4s to let the placement tables update
+    let isHealthy = false;
+    let isHealthyRetryCount = 0;
+    const isHealthyMaxRetryCount = 60; // 1s startup delay and we try max for 60s
+
+    console.log(`[Dapr-JS][Client] Awaiting Sidecar to be Started`);
+    while (!isHealthy) {
+      console.log(`[Dapr-JS][Client] Waiting till Dapr Sidecar Started (#${isHealthyRetryCount})`);
+      await NodeJSUtils.sleep(Settings.getDaprSidecarPollingDelayMs());
+
+      // Implement API call manually as we need to enable calling without initialization
+      // everything routes through the `execute` method
+      // to check health, we just ping the /metadata endpoint and see if we get a response
+      isHealthy = await this.health.isHealthy();
+
+      // Finally, Handle the retry logic
+      isHealthyRetryCount++;
+
+      if (isHealthyRetryCount > isHealthyMaxRetryCount) {
+        throw new Error("DAPR_SIDECAR_COULD_NOT_BE_STARTED");
+      }
+    }
+  }
+
+  /**
+   * Ensure the client is started, this takes care of:
+   * 1. Making sure the sidecar is started
+   * 2. Making sure the connection is established (e.g. in gRPC)
+   * 3. Making sure the client is ready to be used
+   */
+  async start(): Promise<void> {
+    await this.awaitSidecarStarted();
+    await this.daprClient.start();
+    await this.daprClient.setIsInitialized(true);
+    console.log(`[Dapr-JS][Client] Sidecar Started`);
   }
 
   getDaprClient(): IClient {

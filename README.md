@@ -1,83 +1,70 @@
-[![Discord](https://img.shields.io/discord/778680217417809931)]()
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/dapr/js-sdk/blob/master/LICENSE)
-[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B162%2Fgithub.com%2Fdapr%2Fcomponents-contrib.svg?type=shield)](https://app.fossa.com/projects/custom%2B162%2Fgithub.com%2Fdapr%2Fcomponents-contrib?ref=badge_shield)
+<p align="center">
+  <a href="https://dapr.io">
+    <img src="https://dapr.io/images/dapr.svg" height="128">
+    <h1 align="center">Dapr</h1>
+  </a>
+</p>
 
-# Dapr Node.js SDKs
+<p align="center">
+  <a aria-label="NPM version" href="https://www.npmjs.com/package/@dapr/dapr">
+    <img alt="" src="https://img.shields.io/npm/v/@dapr/dapr?style=for-the-badge&labelColor=000000">
+  </a>
+  <a aria-label="License" href="https://github.com/dapr/js-sdk/blob/master/LICENSE">
+    <img alt="" src="https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge&labelColor=000000">
+  </a>
+  <a aria-label="Join the community on Discord" href="https://discord.com/invite/ptHhX6jc34">
+    <img alt="" src="https://img.shields.io/badge/Join%20the%20community-blueviolet.svg?style=for-the-badge&logo=Discord&labelColor=000000&logoWidth=20&logoColor=FFFFFF">
+  </a>
+</p>
 
-The official [Dapr](https://dapr.io) Node.js SDK that allows interfacing with the Dapr sidecar for easy application building.
+## Getting Started
 
-## Introduction
+Instantly get started by installing the Dapr JS SDK and reading the [getting started documentation](https://docs.dapr.io/developing-applications/sdks/js) or [follow one of the quickstarts](https://github.com/dapr/quickstarts)
 
-The Dapr JS SDK will allow you to interface with the Dapr process that abstracts several commonly used functionalities such as Service-to-Service invocation, State Management, PubSub, and more.
-
-![](./documentation/assets/dapr-architecture.png)
-
-Looking at the illustration above, we can see there will always always be another process (the Dapr Sidecar) running that your application will interface with. This process can either be started manually (e.g. through Dapr CLI) or injected as a container (e.g. through Kubernetes Sidecar injection in your pod).
-
-For your application to interface with this, 2 components should be taken into account:
-* **DaprServer:** Dapr Sidecar -> our Application - When we Subscribe to a Topic, Create an Actor, ... we receive an event from the Dapr process that abstracted its implementation. Our application should thus listen to this (which this SDK helps you with).
-* **DaprClient:** Your Application -> Dapr Sidecar - When we want to Publish an Event, Execute a Binding, ... we will talk with the Dapr process that calls its implementation for us so that we don't have to write it ourself!
-
-## Simple Example
-
-> [Full version](./examples/http/pubsub)
-
-As a simple example, consider the use case: "Creating a PubSub where we can publish a message on a Topic and also receive messages back from this topic". Normally for this use case we would have to look at the Broker that we want to utilize and implement their specificities. While as with Dapr we can use a simple SDK and configure the "component" that we want to interface with.
-
-> 🤩 This also means that if we want to switch from one broker to another (e.g. [Azure Service Bus](https://docs.dapr.io/reference/components-reference/supported-pubsub/setup-azure-servicebus/) to [RabbitMQ](https://docs.dapr.io/reference/components-reference/supported-pubsub/setup-rabbitmq/)) we just have to change the component implementation!
-
-**component.yaml**
-
-```yaml
-apiVersion: dapr.io/v1alpha1
-kind: Component
-metadata:
-  name: my-pubsub-component
-  namespace: default
-spec:
-  type: pubsub.rabbitmq
-  version: v1
-  metadata:
-  - name: host
-    value: "amqp://localhost:5672"
+```
+npm install --save @dapr/dapr
 ```
 
-**example.ts**
+> ⚠️ the [`dapr-client`](https://www.npmjs.com/package/dapr-client) package has been deprecated. Please see https://github.com/dapr/js-sdk/issues/259 for more information.
 
-```javascript
-import { DaprClient, DaprServer } from "dapr-client";
+## Documentation
 
-const daprHost = "127.0.0.1"; // Dapr Sidecar Host
-const daprPort = "50000"; // Dapr Sidecar Port
-const serverHost = "127.0.0.1"; // App Host of this Example Server
-const serverPort = "50001"; // App Port of this Example Server
+Visit [https://docs.dapr.io/developing-applications/sdks/js/](https://docs.dapr.io/developing-applications/sdks/js/) to view the full documentation.
 
-// Create a Server (will subscribe) and Client (will publish)
-const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
-const client = new DaprClient(daprHost, daprPort);
+## Who is using Dapr?
 
-// Initialize the server to subscribe (listen)
-await server.pubsub.subscribe("my-pubsub-component", "my-topic", async (data: any) => console.log(`Received: ${JSON.stringify(data)}`));
-await server.start();
+Dapr is used by the world's leading companies. 
 
-// Send a message
-await client.pubsub.publish("my-pubsub-component", "my-topic", { hello: "world" });
-```
+<div align="center">               
+    <img src="https://dapr.io/images/bosch.png" width="100px">      
+    <img src="https://dapr.io/images/zeiss.png" width="100px">        
+    <img src="https://dapr.io/images/alibaba.png" width="100px">       
+    <img src="https://dapr.io/images/ignition-group.png" width="100px">      
+    <img src="https://dapr.io/images/roadwork.png" width="100px">     
+    <img src="https://dapr.io/images/autonavi.png" width="100px">     
+    <img src="https://dapr.io/images/legentic.png" width="100px">      
+    <img src="https://dapr.io/images/man-group.png" width="100px">
+</div>
 
-To start this we of course have to start the Dapr process with it. With the command below we can utilize the CLI to quickly test this:
+View the main site [https://dapr.io/](https://dapr.io/) to learn more.
 
-```bash
-dapr run --app-id example-http-pubsub --app-protocol http --app-port 50001 --dapr-http-port 50000 --components-path ./components npm run start
-```
+## Community
 
-Which will result in the message:
+For the JS SDK we are utilizing [GitHub Communities](https://github.com/dapr/js-sdk/discussions) to track announcements, articles, and more! 
 
-```bash
-Received: {"hello":"world"}
-```
+The General Dapr community can be found on [Discord](https://discord.com/invite/ptHhX6jc34), where you can ask questions, propose features, and share your thoughts.
 
-## Information & Links
+## Contributing
 
-* [Reference](./documentation/reference.md) containing code snippets of how to use the different methods.
-* [Examples](./documentation/examples.md) containing examples you can use to build your application.
-* [Development](./documentation/development.md) containing pointers for getting started on how to contribute to the SDK.
+Please see our [Contributing Overview](https://docs.dapr.io/contributing/js-contributing/).
+
+### Good First Issues
+
+We have a list of [good first issues](https://github.com/dapr/js-sdk/labels/good%20first%20issue) that contain bugs which have a relatively limited scope. This is a great place to get started, gain experience, and get familiar with our contribution process.
+
+## Authors
+
+- [Xavier Geerinck](https://www.linkedin.com/in/xaviergeerinck/) ([@XavierGeerinck](https://twitter.com/XavierGeerinck)) – [M18X](https://xaviergeerinck.com/) & [Proximus](https://proximus.com)
+- [Shubham Sharma](https://www.linkedin.com/in/shubham1172/) ([@shubham1172](https://twitter.com/shubham1172)) – [Microsoft](https://microsoft.com)
+- [Amulya Varote](https://www.linkedin.com/in/amulya-varote-96954287/) - [Microsoft](https://microsoft.com)
+- [Tanvi Gour](https://www.linkedin.com/in/tanvigour/) - [Microsoft](https://microsoft.com)
