@@ -32,9 +32,7 @@ export default class GRPCClient implements IClient {
   constructor(
     host = Settings.getDefaultHost()
     , port = Settings.getDefaultGrpcPort()
-    , options: DaprClientOptions = {
-      isKeepAlive: true
-    },
+    , options: DaprClientOptions = {},
   ) {
     this.clientHost = host;
     this.clientPort = port;

@@ -18,6 +18,14 @@ import { LogLevel } from "./LogLevel"
  * LoggerOptions provides options for configuring the logger.
  */
 export type LoggerOptions = {
+    /**
+     * The minimum level of messages to log.
+     * Default is LogLevel.Info.
+     */
     level?: LogLevel
+    /**
+     * Logging implementation to use.
+     * Default is to use the console.
+     */
     service?: LoggerService
 }
