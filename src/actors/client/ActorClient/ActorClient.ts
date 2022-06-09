@@ -15,7 +15,6 @@ import CommunicationProtocolEnum from '../../../enum/CommunicationProtocol.enum'
 import GRPCClient from '../../../implementation/Client/GRPCClient/GRPCClient';
 import HTTPClient from '../../../implementation/Client/HTTPClient/HTTPClient';
 import IClientActor from '../../../interfaces/Client/IClientActor';
-import { Logger } from '../../../logger/Logger';
 import { DaprClientOptions } from '../../../types/DaprClientOptions';
 import ActorClientGRPC from './ActorClientGRPC';
 import ActorClientHTTP from './ActorClientHTTP';

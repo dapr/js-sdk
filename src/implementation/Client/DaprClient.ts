@@ -53,7 +53,6 @@ import CommunicationProtocolEnum from '../../enum/CommunicationProtocol.enum';
 import { DaprClientOptions } from '../../types/DaprClientOptions';
 import { Settings } from '../../utils/Settings.util';
 import { Logger } from '../../logger/Logger';
-import { LoggerOptions } from "../../types/logger/LoggerOptions";
 
 export default class DaprClient {
   readonly daprHost: string;
