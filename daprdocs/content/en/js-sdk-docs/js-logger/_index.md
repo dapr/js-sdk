@@ -12,15 +12,19 @@ The JavaScript SDK comes with a out-of-box `Console` based logger. The SDK emits
 
 ## Configure log level
 
-The JavaScript SDK comes with five levels of logging in **ascending order of importance** - `error`, `warn`, `info`, `verbose`, and `debug`. Setting the log to a level means that the logger will emit all the logs that are at least as important as the mentioned level. For example, setting to `verbose` log means that the SDK will not emit `debug` level logs. The default log level is `info`.
+The JavaScript SDK comes with five levels of logging in **descending order of importance** - `error`, `warn`, `info`, `verbose`, and `debug`. Setting the log to a level means that the logger will emit all the logs that are at least as important as the mentioned level. For example, setting to `verbose` log means that the SDK will not emit `debug` level logs. The default log level is `info`.
 
 ### Dapr Client
 
 ```js
-import { DaprClient, LogLevel } from "dapr-client";
+import { CommunicationProtocolEnum, DaprClient, LogLevel } from "@dapr/dapr";
 
 // create a client instance with log level set to verbose.
-const client = new DaprClient(daprHost, daprPort, options = { loggerOptions: { logLevel: LogLevel.verbose } });
+const client = new DaprClient(
+    daprHost, 
+    daprPort, 
+    CommunicationProtocolEnum.HTTP, 
+    { logger: { level: LogLevel.Verbose } });
 ```
 
 > For more details on how to use the Client, see [JavaScript Client]({{< ref js-client/_index.md >}}).
@@ -28,10 +32,16 @@ const client = new DaprClient(daprHost, daprPort, options = { loggerOptions: { l
 ### DaprServer
 
 ```js
-import { DaprServer, LogLevel } from "dapr-client";
+import { CommunicationProtocolEnum, DaprServer, LogLevel } from "@dapr/dapr";
 
 // create a server instance with log level set to error.
-const server = new DaprServer(serverhost, serverPort, daprHost, daprPort, clientOptions = { loggerOptions: { logLevel: LogLevel.error } })
+const server = new DaprServer(
+    serverHost,
+    serverPort, 
+    daprHost,
+    daprPort,
+    CommunicationProtocolEnum.HTTP,
+    { logger: { level: LogLevel.Error } });
 ```
 
 > For more details on how to use the Server, see [JavaScript Server]({{< ref js-server/_index.md >}}).
@@ -40,9 +50,15 @@ const server = new DaprServer(serverhost, serverPort, daprHost, daprPort, client
 
 The JavaScript SDK uses the in-built `Console` for logging. To use a custom logger like Winston or Pino, you can implement the `LoggerService` interface.
 
-Example of using Winston:
+### Winston based logging:
+
+Create a new implementation of `LoggerService`.
+
 ```ts
-class WinsonLoggerService implement LoggerService {
+import { LoggerService } from "@dapr/dapr";
+import * as winston from 'winston';
+
+export class WinstonLoggerService implements LoggerService {
     private logger;
 
     constructor() {
@@ -54,20 +70,36 @@ class WinsonLoggerService implement LoggerService {
         });
     }
 
-    error(_message: any, ..._optionalParams: any[]): void {
+    error(message: any, ...optionalParams: any[]): void {
         this.logger.error(message, ...optionalParams)
     }
-    warn(_message: any, ..._optionalParams: any[]): void {
+    warn(message: any, ...optionalParams: any[]): void {
         this.logger.warn(message, ...optionalParams)
     }
-    info(_message: any, ..._optionalParams: any[]): void {
+    info(message: any, ...optionalParams: any[]): void {
         this.logger.info(message, ...optionalParams)
     }
-    verbose(_message: any, ..._optionalParams: any[]): void {
+    verbose(message: any, ...optionalParams: any[]): void {
         this.logger.verbose(message, ...optionalParams)
     }
-    debug(_message: any, ..._optionalParams: any[]): void {
+    debug(message: any, ...optionalParams: any[]): void {
         this.logger.debug(message, ...optionalParams)
     }
 }
+```
+
+Pass the new implementation to the SDK.
+
+```ts
+import { CommunicationProtocolEnum, DaprClient, LogLevel } from "@dapr/dapr";
+import { WinstonLoggerService } from "./WinstonLoggerService";
+
+const winstonLoggerService = new WinstonLoggerService();
+
+// create a client instance with log level set to verbose and logger service as winston.
+const client = new DaprClient(
+    daprHost,
+    daprPort,
+    CommunicationProtocolEnum.HTTP,
+    { logger: { level: LogLevel.Verbose, service: winstonLoggerService } });
 ```
