@@ -27,7 +27,7 @@ const client = new DaprClient(
     { logger: { level: LogLevel.Verbose } });
 ```
 
-> For more details on how to use the Client, see [JavaScript Client]({{< ref js-client/_index.md >}}).
+> For more details on how to use the Client, see [JavaScript Client]({{< ref js-client >}}).
 
 ### DaprServer
 
@@ -44,7 +44,7 @@ const server = new DaprServer(
     { logger: { level: LogLevel.Error } });
 ```
 
-> For more details on how to use the Server, see [JavaScript Server]({{< ref js-server/_index.md >}}).
+> For more details on how to use the Server, see [JavaScript Server]({{< ref js-server >}}).
 
 ## Custom LoggerService
 
