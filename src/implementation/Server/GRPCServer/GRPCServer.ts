@@ -16,6 +16,7 @@ import GRPCServerImpl from "./GRPCServerImpl";
 import { AppCallbackService } from "../../../proto/dapr/proto/runtime/v1/appcallback_grpc_pb";
 import IServer from "../../../interfaces/Server/IServer";
 import { DaprClient } from "../../..";
+import { Logger } from "../../../logger/Logger";
 
 // eslint-disable-next-line
 export interface IServerType extends grpc.Server { }
@@ -30,6 +31,7 @@ export default class GRPCServer implements IServer {
   serverImpl: IServerImplType;
   serverCredentials: grpc.ServerCredentials;
   client: DaprClient;
+  private readonly logger: Logger;
 
   constructor(client: DaprClient) {
     this.isInitialized = false;
@@ -37,14 +39,15 @@ export default class GRPCServer implements IServer {
     this.serverHost = "";
     this.serverPort = "";
     this.client = client;
+    this.logger = new Logger("GRPCServer", "GRPCServer", client.options.logger);
 
     // Create Server
     this.server = new grpc.Server();
     this.serverCredentials = grpc.ServerCredentials.createInsecure();
-    this.serverImpl = new GRPCServerImpl();
+    this.serverImpl = new GRPCServerImpl(client.options.logger);
 
     // Add our implementation
-    console.log("[Dapr-JS][gRPC] Adding Service Implementation - AppCallbackService")
+    this.logger.info("Adding Service Implementation - AppCallbackService")
     // @ts-ignore
     this.server.addService(AppCallbackService, this.serverImpl);
   }
@@ -102,14 +105,14 @@ export default class GRPCServer implements IServer {
   }
 
   private async initializeBind(): Promise<void> {
-    console.log(`[Dapr-JS][gRPC] Starting to listen on ${this.serverHost}:${this.serverPort}`);
+    this.logger.info(`Starting to listen on ${this.serverHost}:${this.serverPort}`);
     return new Promise((resolve, reject) => {
       this.server.bindAsync(`${this.serverHost}:${this.serverPort}`, this.serverCredentials, (err, _port) => {
         if (err) {
           return reject(err);
         }
 
-        console.log(`[Dapr-JS][gRPC] Listening on ${this.serverHost}:${this.serverPort}`);
+        this.logger.info(`Listening on ${this.serverHost}:${this.serverPort}`);
         return resolve();
       });
     })

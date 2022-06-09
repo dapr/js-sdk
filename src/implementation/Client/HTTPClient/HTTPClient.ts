@@ -19,6 +19,7 @@ import https from "https";
 import { DaprClientOptions } from "../../../types/DaprClientOptions";
 import { Settings } from '../../../utils/Settings.util';
 import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type"
+import { Logger } from "../../../logger/Logger";
 
 export default class HTTPClient implements IClient {
   private isInitialized: boolean;
@@ -28,6 +29,7 @@ export default class HTTPClient implements IClient {
   private readonly clientPort: string;
   private readonly clientUrl: string;
   private readonly options: DaprClientOptions;
+  private readonly logger: Logger;
 
   private readonly httpAgent;
   private readonly httpsAgent;
@@ -37,11 +39,12 @@ export default class HTTPClient implements IClient {
     , port = Settings.getDefaultHttpPort()
     , options: DaprClientOptions = {
       isKeepAlive: true
-    }
+    },
   ) {
     this.clientHost = host;
     this.clientPort = port;
     this.options = options;
+    this.logger = new Logger("HTTPClient", "HTTPClient", this.options.logger);
     this.isInitialized = false;
 
     if (!this.clientHost.startsWith('http://') && !this.clientHost.startsWith('https://')) {
@@ -138,7 +141,7 @@ export default class HTTPClient implements IClient {
           params.headers["Content-Type"] = "text/plain";
           break;
         default:
-          console.log(`Unknown body type: ${typeof params?.body}, defaulting to "text/plain"`);
+          this.logger.warn(`Unknown body type: ${typeof params?.body}, defaulting to "text/plain"`);
           params.headers["Content-Type"] = "text/plain";
           break;
       }
@@ -153,7 +156,8 @@ export default class HTTPClient implements IClient {
       await this.start();
     }
 
-    // console.log(`${params.method} - ${urlFull} (${params.body})`);
+    this.logger.debug(`Fetching ${params.method} ${urlFull} with body: (${params.body})`);
+
     const res = await fetch(urlFull, params);
 
     // Parse body
@@ -184,7 +188,7 @@ export default class HTTPClient implements IClient {
     }
     // All the others
     else {
-      console.log(txtParsed);
+      this.logger.debug("Execute response text: %s", txtParsed);
       throw new Error(JSON.stringify({
         error: "UNKNOWN",
         error_msg: `An unknown problem occured and we got the status ${res.status} with response ${JSON.stringify(res)}`

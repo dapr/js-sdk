@@ -268,7 +268,7 @@ describe('http/actors', () => {
       // The method receiveReminder on AbstractActor should be called at least once
       // this will state the not implemented function
       expect(spy.mock.calls[0].length).toBe(1);
-      expect(spy.mock.calls[0][0]).toEqual(`{"error":"ACTOR_METHOD_NOT_IMPLEMENTED","errorMsg":"A reminder was created for the actor with id: ${actorId.getId()} but the method 'receiveReminder' was not implemented"}`);
+      expect(spy.mock.calls[0][0]).toContain(`{"error":"ACTOR_METHOD_NOT_IMPLEMENTED","errorMsg":"A reminder was created for the actor with id: ${actorId.getId()} but the method 'receiveReminder' was not implemented"}`);
 
       // Unregister the reminder
       await actor.removeReminder();

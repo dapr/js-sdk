@@ -16,13 +16,16 @@ import { InvokerListenOptionsType } from '../../../types/InvokerListenOptions.ty
 import { HttpMethod } from '../../../enum/HttpMethod.enum';
 import HTTPServer from './HTTPServer';
 import IServerInvoker from '../../../interfaces/Server/IServerInvoker';
+import { Logger } from '../../../logger/Logger';
 
 // https://docs.dapr.io/reference/api/service_invocation_api/
 export default class HTTPServerInvoker implements IServerInvoker {
   private readonly server: HTTPServer;
+  private readonly logger: Logger;
 
   constructor(server: HTTPServer) {
     this.server = server;
+    this.logger = new Logger("HTTPServer", "Invoker", server.client.options.logger);
   }
 
   async listen(methodName: string, cb: TypeDaprInvokerCallback, options: InvokerListenOptionsType = {}) {
@@ -51,6 +54,6 @@ export default class HTTPServerInvoker implements IServerInvoker {
       }
     });
 
-    console.log(`Listening on ${serverMethod.toUpperCase()} /${methodName}`);
+    this.logger.info(`Listening on ${serverMethod.toUpperCase()} /${methodName}`)
   }
 }

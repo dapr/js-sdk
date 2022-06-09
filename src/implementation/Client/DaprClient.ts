@@ -52,6 +52,7 @@ import HTTPClient from './HTTPClient/HTTPClient';
 import CommunicationProtocolEnum from '../../enum/CommunicationProtocol.enum';
 import { DaprClientOptions } from '../../types/DaprClientOptions';
 import { Settings } from '../../utils/Settings.util';
+import { Logger } from '../../logger/Logger';
 
 export default class DaprClient {
   readonly daprHost: string;
@@ -71,18 +72,21 @@ export default class DaprClient {
   readonly configuration: IClientConfiguration;
   readonly actor: IClientActorBuilder;
 
+  private readonly logger: Logger;
+
   constructor(
     daprHost?: string
     , daprPort?: string
     , communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP
     , options: DaprClientOptions = {
-      isKeepAlive: true
-    }
+      isKeepAlive: true,
+    },
   ) {
     this.daprHost = daprHost ?? Settings.getDefaultHost();
     this.daprPort = daprPort ?? Settings.getDefaultPort(communicationProtocol);
     this.communicationProtocol = communicationProtocol;
     this.options = options;
+    this.logger = new Logger("DaprClient", "DaprClient", this.options.logger);
 
     // Validation on port
     if (!/^[0-9]+$/.test(this.daprPort)) {
@@ -142,9 +146,9 @@ export default class DaprClient {
     let isHealthyRetryCount = 0;
     const isHealthyMaxRetryCount = 60; // 1s startup delay and we try max for 60s
 
-    console.log(`[Dapr-JS][Client] Awaiting Sidecar to be Started`);
+    this.logger.info(`Awaiting Sidecar to be Started`);
     while (!isHealthy) {
-      console.log(`[Dapr-JS][Client] Waiting till Dapr Sidecar Started (#${isHealthyRetryCount})`);
+      this.logger.verbose(`Waiting for the Dapr Sidecar to start, retry count: (#${isHealthyRetryCount})`);
       await NodeJSUtils.sleep(Settings.getDaprSidecarPollingDelayMs());
 
       // Implement API call manually as we need to enable calling without initialization
@@ -171,7 +175,7 @@ export default class DaprClient {
     await this.awaitSidecarStarted();
     await this.daprClient.start();
     await this.daprClient.setIsInitialized(true);
-    console.log(`[Dapr-JS][Client] Sidecar Started`);
+    this.logger.info("Sidecar Started");
   }
 
   getDaprClient(): IClient {
