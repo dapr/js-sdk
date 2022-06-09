@@ -21,12 +21,10 @@ export default class GRPCClientPubSub implements IClientPubSub {
   client: GRPCClient;
   
   private readonly logger: Logger;
-  private readonly LOG_COMPONENT: string = "GRPCClient";
-  private readonly LOG_AREA: string = "PubSub";
 
-  constructor(client: GRPCClient, logger: Logger) {
+  constructor(client: GRPCClient) {
     this.client = client;
-    this.logger = logger;
+    this.logger = new Logger("GRPCClient", "PubSub", client.getOptions().logger);
   }
 
   // @todo: should return a specific typed Promise<TypePubSubPublishResponse> instead of Promise<any>
@@ -40,7 +38,7 @@ export default class GRPCClientPubSub implements IClientPubSub {
       const client = this.client.getClient();
       client.publishEvent(msgService, (err, _res) => {
         if (err) {
-          this.logger.error(this.LOG_COMPONENT, this.LOG_AREA, `publish failed: ${err}`);
+          this.logger.error(`publish failed: ${err}`);
           return reject(false);
         }
 

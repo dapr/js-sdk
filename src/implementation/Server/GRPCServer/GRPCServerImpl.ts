@@ -23,6 +23,7 @@ import * as HttpVerbUtil from "../../../utils/HttpVerb.util";
 import { TypeDaprBindingCallback } from "../../../types/DaprBindingCallback.type";
 import { TypeDaprPubSubCallback } from "../../../types/DaprPubSubCallback.type";
 import { Logger } from "../../../logger/Logger";
+import { LoggerOptions } from "../../../types/logger/LoggerOptions";
 
 
 // https://github.com/badsyntax/grpc-js-typescript/issues/1#issuecomment-705419742
@@ -30,15 +31,12 @@ import { Logger } from "../../../logger/Logger";
 export default class GRPCServerImpl implements IAppCallbackServer {
     private readonly logger: Logger;
 
-    private readonly LOG_COMPONENT: string = "GRPCServer";
-    private readonly LOG_AREA: string = "GRPCServerImpl";
-
     handlersInvoke: { [key: string]: TypeDaprInvokerCallback };
     handlersBindings: { [key: string]: TypeDaprBindingCallback };
     handlersTopics: { [key: string]: TypeDaprPubSubCallback };
 
-    constructor(logger: Logger) {
-        this.logger = logger;
+    constructor(loggerOptions?: LoggerOptions) {
+        this.logger = new Logger("GRPCServer", "GRPCServerImpl", loggerOptions);
         this.handlersInvoke = {};
         this.handlersBindings = {};
         this.handlersTopics = {};
@@ -81,7 +79,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         const handlersInvokeKey = `${methodStr.toLowerCase()}|${method.toLowerCase()}`;
 
         if (!this.handlersInvoke[handlersInvokeKey]) {
-            this.logger.warn(this.LOG_COMPONENT, this.LOG_AREA, `${methodStr} /${method} was not handled`)
+            this.logger.warn(`${methodStr} /${method} was not handled`)
             return;
         }
 
@@ -117,14 +115,14 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     async onBindingEvent(call: grpc.ServerUnaryCall<BindingEventRequest, BindingEventResponse>, callback: grpc.sendUnaryData<BindingEventResponse>): Promise<void> {
         const req = call.request;
         const handlerKey = this.createInputBindingHandlerKey(req.getName());
-        
+
         if (!this.handlersBindings[handlerKey]) {
-            this.logger.warn(this.LOG_COMPONENT, this.LOG_AREA, `Event for binding: "${handlerKey}" was not handled`);
+            this.logger.warn(`Event for binding: "${handlerKey}" was not handled`);
             return;
         }
 
         const data = Buffer.from(req.getData()).toString();
-        
+
         let dataParsed;
 
         try {
@@ -145,9 +143,9 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     async onTopicEvent(call: grpc.ServerUnaryCall<TopicEventRequest, TopicEventResponse>, callback: grpc.sendUnaryData<TopicEventResponse>): Promise<void> {
         const req = call.request;
         const handlerKey = this.createPubSubSubscriptionHandlerKey(req.getPubsubName(), req.getTopic());
-        
+
         if (!this.handlersTopics[handlerKey]) {
-            this.logger.warn(this.LOG_COMPONENT, this.LOG_AREA, `Event from topic: "${handlerKey}" was not handled`);
+            this.logger.warn(`Event from topic: "${handlerKey}" was not handled`);
             return;
         }
 
@@ -167,7 +165,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
             res.setStatus(TopicEventResponse.TopicEventResponseStatus.SUCCESS);
         } catch (e) {
             // @todo: for now we drop, maybe we should allow retrying as well more easily?
-            this.logger.error(this.LOG_COMPONENT, this.LOG_AREA, `Error handling topic event: ${e}`);
+            this.logger.error(`Error handling topic event: ${e}`);
             res.setStatus(TopicEventResponse.TopicEventResponseStatus.DROP);
         }
 

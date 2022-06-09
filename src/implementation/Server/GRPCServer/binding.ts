@@ -21,17 +21,14 @@ export default class DaprBinding implements IServerBinding {
   server: GRPCServer;
   private readonly logger: Logger;
 
-  private readonly LOG_COMPONENT: string = "GRPCServer";
-  private readonly LOG_AREA: string = "Binding";
-
-  constructor(server: GRPCServer, logger: Logger) {
+  constructor(server: GRPCServer) {
     this.server = server;
-    this.logger = logger;
+    this.logger = new Logger("GRPCServer", "Binding", server.client.options.logger);
   }
 
   // Receive an input from an external system
   async receive(bindingName: string, cb: TypeDaprBindingCallback): Promise<any> {
-    this.logger.info(this.LOG_COMPONENT, this.LOG_AREA, `Registering GRPC onBindingInput Handler: Binding = ${bindingName}`);
+    this.logger.info(`Registering GRPC onBindingInput Handler: Binding = ${bindingName}`);
     this.server.getServerImpl().registerInputBindingHandler(bindingName, cb);
   }
 }

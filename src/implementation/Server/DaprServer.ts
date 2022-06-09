@@ -51,9 +51,6 @@ export default class DaprServer {
   readonly actor: IServerActor;
   readonly client: DaprClient;
 
-  private readonly LOG_COMPONENT: string = "DaprServer";
-  private readonly LOG_AREA: string = "DaprServer";
-
   constructor(
     serverHost?: string
     , serverPort?: string
@@ -68,7 +65,7 @@ export default class DaprServer {
     this.serverPort = serverPort ?? Settings.getDefaultAppPort(communicationProtocol);
     this.daprHost = daprHost ?? Settings.getDefaultHost();
     this.daprPort = daprPort ?? Settings.getDefaultPort(communicationProtocol);
-    this.logger = new Logger(clientOptions.logger);
+    this.logger = new Logger("DaprServer", "DaprServer", clientOptions.logger);
 
     // Create a client to interface with the sidecar from the server side
     this.client = new DaprClient(daprHost, daprPort, communicationProtocol, clientOptions);
@@ -89,24 +86,24 @@ export default class DaprServer {
     // Builder
     switch (communicationProtocol) {
       case CommunicationProtocolEnum.GRPC: {
-        const server = new GRPCServer(this.client, this.logger);
+        const server = new GRPCServer(this.client);
         this.daprServer = server;
 
-        this.pubsub = new GRPCServerPubSub(server, this.logger);
-        this.binding = new GRPCServerBinding(server, this.logger);
-        this.invoker = new GRPCServerInvoker(server, this.logger);
+        this.pubsub = new GRPCServerPubSub(server);
+        this.binding = new GRPCServerBinding(server);
+        this.invoker = new GRPCServerInvoker(server);
         this.actor = new GRPCServerActor(server);
         break;
       }
       case CommunicationProtocolEnum.HTTP:
       default: {
-        const server = new HTTPServer(this.client, this.logger);
+        const server = new HTTPServer(this.client);
         this.daprServer = server;
 
-        this.pubsub = new HTTPServerPubSub(server, this.logger);
-        this.binding = new HTTPServerBinding(server, this.logger);
-        this.invoker = new HTTPServerInvoker(server, this.logger);
-        this.actor = new HTTPServerActor(server, this.client, this.logger);
+        this.pubsub = new HTTPServerPubSub(server);
+        this.binding = new HTTPServerBinding(server);
+        this.invoker = new HTTPServerInvoker(server);
+        this.actor = new HTTPServerActor(server, this.client);
         break;
       }
     }
@@ -120,7 +117,7 @@ export default class DaprServer {
     await this.client.start();
 
     // We are initialized
-    this.logger.info(this.LOG_COMPONENT, this.LOG_AREA, "Sidecar Started");
+    this.logger.info("Sidecar Started");
   }
 
   async stop(): Promise<void> {

@@ -53,13 +53,13 @@ import CommunicationProtocolEnum from '../../enum/CommunicationProtocol.enum';
 import { DaprClientOptions } from '../../types/DaprClientOptions';
 import { Settings } from '../../utils/Settings.util';
 import { Logger } from '../../logger/Logger';
+import { LoggerOptions } from "../../types/logger/LoggerOptions";
 
 export default class DaprClient {
   readonly daprHost: string;
   readonly daprPort: string;
   readonly options: DaprClientOptions;
   readonly communicationProtocol: CommunicationProtocolEnum;
-  readonly logger: Logger;
 
   readonly daprClient: IClient;
   readonly pubsub: IClientPubSub;
@@ -73,8 +73,7 @@ export default class DaprClient {
   readonly configuration: IClientConfiguration;
   readonly actor: IClientActorBuilder;
 
-  private readonly LOG_COMPONENT: string = "DaprClient";
-  private readonly LOG_AREA: string = "DaprClient";
+  private readonly logger: Logger;
 
   constructor(
     daprHost?: string
@@ -88,7 +87,7 @@ export default class DaprClient {
     this.daprPort = daprPort ?? Settings.getDefaultPort(communicationProtocol);
     this.communicationProtocol = communicationProtocol;
     this.options = options;
-    this.logger = new Logger(this.options.logger);
+    this.logger = new Logger("DaprClient", "DaprClient", this.options.logger);
 
     // Validation on port
     if (!/^[0-9]+$/.test(this.daprPort)) {
@@ -98,11 +97,11 @@ export default class DaprClient {
     // Builder
     switch (communicationProtocol) {
       case CommunicationProtocolEnum.GRPC: {
-        const client = new GRPCClient(this.daprHost, this.daprPort, this.options, this.logger);
+        const client = new GRPCClient(this.daprHost, this.daprPort, this.options);
         this.daprClient = client;
 
         this.state = new GRPCClientState(client);
-        this.pubsub = new GRPCClientPubSub(client, this.logger);
+        this.pubsub = new GRPCClientPubSub(client);
         this.binding = new GRPCClientBinding(client);
         this.invoker = new GRPCClientInvoker(client);
         this.secret = new GRPCClientSecret(client);
@@ -115,11 +114,11 @@ export default class DaprClient {
       }
       case CommunicationProtocolEnum.HTTP:
       default: {
-        const client = new HTTPClient(this.daprHost, this.daprPort, this.options, this.logger);
+        const client = new HTTPClient(this.daprHost, this.daprPort, this.options);
         this.daprClient = client;
 
         this.state = new HTTPClientState(client);
-        this.pubsub = new HTTPClientPubSub(client, this.logger);
+        this.pubsub = new HTTPClientPubSub(client);
         this.binding = new HTTPClientBinding(client);
         this.invoker = new HTTPClientInvoker(client);
         this.secret = new HTTPClientSecret(client);
@@ -148,9 +147,9 @@ export default class DaprClient {
     let isHealthyRetryCount = 0;
     const isHealthyMaxRetryCount = 60; // 1s startup delay and we try max for 60s
 
-    this.logger.info(this.LOG_COMPONENT, this.LOG_AREA, `Awaiting Sidecar to be Started`);
+    this.logger.info(`Awaiting Sidecar to be Started`);
     while (!isHealthy) {
-      this.logger.verbose(this.LOG_COMPONENT, this.LOG_AREA,`Waiting for the Dapr Sidecar to start, retry count: (#${isHealthyRetryCount})`);
+      this.logger.verbose(`Waiting for the Dapr Sidecar to start, retry count: (#${isHealthyRetryCount})`);
       await NodeJSUtils.sleep(Settings.getDaprSidecarPollingDelayMs());
 
       // Implement API call manually as we need to enable calling without initialization
@@ -177,7 +176,7 @@ export default class DaprClient {
     await this.awaitSidecarStarted();
     await this.daprClient.start();
     await this.daprClient.setIsInitialized(true);
-    this.logger.info(this.LOG_COMPONENT, this.LOG_AREA, "Sidecar Started");
+    this.logger.info("Sidecar Started");
   }
 
   getDaprClient(): IClient {

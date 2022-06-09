@@ -19,12 +19,10 @@ import { Logger } from '../../../logger/Logger';
 export default class HTTPClientPubSub implements IClientPubSub {
   client: HTTPClient;
   private readonly logger: Logger;
-  private readonly LOG_COMPONENT: string = "HTTPClient";
-  private readonly LOG_AREA: string = "PubSub";
 
-  constructor(client: HTTPClient, logger: Logger) {
+  constructor(client: HTTPClient) {
     this.client = client;
-    this.logger = logger;
+    this.logger = new Logger("HTTPClient", "PubSub", client.getOptions().logger);
   }
 
   async publish(pubSubName: string, topic: string, data: object = {}): Promise<boolean> {
@@ -37,7 +35,7 @@ export default class HTTPClientPubSub implements IClientPubSub {
         body: JSON.stringify(data),
       });
     } catch (e: any) {
-      this.logger.error(this.LOG_COMPONENT, this.LOG_AREA, `publish failed: ${e}`);
+      this.logger.error(`publish failed: ${e}`);
       return false;
     }
 

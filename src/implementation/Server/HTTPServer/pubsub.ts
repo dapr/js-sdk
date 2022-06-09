@@ -21,12 +21,9 @@ export default class HTTPServerPubSub implements IServerPubSub {
   private readonly server: HTTPServer;
   private readonly logger: Logger;
 
-  private readonly LOG_COMPONENT: string = "HTTPServer";
-  private readonly LOG_AREA: string = "PubSub";
-
-  constructor(server: HTTPServer, logger: Logger) {
+  constructor(server: HTTPServer) {
     this.server = server;
-    this.logger = logger;
+    this.logger = new Logger("HTTPServer", "PubSub", server.client.options.logger);
   }
 
   async subscribe(pubsubName: string, topic: string, cb: TypeDaprPubSubCallback, route = "") {
@@ -48,12 +45,12 @@ export default class HTTPServerPubSub implements IServerPubSub {
       try {
         await cb(data);
       } catch (e) {
-        this.logger.error(this.LOG_COMPONENT, this.LOG_AREA, `subscribe failed: ${e}`);
+        this.logger.error(`subscribe failed: ${e}`);
         return res.send({ success: false });
       }
 
       // Let Dapr know that the message was processed correctly
-      this.logger.debug(this.LOG_COMPONENT, this.LOG_AREA, `[route-${topic}] Ack'ing the message`);
+      this.logger.debug(`[route-${topic}] Ack'ing the message`);
       return res.send({ success: true });
     });
   }

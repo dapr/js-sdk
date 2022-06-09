@@ -23,17 +23,14 @@ export default class DaprInvoker implements IServerInvoker {
   server: GRPCServer;
   private readonly logger: Logger;
 
-  private readonly LOG_COMPONENT: string = "GRPCServer";
-  private readonly LOG_AREA: string = "Invoker";
-
-  constructor(server: GRPCServer, logger: Logger) {
+  constructor(server: GRPCServer) {
     this.server = server;
-    this.logger = logger;
+    this.logger = new Logger("GRPCServer", "Invoker", server.client.options.logger);
   }
 
   async listen(methodName: string, cb: TypeDaprInvokerCallback, options: InvokerListenOptionsType = {}): Promise<any> {
     const httpMethod: HttpMethod = options?.method?.toLowerCase() as HttpMethod || HttpMethod.GET;
-    this.logger.info(this.LOG_COMPONENT, this.LOG_AREA, `Registering onInvoke Handler ${httpMethod} /${methodName}`)
+    this.logger.info(`Registering onInvoke Handler ${httpMethod} /${methodName}`)
     this.server.getServerImpl().registerOnInvokeHandler(httpMethod, methodName, cb);
   }
 }

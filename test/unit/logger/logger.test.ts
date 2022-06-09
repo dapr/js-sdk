@@ -19,9 +19,9 @@ describe('Logger', () => {
     it('should not display logs below the set log level', () => {
         // arrange
         const mockLoggerService = new MockLoggerService();
-        const errorLogger = new Logger({ level: LogLevel.Error, service: mockLoggerService })
-        const infoLogger = new Logger({ level: LogLevel.Info, service: mockLoggerService })
-        const debugLogger = new Logger({ level: LogLevel.Debug, service: mockLoggerService })
+        const errorLogger = new Logger("component", "area", { level: LogLevel.Error, service: mockLoggerService })
+        const infoLogger = new Logger("component", "area", { level: LogLevel.Info, service: mockLoggerService })
+        const debugLogger = new Logger("component", "area", { level: LogLevel.Debug, service: mockLoggerService })
 
         // act
         callAllLogLevels(errorLogger)
@@ -62,9 +62,9 @@ class MockLoggerService implements LoggerService {
 }
 
 function callAllLogLevels(logger: Logger) {
-    logger.error("component", "area", "message")
-    logger.warn("component", "area", "message")
-    logger.info("component", "area", "message")
-    logger.verbose("component", "area", "message")
-    logger.debug("component", "area", "message")
+    logger.error("message")
+    logger.warn("message")
+    logger.info("message")
+    logger.verbose("message")
+    logger.debug("message")
 }

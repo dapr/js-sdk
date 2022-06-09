@@ -33,24 +33,21 @@ export default class GRPCServer implements IServer {
   client: DaprClient;
   private readonly logger: Logger;
 
-  private readonly LOG_COMPONENT: string = "GRPCServer";
-  private readonly LOG_AREA: string = "GRPCServer";
-
-  constructor(client: DaprClient, logger: Logger) {
+  constructor(client: DaprClient) {
     this.isInitialized = false;
 
     this.serverHost = "";
     this.serverPort = "";
     this.client = client;
-    this.logger = logger;
+    this.logger = new Logger("GRPCServer", "GRPCServer", client.options.logger);
 
     // Create Server
     this.server = new grpc.Server();
     this.serverCredentials = grpc.ServerCredentials.createInsecure();
-    this.serverImpl = new GRPCServerImpl(this.logger);
+    this.serverImpl = new GRPCServerImpl(client.options.logger);
 
     // Add our implementation
-    this.logger.info(this.LOG_COMPONENT, this.LOG_AREA, "Adding Service Implementation - AppCallbackService")
+    this.logger.info("Adding Service Implementation - AppCallbackService")
     // @ts-ignore
     this.server.addService(AppCallbackService, this.serverImpl);
   }
@@ -108,14 +105,14 @@ export default class GRPCServer implements IServer {
   }
 
   private async initializeBind(): Promise<void> {
-    this.logger.info(this.LOG_COMPONENT, this.LOG_AREA, `Starting to listen on ${this.serverHost}:${this.serverPort}`);
+    this.logger.info(`Starting to listen on ${this.serverHost}:${this.serverPort}`);
     return new Promise((resolve, reject) => {
       this.server.bindAsync(`${this.serverHost}:${this.serverPort}`, this.serverCredentials, (err, _port) => {
         if (err) {
           return reject(err);
         }
 
-        this.logger.info(this.LOG_COMPONENT, this.LOG_AREA, `Listening on ${this.serverHost}:${this.serverPort}`);
+        this.logger.info(`Listening on ${this.serverHost}:${this.serverPort}`);
         return resolve();
       });
     })

@@ -34,14 +34,11 @@ export default class HTTPServer implements IServer {
   client: DaprClient;
   private readonly logger: Logger;
 
-  private readonly LOG_COMPONENT: string = "HTTPServer";
-  private readonly LOG_AREA: string = "HTTPServer";
-
-  constructor(client: DaprClient, logger: Logger) {
+  constructor(client: DaprClient) {
     this.serverHost = "";
     this.serverPort = "";
     this.client = client;
-    this.logger = logger;
+    this.logger = new Logger("HTTPServer", "HTTPServer", client.options.logger);
 
     this.isInitialized = false;
 
@@ -107,14 +104,14 @@ export default class HTTPServer implements IServer {
 
     // Initialize Server Listener
     await this.server.start(parseInt(port, 10));
-    this.logger.info(this.LOG_COMPONENT, this.LOG_AREA, `Listening on ${port}`);
+    this.logger.info(`Listening on ${port}`);
     this.serverAddress = `http://${host}:${port}`;
 
     // Add PubSub Routes
-    this.logger.info(this.LOG_COMPONENT, this.LOG_AREA, `Registering ${this.serverImpl.pubSubSubscriptionRoutes.length} PubSub Subscriptions`);
+    this.logger.info(`Registering ${this.serverImpl.pubSubSubscriptionRoutes.length} PubSub Subscriptions`);
     this.server.get('/dapr/subscribe', (req, res) => {
       res.send(this.serverImpl.pubSubSubscriptionRoutes);
-      this.logger.info(this.LOG_COMPONENT, this.LOG_AREA, `Registered ${this.serverImpl.pubSubSubscriptionRoutes.length} PubSub Subscriptions`);
+      this.logger.info(`Registered ${this.serverImpl.pubSubSubscriptionRoutes.length} PubSub Subscriptions`);
     });
 
     this.isInitialized = true;

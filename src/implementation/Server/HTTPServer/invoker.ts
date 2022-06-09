@@ -23,12 +23,9 @@ export default class HTTPServerInvoker implements IServerInvoker {
   private readonly server: HTTPServer;
   private readonly logger: Logger;
 
-  private readonly LOG_COMPONENT: string = "HTTPServer";
-  private readonly LOG_AREA: string = "Invoker";
-
-  constructor(server: HTTPServer, logger: Logger) {
+  constructor(server: HTTPServer) {
     this.server = server;
-    this.logger = logger;
+    this.logger = new Logger("HTTPServer", "Invoker", server.client.options.logger);
   }
 
   async listen(methodName: string, cb: TypeDaprInvokerCallback, options: InvokerListenOptionsType = {}) {
@@ -57,6 +54,6 @@ export default class HTTPServerInvoker implements IServerInvoker {
       }
     });
 
-    this.logger.info(this.LOG_COMPONENT, this.LOG_AREA, `Listening on ${serverMethod.toUpperCase()} /${methodName}`)
+    this.logger.info(`Listening on ${serverMethod.toUpperCase()} /${methodName}`)
   }
 }

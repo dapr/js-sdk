@@ -30,13 +30,10 @@ export default class HTTPServerActor implements IServerActor {
   private readonly serializer: BufferSerializer;
   private readonly logger: Logger;
 
-  private readonly LOG_COMPONENT: string = "HTTPServer";
-  private readonly LOG_AREA: string = "Actors";
-
-  constructor(server: HTTPServer, client: DaprClient, logger: Logger) {
+  constructor(server: HTTPServer, client: DaprClient) {
     this.client = client;
     this.server = server;
-    this.logger = logger;
+    this.logger = new Logger("HTTPServer", "Actors", client.options.logger);
     this.serializer = new BufferSerializer();
   }
 
@@ -58,7 +55,7 @@ export default class HTTPServerActor implements IServerActor {
    * This will create the routes that get invoked by the Dapr Sidecar
    */
   async init(): Promise<void> {
-    this.logger.info(this.LOG_COMPONENT, this.LOG_AREA, "Initializing Actors");
+    this.logger.info("Initializing Actors");
 
     // Probes the application for a response to state that the app is healthy and running
     // https://docs.dapr.io/reference/api/actors_api/#health-check

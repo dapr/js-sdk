@@ -23,19 +23,16 @@ export default class HTTPServerBinding implements IServerBinding {
   private readonly server: HTTPServer;
   private readonly logger: Logger;
 
-  private readonly LOG_COMPONENT: string = "HTTPServer";
-  private readonly LOG_AREA: string = "Binding";
-
-  constructor(server: HTTPServer, logger: Logger) {
+  constructor(server: HTTPServer) {
     this.server = server;
-    this.logger = logger;
+    this.logger = new Logger("HTTPServer", "Binding", server.client.options.logger);
   }
 
   // Receive an input from an external system
   async receive(bindingName: string, cb: FunctionDaprInputCallback) {
     const server = await this.server.getServer();
 
-    server.options(`/${bindingName}`, (req, res) => {
+    server.options(`/${bindingName}`, (_req, res) => {
       return res.end();
     });
 
@@ -53,7 +50,7 @@ export default class HTTPServerBinding implements IServerBinding {
       } catch (e) {
         res.statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
 
-        this.logger.error(this.LOG_COMPONENT, this.LOG_AREA, `receive failed: ${e}`);
+        this.logger.error(`receive failed: ${e}`);
 
         return res.end(JSON.stringify({
           error: "COULD_NOT_PROCESS_CALLBACK",

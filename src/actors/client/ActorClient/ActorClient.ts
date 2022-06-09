@@ -35,18 +35,16 @@ export default class ActorClient {
     this.communicationProtocol = communicationProtocol;
     this.options = options;
 
-    const logger = new Logger(this.options.logger);
-
     // Builder
     switch (communicationProtocol) {
       case CommunicationProtocolEnum.GRPC: {
-        const client = new GRPCClient(this.daprHost, this.daprPort, this.options, logger);
+        const client = new GRPCClient(this.daprHost, this.daprPort, this.options);
         this.actor = new ActorClientGRPC(client);
         break;
       }
       case CommunicationProtocolEnum.HTTP:
       default: {
-        const client = new HTTPClient(this.daprHost, this.daprPort, this.options, logger);
+        const client = new HTTPClient(this.daprHost, this.daprPort, this.options);
         this.actor = new ActorClientHTTP(client);
         break;
       }

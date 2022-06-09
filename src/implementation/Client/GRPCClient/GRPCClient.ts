@@ -29,25 +29,21 @@ export default class GRPCClient implements IClient {
   private readonly options: DaprClientOptions;
   private readonly logger: Logger;
 
-  private readonly LOG_COMPONENT: string = "GRPCClient";
-  private readonly LOG_AREA: string = "GRPCClient";
-
   constructor(
     host = Settings.getDefaultHost()
     , port = Settings.getDefaultGrpcPort()
     , options: DaprClientOptions = {
       isKeepAlive: true
     },
-    logger: Logger,
   ) {
     this.clientHost = host;
     this.clientPort = port;
     this.clientCredentials = grpc.ChannelCredentials.createInsecure();
     this.options = options;
-    this.logger = logger;
+    this.logger = new Logger("GRPCClient", "GRPCClient", options.logger);
     this.isInitialized = false;
 
-    this.logger.info(this.LOG_COMPONENT, this.LOG_AREA,`Opening connection to ${this.clientHost}:${this.clientPort}`);
+    this.logger.info(`Opening connection to ${this.clientHost}:${this.clientPort}`);
     this.client = new DaprClient(`${this.clientHost}:${this.clientPort}`, this.clientCredentials);
   }
 
@@ -85,7 +81,7 @@ export default class GRPCClient implements IClient {
     return new Promise((resolve, reject) => {
       this.client.waitForReady(deadline, (err?) => {
         if (err) {
-          this.logger.error(this.LOG_COMPONENT, this.LOG_AREA, `Error waiting for client to be ready: ${err}`);
+          this.logger.error(`Error waiting for client to be ready: ${err}`);
           return reject();
         }
 

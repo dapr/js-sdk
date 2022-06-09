@@ -34,21 +34,17 @@ export default class HTTPClient implements IClient {
   private readonly httpAgent;
   private readonly httpsAgent;
 
-  private readonly LOG_COMPONENT: string = "HTTPClient";
-  private readonly LOG_AREA: string = "HTTPClient";
-
   constructor(
     host = Settings.getDefaultHost()
     , port = Settings.getDefaultHttpPort()
     , options: DaprClientOptions = {
       isKeepAlive: true
     },
-    logger: Logger,
   ) {
     this.clientHost = host;
     this.clientPort = port;
     this.options = options;
-    this.logger = logger;
+    this.logger = new Logger("HTTPClient", "HTTPClient", this.options.logger);
     this.isInitialized = false;
 
     if (!this.clientHost.startsWith('http://') && !this.clientHost.startsWith('https://')) {
@@ -145,7 +141,7 @@ export default class HTTPClient implements IClient {
           params.headers["Content-Type"] = "text/plain";
           break;
         default:
-          this.logger.warn(this.LOG_COMPONENT, this.LOG_AREA, `Unknown body type: ${typeof params?.body}, defaulting to "text/plain"`);
+          this.logger.warn(`Unknown body type: ${typeof params?.body}, defaulting to "text/plain"`);
           params.headers["Content-Type"] = "text/plain";
           break;
       }
@@ -160,7 +156,7 @@ export default class HTTPClient implements IClient {
       await this.start();
     }
 
-    this.logger.debug(this.LOG_COMPONENT, this.LOG_AREA, `Fetching ${params.method} ${urlFull} with body: (${params.body})`);
+    this.logger.debug(`Fetching ${params.method} ${urlFull} with body: (${params.body})`);
 
     const res = await fetch(urlFull, params);
 
@@ -192,7 +188,7 @@ export default class HTTPClient implements IClient {
     }
     // All the others
     else {
-      this.logger.debug(this.LOG_COMPONENT, this.LOG_AREA, "Response text: %s", txtParsed);
+      this.logger.debug("Execute response text: %s", txtParsed);
       throw new Error(JSON.stringify({
         error: "UNKNOWN",
         error_msg: `An unknown problem occured and we got the status ${res.status} with response ${JSON.stringify(res)}`
