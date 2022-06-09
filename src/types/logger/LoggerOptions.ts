@@ -11,9 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { LoggerOptions } from "./logger/LoggerOptions";
+import { LoggerService } from "./LoggerService"
+import { LogLevel } from "./LogLevel"
 
-export type DaprClientOptions = {
-  isKeepAlive: boolean;
-  logger?: LoggerOptions;
+/**
+ * LoggerOptions provides options for configuring the logger.
+ */
+export type LoggerOptions = {
+    level?: LogLevel
+    service?: LoggerService
 }

@@ -17,6 +17,7 @@ import IClient from "../../../interfaces/Client/IClient";
 import CommunicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
 import { DaprClientOptions } from "../../../types/DaprClientOptions";
 import { Settings } from '../../../utils/Settings.util';
+import { Logger } from "../../../logger/Logger";
 
 export default class GRPCClient implements IClient {
   private isInitialized: boolean;
@@ -26,21 +27,23 @@ export default class GRPCClient implements IClient {
   private readonly clientHost: string;
   private readonly clientPort: string;
   private readonly options: DaprClientOptions;
+  private readonly logger: Logger;
 
   constructor(
     host = Settings.getDefaultHost()
     , port = Settings.getDefaultGrpcPort()
     , options: DaprClientOptions = {
       isKeepAlive: true
-    }
+    },
   ) {
     this.clientHost = host;
     this.clientPort = port;
     this.clientCredentials = grpc.ChannelCredentials.createInsecure();
     this.options = options;
+    this.logger = new Logger("GRPCClient", "GRPCClient", options.logger);
     this.isInitialized = false;
 
-    console.log(`[Dapr-JS][gRPC] Opening connection to ${this.clientHost}:${this.clientPort}`);
+    this.logger.info(`Opening connection to ${this.clientHost}:${this.clientPort}`);
     this.client = new DaprClient(`${this.clientHost}:${this.clientPort}`, this.clientCredentials);
   }
 
@@ -78,7 +81,7 @@ export default class GRPCClient implements IClient {
     return new Promise((resolve, reject) => {
       this.client.waitForReady(deadline, (err?) => {
         if (err) {
-          console.error(err);
+          this.logger.error(`Error waiting for client to be ready: ${err}`);
           return reject();
         }
 

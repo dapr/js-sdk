@@ -17,6 +17,7 @@ import HTTPServerImpl from "./HTTPServerImpl";
 import IServer from "../../../interfaces/Server/IServer";
 import { DaprClient } from "../../..";
 import { createHttpTerminator } from 'http-terminator';
+import { Logger } from "../../../logger/Logger";
 
 // eslint-disable-next-line
 export interface IServerImplType extends HTTPServerImpl { }
@@ -31,11 +32,13 @@ export default class HTTPServer implements IServer {
   serverAddress: string;
   serverImpl: IServerImplType;
   client: DaprClient;
+  private readonly logger: Logger;
 
   constructor(client: DaprClient) {
     this.serverHost = "";
     this.serverPort = "";
     this.client = client;
+    this.logger = new Logger("HTTPServer", "HTTPServer", client.options.logger);
 
     this.isInitialized = false;
 
@@ -101,14 +104,14 @@ export default class HTTPServer implements IServer {
 
     // Initialize Server Listener
     await this.server.start(parseInt(port, 10));
-    console.log(`[Dapr-JS] Listening on ${port}`);
+    this.logger.info(`Listening on ${port}`);
     this.serverAddress = `http://${host}:${port}`;
 
     // Add PubSub Routes
-    console.log(`[Dapr API][PubSub] Registering ${this.serverImpl.pubSubSubscriptionRoutes.length} PubSub Subscriptions`);
+    this.logger.info(`Registering ${this.serverImpl.pubSubSubscriptionRoutes.length} PubSub Subscriptions`);
     this.server.get('/dapr/subscribe', (req, res) => {
       res.send(this.serverImpl.pubSubSubscriptionRoutes);
-      console.log(`[Dapr API][PubSub] Registered ${this.serverImpl.pubSubSubscriptionRoutes.length} PubSub Subscriptions`);
+      this.logger.info(`Registered ${this.serverImpl.pubSubSubscriptionRoutes.length} PubSub Subscriptions`);
     });
 
     this.isInitialized = true;
