@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import { CommunicationProtocolEnum, DaprClient } from "@dapr/dapr";
-import { LockStatus } from "@dapr/dapr/types/distributedlock/UnLockResponse";
+import { LockStatus } from "@dapr/dapr/types/lock/UnLockResponse";
 
 const daprHost = "127.0.0.1";
 const daprPortDefault = "3500";
@@ -29,20 +29,20 @@ async function start() {
   let lockOwner = "owner1";
   let expiryInSeconds = 1000;
 
-  const tryLockResponse = await client.distributedLock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
+  const tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
   console.log(tryLockResponse);
 
-  const unLockResponse = await client.distributedLock.unLock(storeName, resourceId, lockOwner);
+  const unLockResponse = await client.lock.unLock(storeName, resourceId, lockOwner);
   console.log("Unlock API response: " + getResponseStatus(unLockResponse.status));
 
   //Checking if the lock exists.
-  const lockUnexistResponse = await client.distributedLock.unLock(storeName, resourceId, lockOwner);
+  const lockUnexistResponse = await client.lock.unLock(storeName, resourceId, lockOwner);
   console.log("Unlock API response when lock is not acquired: " + getResponseStatus(lockUnexistResponse.status));
 
   resourceId = "resourceId";
   lockOwner = "owner1";
   expiryInSeconds = 25;
-  const tryLockResponse1 = await client.distributedLock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
+  const tryLockResponse1 = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
   console.log("Acquired Lock? " + tryLockResponse1.success);
 
   await new Promise(resolve => setTimeout(resolve, 20000));

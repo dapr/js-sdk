@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import { CommunicationProtocolEnum, DaprClient } from "@dapr/dapr";
-import { LockStatus } from "@dapr/dapr/types/distributedlock/UnLockResponse";
+import { LockStatus } from "@dapr/dapr/types/lock/UnLockResponse";
 
 const daprHost = "127.0.0.1";
 const daprPortDefault = "3500";
@@ -30,26 +30,26 @@ async function start() {
   const expiryInSeconds = 25;
 
   //Trying to acquire the lock which is being used by the other process(TryLockApplication)
-  let tryLockResponse = await client.distributedLock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
+  let tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
   console.log("Acquired Lock? " + tryLockResponse.success);
   console.log("Lock cannot be acquired as it belongs to the other process");
 
-  let unLockResponse = await client.distributedLock.unLock(storeName, resourceId, lockOwner);
+  let unLockResponse = await client.lock.unLock(storeName, resourceId, lockOwner);
   console.log("Unlock API response when lock is acquired by a different process: " + getResponseStatus(unLockResponse.status));
 
   await new Promise(resolve => setTimeout(resolve, 25000));
 
   //Trying to acquire the lock after the other process lock is expired
-  tryLockResponse = await client.distributedLock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
+  tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
   console.log("Acquired lock after the lock from the other process expired? " + tryLockResponse.success);
 
-  unLockResponse = await client.distributedLock.unLock(storeName, resourceId, lockOwner);
+  unLockResponse = await client.lock.unLock(storeName, resourceId, lockOwner);
   console.log("Unlock API response when lock is released after the expiry time: " + getResponseStatus(unLockResponse.status));
 
   await new Promise(resolve => setTimeout(resolve, 25000));
 
   //Trying to unlock the lock after the lock used by this process(UnLockApplication) is expired
-  unLockResponse = await client.distributedLock.unLock(storeName, resourceId, lockOwner);
+  unLockResponse = await client.lock.unLock(storeName, resourceId, lockOwner);
   console.log("Unlock API response when lock is released after the expiry time and lock does not exist: " + getResponseStatus(unLockResponse.status));
 }
 

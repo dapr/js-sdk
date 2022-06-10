@@ -12,12 +12,12 @@ limitations under the License.
 */
 
 import GRPCClient from './GRPCClient';
-import IClientDistributionLock from "../../../interfaces/Client/IClientDistributionLock";
-import { TryLockResponse as TryLockResponseResult } from '../../../types/distributedlock/TryLockResponse';
-import { UnlockResponse as UnLockResponseResult, LockStatus } from '../../../types/distributedlock/UnLockResponse';
+import { TryLockResponse as TryLockResponseResult } from '../../../types/lock/TryLockResponse';
+import { UnlockResponse as UnLockResponseResult, LockStatus } from '../../../types/lock/UnLockResponse';
 import { TryLockRequest, TryLockResponse, UnlockRequest, UnlockResponse } from '../../../proto/dapr/proto/runtime/v1/dapr_pb';
+import IClientLock from '../../../interfaces/Client/IClientLock';
 
-export default class GRPCClientDistributedLock implements IClientDistributionLock {
+export default class GRPCClientLock implements IClientLock {
     client: GRPCClient;
 
     constructor(client: GRPCClient) {

@@ -11,10 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { TryLockResponse } from "../../types/distributedlock/TryLockResponse";
-import { UnlockResponse } from "../../types/distributedlock/UnLockResponse";
+import { TryLockResponse } from "../../types/lock/TryLockResponse";
+import { UnlockResponse } from "../../types/lock/UnLockResponse";
 
-export default interface IClientDistributionLock {
+export default interface IClientLock {
   tryLock(storeName: string, resourceId: string, lockOwner: string, expiryInSeconds: number): Promise<TryLockResponse>;
   unLock(storeName: string, resourceId: string, lockOwner: string): Promise<UnlockResponse>;
 }
