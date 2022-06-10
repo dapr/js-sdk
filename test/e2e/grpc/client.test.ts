@@ -14,6 +14,7 @@ limitations under the License.
 import * as grpc from "@grpc/grpc-js";
 import { CommunicationProtocolEnum, DaprClient, LogLevel } from '../../../src';
 import { SubscribeConfigurationResponse } from '../../../src/types/configuration/SubscribeConfigurationResponse';
+import { LockStatus } from '../../../src/types/distributedlock/UnLockResponse';
 import * as DockerUtils from '../../utils/DockerUtil';
 import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runtime/v1/dapr_grpc_pb"
 import { Empty } from 'google-protobuf/google/protobuf/empty_pb';
@@ -385,4 +386,30 @@ describe('grpc/client', () => {
       await stream2.stop();
     });
   });
+
+  describe('distributed lock', () => {
+    it('should be able to acquire a new lock and unlock', async () => {
+      const tryLock = await client.distributedLock.tryLock("redislock", "resourceId", "owner1", 1000);
+      expect(tryLock.success).toEqual(true);
+      const unLock = await client.distributedLock.unLock("redislock", "resourceId", "owner1");
+      expect(unLock.status).toEqual(LockStatus.Success);
+    });
+
+    it('should be not be able to unlock when the lock is no acquired', async () => {
+      const unLock = await client.distributedLock.unLock("redislock", "resourceId", "owner1");
+      expect(unLock.status).toEqual(LockStatus.LockUnexist);
+    });
+
+    it('should be able to acquire a lock after the previous lock is expired', async () => {
+      let tryLock = await client.distributedLock.tryLock("redislock", "resourceId", "owner1", 5);
+      expect(tryLock.success).toEqual(true);
+      delay(2000)
+      tryLock = await client.distributedLock.tryLock("redislock", "resourceId", "owner1", 5);
+      expect(tryLock.success).toEqual(false);
+    });
+  });
 });
+
+function delay(milliseconds : number) {
+  return new Promise(resolve => setTimeout( resolve, milliseconds));
+}
