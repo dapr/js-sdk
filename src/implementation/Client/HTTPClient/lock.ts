@@ -12,11 +12,11 @@ limitations under the License.
 */
 
 import HTTPClient from './HTTPClient';
-import IClientDistributionLock from "../../../interfaces/Client/IClientDistributionLock";
-import { TryLockResponse as TryLockResponseResult} from '../../../types/distributedlock/TryLockResponse';
-import { UnlockResponse as UnLockResponseResult} from '../../../types/distributedlock/UnLockResponse';
+import { TryLockResponse as TryLockResponseResult} from '../../../types/lock/TryLockResponse';
+import { UnlockResponse as UnLockResponseResult} from '../../../types/lock/UnLockResponse';
+import IClientLock from '../../../interfaces/Client/IClientLock';
 
-export default class HTTPlientDistributedLock implements IClientDistributionLock {
+export default class HTTPClientLock implements IClientLock {
     client: HTTPClient;
 
     constructor(client: HTTPClient) {

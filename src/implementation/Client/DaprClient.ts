@@ -24,6 +24,7 @@ import IClientSidecar from '../../interfaces/Client/IClientSidecar';
 import IClientConfiguration from '../../interfaces/Client/IClientConfiguration';
 import IClientProxy from "../../interfaces/Client/IClientProxy";
 import IClientDistributionLock from '../../interfaces/Client/IClientDistributionLock';
+import IClientLock from '../../interfaces/Client/IClientLock';
 import IClientActorBuilder from '../../interfaces/Client/IClientActorBuilder';
 import IClient from '../../interfaces/Client/IClient';
 
@@ -36,7 +37,7 @@ import GRPCClientHealth from './GRPCClient/health';
 import GRPCClientMetadata from './GRPCClient/metadata';
 import GRPCClientSidecar from './GRPCClient/sidecar';
 import GRPCClientConfiguration from './GRPCClient/configuration';
-import GRPCClientDistributedLock from './GRPCClient/distributedLock';
+import GRPCClientLock from './GRPCClient/lock';
 import GRPCClientActor from './GRPCClient/actor';
 import GRPCClient from './GRPCClient/GRPCClient';
 
@@ -51,6 +52,7 @@ import HTTPClientSidecar from './HTTPClient/sidecar';
 import HTTPClientConfiguration from './HTTPClient/configuration';
 import HTTPClientProxy from './HTTPClient/proxy';
 import HTTPClientDistributedLock from './HTTPClient/distributedLock';
+import HTTPClientLock from './HTTPClient/lock';
 import HTTPClientActor from './HTTPClient/actor';
 import HTTPClient from './HTTPClient/HTTPClient';
 
@@ -78,6 +80,7 @@ export default class DaprClient {
   readonly configuration: IClientConfiguration;
   readonly proxy: IClientProxy;
   readonly distributedLock: IClientDistributionLock;
+  readonly lock: IClientLock;
   readonly actor: IClientActorBuilder;
 
   private readonly logger: Logger;
@@ -115,7 +118,7 @@ export default class DaprClient {
         this.sidecar = new GRPCClientSidecar(client);
         this.proxy = new GRPCClientProxy(client);
         this.configuration = new GRPCClientConfiguration(client);
-        this.distributedLock = new GRPCClientDistributedLock(client);
+        this.lock = new GRPCClientLock(client);
         this.actor = new GRPCClientActor(client); // we use a abstractor here since we interface through a builder with the Actor Runtime
         break;
       }
@@ -135,6 +138,7 @@ export default class DaprClient {
         this.configuration = new HTTPClientConfiguration(client);
         this.proxy = new HTTPClientProxy(client);
         this.distributedLock = new HTTPClientDistributedLock(client);
+        this.lock = new HTTPClientLock(client);
         this.actor = new HTTPClientActor(client); // we use a abstractor here since we interface through a builder with the Actor Runtime
         break;
       }
