@@ -48,7 +48,7 @@ export default class GRPCClientLock implements IClientLock {
       }
 
 
-    async unLock(storeName: string, resourceId: string, lockOwner: string): Promise<UnLockResponseResult> {
+    async unlock(storeName: string, resourceId: string, lockOwner: string): Promise<UnLockResponseResult> {
         const request = new UnlockRequest();
         request.setStoreName(storeName);
         request.setResourceId(resourceId);

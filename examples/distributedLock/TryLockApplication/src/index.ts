@@ -32,11 +32,11 @@ async function start() {
   const tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
   console.log(tryLockResponse);
 
-  const unLockResponse = await client.lock.unLock(storeName, resourceId, lockOwner);
+  const unLockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
   console.log("Unlock API response: " + getResponseStatus(unLockResponse.status));
 
   //Checking if the lock exists.
-  const lockUnexistResponse = await client.lock.unLock(storeName, resourceId, lockOwner);
+  const lockUnexistResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
   console.log("Unlock API response when lock is not acquired: " + getResponseStatus(lockUnexistResponse.status));
 
   resourceId = "resourceId";
