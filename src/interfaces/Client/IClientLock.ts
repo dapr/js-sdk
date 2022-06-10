@@ -16,5 +16,5 @@ import { UnlockResponse } from "../../types/lock/UnLockResponse";
 
 export default interface IClientLock {
   tryLock(storeName: string, resourceId: string, lockOwner: string, expiryInSeconds: number): Promise<TryLockResponse>;
-  unLock(storeName: string, resourceId: string, lockOwner: string): Promise<UnlockResponse>;
+  unlock(storeName: string, resourceId: string, lockOwner: string): Promise<UnlockResponse>;
 }

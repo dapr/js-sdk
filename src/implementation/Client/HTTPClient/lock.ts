@@ -25,7 +25,7 @@ export default class HTTPClientLock implements IClientLock {
     tryLock(_storeName: string, _resourceId: string, _lockOwner: string, _expiryInSeconds: number): Promise<TryLockResponseResult> {
         throw new Error('HTTP is currently not supported.');
     }
-    unLock(_storeName: string, _resourceId: string, _lockOwner: string): Promise<UnLockResponseResult> {
+    unlock(_storeName: string, _resourceId: string, _lockOwner: string): Promise<UnLockResponseResult> {
         throw new Error('HTTP is currently not supported.');
     }
 }

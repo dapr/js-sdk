@@ -5,7 +5,7 @@ It demonstrates the following APIs:
 - **Distributed Lock**: Try Lock
 - **Distributed Lock**: Unlock
 
-> **Note:** Make sure to use the latest proto bindings
+> **Note:** Make sure to use the latest proto bindings by running scripts/fetch-proto.sh file.
 ## Prerequisites
 
 - [Dapr CLI](https://docs.dapr.io/getting-started/install-dapr-cli/)
@@ -22,7 +22,7 @@ const tryLockResponse = await client.distributedLock.tryLock(storeName, resource
 
 #### Unlock Example
 ```javascript
-const unLockResponse = await client.distributedLock.unLock(storeName, resourceId, lockOwner);
+const unLockResponse = await client.distributedLock.unlock(storeName, resourceId, lockOwner);
 ```
 
 ### Start the DistributedLock TryLockApplication.
@@ -37,7 +37,7 @@ npm install
 To run the `TryLockApplication`, execute the following command:
 
 ```bash
-dapr run --app-id distributedLock --app-protocol grpc --components-path ./Components npm run start
+dapr run --app-id distributedLock --app-protocol grpc --components-path ./components npm run start
 ```
 
 You should see the following output from the application:
@@ -63,7 +63,7 @@ npm install
 To run the `UnLockApplication`, execute the following command:
 
 ```bash
-dapr run --app-id distributedLock --app-protocol grpc --components-path ./Components npm run start
+dapr run --app-id distributedLock --app-protocol grpc --components-path ./components npm run start
 ```
 
 You should see the following output from the application:

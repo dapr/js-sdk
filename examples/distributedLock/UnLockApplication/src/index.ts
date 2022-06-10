@@ -34,7 +34,7 @@ async function start() {
   console.log("Acquired Lock? " + tryLockResponse.success);
   console.log("Lock cannot be acquired as it belongs to the other process");
 
-  let unLockResponse = await client.lock.unLock(storeName, resourceId, lockOwner);
+  let unLockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
   console.log("Unlock API response when lock is acquired by a different process: " + getResponseStatus(unLockResponse.status));
 
   await new Promise(resolve => setTimeout(resolve, 25000));
@@ -43,13 +43,13 @@ async function start() {
   tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
   console.log("Acquired lock after the lock from the other process expired? " + tryLockResponse.success);
 
-  unLockResponse = await client.lock.unLock(storeName, resourceId, lockOwner);
+  unLockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
   console.log("Unlock API response when lock is released after the expiry time: " + getResponseStatus(unLockResponse.status));
 
   await new Promise(resolve => setTimeout(resolve, 25000));
 
   //Trying to unlock the lock after the lock used by this process(UnLockApplication) is expired
-  unLockResponse = await client.lock.unLock(storeName, resourceId, lockOwner);
+  unLockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
   console.log("Unlock API response when lock is released after the expiry time and lock does not exist: " + getResponseStatus(unLockResponse.status));
 }
 
