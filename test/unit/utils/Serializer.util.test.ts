@@ -11,14 +11,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-export function serializeGrpc(data: any): Buffer {
-    let serialized = data;
+import * as SerializerUtil from "../../../src/utils/Serializer.util"
 
-    if (data instanceof Buffer) {
-        serialized = data;
-    } else {
-        serialized = Buffer.from(JSON.stringify(data), "utf-8");
-    }
-
-    return serialized;
-}
+describe('serializer', () => {
+    it('Object should be serialized to Buffer', () => {
+        let data = SerializerUtil.serializeGrpc({ Hello: 'World' });
+        expect(Buffer.compare(data, Buffer.from(JSON.stringify({ Hello: 'World' })))).toEqual(0);
+    });
+    it('Buffer object should not be serialized again', () => {
+        let data = SerializerUtil.serializeGrpc(Buffer.from('Hello World'));
+        expect(Buffer.compare(data, Buffer.from('Hello World'))).toEqual(0);
+    });
+});
