@@ -15,11 +15,11 @@ import * as SerializerUtil from "../../../src/utils/Serializer.util"
 
 describe('serializer', () => {
     it('Object should be serialized to Buffer', () => {
-        let data = SerializerUtil.serializeGrpc({ Hello: 'World' });
+        const data = SerializerUtil.serializeGrpc({ Hello: 'World' });
         expect(Buffer.compare(data, Buffer.from(JSON.stringify({ Hello: 'World' })))).toEqual(0);
     });
     it('Buffer object should not be serialized again', () => {
-        let data = SerializerUtil.serializeGrpc(Buffer.from('Hello World'));
+        const data = SerializerUtil.serializeGrpc(Buffer.from('Hello World'));
         expect(Buffer.compare(data, Buffer.from('Hello World'))).toEqual(0);
     });
 });
