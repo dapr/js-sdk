@@ -55,13 +55,14 @@ export default class GRPCClientInvoker implements IClientInvoker {
     httpExtension.setVerb(HttpVerbUtil.convertHttpVerbStringToNumber(method));
 
     const msgSerialized = new Any();
-    msgSerialized.setValue(SerializerUtil.serializeGrpc(data));
+    const {serialized, contentType} = SerializerUtil.serializeGrpc(data);
+    msgSerialized.setValue(serialized);
 
     const msgInvoke = new InvokeRequest();
     msgInvoke.setMethod(methodName);
     msgInvoke.setHttpExtension(httpExtension);
     msgInvoke.setData(msgSerialized);
-    msgInvoke.setContentType("application/json");
+    msgInvoke.setContentType(contentType);
 
     msgInvokeService.setMessage(msgInvoke);
 

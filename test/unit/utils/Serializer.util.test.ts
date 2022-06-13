@@ -16,10 +16,12 @@ import * as SerializerUtil from "../../../src/utils/Serializer.util"
 describe('serializer', () => {
     it('Object should be serialized to Buffer', () => {
         const data = SerializerUtil.serializeGrpc({ Hello: 'World' });
-        expect(Buffer.compare(data, Buffer.from(JSON.stringify({ Hello: 'World' })))).toEqual(0);
+        expect(Buffer.compare(data.serialized, Buffer.from(JSON.stringify({ Hello: 'World' })))).toEqual(0);
+        expect(data.contentType).toEqual("application/json");
     });
     it('Buffer object should not be serialized again', () => {
         const data = SerializerUtil.serializeGrpc(Buffer.from('Hello World'));
-        expect(Buffer.compare(data, Buffer.from('Hello World'))).toEqual(0);
+        expect(Buffer.compare(data.serialized, Buffer.from('Hello World'))).toEqual(0);
+        expect(data.contentType).toEqual("application/octet-stream");
     });
 });
