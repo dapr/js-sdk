@@ -30,23 +30,26 @@ async function start() {
   let expiryInSeconds = 1000;
 
   const tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
+  console.log(`Acquiring lock on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
   console.log(tryLockResponse);
 
   const unLockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
+  console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
   console.log("Unlock API response: " + getResponseStatus(unLockResponse.status));
 
   //Checking if the lock exists.
   const lockUnexistResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
+  console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
   console.log("Unlock API response when lock is not acquired: " + getResponseStatus(lockUnexistResponse.status));
 
   resourceId = "resourceId";
   lockOwner = "owner1";
   expiryInSeconds = 25;
   const tryLockResponse1 = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
+  console.log(`Acquiring lock on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
   console.log("Acquired Lock? " + tryLockResponse1.success);
 
   await new Promise(resolve => setTimeout(resolve, 20000));
-
 }
 
 function getResponseStatus(status: LockStatus) {

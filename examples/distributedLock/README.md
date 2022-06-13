@@ -43,9 +43,13 @@ dapr run --app-id distributedLock --app-protocol grpc --components-path ./compon
 You should see the following output from the application:
 
 ```
+== APP == Acquiring lock on redislock, resourceId as owner: owner1
 == APP == { success: true }
+== APP == Unlocking on redislock, resourceId as owner: owner1
 == APP == Unlock API response: Success
+== APP == Unlocking on redislock, resourceId as owner: owner1
 == APP == Unlock API response when lock is not acquired: LockUnexist
+== APP == Acquiring lock on redislock, resourceId as owner: owner1
 == APP == Acquired Lock? true
 ```
 
@@ -69,10 +73,15 @@ dapr run --app-id distributedLock --app-protocol grpc --components-path ./compon
 You should see the following output from the application:
 
 ```
+== APP == Acquiring lock on redislock, resourceId as owner: owner2
 == APP == Acquired Lock? false
 == APP == Lock cannot be acquired as it belongs to the other process
+== APP == Unlocking on redislock, resourceId as owner: owner2
 == APP == Unlock API response when lock is acquired by a different process: LockBelongToOthers
+== APP == Acquiring lock on redislock, resourceId as owner: owner2
 == APP == Acquired lock after the lock from the other process expired? true
+== APP == Unlocking on redislock, resourceId as owner: owner2
 == APP == Unlock API response when lock is released after the expiry time: Success
+== APP == Unlocking on redislock, resourceId as owner: owner2
 == APP == Unlock API response when lock is released after the expiry time and lock does not exist: LockUnexist
 ```
