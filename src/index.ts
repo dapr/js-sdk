@@ -24,19 +24,23 @@ import { LoggerOptions } from "./types/logger/LoggerOptions";
 import { LoggerService } from "./types/logger/LoggerService";
 import { ConsoleLoggerService } from "./logger/ConsoleLoggerService";
 import { LogLevel } from "./types/logger/LogLevel";
+import GRPCClient from "./implementation/Client/GRPCClient/GRPCClient";
+import HTTPClient from "./implementation/Client/HTTPClient/HTTPClient";
 
 export {
-    DaprClient,
-    DaprServer,
-    HttpMethod,
-    AbstractActor,
-    ActorId,
-    ActorProxyBuilder,
-    CommunicationProtocolEnum,
-    Temporal,
-    DaprClientOptions,
-    LogLevel,
-    LoggerOptions,
-    LoggerService,
-    ConsoleLoggerService,
+  DaprClient,
+  DaprServer,
+  GRPCClient,
+  HTTPClient,
+  HttpMethod,
+  AbstractActor,
+  ActorId,
+  ActorProxyBuilder,
+  CommunicationProtocolEnum,
+  Temporal,
+  DaprClientOptions,
+  LogLevel,
+  LoggerOptions,
+  LoggerService,
+  ConsoleLoggerService,
 }

@@ -14,6 +14,11 @@ limitations under the License.
 import { LoggerOptions } from "./logger/LoggerOptions";
 
 export type DaprClientOptions = {
-  isKeepAlive: boolean;
+  isKeepAlive?: boolean;
   logger?: LoggerOptions;
+
+  // The Dapr App ID
+  // This is used for proxying requests
+  // currently only supported in GRPC
+  daprAppId?: string;
 }

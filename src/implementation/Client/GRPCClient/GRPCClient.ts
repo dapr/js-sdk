@@ -38,8 +38,8 @@ export default class GRPCClient implements IClient {
   ) {
     this.clientHost = host;
     this.clientPort = port;
-    this.clientCredentials = grpc.ChannelCredentials.createInsecure();
     this.options = options;
+    this.clientCredentials = this.generateCredentials(host, port, options);
     this.logger = new Logger("GRPCClient", "GRPCClient", options.logger);
     this.isInitialized = false;
 
@@ -61,6 +61,26 @@ export default class GRPCClient implements IClient {
 
   getClientCommunicationProtocol(): CommunicationProtocolEnum {
     return CommunicationProtocolEnum.GRPC;
+  }
+
+  getClientCredentials(): grpc.ChannelCredentials {
+    return this.clientCredentials;
+  }
+
+  private generateCredentials(host: string, port: string, options: DaprClientOptions): grpc.ChannelCredentials {
+    let credsChannel = grpc.ChannelCredentials.createInsecure();
+
+    if (options.daprAppId !== undefined) {
+      const credsMetadata = grpc.credentials.createFromMetadataGenerator((_args, callback) => {
+        const metadata = new grpc.Metadata();
+        metadata.add('dapr-app-id', `${options.daprAppId}`);
+        callback(null, metadata);
+      });
+
+      credsChannel = grpc.credentials.combineChannelCredentials(credsChannel, credsMetadata);
+    }
+
+    return credsChannel;
   }
 
   getOptions(): DaprClientOptions {
