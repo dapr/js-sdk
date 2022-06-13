@@ -31,7 +31,7 @@ export default class GRPCClientBinding implements IClientBinding {
     const msgService = new InvokeBindingRequest();
     msgService.setName(bindingName);
     msgService.setOperation(operation);
-    msgService.setData(SerializerUtil.serializeGrpc(data).serialized);
+    msgService.setData(SerializerUtil.serializeGrpc(data).serializedData);
 
     return new Promise((resolve, reject) => {
       const client = this.client.getClient();

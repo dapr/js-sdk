@@ -11,16 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-export function serializeGrpc(data: any): {serialized: Buffer, contentType: string} {
-    let serialized = data;
-    let contentType = "application/json";
-    if (data instanceof Buffer) {
-        serialized = data;
-        contentType = "application/octet-stream";
-    } else {
-        serialized = Buffer.from(JSON.stringify(data), "utf-8");
+export function serializeGrpc(data: any): {serializedData: Buffer, contentType: string} {
+    let serializedData = data;
+    let contentType = "application/octet-stream";
+    if (!(data instanceof Buffer)) {
+        serializedData = Buffer.from(JSON.stringify(data), "utf-8");
         contentType = "application/json";
     }
 
-    return {serialized, contentType};
+    return {serializedData, contentType};
 }
