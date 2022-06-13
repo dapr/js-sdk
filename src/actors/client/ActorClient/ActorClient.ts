@@ -26,9 +26,7 @@ export default class ActorClient {
   readonly actor: IClientActor;
   readonly options: DaprClientOptions;
 
-  constructor(daprHost: string, daprPort: string, communicationProtocol: CommunicationProtocolEnum, options: DaprClientOptions = {
-    isKeepAlive: true
-  }) {
+  constructor(daprHost: string, daprPort: string, communicationProtocol: CommunicationProtocolEnum, options: DaprClientOptions = {}) {
     this.daprHost = daprHost;
     this.daprPort = daprPort;
     this.communicationProtocol = communicationProtocol;
