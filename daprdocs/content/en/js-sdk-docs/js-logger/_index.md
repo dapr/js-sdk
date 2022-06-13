@@ -12,7 +12,7 @@ The JavaScript SDK comes with a out-of-box `Console` based logger. The SDK emits
 
 ## Configure log level
 
-The JavaScript SDK comes with five levels of logging in **descending order of importance** - `error`, `warn`, `info`, `verbose`, and `debug`. Setting the log to a level means that the logger will emit all the logs that are at least as important as the mentioned level. For example, setting to `verbose` log means that the SDK will not emit `debug` level logs. The default log level is `info`.
+There are five levels of logging in **descending order of importance** - `error`, `warn`, `info`, `verbose`, and `debug`. Setting the log to a level means that the logger will emit all the logs that are at least as important as the mentioned level. For example, setting to `verbose` log means that the SDK will not emit `debug` level logs. The default log level is `info`.
 
 ### Dapr Client
 
