@@ -19,7 +19,7 @@ import { Logger } from '../../../logger/Logger';
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class GRPCClientPubSub implements IClientPubSub {
   client: GRPCClient;
-  
+
   private readonly logger: Logger;
 
   constructor(client: GRPCClient) {
@@ -34,8 +34,9 @@ export default class GRPCClientPubSub implements IClientPubSub {
     msgService.setTopic(topic);
     msgService.setData(Buffer.from(JSON.stringify(data), "utf-8"));
 
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
       client.publishEvent(msgService, (err, _res) => {
         if (err) {
           this.logger.error(`publish failed: ${err}`);

@@ -67,7 +67,12 @@ export default class HTTPClient implements IClient {
     }
   }
 
-  getClient(): typeof fetch {
+  async getClient(requiresInitialization = true): Promise<typeof fetch> {
+    // Ensure the sidecar has been started
+    if (!this.isInitialized && requiresInitialization) {
+      await this.start();
+    }
+
     return this.client;
   }
 
@@ -93,6 +98,10 @@ export default class HTTPClient implements IClient {
 
   setIsInitialized(isInitialized: boolean): void {
     this.isInitialized = isInitialized;
+  }
+
+  getIsInitialized(): boolean {
+    return this.isInitialized;
   }
 
   async stop(): Promise<void> {
@@ -151,14 +160,10 @@ export default class HTTPClient implements IClient {
     const agent = urlFull.startsWith("https") ? this.httpsAgent : this.httpAgent;
     params.agent = agent;
 
-    // Ensure the sidecar has been started
-    if (!this.isInitialized && requiresInitialization) {
-      await this.start();
-    }
-
     this.logger.debug(`Fetching ${params.method} ${urlFull} with body: (${params.body})`);
 
-    const res = await fetch(urlFull, params);
+    const client = await this.getClient(requiresInitialization);
+    const res = await client(urlFull, params);
 
     // Parse body
     const txt = await res.text();

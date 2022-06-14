@@ -11,17 +11,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import CommunicationProtocolEnum from "../../enum/CommunicationProtocol.enum";
-import { DaprClientOptions } from "../../types/DaprClientOptions";
+import * as grpc from "@grpc/grpc-js";
+import Class from '../../../types/Class';
+import IClientProxy from '../../../interfaces/Client/IClientProxy';
+import HTTPClient from './HTTPClient';
 
-export default interface IClient {
-  getClient(requiresInitialization?: boolean): Promise<any>;
-  getClientHost(): string;
-  getClientPort(): string;
-  getClientCommunicationProtocol(): CommunicationProtocolEnum;
-  getOptions(): DaprClientOptions;
-  setIsInitialized(isInitialized: boolean): void;
-  getIsInitialized(): boolean;
-  stop(): Promise<void>;
-  start(): Promise<void>;
+export default class HTTPClientProxy implements IClientProxy {
+  client: HTTPClient;
+
+  constructor(client: HTTPClient) {
+    this.client = client;
+  }
+
+  async create<T>(_cls: Class<T>, _daprAppId: string, _clientOptions?: Partial<grpc.ClientOptions> | undefined): Promise<T> {
+    throw new Error('HTTP is currently not supported.');
+  }
 }

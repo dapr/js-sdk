@@ -13,6 +13,7 @@
 
 echo "Starting Docker"
 sudo service docker start
+sleep 3
 
 # Start MQTT for Binding tests
 # Dashboard: http://localhost:18083 (user: admin, pass: public)

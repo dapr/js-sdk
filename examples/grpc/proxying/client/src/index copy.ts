@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import * as grpc from "@grpc/grpc-js";
 import { DaprClient, CommunicationProtocolEnum, GRPCClient } from "@dapr/dapr";
 import { GreeterClient } from "./proto/helloworld/helloworld_grpc_pb";
 import { HelloReply, HelloRequest } from "./proto/helloworld/helloworld_pb";
@@ -19,13 +20,31 @@ const daprHost = "127.0.0.1";
 const daprPort = "50007"; // Dapr Sidecar Port of this Example
 
 async function start() {
-  const clientSidecar = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
-  const clientProxy = await clientSidecar.proxy.create<GreeterClient>(GreeterClient, "server");
+  const clientSidecar = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC, {
+    daprAppId: "server"
+  });
+
+  const clientSidecarGrpc = (clientSidecar.getDaprClient() as GRPCClient);
+
+  // Await the dapr sidecar to be started
+  // we normally don't need to do this, but we are using the 
+  // gRPC communication protocol directly while proxying
+  await clientSidecar.awaitSidecarStarted();
+
+  // Call our method as defined in the proto
+  const clientCustom = new GreeterClient(
+    `${clientSidecarGrpc.getClientHost()}:${clientSidecarGrpc.getClientPort()}`
+    , clientSidecarGrpc.getClientCredentials()
+  );
 
   const req = new HelloRequest();
   req.setName("Hello World");
 
-  clientProxy.sayHello(req, (err: any, res: HelloReply) => {
+  const meta = new grpc.Metadata();
+  meta.add("dapr-app-id", "server");
+
+
+  clientCustom.sayHello(req, meta, (err, res: HelloReply) => {
     if (err) {
       console.error(err);
     } else {

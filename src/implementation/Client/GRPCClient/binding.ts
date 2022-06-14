@@ -32,8 +32,9 @@ export default class GRPCClientBinding implements IClientBinding {
     msgService.setOperation(operation);
     msgService.setData(Buffer.from(JSON.stringify(data), "utf-8"));
 
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
       client.invokeBinding(msgService, (err, res: InvokeBindingResponse) => {
         if (err) {
           return reject(err);

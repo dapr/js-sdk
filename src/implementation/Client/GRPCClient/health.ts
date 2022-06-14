@@ -26,9 +26,9 @@ export default class GRPCClientHealth implements IClientHealth {
 
   // There is no gRPC implementation of /healthz, so we try to fetch the metadata
   async isHealthy(): Promise<boolean> {
-    return new Promise((resolve, _reject) => {
-      const client = this.client.getClient();
+    const client = await this.client.getClient();
 
+    return new Promise((resolve, _reject) => {
       try {
         client.getMetadata(new Empty(), (err, _res: GetMetadataResponse) => {
           if (err) {

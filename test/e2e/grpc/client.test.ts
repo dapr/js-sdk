@@ -11,11 +11,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { CommunicationProtocolEnum, DaprClient } from '../../../src';
+import * as grpc from "@grpc/grpc-js";
+import { CommunicationProtocolEnum, DaprClient, LogLevel } from '../../../src';
 import { SubscribeConfigurationResponse } from '../../../src/types/configuration/SubscribeConfigurationResponse';
 import * as DockerUtils from '../../utils/DockerUtil';
+import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runtime/v1/dapr_grpc_pb"
+import { Empty } from 'google-protobuf/google/protobuf/empty_pb';
+import { InterceptingListener } from "@grpc/grpc-js/build/src/call-stream";
+import { NextCall } from "@grpc/grpc-js/build/src/client-interceptors";
 
-const daprHost = '127.0.0.1';
+const daprHost = 'localhost';
 const daprPort = '50000'; // Dapr Sidecar Port of this Example Server
 
 describe('grpc/client', () => {
@@ -24,21 +29,58 @@ describe('grpc/client', () => {
   // We need to start listening on some endpoints already
   // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
-    client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+    client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC, {
+      logger: {
+        level: LogLevel.Debug
+      }
+    });
   }, 10 * 1000);
 
   afterAll(async () => {
     await client.stop();
   });
 
+  describe('client', () => {
+    it('should return isInitialized is true if the sidecar has been started', async () => {
+      // Awaiting this will ensure the client is started
+      await client.getDaprClient().getClient();
+
+      const isInitialized = await client.getIsInitialized();
+      expect(isInitialized).toBe(true);
+    });
+  });
+
+  describe('Proxy', () => {
+    it('should allow to use a proxy builder that uses daprAppId in metadata to proxy a gRPC request', async () => {
+      let mockMetadataRes: grpc.Metadata = new grpc.Metadata();
+      const mockInterceptor = jest.fn((options: grpc.InterceptorOptions, nextCall: NextCall): grpc.InterceptingCall => {
+        return new grpc.InterceptingCall(nextCall(options), {
+          start: function (metadata: grpc.Metadata, listener: InterceptingListener, next: (metadata: grpc.Metadata, listener: InterceptingListener | grpc.Listener) => void) {
+            mockMetadataRes = metadata;
+            next(metadata, listener);
+          }
+        })
+      });
+
+      const clientProxy = await client.proxy.create<DaprClientGrpc>(DaprClientGrpc, "test-suite", { interceptors: [mockInterceptor] });
+
+      await (new Promise(resolve => (clientProxy.getMetadata(new Empty(), resolve))));
+
+      expect(mockInterceptor.mock.calls.length).toBe(1);
+      expect(mockMetadataRes.get('dapr-app-id')[0]).toBe('test-suite');
+    });
+  });
+
   describe('sidecar', () => {
     it('should return true if the sidecar has been started', async () => {
+      await client.getDaprClient().getClient();
+
       // Note: difficult to test as we start up dapr with dapr run, which starts the sidecar for us automatically
       // there is however a delay between the sidecar being ready and the app starting as they are started asynchronously
       // if Dapr has to connect to a component, it might introduce a delay
       // the test will thus randomly have isStarted = true or isStarted = false depending on the startup delay of the sidecar
       await client.health.isHealthy();
-      // expect(isStarted).toBe(false);
+      // expect(isHealthy).toBe(false);
     })
   });
 

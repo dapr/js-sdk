@@ -29,8 +29,9 @@ export default class GRPCClientSecret implements IClientSecret {
     msgService.setStoreName(secretStoreName);
     msgService.setKey(key);
 
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
       client.getSecret(msgService, (err, res: GetSecretResponse) => {
         if (err) {
           return reject(err);
@@ -49,8 +50,9 @@ export default class GRPCClientSecret implements IClientSecret {
     const msgService = new GetBulkSecretRequest();
     msgService.setStoreName(secretStoreName);
 
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
       client.getBulkSecret(msgService, (err, res: GetBulkSecretResponse) => {
         if (err) {
           return reject(err);
