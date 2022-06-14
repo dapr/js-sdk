@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { DaprClient, CommunicationProtocolEnum, GRPCClient } from "@dapr/dapr";
+import { DaprClient, CommunicationProtocolEnum } from "@dapr/dapr";
 import { GreeterClient } from "./proto/helloworld/helloworld_grpc_pb";
 import { HelloReply, HelloRequest } from "./proto/helloworld/helloworld_pb";
 
