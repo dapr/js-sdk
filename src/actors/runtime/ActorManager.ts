@@ -87,7 +87,6 @@ export default class ActorManager<T extends AbstractActor> {
 
   async getActiveActor(actorId: ActorId): Promise<T> {
     if (!this.actors.has(actorId.getId())) {
-      // console.log(`Doesn't have active actor (${actorId.getId()}), activating it`);
       await this.activateActor(actorId);
     }
 

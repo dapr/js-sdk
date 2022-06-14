@@ -32,6 +32,7 @@ import HTTPServerActor from './HTTPServer/actor';
 import { DaprClientOptions } from '../../types/DaprClientOptions';
 import { DaprClient } from '../..';
 import { Settings } from '../../utils/Settings.util';
+import { Logger } from '../../logger/Logger';
 
 export default class DaprServer {
   // App details
@@ -40,6 +41,8 @@ export default class DaprServer {
   // Dapr Sidecar
   private readonly daprHost: string;
   private readonly daprPort: string;
+
+  private readonly logger: Logger;
 
   readonly daprServer: IServer;
   readonly pubsub: IServerPubSub;
@@ -54,14 +57,13 @@ export default class DaprServer {
     , daprHost?: string
     , daprPort?: string
     , communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP
-    , clientOptions: DaprClientOptions = {
-      isKeepAlive: true
-    }
+    , clientOptions: DaprClientOptions = {}
   ) {
     this.serverHost = serverHost ?? Settings.getDefaultHost();
     this.serverPort = serverPort ?? Settings.getDefaultAppPort(communicationProtocol);
     this.daprHost = daprHost ?? Settings.getDefaultHost();
     this.daprPort = daprPort ?? Settings.getDefaultPort(communicationProtocol);
+    this.logger = new Logger("DaprServer", "DaprServer", clientOptions.logger);
 
     // Create a client to interface with the sidecar from the server side
     this.client = new DaprClient(daprHost, daprPort, communicationProtocol, clientOptions);
@@ -113,7 +115,7 @@ export default class DaprServer {
     await this.client.start();
 
     // We are initialized
-    console.log(`[Dapr-JS][Server] Sidecar Started`);
+    this.logger.info("Sidecar Started");
   }
 
   async stop(): Promise<void> {

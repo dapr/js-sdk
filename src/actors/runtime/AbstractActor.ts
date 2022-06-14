@@ -13,6 +13,7 @@ limitations under the License.
 
 import { Temporal } from "@js-temporal/polyfill";
 import DaprClient from "../../implementation/Client/DaprClient";
+import { Logger } from "../../logger/Logger";
 import ActorId from "../ActorId";
 import ActorClient from "../client/ActorClient/ActorClient";
 import ActorStateManager from "./ActorStateManager";
@@ -42,6 +43,7 @@ export default abstract class AbstractActor {
   private readonly actorClient: ActorClient;
   private readonly daprStateProvider: StateProvider;
   private readonly actorType: any; // set at constructor level
+  private readonly logger: Logger;
 
   /**
    * Instantiates a new Actor
@@ -52,7 +54,7 @@ export default abstract class AbstractActor {
   constructor(daprClient: DaprClient, id: ActorId) {
     this.daprClient = daprClient;
     this.actorClient = new ActorClient(daprClient.getDaprHost(), daprClient.getDaprPort(), daprClient.getCommunicationProtocol(), daprClient.getOptions());
-
+    this.logger = new Logger("Actors", "AbstractActor", daprClient.getOptions().logger)
     this.id = id;
 
     this.stateManager = new ActorStateManager(this);
@@ -201,7 +203,7 @@ export default abstract class AbstractActor {
   }
 
   async receiveReminder(_data: string): Promise<void> {
-    console.warn(JSON.stringify({
+    this.logger.warn(JSON.stringify({
       error: "ACTOR_METHOD_NOT_IMPLEMENTED",
       errorMsg: `A reminder was created for the actor with id: ${this.id} but the method 'receiveReminder' was not implemented`,
     }));

@@ -11,16 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { LoggerOptions } from "./logger/LoggerOptions";
-
-export type DaprClientOptions = {
-  /**
-   * If set to false, the HTTP client will not reuse the same connection for multiple requests.
-   * Default is true.
-   */
-  isKeepAlive?: boolean;
-  /**
-   * Options related to logging.
-   */
-  logger?: LoggerOptions;
+/**
+ * LogLevel sets the level of logging that should be used.
+ */
+ export enum LogLevel {
+    Error = 0,
+    Warn = 1,
+    Info = 2,
+    Verbose = 3,
+    Debug = 4,
 }

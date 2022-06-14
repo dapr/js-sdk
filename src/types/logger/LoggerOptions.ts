@@ -11,16 +11,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { LoggerOptions } from "./logger/LoggerOptions";
+import { LoggerService } from "./LoggerService"
+import { LogLevel } from "./LogLevel"
 
-export type DaprClientOptions = {
-  /**
-   * If set to false, the HTTP client will not reuse the same connection for multiple requests.
-   * Default is true.
-   */
-  isKeepAlive?: boolean;
-  /**
-   * Options related to logging.
-   */
-  logger?: LoggerOptions;
+/**
+ * LoggerOptions provides options for configuring the logger.
+ */
+export type LoggerOptions = {
+    /**
+     * The minimum level of messages to log.
+     * Default is LogLevel.Info.
+     */
+    level?: LogLevel
+    /**
+     * Logging implementation to use.
+     * Default is to use the console.
+     */
+    service?: LoggerService
 }
