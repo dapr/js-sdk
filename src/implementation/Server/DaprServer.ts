@@ -57,9 +57,7 @@ export default class DaprServer {
     , daprHost?: string
     , daprPort?: string
     , communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP
-    , clientOptions: DaprClientOptions = {
-      isKeepAlive: true
-    }
+    , clientOptions: DaprClientOptions = {}
   ) {
     this.serverHost = serverHost ?? Settings.getDefaultHost();
     this.serverPort = serverPort ?? Settings.getDefaultAppPort(communicationProtocol);
