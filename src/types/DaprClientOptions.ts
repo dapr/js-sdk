@@ -14,7 +14,15 @@ limitations under the License.
 import { LoggerOptions } from "./logger/LoggerOptions";
 
 export type DaprClientOptions = {
+  /**
+   * If set to false, the HTTP client will not reuse the same connection for multiple requests.
+   * Default is true.
+   */
   isKeepAlive?: boolean;
+
+  /**
+   * Options related to logging.
+   */
   logger?: LoggerOptions;
 
   // The Dapr App ID
