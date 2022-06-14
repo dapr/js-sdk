@@ -37,15 +37,18 @@ export default class HTTPClient implements IClient {
   constructor(
     host = Settings.getDefaultHost()
     , port = Settings.getDefaultHttpPort()
-    , options: DaprClientOptions = {
-      isKeepAlive: true
-    },
+    , options: DaprClientOptions = {},
   ) {
     this.clientHost = host;
     this.clientPort = port;
     this.options = options;
     this.logger = new Logger("HTTPClient", "HTTPClient", this.options.logger);
     this.isInitialized = false;
+
+    // fallback to default
+    if (this.options.isKeepAlive === undefined) {
+      this.options.isKeepAlive = true;
+    }
 
     if (!this.clientHost.startsWith('http://') && !this.clientHost.startsWith('https://')) {
       this.clientUrl = `http://${this.clientHost}:${this.clientPort}/v1.0`;

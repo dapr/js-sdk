@@ -23,7 +23,7 @@ export default class HTTPClientInvoker implements IClientInvoker {
     this.client = client;
   }
 
-  async invoke(appId: string, methodName: string, method: HttpMethod = HttpMethod.GET, data: object = {}): Promise<object> {
+  async invoke(appId: string, methodName: string, method: HttpMethod = HttpMethod.GET, data?: object): Promise<object> {
     const fetchOptions = {
       method
     };
@@ -35,7 +35,7 @@ export default class HTTPClientInvoker implements IClientInvoker {
       };
     }
 
-    if (method !== HttpMethod.GET && data !== {}) {
+    if (method !== HttpMethod.GET && data !== undefined) {
       // @ts-ignore
       fetchOptions.body = JSON.stringify(data);
     }
