@@ -15,6 +15,7 @@ import GRPCClient from './GRPCClient';
 import { PublishEventRequest } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 import { Logger } from '../../../logger/Logger';
+import * as SerializerUtil from "../../../utils/Serializer.util";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class GRPCClientPubSub implements IClientPubSub {
@@ -32,7 +33,7 @@ export default class GRPCClientPubSub implements IClientPubSub {
     const msgService = new PublishEventRequest();
     msgService.setPubsubName(pubSubName);
     msgService.setTopic(topic);
-    msgService.setData(Buffer.from(JSON.stringify(data), "utf-8"));
+    msgService.setData(SerializerUtil.serializeGrpc(data).serializedData);
 
     return new Promise((resolve, reject) => {
       const client = this.client.getClient();

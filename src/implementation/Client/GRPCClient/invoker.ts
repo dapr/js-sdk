@@ -19,6 +19,7 @@ import { HTTPExtension, InvokeRequest, InvokeResponse } from '../../../proto/dap
 import { InvokeServiceRequest } from '../../../proto/dapr/proto/runtime/v1/dapr_pb';
 import * as HttpVerbUtil from "../../../utils/HttpVerb.util";
 import IClientInvoker from '../../../interfaces/Client/IClientInvoker';
+import * as SerializerUtil from "../../../utils/Serializer.util"
 
 // https://docs.dapr.io/reference/api/service_invocation_api/
 export default class GRPCClientInvoker implements IClientInvoker {
@@ -54,13 +55,14 @@ export default class GRPCClientInvoker implements IClientInvoker {
     httpExtension.setVerb(HttpVerbUtil.convertHttpVerbStringToNumber(method));
 
     const msgSerialized = new Any();
-    msgSerialized.setValue(Buffer.from(JSON.stringify(data), "utf-8"));
+    const {serializedData, contentType} = SerializerUtil.serializeGrpc(data);
+    msgSerialized.setValue(serializedData);
 
     const msgInvoke = new InvokeRequest();
     msgInvoke.setMethod(methodName);
     msgInvoke.setHttpExtension(httpExtension);
     msgInvoke.setData(msgSerialized);
-    msgInvoke.setContentType("application/json");
+    msgInvoke.setContentType(contentType);
 
     msgInvokeService.setMessage(msgInvoke);
 

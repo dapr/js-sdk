@@ -14,6 +14,7 @@ limitations under the License.
 import GRPCClient from './GRPCClient';
 import { InvokeBindingRequest, InvokeBindingResponse } from '../../../proto/dapr/proto/runtime/v1/dapr_pb';
 import IClientBinding from '../../../interfaces/Client/IClientBinding';
+import * as SerializerUtil from "../../../utils/Serializer.util";
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class GRPCClientBinding implements IClientBinding {
@@ -30,7 +31,7 @@ export default class GRPCClientBinding implements IClientBinding {
     const msgService = new InvokeBindingRequest();
     msgService.setName(bindingName);
     msgService.setOperation(operation);
-    msgService.setData(Buffer.from(JSON.stringify(data), "utf-8"));
+    msgService.setData(SerializerUtil.serializeGrpc(data).serializedData);
 
     return new Promise((resolve, reject) => {
       const client = this.client.getClient();
