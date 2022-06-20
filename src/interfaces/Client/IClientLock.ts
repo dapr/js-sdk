@@ -12,9 +12,26 @@ limitations under the License.
 */
 
 import { TryLockResponse } from "../../types/lock/TryLockResponse";
-import { UnlockResponse } from "../../types/lock/UnLockResponse";
+import { UnlockResponse } from "../../types/lock/UnlockResponse";
 
+/**
+ * Interface to acquire lock and releasing lock
+ */
 export default interface IClientLock {
+  /**
+   * 
+   * @param storeName storage to store lock information.
+   * @param resourceId id of a resource that gets locked.
+   * @param lockOwner owner owning the lock.
+   * @param expiryInSeconds the expiry time for the lock.
+   */
   tryLock(storeName: string, resourceId: string, lockOwner: string, expiryInSeconds: number): Promise<TryLockResponse>;
+
+  /**
+   * 
+   * @param storeName storage to store lock information.
+   * @param resourceId id of a resource that gets locked.
+   * @param lockOwner owner owning the lock.
+   */
   unlock(storeName: string, resourceId: string, lockOwner: string): Promise<UnlockResponse>;
 }

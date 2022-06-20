@@ -29,24 +29,24 @@ async function start() {
   let lockOwner = "owner1";
   let expiryInSeconds = 1000;
 
-  const tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
   console.log(`Acquiring lock on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
+  const tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
   console.log(tryLockResponse);
 
-  const unLockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
   console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
+  const unLockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
   console.log("Unlock API response: " + getResponseStatus(unLockResponse.status));
 
   //Checking if the lock exists.
-  const lockUnexistResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
   console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
+  const lockUnexistResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
   console.log("Unlock API response when lock is not acquired: " + getResponseStatus(lockUnexistResponse.status));
 
   resourceId = "resourceId";
   lockOwner = "owner1";
   expiryInSeconds = 25;
-  const tryLockResponse1 = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
   console.log(`Acquiring lock on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
+  const tryLockResponse1 = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
   console.log("Acquired Lock? " + tryLockResponse1.success);
 
   await new Promise(resolve => setTimeout(resolve, 20000));
@@ -54,11 +54,11 @@ async function start() {
 
 function getResponseStatus(status: LockStatus) {
   switch(status) {
-    case 0:
+    case LockStatus.Success:
       return "Success";
-    case 1: 
+    case LockStatus.LockUnexist: 
       return "LockUnexist";
-    case 2:
+    case LockStatus.LockBelongToOthers:
       return "LockBelongToOthers";
     default:
       return "InternalError";

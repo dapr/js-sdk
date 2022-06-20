@@ -14,7 +14,7 @@ limitations under the License.
 import * as grpc from "@grpc/grpc-js";
 import { CommunicationProtocolEnum, DaprClient, LogLevel } from '../../../src';
 import { SubscribeConfigurationResponse } from '../../../src/types/configuration/SubscribeConfigurationResponse';
-import { LockStatus } from '../../../src/types/lock/UnLockResponse';
+import { LockStatus } from '../../../src/types/lock/UnlockResponse';
 import * as DockerUtils from '../../utils/DockerUtil';
 import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runtime/v1/dapr_grpc_pb"
 import { Empty } from 'google-protobuf/google/protobuf/empty_pb';
@@ -422,9 +422,11 @@ describe('grpc/client', () => {
       expect(tryLockTwo.success).toEqual(true);
     });
 
-    it('should not be able to unlock a lock when that lock is acquired by the other owner/process', async () => {
-      const tryLockOne = await client.lock.tryLock("redislock", "resourceId3", "owner2", 5);
-      expect(tryLockOne.success).toEqual(false);
+    it('should not be able to acquire a lock when that lock is acquired by the other owner/process', async () => {
+      const tryLockOne = await client.lock.tryLock("redislock", "resourceId4", "owner3", 5);
+      expect(tryLockOne.success).toEqual(true);
+      const tryLockTwo = await client.lock.tryLock("redislock", "resourceId4", "owner3", 5);
+      expect(tryLockTwo.success).toEqual(false);
     });
   });
 });

@@ -13,7 +13,7 @@ limitations under the License.
 
 import HTTPClient from './HTTPClient';
 import { TryLockResponse as TryLockResponseResult} from '../../../types/lock/TryLockResponse';
-import { UnlockResponse as UnLockResponseResult} from '../../../types/lock/UnLockResponse';
+import { UnlockResponse as UnLockResponseResult} from '../../../types/lock/UnlockResponse';
 import IClientLock from '../../../interfaces/Client/IClientLock';
 
 export default class HTTPClientLock implements IClientLock {

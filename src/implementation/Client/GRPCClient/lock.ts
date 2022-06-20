@@ -13,7 +13,7 @@ limitations under the License.
 
 import GRPCClient from './GRPCClient';
 import { TryLockResponse as TryLockResponseResult } from '../../../types/lock/TryLockResponse';
-import { UnlockResponse as UnLockResponseResult, LockStatus } from '../../../types/lock/UnLockResponse';
+import { UnlockResponse as UnLockResponseResult, LockStatus } from '../../../types/lock/UnlockResponse';
 import { TryLockRequest, TryLockResponse, UnlockRequest, UnlockResponse } from '../../../proto/dapr/proto/runtime/v1/dapr_pb';
 import IClientLock from '../../../interfaces/Client/IClientLock';
 
@@ -62,7 +62,7 @@ export default class GRPCClientLock implements IClientLock {
             }
 
             const wrapped: UnLockResponseResult = {
-                status: this.getUnLockResponse(res)
+                status: this.getUnlockResponse(res)
             }
     
             return resolve(wrapped);
@@ -70,7 +70,7 @@ export default class GRPCClientLock implements IClientLock {
         });
       }
 
-    getUnLockResponse(res: UnlockResponse) {
+      getUnlockResponse(res: UnlockResponse) {
         switch(res.getStatus()) {
             case UnlockResponse.Status.SUCCESS:
                 return LockStatus.Success;
