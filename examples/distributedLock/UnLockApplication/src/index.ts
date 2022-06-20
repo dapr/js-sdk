@@ -30,41 +30,41 @@ async function start() {
   const expiryInSeconds = 25;
 
   //Trying to acquire the lock which is being used by the other process(TryLockApplication)
-  let tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
   console.log(`Acquiring lock on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
+  let tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
   console.log("Acquired Lock? " + tryLockResponse.success);
   console.log("Lock cannot be acquired as it belongs to the other process");
 
-  let unLockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
   console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
+  let unLockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
   console.log("Unlock API response when lock is acquired by a different process: " + getResponseStatus(unLockResponse.status));
 
   await new Promise(resolve => setTimeout(resolve, 25000));
 
   //Trying to acquire the lock after the other process lock is expired
-  tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
   console.log(`Acquiring lock on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
+  tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
   console.log("Acquired lock after the lock from the other process expired? " + tryLockResponse.success);
 
-  unLockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
   console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
+  unLockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
   console.log("Unlock API response when lock is released after the expiry time: " + getResponseStatus(unLockResponse.status));
 
   await new Promise(resolve => setTimeout(resolve, 25000));
 
   //Trying to unlock the lock after the lock used by this process(UnLockApplication) is expired
-  unLockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
   console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
+  unLockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
   console.log("Unlock API response when lock is released after the expiry time and lock does not exist: " + getResponseStatus(unLockResponse.status));
 }
 
 function getResponseStatus(status: LockStatus) {
   switch(status) {
-    case 0:
+    case LockStatus.Success:
       return "Success";
-    case 1: 
+    case LockStatus.LockUnexist: 
       return "LockUnexist";
-    case 2:
+    case LockStatus.LockBelongToOthers:
       return "LockBelongToOthers";
     default:
       return "InternalError";
