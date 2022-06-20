@@ -425,8 +425,15 @@ describe('grpc/client', () => {
     it('should not be able to acquire a lock when that lock is acquired by the other owner/process', async () => {
       const tryLockOne = await client.lock.tryLock("redislock", "resourceId4", "owner3", 5);
       expect(tryLockOne.success).toEqual(true);
-      const tryLockTwo = await client.lock.tryLock("redislock", "resourceId4", "owner3", 5);
+      const tryLockTwo = await client.lock.tryLock("redislock", "resourceId4", "owner4", 5);
       expect(tryLockTwo.success).toEqual(false);
+    });
+
+    it('should not be able to unlock a lock when that lock is acquired by the other owner/process', async () => {
+      const tryLockOne = await client.lock.tryLock("redislock", "resourceId5", "owner5", 5);
+      expect(tryLockOne.success).toEqual(true);
+      const unlock = await client.lock.unlock("redislock", "resourceId5", "owner6");
+      expect(unlock.status).toEqual(LockStatus.LockBelongToOthers);
     });
   });
 });

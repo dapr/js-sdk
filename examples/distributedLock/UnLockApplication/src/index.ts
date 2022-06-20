@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import { CommunicationProtocolEnum, DaprClient } from "@dapr/dapr";
-import { LockStatus } from "@dapr/dapr/types/lock/UnLockResponse";
+import { LockStatus } from "@dapr/dapr/types/lock/UnlockResponse";
 
 const daprHost = "127.0.0.1";
 const daprPortDefault = "3500";
