@@ -23,7 +23,7 @@ import IClientMetadata from '../../interfaces/Client/IClientMetadata';
 import IClientSidecar from '../../interfaces/Client/IClientSidecar';
 import IClientConfiguration from '../../interfaces/Client/IClientConfiguration';
 import IClientProxy from "../../interfaces/Client/IClientProxy";
-import IClientDistributionLock from '../../interfaces/Client/IClientDistributionLock';
+import IClientDistributionLock from '../../interfaces/Client/IClientLock';
 import IClientLock from '../../interfaces/Client/IClientLock';
 import IClientActorBuilder from '../../interfaces/Client/IClientActorBuilder';
 import IClient from '../../interfaces/Client/IClient';
@@ -51,7 +51,7 @@ import HTTPClientMetadata from './HTTPClient/metadata';
 import HTTPClientSidecar from './HTTPClient/sidecar';
 import HTTPClientConfiguration from './HTTPClient/configuration';
 import HTTPClientProxy from './HTTPClient/proxy';
-import HTTPClientDistributedLock from './HTTPClient/distributedLock';
+import HTTPClientDistributedLock from './HTTPClient/lock';
 import HTTPClientLock from './HTTPClient/lock';
 import HTTPClientActor from './HTTPClient/actor';
 import HTTPClient from './HTTPClient/HTTPClient';
@@ -80,7 +80,6 @@ export default class DaprClient {
   readonly sidecar: IClientSidecar;
   readonly configuration: IClientConfiguration;
   readonly proxy: IClientProxy;
-  readonly distributedLock: IClientDistributionLock;
   readonly lock: IClientLock;
   readonly actor: IClientActorBuilder;
 
@@ -142,7 +141,6 @@ export default class DaprClient {
         this.sidecar = new HTTPClientSidecar(client);
         this.configuration = new HTTPClientConfiguration(client);
         this.proxy = new HTTPClientProxy(client);
-        this.distributedLock = new HTTPClientDistributedLock(client);
         this.lock = new HTTPClientLock(client);
         this.actor = new HTTPClientActor(client); // we use a abstractor here since we interface through a builder with the Actor Runtime
         break;
