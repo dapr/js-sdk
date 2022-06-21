@@ -75,6 +75,7 @@ export default class GRPCClient implements IClient {
     return client;
   }
 
+  // @todo: look into making secure credentials
   private generateCredentials(): grpc.ChannelCredentials {
     const credsChannel = grpc.ChannelCredentials.createInsecure();
     return credsChannel;

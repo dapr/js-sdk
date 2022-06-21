@@ -23,7 +23,7 @@ export default class HTTPClientProxy implements IClientProxy {
     this.client = client;
   }
 
-  async create<T>(_cls: Class<T>, _daprAppId: string, _clientOptions?: Partial<grpc.ClientOptions> | undefined): Promise<T> {
+  async create<T>(_cls: Class<T>, _clientOptions?: Partial<grpc.ClientOptions> | undefined): Promise<T> {
     throw new Error('HTTP is currently not supported.');
   }
 }

@@ -24,8 +24,8 @@ export default class GRPCClientProxy implements IClientProxy {
     this.client = client;
   }
 
-  async create<T>(cls: Class<T>, daprAppId: string, clientOptions?: Partial<grpc.ClientOptions> | undefined): Promise<T> {
-    const proxy = new GRPCClientProxyImpl<T>(cls, this.client, daprAppId, clientOptions);
+  async create<T>(cls: Class<T>, clientOptions?: Partial<grpc.ClientOptions> | undefined): Promise<T> {
+    const proxy = new GRPCClientProxyImpl<T>(cls, this.client, clientOptions);
     return proxy.build();
   }
 }

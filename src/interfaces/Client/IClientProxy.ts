@@ -15,5 +15,5 @@ import Class from "../../types/Class";
 import * as grpc from "@grpc/grpc-js";
 
 export default interface IClientProxy {
-  create<T>(cls: Class<T>, daprAppId: string, clientOptions?: Partial<grpc.ClientOptions>): Promise<T>;
+  create<T>(cls: Class<T>, clientOptions?: Partial<grpc.ClientOptions>): Promise<T>;
 }

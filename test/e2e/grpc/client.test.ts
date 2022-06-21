@@ -51,7 +51,7 @@ describe('grpc/client', () => {
   });
 
   describe('Proxy', () => {
-    it('should allow to use a proxy builder that uses daprAppId in metadata to proxy a gRPC request', async () => {
+    it('should allow to use a proxy builder to proxy a gRPC request', async () => {
       let mockMetadataRes: grpc.Metadata = new grpc.Metadata();
       const mockInterceptor = jest.fn((options: grpc.InterceptorOptions, nextCall: NextCall): grpc.InterceptingCall => {
         return new grpc.InterceptingCall(nextCall(options), {
@@ -62,12 +62,37 @@ describe('grpc/client', () => {
         })
       });
 
-      const clientProxy = await client.proxy.create<DaprClientGrpc>(DaprClientGrpc, "test-suite", { interceptors: [mockInterceptor] });
+      const clientProxy = await client.proxy.create<DaprClientGrpc>(DaprClientGrpc, { interceptors: [mockInterceptor] });
 
       await (new Promise(resolve => (clientProxy.getMetadata(new Empty(), resolve))));
 
       expect(mockInterceptor.mock.calls.length).toBe(1);
       expect(mockMetadataRes.get('dapr-app-id')[0]).toBe('test-suite');
+    });
+
+    it('should allow to use a proxy builder that uses daprAppId by setting custom env variable to proxy a gRPC request', async () => {
+
+      const oldProcessAppId = process.env?.APP_ID;
+      process.env.APP_ID = "test-suite-proxy";
+
+      let mockMetadataRes: grpc.Metadata = new grpc.Metadata();
+      const mockInterceptor = jest.fn((options: grpc.InterceptorOptions, nextCall: NextCall): grpc.InterceptingCall => {
+        return new grpc.InterceptingCall(nextCall(options), {
+          start: function (metadata: grpc.Metadata, listener: InterceptingListener, next: (metadata: grpc.Metadata, listener: InterceptingListener | grpc.Listener) => void) {
+            mockMetadataRes = metadata;
+            next(metadata, listener);
+          }
+        })
+      });
+
+
+      const clientProxy = await client.proxy.create<DaprClientGrpc>(DaprClientGrpc, { interceptors: [mockInterceptor] });
+
+      await (new Promise(resolve => (clientProxy.getMetadata(new Empty(), resolve))));
+
+      expect(mockInterceptor.mock.calls.length).toBe(1);
+      expect(mockMetadataRes.get('dapr-app-id')[0]).toBe(process.env.APP_ID);
+      process.env.APP_ID = oldProcessAppId;
     });
   });
 

@@ -24,9 +24,4 @@ export type DaprClientOptions = {
    * Options related to logging.
    */
   logger?: LoggerOptions;
-
-  // The Dapr App ID
-  // This is used for proxying requests
-  // currently only supported in GRPC
-  daprAppId?: string;
 }

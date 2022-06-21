@@ -15,17 +15,16 @@ import * as grpc from "@grpc/grpc-js";
 import { InterceptingListener } from "@grpc/grpc-js/build/src/call-stream";
 import { NextCall } from "@grpc/grpc-js/build/src/client-interceptors";
 import Class from "../../../types/Class";
+import { Settings } from "../../../utils/Settings.util";
 import GRPCClient from "./GRPCClient";
 
 export class GRPCClientProxy<T> {
   clsProxy: Class<T>;
-  daprAppId: string;
   grpcClient: GRPCClient;
   grpcClientOptions: Partial<grpc.ClientOptions>;
 
-  constructor(clsProxy: Class<T>, grpcClient: GRPCClient, daprAppId: string, grpcClientOptions?: Partial<grpc.ClientOptions>) {
+  constructor(clsProxy: Class<T>, grpcClient: GRPCClient, grpcClientOptions?: Partial<grpc.ClientOptions>) {
     this.clsProxy = clsProxy;
-    this.daprAppId = daprAppId;
     this.grpcClient = grpcClient;
     this.grpcClientOptions = grpcClientOptions ?? {};
   }
@@ -37,7 +36,7 @@ export class GRPCClientProxy<T> {
     const interceptorDaprAppId = (options: grpc.InterceptorOptions, nextCall: NextCall): grpc.InterceptingCall => {
       return new grpc.InterceptingCall(nextCall(options), {
         start: (metadata: grpc.Metadata, listener: InterceptingListener, next: (metadata: grpc.Metadata, listener: InterceptingListener | grpc.Listener) => void) => {
-          metadata.add('dapr-app-id', `${this.daprAppId}`);
+          metadata.add('dapr-app-id', `${Settings.getAppId()}`);
           next(metadata, listener);
         }
       });
