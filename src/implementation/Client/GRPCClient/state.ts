@@ -45,8 +45,9 @@ export default class GRPCClientState implements IClientState {
     msgService.setStoreName(storeName);
     msgService.setStatesList(stateList);
 
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
       client.saveState(msgService, (err, _res) => {
         if (err) {
           return reject(err);
@@ -67,8 +68,9 @@ export default class GRPCClientState implements IClientState {
     // @todo: https://docs.dapr.io/reference/api/state_api/#optional-behaviors
     // msgService.setConsistency()
 
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
 
       client.getState(msgService, (err, res: GetStateResponse) => {
         if (err) {
@@ -96,8 +98,9 @@ export default class GRPCClientState implements IClientState {
     // @todo: https://docs.dapr.io/reference/api/state_api/#optional-behaviors
     // msgService.setConsistency()
 
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
       client.getBulkState(msgService, (err, res: GetBulkStateResponse) => {
         if (err) {
           return reject(err);
@@ -133,8 +136,9 @@ export default class GRPCClientState implements IClientState {
     // msgService.setEtag();
     // msgService.setOptions();
 
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
       client.deleteState(msgService, (err, _res) => {
         if (err) {
           return reject(err);
@@ -183,8 +187,9 @@ export default class GRPCClientState implements IClientState {
       merge(msgService.getMetadataMap(), metadata);
     }
 
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
       client.executeStateTransaction(msgService, (err, _res) => {
         if (err) {
           return reject(err);
@@ -201,8 +206,9 @@ export default class GRPCClientState implements IClientState {
     msgService.setStoreName(storeName);
     msgService.setQuery(JSON.stringify(query))
 
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
       client.queryStateAlpha1(msgService, (err, res: QueryStateResponse) => {
         if (err) {
           return reject(err);

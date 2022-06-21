@@ -27,8 +27,9 @@ export default class GRPCClientMetadata implements IClientMetadata {
 
   // There is no gRPC implementation of /healthz, so we try to fetch the metadata
   async get(): Promise<GetMetadataResponseResult> {
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
       client.getMetadata(new Empty(), (err, res: GetMetadataResponse) => {
         if (err) {
           return reject(err);
@@ -62,8 +63,9 @@ export default class GRPCClientMetadata implements IClientMetadata {
     msg.setKey(key);
     msg.setValue(value);
 
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
       client.setMetadata(msg, (err, _res: Empty) => {
         if (err) {
           return reject(false);

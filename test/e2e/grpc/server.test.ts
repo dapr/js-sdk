@@ -13,9 +13,9 @@ limitations under the License.
 
 import { CommunicationProtocolEnum, DaprServer, HttpMethod } from '../../../src';
 
-const serverHost = '127.0.0.1';
+const serverHost = 'localhost';
 const serverPort = '50001';
-const daprHost = '127.0.0.1';
+const daprHost = 'localhost';
 const daprPort = '50000'; // Dapr Sidecar Port of this Example Server
 const daprAppId = 'test-suite';
 

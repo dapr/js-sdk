@@ -19,6 +19,7 @@ export type DaprClientOptions = {
    * Default is true.
    */
   isKeepAlive?: boolean;
+
   /**
    * Options related to logging.
    */

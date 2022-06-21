@@ -36,13 +36,13 @@ export default class GRPCClient implements IClient {
   ) {
     this.clientHost = host;
     this.clientPort = port;
-    this.clientCredentials = grpc.ChannelCredentials.createInsecure();
     this.options = options;
+    this.clientCredentials = this.generateCredentials();
     this.logger = new Logger("GRPCClient", "GRPCClient", options.logger);
     this.isInitialized = false;
 
     this.logger.info(`Opening connection to ${this.clientHost}:${this.clientPort}`);
-    this.client = new DaprClient(`${this.clientHost}:${this.clientPort}`, this.clientCredentials);
+    this.client = this.generateClient(this.clientHost, this.clientPort, this.clientCredentials);
   }
 
   getClientHost(): string {
@@ -53,12 +53,32 @@ export default class GRPCClient implements IClient {
     return this.clientPort;
   }
 
-  getClient(): DaprClient {
+  async getClient(requiresInitialization = true): Promise<DaprClient> {
+    // Ensure the sidecar has been started
+    if (!this.isInitialized && requiresInitialization) {
+      await this.start();
+    }
+
     return this.client;
   }
 
   getClientCommunicationProtocol(): CommunicationProtocolEnum {
     return CommunicationProtocolEnum.GRPC;
+  }
+
+  getClientCredentials(): grpc.ChannelCredentials {
+    return this.clientCredentials;
+  }
+
+  private generateClient(host: string, port: string, credentials: grpc.ChannelCredentials): DaprClient {
+    const client = new DaprClient(`${host}:${port}`, credentials);
+    return client;
+  }
+
+  // @todo: look into making secure credentials
+  private generateCredentials(): grpc.ChannelCredentials {
+    const credsChannel = grpc.ChannelCredentials.createInsecure();
+    return credsChannel;
   }
 
   getOptions(): DaprClientOptions {
@@ -67,6 +87,10 @@ export default class GRPCClient implements IClient {
 
   setIsInitialized(isInitialized: boolean): void {
     this.isInitialized = isInitialized;
+  }
+
+  getIsInitialized(): boolean {
+    return this.isInitialized;
   }
 
   async stop(): Promise<void> {
@@ -90,5 +114,6 @@ export default class GRPCClient implements IClient {
 
   async start(): Promise<void> {
     await this._startWaitForClientReady();
+    this.isInitialized = true;
   }
 }

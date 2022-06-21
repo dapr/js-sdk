@@ -22,6 +22,7 @@ import IClientHealth from '../../interfaces/Client/IClientHealth';
 import IClientMetadata from '../../interfaces/Client/IClientMetadata';
 import IClientSidecar from '../../interfaces/Client/IClientSidecar';
 import IClientConfiguration from '../../interfaces/Client/IClientConfiguration';
+import IClientProxy from "../../interfaces/Client/IClientProxy";
 import IClientActorBuilder from '../../interfaces/Client/IClientActorBuilder';
 import IClient from '../../interfaces/Client/IClient';
 
@@ -46,6 +47,7 @@ import HTTPClientHealth from './HTTPClient/health';
 import HTTPClientMetadata from './HTTPClient/metadata';
 import HTTPClientSidecar from './HTTPClient/sidecar';
 import HTTPClientConfiguration from './HTTPClient/configuration';
+import HTTPClientProxy from './HTTPClient/proxy';
 import HTTPClientActor from './HTTPClient/actor';
 import HTTPClient from './HTTPClient/HTTPClient';
 
@@ -53,6 +55,7 @@ import CommunicationProtocolEnum from '../../enum/CommunicationProtocol.enum';
 import { DaprClientOptions } from '../../types/DaprClientOptions';
 import { Settings } from '../../utils/Settings.util';
 import { Logger } from '../../logger/Logger';
+import GRPCClientProxy from "./GRPCClient/proxy";
 
 export default class DaprClient {
   readonly daprHost: string;
@@ -70,6 +73,7 @@ export default class DaprClient {
   readonly metadata: IClientMetadata;
   readonly sidecar: IClientSidecar;
   readonly configuration: IClientConfiguration;
+  readonly proxy: IClientProxy;
   readonly actor: IClientActorBuilder;
 
   private readonly logger: Logger;
@@ -105,6 +109,7 @@ export default class DaprClient {
         this.health = new GRPCClientHealth(client);
         this.metadata = new GRPCClientMetadata(client);
         this.sidecar = new GRPCClientSidecar(client);
+        this.proxy = new GRPCClientProxy(client);
         this.configuration = new GRPCClientConfiguration(client);
         this.actor = new GRPCClientActor(client); // we use a abstractor here since we interface through a builder with the Actor Runtime
         break;
@@ -123,6 +128,7 @@ export default class DaprClient {
         this.metadata = new HTTPClientMetadata(client);
         this.sidecar = new HTTPClientSidecar(client);
         this.configuration = new HTTPClientConfiguration(client);
+        this.proxy = new HTTPClientProxy(client);
         this.actor = new HTTPClientActor(client); // we use a abstractor here since we interface through a builder with the Actor Runtime
         break;
       }
@@ -194,5 +200,9 @@ export default class DaprClient {
 
   getCommunicationProtocol(): CommunicationProtocolEnum {
     return this.communicationProtocol;
+  }
+
+  getIsInitialized(): boolean {
+    return this.daprClient.getIsInitialized();
   }
 }

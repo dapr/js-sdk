@@ -14,6 +14,7 @@ limitations under the License.
 import CommunicationProtocolEnum from "../enum/CommunicationProtocol.enum";
 
 export class Settings {
+  private static readonly defaultAppId: string = "my-dapr-app";
   private static readonly defaultHost: string = "127.0.0.1";
   private static readonly defaultHttpAppPort: string = "3000";
   private static readonly defaultHttpPort: string = "3500";
@@ -29,6 +30,10 @@ export class Settings {
 
   static getDaprSidecarStartupTimeoutMs(): number {
     return Settings.daprSidecarStartupTimeoutMs;
+  }
+
+  static getAppId(): string {
+    return process.env.APP_ID ?? Settings.defaultAppId;
   }
 
   static getDefaultHost(): string {

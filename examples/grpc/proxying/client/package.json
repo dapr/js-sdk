@@ -1,0 +1,25 @@
+{
+    "name": "dapr-client-example-grpc-proxy",
+    "version": "1.0.0",
+    "description": "An example utilizing the Dapr JS SDK",
+    "main": "index.js",
+    "private": true,
+    "scripts": {
+        "build": "rimraf ./dist && tsc && cp -r ./src/proto ./dist",
+        "start": "npm run build && node dist/index.js",
+        "start:dapr": "dapr run --app-id client --app-protocol grpc --dapr-grpc-port 50007 npm run start"
+    },
+    "keywords": [],
+    "license": "ISC",
+    "devDependencies": {
+        "nodemon": "^2.0.7",
+        "rimraf": "^3.0.2",
+        "ts-node": "^9.1.1",
+        "typescript": "^4.2.4"
+    },
+    "dependencies": {
+        "@dapr/dapr": "file:../../../../build",
+        "@types/node": "^15.3.0",
+        "google-protobuf": "^3.17.0"
+    }
+}

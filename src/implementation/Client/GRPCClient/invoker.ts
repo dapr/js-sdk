@@ -66,8 +66,9 @@ export default class GRPCClientInvoker implements IClientInvoker {
 
     msgInvokeService.setMessage(msgInvoke);
 
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
       client.invokeService(msgInvokeService, (err, res: InvokeResponse) => {
         if (err) {
           return reject(err);

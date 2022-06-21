@@ -37,7 +37,7 @@ mkdir build/
 # Build Package
 echo "Building Library"
 npm run lint
-tsc --outDir ./build/
+npx tsc --outDir ./build/
 
 # Prepare Publish
 echo "Preparing Publish"

@@ -77,6 +77,34 @@ dapr run --app-id example-sdk --app-protocol grpc -- npm run start
 npm run start:dapr-grpc
 ```
 
+## Proxying Requests
+
+By proxying requests, we can utilize the unique capabilities that Dapr brings with its sidecar architecture such as service discovery, logging, etc., enabling us to instantly "upgrade" our gRPC services. This feature of gRPC proxying was demonstrated in [community call 41](https://www.youtube.com/watch?v=B_vkXqptpXY&t=71s). 
+
+### Creating a Proxy
+
+To perform gRPC proxying, simply create a proxy by calling the `client.proxy.create()` method:
+
+```javascript
+// As always, create a client to our dapr sidecar
+// this client takes care of making sure the sidecar is started, that we can communicate, ...
+const clientSidecar = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+
+// Create a Proxy that allows us to use our gRPC code
+const clientProxy = await clientSidecar.proxy.create<GreeterClient>(GreeterClient);
+```
+
+We can now call the methods as defined in our `GreeterClient` interface (which in this case is from the [Hello World example](https://github.com/grpc/grpc-go/blob/master/examples/helloworld/helloworld/helloworld.proto))
+
+### Behind the Scenes (Technical Working)
+
+![Architecture](assets/architecture.png)
+
+1. The gRPC service gets started in Dapr. We tell Dapr which port this gRPC server is running on through `--app-port` and give it a unique Dapr app ID with `--app-id <APP_ID_HERE>`
+2. We can now call the Dapr Sidecar through a client that will connect to the Sidecar
+3. Whilst calling the Dapr Sidecar, we provide a metadata key named `dapr-app-id` with the value of our gRPC server booted in Dapr (e.g. `server` in our example)
+4. Dapr will now forward the call to the gRPC server configured
+
 ## Building blocks
 
 The JavaScript Client SDK allows you to interface with all of the [Dapr building blocks]({{< ref building-blocks >}}) focusing on Client to Sidecar features.

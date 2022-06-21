@@ -20,7 +20,7 @@ import * as SerializerUtil from "../../../utils/Serializer.util";
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class GRPCClientPubSub implements IClientPubSub {
   client: GRPCClient;
-  
+
   private readonly logger: Logger;
 
   constructor(client: GRPCClient) {
@@ -35,8 +35,9 @@ export default class GRPCClientPubSub implements IClientPubSub {
     msgService.setTopic(topic);
     msgService.setData(SerializerUtil.serializeGrpc(data).serializedData);
 
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
       client.publishEvent(msgService, (err, _res) => {
         if (err) {
           this.logger.error(`publish failed: ${err}`);

@@ -41,8 +41,9 @@ export default class ActorClientGRPC implements IClientActor {
       msgService.setData(body);
     }
 
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
       client.invokeActor(msgService, (err, res: InvokeActorResponse) => {
         if (err) {
           return reject(err);
@@ -80,8 +81,9 @@ export default class ActorClientGRPC implements IClientActor {
     msgService.setActorId(actorId.getId());
     msgService.setOperationsList(transactionItems);
 
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
       client.executeActorStateTransaction(msgService, (err, _res) => {
         if (err) {
           return reject(err);
@@ -99,8 +101,9 @@ export default class ActorClientGRPC implements IClientActor {
     msgService.setActorId(actorId.getId())
     msgService.setKey(key);
 
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
       client.getActorState(msgService, (err, res: GetActorStateResponse) => {
         if (err) {
           return reject(err);
@@ -141,8 +144,9 @@ export default class ActorClientGRPC implements IClientActor {
       msgService.setTtl(reminder.ttl.toString());
     }
 
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
       client.registerActorReminder(msgService, (err, _res) => {
         if (err) {
           return reject(err);
@@ -160,8 +164,9 @@ export default class ActorClientGRPC implements IClientActor {
     msgService.setActorId(actorId.getId());
     msgService.setName(name);
 
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
       client.unregisterActorReminder(msgService, (err, _res) => {
         if (err) {
           return reject(err);
@@ -199,8 +204,9 @@ export default class ActorClientGRPC implements IClientActor {
       msgService.setTtl(timer.ttl.toString());
     }
 
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
       client.registerActorTimer(msgService, (err, _res) => {
         if (err) {
           return reject(err);
@@ -218,8 +224,9 @@ export default class ActorClientGRPC implements IClientActor {
     msgService.setActorId(actorId.getId());
     msgService.setName(name);
 
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
       client.unregisterActorTimer(msgService, (err, _res) => {
         if (err) {
           return reject(err);
@@ -252,8 +259,9 @@ export default class ActorClientGRPC implements IClientActor {
   // }
 
   async getActors(): Promise<object> {
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
 
       client.getMetadata(new Empty(), (err, res: GetMetadataResponse) => {
         if (err) {

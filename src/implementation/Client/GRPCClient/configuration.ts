@@ -44,8 +44,9 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
       }
     }
 
+    const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
-      const client = this.client.getClient();
       client.getConfigurationAlpha1(msg, metadata, (err, res: GetConfigurationResponse) => {
         if (err) {
           return reject(err);
@@ -99,7 +100,7 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
       }
     }
 
-    const client = this.client.getClient();
+    const client = await this.client.getClient();
 
     // Open a stream. Note that this is a never-ending stream 
     // and will stay open as long as the client is open
