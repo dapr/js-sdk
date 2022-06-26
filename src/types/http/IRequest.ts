@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import http from "http";
-import Restana from "restana";
+import * as http from 'http';
+import Restana from 'restana';
 
-export default interface IRequest extends http.IncomingMessage, Restana.RequestExtensions { }
+export default interface IRequest extends http.IncomingMessage, Restana.RequestExtensions {}
