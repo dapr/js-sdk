@@ -28,8 +28,12 @@ The Dapr Javascript SDK contains two major components:
 
 The above communication can be configured to use either of the gRPC or HTTP protocols.
 
-![Dapr Server](/images/dapr-server.jpg)
-![Dapr Client](/images/dapr-client.jpg)
+{{ with .Resources.GetMatch "dapr-server.jpg" }}
+  <img alt="Dapr Server" src="{{ .RelPermalink }}" width="{{ .Width }}" height="{{ .Height }}">
+{{ end }}
+{{ with .Resources.GetMatch "dapr-client.jpg" }}
+  <img alt="Dapr Client" src="{{ .RelPermalink }}" width="{{ .Width }}" height="{{ .Height }}">
+{{ end }}
 
 ## Getting Started
 
