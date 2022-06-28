@@ -17,6 +17,8 @@ To get started with the Javascript SDK, install the Dapr JavaScript SDK package 
 npm install --save @dapr/dapr
 ```
 
+> ⚠️ [dapr-client](https://www.npmjs.com/package/dapr-client) is now deprecated. Please see [#259](https://github.com/dapr/js-sdk/issues/259) for more information.
+
 ## Structure
 
 The Dapr Javascript SDK contains two major components: 
