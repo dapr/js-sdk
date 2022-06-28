@@ -55,6 +55,9 @@ To help you get started, check out the resources below:
       <a href="{{< ref js-actors >}}" class="stretched-link"></a>
     </div>
   </div>
+</div>
+<br />
+<div class="card-deck">
   <div class="card">
     <div class="card-body">
       <h5 class="card-title"><b>Logging</b></h5>
