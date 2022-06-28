@@ -2,7 +2,7 @@
 type: docs
 title: "JavaScript Examples"
 linkTitle: "Examples"
-weight: 500
+weight: 5000
 description: Get started with the Dapr Javascript SDK through some of our examples!
 ---
 

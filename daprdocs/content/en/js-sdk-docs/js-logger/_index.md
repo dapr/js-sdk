@@ -2,7 +2,7 @@
 type: docs
 title: "Logging in JavaScript SDK"
 linkTitle: "Logging"
-weight: 500
+weight: 4000
 description: Configuring logging in JavaScript SDK
 ---
 
