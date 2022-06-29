@@ -7,8 +7,8 @@
     "scripts": {
         "build": "rimraf ./dist && tsc",
         "start": "npm run build && node dist/index.js",
-        "start:dapr-grpc": "dapr run  --app-id distributedLock --app-protocol grpc --components-path ./Components npm run start",
-        "start:dapr-http": "dapr run  --app-id distributedLock --app-protocol grpc --components-path ./Components npm run start"
+        "start:dapr-grpc": "dapr run  --app-id lock --app-protocol grpc --components-path ./components npm run start",
+        "start:dapr-http": "dapr run  --app-id lock --app-protocol grpc --components-path ./components npm run start"
     },
     "keywords": [],
     "license": "ISC",

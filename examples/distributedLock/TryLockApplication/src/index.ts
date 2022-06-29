@@ -25,7 +25,7 @@ async function start() {
   );
 
   const storeName = "redislock";
-  let resourceId = "resourceId";
+  const resourceId = "resourceId";
   let lockOwner = "owner1";
   let expiryInSeconds = 1000;
 
@@ -37,12 +37,11 @@ async function start() {
   const unLockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
   console.log("Unlock API response: " + getResponseStatus(unLockResponse.status));
 
-  //Checking if the lock exists.
+  // Checking if the lock exists.
   console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
   const lockUnexistResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
   console.log("Unlock API response when lock is not acquired: " + getResponseStatus(lockUnexistResponse.status));
 
-  resourceId = "resourceId";
   lockOwner = "owner1";
   expiryInSeconds = 25;
   console.log(`Acquiring lock on ${storeName}, ${resourceId} as owner: ${lockOwner}`);

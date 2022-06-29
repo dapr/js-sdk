@@ -1,6 +1,7 @@
 # Example - Distributed Lock APIs
 
-This example demonstrates the Distributed Lock APIs in Dapr.
+This example demonstrates 2 features (Try Lock & Unlock) from the [Distributed lock API from Dapr](https://github.com/dapr/dapr/issues/3549) that helps developers to keep their data safe from race conditions. For more information, check out the documentation at 
+
 It demonstrates the following APIs:
 - **Distributed Lock**: Try Lock
 - **Distributed Lock**: Unlock
@@ -13,7 +14,7 @@ It demonstrates the following APIs:
 - Initialize Dapr environment by pulling the code from master branch of [Dapr](https://github.com/dapr/dapr)
 
 ## Overview
-This example shows the usage of two different Distributed Lock APIs, TryLock call and Unlock call.
+The TryLock and Unlock calls are implemented under the client.lock attribute.
 
 #### TryLock Example
 ```javascript
@@ -25,19 +26,19 @@ const tryLockResponse = await client.distributedLock.tryLock(storeName, resource
 const unLockResponse = await client.distributedLock.unlock(storeName, resourceId, lockOwner);
 ```
 
-### Start the DistributedLock TryLockApplication.
+### Start the Lock application.
 
-Change directory to this folder:
+Execute the example under the folder examples/Client/LockAPI/TryLock.
 
 ```bash
 cd examples/Client/DistributedLockApi/TryLockApplication
 npm install
 ```
 
-To run the `TryLockApplication`, execute the following command:
+To run the `TryLock`, execute the following command:
 
 ```bash
-dapr run --app-id distributedLock --app-protocol grpc --components-path ./components npm run start
+dapr run --app-id lock --app-protocol grpc --components-path ./components npm run start
 ```
 
 You should see the following output from the application:
@@ -53,11 +54,11 @@ You should see the following output from the application:
 == APP == Acquired Lock? true
 ```
 
-### Start the DistributedLock UnLockApplication.
+### Start the Lock UnLock Example.
 
 Run `UnLockApplication` after `TryLockApplication` is ran.
 
-Change directory to this folder:
+Navigate to examples/Client/LockAPI/Unlock.
 
 ```bash
 cd examples/Client/DistributedLockApi/UnLockApplication
@@ -67,7 +68,7 @@ npm install
 To run the `UnLockApplication`, execute the following command:
 
 ```bash
-dapr run --app-id distributedLock --app-protocol grpc --components-path ./components npm run start
+dapr run --app-id lock --app-protocol grpc --components-path ./components npm run start
 ```
 
 You should see the following output from the application:
