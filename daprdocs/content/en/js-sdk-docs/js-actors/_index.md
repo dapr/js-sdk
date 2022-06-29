@@ -2,7 +2,7 @@
 type: docs
 title: "JavaScript SDK for Actors"
 linkTitle: "Actors"
-weight: 1000
+weight: 3000
 description: How to get up and running with Actors using the Dapr JavaScript SDK
 ---
 

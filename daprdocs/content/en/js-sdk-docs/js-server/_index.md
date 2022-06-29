@@ -2,7 +2,7 @@
 type: docs
 title: "JavaScript Server SDK"
 linkTitle: "Server"
-weight: 500
+weight: 2000
 description: JavaScript Server SDK for developing Dapr applications
 ---
 
