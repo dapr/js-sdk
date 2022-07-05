@@ -33,5 +33,5 @@ limitations under the License.
 
 echo "$HEADER" > $FILENAME
 
-node -p "'export const SDK_VERSION: string = ' + JSON.stringify(require('./package.json').version) + ';\n\
-export const SDK_PACKAGE_NAME: string = ' + JSON.stringify(require('./package.json').name) + ';'" >> $FILENAME
+node -p "'export const SDK_VERSION = ' + JSON.stringify(require('./package.json').version) + ';\n\
+export const SDK_PACKAGE_NAME = ' + JSON.stringify(require('./package.json').name) + ';'" >> $FILENAME
