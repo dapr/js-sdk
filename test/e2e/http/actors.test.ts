@@ -41,7 +41,7 @@ describe('http/actors', () => {
   let server: DaprServer;
   let client: DaprClient;
 
-  jest.setTimeout(10000);
+  jest.setTimeout(30000);
 
   // We need to start listening on some endpoints already
   // this because Dapr is not dynamic and registers endpoints on boot
