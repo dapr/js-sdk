@@ -170,7 +170,7 @@ describe('http/actors', () => {
           fail("should have thrown an error");
         }
       }
-    });
+    }, 10 * 1000);
   });
 
   describe('timers', () => {
