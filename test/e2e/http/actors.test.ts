@@ -41,6 +41,8 @@ describe('http/actors', () => {
   let server: DaprServer;
   let client: DaprClient;
 
+  jest.setTimeout(10000);
+
   // We need to start listening on some endpoints already
   // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
@@ -208,7 +210,6 @@ describe('http/actors', () => {
 
 
     it('should apply the ttl when it is set (expected execution time > 5s)', async () => {
-      jest.setTimeout(10 * 1000);
       const builder = new ActorProxyBuilder<DemoActorTimerInterface>(DemoActorTimerTtlImpl, client);
       const actor = builder.build(ActorId.createRandomId());
 
@@ -244,7 +245,7 @@ describe('http/actors', () => {
       const res4 = await actor.getCounter();
       expect(res4).toEqual(200);
 
-    }, 10 * 1000);
+    });
   });
 
   describe('reminders', () => {
