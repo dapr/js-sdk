@@ -161,7 +161,7 @@ describe('http/actors', () => {
       await actor.removeState("foo");
 
       try {
-        const res = await actor.getState("foo");
+        const _ = await actor.getState("foo");
         fail("should have thrown an error");
       } catch (e: any) {
         if (e instanceof Error) {
