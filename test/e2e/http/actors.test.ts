@@ -206,7 +206,7 @@ describe('http/actors', () => {
       await (new Promise(resolve => setTimeout(resolve, 1000)));
       const res4 = await actor.getCounter();
       expect(res4).toEqual(300);
-    }, 10000);
+    }, 30000);
 
 
     it('should apply the ttl when it is set (expected execution time > 5s)', async () => {
