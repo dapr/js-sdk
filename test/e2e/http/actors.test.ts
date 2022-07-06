@@ -109,6 +109,7 @@ describe('http/actors', () => {
       expect(actors).toContain(DemoActorCounterImpl.name);
       expect(actors).toContain(DemoActorSayImpl.name);
       expect(actors).toContain(DemoActorReminderImpl.name);
+      expect(actors).toContain(DemoActorReminder2Impl.name);
       expect(actors).toContain(DemoActorTimerImpl.name);
       expect(actors).toContain(DemoActorActivateImpl.name);
       expect(actors).toContain(DemoActorTimerTtlImpl.name);
@@ -159,7 +160,7 @@ describe('http/actors', () => {
       await actor.setState("foo", "bar");
       await actor.removeState("foo");
 
-      expect(actor.getState("foo"))
+      await expect(actor.getState("foo"))
         .rejects
         .toThrow("Actor state with name foo was not found")
     });
