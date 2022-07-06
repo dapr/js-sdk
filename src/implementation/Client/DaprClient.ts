@@ -96,7 +96,7 @@ export default class DaprClient {
       throw new Error('DAPR_INCORRECT_SIDECAR_PORT');
     }
 
-    if (String(SDK_PACKAGE_NAME) === "dapr-client") { // @ts-ignore
+    if (String(SDK_PACKAGE_NAME) === "dapr-client") {
       this.logger.warn("dapr-client is deprecated. Please use @dapr/dapr instead. For more information, see https://github.com/dapr/js-sdk/issues/259")
     }
 
