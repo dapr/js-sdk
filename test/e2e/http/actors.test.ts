@@ -160,9 +160,16 @@ describe('http/actors', () => {
       await actor.setState("foo", "bar");
       await actor.removeState("foo");
 
-      await expect(actor.getState("foo"))
-        .rejects
-        .toThrow("Actor state with name foo was not found")
+      try {
+        const res = await actor.getState("foo");
+        fail("should have thrown an error");
+      } catch (e: any) {
+        if (e instanceof Error) {
+        expect(e.message).toEqual("Actor state with name foo was not found");
+        } else {
+          fail("should have thrown an error");
+        }
+      }
     });
   });
 
