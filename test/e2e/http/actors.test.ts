@@ -28,6 +28,8 @@ import DemoActorTimerImpl from '../../actor/DemoActorTimerImpl';
 import DemoActorTimerInterface from '../../actor/DemoActorTimerInterface';
 import DemoActorTimerTtlImpl from '../../actor/DemoActorTimerTtlImpl';
 import DemoActorReminderTtlImpl from '../../actor/DemoActorReminderTtlImpl';
+import DemoActorStateInterface from '../../actor/DemoActorStateInterface';
+import DemoActorStateImpl from '../../actor/DemoActorStateImpl';
 
 const serverHost = "127.0.0.1";
 const serverPort = "50001";
@@ -65,6 +67,7 @@ describe('http/actors', () => {
     await server.actor.registerActor(DemoActorActivateImpl);
     await server.actor.registerActor(DemoActorTimerTtlImpl);
     await server.actor.registerActor(DemoActorReminderTtlImpl);
+    await server.actor.registerActor(DemoActorStateImpl);
 
     // Start server
     await server.start(); // Start the general server, this can take a while
@@ -101,7 +104,7 @@ describe('http/actors', () => {
     it('should register actors correctly', async () => {
       const actors = await server.actor.getRegisteredActors();
 
-      expect(actors.length).toEqual(8);
+      expect(actors.length).toEqual(9);
 
       expect(actors).toContain(DemoActorCounterImpl.name);
       expect(actors).toContain(DemoActorSayImpl.name);
@@ -110,6 +113,7 @@ describe('http/actors', () => {
       expect(actors).toContain(DemoActorActivateImpl.name);
       expect(actors).toContain(DemoActorTimerTtlImpl.name);
       expect(actors).toContain(DemoActorReminderTtlImpl.name);
+      expect(actors).toContain(DemoActorStateImpl.name);
     });
 
     it('should be able to invoke an actor through a text message', async () => {
@@ -137,6 +141,27 @@ describe('http/actors', () => {
       const actor = client.actor.create<DemoActorSayInterface>(DemoActorSayImpl);
       const res = await actor.sayMulti(123, "123", { hello: "world 123" }, [1, 2, 3]);
       expect(JSON.stringify(res)).toEqual(`{"a":{"value":123,"type":"number"},"b":{"value":"123","type":"string"},"c":{"value":{"hello":"world 123"},"type":"object"},"d":{"value":[1,2,3],"type":"object"}}`)
+    });
+  });
+
+  describe('state', () => {
+    it('should be able to save a state and read it', async () => {
+      const builder = new ActorProxyBuilder<DemoActorStateInterface>(DemoActorStateImpl, client);
+      const actor = builder.build(ActorId.createRandomId());
+      await actor.setState("foo", "bar");
+      const res = await actor.getState("foo");
+      expect(res).toEqual("bar");
+    });
+
+    it('should be able to remove state after saving it', async () => {
+      const builder = new ActorProxyBuilder<DemoActorStateInterface>(DemoActorStateImpl, client);
+      const actor = builder.build(ActorId.createRandomId());
+      await actor.setState("foo", "bar");
+      await actor.removeState("foo");
+
+      expect(actor.getState("foo"))
+        .rejects
+        .toThrow("Actor state with name foo was not found")
     });
   });
 

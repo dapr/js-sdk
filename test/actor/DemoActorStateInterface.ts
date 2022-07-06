@@ -11,11 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
-module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  collectCoverage: true,
-  coverageReporters: ['lcov'],
-  noStackTrace: true,
-};
+export default interface DemoActorStateInterface {
+    setState(key: string, value: any): Promise<void>;
+    removeState(key: string): Promise<void>;
+    getState(key: string): Promise<any>;
+}
