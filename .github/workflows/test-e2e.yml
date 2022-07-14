@@ -121,8 +121,8 @@ jobs:
         node-version: ${{ env.NODE_VER }}
         registry-url: 'https://registry.npmjs.org'
 
-    - name: Install NPM Dependencies
-      run: npm i
+    - name: Build Package
+      run: npm run build
 
     - name: Run E2E tests
       id: tests
