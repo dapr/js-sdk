@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import fetch from "node-fetch";
-import { CommunicationProtocolEnum } from "../../..";
+import { CommunicationProtocolEnum, DaprClient } from "../../..";
 import IClient from "../../../interfaces/Client/IClient";
 import http from "http";
 import https from "https";
@@ -20,6 +20,7 @@ import { DaprClientOptions } from "../../../types/DaprClientOptions";
 import { Settings } from '../../../utils/Settings.util';
 import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type"
 import { Logger } from "../../../logger/Logger";
+import HTTPClientSidecar from "./sidecar";
 
 export default class HTTPClient implements IClient {
   private isInitialized: boolean;
@@ -72,7 +73,8 @@ export default class HTTPClient implements IClient {
 
   async getClient(requiresInitialization = true): Promise<typeof fetch> {
     // Ensure the sidecar has been started
-    if (!this.isInitialized && requiresInitialization) {
+    if (requiresInitialization && !this.isInitialized) {
+      this.logger.verbose("Client is not initialized, starting sidecar and initializing");
       await this.start();
     }
 
@@ -107,12 +109,21 @@ export default class HTTPClient implements IClient {
     return this.isInitialized;
   }
 
+  async _startAwaitSidecarStarted(): Promise<void> {
+    await DaprClient.awaitSidecarStarted(async () => await HTTPClientSidecar.isStarted(this));
+  }
+
   async stop(): Promise<void> {
     this.httpAgent.destroy();
     this.httpsAgent.destroy();
   }
 
   async start(): Promise<void> {
+    await this._startAwaitSidecarStarted();
+    this.isInitialized = true;
+
+    this.logger.info("Sidecar Started");
+
     return;
   }
 

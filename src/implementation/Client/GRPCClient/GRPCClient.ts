@@ -12,17 +12,19 @@ limitations under the License.
 */
 
 import * as grpc from "@grpc/grpc-js";
-import { DaprClient } from "../../../proto/dapr/proto/runtime/v1/dapr_grpc_pb"
+import { DaprClient as GrpcDaprClient } from "../../../proto/dapr/proto/runtime/v1/dapr_grpc_pb"
 import IClient from "../../../interfaces/Client/IClient";
 import CommunicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
 import { DaprClientOptions } from "../../../types/DaprClientOptions";
 import { Settings } from '../../../utils/Settings.util';
 import { Logger } from "../../../logger/Logger";
+import GRPCClientSidecar from "./sidecar";
+import DaprClient from "../DaprClient";
 
 export default class GRPCClient implements IClient {
   private isInitialized: boolean;
 
-  private readonly client: DaprClient;
+  private readonly client: GrpcDaprClient;
   private readonly clientCredentials: grpc.ChannelCredentials;
   private readonly clientHost: string;
   private readonly clientPort: string;
@@ -53,7 +55,7 @@ export default class GRPCClient implements IClient {
     return this.clientPort;
   }
 
-  async getClient(requiresInitialization = true): Promise<DaprClient> {
+  async getClient(requiresInitialization = true): Promise<GrpcDaprClient> {
     // Ensure the sidecar has been started
     if (!this.isInitialized && requiresInitialization) {
       await this.start();
@@ -70,8 +72,8 @@ export default class GRPCClient implements IClient {
     return this.clientCredentials;
   }
 
-  private generateClient(host: string, port: string, credentials: grpc.ChannelCredentials): DaprClient {
-    const client = new DaprClient(`${host}:${port}`, credentials);
+  private generateClient(host: string, port: string, credentials: grpc.ChannelCredentials): GrpcDaprClient {
+    const client = new GrpcDaprClient(`${host}:${port}`, credentials);
     return client;
   }
 
@@ -112,7 +114,18 @@ export default class GRPCClient implements IClient {
     })
   }
 
+  async _startAwaitSidecarStarted(): Promise<void> {
+    await DaprClient.awaitSidecarStarted(async () => await GRPCClientSidecar.isStarted(this));
+  }
+
+  /**
+   * Ensure the client is started, this takes care of:
+   * 1. Making sure the sidecar is started
+   * 2. Making sure the connection is established (e.g. in gRPC)
+   * 3. Making sure the client is ready to be used
+   */
   async start(): Promise<void> {
+    await this._startAwaitSidecarStarted();
     await this._startWaitForClientReady();
     this.isInitialized = true;
   }
