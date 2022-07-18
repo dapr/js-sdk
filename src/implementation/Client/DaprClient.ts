@@ -11,8 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import * as NodeJSUtils from "../../utils/NodeJS.util";
-
 import IClientBinding from '../../interfaces/Client/IClientBinding';
 import IClientPubSub from '../../interfaces/Client/IClientPubSub';
 import IClientState from '../../interfaces/Client/IClientState';
@@ -56,6 +54,7 @@ import { DaprClientOptions } from '../../types/DaprClientOptions';
 import { Settings } from '../../utils/Settings.util';
 import { Logger } from '../../logger/Logger';
 import GRPCClientProxy from "./GRPCClient/proxy";
+import * as NodeJSUtils from "../../utils/NodeJS.util";
 import { SDK_PACKAGE_NAME } from "../../version";
 
 export default class DaprClient {
@@ -144,47 +143,44 @@ export default class DaprClient {
     return new DaprClient(client.getClientHost(), client.getClientPort(), client.getClientCommunicationProtocol(), client.getOptions());
   }
 
-  async stop(): Promise<void> {
-    await this.daprClient.stop();
-  }
+  static async awaitSidecarStarted(fnIsSidecarStarted: () => Promise<boolean>): Promise<void> {
+    const logger = new Logger("DaprClient", "DaprClient");
 
-  async awaitSidecarStarted(): Promise<void> {
     // Dapr will probe every 50ms to see if we are listening on our port: https://github.com/dapr/dapr/blob/a43712c97ead550ca2f733e9f7e7769ecb195d8b/pkg/runtime/runtime.go#L1694
     // if we are using actors we will change this to 4s to let the placement tables update
-    let isHealthy = false;
-    let isHealthyRetryCount = 0;
-    const isHealthyMaxRetryCount = 60; // 1s startup delay and we try max for 60s
+    let isStarted = await fnIsSidecarStarted();
+    let isStartedRetryCount = 0;
+    const isStartedMaxRetryCount = 60; // 1s startup delay and we try max for 60s
 
-    this.logger.info(`Awaiting Sidecar to be Started`);
-    while (!isHealthy) {
-      this.logger.verbose(`Waiting for the Dapr Sidecar to start, retry count: (#${isHealthyRetryCount})`);
+    if (isStarted) {
+      return;
+    }
+
+    logger.info(`Awaiting Sidecar to be Started`);
+    while (!isStarted) {
+      logger.verbose(`Waiting for the Dapr Sidecar to start, retry count: (#${isStartedRetryCount})`);
       await NodeJSUtils.sleep(Settings.getDaprSidecarPollingDelayMs());
 
       // Implement API call manually as we need to enable calling without initialization
       // everything routes through the `execute` method
       // to check health, we just ping the /metadata endpoint and see if we get a response
-      isHealthy = await this.health.isHealthy();
+      isStarted = await fnIsSidecarStarted();
 
       // Finally, Handle the retry logic
-      isHealthyRetryCount++;
+      isStartedRetryCount++;
 
-      if (isHealthyRetryCount > isHealthyMaxRetryCount) {
+      if (isStartedRetryCount > isStartedMaxRetryCount) {
         throw new Error("DAPR_SIDECAR_COULD_NOT_BE_STARTED");
       }
     }
   }
 
-  /**
-   * Ensure the client is started, this takes care of:
-   * 1. Making sure the sidecar is started
-   * 2. Making sure the connection is established (e.g. in gRPC)
-   * 3. Making sure the client is ready to be used
-   */
+  async stop(): Promise<void> {
+    await this.daprClient.stop();
+  }
+
   async start(): Promise<void> {
-    await this.awaitSidecarStarted();
     await this.daprClient.start();
-    await this.daprClient.setIsInitialized(true);
-    this.logger.info("Sidecar Started");
   }
 
   getDaprClient(): IClient {

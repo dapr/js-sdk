@@ -39,6 +39,8 @@ describe('grpc/server', () => {
 
     // Start server
     await server.start();
+
+    await new Promise((resolve, _reject) => setTimeout(resolve, 2500));
   }, 10 * 1000);
 
   beforeEach(() => {

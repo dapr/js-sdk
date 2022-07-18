@@ -383,6 +383,50 @@ function deserialize_dapr_proto_runtime_v1_SubscribeConfigurationResponse(buffer
   return dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_TryLockRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.TryLockRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.TryLockRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_TryLockRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.TryLockRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_TryLockResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.TryLockResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.TryLockResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_TryLockResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.TryLockResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_UnlockRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.UnlockRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.UnlockRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_UnlockRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.UnlockRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_UnlockResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.UnlockResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.UnlockResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_UnlockResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.UnlockResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_UnregisterActorReminderRequest(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.UnregisterActorReminderRequest)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.UnregisterActorReminderRequest');
@@ -716,6 +760,30 @@ unsubscribeConfigurationAlpha1: {
     requestDeserialize: deserialize_dapr_proto_runtime_v1_UnsubscribeConfigurationRequest,
     responseSerialize: serialize_dapr_proto_runtime_v1_UnsubscribeConfigurationResponse,
     responseDeserialize: deserialize_dapr_proto_runtime_v1_UnsubscribeConfigurationResponse,
+  },
+  // TryLockAlpha1 tries to get a lock with an expiry.
+tryLockAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/TryLockAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.TryLockRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.TryLockResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_TryLockRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_TryLockRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_TryLockResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_TryLockResponse,
+  },
+  // UnlockAlpha1 unlocks a lock.
+unlockAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/UnlockAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.UnlockRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.UnlockResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_UnlockRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_UnlockRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_UnlockResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_UnlockResponse,
   },
   // Gets metadata of the sidecar
 getMetadata: {

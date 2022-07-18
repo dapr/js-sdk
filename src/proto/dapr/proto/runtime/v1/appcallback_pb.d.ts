@@ -190,6 +190,8 @@ export class TopicSubscription extends jspb.Message {
     clearRoutes(): void;
     getRoutes(): TopicRoutes | undefined;
     setRoutes(value?: TopicRoutes): TopicSubscription;
+    getDeadLetterTopic(): string;
+    setDeadLetterTopic(value: string): TopicSubscription;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): TopicSubscription.AsObject;
@@ -208,6 +210,7 @@ export namespace TopicSubscription {
 
         metadataMap: Array<[string, string]>,
         routes?: TopicRoutes.AsObject,
+        deadLetterTopic: string,
     }
 }
 
