@@ -34,6 +34,8 @@ interface IDaprService extends grpc.ServiceDefinition<grpc.UntypedServiceImpleme
     getConfigurationAlpha1: IDaprService_IGetConfigurationAlpha1;
     subscribeConfigurationAlpha1: IDaprService_ISubscribeConfigurationAlpha1;
     unsubscribeConfigurationAlpha1: IDaprService_IUnsubscribeConfigurationAlpha1;
+    tryLockAlpha1: IDaprService_ITryLockAlpha1;
+    unlockAlpha1: IDaprService_IUnlockAlpha1;
     getMetadata: IDaprService_IGetMetadata;
     setMetadata: IDaprService_ISetMetadata;
     shutdown: IDaprService_IShutdown;
@@ -246,6 +248,24 @@ interface IDaprService_IUnsubscribeConfigurationAlpha1 extends grpc.MethodDefini
     responseSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse>;
     responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse>;
 }
+interface IDaprService_ITryLockAlpha1 extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.TryLockRequest, dapr_proto_runtime_v1_dapr_pb.TryLockResponse> {
+    path: "/dapr.proto.runtime.v1.Dapr/TryLockAlpha1";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.TryLockRequest>;
+    requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.TryLockRequest>;
+    responseSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.TryLockResponse>;
+    responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.TryLockResponse>;
+}
+interface IDaprService_IUnlockAlpha1 extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.UnlockRequest, dapr_proto_runtime_v1_dapr_pb.UnlockResponse> {
+    path: "/dapr.proto.runtime.v1.Dapr/UnlockAlpha1";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.UnlockRequest>;
+    requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.UnlockRequest>;
+    responseSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.UnlockResponse>;
+    responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.UnlockResponse>;
+}
 interface IDaprService_IGetMetadata extends grpc.MethodDefinition<google_protobuf_empty_pb.Empty, dapr_proto_runtime_v1_dapr_pb.GetMetadataResponse> {
     path: "/dapr.proto.runtime.v1.Dapr/GetMetadata";
     requestStream: false;
@@ -300,6 +320,8 @@ export interface IDaprServer extends grpc.UntypedServiceImplementation {
     getConfigurationAlpha1: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.GetConfigurationRequest, dapr_proto_runtime_v1_dapr_pb.GetConfigurationResponse>;
     subscribeConfigurationAlpha1: grpc.handleServerStreamingCall<dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationRequest, dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationResponse>;
     unsubscribeConfigurationAlpha1: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationRequest, dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse>;
+    tryLockAlpha1: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.TryLockRequest, dapr_proto_runtime_v1_dapr_pb.TryLockResponse>;
+    unlockAlpha1: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.UnlockRequest, dapr_proto_runtime_v1_dapr_pb.UnlockResponse>;
     getMetadata: grpc.handleUnaryCall<google_protobuf_empty_pb.Empty, dapr_proto_runtime_v1_dapr_pb.GetMetadataResponse>;
     setMetadata: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.SetMetadataRequest, google_protobuf_empty_pb.Empty>;
     shutdown: grpc.handleUnaryCall<google_protobuf_empty_pb.Empty, google_protobuf_empty_pb.Empty>;
@@ -374,6 +396,12 @@ export interface IDaprClient {
     unsubscribeConfigurationAlpha1(request: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse) => void): grpc.ClientUnaryCall;
     unsubscribeConfigurationAlpha1(request: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse) => void): grpc.ClientUnaryCall;
     unsubscribeConfigurationAlpha1(request: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse) => void): grpc.ClientUnaryCall;
+    tryLockAlpha1(request: dapr_proto_runtime_v1_dapr_pb.TryLockRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.TryLockResponse) => void): grpc.ClientUnaryCall;
+    tryLockAlpha1(request: dapr_proto_runtime_v1_dapr_pb.TryLockRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.TryLockResponse) => void): grpc.ClientUnaryCall;
+    tryLockAlpha1(request: dapr_proto_runtime_v1_dapr_pb.TryLockRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.TryLockResponse) => void): grpc.ClientUnaryCall;
+    unlockAlpha1(request: dapr_proto_runtime_v1_dapr_pb.UnlockRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.UnlockResponse) => void): grpc.ClientUnaryCall;
+    unlockAlpha1(request: dapr_proto_runtime_v1_dapr_pb.UnlockRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.UnlockResponse) => void): grpc.ClientUnaryCall;
+    unlockAlpha1(request: dapr_proto_runtime_v1_dapr_pb.UnlockRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.UnlockResponse) => void): grpc.ClientUnaryCall;
     getMetadata(request: google_protobuf_empty_pb.Empty, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetMetadataResponse) => void): grpc.ClientUnaryCall;
     getMetadata(request: google_protobuf_empty_pb.Empty, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetMetadataResponse) => void): grpc.ClientUnaryCall;
     getMetadata(request: google_protobuf_empty_pb.Empty, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetMetadataResponse) => void): grpc.ClientUnaryCall;
@@ -455,6 +483,12 @@ export class DaprClient extends grpc.Client implements IDaprClient {
     public unsubscribeConfigurationAlpha1(request: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse) => void): grpc.ClientUnaryCall;
     public unsubscribeConfigurationAlpha1(request: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse) => void): grpc.ClientUnaryCall;
     public unsubscribeConfigurationAlpha1(request: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse) => void): grpc.ClientUnaryCall;
+    public tryLockAlpha1(request: dapr_proto_runtime_v1_dapr_pb.TryLockRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.TryLockResponse) => void): grpc.ClientUnaryCall;
+    public tryLockAlpha1(request: dapr_proto_runtime_v1_dapr_pb.TryLockRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.TryLockResponse) => void): grpc.ClientUnaryCall;
+    public tryLockAlpha1(request: dapr_proto_runtime_v1_dapr_pb.TryLockRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.TryLockResponse) => void): grpc.ClientUnaryCall;
+    public unlockAlpha1(request: dapr_proto_runtime_v1_dapr_pb.UnlockRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.UnlockResponse) => void): grpc.ClientUnaryCall;
+    public unlockAlpha1(request: dapr_proto_runtime_v1_dapr_pb.UnlockRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.UnlockResponse) => void): grpc.ClientUnaryCall;
+    public unlockAlpha1(request: dapr_proto_runtime_v1_dapr_pb.UnlockRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.UnlockResponse) => void): grpc.ClientUnaryCall;
     public getMetadata(request: google_protobuf_empty_pb.Empty, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetMetadataResponse) => void): grpc.ClientUnaryCall;
     public getMetadata(request: google_protobuf_empty_pb.Empty, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetMetadataResponse) => void): grpc.ClientUnaryCall;
     public getMetadata(request: google_protobuf_empty_pb.Empty, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetMetadataResponse) => void): grpc.ClientUnaryCall;
