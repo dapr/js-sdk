@@ -32,7 +32,7 @@ export default class HTTPClientSidecar implements IClientSidecar {
     try {
       const result = await client.execute(`/metadata`, null, false);
       return !!result;
-    } catch (e) {
+    } catch (_e) {
       return false;
     }
   }

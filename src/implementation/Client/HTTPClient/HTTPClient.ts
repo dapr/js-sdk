@@ -74,7 +74,7 @@ export default class HTTPClient implements IClient {
   async getClient(requiresInitialization = true): Promise<typeof fetch> {
     // Ensure the sidecar has been started
     if (requiresInitialization && !this.isInitialized) {
-      this.logger.verbose("Client is not initialized, initializing it and ensure the sidecar is started");
+      this.logger.verbose("Client is not initialized, starting sidecar and initializing");
       await this.start();
     }
 

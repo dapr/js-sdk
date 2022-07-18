@@ -50,7 +50,7 @@ export default class GRPCClientSidecar implements IClientSidecar {
 
           return resolve(true);
         });
-      } catch (e) {
+      } catch (_e) {
         return resolve(false);
       }
     });
