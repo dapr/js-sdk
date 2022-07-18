@@ -152,6 +152,10 @@ export default class DaprClient {
     let isStartedRetryCount = 0;
     const isStartedMaxRetryCount = 60; // 1s startup delay and we try max for 60s
 
+    if (isStarted) {
+      return;
+    }
+
     logger.info(`Awaiting Sidecar to be Started`);
     while (!isStarted) {
       logger.verbose(`Waiting for the Dapr Sidecar to start, retry count: (#${isStartedRetryCount})`);

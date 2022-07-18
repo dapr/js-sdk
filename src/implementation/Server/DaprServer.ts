@@ -113,9 +113,6 @@ export default class DaprServer {
 
     // Ensure our sidecar starts and the client is ready
     await this.client.start();
-
-    // We are initialized
-    this.logger.info("Sidecar Started");
   }
 
   async stop(): Promise<void> {
