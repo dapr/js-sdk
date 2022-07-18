@@ -27,4 +27,13 @@ export default class HTTPClientSidecar implements IClientSidecar {
       method: 'POST'
     });
   }
+
+  static async isStarted(client: HTTPClient): Promise<boolean> {
+    try {
+      const result = await client.execute(`/metadata`, null, false);
+      return !!result;
+    } catch (e) {
+      return false;
+    }
+  }
 }
