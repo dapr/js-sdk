@@ -90,6 +90,12 @@ describe('http/client', () => {
   });
 
   describe('state', () => {
+    beforeEach(async () => {
+      await client.state.delete("state-redis", "key-1");
+      await client.state.delete("state-redis", "key-2");
+      await client.state.delete("state-redis", "key-3");
+    });
+
     it('should be able to save the state', async () => {
       await client.state.save('state-redis', [
         {
@@ -136,7 +142,6 @@ describe('http/client', () => {
 
       const res = await client.state.get('state-redis', 'key-1');
       expect(res).toEqual('value-1');
-      console.log(res);
     });
 
     it('should be able to get the state in bulk', async () => {
