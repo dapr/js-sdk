@@ -20,7 +20,6 @@ import { DaprClientOptions } from "../../../types/DaprClientOptions";
 import { Settings } from '../../../utils/Settings.util';
 import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type"
 import { Logger } from "../../../logger/Logger";
-import * as NodeJSUtils from "../../../utils/NodeJS.util";
 import HTTPClientSidecar from "./sidecar";
 
 export default class HTTPClient implements IClient {
