@@ -272,6 +272,35 @@ describe('grpc/client', () => {
       expect(resTransactionDelete).toEqual('');
       expect(resTransactionUpsert).toEqual('my-new-data-with-metadata-1');
     });
+
+    it('should be able to add metadata, etag and options', async () => {
+      await client.state.save('state-redis', [
+        {
+          key: 'key-1',
+          value: 'value-1',
+          etag: "1234",
+          options: {
+            "concurrency": "first-write",
+            "consistency": "strong"
+          },
+          metadata: {
+            hello: "world"
+          }
+        },
+        {
+          key: 'key-2',
+          value: 'value-2',
+        },
+        {
+          key: 'key-3',
+          value: 'value-3',
+        },
+      ]);
+
+      const res = await client.state.get('state-redis', 'key-1');
+      expect(res).toEqual('value-1');
+      console.log(res);
+    });
   });
 
   describe('configuration', () => {
