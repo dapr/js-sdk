@@ -142,3 +142,6 @@ temp/
 
 # dapr-js-sdk
 build/
+
+# version file is auto-generated
+src/version.ts

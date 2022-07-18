@@ -2,7 +2,7 @@
 type: docs
 title: "JavaScript Client SDK"
 linkTitle: "Client"
-weight: 500
+weight: 1000
 description: JavaScript Client SDK for developing Dapr applications
 ---
 

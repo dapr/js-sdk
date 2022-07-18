@@ -19,6 +19,7 @@
         "test:unit:logger": "NODE_ENV=test npm run test:unit 'test/unit/logger/.*\\.test\\.ts'",
         "test:unit:utils": "NODE_ENV=test npm run test:unit 'test/unit/utils/.*\\.test\\.ts'",
         "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+        "prebuild": "./scripts/prebuild.sh",
         "build": "./scripts/build.sh",
         "start:dev": "npm run build && nodemon --ext \".ts,.js\" --watch \"./src\" --exec \"npm run build\""
     },
