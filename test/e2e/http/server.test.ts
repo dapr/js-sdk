@@ -56,7 +56,7 @@ describe('http/server', () => {
       await server.client.binding.send('binding-mqtt', 'create', { hello: 'world' });
 
       // Delay a bit for event to arrive
-      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+      await new Promise((resolve, _reject) => setTimeout(resolve, 500));
       expect(mockBindingReceive.mock.calls.length).toBe(1);
 
       // Also test for receiving data
