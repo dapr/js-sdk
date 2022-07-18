@@ -1,7 +1,7 @@
 #!/bin/bash
 OS=$(echo `uname`|tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
-BRANCH_NAME="v1.7.0"
+BRANCH_NAME="v1.8.0"
 
 # Proto buf generation
 APPCALLBACK="appcallback"
