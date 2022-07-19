@@ -158,11 +158,45 @@ describe('grpc/client', () => {
   });
 
   describe('state', () => {
+    beforeEach(async () => {
+      await client.state.delete("state-redis", "key-1");
+      await client.state.delete("state-redis", "key-2");
+      await client.state.delete("state-redis", "key-3");
+    });
+
     it('should be able to save the state', async () => {
       await client.state.save('state-redis', [
         {
           key: 'key-1',
           value: 'value-1',
+        },
+        {
+          key: 'key-2',
+          value: 'value-2',
+        },
+        {
+          key: 'key-3',
+          value: 'value-3',
+        },
+      ]);
+
+      const res = await client.state.get('state-redis', 'key-1');
+      expect(res).toEqual('value-1');
+    });
+
+    it('should be able to add metadata, etag and options', async () => {
+      await client.state.save('state-redis', [
+        {
+          key: 'key-1',
+          value: 'value-1',
+          etag: "1234",
+          options: {
+            "concurrency": "first-write",
+            "consistency": "strong"
+          },
+          metadata: {
+            hello: "world"
+          }
         },
         {
           key: 'key-2',
@@ -271,6 +305,35 @@ describe('grpc/client', () => {
       const resTransactionUpsert = await client.state.get('state-redis', 'key-with-metadata-1');
       expect(resTransactionDelete).toEqual('');
       expect(resTransactionUpsert).toEqual('my-new-data-with-metadata-1');
+    });
+
+    it('should be able to add metadata, etag and options', async () => {
+      await client.state.save('state-redis', [
+        {
+          key: 'key-1',
+          value: 'value-1',
+          etag: "1234",
+          options: {
+            "concurrency": "first-write",
+            "consistency": "strong"
+          },
+          metadata: {
+            hello: "world"
+          }
+        },
+        {
+          key: 'key-2',
+          value: 'value-2',
+        },
+        {
+          key: 'key-3',
+          value: 'value-3',
+        },
+      ]);
+
+      const res = await client.state.get('state-redis', 'key-1');
+      expect(res).toEqual('value-1');
+      console.log(res);
     });
   });
 

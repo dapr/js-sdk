@@ -11,7 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-export type KeyValuePairType= {
+import { KeyValueType } from "./KeyValue.type";
+
+export type KeyValuePairType = {
   key: string;
   value: any;
+  etag?: string;
+  metadata?: KeyValueType;
+  options?: object;
 }
