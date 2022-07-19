@@ -1,14 +1,14 @@
 {
-    "name": "dapr-example-config",
+    "name": "dapr-example-unlock",
     "version": "1.0.0",
-    "description": "An example utilizing the Dapr JS SDK to invoke a service",
+    "description": "An example utilizing the Dapr JS SDK to lock a resource",
     "main": "dist/index.js",
     "private": true,
     "scripts": {
         "build": "rimraf ./dist && tsc",
         "start": "npm run build && node dist/index.js",
-        "start:dapr-grpc": "dapr run  --app-id distributedLock --app-protocol grpc --components-path ./Components npm run start",
-        "start:dapr-http": "dapr run  --app-id distributedLock --app-protocol grpc --components-path ./Components npm run start"
+        "start:dapr-grpc": "dapr run --app-id distributedLock --app-protocol grpc --components-path ./Components npm run start",
+        "start:dapr-http": "dapr run --app-id distributedLock --app-protocol grpc --components-path ./Components npm run start"
     },
     "keywords": [],
     "license": "ISC",

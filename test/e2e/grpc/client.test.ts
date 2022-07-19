@@ -397,7 +397,7 @@ describe('grpc/client', () => {
 
     it('should be not be able to unlock when the lock is no acquired', async () => {
       const unlock = await client.lock.unlock("redislock", "resourceId", "owner1");
-      expect(unlock.status).toEqual(LockStatus.LockUnexist);
+      expect(unlock.status).toEqual(LockStatus.LockDoesNotExist);
     });
 
     it('should be able to acquire a lock after the previous lock is expired', async () => {

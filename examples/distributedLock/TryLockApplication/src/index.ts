@@ -26,7 +26,7 @@ async function start() {
 
   const storeName = "redislock";
   const resourceId = "resourceId";
-  let lockOwner = "owner1";
+  const lockOwner = "owner1";
   let expiryInSeconds = 1000;
 
   console.log(`Acquiring lock on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
@@ -34,15 +34,14 @@ async function start() {
   console.log(tryLockResponse);
 
   console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
-  const unLockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
-  console.log("Unlock API response: " + getResponseStatus(unLockResponse.status));
+  const unlockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
+  console.log("Unlock API response: " + getResponseStatus(unlockResponse.status));
 
   // Checking if the lock exists.
   console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
   const lockUnexistResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
   console.log("Unlock API response when lock is not acquired: " + getResponseStatus(lockUnexistResponse.status));
 
-  lockOwner = "owner1";
   expiryInSeconds = 25;
   console.log(`Acquiring lock on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
   const tryLockResponse1 = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
@@ -55,8 +54,8 @@ function getResponseStatus(status: LockStatus) {
   switch(status) {
     case LockStatus.Success:
       return "Success";
-    case LockStatus.LockUnexist: 
-      return "LockUnexist";
+    case LockStatus.LockDoesNotExist: 
+      return "LockDoesNotExist";
     case LockStatus.LockBelongToOthers:
       return "LockBelongToOthers";
     default:

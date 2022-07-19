@@ -29,7 +29,7 @@ async function start() {
   const lockOwner = "owner2";
   const expiryInSeconds = 25;
 
-  //Trying to acquire the lock which is being used by the other process(TryLockApplication)
+  // Trying to acquire the lock which is being used by the other process(TryLockApplication)
   console.log(`Acquiring lock on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
   let tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
   console.log("Acquired Lock? " + tryLockResponse.success);
@@ -41,7 +41,7 @@ async function start() {
 
   await new Promise(resolve => setTimeout(resolve, 25000));
 
-  //Trying to acquire the lock after the other process lock is expired
+  // Trying to acquire the lock after the other process lock is expired
   console.log(`Acquiring lock on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
   tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
   console.log("Acquired lock after the lock from the other process expired? " + tryLockResponse.success);
@@ -52,7 +52,7 @@ async function start() {
 
   await new Promise(resolve => setTimeout(resolve, 25000));
 
-  //Trying to unlock the lock after the lock used by this process(UnLockApplication) is expired
+  // Trying to unlock the lock after the lock used by this process(UnLockApplication) is expired
   console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
   unLockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
   console.log("Unlock API response when lock is released after the expiry time and lock does not exist: " + getResponseStatus(unLockResponse.status));
@@ -62,8 +62,8 @@ function getResponseStatus(status: LockStatus) {
   switch(status) {
     case LockStatus.Success:
       return "Success";
-    case LockStatus.LockUnexist: 
-      return "LockUnexist";
+    case LockStatus.LockDoesNotExist: 
+      return "LockDoesNotExist";
     case LockStatus.LockBelongToOthers:
       return "LockBelongToOthers";
     default:

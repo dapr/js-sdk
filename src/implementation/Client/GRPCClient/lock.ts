@@ -17,6 +17,22 @@ import { UnlockResponse as UnLockResponseResult, LockStatus } from '../../../typ
 import { TryLockRequest, TryLockResponse, UnlockRequest, UnlockResponse } from '../../../proto/dapr/proto/runtime/v1/dapr_pb';
 import IClientLock from '../../../interfaces/Client/IClientLock';
 
+/**
+ * Required. The lock store name,e.g. `redis`.
+ * string store_name = 1;
+ * 
+ * Required. resource_id is the lock key. e.g. `order_id_111`
+ * It stands for "which resource I want to protect"
+ * string resource_id = 2;
+ * 
+ * Required. lock_owner indicate the identifier of lock owner.
+ * You can generate a uuid as lock_owner.For example,in **JavaScript**:
+ * 
+ * req.LockOwner = uuid.New().String() // js example instead
+ * 
+ * This field is per request, not per process, so it is different for each request,
+ * which aims to prevent multi-thread in the same process trying the same lock concurrently.
+ */
 export default class GRPCClientLock implements IClientLock {
     client: GRPCClient;
 
@@ -25,11 +41,11 @@ export default class GRPCClientLock implements IClientLock {
     }
 
     async tryLock(storeName: string, resourceId: string, lockOwner: string, expiryInSeconds: number): Promise<TryLockResponseResult> {
-        const request = new TryLockRequest();
-        request.setStoreName(storeName);
-        request.setResourceId(resourceId);
-        request.setLockOwner(lockOwner);
-        request.setExpiryinseconds(expiryInSeconds);
+        const request = new TryLockRequest()
+         .setStoreName(storeName)
+         .setResourceId(resourceId)
+         .setLockOwner(lockOwner)
+         .setExpiryinseconds(expiryInSeconds);
         
         const client = await this.client.getClient();
         return new Promise((resolve, reject) => {
@@ -49,10 +65,10 @@ export default class GRPCClientLock implements IClientLock {
 
 
     async unlock(storeName: string, resourceId: string, lockOwner: string): Promise<UnLockResponseResult> {
-        const request = new UnlockRequest();
-        request.setStoreName(storeName);
-        request.setResourceId(resourceId);
-        request.setLockOwner(lockOwner);
+        const request = new UnlockRequest()
+         .setStoreName(storeName)
+         .setResourceId(resourceId)
+         .setLockOwner(lockOwner);
 
         const client = await this.client.getClient();
         return new Promise((resolve, reject) => {
@@ -75,7 +91,7 @@ export default class GRPCClientLock implements IClientLock {
             case UnlockResponse.Status.SUCCESS:
                 return LockStatus.Success;
             case UnlockResponse.Status.LOCK_UNEXIST:
-                return LockStatus.LockUnexist;
+                return LockStatus.LockDoesNotExist;
             case UnlockResponse.Status.LOCK_BELONG_TO_OTHERS:
                 return LockStatus.LockBelongToOthers;
             default:

@@ -14,21 +14,24 @@ It demonstrates the following APIs:
 - Initialize Dapr environment by pulling the code from master branch of [Dapr](https://github.com/dapr/dapr)
 
 ## Overview
+
 The TryLock and Unlock calls are implemented under the client.lock attribute.
 
 #### TryLock Example
+
 ```javascript
 const tryLockResponse = await client.distributedLock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
 ```
 
 #### Unlock Example
+
 ```javascript
-const unLockResponse = await client.distributedLock.unlock(storeName, resourceId, lockOwner);
+const unlockResponse = await client.distributedLock.unlock(storeName, resourceId, lockOwner);
 ```
 
 ### Start the Lock application.
 
-Execute the example under the folder examples/Client/LockAPI/TryLock.
+Execute the example under the folder `examples/Client/LockAPI/TryLock`
 
 ```bash
 cd examples/Client/DistributedLockApi/TryLockApplication
@@ -49,23 +52,23 @@ You should see the following output from the application:
 == APP == Unlocking on redislock, resourceId as owner: owner1
 == APP == Unlock API response: Success
 == APP == Unlocking on redislock, resourceId as owner: owner1
-== APP == Unlock API response when lock is not acquired: LockUnexist
+== APP == Unlock API response when lock is not acquired: LockDoesNotExist
 == APP == Acquiring lock on redislock, resourceId as owner: owner1
 == APP == Acquired Lock? true
 ```
 
-### Start the Lock UnLock Example.
+### Start the UnLock Example.
 
-Run `UnLockApplication` after `TryLockApplication` is ran.
+Run `UnlockApplication` after `TryLockApplication` is ran.
 
 Navigate to examples/Client/LockAPI/Unlock.
 
 ```bash
-cd examples/Client/DistributedLockApi/UnLockApplication
+cd examples/Client/DistributedLockApi/UnlockApplication
 npm install
 ```
 
-To run the `UnLockApplication`, execute the following command:
+To run the `UnlockApplication`, execute the following command:
 
 ```bash
 dapr run --app-id lock --app-protocol grpc --components-path ./components npm run start
@@ -84,5 +87,5 @@ You should see the following output from the application:
 == APP == Unlocking on redislock, resourceId as owner: owner2
 == APP == Unlock API response when lock is released after the expiry time: Success
 == APP == Unlocking on redislock, resourceId as owner: owner2
-== APP == Unlock API response when lock is released after the expiry time and lock does not exist: LockUnexist
+== APP == Unlock API response when lock is released after the expiry time and lock does not exist: LockDoesNotExist
 ```
