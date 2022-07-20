@@ -11,9 +11,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-echo "Starting Docker"
-sudo service docker start
-sleep 3
+if (! docker stats --no-stream ); then
+    echo "Docker is not running, please start it first"
+    exit 1
+fi
 
 # Start MQTT for Binding tests
 # Dashboard: http://localhost:18083 (user: admin, pass: public)
