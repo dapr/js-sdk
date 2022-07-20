@@ -395,7 +395,7 @@ describe('grpc/client', () => {
       expect(unlock.status).toEqual(LockStatus.Success);
     });
 
-    it('should be not be able to unlock when the lock is no acquired', async () => {
+    it('should be not be able to unlock when the lock is not acquired', async () => {
       const unlock = await client.lock.unlock("redislock", "resourceId", "owner1");
       expect(unlock.status).toEqual(LockStatus.LockDoesNotExist);
     });
@@ -408,28 +408,28 @@ describe('grpc/client', () => {
       expect(tryLock.success).toEqual(false);
     });
 
-    it('should not be able to acquire a lock when the same lock is acquired by the other owner', async () => {
+    it('should not be able to acquire a lock when the same lock is acquired by another owner', async () => {
       const tryLockOne = await client.lock.tryLock("redislock", "resourceId1", "owner1", 5);
       expect(tryLockOne.success).toEqual(true);
       const tryLockTwo = await client.lock.tryLock("redislock", "resourceId1", "owner2", 5);
       expect(tryLockTwo.success).toEqual(false);
     });
 
-    it('should be able to acquire a lock when a different lock is acquired by the other owner', async () => {
+    it('should be able to acquire a lock when a different lock is acquired by another owner', async () => {
       const tryLockOne = await client.lock.tryLock("redislock", "resourceId2", "owner1", 5);
       expect(tryLockOne.success).toEqual(true);
       const tryLockTwo = await client.lock.tryLock("redislock", "resourceId3", "owner2", 5);
       expect(tryLockTwo.success).toEqual(true);
     });
 
-    it('should not be able to acquire a lock when that lock is acquired by the other owner/process', async () => {
+    it('should not be able to acquire a lock when that lock is acquired by another owner/process', async () => {
       const tryLockOne = await client.lock.tryLock("redislock", "resourceId4", "owner3", 5);
       expect(tryLockOne.success).toEqual(true);
       const tryLockTwo = await client.lock.tryLock("redislock", "resourceId4", "owner4", 5);
       expect(tryLockTwo.success).toEqual(false);
     });
 
-    it('should not be able to unlock a lock when that lock is acquired by the other owner/process', async () => {
+    it('should not be able to unlock a lock when that lock is acquired by another owner/process', async () => {
       const tryLockOne = await client.lock.tryLock("redislock", "resourceId5", "owner5", 5);
       expect(tryLockOne.success).toEqual(true);
       const unlock = await client.lock.unlock("redislock", "resourceId5", "owner6");

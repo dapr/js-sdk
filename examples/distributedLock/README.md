@@ -2,9 +2,9 @@
 
 This example demonstrates 2 features (Try Lock & Unlock) from the [Distributed lock API from Dapr](https://github.com/dapr/dapr/issues/3549) that helps developers to keep their data safe from race conditions. For more information, check out the documentation at 
 
-It demonstrates the following APIs:
-- **Distributed Lock**: Try Lock
-- **Distributed Lock**: Unlock
+It demonstrates the **Distributed Lock** API's following methods:
+- `TryLock`
+- `Unlock`
 
 > **Note:** Make sure to use the latest proto bindings by running scripts/fetch-proto.sh file.
 ## Prerequisites
@@ -20,21 +20,21 @@ The TryLock and Unlock calls are implemented under the client.lock attribute.
 #### TryLock Example
 
 ```javascript
-const tryLockResponse = await client.distributedLock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
+const tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
 ```
 
 #### Unlock Example
 
 ```javascript
-const unlockResponse = await client.distributedLock.unlock(storeName, resourceId, lockOwner);
+const unlockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
 ```
 
 ### Start the Lock application.
 
-Execute the example under the folder `examples/Client/LockAPI/TryLock`
+Execute the example under the folder `examples/distributedLock/TryLockApplication`
 
 ```bash
-cd examples/Client/DistributedLockApi/TryLockApplication
+cd examples/distributedLock/TryLockApplication
 npm install
 ```
 
@@ -57,14 +57,14 @@ You should see the following output from the application:
 == APP == Acquired Lock? true
 ```
 
-### Start the UnLock Example.
+### Start the Unlock Example.
 
 Run `UnlockApplication` after `TryLockApplication` is ran.
 
-Navigate to examples/Client/LockAPI/Unlock.
+Navigate to examples/distributedLock/UnlockApplication.
 
 ```bash
-cd examples/Client/DistributedLockApi/UnlockApplication
+cd examples/distributedLock/UnlockApplication
 npm install
 ```
 
