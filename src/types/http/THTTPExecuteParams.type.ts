@@ -11,12 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import http from "http";
-import https from "https";
+import * as http from 'http';
+import * as https from 'https';
 
 export type THTTPExecuteParams = {
   body?: string;
   headers?: { [key: string]: any };
   method: string;
   agent?: http.Agent | https.Agent;
-}
+};
