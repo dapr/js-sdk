@@ -370,7 +370,7 @@ describe('grpc/client', () => {
     it('should be able to subscribe to configuration item changes on all keys', async () => {
       const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
 
-      await client.configuration.subscribe("config-redis", m);
+      const stream = await client.configuration.subscribe("config-redis", m);
 
       // Update the configuration item
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey3 mynewvalue||2");
@@ -378,19 +378,21 @@ describe('grpc/client', () => {
       expect(m.mock.calls[0][0].items.length).toEqual(1);
       expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey3");
       expect(m.mock.calls[0][0].items[0].value).toEqual("mynewvalue");
+
+      stream.stop();
     });
 
     it('should be able to subscribe to configuration item changes on specific keys', async () => {
       const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
 
-      const stream1 = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1", "myconfigkey2"], m);
+      const stream = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1", "myconfigkey2"], m);
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
 
       expect(m.mock.calls.length).toEqual(1);
       expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
       expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
 
-      await stream1.stop();
+      await stream.stop();
     });
 
     it('should be able to subscribe with metadata', async () => {
@@ -409,14 +411,14 @@ describe('grpc/client', () => {
     it('should be able to unsubscribe', async () => {
       const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
 
-      const stream1 = await client.configuration.subscribeWithMetadata("config-redis", ["myconfigkey1", "myconfigkey2"], { "hello": "world" }, m);
+      const stream = await client.configuration.subscribeWithMetadata("config-redis", ["myconfigkey1", "myconfigkey2"], { "hello": "world" }, m);
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
 
       expect(m.mock.calls.length).toEqual(1);
       expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
       expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
 
-      await stream1.stop();
+      stream.stop();
 
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue2||1");
 
@@ -443,8 +445,8 @@ describe('grpc/client', () => {
       expect(m2.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
       expect(m2.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
 
-      await stream1.stop();
-      await stream2.stop();
+      stream1.stop();
+      stream2.stop();
     });
   });
 });
