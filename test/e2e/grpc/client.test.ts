@@ -367,15 +367,16 @@ describe('grpc/client', () => {
       // expect(conf.items.filter(i => i.key == "myconfigkey1")[0].metadata).toHaveProperty("hello");
     });
 
-    it('should be able to subscribe to configuration item changes on all keys', async () => {
-      await client.configuration.subscribe("config-redis", async (res: SubscribeConfigurationResponse) => {
+    it('should be able to subscribe to configuration item changes on all keys', (done) => {
+      client.configuration.subscribe("config-redis", async (res: SubscribeConfigurationResponse) => {
         expect(res.items.length).toEqual(1);
         expect(res.items[0].key).toEqual("myconfigkey3");
         expect(res.items[0].value).toEqual("mynewvalue");
+        done();
       });
 
       // Update the configuration item
-      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey3 mynewvalue||2");
+      DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey3 mynewvalue||2");
     });
 
     it('should be able to subscribe to configuration item changes on specific keys', async () => {
