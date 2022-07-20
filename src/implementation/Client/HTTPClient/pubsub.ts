@@ -14,6 +14,7 @@ limitations under the License.
 import HTTPClient from './HTTPClient';
 import IClientPubSub from '../../../interfaces/Client/IClientPubSub';
 import { Logger } from '../../../logger/Logger';
+import { KeyValueType } from '../../../types/KeyValue.type';
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPClientPubSub implements IClientPubSub {
@@ -25,9 +26,9 @@ export default class HTTPClientPubSub implements IClientPubSub {
     this.logger = new Logger("HTTPClient", "PubSub", client.getOptions().logger);
   }
 
-  async publish(pubSubName: string, topic: string, data: object = {}): Promise<boolean> {
+  async publish(pubSubName: string, topic: string, data: object = {}, metadata?: KeyValueType): Promise<boolean> {
     try {
-      await this.client.execute(`/publish/${pubSubName}/${topic}`, {
+      await this.client.execute(`/publish/${pubSubName}/${topic}` + (metadata ? `?${JSON.stringify(metadata)}` : ""), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

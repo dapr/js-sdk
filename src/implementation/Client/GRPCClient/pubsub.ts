@@ -12,10 +12,12 @@ limitations under the License.
 */
 
 import GRPCClient from './GRPCClient';
+import * as grpc from "@grpc/grpc-js";
 import { PublishEventRequest } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 import { Logger } from '../../../logger/Logger';
 import * as SerializerUtil from "../../../utils/Serializer.util";
+import { KeyValueType } from '../../../types/KeyValue.type';
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class GRPCClientPubSub implements IClientPubSub {
@@ -29,16 +31,23 @@ export default class GRPCClientPubSub implements IClientPubSub {
   }
 
   // @todo: should return a specific typed Promise<TypePubSubPublishResponse> instead of Promise<any>
-  async publish(pubSubName: string, topic: string, data: object = {}): Promise<boolean> {
+  async publish(pubSubName: string, topic: string, data: object = {}, metadata?: KeyValueType): Promise<boolean> {
     const msgService = new PublishEventRequest();
     msgService.setPubsubName(pubSubName);
     msgService.setTopic(topic);
     msgService.setData(SerializerUtil.serializeGrpc(data).serializedData);
 
+    const grpcMetadata = new grpc.Metadata();
+    if (metadata) {
+      for (const [key, value] of Object.entries(metadata)) {
+        grpcMetadata.add(key, value);
+      }
+    }
+
     const client = await this.client.getClient();
 
     return new Promise((resolve, reject) => {
-      client.publishEvent(msgService, (err, _res) => {
+      client.publishEvent(msgService, grpcMetadata, (err, _res) => {
         if (err) {
           this.logger.error(`publish failed: ${err}`);
           return reject(false);

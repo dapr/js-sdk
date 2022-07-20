@@ -11,6 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { KeyValueType } from "../../types/KeyValue.type";
+
 export default interface IClientPubSub {
-  publish(pubSubName: string, topic: string, data?: object): Promise<boolean>
+  publish(pubSubName: string, topic: string, data?: object, metadata?: KeyValueType): Promise<boolean>
 }
