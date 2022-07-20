@@ -367,19 +367,16 @@ describe('grpc/client', () => {
       // expect(conf.items.filter(i => i.key == "myconfigkey1")[0].metadata).toHaveProperty("hello");
     });
 
-    // // @todo: figure out, subscribe doesn't pass keys but doesn't listen to anything?
-    // // https://github.com/dapr/dapr/issues/4529
-    // it('should be able to subscribe to configuration item changes on all keys', async () => {
-    //   const m = jest.fn(async (res: SubscribeConfigurationResponse) => { });
+    it('should be able to subscribe to configuration item changes on all keys', async () => {
+      await client.configuration.subscribe("config-redis", async (res: SubscribeConfigurationResponse) => {
+        expect(res.items.length).toEqual(1);
+        expect(res.items[0].key).toEqual("myconfigkey3");
+        expect(res.items[0].value).toEqual("mynewvalue");
+      });
 
-    //   console.log("Creating Subscription");
-    //   await client.configuration.subscribe("config-redis", m);
-
-    //   // Change an item
-    //   await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey3 mynewvalue||1");
-
-    //   expect(m.mock.calls.length).toEqual(1);
-    // });
+      // Update the configuration item
+      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey3 mynewvalue||2");
+    });
 
     it('should be able to subscribe to configuration item changes on specific keys', async () => {
       const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
