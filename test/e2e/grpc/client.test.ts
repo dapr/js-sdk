@@ -367,16 +367,17 @@ describe('grpc/client', () => {
       // expect(conf.items.filter(i => i.key == "myconfigkey1")[0].metadata).toHaveProperty("hello");
     });
 
-    it('should be able to subscribe to configuration item changes on all keys', (done) => {
-      client.configuration.subscribe("config-redis", async (res: SubscribeConfigurationResponse) => {
-        expect(res.items.length).toEqual(1);
-        expect(res.items[0].key).toEqual("myconfigkey3");
-        expect(res.items[0].value).toEqual("mynewvalue");
-        done();
-      });
+    it('should be able to subscribe to configuration item changes on all keys', async () => {
+      const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
+
+      await client.configuration.subscribe("config-redis", m);
 
       // Update the configuration item
-      DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey3 mynewvalue||2");
+      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey3 mynewvalue||2");
+
+      expect(m.mock.calls[0][0].items.length).toEqual(1);
+      expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey3");
+      expect(m.mock.calls[0][0].items[0].value).toEqual("mynewvalue");
     });
 
     it('should be able to subscribe to configuration item changes on specific keys', async () => {
