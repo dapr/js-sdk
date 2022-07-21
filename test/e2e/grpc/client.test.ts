@@ -14,11 +14,13 @@ limitations under the License.
 import * as grpc from "@grpc/grpc-js";
 import { CommunicationProtocolEnum, DaprClient, LogLevel } from '../../../src';
 import { SubscribeConfigurationResponse } from '../../../src/types/configuration/SubscribeConfigurationResponse';
+import { LockStatus } from '../../../src/types/lock/UnlockResponse';
 import * as DockerUtils from '../../utils/DockerUtil';
 import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runtime/v1/dapr_grpc_pb"
 import { Empty } from 'google-protobuf/google/protobuf/empty_pb';
 import { InterceptingListener } from "@grpc/grpc-js/build/src/call-stream";
 import { NextCall } from "@grpc/grpc-js/build/src/client-interceptors";
+import { v4 as uuidv4 } from "uuid";
 
 const daprHost = 'localhost';
 const daprPort = '50000'; // Dapr Sidecar Port of this Example Server
@@ -447,6 +449,62 @@ describe('grpc/client', () => {
 
       stream1.stop();
       stream2.stop();
+    });
+  });
+
+  describe('distributed lock', () => {
+    it('should be able to acquire a new lock and unlock', async () => {
+      const resourceId = uuidv4();
+      const tryLock = await client.lock.tryLock("redislock", resourceId, "owner1", 1000);
+      expect(tryLock.success).toEqual(true);
+      const unlock = await client.lock.unlock("redislock", resourceId, "owner1");
+      expect(unlock.status).toEqual(LockStatus.Success);
+    });
+
+    it('should be not be able to unlock when the lock is not acquired', async () => {
+      const resourceId = uuidv4();
+      const unlock = await client.lock.unlock("redislock", resourceId, "owner1");
+      expect(unlock.status).toEqual(LockStatus.LockDoesNotExist);
+    });
+
+    it('should be able to acquire a lock after the previous lock is expired', async () => {
+      const resourceId = uuidv4();
+      let tryLock = await client.lock.tryLock("redislock", resourceId, "owner1", 5);
+      expect(tryLock.success).toEqual(true);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      tryLock = await client.lock.tryLock("redislock", resourceId, "owner2", 5);
+      expect(tryLock.success).toEqual(false);
+    });
+
+    it('should not be able to acquire a lock when the same lock is acquired by another owner', async () => {
+      const resourceId = uuidv4();
+      const tryLockOne = await client.lock.tryLock("redislock", resourceId, "owner1", 5);
+      expect(tryLockOne.success).toEqual(true);
+      const tryLockTwo = await client.lock.tryLock("redislock", resourceId, "owner2", 5);
+      expect(tryLockTwo.success).toEqual(false);
+    });
+
+    it('should be able to acquire a lock when a different lock is acquired by another owner', async () => {
+      const tryLockOne = await client.lock.tryLock("redislock", uuidv4(), "owner1", 5);
+      expect(tryLockOne.success).toEqual(true);
+      const tryLockTwo = await client.lock.tryLock("redislock", uuidv4(), "owner2", 5);
+      expect(tryLockTwo.success).toEqual(true);
+    });
+
+    it('should not be able to acquire a lock when that lock is acquired by another owner/process', async () => {
+      const resourceId = uuidv4();
+      const tryLockOne = await client.lock.tryLock("redislock", resourceId, "owner3", 5);
+      expect(tryLockOne.success).toEqual(true);
+      const tryLockTwo = await client.lock.tryLock("redislock", resourceId, "owner4", 5);
+      expect(tryLockTwo.success).toEqual(false);
+    });
+
+    it('should not be able to unlock a lock when that lock is acquired by another owner/process', async () => {
+      const resourceId = uuidv4();
+      const tryLockOne = await client.lock.tryLock("redislock", resourceId, "owner5", 5);
+      expect(tryLockOne.success).toEqual(true);
+      const unlock = await client.lock.unlock("redislock", resourceId, "owner6");
+      expect(unlock.status).toEqual(LockStatus.LockBelongToOthers);
     });
   });
 });
