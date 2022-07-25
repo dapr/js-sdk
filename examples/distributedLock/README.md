@@ -11,7 +11,7 @@ It demonstrates the **Distributed Lock** API's following methods:
 
 - [Dapr CLI](https://docs.dapr.io/getting-started/install-dapr-cli/)
 - [Dapr JS SDK](https://docs.dapr.io/developing-applications/sdks/js/)
-- Initialize Dapr environment by pulling the code from master branch of [Dapr](https://github.com/dapr/dapr)
+- Initialize Dapr environment by pulling the code from main branch of [Dapr](https://github.com/dapr/dapr)
 
 ## Overview
 

@@ -239,4 +239,4 @@ start().catch((e) => {
 
 ## Related links
 
-- [JavaScript SDK examples](https://github.com/dapr/js-sdk/tree/master/examples)
+- [JavaScript SDK examples](https://github.com/dapr/js-sdk/tree/main/examples)

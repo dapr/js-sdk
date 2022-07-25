@@ -16,13 +16,13 @@ name: Test - E2E
 on:
   push:
     branches:
-      - master
+      - main
       - release-*
     tags:
       - v*
   pull_request:
     branches:
-      - master
+      - main
       - release-*
   # Manual trigger
   workflow_dispatch:
