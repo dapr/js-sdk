@@ -27,8 +27,15 @@ export default class HTTPClientPubSub implements IClientPubSub {
   }
 
   async publish(pubSubName: string, topic: string, data: object = {}, metadata?: KeyValueType): Promise<boolean> {
+    let queryParam = "";
+    for (const [key, value] of Object.entries(metadata ?? {})) {
+      queryParam += "&" + "metadata." + key + "=" + value;
+    }
+    // strip the first "&" if it exists
+    queryParam = queryParam.substring(1);
+
     try {
-      await this.client.execute(`/publish/${pubSubName}/${topic}${metadata ? `?${JSON.stringify(metadata)}` : ""}`, {
+      await this.client.execute(`/publish/${pubSubName}/${topic}?${queryParam}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

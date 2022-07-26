@@ -109,7 +109,7 @@ export default class HTTPServer implements IServer {
 
     // Add PubSub Routes
     this.logger.info(`Registering ${this.serverImpl.pubSubSubscriptionRoutes.length} PubSub Subscriptions`);
-    this.server.get('/dapr/subscribe', (req, res) => {
+    this.server.get('/dapr/subscribe', (_req, res) => {
       res.send(this.serverImpl.pubSubSubscriptionRoutes);
       this.logger.info(`Registered ${this.serverImpl.pubSubSubscriptionRoutes.length} PubSub Subscriptions`);
     });

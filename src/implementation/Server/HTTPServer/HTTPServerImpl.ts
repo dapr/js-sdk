@@ -17,7 +17,7 @@ interface PubSubSubscriptionRoute {
     pubsubname: string;
     topic: string;
     route: string;
-    metadata: string;
+    metadata: { [key: string]: string };
 }
 
 export default class HTTPServerImpl {
@@ -27,9 +27,13 @@ export default class HTTPServerImpl {
         this.pubSubSubscriptionRoutes = [];
     }
 
-    registerPubSubSubscriptionRoute(pubSubName: string, topicName: string, route: string, metadata?: KeyValueType): void {
+    registerPubSubSubscriptionRoute(pubSubName: string, topicName: string, route: string, metadata: KeyValueType): void {
+        const httpMetadata: { [key: string]: string } = {};
+        for (const [key, value] of Object.entries(metadata)) {
+            httpMetadata[key] = JSON.stringify(value);
+        }
         this.pubSubSubscriptionRoutes.push({
-            pubsubname: pubSubName, topic: topicName, route: route, metadata: JSON.stringify(metadata)
+            pubsubname: pubSubName, topic: topicName, route: route, metadata: httpMetadata
         });
     }
 }

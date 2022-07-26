@@ -33,7 +33,7 @@ export default class HTTPServerPubSub implements IServerPubSub {
     }
 
     // Register the handler
-    await this.server.getServerImpl().registerPubSubSubscriptionRoute(pubsubName, topic, route, metadata);
+    await this.server.getServerImpl().registerPubSubSubscriptionRoute(pubsubName, topic, route, metadata ?? {});
 
     this.server.getServer().post(`/${route}`, async (req, res) => {
       // @ts-ignore
