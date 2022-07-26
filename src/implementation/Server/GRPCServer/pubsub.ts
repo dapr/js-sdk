@@ -15,6 +15,7 @@ import GRPCServer from "./GRPCServer";
 import { TypeDaprPubSubCallback } from "../../../types/DaprPubSubCallback.type";
 import IServerPubSub from "../../../interfaces/Server/IServerPubSub";
 import { Logger } from "../../../logger/Logger";
+import { KeyValueType } from "../../../types/KeyValue.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class DaprPubSub implements IServerPubSub {
@@ -26,8 +27,8 @@ export default class DaprPubSub implements IServerPubSub {
     this.logger = new Logger("GRPCServer", "PubSub", server.client.options.logger);
   }
 
-  async subscribe(pubSubName: string, topic: string, cb: TypeDaprPubSubCallback): Promise<void> {
-    this.logger.info(`Registering onTopicEvent Handler: PubSub = ${pubSubName}; Topic = ${topic}`)
-    this.server.getServerImpl().registerPubSubSubscriptionHandler(pubSubName, topic, cb);
+  async subscribe(pubSubName: string, topic: string, cb: TypeDaprPubSubCallback, _route?: "", metadata?: KeyValueType): Promise<void> {
+    this.logger.info(`Registering onTopicEvent Handler: PubSub = ${pubSubName}; Topic = ${topic}; Metadata: ${metadata}`)
+    this.server.getServerImpl().registerPubSubSubscriptionHandler(pubSubName, topic, cb, metadata ?? {});
   }
 }

@@ -14,5 +14,12 @@ limitations under the License.
 import { KeyValueType } from "../../types/KeyValue.type";
 
 export default interface IClientPubSub {
+  /**
+   * Publish a message to a topic.
+   * @param pubSubName name of the pubsub
+   * @param topic name of the topic
+   * @param data data to publish
+   * @param metadata metadata for the message
+   */
   publish(pubSubName: string, topic: string, data?: object, metadata?: KeyValueType): Promise<boolean>
 }

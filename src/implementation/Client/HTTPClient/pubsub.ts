@@ -28,7 +28,7 @@ export default class HTTPClientPubSub implements IClientPubSub {
 
   async publish(pubSubName: string, topic: string, data: object = {}, metadata?: KeyValueType): Promise<boolean> {
     try {
-      await this.client.execute(`/publish/${pubSubName}/${topic}` + (metadata ? `?${JSON.stringify(metadata)}` : ""), {
+      await this.client.execute(`/publish/${pubSubName}/${topic}${metadata ? `?${JSON.stringify(metadata)}` : ""}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

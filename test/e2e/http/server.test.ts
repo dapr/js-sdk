@@ -23,6 +23,7 @@ describe('http/server', () => {
   let server: DaprServer;
   const mockBindingReceive = jest.fn(async (_data: object) => console.log('mockBindingReceive'));
   const mockPubSubSubscribe = jest.fn(async (_data: object) => console.log('mockPubSubSubscribe'));
+  const mockPubSubSubscribeRaw = jest.fn(async (_data: object) => console.log('mockPubSubSubscribeRaw'));
   const mockPubSubSubscribeError = jest.fn(async (_data: object) => { throw new Error("mockPubSubSubscribeError") });
 
   // We need to start listening on some endpoints already
@@ -37,6 +38,7 @@ describe('http/server', () => {
     // dapr publish --publish-app-id test-suite --pubsub pubsub-redis --topic test-topic --data '{ "hello": "world" }'
     await server.pubsub.subscribe('pubsub-redis', 'test-topic', mockPubSubSubscribe);
     await server.pubsub.subscribe('pubsub-redis', 'test-topic-error', mockPubSubSubscribeError);
+    await server.pubsub.subscribe('pubsub-redis', 'test-topic-raw', mockPubSubSubscribeRaw, undefined, { rawPayload: true });
 
     // Start server
     await server.start();
@@ -74,9 +76,22 @@ describe('http/server', () => {
       expect(mockPubSubSubscribe.mock.calls.length).toBe(1);
 
       // Also test for receiving data
+      console.log("!" + JSON.stringify(mockPubSubSubscribe.mock.calls[0][0]));
       // @ts-ignore
       expect(mockPubSubSubscribe.mock.calls[0][0]['hello']).toEqual('world');
     });
+
+    it('should be able to send and receive raw payload', async () => {
+      const res = await server.client.pubsub.publish('pubsub-redis', 'test-topic-raw', { hello: 'world' }, { rawPayload: true });
+      expect(res).toEqual(true);
+
+      // Delay a bit for event to arrive
+      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+      expect(mockPubSubSubscribeRaw.mock.calls.length).toBe(1);
+
+      // Also test for receiving data
+      console.log("&" + JSON.stringify(mockPubSubSubscribeRaw.mock.calls[0][0]));
+    })
 
     it('should receive if it was successful or not', async () => {
       const res = await server.client.pubsub.publish('pubsub-redis', 'test-topic', { hello: 'world' });

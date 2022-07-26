@@ -15,6 +15,7 @@ import { TypeDaprPubSubCallback } from '../../../types/DaprPubSubCallback.type';
 import IServerPubSub from '../../../interfaces/Server/IServerPubSub';
 import HTTPServer from './HTTPServer';
 import { Logger } from '../../../logger/Logger';
+import { KeyValueType } from '../../../types/KeyValue.type';
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPServerPubSub implements IServerPubSub {
@@ -26,13 +27,13 @@ export default class HTTPServerPubSub implements IServerPubSub {
     this.logger = new Logger("HTTPServer", "PubSub", server.client.options.logger);
   }
 
-  async subscribe(pubsubName: string, topic: string, cb: TypeDaprPubSubCallback, route = "") {
+  async subscribe(pubsubName: string, topic: string, cb: TypeDaprPubSubCallback, route = "", metadata?: KeyValueType) {
     if (!route) {
       route = `route-${pubsubName}-${topic}`;
     }
 
     // Register the handler
-    await this.server.getServerImpl().registerPubSubSubscriptionRoute(pubsubName, topic, route);
+    await this.server.getServerImpl().registerPubSubSubscriptionRoute(pubsubName, topic, route, metadata);
 
     this.server.getServer().post(`/${route}`, async (req, res) => {
       // @ts-ignore
@@ -50,7 +51,7 @@ export default class HTTPServerPubSub implements IServerPubSub {
       }
 
       // Let Dapr know that the message was processed correctly
-      this.logger.debug(`[route-${topic}] Ack'ing the message`);
+      this.logger.debug(`[${route}] Acknowledging the message`);
       return res.send({ success: true });
     });
   }
