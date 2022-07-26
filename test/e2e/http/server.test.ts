@@ -51,6 +51,10 @@ describe('http/server', () => {
   beforeEach(() => {
     mockBindingReceive.mockClear();
     mockPubSubSubscribe.mockClear();
+    mockPubSubSubscribeCloudEventRaw.mockClear();
+    mockPubSubSubscribeRawRaw.mockClear();
+    mockPubSubSubscribeRawCloudEvent.mockClear();
+    mockPubSubSubscribeError.mockClear();
   });
 
   afterAll(async () => {

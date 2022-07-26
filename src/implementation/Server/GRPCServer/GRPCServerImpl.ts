@@ -184,9 +184,9 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
             topicSubscription.setPubsubName(pubSubName);
             topicSubscription.setTopic(topicName);
-            value.metadata.forEach(([mKey, mValue]: [string, any]) => {
+            for (const [mKey, mValue] of Object.entries(value.metadata)) {
                 topicSubscription.getMetadataMap().set(mKey, mValue);
-            })
+            }
 
             topicSubscriptions.push(topicSubscription);
         }
