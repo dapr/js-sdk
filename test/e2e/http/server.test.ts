@@ -25,6 +25,7 @@ describe('http/server', () => {
   const mockPubSubSubscribe = jest.fn(async (_data: object) => console.log('mockPubSubSubscribe'));
   const mockPubSubSubscribeCloudEventRaw = jest.fn(async (_data: object) => console.log('mockPubSubSubscribeCloudEventRaw'));
   const mockPubSubSubscribeRawRaw = jest.fn(async (_data: object) => console.log('mockPubSubSubscribeRawRaw'));
+  const mockPubSubSubscribeRawCloudEvent = jest.fn(async (_data: object) => console.log('mockPubSubSubscribeRawCloudEvent'));
   const mockPubSubSubscribeError = jest.fn(async (_data: object) => { throw new Error("mockPubSubSubscribeError") });
 
   // We need to start listening on some endpoints already
@@ -41,6 +42,7 @@ describe('http/server', () => {
     await server.pubsub.subscribe('pubsub-redis', 'test-topic-error', mockPubSubSubscribeError);
     await server.pubsub.subscribe('pubsub-redis', 'test-topic-ce-raw', mockPubSubSubscribeCloudEventRaw, undefined, { rawPayload: true });
     await server.pubsub.subscribe('pubsub-redis', 'test-topic-raw-raw', mockPubSubSubscribeRawRaw, undefined, { rawPayload: true });
+    await server.pubsub.subscribe('pubsub-redis', 'test-topic-raw-ce', mockPubSubSubscribeRawCloudEvent);
 
     // Start server
     await server.start();
@@ -83,7 +85,7 @@ describe('http/server', () => {
     });
 
     it('should be able to send cloud event and receive raw payload', async () => {
-      const res = await server.client.pubsub.publish('pubsub-redis', 'test-topic-ce-raw', { hello: 'world' });
+      const res = await server.client.pubsub.publish('pubsub-redis', 'test-topic-ce-raw', { hello: 'world-ce-raw' });
       expect(res).toEqual(true);
 
       // Delay a bit for event to arrive
@@ -95,11 +97,11 @@ describe('http/server', () => {
       const rawData = mockPubSubSubscribeCloudEventRaw.mock.calls[0][0]['data_base64'];
       const data = JSON.parse(Buffer.from(rawData, 'base64').toString());
       // @ts-ignore
-      expect(data['data']['hello']).toEqual('world');
+      expect(data['data']['hello']).toEqual('world-ce-raw');
     })
 
     it('should be able to send raw payload and receive raw payload', async () => {
-      const res = await server.client.pubsub.publish('pubsub-redis', 'test-topic-raw-raw', { hello: 'world' }, { rawPayload: true });
+      const res = await server.client.pubsub.publish('pubsub-redis', 'test-topic-raw-raw', { hello: 'world-raw-raw' }, { rawPayload: true });
       expect(res).toEqual(true);
 
       // Delay a bit for event to arrive
@@ -111,7 +113,20 @@ describe('http/server', () => {
       const rawData = mockPubSubSubscribeRawRaw.mock.calls[0][0]['data_base64'];
       const data = JSON.parse(Buffer.from(rawData, 'base64').toString());
       // @ts-ignore
-      expect(data['hello']).toEqual('world');
+      expect(data['hello']).toEqual('world-raw-raw');
+    })
+
+    it('should be able to send raw payload and receive cloud event', async () => {
+      const res = await server.client.pubsub.publish('pubsub-redis', 'test-topic-raw-ce', { hello: 'world-raw-ce' }, { rawPayload: true });
+      expect(res).toEqual(true);
+
+      // Delay a bit for event to arrive
+      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+      expect(mockPubSubSubscribeRawCloudEvent.mock.calls.length).toBe(1);
+
+      // Also test for receiving data
+      // @ts-ignore
+      expect(mockPubSubSubscribeRawCloudEvent.mock.calls[0][0]['hello']).toEqual('world-raw-ce');
     })
 
     it('should receive if it was successful or not', async () => {
