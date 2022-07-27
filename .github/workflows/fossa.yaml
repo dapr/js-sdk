@@ -4,13 +4,13 @@ on:
     types: [fossa]
   push:
     branches:
-      - master
+      - main
       - release-*
     tags:
       - v*
   pull_request:
     branches:
-      - master
+      - main
       - release-*
   workflow_dispatch: {}
 jobs:
