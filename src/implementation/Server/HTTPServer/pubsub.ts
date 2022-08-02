@@ -16,7 +16,6 @@ import IServerPubSub from '../../../interfaces/Server/IServerPubSub';
 import HTTPServer from './HTTPServer';
 import { Logger } from '../../../logger/Logger';
 import HttpResponseStatusForSubscription from '../../../enum/HttpReponseStatusForSubscription.enum';
-// import {TopicEventResponse} from '../../../proto/dapr/proto/runtime/v1/appcallback_pb'
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPServerPubSub implements IServerPubSub {
