@@ -15,6 +15,8 @@ import { TypeDaprPubSubCallback } from '../../../types/DaprPubSubCallback.type';
 import IServerPubSub from '../../../interfaces/Server/IServerPubSub';
 import HTTPServer from './HTTPServer';
 import { Logger } from '../../../logger/Logger';
+import HttpResponseStatusForSubscription from '../../../enum/HttpReponseStatusForSubscription.enum';
+// import {TopicEventResponse} from '../../../proto/dapr/proto/runtime/v1/appcallback_pb'
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPServerPubSub implements IServerPubSub {
@@ -46,12 +48,12 @@ export default class HTTPServerPubSub implements IServerPubSub {
         await cb(data);
       } catch (e) {
         this.logger.error(`subscribe failed: ${e}`);
-        return res.send({ success: false });
+        return res.send({ status: HttpResponseStatusForSubscription.RETRY });
       }
 
       // Let Dapr know that the message was processed correctly
       this.logger.debug(`[route-${topic}] Ack'ing the message`);
-      return res.send({ success: true });
+      return res.send({ status: HttpResponseStatusForSubscription.SUCCESS });
     });
   }
 }
