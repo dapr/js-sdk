@@ -64,8 +64,8 @@ function getResponseStatus(status: LockStatus) {
       return "Success";
     case LockStatus.LockDoesNotExist: 
       return "LockDoesNotExist";
-    case LockStatus.LockBelongToOthers:
-      return "LockBelongToOthers";
+    case LockStatus.LockBelongsToOthers:
+      return "LockBelongsToOthers";
     default:
       return "InternalError";
   }

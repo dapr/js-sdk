@@ -14,7 +14,7 @@ limitations under the License.
 export enum LockStatus {
     Success,
     LockDoesNotExist,
-    LockBelongToOthers,
+    LockBelongsToOthers,
     InternalError
 }
 
