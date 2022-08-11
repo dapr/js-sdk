@@ -504,7 +504,7 @@ describe('grpc/client', () => {
       const tryLockOne = await client.lock.tryLock("redislock", resourceId, "owner5", 5);
       expect(tryLockOne.success).toEqual(true);
       const unlock = await client.lock.unlock("redislock", resourceId, "owner6");
-      expect(unlock.status).toEqual(LockStatus.LockBelongToOthers);
+      expect(unlock.status).toEqual(LockStatus.LockBelongsToOthers);
     });
   });
 });

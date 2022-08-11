@@ -39,8 +39,8 @@ async function start() {
 
   // Checking if the lock exists.
   console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
-  const lockUnexistResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
-  console.log("Unlock API response when lock is not acquired: " + getResponseStatus(lockUnexistResponse.status));
+  const lockDoesNotExistResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
+  console.log("Unlock API response when lock is not acquired: " + getResponseStatus(lockDoesNotExistResponse.status));
 
   expiryInSeconds = 25;
   console.log(`Acquiring lock on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
@@ -56,8 +56,8 @@ function getResponseStatus(status: LockStatus) {
       return "Success";
     case LockStatus.LockDoesNotExist: 
       return "LockDoesNotExist";
-    case LockStatus.LockBelongToOthers:
-      return "LockBelongToOthers";
+    case LockStatus.LockBelongsToOthers:
+      return "LockBelongsToOthers";
     default:
       return "InternalError";
   }
