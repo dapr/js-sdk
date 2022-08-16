@@ -192,6 +192,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         }
 
         res.setSubscriptionsList(topicSubscriptions);
+        console.log(JSON.stringify(topicSubscriptions));
 
         return callback(null, res);
     }
