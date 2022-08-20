@@ -15,11 +15,10 @@ limitations under the License.
  * Http Response Status to be sent back to dapr runtime as subscription response, as per 
  * https://docs.dapr.io/reference/api/pubsub_api/#expected-http-response
  */
-export enum HttpResponseStatusForSubscription {
+export enum SubscribedMessageHttpResponse {
     SUCCESS = "SUCCESS",  // Message is processed successfully
     RETRY = "RETRY", // Message to be retried by Dapr
     DROP = "DROP", // Warning is logged and message is dropped
-    Others = "Others" // Error, message to be retried by Dapr
   }
   
-  export default HttpResponseStatusForSubscription;
+  export default SubscribedMessageHttpResponse;
