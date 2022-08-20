@@ -74,10 +74,10 @@ export default class GRPCClientLock implements IClientLock {
         switch(res.getStatus()) {
             case UnlockResponse.Status.SUCCESS:
                 return LockStatus.Success;
-            case UnlockResponse.Status.LOCK_UNEXIST:
+            case UnlockResponse.Status.LOCK_DOES_NOT_EXIST:
                 return LockStatus.LockDoesNotExist;
-            case UnlockResponse.Status.LOCK_BELONG_TO_OTHERS:
-                return LockStatus.LockBelongToOthers;
+            case UnlockResponse.Status.LOCK_BELONGS_TO_OTHERS:
+                return LockStatus.LockBelongsToOthers;
             default:
                 return LockStatus.InternalError;
 

@@ -81,7 +81,7 @@ You should see the following output from the application:
 == APP == Acquired Lock? false
 == APP == Lock cannot be acquired as it belongs to the other process
 == APP == Unlocking on redislock, resourceId as owner: owner2
-== APP == Unlock API response when lock is acquired by a different process: LockBelongToOthers
+== APP == Unlock API response when lock is acquired by a different process: LockBelongsToOthers
 == APP == Acquiring lock on redislock, resourceId as owner: owner2
 == APP == Acquired lock after the lock from the other process expired? true
 == APP == Unlocking on redislock, resourceId as owner: owner2

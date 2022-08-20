@@ -1320,8 +1320,8 @@ export namespace UnlockResponse {
 
     export enum Status {
     SUCCESS = 0,
-    LOCK_UNEXIST = 1,
-    LOCK_BELONG_TO_OTHERS = 2,
+    LOCK_DOES_NOT_EXIST = 1,
+    LOCK_BELONGS_TO_OTHERS = 2,
     INTERNAL_ERROR = 3,
     }
 
