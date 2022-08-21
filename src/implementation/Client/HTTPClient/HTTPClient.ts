@@ -34,8 +34,9 @@ export default class HTTPClient implements IClient {
 
   private readonly httpAgent;
   private readonly httpsAgent;
+  private static _instance: HTTPClient;
 
-  constructor(
+  private constructor(
     host = Settings.getDefaultHost()
     , port = Settings.getDefaultHttpPort()
     , options: DaprClientOptions = {},
@@ -45,7 +46,6 @@ export default class HTTPClient implements IClient {
     this.options = options;
     this.logger = new Logger("HTTPClient", "HTTPClient", this.options.logger);
     this.isInitialized = false;
-
     // fallback to default
     if (this.options.isKeepAlive === undefined) {
       this.options.isKeepAlive = true;
@@ -69,6 +69,17 @@ export default class HTTPClient implements IClient {
       this.httpAgent = new http.Agent();
       this.httpsAgent = new https.Agent();
     }
+  }
+
+  static getInstance(
+    host = Settings.getDefaultHost()
+    , port = Settings.getDefaultHttpPort()
+    , options: DaprClientOptions = {}
+  ): HTTPClient {
+    if (!HTTPClient._instance) {
+      HTTPClient._instance = new HTTPClient(host, port, options);
+    }
+    return HTTPClient._instance;
   }
 
   async getClient(requiresInitialization = true): Promise<typeof fetch> {

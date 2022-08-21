@@ -125,7 +125,7 @@ export default class DaprClient {
       }
       case CommunicationProtocolEnum.HTTP:
       default: {
-        const client = new HTTPClient(this.daprHost, this.daprPort, this.options);
+        const client = HTTPClient.getInstance(this.daprHost, this.daprPort, this.options);
         this.daprClient = client;
 
         this.state = new HTTPClientState(client);
