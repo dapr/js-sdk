@@ -15,6 +15,8 @@ import GRPCServer from "./GRPCServer";
 import { TypeDaprPubSubCallback } from "../../../types/DaprPubSubCallback.type";
 import IServerPubSub from "../../../interfaces/Server/IServerPubSub";
 import { Logger } from "../../../logger/Logger";
+import { PubSubSubscriptionOptionsType } from "../../../types/pubsub/PubSubSubscriptionOptions.type";
+import { DaprPubSubSubscriptionType } from "../../../types/pubsub/DaprPubSubSubscription.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class DaprPubSub implements IServerPubSub {
@@ -26,8 +28,26 @@ export default class DaprPubSub implements IServerPubSub {
     this.logger = new Logger("GRPCServer", "PubSub", server.client.options.logger);
   }
 
-  async subscribe(pubSubName: string, topic: string, cb: TypeDaprPubSubCallback): Promise<void> {
-    this.logger.info(`Registering onTopicEvent Handler: PubSub = ${pubSubName}; Topic = ${topic}`)
-    this.server.getServerImpl().registerPubSubSubscriptionHandler(pubSubName, topic, cb);
+  async subscribe(pubsubName: string, topic: string, cb: TypeDaprPubSubCallback, route: string = ""): Promise<void> {
+    this.logger.info(`Registering onTopicEvent Handler: PubSub = ${pubsubName}; Topic = ${topic}`)
+    this.server.getServerImpl().registerPubSubSubscriptionHandler(pubsubName, topic, cb, { route });
+  }
+
+  async subscribeWithOptions(pubsubName: string, topic: string, cb: TypeDaprPubSubCallback
+    , options: PubSubSubscriptionOptionsType = {}): Promise<void> {
+    this.logger.info(`Registering onTopicEvent Handler: PubSub = ${pubsubName}; Topic = ${topic}`)
+    this.server.getServerImpl().registerPubSubSubscriptionHandler(pubsubName, topic, cb, options);
+  }
+
+  async subscribeDeadletter(pubsubName: string, topicDeadletter: string, cb: TypeDaprPubSubCallback): Promise<void> {
+    await this.subscribe(pubsubName, topicDeadletter, cb);
+  }
+
+  getSubscriptions(): DaprPubSubSubscriptionType[] {
+    return [];
+  }
+
+  getSubscriptionEventHandlers(): { [key: string]: TypeDaprPubSubCallback[] } {
+    return {};
   }
 }

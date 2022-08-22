@@ -302,6 +302,43 @@ async function start() {
 
 > For a full list of state operations visit [How-To: Publish & subscribe]({{< ref howto-publish-subscribe.md >}}).
 
+##### Subscribe to messages with DeadLetter support
+
+As per https://docs.dapr.io/developing-applications/building-blocks/pubsub/pubsub-deadletter/ Dapr supports deadletter messages. This means that when a message fails to be processed, it gets sent to a deadletter portion of the queue. E.g., when a message fails to be handled on `/my-queue` it will be sent to `/my-queue-failed`.
+
+DeadLetter topics are unique and can be shared by multiple subscribe fails. This means that if you have `subscribe("my-pubsub-1", cb, "deadletter-1")` and `subscribe("my-pubsub-2", cb, "deadletter-1")` both the first and the second subscribe methods will send the message to `deadletter-1` if it fails.
+
+In the Javascript SDK we implement this by a dedicated call to `subscribeDeadletter` that accepts the deadletter topic name and a unique callback that we will call each time a message fails to be processed.
+
+To put all of the above in an example:
+
+```javascript
+import { DaprServer } from "@dapr/dapr";
+
+const daprHost = "127.0.0.1"; // Dapr Sidecar Host
+const daprPort = "3500"; // Dapr Sidecar Port of this Example Server
+const serverHost = "127.0.0.1"; // App Host of this Example Server
+const serverPort = "50051"; // App Port of this Example Server "
+
+async function start() {
+  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
+
+  const pubSubName = "my-pubsub-name";
+
+  // Configure Subscriber for a Topic
+  await server.pubsub.subscribe(pubSubName, "topic-1", async (data: any) => console.log(`[topic-1] ${JSON.stringify(data)}`));
+  await server.pubsub.subscribe(pubSubName, "topic-2", async (data: any) => console.log(`[topic-2] ${JSON.stringify(data)}`));
+
+  // Configure a Deadletter Handler
+  await server.pubsub.subscribeDeadletter(pubSubName, "deadletter-1", async (data: any) => {
+    console.log(`[deadletter-1] ${JSON.stringify(data)}`)
+  })
+
+  await server.start();
+}
+
+```
+
 ### Bindings API
 
 #### Invoke Output Binding

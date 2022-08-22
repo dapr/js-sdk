@@ -24,19 +24,24 @@ import { TypeDaprBindingCallback } from "../../../types/DaprBindingCallback.type
 import { TypeDaprPubSubCallback } from "../../../types/DaprPubSubCallback.type";
 import { Logger } from "../../../logger/Logger";
 import { LoggerOptions } from "../../../types/logger/LoggerOptions";
+import { PubSubSubscriptionOptionsType } from "../../../types/pubsub/PubSubSubscriptionOptions.type";
+import { IServerType } from "./GRPCServer";
 
 
 // https://github.com/badsyntax/grpc-js-typescript/issues/1#issuecomment-705419742
 // @ts-ignore
 export default class GRPCServerImpl implements IAppCallbackServer {
     private readonly logger: Logger;
+    private readonly server: IServerType;
 
     handlersInvoke: { [key: string]: TypeDaprInvokerCallback };
     handlersBindings: { [key: string]: TypeDaprBindingCallback };
-    handlersTopics: { [key: string]: TypeDaprPubSubCallback };
+    handlersTopics: { [key: string]: { cb: TypeDaprPubSubCallback, options: PubSubSubscriptionOptionsType } };
 
-    constructor(loggerOptions?: LoggerOptions) {
+    constructor(server: IServerType, loggerOptions?: LoggerOptions) {
+        this.server = server;
         this.logger = new Logger("GRPCServer", "GRPCServerImpl", loggerOptions);
+
         this.handlersInvoke = {};
         this.handlersBindings = {};
         this.handlersTopics = {};
@@ -59,9 +64,11 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         this.handlersInvoke[handlerKey] = cb;
     }
 
-    registerPubSubSubscriptionHandler(pubSubName: string, topicName: string, cb: TypeDaprInvokerCallback): void {
+    registerPubSubSubscriptionHandler(pubSubName: string, topicName: string, cb: TypeDaprInvokerCallback
+        , options: PubSubSubscriptionOptionsType = {}): void {
         const handlerKey = this.createPubSubSubscriptionHandlerKey(pubSubName, topicName);
-        this.handlersTopics[handlerKey] = cb;
+        this.handlersTopics[handlerKey].cb = cb;
+        this.handlersTopics[handlerKey].options = options;
     }
 
     registerInputBindingHandler(bindingName: string, cb: TypeDaprInvokerCallback): void {
@@ -161,7 +168,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         const res = new TopicEventResponse();
 
         try {
-            await this.handlersTopics[handlerKey](dataParsed);
+            await this.handlersTopics[handlerKey].cb(dataParsed);
             res.setStatus(TopicEventResponse.TopicEventResponseStatus.SUCCESS);
         } catch (e) {
             // @todo: for now we drop, maybe we should allow retrying as well more easily?

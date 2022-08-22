@@ -12,7 +12,10 @@ limitations under the License.
 */
 
 import { TypeDaprPubSubCallback } from "../../types/DaprPubSubCallback.type";
+import { DaprPubSubSubscriptionType } from "../../types/pubsub/DaprPubSubSubscription.type";
 
 export default interface IServerPubSub {
     subscribe(pubSubName: string, topic: string, cb: TypeDaprPubSubCallback, route?: string): Promise<void>;
+    getSubscriptions(): DaprPubSubSubscriptionType[];
+    getSubscriptionEventHandlers(): { [key: string]: TypeDaprPubSubCallback[] };
 }

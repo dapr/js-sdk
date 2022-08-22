@@ -15,7 +15,8 @@ import { TypeDaprPubSubCallback } from '../../../types/DaprPubSubCallback.type';
 import IServerPubSub from '../../../interfaces/Server/IServerPubSub';
 import HTTPServer from './HTTPServer';
 import { Logger } from '../../../logger/Logger';
-import SubscribedMessageHttpResponse from '../../../enum/SubscribedMessageHttpResponse.enum';
+import { PubSubSubscriptionOptionsType } from '../../../types/pubsub/PubSubSubscriptionOptions.type'
+import { DaprPubSubSubscriptionType } from '../../../types/pubsub/DaprPubSubSubscription.type';
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPServerPubSub implements IServerPubSub {
@@ -27,32 +28,33 @@ export default class HTTPServerPubSub implements IServerPubSub {
     this.logger = new Logger("HTTPServer", "PubSub", server.client.options.logger);
   }
 
-  async subscribe(pubsubName: string, topic: string, cb: TypeDaprPubSubCallback, route = "") {
-    if (!route) {
-      route = `route-${pubsubName}-${topic}`;
-    }
+  _generateRouteName(pubsubName: string, topic: string, path: string = "default"): string {
+    return `${pubsubName}-${topic}-${path}`;
+  }
 
-    // Register the handler
-    await this.server.getServerImpl().registerPubSubSubscriptionRoute(pubsubName, topic, route);
+  async subscribe(pubsubName: string, topic: string, cb: TypeDaprPubSubCallback, route: string = ""): Promise<void> {
+    this.server.getServerImpl().registerPubsubSubscription(pubsubName, topic, { route });
 
-    this.server.getServer().post(`/${route}`, async (req, res) => {
-      // @ts-ignore
-      // Parse the data of the body, we prioritize fetching the data key in body if possible
-      // i.e. Redis returns { data: {} } and other services return {}
-      // @todo: This will be deprecated in an upcoming major version and only req.body will be returned
-      const data = req?.body?.data || req?.body;
+    // Add the callback to the event handlers manually
+    // @todo: we will deprecate this way of working? and require subscribeOnEvent?
+    this.subscribeOnEvent(pubsubName, topic, route, cb)
+  }
 
-      // Process our callback
-      try {
-        await cb(data);
-      } catch (e) {
-        this.logger.error(`[route-${topic}] Message processing failed, dropping: ${e}`);
-        return res.send({ status: SubscribedMessageHttpResponse.DROP });
-      }
+  async subscribeWithOptions(pubsubName: string, topic: string, cb: TypeDaprPubSubCallback
+    , options: PubSubSubscriptionOptionsType = {}): Promise<void> {
+    this.server.getServerImpl().registerPubsubSubscription(pubsubName, topic, options);
+  }
 
-      // Let Dapr know that the message was processed correctly
-      this.logger.debug(`[route-${topic}] Ack'ing the message`);
-      return res.send({ status: SubscribedMessageHttpResponse.SUCCESS });
-    });
+  subscribeOnEvent(pubsubName: string, topic: string, route: string, cb: TypeDaprPubSubCallback): void {
+    const routeEventHandlerKey = this.server.getServerImpl().generatePubsubSubscriptionEventHandlerKey(pubsubName, topic, route);
+    this.server.getServerImpl().pubsubSubscriptionEventHandlers[routeEventHandlerKey].push(cb);
+  }
+
+  getSubscriptions(): DaprPubSubSubscriptionType[] {
+    return this.server.getServerImpl().pubsubSubscriptions;
+  }
+
+  getSubscriptionEventHandlers(): { [key: string]: TypeDaprPubSubCallback[] } {
+    return this.server.getServerImpl().pubsubSubscriptionEventHandlers;
   }
 }
