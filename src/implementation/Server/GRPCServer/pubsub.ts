@@ -29,6 +29,6 @@ export default class DaprPubSub implements IServerPubSub {
 
   async subscribe(pubSubName: string, topic: string, cb: TypeDaprPubSubCallback, _route?: "", metadata?: KeyValueType): Promise<void> {
     this.logger.info(`Registering onTopicEvent Handler: PubSub = ${pubSubName}; Topic = ${topic}; Metadata: ${metadata}`)
-    this.server.getServerImpl().registerPubSubSubscriptionHandler(pubSubName, topic, cb, metadata ?? {});
+    this.server.getServerImpl().registerPubSubSubscriptionHandler(pubSubName, topic, cb, metadata);
   }
 }

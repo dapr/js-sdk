@@ -27,9 +27,9 @@ export default class HTTPServerImpl {
         this.pubSubSubscriptionRoutes = [];
     }
 
-    registerPubSubSubscriptionRoute(pubSubName: string, topicName: string, route: string, metadata: KeyValueType): void {
+    registerPubSubSubscriptionRoute(pubSubName: string, topicName: string, route: string, metadata?: KeyValueType): void {
         const httpMetadata: { [key: string]: string } = {};
-        for (const [key, value] of Object.entries(metadata)) {
+        for (const [key, value] of Object.entries(metadata ?? {})) {
             httpMetadata[key] = JSON.stringify(value);
         }
         this.pubSubSubscriptionRoutes.push({

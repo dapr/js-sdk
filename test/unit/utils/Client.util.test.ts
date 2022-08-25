@@ -47,6 +47,11 @@ describe('Client.util', () => {
             expect(queryParam).toEqual('');
         });
 
+        it('converts a KeyValueType to a HTTP query parameters with no metadata', () => {
+            const queryParam = getHTTPMetadataQueryParam();
+            expect(queryParam).toEqual('');
+        });
+
         it('encodes the query parameters', () => {
             const metadata = {
                 'key&with=special!ch#r#cters': 'value1&value2',

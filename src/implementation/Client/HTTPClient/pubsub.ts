@@ -28,7 +28,7 @@ export default class HTTPClientPubSub implements IClientPubSub {
   }
 
   async publish(pubSubName: string, topic: string, data: object = {}, metadata?: KeyValueType): Promise<boolean> {
-    const queryParams = getHTTPMetadataQueryParam(metadata ?? {});
+    const queryParams = getHTTPMetadataQueryParam(metadata);
 
     try {
       await this.client.execute(`/publish/${pubSubName}/${topic}?${queryParams}`, {

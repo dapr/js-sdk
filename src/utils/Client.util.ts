@@ -40,9 +40,9 @@ export function getGRPCMetadata(metadata: KeyValueType): grpc.Metadata {
  * @param metadata key value pair of metadata
  * @returns HTTP query parameter string
  */
-export function getHTTPMetadataQueryParam(metadata: KeyValueType): string {
+export function getHTTPMetadataQueryParam(metadata?: KeyValueType): string {
     let queryParam = "";
-    for (const [key, value] of Object.entries(metadata)) {
+    for (const [key, value] of Object.entries(metadata ?? {})) {
         queryParam += "&" + "metadata." + encodeURIComponent(key) + "=" + encodeURIComponent(value);
     }
     // strip the first "&" if it exists

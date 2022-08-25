@@ -60,9 +60,9 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         this.handlersInvoke[handlerKey] = cb;
     }
 
-    registerPubSubSubscriptionHandler(pubSubName: string, topicName: string, cb: TypeDaprInvokerCallback, metadata: KeyValueType): void {
+    registerPubSubSubscriptionHandler(pubSubName: string, topicName: string, cb: TypeDaprInvokerCallback, metadata?: KeyValueType): void {
         const handlerKey = this.createPubSubSubscriptionHandlerKey(pubSubName, topicName);
-        this.registrationsTopics[handlerKey] = { cb: cb, metadata: metadata };
+        this.registrationsTopics[handlerKey] = { cb: cb, metadata: metadata ?? {} };
     }
 
     registerInputBindingHandler(bindingName: string, cb: TypeDaprInvokerCallback): void {
@@ -177,7 +177,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     async listTopicSubscriptions(call: grpc.ServerUnaryCall<Empty, ListTopicSubscriptionsResponse>, callback: grpc.sendUnaryData<ListTopicSubscriptionsResponse>): Promise<void> {
         const res = new ListTopicSubscriptionsResponse();
         const topicSubscriptions: TopicSubscription[] = [];
-        
+
         for (const [key, value] of Object.entries(this.registrationsTopics)) {
             const [pubSubName, topicName] = key.split("|");
             const topicSubscription = new TopicSubscription();
