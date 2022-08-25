@@ -30,6 +30,16 @@ describe('Client.util', () => {
             const grpcMetadata = createGRPCMetadata(metadata);
             expect(grpcMetadata.toJSON()).toEqual({});
         });
+
+        it('converts a KeyValueType to a HTTP query parameters with no metadata', () => {
+            const grpcMetadata = createGRPCMetadata();
+            expect(grpcMetadata.toJSON()).toEqual({});
+        });
+
+        it('converts a KeyValueType to a HTTP query parameters with undefined metadata', () => {
+            const grpcMetadata = createGRPCMetadata(undefined);
+            expect(grpcMetadata.toJSON()).toEqual({});
+        });
     });
     describe('getHTTPMetadataQueryParam', () => {
         it('converts a KeyValueType to a HTTP query parameters', () => {
@@ -49,6 +59,11 @@ describe('Client.util', () => {
 
         it('converts a KeyValueType to a HTTP query parameters with no metadata', () => {
             const queryParam = createHTTPMetadataQueryParam();
+            expect(queryParam).toEqual('');
+        });
+
+        it('converts a KeyValueType to a HTTP query parameters with undefined metadata', () => {
+            const queryParam = createHTTPMetadataQueryParam(undefined);
             expect(queryParam).toEqual('');
         });
 

@@ -60,9 +60,9 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         this.handlersInvoke[handlerKey] = cb;
     }
 
-    registerPubSubSubscriptionHandler(pubSubName: string, topicName: string, cb: TypeDaprInvokerCallback, metadata?: KeyValueType): void {
+    registerPubSubSubscriptionHandler(pubSubName: string, topicName: string, cb: TypeDaprInvokerCallback, metadata: KeyValueType = {}): void {
         const handlerKey = this.createPubSubSubscriptionHandlerKey(pubSubName, topicName);
-        this.registrationsTopics[handlerKey] = { cb: cb, metadata: metadata ?? {} };
+        this.registrationsTopics[handlerKey] = { cb: cb, metadata };
     }
 
     registerInputBindingHandler(bindingName: string, cb: TypeDaprInvokerCallback): void {
