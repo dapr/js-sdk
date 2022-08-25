@@ -49,11 +49,11 @@ describe('Client.util', () => {
 
         it('encodes the query parameters', () => {
             const metadata = {
-                'key&with=special!characters': 'value1&value2',
+                'key&with=special!ch#r#cters': 'value1&value2',
                 'key00': 'value3 value4'
             };
             const queryParam = getHTTPMetadataQueryParam(metadata);
-            expect(queryParam).toEqual('metadata.key%26with%3Dspecial!characters=value1%26value2&metadata.key00=value3%20value4');
+            expect(queryParam).toEqual('metadata.key%26with%3Dspecial!ch%23r%23cters=value1%26value2&metadata.key00=value3%20value4');
         });
     });
 });
