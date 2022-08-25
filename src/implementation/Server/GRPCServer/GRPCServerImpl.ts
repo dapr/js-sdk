@@ -24,6 +24,7 @@ import { TypeDaprBindingCallback } from "../../../types/DaprBindingCallback.type
 import { TypeDaprPubSubCallback } from "../../../types/DaprPubSubCallback.type";
 import { Logger } from "../../../logger/Logger";
 import { LoggerOptions } from "../../../types/logger/LoggerOptions";
+import { KeyValueType } from "../../../types/KeyValue.type";
 
 
 // https://github.com/badsyntax/grpc-js-typescript/issues/1#issuecomment-705419742
@@ -33,13 +34,13 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
     handlersInvoke: { [key: string]: TypeDaprInvokerCallback };
     handlersBindings: { [key: string]: TypeDaprBindingCallback };
-    handlersTopics: { [key: string]: TypeDaprPubSubCallback };
+    registrationsTopics: { [key: string]: { cb: TypeDaprPubSubCallback, metadata: KeyValueType } };
 
     constructor(loggerOptions?: LoggerOptions) {
         this.logger = new Logger("GRPCServer", "GRPCServerImpl", loggerOptions);
         this.handlersInvoke = {};
         this.handlersBindings = {};
-        this.handlersTopics = {};
+        this.registrationsTopics = {};
     }
 
     createPubSubSubscriptionHandlerKey(pubSubName: string, topicName: string): string {
@@ -59,9 +60,9 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         this.handlersInvoke[handlerKey] = cb;
     }
 
-    registerPubSubSubscriptionHandler(pubSubName: string, topicName: string, cb: TypeDaprInvokerCallback): void {
+    registerPubSubSubscriptionHandler(pubSubName: string, topicName: string, cb: TypeDaprInvokerCallback, metadata: KeyValueType = {}): void {
         const handlerKey = this.createPubSubSubscriptionHandlerKey(pubSubName, topicName);
-        this.handlersTopics[handlerKey] = cb;
+        this.registrationsTopics[handlerKey] = { cb: cb, metadata };
     }
 
     registerInputBindingHandler(bindingName: string, cb: TypeDaprInvokerCallback): void {
@@ -144,8 +145,8 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         const req = call.request;
         const handlerKey = this.createPubSubSubscriptionHandlerKey(req.getPubsubName(), req.getTopic());
 
-        if (!this.handlersTopics[handlerKey]) {
-            this.logger.warn(`Event from topic: "${handlerKey}" was not handled`);
+        if (!this.registrationsTopics[handlerKey]) {
+            this.logger.warn(`Topic "${handlerKey}" unregistered, event was not handled.`);
             return;
         }
 
@@ -161,7 +162,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         const res = new TopicEventResponse();
 
         try {
-            await this.handlersTopics[handlerKey](dataParsed);
+            await (this.registrationsTopics[handlerKey]).cb(dataParsed);
             res.setStatus(TopicEventResponse.TopicEventResponseStatus.SUCCESS);
         } catch (e) {
             // @todo: for now we drop, maybe we should allow retrying as well more easily?
@@ -175,19 +176,22 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     // @todo: WIP
     async listTopicSubscriptions(call: grpc.ServerUnaryCall<Empty, ListTopicSubscriptionsResponse>, callback: grpc.sendUnaryData<ListTopicSubscriptionsResponse>): Promise<void> {
         const res = new ListTopicSubscriptionsResponse();
+        const topicSubscriptions: TopicSubscription[] = [];
 
-        const values = Object.keys(this.handlersTopics).map((i) => {
-            const handlerTopic = i.split("|");
-
+        for (const [key, value] of Object.entries(this.registrationsTopics)) {
+            const [pubSubName, topicName] = key.split("|");
             const topicSubscription = new TopicSubscription();
-            topicSubscription.setPubsubName(handlerTopic[0]);
-            topicSubscription.setTopic(handlerTopic[1]);
 
-            return topicSubscription;
-        });
+            topicSubscription.setPubsubName(pubSubName);
+            topicSubscription.setTopic(topicName);
+            for (const [mKey, mValue] of Object.entries(value.metadata)) {
+                topicSubscription.getMetadataMap().set(mKey, mValue);
+            }
 
-        res.setSubscriptionsList(values);
+            topicSubscriptions.push(topicSubscription);
+        }
 
+        res.setSubscriptionsList(topicSubscriptions);
         return callback(null, res);
     }
 
