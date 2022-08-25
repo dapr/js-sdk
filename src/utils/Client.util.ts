@@ -19,7 +19,7 @@ import { KeyValueType } from "../types/KeyValue.type";
  * @param metadata key value pair of metadata
  * @returns grpc.Metadata object
  */
-export function getGRPCMetadata(metadata: KeyValueType): grpc.Metadata {
+export function createGRPCMetadata(metadata: KeyValueType): grpc.Metadata {
     const grpcMetadata = new grpc.Metadata();
     for (const [key, value] of Object.entries(metadata)) {
         grpcMetadata.set(key, value);
@@ -40,7 +40,7 @@ export function getGRPCMetadata(metadata: KeyValueType): grpc.Metadata {
  * @param metadata key value pair of metadata
  * @returns HTTP query parameter string
  */
-export function getHTTPMetadataQueryParam(metadata?: KeyValueType): string {
+export function createHTTPMetadataQueryParam(metadata?: KeyValueType): string {
     let queryParam = "";
     for (const [key, value] of Object.entries(metadata ?? {})) {
         queryParam += "&" + "metadata." + encodeURIComponent(key) + "=" + encodeURIComponent(value);

@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import {getGRPCMetadata, getHTTPMetadataQueryParam} from "../../../src/utils/Client.util"
+import {createGRPCMetadata, createHTTPMetadataQueryParam} from "../../../src/utils/Client.util"
 
 describe('Client.util', () => {
     describe('getGRPCMetadata', () => {
@@ -20,14 +20,14 @@ describe('Client.util', () => {
                 'key1': 'value1',
                 'key2': 'value2'
             };
-            const grpcMetadata = getGRPCMetadata(metadata);
+            const grpcMetadata = createGRPCMetadata(metadata);
             expect(grpcMetadata.get('key1')).toEqual(['value1']);
             expect(grpcMetadata.get('key2')).toEqual(['value2']);
         });
 
         it('converts a KeyValueType to a grpc.Metadata object with empty metadata', () => {
             const metadata = {};
-            const grpcMetadata = getGRPCMetadata(metadata);
+            const grpcMetadata = createGRPCMetadata(metadata);
             expect(grpcMetadata.toJSON()).toEqual({});
         });
     });
@@ -37,18 +37,18 @@ describe('Client.util', () => {
                 'key1': 'value1',
                 'key2': 'value2'
             };
-            const queryParam = getHTTPMetadataQueryParam(metadata);
+            const queryParam = createHTTPMetadataQueryParam(metadata);
             expect(queryParam).toEqual('metadata.key1=value1&metadata.key2=value2');
         });
 
         it('converts a KeyValueType to a HTTP query parameters with empty metadata', () => {
             const metadata = {};
-            const queryParam = getHTTPMetadataQueryParam(metadata);
+            const queryParam = createHTTPMetadataQueryParam(metadata);
             expect(queryParam).toEqual('');
         });
 
         it('converts a KeyValueType to a HTTP query parameters with no metadata', () => {
-            const queryParam = getHTTPMetadataQueryParam();
+            const queryParam = createHTTPMetadataQueryParam();
             expect(queryParam).toEqual('');
         });
 
@@ -57,7 +57,7 @@ describe('Client.util', () => {
                 'key&with=special!ch#r#cters': 'value1&value2',
                 'key00': 'value3 value4'
             };
-            const queryParam = getHTTPMetadataQueryParam(metadata);
+            const queryParam = createHTTPMetadataQueryParam(metadata);
             expect(queryParam).toEqual('metadata.key%26with%3Dspecial!ch%23r%23cters=value1%26value2&metadata.key00=value3%20value4');
         });
     });

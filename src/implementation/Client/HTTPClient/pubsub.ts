@@ -15,7 +15,7 @@ import HTTPClient from './HTTPClient';
 import IClientPubSub from '../../../interfaces/Client/IClientPubSub';
 import { Logger } from '../../../logger/Logger';
 import { KeyValueType } from '../../../types/KeyValue.type';
-import { getHTTPMetadataQueryParam } from '../../../utils/Client.util';
+import { createHTTPMetadataQueryParam } from '../../../utils/Client.util';
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPClientPubSub implements IClientPubSub {
@@ -28,7 +28,7 @@ export default class HTTPClientPubSub implements IClientPubSub {
   }
 
   async publish(pubSubName: string, topic: string, data: object = {}, metadata?: KeyValueType): Promise<boolean> {
-    const queryParams = getHTTPMetadataQueryParam(metadata);
+    const queryParams = createHTTPMetadataQueryParam(metadata);
 
     try {
       await this.client.execute(`/publish/${pubSubName}/${topic}?${queryParams}`, {
