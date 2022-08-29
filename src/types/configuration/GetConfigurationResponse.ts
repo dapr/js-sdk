@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { KeyConfigType } from "../KeyConfig.type";
+import { ConfigurationType } from "../KeyConfig.type";
 
 export type GetConfigurationResponse = {
-  items: KeyConfigType;
+  items: ConfigurationType;
 }

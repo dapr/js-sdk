@@ -13,6 +13,6 @@ limitations under the License.
 
 import { ConfigurationItem } from "./configuration/ConfigurationItem";
 
-export type KeyConfigType = {
+export type ConfigurationType = {
   [key: string]: ConfigurationItem;
 }
