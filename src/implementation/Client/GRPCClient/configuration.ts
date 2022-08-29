@@ -56,6 +56,7 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
         const configMap = Object()
         res.getItemsMap().forEach(function(v, k) {
           const item: ConfigurationItem = {
+            key : k,
             value : v.getValue(),
             version : v.getVersion(),         
             metadata :  v.getMetadataMap().toObject().reduce((result: object, [key, value]) => {
@@ -120,6 +121,7 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
       const configMap = Object()
       data.getItemsMap().forEach(function(v, k) {
         const item: ConfigurationItem = {
+          key : k,
           value : v.getValue(),
           version : v.getVersion(),         
           metadata :  v.getMetadataMap().toObject().reduce((result: object, [key, value]) => {
