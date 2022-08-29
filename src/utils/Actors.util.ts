@@ -17,13 +17,13 @@ import { ActorRuntimeOptions } from "../types/actors/ActorRuntimeOptions";
  * Get response object for /dapr/config API call.
  * See https://docs.dapr.io/reference/api/actors_api/#get-registered-actors
  */
-export function buildActorRuntimeConfigurationResponse(entities: string[], options: ActorRuntimeOptions): any {
+export function getRegisteredActorResponse(entities: string[], options: ActorRuntimeOptions): {[k: string]: any} {
     var res: {[k: string]: any} = {};
     res["entities"] = entities
 
-    if (options.actorIdleTimeout) { res["actorIdleTimeout"] = options.actorIdleTimeout.toString() }
-    if (options.actorScanInterval) { res["actorScanInterval"] = options.actorScanInterval.toString() }
-    if (options.drainOngoingCallTimeout) { res["drainOngoingCallTimeout"] = options.drainOngoingCallTimeout.toString() }
+    if (options.actorIdleTimeout) { res["actorIdleTimeout"] = options.actorIdleTimeout }
+    if (options.actorScanInterval) { res["actorScanInterval"] = options.actorScanInterval }
+    if (options.drainOngoingCallTimeout) { res["drainOngoingCallTimeout"] = options.drainOngoingCallTimeout }
     if (options.drainRebalancedActors) { res["drainRebalancedActors"] = options.drainRebalancedActors }
     if (options.remindersStoragePartitions) { res["remindersStoragePartitions"] = options.remindersStoragePartitions }
 

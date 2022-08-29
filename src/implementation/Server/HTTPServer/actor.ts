@@ -21,7 +21,7 @@ import IResponse from '../../../types/http/IResponse';
 import BufferSerializer from '../../../actors/runtime/BufferSerializer';
 import { DaprClient } from '../../..';
 import { Logger } from '../../../logger/Logger';
-import { buildActorRuntimeConfigurationResponse } from '../../../utils/Actors.util';
+import { getRegisteredActorResponse } from '../../../utils/Actors.util';
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class HTTPServerActor implements IServerActor {
@@ -77,7 +77,7 @@ export default class HTTPServerActor implements IServerActor {
   private async handlerConfig(req: IRequest, res: IResponse): Promise<void> {
     const actorRuntime = ActorRuntime.getInstance(this.client.getDaprClient());
 
-    return res.send(buildActorRuntimeConfigurationResponse(actorRuntime.getRegisteredActorTypes(), actorRuntime.getActorRuntimeOptions()));
+    return res.send(getRegisteredActorResponse(actorRuntime.getRegisteredActorTypes(), actorRuntime.getActorRuntimeOptions()));
   }
 
   private async handlerDeactivate(req: IRequest, res: IResponse): Promise<void> {

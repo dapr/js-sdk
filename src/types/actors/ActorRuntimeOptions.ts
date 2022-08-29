@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { Temporal } from "@js-temporal/polyfill";
 import { ActorReentrancyOptions } from "./ActorReentrancyOptions";
 
 /**
@@ -22,20 +21,23 @@ export type ActorRuntimeOptions = {
     /**
      * The timeout before deactivating an idle actor. 
      * Checks for timeouts occur every `actorScanInterval` interval.
+     * It uses the format required by [time.ParseDuration](https://pkg.go.dev/time#ParseDuration).
      */
-    actorIdleTimeout?: Temporal.Duration;
+    actorIdleTimeout?: string;
 
     /**
      * Specifies how often to scan for idle actors to deactivate them.
      * Actors that have been idle longer than `actorIdleTimeout` will be deactivated. 
+     * It uses the format required by [time.ParseDuration](https://pkg.go.dev/time#ParseDuration).
      */
-    actorScanInterval?: Temporal.Duration;
+    actorScanInterval?: string;
 
     /**
      * The timeout before draining current active actor methods. 
      * If there is no current actor method call, this is ignored.
+     * It uses the format required by [time.ParseDuration](https://pkg.go.dev/time#ParseDuration).
      */
-    drainOngoingCallTimeout?: Temporal.Duration;
+    drainOngoingCallTimeout?: string;
 
     /**
      * If true, Dapr will wait for `drainOngoingCallTimeout` before 
