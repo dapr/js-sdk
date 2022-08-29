@@ -16,7 +16,8 @@ import IServerPubSub from '../../../interfaces/Server/IServerPubSub';
 import HTTPServer from './HTTPServer';
 import { Logger } from '../../../logger/Logger';
 import { PubSubSubscriptionOptionsType } from '../../../types/pubsub/PubSubSubscriptionOptions.type'
-import { DaprPubSubSubscriptionType } from '../../../types/pubsub/DaprPubSubSubscription.type';
+import { DaprPubSubType } from '../../../types/pubsub/DaprPubSub.type';
+import { DaprPubSubRouteType } from '../../../types/pubsub/DaprPubSubRouteType.type';
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPServerPubSub implements IServerPubSub {
@@ -28,11 +29,8 @@ export default class HTTPServerPubSub implements IServerPubSub {
     this.logger = new Logger("HTTPServer", "PubSub", server.client.options.logger);
   }
 
-  _generateRouteName(pubsubName: string, topic: string, path: string = "default"): string {
-    return `${pubsubName}-${topic}-${path}`;
-  }
-
-  async subscribe(pubsubName: string, topic: string, cb: TypeDaprPubSubCallback, route: string = ""): Promise<void> {
+  async subscribe(pubsubName: string, topic: string, cb: TypeDaprPubSubCallback
+    , route: string | DaprPubSubRouteType = ""): Promise<void> {
     this.server.getServerImpl().registerPubsubSubscription(pubsubName, topic, { route });
 
     // Add the callback to the event handlers manually
@@ -40,21 +38,78 @@ export default class HTTPServerPubSub implements IServerPubSub {
     this.subscribeOnEvent(pubsubName, topic, route, cb)
   }
 
-  async subscribeWithOptions(pubsubName: string, topic: string, cb: TypeDaprPubSubCallback
-    , options: PubSubSubscriptionOptionsType = {}): Promise<void> {
+  async subscribeWithOptions(pubsubName: string, topic: string, options: PubSubSubscriptionOptionsType = {}): Promise<void> {
     this.server.getServerImpl().registerPubsubSubscription(pubsubName, topic, options);
   }
 
-  subscribeOnEvent(pubsubName: string, topic: string, route: string, cb: TypeDaprPubSubCallback): void {
-    const routeEventHandlerKey = this.server.getServerImpl().generatePubsubSubscriptionEventHandlerKey(pubsubName, topic, route);
-    this.server.getServerImpl().pubsubSubscriptionEventHandlers[routeEventHandlerKey].push(cb);
+  getRoutes(): { [key: string]: any } {
+    // We group it by pubsubName, topic, route
+    let routes: { [key: string]: any } = {};
+
+    for (const eventHandlerName of Object.keys(this.server.getServerImpl().pubsubRouteEventHandlers)) {
+      const [pubsubName, topicName, route] = eventHandlerName.split("--");
+
+      if (!routes[pubsubName]) {
+        routes[pubsubName] = {};
+      }
+
+      if (!routes[pubsubName][topicName]) {
+        routes[pubsubName][topicName] = [];
+      }
+
+      if (route === "default") {
+        routes[pubsubName][topicName].push("");
+      } else {
+        routes[pubsubName][topicName].push(route);
+      }
+    }
+
+    return routes;
   }
 
-  getSubscriptions(): DaprPubSubSubscriptionType[] {
+  subscribeOnEvent(pubsubName: string, topic: string, route: string | DaprPubSubRouteType, cb: TypeDaprPubSubCallback): void {
+    if (typeof route === "string") {
+      this.subscribeOnEventStringType(pubsubName, topic, route, cb);
+    } else {
+      this.subscribeOnEventDaprPubSubRouteType(pubsubName, topic, route, cb);
+    }
+  }
+
+  subscribeOnEventDaprPubSubRouteType(pubsubName: string, topic: string
+    , route: DaprPubSubRouteType, cb: TypeDaprPubSubCallback): void {
+    // Register the default
+    if (route.default) {
+      const routeEventHandlerKey = this.server.getServerImpl().generatePubsubRouteEventHandlerKey(pubsubName, topic, route.default);
+      this.subscribeOnEventWithRouteEventHandlerKey(pubsubName, topic, routeEventHandlerKey, cb);
+    }
+
+    // Register the rules
+    if (route.rules) {
+      for (const rule of route.rules) {
+        const routeEventHandlerKey = this.server.getServerImpl().generatePubsubRouteEventHandlerKey(pubsubName, topic, rule);
+        this.subscribeOnEventWithRouteEventHandlerKey(pubsubName, topic, routeEventHandlerKey, cb);
+      }
+    }
+  }
+
+  subscribeOnEventStringType(pubsubName: string, topic: string, route: string, cb: TypeDaprPubSubCallback): void {
+    const routeEventHandlerKey = this.server.getServerImpl().generatePubsubRouteEventHandlerKey(pubsubName, topic, route);
+    this.subscribeOnEventWithRouteEventHandlerKey(pubsubName, topic, routeEventHandlerKey, cb);
+  }
+
+  subscribeOnEventWithRouteEventHandlerKey(pubsubName: string, topic: string, routeEventHandlerKey: string, cb: TypeDaprPubSubCallback) {
+    if (!this.server.getServerImpl().pubsubRouteEventHandlers[routeEventHandlerKey]) {
+      throw new Error(`[PubSub: ${pubsubName}] no subscription found for topic: ${topic}`);
+    }
+
+    this.server.getServerImpl().pubsubRouteEventHandlers[routeEventHandlerKey].push(cb);
+  }
+
+  getSubscriptions(): DaprPubSubType[] {
     return this.server.getServerImpl().pubsubSubscriptions;
   }
 
   getSubscriptionEventHandlers(): { [key: string]: TypeDaprPubSubCallback[] } {
-    return this.server.getServerImpl().pubsubSubscriptionEventHandlers;
+    return this.server.getServerImpl().pubsubRouteEventHandlers;
   }
 }

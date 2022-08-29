@@ -16,7 +16,8 @@ import { TypeDaprPubSubCallback } from "../../../types/DaprPubSubCallback.type";
 import IServerPubSub from "../../../interfaces/Server/IServerPubSub";
 import { Logger } from "../../../logger/Logger";
 import { PubSubSubscriptionOptionsType } from "../../../types/pubsub/PubSubSubscriptionOptions.type";
-import { DaprPubSubSubscriptionType } from "../../../types/pubsub/DaprPubSubSubscription.type";
+import { DaprPubSubType } from "../../../types/pubsub/DaprPubSub.type";
+import { DaprPubSubRouteType } from "../../../types/pubsub/DaprPubSubRouteType.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class DaprPubSub implements IServerPubSub {
@@ -33,17 +34,24 @@ export default class DaprPubSub implements IServerPubSub {
     this.server.getServerImpl().registerPubSubSubscriptionHandler(pubsubName, topic, cb, { route });
   }
 
-  async subscribeWithOptions(pubsubName: string, topic: string, cb: TypeDaprPubSubCallback
-    , options: PubSubSubscriptionOptionsType = {}): Promise<void> {
+  async subscribeWithOptions(pubsubName: string, topic: string, options: PubSubSubscriptionOptionsType = {}): Promise<void> {
     this.logger.info(`Registering onTopicEvent Handler: PubSub = ${pubsubName}; Topic = ${topic}`)
-    this.server.getServerImpl().registerPubSubSubscriptionHandler(pubsubName, topic, cb, options);
+    // this.server.getServerImpl().registerPubSubSubscriptionHandler(pubsubName, topic, cb, options);
   }
 
   async subscribeDeadletter(pubsubName: string, topicDeadletter: string, cb: TypeDaprPubSubCallback): Promise<void> {
     await this.subscribe(pubsubName, topicDeadletter, cb);
   }
 
-  getSubscriptions(): DaprPubSubSubscriptionType[] {
+  subscribeOnEvent(pubsubName: string, topic: string, route: string | DaprPubSubRouteType, cb: TypeDaprPubSubCallback): void {
+    // Not implemented
+  }
+
+  getRoutes(): { [key: string]: any } {
+    return [];
+  }
+
+  getSubscriptions(): DaprPubSubType[] {
     return [];
   }
 

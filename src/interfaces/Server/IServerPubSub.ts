@@ -12,10 +12,18 @@ limitations under the License.
 */
 
 import { TypeDaprPubSubCallback } from "../../types/DaprPubSubCallback.type";
-import { DaprPubSubSubscriptionType } from "../../types/pubsub/DaprPubSubSubscription.type";
+import { DaprPubSubType } from "../../types/pubsub/DaprPubSub.type";
+import { DaprPubSubRouteType } from "../../types/pubsub/DaprPubSubRouteType.type";
+import { PubSubSubscriptionOptionsType } from "../../types/pubsub/PubSubSubscriptionOptions.type";
 
 export default interface IServerPubSub {
-    subscribe(pubSubName: string, topic: string, cb: TypeDaprPubSubCallback, route?: string): Promise<void>;
-    getSubscriptions(): DaprPubSubSubscriptionType[];
+    subscribe(pubSubName: string, topic: string, cb: TypeDaprPubSubCallback, route?: string | DaprPubSubRouteType)
+        : Promise<void>;
+    subscribeWithOptions(pubsubName: string, topic: string, options: PubSubSubscriptionOptionsType)
+        : Promise<void>;
+
+    getSubscriptions(): DaprPubSubType[];
+    getRoutes(): { [key: string]: any };
+    subscribeOnEvent(pubsubName: string, topic: string, route: string | DaprPubSubRouteType, cb: TypeDaprPubSubCallback): void;
     getSubscriptionEventHandlers(): { [key: string]: TypeDaprPubSubCallback[] };
 }

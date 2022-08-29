@@ -25,6 +25,7 @@ describe('http/server', () => {
   const mockPubSubSubscribeRouteSingleEmpty = jest.fn(async (_data: object) => { });
   const mockPubSubSubscribeRouteSingle = jest.fn(async (_data: object) => { });
   const mockPubSubSubscribeRouteSingleNoLeadingSlash = jest.fn(async (_data: object) => { });
+  const mockPubSubSubscribeRouteMulti = jest.fn(async (_data: object) => { });
   const mockPubSubSubscribeError = jest.fn(async (_data: object) => { throw new Error("mockPubSubSubscribeError") });
 
   // We need to start listening on some endpoints already
@@ -37,10 +38,23 @@ describe('http/server', () => {
 
     // Test with:
     // dapr publish --publish-app-id test-suite --pubsub pubsub-redis --topic test-topic --data '{ "hello": "world" }'
-    await server.pubsub.subscribe('pubsub-redis', 'topic-demo', mockPubSubSubscribeRouteSingleEmpty);
-    await server.pubsub.subscribe('pubsub-redis', 'topic-demo', mockPubSubSubscribeRouteSingle, "single-route");
-    await server.pubsub.subscribe('pubsub-redis', 'topic-demo', mockPubSubSubscribeRouteSingleNoLeadingSlash, "/single-route-no-leading-slash");
-    // await server.pubsub.subscribe('pubsub-redis', 'topic-route-multiple', mockPubSubSubscribe);
+    await server.pubsub.subscribeWithOptions('pubsub-redis', 'topic-options-1', {});
+    await server.pubsub.subscribe('pubsub-redis', 'topic-1', mockPubSubSubscribeRouteSingleEmpty);
+    await server.pubsub.subscribe('pubsub-redis', 'topic-2', mockPubSubSubscribeRouteSingle, "single-route");
+    await server.pubsub.subscribe('pubsub-redis', 'topic-3', mockPubSubSubscribeRouteSingleNoLeadingSlash, "/no-leading-slash");
+    await server.pubsub.subscribe('pubsub-redis', 'topic-4', mockPubSubSubscribeRouteMulti, {
+      default: "/default",
+      rules: [
+        {
+          match: `event.type == "my-type-1"`,
+          path: "/type-1"
+        },
+        {
+          match: `event.type == "my-type-2"`,
+          path: "/type-2"
+        }
+      ]
+    });
 
     // Start server
     await server.start();
@@ -73,7 +87,7 @@ describe('http/server', () => {
 
   describe('pubsub', () => {
     it('should be able to send and receive events', async () => {
-      await server.client.pubsub.publish('pubsub-redis', 'topic-demo', { hello: 'world' });
+      await server.client.pubsub.publish('pubsub-redis', 'topic-1', { hello: 'world' });
 
       // Delay a bit for event to arrive
       await new Promise((resolve, _reject) => setTimeout(resolve, 250));
@@ -85,54 +99,109 @@ describe('http/server', () => {
       expect(mockPubSubSubscribeRouteSingleEmpty.mock.calls[0][0]['hello']).toEqual('world');
     });
 
+    it('should allow us to get all the routes', async () => {
+      const routes = server.pubsub.getRoutes();
+      expect(JSON.stringify(routes)).toEqual(JSON.stringify({
+        "pubsub-redis": {
+          "topic-options-1": [""],
+          "topic-1": [""],
+          "topic-2": ["single-route"],
+          "topic-3": ["no-leading-slash"],
+          "topic-4": ["", "type-1", "type-2"]
+        }
+      }));
+    })
+
+    it('should only allow one subscription per topic', async () => {
+      const mock = jest.fn(async (_data: object) => { });
+
+      try {
+        let server2 = new DaprServer("127.0.0.1", "50002", daprHost, daprPort, CommunicationProtocolEnum.HTTP);
+        await server2.pubsub.subscribe('pubsub-redis', 'demo-topic', mock);
+        await server2.pubsub.subscribe('pubsub-redis', 'demo-topic', mock, '/test');
+        server2 = undefined as any; // clean it up
+      } catch (e: any) {
+        expect(e.message).toEqual("The topic 'demo-topic' is already being subscribed to on PubSub 'pubsub-redis', there can only be one topic registered.")
+      }
+    });
+
     it('should receive if it was successful or not', async () => {
       const res = await server.client.pubsub.publish('pubsub-redis', 'topic-demo', { hello: 'world' });
       expect(res).toEqual(true);
     });
 
-    it('should create route "default" if we don\'t provide a route for "topic-demo"', async () => {
+    it('should create route "default" if we don\'t provide a route', async () => {
       const subs = server.pubsub.getSubscriptions();
 
       expect(JSON.stringify(subs)).toContain(JSON.stringify({
-        pubsubName: 'pubsub-redis',
-        topic: 'topic-demo',
-        metadata: undefined,
-        route: 'pubsub-redis-topic-demo-default',
-        routes: undefined,
-        deadLetterTopic: undefined
+        pubsubname: "pubsub-redis",
+        topic: "topic-1",
+        route: "/pubsub-redis--topic-1--default"
       }));
     });
 
-    it('should create route "single-route" if we provide a single route for "topic-demo"', async () => {
+    it('should create route "single-route" if we provide a single route', async () => {
       const subs = server.pubsub.getSubscriptions();
 
       expect(JSON.stringify(subs)).toContain(JSON.stringify({
-        pubsubName: 'pubsub-redis',
-        topic: 'topic-demo',
-        metadata: undefined,
-        route: 'pubsub-redis-topic-demo-single-route',
-        routes: undefined,
-        deadLetterTopic: undefined
+        pubsubname: "pubsub-redis",
+        topic: "topic-2",
+        route: "/pubsub-redis--topic-2--single-route"
       }));
     });
 
-    it('should create route "single-route-no-leading-slash" if we provide a single route with leading slash for "topic-demo"', async () => {
+    it('should create route and remove the leading slash if a route was provided with leading slash', async () => {
       const subs = server.pubsub.getSubscriptions();
 
       expect(JSON.stringify(subs)).toContain(JSON.stringify({
-        pubsubName: 'pubsub-redis',
-        topic: 'topic-demo',
-        metadata: undefined,
-        route: 'pubsub-redis-topic-demo-single-route-no-leading-slash',
-        routes: undefined,
-        deadLetterTopic: undefined
+        pubsubname: "pubsub-redis",
+        topic: "topic-3",
+        route: "/pubsub-redis--topic-3--no-leading-slash"
       }));
     });
 
-    // it('should correctly work if we provide a single route with custom options', async () => {
-    //   const res = await server.client.pubsub.publish('pubsub-redis', 'topic-route-empty', { hello: 'world' });
-    //   expect(res).toEqual(true);
-    // });
+    it('should allow us to create a route on the Dapr Spec with rules and default', async () => {
+      const subs = server.pubsub.getSubscriptions();
+
+      expect(JSON.stringify(subs)).toContain(JSON.stringify({
+        pubsubname: "pubsub-redis",
+        topic: "topic-4",
+        routes: {
+          default: "/default",
+          rules: [
+            {
+              match: `event.type == "my-type-1"`,
+              path: "/pubsub-redis--topic-4--type-1"
+            },
+            {
+              match: `event.type == "my-type-2"`,
+              path: "/pubsub-redis--topic-4--type-2"
+            }
+          ]
+        }
+      }));
+    });
+
+    it('should correctly work if we provide a single route with custom options', async () => {
+      const res = await server.client.pubsub.publish('pubsub-redis', 'topic-route-empty', { hello: 'world' });
+      expect(res).toEqual(true);
+    });
+
+    it('should allow us to register a listener without event handler callback', async () => {
+      const subs = server.pubsub.getSubscriptions();
+      expect(JSON.stringify(subs)).toContain(JSON.stringify({
+        pubsubname: "pubsub-redis",
+        topic: "topic-options-1",
+        route: "/pubsub-redis--topic-options-1--default"
+      }));
+    });
+
+    it('should allow us to register an event handler after the server started', async () => {
+      const countEventHandlers = server.pubsub.getSubscriptionEventHandlers()["pubsub-redis--topic-options-1--default"].length;
+      server.pubsub.subscribeOnEvent("pubsub-redis", "topic-options-1", "", async () => { });
+      const countEventHandlersNew = server.pubsub.getSubscriptionEventHandlers()["pubsub-redis--topic-options-1--default"].length;
+      expect(countEventHandlersNew).toEqual(countEventHandlers + 1);
+    });
   });
 
   // describe('invoker', () => {
