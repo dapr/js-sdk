@@ -22,6 +22,7 @@ import { IServerType } from "./HTTPServer";
 import { TypeDaprPubSubCallback } from "../../../types/DaprPubSubCallback.type";
 
 export default class HTTPServerImpl {
+  private readonly PUBSUB_DEFAULT_ROUTE_NAME = "default";
   private readonly server: IServerType;
   private readonly logger: Logger;
 
@@ -116,13 +117,15 @@ export default class HTTPServerImpl {
    * @param route 
    * @returns 
    */
-  registerPubsubSubscriptionRouteStringType(pubsubName: string, topic: string, route: string = "default"): void {
+  registerPubsubSubscriptionRouteStringType(pubsubName: string, topic: string, route: string = this.PUBSUB_DEFAULT_ROUTE_NAME): void {
+    const routeName = this.generatePubSubSubscriptionTopicRouteName(route);
+
     // Already set, nothing to do
-    if (this.pubSubSubscriptions[pubsubName] && this.pubSubSubscriptions[pubsubName][topic] && this.pubSubSubscriptions[pubsubName][topic].routes[route]) {
+    if (this.pubSubSubscriptions[pubsubName] && this.pubSubSubscriptions[pubsubName][topic] && this.pubSubSubscriptions[pubsubName][topic].routes[routeName]) {
       return;
     }
 
-    const path = this.generatePubsubPath(pubsubName, topic, route);
+    const path = this.generatePubsubPath(pubsubName, topic, routeName);
     this.logger.info(`Registering Event Handler: ${path}`)
 
     // Create it if it doesn't exist
@@ -134,8 +137,8 @@ export default class HTTPServerImpl {
       this.pubSubSubscriptions[pubsubName][topic].routes = {};
     }
 
-    if (!this.pubSubSubscriptions[pubsubName][route]) {
-      this.pubSubSubscriptions[pubsubName][topic].routes[route] = {
+    if (!this.pubSubSubscriptions[pubsubName][routeName]) {
+      this.pubSubSubscriptions[pubsubName][topic].routes[routeName] = {
         eventHandlers: [],
         path: path
       };
@@ -151,7 +154,7 @@ export default class HTTPServerImpl {
 
       // Process our callback
       try {
-        const eventHandlers = this.pubSubSubscriptions[pubsubName][topic].routes[route].eventHandlers;
+        const eventHandlers = this.pubSubSubscriptions[pubsubName][topic].routes[routeName].eventHandlers;
         await Promise.all(eventHandlers.map(cb => cb(data)));
       } catch (e) {
         this.logger.error(`[route-${path}] Message processing failed, dropping: ${e}`);
@@ -165,7 +168,12 @@ export default class HTTPServerImpl {
   }
 
   registerPubSubSubscriptionEventHandler(pubsubName: string, topic: string, route: string, cb: TypeDaprPubSubCallback): void {
-    this.pubSubSubscriptions[pubsubName][topic].routes[route].eventHandlers.push(cb);
+    route = (route || this.PUBSUB_DEFAULT_ROUTE_NAME).replace("/", "");
+    this.pubSubSubscriptions[pubsubName][topic].routes[route ?? this.PUBSUB_DEFAULT_ROUTE_NAME].eventHandlers.push(cb);
+  }
+
+  generatePubSubSubscriptionTopicRouteName(route: string = "default") {
+    return (route || this.PUBSUB_DEFAULT_ROUTE_NAME).replace("/", "");
   }
 
   generatePubSubSubscriptionTopicRoutes(pubsubName: string, topic: string, options: PubSubSubscriptionOptionsType = {}): PubSubSubscriptionTopicRoutesType {
@@ -175,9 +183,11 @@ export default class HTTPServerImpl {
     if (typeof options.route === "object") {
       // Add default
       if (options.route.default) {
-        routes[options.route.default ?? "default"] = {
+        const routeName = this.generatePubSubSubscriptionTopicRouteName(options.route.default);
+
+        routes[routeName] = {
           eventHandlers: [],
-          path: this.generatePubsubPath(pubsubName, topic, options.route.default ?? "default")
+          path: this.generatePubsubPath(pubsubName, topic, routeName)
         }
       }
 
@@ -185,9 +195,11 @@ export default class HTTPServerImpl {
       if (options.route.rules) {
         for (const rule of options.route.rules) {
           if (!routes[rule.path]) {
-            routes[rule.path] = {
+            const routeName = this.generatePubSubSubscriptionTopicRouteName(rule.path);
+
+            routes[routeName] = {
               eventHandlers: [],
-              path: this.generatePubsubPath(pubsubName, topic, rule.path)
+              path: this.generatePubsubPath(pubsubName, topic, routeName)
             }
           }
         }
@@ -195,16 +207,18 @@ export default class HTTPServerImpl {
     }
     // options.route == String | undefined
     else {
-      routes[options?.route ?? "default"] = {
+      const routeName = this.generatePubSubSubscriptionTopicRouteName(options?.route);
+
+      routes[routeName] = {
         eventHandlers: [],
-        path: this.generatePubsubPath(pubsubName, topic, options.route ?? "default")
+        path: this.generatePubsubPath(pubsubName, topic, routeName)
       }
     }
 
     return routes;
   }
 
-  generateDaprSubscriptionRoute(pubsubName: string, topic: string, route: string = "default"): string {
+  generateDaprSubscriptionRoute(pubsubName: string, topic: string, route: string = this.PUBSUB_DEFAULT_ROUTE_NAME): string {
     return `/${this.generatePubsubPath(pubsubName, topic, route)}`;
   }
 
@@ -282,7 +296,7 @@ export default class HTTPServerImpl {
 
     // First parse the route based on if it was a Rule or a String
     if (!route) {
-      routeParsed = "default";
+      routeParsed = this.PUBSUB_DEFAULT_ROUTE_NAME;
     } else {
       routeParsed = route;
     }
