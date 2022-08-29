@@ -184,7 +184,6 @@ describe('http/server', () => {
     });
 
     it('should allow us to register an event handler after the server started', async () => {
-      console.log(server.pubsub.getSubscriptions()["pubsub-redis"]["topic-options-1"].routes["default"].eventHandlers);
       const countEventHandlers = server.pubsub.getSubscriptions()["pubsub-redis"]["topic-options-1"].routes["default"].eventHandlers.length;
       server.pubsub.subscribeOnEvent("pubsub-redis", "topic-options-1", "", async () => { });
       const countEventHandlersNew = server.pubsub.getSubscriptions()["pubsub-redis"]["topic-options-1"].routes["default"].eventHandlers.length;

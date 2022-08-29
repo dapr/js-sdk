@@ -87,122 +87,109 @@ describe('grpc/server', () => {
   });
 
   describe('pubsub', () => {
-    // it('should be able to send and receive events', async () => {
-    //   await server.client.pubsub.publish('pubsub-redis', 'topic-1', { hello: 'world' });
+    it('should be able to send and receive events', async () => {
+      await server.client.pubsub.publish('pubsub-redis', 'topic-1', { hello: 'world' });
 
-    //   // Delay a bit for event to arrive
-    //   await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+      // Delay a bit for event to arrive
+      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
 
-    //   expect(mockPubSubSubscribeRouteSingleEmpty.mock.calls.length).toBe(1);
+      expect(mockPubSubSubscribeRouteSingleEmpty.mock.calls.length).toBe(1);
 
-    //   // Also test for receiving data
-    //   // @ts-ignore
-    //   expect(mockPubSubSubscribeRouteSingleEmpty.mock.calls[0][0]['hello']).toEqual('world');
-    // });
+      // Also test for receiving data
+      // @ts-ignore
+      expect(mockPubSubSubscribeRouteSingleEmpty.mock.calls[0][0]['hello']).toEqual('world');
+    });
 
-    // it('should allow us to get all the routes', async () => {
-    //   const routes = server.pubsub.getRoutes();
-    //   expect(JSON.stringify(routes)).toEqual(JSON.stringify({
-    //     "pubsub-redis": {
-    //       "topic-options-1": [""],
-    //       "topic-1": [""],
-    //       "topic-2": ["single-route"],
-    //       "topic-3": ["no-leading-slash"],
-    //       "topic-4": ["", "type-1", "type-2"]
-    //     }
-    //   }));
-    // })
+    it('should only allow one subscription per topic', async () => {
+      const mock = jest.fn(async (_data: object) => { });
 
-    // it('should only allow one subscription per topic', async () => {
-    //   const mock = jest.fn(async (_data: object) => { });
+      try {
+        let server2 = new DaprServer("127.0.0.1", "50002", daprHost, daprPort, CommunicationProtocolEnum.HTTP);
+        await server2.pubsub.subscribe('pubsub-redis', 'demo-topic', mock);
+        await server2.pubsub.subscribe('pubsub-redis', 'demo-topic', mock, '/test');
+        server2 = undefined as any; // clean it up
+      } catch (e: any) {
+        expect(e.message).toEqual("The topic 'demo-topic' is already being subscribed to on PubSub 'pubsub-redis', there can only be one topic registered.")
+      }
+    });
 
-    //   try {
-    //     let server2 = new DaprServer("127.0.0.1", "50002", daprHost, daprPort, CommunicationProtocolEnum.HTTP);
-    //     await server2.pubsub.subscribe('pubsub-redis', 'demo-topic', mock);
-    //     await server2.pubsub.subscribe('pubsub-redis', 'demo-topic', mock, '/test');
-    //     server2 = undefined as any; // clean it up
-    //   } catch (e: any) {
-    //     expect(e.message).toEqual("The topic 'demo-topic' is already being subscribed to on PubSub 'pubsub-redis', there can only be one topic registered.")
-    //   }
-    // });
+    it('should receive if it was successful or not', async () => {
+      const res = await server.client.pubsub.publish('pubsub-redis', 'topic-demo', { hello: 'world' });
+      expect(res).toEqual(true);
+    });
 
-    // it('should receive if it was successful or not', async () => {
-    //   const res = await server.client.pubsub.publish('pubsub-redis', 'topic-demo', { hello: 'world' });
-    //   expect(res).toEqual(true);
-    // });
+    it('should create route "default" if we don\'t provide a route', async () => {
+      const subs = server.pubsub.getSubscriptions();
 
-    // it('should create route "default" if we don\'t provide a route', async () => {
-    //   const subs = server.pubsub.getSubscriptions();
+      expect(JSON.stringify(subs)).toContain(JSON.stringify({
+        pubsubname: "pubsub-redis",
+        topic: "topic-1",
+        route: "/pubsub-redis--topic-1--default"
+      }));
+    });
 
-    //   expect(JSON.stringify(subs)).toContain(JSON.stringify({
-    //     pubsubname: "pubsub-redis",
-    //     topic: "topic-1",
-    //     route: "/pubsub-redis--topic-1--default"
-    //   }));
-    // });
+    it('should create route "single-route" if we provide a single route', async () => {
+      const subs = server.pubsub.getSubscriptions();
 
-    // it('should create route "single-route" if we provide a single route', async () => {
-    //   const subs = server.pubsub.getSubscriptions();
+      expect(JSON.stringify(subs)).toContain(JSON.stringify({
+        pubsubname: "pubsub-redis",
+        topic: "topic-2",
+        route: "/pubsub-redis--topic-2--single-route"
+      }));
+    });
 
-    //   expect(JSON.stringify(subs)).toContain(JSON.stringify({
-    //     pubsubname: "pubsub-redis",
-    //     topic: "topic-2",
-    //     route: "/pubsub-redis--topic-2--single-route"
-    //   }));
-    // });
+    it('should create route and remove the leading slash if a route was provided with leading slash', async () => {
+      const subs = server.pubsub.getSubscriptions();
 
-    // it('should create route and remove the leading slash if a route was provided with leading slash', async () => {
-    //   const subs = server.pubsub.getSubscriptions();
+      expect(JSON.stringify(subs)).toContain(JSON.stringify({
+        pubsubname: "pubsub-redis",
+        topic: "topic-3",
+        route: "/pubsub-redis--topic-3--no-leading-slash"
+      }));
+    });
 
-    //   expect(JSON.stringify(subs)).toContain(JSON.stringify({
-    //     pubsubname: "pubsub-redis",
-    //     topic: "topic-3",
-    //     route: "/pubsub-redis--topic-3--no-leading-slash"
-    //   }));
-    // });
+    it('should allow us to create a route on the Dapr Spec with rules and default', async () => {
+      const subs = server.pubsub.getSubscriptions();
 
-    // it('should allow us to create a route on the Dapr Spec with rules and default', async () => {
-    //   const subs = server.pubsub.getSubscriptions();
+      expect(JSON.stringify(subs)).toContain(JSON.stringify({
+        pubsubname: "pubsub-redis",
+        topic: "topic-4",
+        routes: {
+          default: "/default",
+          rules: [
+            {
+              match: `event.type == "my-type-1"`,
+              path: "/pubsub-redis--topic-4--type-1"
+            },
+            {
+              match: `event.type == "my-type-2"`,
+              path: "/pubsub-redis--topic-4--type-2"
+            }
+          ]
+        }
+      }));
+    });
 
-    //   expect(JSON.stringify(subs)).toContain(JSON.stringify({
-    //     pubsubname: "pubsub-redis",
-    //     topic: "topic-4",
-    //     routes: {
-    //       default: "/default",
-    //       rules: [
-    //         {
-    //           match: `event.type == "my-type-1"`,
-    //           path: "/pubsub-redis--topic-4--type-1"
-    //         },
-    //         {
-    //           match: `event.type == "my-type-2"`,
-    //           path: "/pubsub-redis--topic-4--type-2"
-    //         }
-    //       ]
-    //     }
-    //   }));
-    // });
+    it('should correctly work if we provide a single route with custom options', async () => {
+      const res = await server.client.pubsub.publish('pubsub-redis', 'topic-route-empty', { hello: 'world' });
+      expect(res).toEqual(true);
+    });
 
-    // it('should correctly work if we provide a single route with custom options', async () => {
-    //   const res = await server.client.pubsub.publish('pubsub-redis', 'topic-route-empty', { hello: 'world' });
-    //   expect(res).toEqual(true);
-    // });
+    it('should allow us to register a listener without event handler callback', async () => {
+      const subs = server.pubsub.getSubscriptions();
+      expect(JSON.stringify(subs)).toContain(JSON.stringify({
+        pubsubname: "pubsub-redis",
+        topic: "topic-options-1",
+        route: "/pubsub-redis--topic-options-1--default"
+      }));
+    });
 
-    // it('should allow us to register a listener without event handler callback', async () => {
-    //   const subs = server.pubsub.getSubscriptions();
-    //   expect(JSON.stringify(subs)).toContain(JSON.stringify({
-    //     pubsubname: "pubsub-redis",
-    //     topic: "topic-options-1",
-    //     route: "/pubsub-redis--topic-options-1--default"
-    //   }));
-    // });
-
-    // it('should allow us to register an event handler after the server started', async () => {
-    //   const countEventHandlers = server.pubsub.getSubscriptionEventHandlers()["pubsub-redis--topic-options-1--default"].length;
-    //   server.pubsub.subscribeOnEvent("pubsub-redis", "topic-options-1", "", async () => { });
-    //   const countEventHandlersNew = server.pubsub.getSubscriptionEventHandlers()["pubsub-redis--topic-options-1--default"].length;
-    //   expect(countEventHandlersNew).toEqual(countEventHandlers + 1);
-    // });
+    it('should allow us to register an event handler after the server started', async () => {
+      const countEventHandlers = server.pubsub.getSubscriptions()["pubsub-redis"]["topic-options-1"].routes["default"].eventHandlers.length;
+      server.pubsub.subscribeOnEvent("pubsub-redis", "topic-options-1", "", async () => { });
+      const countEventHandlersNew = server.pubsub.getSubscriptions()["pubsub-redis"]["topic-options-1"].routes["default"].eventHandlers.length;
+      expect(countEventHandlersNew).toEqual(countEventHandlers + 1);
+    });
   });
 
   // describe('invoker', () => {

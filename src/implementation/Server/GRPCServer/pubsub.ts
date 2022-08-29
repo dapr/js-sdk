@@ -30,25 +30,47 @@ export default class DaprPubSub implements IServerPubSub {
     this.logger = new Logger("GRPCServer", "PubSub", server.client.options.logger);
   }
 
-  async subscribe(pubsubName: string, topic: string, cb: TypeDaprPubSubCallback, route: string = ""): Promise<void> {
-    this.logger.info(`Registering onTopicEvent Handler: PubSub = ${pubsubName}; Topic = ${topic}`)
-    this.server.getServerImpl().registerPubSubSubscriptionHandler(pubsubName, topic, cb, { route });
+  async subscribe(pubsubName: string, topic: string, cb: TypeDaprPubSubCallback
+    , route: string | DaprPubSubRouteType = ""): Promise<void> {
+    this.server.getServerImpl().registerPubsubSubscription(pubsubName, topic, { route });
+
+    // Add the callback to the event handlers manually
+    // @todo: we will deprecate this way of working? and require subscribeOnEvent?
+    this.subscribeOnEvent(pubsubName, topic, route, cb)
   }
 
   async subscribeWithOptions(pubsubName: string, topic: string, options: PubSubSubscriptionOptionsType = {}): Promise<void> {
-    this.logger.info(`Registering onTopicEvent Handler: PubSub = ${pubsubName}; Topic = ${topic}`)
-    // this.server.getServerImpl().registerPubSubSubscriptionHandler(pubsubName, topic, cb, options);
-  }
-
-  async subscribeDeadletter(pubsubName: string, topicDeadletter: string, cb: TypeDaprPubSubCallback): Promise<void> {
-    await this.subscribe(pubsubName, topicDeadletter, cb);
+    this.server.getServerImpl().registerPubsubSubscription(pubsubName, topic, options);
   }
 
   subscribeOnEvent(pubsubName: string, topic: string, route: string | DaprPubSubRouteType, cb: TypeDaprPubSubCallback): void {
-    // Not implemented
+    if (typeof route === "string") {
+      this.subscribeOnEventStringType(pubsubName, topic, route, cb);
+    } else {
+      this.subscribeOnEventDaprPubSubRouteType(pubsubName, topic, route, cb);
+    }
+  }
+
+  subscribeOnEventDaprPubSubRouteType(pubsubName: string, topic: string
+    , route: DaprPubSubRouteType, cb: TypeDaprPubSubCallback): void {
+    // Register the default
+    if (route.default) {
+      this.server.getServerImpl().registerPubSubSubscriptionEventHandler(pubsubName, topic, route.default, cb);
+    }
+
+    // Register the rules
+    if (route.rules) {
+      for (const rule of route.rules) {
+        this.server.getServerImpl().registerPubSubSubscriptionEventHandler(pubsubName, topic, rule.path, cb);
+      }
+    }
+  }
+
+  subscribeOnEventStringType(pubsubName: string, topic: string, route: string, cb: TypeDaprPubSubCallback): void {
+    this.server.getServerImpl().registerPubSubSubscriptionEventHandler(pubsubName, topic, route, cb);
   }
 
   getSubscriptions(): PubSubSubscriptionsType {
-    return {};
+    return this.server.getServerImpl().pubSubSubscriptions;
   }
 }
