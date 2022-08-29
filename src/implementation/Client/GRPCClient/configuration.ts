@@ -54,20 +54,22 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
           return reject(err);
         }
 
-        const wrapped: GetConfigurationResponseResult = {
-          items: res.getItemsMap().toObject().reduce((configs: KeyConfigType, [key, value]) => {
-            const item: ConfigurationItem = {
-              value : value.getValue(),
-              version : value.getVersion(),         
-              metadata :  value.getMetadataMap().toObject().reduce((result: object, [key, value]) => {
-              // @ts-ignore
-              result[key] = value;
-              return result
-            }, {}),
-            };   
-            configs[key] = item;
-            return configs           
-            }, {}),
+        const configMap = Object()
+        res.getItemsMap().forEach(function(v, k) {
+          const item: ConfigurationItem = {
+            value : v.getValue(),
+            version : v.getVersion(),         
+            metadata :  v.getMetadataMap().toObject().reduce((result: object, [key, value]) => {
+            // @ts-ignore
+            result[key] = value;
+            return result
+          }, {}),
+          };
+          configMap[k] = item
+      })
+  
+        const wrapped: SubscribeConfigurationResponseResult = {
+          items: configMap
         }
 
         return resolve(wrapped);
@@ -116,21 +118,22 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
 
     stream.on("data", async (data: SubscribeConfigurationResponse) => {
       streamId = data.getId();
+      const configMap = Object()
+      data.getItemsMap().forEach(function(v, k) {
+        const item: ConfigurationItem = {
+          value : v.getValue(),
+          version : v.getVersion(),         
+          metadata :  v.getMetadataMap().toObject().reduce((result: object, [key, value]) => {
+          // @ts-ignore
+          result[key] = value;
+          return result
+        }, {}),
+        };
+        configMap[k] = item
+    })
 
       const wrapped: SubscribeConfigurationResponseResult = {
-        items: data.getItemsMap().toObject().reduce((configs: KeyConfigType, [key, value]) => {
-          const item: ConfigurationItem = {
-            value : value.getValue(),
-            version : value.getVersion(),         
-            metadata :  value.getMetadataMap().toObject().reduce((result: object, [key, value]) => {
-            // @ts-ignore
-            result[key] = value;
-            return result
-          }, {}),
-          };   
-          configs[key] = item;
-          return configs           
-          }, {}),
+        items: configMap
       }
 
       await cb(wrapped);
