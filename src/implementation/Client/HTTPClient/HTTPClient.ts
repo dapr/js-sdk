@@ -25,18 +25,17 @@ import HTTPClientSidecar from "./sidecar";
 export default class HTTPClient implements IClient {
   private isInitialized: boolean;
 
-  private readonly client: typeof fetch;
+  private static client: typeof fetch;
   private readonly clientHost: string;
   private readonly clientPort: string;
   private readonly clientUrl: string;
   private readonly options: DaprClientOptions;
   private readonly logger: Logger;
 
-  private readonly httpAgent;
-  private readonly httpsAgent;
-  private static _instance: HTTPClient;
+  private static httpAgent: http.Agent;
+  private static httpsAgent: https.Agent;
 
-  private constructor(
+  constructor(
     host = Settings.getDefaultHost()
     , port = Settings.getDefaultHttpPort()
     , options: DaprClientOptions = {},
@@ -57,29 +56,28 @@ export default class HTTPClient implements IClient {
       this.clientUrl = `${this.clientHost}:${this.clientPort}/v1.0`;
     }
 
-    this.client = fetch;
+    if(!HTTPClient.client) {
+      HTTPClient.client = fetch;
+    }
 
     // Add a custom agent so we can decide if we want to reuse connections or not
     // we use an agent so we can reuse an open connection, limiting handshake requirements
     // Note: when using an agent, we will encounter TCPWRAP since the connection doesn't get destroyed
     if (this.options.isKeepAlive) {
-      this.httpAgent = new http.Agent({ keepAlive: true, keepAliveMsecs: 30 * 1000 });
-      this.httpsAgent = new https.Agent({ keepAlive: true, keepAliveMsecs: 30 * 1000 });
+      if(!HTTPClient.httpAgent) {
+        HTTPClient.httpAgent = new http.Agent({ keepAlive: true, keepAliveMsecs: 30 * 1000 });
+      }
+      if(!HTTPClient.httpsAgent) {
+        HTTPClient.httpsAgent = new https.Agent({ keepAlive: true, keepAliveMsecs: 30 * 1000 });
+      }
     } else {
-      this.httpAgent = new http.Agent();
-      this.httpsAgent = new https.Agent();
+      if(!HTTPClient.httpAgent) {
+        HTTPClient.httpAgent = new http.Agent();
+      }
+      if(!HTTPClient.httpsAgent) {
+        HTTPClient.httpsAgent = new https.Agent();
+      }
     }
-  }
-
-  static getInstance(
-    host = Settings.getDefaultHost()
-    , port = Settings.getDefaultHttpPort()
-    , options: DaprClientOptions = {}
-  ): HTTPClient {
-    if (!HTTPClient._instance) {
-      HTTPClient._instance = new HTTPClient(host, port, options);
-    }
-    return HTTPClient._instance;
   }
 
   async getClient(requiresInitialization = true): Promise<typeof fetch> {
@@ -89,7 +87,7 @@ export default class HTTPClient implements IClient {
       await this.start();
     }
 
-    return this.client;
+    return HTTPClient.client;
   }
 
   getClientHost(): string {
@@ -125,8 +123,8 @@ export default class HTTPClient implements IClient {
   }
 
   async stop(): Promise<void> {
-    this.httpAgent.destroy();
-    this.httpsAgent.destroy();
+    HTTPClient.httpAgent.destroy();
+    HTTPClient.httpsAgent.destroy();
   }
 
   async start(): Promise<void> {
@@ -182,7 +180,7 @@ export default class HTTPClient implements IClient {
     }
 
     const urlFull = url.startsWith("http") ? url : `${this.clientUrl}${url}`;
-    const agent = urlFull.startsWith("https") ? this.httpsAgent : this.httpAgent;
+    const agent = urlFull.startsWith("https") ? HTTPClient.httpsAgent : HTTPClient.httpAgent;
     params.agent = agent;
 
     this.logger.debug(`Fetching ${params.method} ${urlFull} with body: (${params.body})`);

@@ -41,7 +41,7 @@ export default class ActorClient {
       }
       case CommunicationProtocolEnum.HTTP:
       default: {
-        const client = HTTPClient.getInstance(this.daprHost, this.daprPort, this.options);
+        const client = new HTTPClient(this.daprHost, this.daprPort, this.options);
         this.actor = new ActorClientHTTP(client);
         break;
       }

@@ -35,6 +35,9 @@ describe('DaprClient', () => {
   it('same http client should be returned for multiple DaprClient invocations', () => {
     const daprClient1 = new DaprClient(host, port);
     const daprClient2 = new DaprClient(host, port);
-    expect(daprClient1.getDaprClient()).toEqual(daprClient2.getDaprClient());
+    return Promise.all([daprClient1.getDaprClient().getClient(false), 
+      daprClient2.getDaprClient().getClient(false)]).then(function(values) {
+      expect(values[0]).toEqual(values[1]);
+    });
   });
 });
