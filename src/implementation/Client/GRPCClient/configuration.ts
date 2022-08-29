@@ -21,7 +21,6 @@ import { SubscribeConfigurationResponse as SubscribeConfigurationResponseResult 
 import { SubscribeConfigurationCallback } from '../../../types/configuration/SubscribeConfigurationCallback';
 import { SubscribeConfigurationStream } from '../../../types/configuration/SubscribeConfigurationStream';
 import { ConfigurationItem } from '../../../types/configuration/ConfigurationItem';
-import { KeyConfigType } from '../../../types/KeyConfig.type';
 
 export default class GRPCClientConfiguration implements IClientConfiguration {
   client: GRPCClient;
