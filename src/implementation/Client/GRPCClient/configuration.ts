@@ -56,7 +56,7 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
 
         const wrapped: GetConfigurationResponseResult = {
           items: res.getItemsMap().toObject().reduce((configs: KeyConfigType, [key, value]) => {
-            const obj1: ConfigurationItem = {
+            const item: ConfigurationItem = {
               value : value.getValue(),
               version : value.getVersion(),         
               metadata :  value.getMetadataMap().toObject().reduce((result: object, [key, value]) => {
@@ -65,7 +65,7 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
               return result
             }, {}),
             };   
-            configs[key] = obj1;
+            configs[key] = item;
             return configs           
             }, {}),
         }
@@ -119,7 +119,7 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
 
       const wrapped: SubscribeConfigurationResponseResult = {
         items: data.getItemsMap().toObject().reduce((configs: KeyConfigType, [key, value]) => {
-          const obj1: ConfigurationItem = {
+          const item: ConfigurationItem = {
             value : value.getValue(),
             version : value.getVersion(),         
             metadata :  value.getMetadataMap().toObject().reduce((result: object, [key, value]) => {
@@ -128,7 +128,7 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
             return result
           }, {}),
           };   
-          configs[key] = obj1;
+          configs[key] = item;
           return configs           
           }, {}),
       }
