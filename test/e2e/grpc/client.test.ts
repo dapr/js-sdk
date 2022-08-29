@@ -437,9 +437,10 @@ describe('grpc/client', () => {
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
 
       expect(m1.mock.calls.length).toEqual(1);
-      expect("myconfigkey1" in m.mock.calls[0][0].items);
+      expect("myconfigkey1" in m1.mock.calls[0][0].items);
       expect(m1.mock.calls[0][0].items["myconfigkey1"].value == "key1_mynewvalue");
-
+      
+      expect(m2.mock.calls.length).toEqual(1);
       expect("myconfigkey1" in m2.mock.calls[0][0].items);
       expect(m2.mock.calls[0][0].items["myconfigkey1"].value == "key1_mynewvalue");
 
