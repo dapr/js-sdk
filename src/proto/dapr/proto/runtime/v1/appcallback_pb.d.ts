@@ -157,9 +157,9 @@ export namespace BindingEventResponse {
 
 export class ListTopicSubscriptionsResponse extends jspb.Message { 
     clearSubscriptionsList(): void;
-    getSubscriptionsList(): Array<TopicSubscription>;
-    setSubscriptionsList(value: Array<TopicSubscription>): ListTopicSubscriptionsResponse;
-    addSubscriptions(value?: TopicSubscription, index?: number): TopicSubscription;
+    getSubscriptionsList(): Array<dapr_proto_common_v1_common_pb.TopicSubscription>;
+    setSubscriptionsList(value: Array<dapr_proto_common_v1_common_pb.TopicSubscription>): ListTopicSubscriptionsResponse;
+    addSubscriptions(value?: dapr_proto_common_v1_common_pb.TopicSubscription, index?: number): dapr_proto_common_v1_common_pb.TopicSubscription;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ListTopicSubscriptionsResponse.AsObject;
@@ -173,92 +173,7 @@ export class ListTopicSubscriptionsResponse extends jspb.Message {
 
 export namespace ListTopicSubscriptionsResponse {
     export type AsObject = {
-        subscriptionsList: Array<TopicSubscription.AsObject>,
-    }
-}
-
-export class TopicSubscription extends jspb.Message { 
-    getPubsubName(): string;
-    setPubsubName(value: string): TopicSubscription;
-    getTopic(): string;
-    setTopic(value: string): TopicSubscription;
-
-    getMetadataMap(): jspb.Map<string, string>;
-    clearMetadataMap(): void;
-
-    hasRoutes(): boolean;
-    clearRoutes(): void;
-    getRoutes(): TopicRoutes | undefined;
-    setRoutes(value?: TopicRoutes): TopicSubscription;
-    getDeadLetterTopic(): string;
-    setDeadLetterTopic(value: string): TopicSubscription;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): TopicSubscription.AsObject;
-    static toObject(includeInstance: boolean, msg: TopicSubscription): TopicSubscription.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: TopicSubscription, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): TopicSubscription;
-    static deserializeBinaryFromReader(message: TopicSubscription, reader: jspb.BinaryReader): TopicSubscription;
-}
-
-export namespace TopicSubscription {
-    export type AsObject = {
-        pubsubName: string,
-        topic: string,
-
-        metadataMap: Array<[string, string]>,
-        routes?: TopicRoutes.AsObject,
-        deadLetterTopic: string,
-    }
-}
-
-export class TopicRoutes extends jspb.Message { 
-    clearRulesList(): void;
-    getRulesList(): Array<TopicRule>;
-    setRulesList(value: Array<TopicRule>): TopicRoutes;
-    addRules(value?: TopicRule, index?: number): TopicRule;
-    getDefault(): string;
-    setDefault(value: string): TopicRoutes;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): TopicRoutes.AsObject;
-    static toObject(includeInstance: boolean, msg: TopicRoutes): TopicRoutes.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: TopicRoutes, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): TopicRoutes;
-    static deserializeBinaryFromReader(message: TopicRoutes, reader: jspb.BinaryReader): TopicRoutes;
-}
-
-export namespace TopicRoutes {
-    export type AsObject = {
-        rulesList: Array<TopicRule.AsObject>,
-        pb_default: string,
-    }
-}
-
-export class TopicRule extends jspb.Message { 
-    getMatch(): string;
-    setMatch(value: string): TopicRule;
-    getPath(): string;
-    setPath(value: string): TopicRule;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): TopicRule.AsObject;
-    static toObject(includeInstance: boolean, msg: TopicRule): TopicRule.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: TopicRule, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): TopicRule;
-    static deserializeBinaryFromReader(message: TopicRule, reader: jspb.BinaryReader): TopicRule;
-}
-
-export namespace TopicRule {
-    export type AsObject = {
-        match: string,
-        path: string,
+        subscriptionsList: Array<dapr_proto_common_v1_common_pb.TopicSubscription.AsObject>,
     }
 }
 
@@ -281,5 +196,22 @@ export class ListInputBindingsResponse extends jspb.Message {
 export namespace ListInputBindingsResponse {
     export type AsObject = {
         bindingsList: Array<string>,
+    }
+}
+
+export class HealthCheckResponse extends jspb.Message { 
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): HealthCheckResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: HealthCheckResponse): HealthCheckResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: HealthCheckResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): HealthCheckResponse;
+    static deserializeBinaryFromReader(message: HealthCheckResponse, reader: jspb.BinaryReader): HealthCheckResponse;
+}
+
+export namespace HealthCheckResponse {
+    export type AsObject = {
     }
 }

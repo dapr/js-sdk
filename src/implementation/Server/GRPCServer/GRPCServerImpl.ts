@@ -16,8 +16,8 @@ import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 import { Any } from "google-protobuf/google/protobuf/any_pb";
 
 import { IAppCallbackServer } from "../../../proto/dapr/proto/runtime/v1/appcallback_grpc_pb";
-import { HTTPExtension, InvokeRequest, InvokeResponse } from '../../../proto/dapr/proto/common/v1/common_pb';
-import { BindingEventRequest, BindingEventResponse, ListInputBindingsResponse, ListTopicSubscriptionsResponse, TopicEventRequest, TopicEventResponse, TopicSubscription } from "../../../proto/dapr/proto/runtime/v1/appcallback_pb";
+import { HTTPExtension, InvokeRequest, InvokeResponse, TopicSubscription } from '../../../proto/dapr/proto/common/v1/common_pb';
+import { BindingEventRequest, BindingEventResponse, ListInputBindingsResponse, ListTopicSubscriptionsResponse, TopicEventRequest, TopicEventResponse } from "../../../proto/dapr/proto/runtime/v1/appcallback_pb";
 import { TypeDaprInvokerCallback } from "../../../types/DaprInvokerCallback.type";
 import * as HttpVerbUtil from "../../../utils/HttpVerb.util";
 import { TypeDaprBindingCallback } from "../../../types/DaprBindingCallback.type";

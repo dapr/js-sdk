@@ -1102,10 +1102,9 @@ export namespace GetConfigurationRequest {
 }
 
 export class GetConfigurationResponse extends jspb.Message { 
-    clearItemsList(): void;
-    getItemsList(): Array<dapr_proto_common_v1_common_pb.ConfigurationItem>;
-    setItemsList(value: Array<dapr_proto_common_v1_common_pb.ConfigurationItem>): GetConfigurationResponse;
-    addItems(value?: dapr_proto_common_v1_common_pb.ConfigurationItem, index?: number): dapr_proto_common_v1_common_pb.ConfigurationItem;
+
+    getItemsMap(): jspb.Map<string, dapr_proto_common_v1_common_pb.ConfigurationItem>;
+    clearItemsMap(): void;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): GetConfigurationResponse.AsObject;
@@ -1119,7 +1118,8 @@ export class GetConfigurationResponse extends jspb.Message {
 
 export namespace GetConfigurationResponse {
     export type AsObject = {
-        itemsList: Array<dapr_proto_common_v1_common_pb.ConfigurationItem.AsObject>,
+
+        itemsMap: Array<[string, dapr_proto_common_v1_common_pb.ConfigurationItem.AsObject]>,
     }
 }
 
@@ -1179,10 +1179,9 @@ export namespace UnsubscribeConfigurationRequest {
 export class SubscribeConfigurationResponse extends jspb.Message { 
     getId(): string;
     setId(value: string): SubscribeConfigurationResponse;
-    clearItemsList(): void;
-    getItemsList(): Array<dapr_proto_common_v1_common_pb.ConfigurationItem>;
-    setItemsList(value: Array<dapr_proto_common_v1_common_pb.ConfigurationItem>): SubscribeConfigurationResponse;
-    addItems(value?: dapr_proto_common_v1_common_pb.ConfigurationItem, index?: number): dapr_proto_common_v1_common_pb.ConfigurationItem;
+
+    getItemsMap(): jspb.Map<string, dapr_proto_common_v1_common_pb.ConfigurationItem>;
+    clearItemsMap(): void;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): SubscribeConfigurationResponse.AsObject;
@@ -1197,7 +1196,8 @@ export class SubscribeConfigurationResponse extends jspb.Message {
 export namespace SubscribeConfigurationResponse {
     export type AsObject = {
         id: string,
-        itemsList: Array<dapr_proto_common_v1_common_pb.ConfigurationItem.AsObject>,
+
+        itemsMap: Array<[string, dapr_proto_common_v1_common_pb.ConfigurationItem.AsObject]>,
     }
 }
 

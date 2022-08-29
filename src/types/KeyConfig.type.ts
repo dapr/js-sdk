@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { KeyConfigType } from "../KeyConfig.type";
+import { ConfigurationItem } from "./configuration/ConfigurationItem";
 
-export type SubscribeConfigurationResponse = {
-  items: KeyConfigType;
+export type KeyConfigType = {
+  [key: string]: ConfigurationItem;
 }

@@ -20,6 +20,8 @@ import { GetConfigurationResponse as GetConfigurationResponseResult } from '../.
 import { SubscribeConfigurationResponse as SubscribeConfigurationResponseResult } from '../../../types/configuration/SubscribeConfigurationResponse';
 import { SubscribeConfigurationCallback } from '../../../types/configuration/SubscribeConfigurationCallback';
 import { SubscribeConfigurationStream } from '../../../types/configuration/SubscribeConfigurationStream';
+import { ConfigurationItem } from '../../../types/configuration/ConfigurationItem';
+import { KeyConfigType } from '../../../types/KeyConfig.type';
 
 export default class GRPCClientConfiguration implements IClientConfiguration {
   client: GRPCClient;
@@ -53,16 +55,19 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
         }
 
         const wrapped: GetConfigurationResponseResult = {
-          items: res.getItemsList().map((item) => ({
-            key: item.getKey(),
-            value: item.getValue(),
-            version: item.getVersion(),
-            metadata: item.getMetadataMap().toObject().reduce((result: object, [key, value]) => {
+          items: res.getItemsMap().toObject().reduce((configs: KeyConfigType, [key, value]) => {
+            const obj1: ConfigurationItem = {
+              value : value.getValue(),
+              version : value.getVersion(),         
+              metadata :  value.getMetadataMap().toObject().reduce((result: object, [key, value]) => {
               // @ts-ignore
               result[key] = value;
               return result
             }, {}),
-          }))
+            };   
+            configs[key] = obj1;
+            return configs           
+            }, {}),
         }
 
         return resolve(wrapped);
@@ -113,16 +118,19 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
       streamId = data.getId();
 
       const wrapped: SubscribeConfigurationResponseResult = {
-        items: data.getItemsList().map((item) => ({
-          key: item.getKey(),
-          value: item.getValue(),
-          version: item.getVersion(),
-          metadata: item.getMetadataMap().toObject().reduce((result: object, [key, value]) => {
+        items: data.getItemsMap().toObject().reduce((configs: KeyConfigType, [key, value]) => {
+          const obj1: ConfigurationItem = {
+            value : value.getValue(),
+            version : value.getVersion(),         
+            metadata :  value.getMetadataMap().toObject().reduce((result: object, [key, value]) => {
             // @ts-ignore
             result[key] = value;
             return result
           }, {}),
-        }))
+          };   
+          configs[key] = obj1;
+          return configs           
+          }, {}),
       }
 
       await cb(wrapped);
