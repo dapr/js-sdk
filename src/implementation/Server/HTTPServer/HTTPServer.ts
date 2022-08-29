@@ -108,10 +108,10 @@ export default class HTTPServer implements IServer {
     this.serverAddress = `http://${host}:${port}`;
 
     // Add PubSub Routes
-    this.logger.info(`Registering ${this.serverImpl.pubsubSubscriptions.length} PubSub Subscriptions`);
+    this.logger.info(`Registering ${this.serverImpl.pubSubSubscriptions.length} PubSub Subscriptions`);
     this.server.get('/dapr/subscribe', (req, res) => {
-      res.send(this.serverImpl.pubsubSubscriptions);
-      this.logger.info(`Registered ${this.serverImpl.pubsubSubscriptions.length} PubSub Subscriptions`);
+      res.send(this.serverImpl.generateDaprPubSubSubscriptionList());
+      this.logger.info(`Registered ${this.serverImpl.pubSubSubscriptions.length} PubSub Subscriptions`);
     });
 
     this.isInitialized = true;

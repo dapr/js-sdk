@@ -18,6 +18,7 @@ import { Logger } from "../../../logger/Logger";
 import { PubSubSubscriptionOptionsType } from "../../../types/pubsub/PubSubSubscriptionOptions.type";
 import { DaprPubSubType } from "../../../types/pubsub/DaprPubSub.type";
 import { DaprPubSubRouteType } from "../../../types/pubsub/DaprPubSubRouteType.type";
+import { PubSubSubscriptionsType } from "../../../types/pubsub/PubSubSubscriptions.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class DaprPubSub implements IServerPubSub {
@@ -47,15 +48,7 @@ export default class DaprPubSub implements IServerPubSub {
     // Not implemented
   }
 
-  getRoutes(): { [key: string]: any } {
-    return [];
-  }
-
-  getSubscriptions(): DaprPubSubType[] {
-    return [];
-  }
-
-  getSubscriptionEventHandlers(): { [key: string]: TypeDaprPubSubCallback[] } {
+  getSubscriptions(): PubSubSubscriptionsType {
     return {};
   }
 }
