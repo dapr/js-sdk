@@ -18,7 +18,7 @@ import { ActorRuntimeOptions } from "../types/actors/ActorRuntimeOptions";
  * See https://docs.dapr.io/reference/api/actors_api/#get-registered-actors
  */
 export function getRegisteredActorResponse(entities: string[], options: ActorRuntimeOptions): {[k: string]: any} {
-    var res: {[k: string]: any} = {};
+    const res: {[k: string]: any} = {};
     res["entities"] = entities
 
     if (options.actorIdleTimeout) { res["actorIdleTimeout"] = options.actorIdleTimeout }
