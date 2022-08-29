@@ -27,7 +27,7 @@ export default class ActorRuntime {
 
   private readonly daprClient: DaprClient;
   private actorManagers: Map<string, ActorManager<any>>;
-  private actorRuntimeConfig: ActorRuntimeConfig = new ActorRuntimeConfig();
+  private actorRuntimeConfig: ActorRuntimeConfig;
 
   // @todo: we need to make sure race condition cannot happen when accessing the active actors
   // NodeJS has an event loop (main thread -> runs JS code) and a worker pool (threadpool -> automatically created for offloading work through libuv) threads
@@ -42,6 +42,7 @@ export default class ActorRuntime {
 
   private constructor(daprClient: DaprClient) {
     this.daprClient = daprClient;
+    this.actorRuntimeConfig = this.daprClient.options.actor ?? new ActorRuntimeConfig();
     this.actorManagers = new Map<string, ActorManager<any>>();
   }
 

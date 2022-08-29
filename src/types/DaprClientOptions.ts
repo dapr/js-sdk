@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import ActorRuntimeConfig from "../actors/runtime/ActorRuntimeConfig";
 import { LoggerOptions } from "./logger/LoggerOptions";
 
 export type DaprClientOptions = {
@@ -24,4 +25,9 @@ export type DaprClientOptions = {
    * Options related to logging.
    */
   logger?: LoggerOptions;
+
+  /**
+   * Options related to actors.
+   */
+  actor?: ActorRuntimeConfig;
 }
