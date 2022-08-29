@@ -11,10 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { KeyValueType } from "../../../types/KeyValue.type";
+
 interface PubSubSubscriptionRoute {
     pubsubname: string;
     topic: string;
     route: string;
+    metadata: { [key: string]: string };
 }
 
 export default class HTTPServerImpl {
@@ -24,9 +27,13 @@ export default class HTTPServerImpl {
         this.pubSubSubscriptionRoutes = [];
     }
 
-    registerPubSubSubscriptionRoute(pubSubName: string, topicName: string, route: string): void {
+    registerPubSubSubscriptionRoute(pubSubName: string, topicName: string, route: string, metadata: KeyValueType= {}): void {
+        const httpMetadata: { [key: string]: string } = {};
+        for (const [key, value] of Object.entries(metadata)) {
+            httpMetadata[key] = JSON.stringify(value);
+        }
         this.pubSubSubscriptionRoutes.push({
-            pubsubname: pubSubName, topic: topicName, route
+            pubsubname: pubSubName, topic: topicName, route: route, metadata: httpMetadata
         });
     }
 }
