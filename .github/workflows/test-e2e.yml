@@ -34,7 +34,7 @@ jobs:
   test-e2e:
     runs-on: ubuntu-latest
     env:
-      GOVER: 1.17
+      GOVER: 1.19
       DAPR_CLI_VER: 1.8.0
       DAPR_RUNTIME_VER: 1.8.0
       DAPR_INSTALL_URL: https://raw.githubusercontent.com/dapr/cli/master/install/install.sh
