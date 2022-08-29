@@ -46,7 +46,7 @@ export type ActorRuntimeOptions = {
     /**
      * Configures different reentrancy parameters.
      */
-    reentrancyOptions?: ActorReentrancyOptions;
+    reentrancy?: ActorReentrancyOptions;
 
     /**
      * Specifies the number of partitions for actor’s reminders.
