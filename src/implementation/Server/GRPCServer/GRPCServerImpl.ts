@@ -101,33 +101,6 @@ export default class GRPCServerImpl implements IAppCallbackServer {
       };
     }
 
-    // // Listen to the created endpoints on the HTTP Server
-    // for (const route of Object.keys(this.pubSubSubscriptions[pubsubName][topic].routes)) {
-    //   const routeObj = this.pubSubSubscriptions[pubsubName][topic].routes[route];
-
-    //   // Add a server POST handler
-    //   this.server.post(`/${routeObj.path}`, async (req, res) => {
-    //     // @ts-ignore
-    //     // Parse the data of the body, we prioritize fetching the data key in body if possible
-    //     // i.e. Redis returns { data: {} } and other services return {}
-    //     // @todo: This will be deprecated in an upcoming major version and only req.body will be returned
-    //     const data = req?.body?.data || req?.body;
-
-    //     // Process our callback
-    //     try {
-    //       const eventHandlers = routeObj.eventHandlers;
-    //       await Promise.all(eventHandlers.map(cb => cb(data)));
-    //     } catch (e) {
-    //       this.logger.error(`[route-${routeObj.path}] Message processing failed, dropping: ${e}`);
-    //       return res.send({ status: SubscribedMessageHttpResponse.DROP });
-    //     }
-
-    //     // Let Dapr know that the message was processed correctly
-    //     this.logger.debug(`[route-${routeObj.path}] Ack'ing the message`);
-    //     return res.send({ status: SubscribedMessageHttpResponse.SUCCESS });
-    //   });
-    // }
-
     this.logger.info(`[Topic = ${topic}] Registered Subscription with routes: ${Object.keys(this.pubSubSubscriptions[pubsubName][topic].routes).join(", ")}`);
   }
 
@@ -172,6 +145,16 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     // options.route == String | undefined
     else {
       const routeName = this.generatePubSubSubscriptionTopicRouteName(options?.route);
+
+      routes[routeName] = {
+        eventHandlers: [],
+        path: this.generatePubsubPath(pubsubName, topic, routeName)
+      }
+    }
+
+    // Deadletter Support
+    if (options.deadLetterTopic) {
+      const routeName = this.generatePubSubSubscriptionTopicRouteName(options?.deadLetterTopic);
 
       routes[routeName] = {
         eventHandlers: [],
@@ -395,14 +378,16 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
     for (const pubsub of Object.keys(this.pubSubSubscriptions)) {
       for (const topic of Object.keys(this.pubSubSubscriptions[pubsub])) {
-        // this.pubSubSubscriptions[pubsub][topic].dapr
-
         const topicSubscription = new TopicSubscription();
         topicSubscription.setPubsubName(pubsub);
         topicSubscription.setTopic(topic);
 
         // Dapr routes
         const daprConfig = this.pubSubSubscriptions[pubsub][topic].dapr;
+
+        if (daprConfig?.deadLetterTopic) {
+          topicSubscription.setDeadLetterTopic(daprConfig.deadLetterTopic);
+        }
 
         if (daprConfig?.routes) {
           let routes = new TopicRoutes();

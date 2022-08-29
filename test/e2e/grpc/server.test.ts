@@ -38,6 +38,7 @@ describe('grpc/server', () => {
     // Test with:
     // dapr publish --publish-app-id test-suite --pubsub pubsub-redis --topic test-topic --data '{ "hello": "world" }'
     await server.pubsub.subscribeWithOptions('pubsub-redis', 'topic-options-1', {});
+    await server.pubsub.subscribeWithOptions('pubsub-redis', 'topic-options-2', { deadLetterTopic: "my-deadletter-topic" });
     await server.pubsub.subscribe('pubsub-redis', 'topic-1', mockPubSubSubscribeRouteSingleEmpty);
     await server.pubsub.subscribe('pubsub-redis', 'topic-2', mockPubSubSubscribeRouteSingle, "single-route");
     await server.pubsub.subscribe('pubsub-redis', 'topic-3', mockPubSubSubscribeRouteSingleNoLeadingSlash, "/no-leading-slash");
@@ -188,6 +189,18 @@ describe('grpc/server', () => {
       const countEventHandlers = server.pubsub.getSubscriptions()["pubsub-redis"]["topic-options-1"].routes["default"].eventHandlers.length;
       server.pubsub.subscribeOnEvent("pubsub-redis", "topic-options-1", "", async () => { });
       const countEventHandlersNew = server.pubsub.getSubscriptions()["pubsub-redis"]["topic-options-1"].routes["default"].eventHandlers.length;
+      expect(countEventHandlersNew).toEqual(countEventHandlers + 1);
+    });
+
+    it('should provide a deadletter route if we pass a deadletter topic to the options', async () => {
+      const subs = server.pubsub.getSubscriptions();
+      expect(JSON.stringify(subs)).toContain("pubsub-redis--topic-options-2--my-deadletter-topic");
+    });
+
+    it('should allow us to listen on the deadletter topic', async () => {
+      const countEventHandlers = server.pubsub.getSubscriptions()["pubsub-redis"]["topic-options-2"].routes["my-deadletter-topic"].eventHandlers.length;
+      server.pubsub.subscribeOnEvent("pubsub-redis", "topic-options-2", "my-deadletter-topic", async () => { });
+      const countEventHandlersNew = server.pubsub.getSubscriptions()["pubsub-redis"]["topic-options-2"].routes["my-deadletter-topic"].eventHandlers.length;
       expect(countEventHandlersNew).toEqual(countEventHandlers + 1);
     });
   });

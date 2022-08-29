@@ -149,6 +149,16 @@ export default class HTTPServerImpl {
       }
     }
 
+    // Deadletter Support
+    if (options.deadLetterTopic) {
+      const routeName = this.generatePubSubSubscriptionTopicRouteName(options?.deadLetterTopic);
+
+      routes[routeName] = {
+        eventHandlers: [],
+        path: this.generatePubsubPath(pubsubName, topic, routeName)
+      }
+    }
+
     return routes;
   }
 

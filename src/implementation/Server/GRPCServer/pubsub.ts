@@ -16,7 +16,6 @@ import { TypeDaprPubSubCallback } from "../../../types/DaprPubSubCallback.type";
 import IServerPubSub from "../../../interfaces/Server/IServerPubSub";
 import { Logger } from "../../../logger/Logger";
 import { PubSubSubscriptionOptionsType } from "../../../types/pubsub/PubSubSubscriptionOptions.type";
-import { DaprPubSubType } from "../../../types/pubsub/DaprPubSub.type";
 import { DaprPubSubRouteType } from "../../../types/pubsub/DaprPubSubRouteType.type";
 import { PubSubSubscriptionsType } from "../../../types/pubsub/PubSubSubscriptions.type";
 
