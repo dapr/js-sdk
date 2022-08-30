@@ -47,9 +47,15 @@ describe('http/client', () => {
   describe('metadata', () => {
     it('should be able to get the metadata of the Dapr sidecar', async () => {
       const res = await client.metadata.get();
-
+      const expectedRedisStateWithCapabilities = [{
+                    name: 'state-redis',
+                    type: 'state.redis',
+                    version: 'v1',
+                    capabilities: [ 'ETAG', 'TRANSACTIONAL', 'QUERY_API', 'ACTOR' ]
+                  }]
       expect(res.id.length).toBeGreaterThan(0);
       expect(res.components.length).toBeGreaterThan(0);
+      expect(res.components).toEqual(expect.arrayContaining(expectedRedisStateWithCapabilities))
     });
 
     it('should be able to set a custom metadata value of the Dapr sidecar', async () => {

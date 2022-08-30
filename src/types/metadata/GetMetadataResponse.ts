@@ -29,4 +29,5 @@ type MetadataComponent = {
   name: string;
   type: string;
   version: string;
+  capabilities: Array<string>;
 }

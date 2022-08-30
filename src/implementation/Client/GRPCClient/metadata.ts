@@ -49,7 +49,8 @@ export default class GRPCClientMetadata implements IClientMetadata {
           components: res.getRegisteredComponentsList().map(c => ({
             name: c.getName(),
             type: c.getType(),
-            version: c.getVersion()
+            version: c.getVersion(),
+            capabilities: c.getCapabilitiesList()
           }))
         }
 
