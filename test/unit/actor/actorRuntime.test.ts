@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import 'react-native-get-random-values'
 import { v4 as uuidv4 } from "uuid";
 import { DaprClient, Temporal } from '../../../src';
 import ActorRuntime from '../../../src/actors/runtime/ActorRuntime';
