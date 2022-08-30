@@ -2,12 +2,26 @@
 import { KeyValueType } from "../KeyValue.type";
 import { DaprPubSubRouteType } from "./DaprPubSubRouteType.type";
 
+/**
+ * DaprPubSubType is the Type used by the Dapr API to interface with its PubSub component
+ */
 export type DaprPubSubType = {
-    pubsubname: string;
-    topic: string;
-    metadata?: KeyValueType;
-    route?: string;
-    routes?: DaprPubSubRouteType;
-    deadLetterTopic?: string;
+  // The pubsub component name
+  pubsubname: string;
+
+  // The topic name
+  topic: string;
+
+  // Metadata 
+  metadata?: KeyValueType;
+
+  // A singular route to send the event to
+  route?: string;
+
+  // A rule based route to send the event to
+  routes?: DaprPubSubRouteType;
+
+  // The path to send unprocessable events to
+  deadLetterTopic?: string;
 }
 

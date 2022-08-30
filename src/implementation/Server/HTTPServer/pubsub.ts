@@ -16,7 +16,6 @@ import IServerPubSub from '../../../interfaces/Server/IServerPubSub';
 import HTTPServer from './HTTPServer';
 import { Logger } from '../../../logger/Logger';
 import { PubSubSubscriptionOptionsType } from '../../../types/pubsub/PubSubSubscriptionOptions.type'
-import { DaprPubSubType } from '../../../types/pubsub/DaprPubSub.type';
 import { DaprPubSubRouteType } from '../../../types/pubsub/DaprPubSubRouteType.type';
 import { PubSubSubscriptionsType } from '../../../types/pubsub/PubSubSubscriptions.type';
 
@@ -41,10 +40,15 @@ export default class HTTPServerPubSub implements IServerPubSub {
 
   async subscribeWithOptions(pubsubName: string, topic: string, options: PubSubSubscriptionOptionsType = {}): Promise<void> {
     this.server.getServerImpl().registerPubsubSubscription(pubsubName, topic, options);
+
+    if (options.callback) {
+      this.subscribeOnEvent(pubsubName, topic, options?.route, options.callback);
+    }
   }
 
-  subscribeOnEvent(pubsubName: string, topic: string, route: string | DaprPubSubRouteType, cb: TypeDaprPubSubCallback): void {
-    if (typeof route === "string") {
+  subscribeOnEvent(pubsubName: string, topic: string
+    , route: string | DaprPubSubRouteType | undefined, cb: TypeDaprPubSubCallback): void {
+    if (!route || typeof route === "string") {
       this.subscribeOnEventStringType(pubsubName, topic, route, cb);
     } else {
       this.subscribeOnEventDaprPubSubRouteType(pubsubName, topic, route, cb);
@@ -66,7 +70,7 @@ export default class HTTPServerPubSub implements IServerPubSub {
     }
   }
 
-  subscribeOnEventStringType(pubsubName: string, topic: string, route: string, cb: TypeDaprPubSubCallback): void {
+  subscribeOnEventStringType(pubsubName: string, topic: string, route: string | undefined, cb: TypeDaprPubSubCallback): void {
     this.server.getServerImpl().registerPubSubSubscriptionEventHandler(pubsubName, topic, route, cb);
   }
 

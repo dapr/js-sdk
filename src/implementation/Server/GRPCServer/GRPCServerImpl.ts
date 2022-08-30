@@ -29,13 +29,12 @@ import { IServerType } from "./GRPCServer";
 import { PubSubSubscriptionsType } from "../../../types/pubsub/PubSubSubscriptions.type";
 import { DaprPubSubType } from "../../../types/pubsub/DaprPubSub.type";
 import { PubSubSubscriptionTopicRoutesType } from "../../../types/pubsub/PubSubSubscriptionTopicRoutes.type";
-import SubscribedMessageHttpResponse from "../../../enum/SubscribedMessageHttpResponse.enum";
-
 
 // https://github.com/badsyntax/grpc-js-typescript/issues/1#issuecomment-705419742
 // @ts-ignore
 export default class GRPCServerImpl implements IAppCallbackServer {
   private readonly PUBSUB_DEFAULT_ROUTE_NAME = "default";
+  private readonly PUBSUB_DEFAULT_ROUTE_NAME_DEADLETTER = "deadletter";
   private readonly logger: Logger;
   private readonly server: IServerType;
 
@@ -104,8 +103,8 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     this.logger.info(`[Topic = ${topic}] Registered Subscription with routes: ${Object.keys(this.pubSubSubscriptions[pubsubName][topic].routes).join(", ")}`);
   }
 
-  registerPubSubSubscriptionEventHandler(pubsubName: string, topic: string, route: string, cb: TypeDaprPubSubCallback): void {
-    route = (route || this.PUBSUB_DEFAULT_ROUTE_NAME).replace("/", "");
+  registerPubSubSubscriptionEventHandler(pubsubName: string, topic: string, route: string | undefined, cb: TypeDaprPubSubCallback): void {
+    route = this.generatePubSubSubscriptionTopicRouteName(route);
     this.pubSubSubscriptions[pubsubName][topic].routes[route ?? this.PUBSUB_DEFAULT_ROUTE_NAME].eventHandlers.push(cb);
   }
 
@@ -153,12 +152,18 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     }
 
     // Deadletter Support
-    if (options.deadLetterTopic) {
-      const routeName = this.generatePubSubSubscriptionTopicRouteName(options?.deadLetterTopic);
+    if (options.deadLetterTopic || options.deadLetterCallback) {
+      const routeName = this.generatePubSubSubscriptionTopicRouteName(options?.deadLetterTopic ?? this.PUBSUB_DEFAULT_ROUTE_NAME_DEADLETTER);
 
+      // Initialize the route
       routes[routeName] = {
         eventHandlers: [],
         path: this.generatePubsubPath(pubsubName, topic, routeName)
+      }
+
+      // Add a callback if we have one provided
+      if (options.deadLetterCallback) {
+        routes[routeName].eventHandlers.push(options.deadLetterCallback)
       }
     }
 
@@ -205,7 +210,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         topic: topic,
         metadata: options.metadata,
         routes: options.route && {
-          default: `${options.route?.default}`,
+          default: this.generateDaprSubscriptionRoute(pubsubName, topic, options.route?.default),
           rules: options.route?.rules?.map(rule => ({
             match: rule.match,
             path: this.generateDaprSubscriptionRoute(pubsubName, topic, rule.path),

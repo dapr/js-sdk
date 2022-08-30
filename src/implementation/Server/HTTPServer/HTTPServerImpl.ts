@@ -23,6 +23,7 @@ import { TypeDaprPubSubCallback } from "../../../types/DaprPubSubCallback.type";
 
 export default class HTTPServerImpl {
   private readonly PUBSUB_DEFAULT_ROUTE_NAME = "default";
+  private readonly PUBSUB_DEFAULT_ROUTE_NAME_DEADLETTER = "deadletter";
   private readonly server: IServerType;
   private readonly logger: Logger;
 
@@ -101,8 +102,8 @@ export default class HTTPServerImpl {
     this.logger.info(`[Topic = ${topic}] Registered Subscription with routes: ${Object.keys(this.pubSubSubscriptions[pubsubName][topic].routes).join(", ")}`);
   }
 
-  registerPubSubSubscriptionEventHandler(pubsubName: string, topic: string, route: string, cb: TypeDaprPubSubCallback): void {
-    route = (route || this.PUBSUB_DEFAULT_ROUTE_NAME).replace("/", "");
+  registerPubSubSubscriptionEventHandler(pubsubName: string, topic: string, route: string | undefined, cb: TypeDaprPubSubCallback): void {
+    route = this.generatePubSubSubscriptionTopicRouteName(route);
     this.pubSubSubscriptions[pubsubName][topic].routes[route ?? this.PUBSUB_DEFAULT_ROUTE_NAME].eventHandlers.push(cb);
   }
 
@@ -150,12 +151,18 @@ export default class HTTPServerImpl {
     }
 
     // Deadletter Support
-    if (options.deadLetterTopic) {
-      const routeName = this.generatePubSubSubscriptionTopicRouteName(options?.deadLetterTopic);
+    if (options.deadLetterTopic || options.deadLetterCallback) {
+      const routeName = this.generatePubSubSubscriptionTopicRouteName(options?.deadLetterTopic ?? this.PUBSUB_DEFAULT_ROUTE_NAME_DEADLETTER);
 
+      // Initialize the route
       routes[routeName] = {
         eventHandlers: [],
         path: this.generatePubsubPath(pubsubName, topic, routeName)
+      }
+
+      // Add a callback if we have one provided
+      if (options.deadLetterCallback) {
+        routes[routeName].eventHandlers.push(options.deadLetterCallback)
       }
     }
 
@@ -202,7 +209,7 @@ export default class HTTPServerImpl {
         topic: topic,
         metadata: options.metadata,
         routes: options.route && {
-          default: `${options.route?.default}`,
+          default: this.generateDaprSubscriptionRoute(pubsubName, topic, options.route?.default),
           rules: options.route?.rules?.map(rule => ({
             match: rule.match,
             path: this.generateDaprSubscriptionRoute(pubsubName, topic, rule.path),

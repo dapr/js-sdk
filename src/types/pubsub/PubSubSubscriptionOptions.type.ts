@@ -1,14 +1,24 @@
+import { TypeDaprPubSubCallback } from "../DaprPubSubCallback.type";
 import { KeyValueType } from "../KeyValue.type";
 import { DaprPubSubRouteType } from "./DaprPubSubRouteType.type";
 
+/**
+ * PubSubSubscriptionOptionsType defines the options we can pass while subscribing
+ */
 export type PubSubSubscriptionOptionsType = {
-    metadata?: KeyValueType;
-    deadLetterTopic?: string;
+  // Metadata
+  metadata?: KeyValueType;
 
-    route?: string | DaprPubSubRouteType;
+  // The deadletter topic path
+  deadLetterTopic?: string;
 
-    // https://github.com/dapr/dapr/blob/master/pkg/runtime/pubsub/subscriptions.go#L47
-    // route?: string; // Single route from v1alpha1
-    // routes?: DaprPubSubRouteType[]; // Multiple routes from v2alpha1
+  // The deadletter callback to call
+  deadLetterCallback?: TypeDaprPubSubCallback;
+
+  // The default callback
+  callback?: TypeDaprPubSubCallback;
+
+  // The route creation for a single route or DaprPubSubRouteType
+  route?: string | DaprPubSubRouteType;
 }
 
