@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { DaprClient, Temporal } from '../../../src';
+import { DaprClient } from '../../../src';
 import ActorRuntime from '../../../src/actors/runtime/ActorRuntime';
 import { ActorRuntimeOptions } from '../../../src/types/actors/ActorRuntimeOptions';
 

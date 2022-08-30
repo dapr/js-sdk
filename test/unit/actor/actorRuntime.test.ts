@@ -12,13 +12,12 @@ limitations under the License.
 */
 
 import { v4 as uuidv4 } from "uuid";
-import { DaprClient, Temporal } from '../../../src';
+import { DaprClient } from '../../../src';
 import ActorRuntime from '../../../src/actors/runtime/ActorRuntime';
 import ActorId from "../../../src/actors/ActorId";
 import DemoActorCounterImpl from '../../actor/DemoActorCounterImpl';
 import DemoActorSayImpl from '../../actor/DemoActorSayImpl';
 import { ActorRuntimeOptions } from "../../../src/types/actors/ActorRuntimeOptions";
-import { maxHeaderSize } from "http";
 
 describe('ActorRuntime', () => {
   let client: DaprClient;
