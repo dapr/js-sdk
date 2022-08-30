@@ -188,11 +188,23 @@ export default class GRPCServerImpl implements IAppCallbackServer {
    * @returns 
    */
   generateDaprPubSubSubscription(pubsubName: string, topic: string, options: PubSubSubscriptionOptionsType = {}): DaprPubSubType {
+    // Process metadata
+    let metadata: { [key: string]: any } | undefined;
+
+    if (options.metadata) {
+      metadata = {};
+
+      for (const [key, value] of Object.entries(options.metadata)) {
+        metadata[key] = JSON.stringify(value);
+      }
+    }
+
+    // Process the route
     if (!options || !options?.route) {
       return {
         pubsubname: pubsubName,
         topic: topic,
-        metadata: options.metadata,
+        metadata: metadata,
         route: this.generateDaprSubscriptionRoute(pubsubName, topic),
         deadLetterTopic: options.deadLetterTopic
       }
@@ -200,7 +212,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
       return {
         pubsubname: pubsubName,
         topic: topic,
-        metadata: options.metadata,
+        metadata: metadata,
         route: this.generateDaprSubscriptionRoute(pubsubName, topic, options.route),
         deadLetterTopic: options.deadLetterTopic
       }
@@ -208,7 +220,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
       return {
         pubsubname: pubsubName,
         topic: topic,
-        metadata: options.metadata,
+        metadata: metadata,
         routes: options.route && {
           default: this.generateDaprSubscriptionRoute(pubsubName, topic, options.route?.default),
           rules: options.route?.rules?.map(rule => ({
@@ -392,6 +404,12 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
         if (daprConfig?.deadLetterTopic) {
           topicSubscription.setDeadLetterTopic(daprConfig.deadLetterTopic);
+        }
+
+        if (daprConfig?.metadata) {
+          for (const [mKey, mValue] of Object.entries(daprConfig.metadata)) {
+            topicSubscription.getMetadataMap().set(mKey, mValue);
+          }
         }
 
         if (daprConfig?.routes) {

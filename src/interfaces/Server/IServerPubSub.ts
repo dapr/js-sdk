@@ -12,16 +12,25 @@ limitations under the License.
 */
 
 import { TypeDaprPubSubCallback } from "../../types/DaprPubSubCallback.type";
+import { KeyValueType } from "../../types/KeyValue.type";
 import { DaprPubSubRouteType } from "../../types/pubsub/DaprPubSubRouteType.type";
 import { PubSubSubscriptionOptionsType } from "../../types/pubsub/PubSubSubscriptionOptions.type";
 import { PubSubSubscriptionsType } from "../../types/pubsub/PubSubSubscriptions.type";
 
 export default interface IServerPubSub {
-  subscribe(pubSubName: string, topic: string, cb: TypeDaprPubSubCallback, route?: string | DaprPubSubRouteType)
+  /**
+   * Subscribe to a topic.
+   * @param pubSubName name of the pubsub
+   * @param topic name of the topic
+   * @param cb callback function to handle messages
+   * @param route The HTTP route override to register for the event subscription. 
+   * Default value is `/route-${pubsubName}-${topic}`. Ignored if gRPC is used.
+   * @param metadata metadata for the subscription
+   */
+  subscribe(pubSubName: string, topic: string, cb: TypeDaprPubSubCallback, route?: string | DaprPubSubRouteType, metadata?: KeyValueType)
     : Promise<void>;
   subscribeWithOptions(pubsubName: string, topic: string, options: PubSubSubscriptionOptionsType)
     : Promise<void>;
   subscribeOnEvent(pubsubName: string, topic: string, route: string | DaprPubSubRouteType, cb: TypeDaprPubSubCallback): void;
 
   getSubscriptions(): PubSubSubscriptionsType;
-}

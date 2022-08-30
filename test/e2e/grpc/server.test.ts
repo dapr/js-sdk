@@ -72,6 +72,9 @@ describe('grpc/server', () => {
         }
       ]
     });
+    await server.pubsub.subscribe('pubsub-redis', 'test-topic-ce-raw', mockPubSubNormal, undefined, { rawPayload: true });
+    await server.pubsub.subscribe('pubsub-redis', 'test-topic-raw-raw', mockPubSubNormal, undefined, { rawPayload: true });
+    await server.pubsub.subscribe('pubsub-redis', 'test-topic-raw-ce', mockPubSubNormal);
 
     // Start server
     await server.start();
@@ -142,6 +145,52 @@ describe('grpc/server', () => {
         expect(e.message).toEqual("The topic 'demo-topic' is already being subscribed to on PubSub 'pubsub-redis', there can only be one topic registered.")
       }
     });
+
+    // TODO: uncomment these tests once metadata over gRPC is supported. See https://github.com/dapr/dapr/issues/2860
+    // it('should be able to send cloud event and receive raw payload', async () => {
+    //   const res = await server.client.pubsub.publish('pubsub-redis', 'test-topic-ce-raw', { hello: 'world-ce-raw' });
+    //   expect(res).toEqual(true);
+
+    //   // Delay a bit for event to arrive
+    //   await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+    //   expect(mockPubSubNormal.mock.calls.length).toBe(1);
+
+    //   // Also test for receiving data
+    //   // @ts-ignore
+    //   const rawData = mockPubSubSubscribeCloudEventRaw.mock.calls[0][0]['data_base64'];
+    //   const data = JSON.parse(Buffer.from(rawData, 'base64').toString());
+    //   // @ts-ignore
+    //   expect(data['data']['hello']).toEqual('world-ce-raw');
+    // })
+
+    // it('should be able to send raw payload and receive raw payload', async () => {
+    //   const res = await server.client.pubsub.publish('pubsub-redis', 'test-topic-raw-raw', { hello: 'world-raw-raw' }, { rawPayload: true });
+    //   expect(res).toEqual(true);
+
+    //   // Delay a bit for event to arrive
+    //   await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+    //   expect(mockPubSubNormal.mock.calls.length).toBe(1);
+
+    //   // Also test for receiving data
+    //   // @ts-ignore
+    //   const rawData = mockPubSubSubscribeRawRaw.mock.calls[0][0]['data_base64'];
+    //   const data = JSON.parse(Buffer.from(rawData, 'base64').toString());
+    //   // @ts-ignore
+    //   expect(data['hello']).toEqual('world-raw-raw');
+    // })
+
+    // it('should be able to send raw payload and receive cloud event', async () => {
+    //   const res = await server.client.pubsub.publish('pubsub-redis', 'test-topic-raw-ce', { hello: 'world-raw-ce' }, { rawPayload: true });
+    //   expect(res).toEqual(true);
+
+    //   // Delay a bit for event to arrive
+    //   await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+    //   expect(mockPubSubNormal.mock.calls.length).toBe(1);
+
+    //   // Also test for receiving data
+    //   // @ts-ignore
+    //   expect(mockPubSubSubscribeRawCloudEvent.mock.calls[0][0]['hello']).toEqual('world-raw-ce');
+    // })
 
     it('should receive if it was successful or not', async () => {
       const res = await server.client.pubsub.publish('pubsub-redis', 'topic-demo', { hello: 'world' });

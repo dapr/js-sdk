@@ -10,7 +10,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
 import SubscribedMessageHttpResponse from "../../../enum/SubscribedMessageHttpResponse.enum";
 import { Logger } from "../../../logger/Logger";
 import { LoggerOptions } from "../../../types/logger/LoggerOptions";
@@ -187,11 +186,23 @@ export default class HTTPServerImpl {
    * @returns 
    */
   generateDaprPubSubSubscription(pubsubName: string, topic: string, options: PubSubSubscriptionOptionsType = {}): DaprPubSubType {
+    // Process metadata
+    let metadata: { [key: string]: any } | undefined;
+
+    if (options.metadata) {
+      metadata = {};
+
+      for (const [key, value] of Object.entries(options.metadata)) {
+        metadata[key] = JSON.stringify(value);
+      }
+    }
+
+    // Process the route
     if (!options || !options?.route) {
       return {
         pubsubname: pubsubName,
         topic: topic,
-        metadata: options.metadata,
+        metadata: metadata,
         route: this.generateDaprSubscriptionRoute(pubsubName, topic),
         deadLetterTopic: options.deadLetterTopic
       }
@@ -199,7 +210,7 @@ export default class HTTPServerImpl {
       return {
         pubsubname: pubsubName,
         topic: topic,
-        metadata: options.metadata,
+        metadata: metadata,
         route: this.generateDaprSubscriptionRoute(pubsubName, topic, options.route),
         deadLetterTopic: options.deadLetterTopic
       }
@@ -207,7 +218,7 @@ export default class HTTPServerImpl {
       return {
         pubsubname: pubsubName,
         topic: topic,
-        metadata: options.metadata,
+        metadata: metadata,
         routes: options.route && {
           default: this.generateDaprSubscriptionRoute(pubsubName, topic, options.route?.default),
           rules: options.route?.rules?.map(rule => ({
