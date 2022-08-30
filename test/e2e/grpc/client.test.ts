@@ -20,7 +20,6 @@ import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runt
 import { Empty } from 'google-protobuf/google/protobuf/empty_pb';
 import { InterceptingListener } from "@grpc/grpc-js/build/src/call-stream";
 import { NextCall } from "@grpc/grpc-js/build/src/client-interceptors";
-import 'react-native-get-random-values'
 import { v4 as uuidv4 } from "uuid";
 
 const daprHost = 'localhost';
