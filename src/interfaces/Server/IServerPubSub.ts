@@ -34,3 +34,4 @@ export default interface IServerPubSub {
   subscribeOnEvent(pubsubName: string, topic: string, route: string | DaprPubSubRouteType, cb: TypeDaprPubSubCallback): void;
 
   getSubscriptions(): PubSubSubscriptionsType;
+}

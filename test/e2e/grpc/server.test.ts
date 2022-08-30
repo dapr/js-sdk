@@ -22,7 +22,7 @@ const daprAppId = 'test-suite';
 describe('grpc/server', () => {
   let server: DaprServer;
   const mockBindingReceive = jest.fn(async (_data: object) => console.log('mockBindingReceive'));
-  const mockPubSubNormal = jest.fn(async (_data: object) => { });
+  const mockPubSubNormal = jest.fn(async (_data: object) => null);
   const mockPubSubError = jest.fn(async (_data: object) => { throw new Error("DROPPING MESSAGE") });
 
   // We need to start listening on some endpoints already
@@ -134,7 +134,7 @@ describe('grpc/server', () => {
     });
 
     it('should only allow one subscription per topic', async () => {
-      const mock = jest.fn(async (_data: object) => { });
+      const mock = jest.fn(async (_data: object) => null);
 
       try {
         let server2 = new DaprServer("127.0.0.1", "50002", daprHost, daprPort, CommunicationProtocolEnum.HTTP);
@@ -287,7 +287,7 @@ describe('grpc/server', () => {
 
     it('should allow us to register an event handler after the server started', async () => {
       const countEventHandlers = server.pubsub.getSubscriptions()["pubsub-redis"]["topic-options-1"].routes["default"].eventHandlers.length;
-      server.pubsub.subscribeOnEvent("pubsub-redis", "topic-options-1", "", async () => { });
+      server.pubsub.subscribeOnEvent("pubsub-redis", "topic-options-1", "", async () => null);
       const countEventHandlersNew = server.pubsub.getSubscriptions()["pubsub-redis"]["topic-options-1"].routes["default"].eventHandlers.length;
       expect(countEventHandlersNew).toEqual(countEventHandlers + 1);
     });
@@ -299,7 +299,7 @@ describe('grpc/server', () => {
 
     it('should allow us to listen on the deadletter topic', async () => {
       const countEventHandlers = server.pubsub.getSubscriptions()["pubsub-redis"]["topic-options-2"].routes["my-deadletter-topic"].eventHandlers.length;
-      server.pubsub.subscribeOnEvent("pubsub-redis", "topic-options-2", "my-deadletter-topic", async () => { });
+      server.pubsub.subscribeOnEvent("pubsub-redis", "topic-options-2", "my-deadletter-topic", async () => null);
       const countEventHandlersNew = server.pubsub.getSubscriptions()["pubsub-redis"]["topic-options-2"].routes["my-deadletter-topic"].eventHandlers.length;
       expect(countEventHandlersNew).toEqual(countEventHandlers + 1);
     });

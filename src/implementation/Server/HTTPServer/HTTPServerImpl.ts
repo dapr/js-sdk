@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 import SubscribedMessageHttpResponse from "../../../enum/SubscribedMessageHttpResponse.enum";
 import { Logger } from "../../../logger/Logger";
 import { LoggerOptions } from "../../../types/logger/LoggerOptions";
@@ -106,12 +107,12 @@ export default class HTTPServerImpl {
     this.pubSubSubscriptions[pubsubName][topic].routes[route ?? this.PUBSUB_DEFAULT_ROUTE_NAME].eventHandlers.push(cb);
   }
 
-  generatePubSubSubscriptionTopicRouteName(route: string = "default") {
+  generatePubSubSubscriptionTopicRouteName(route = "default") {
     return (route || this.PUBSUB_DEFAULT_ROUTE_NAME).replace("/", "");
   }
 
   generatePubSubSubscriptionTopicRoutes(pubsubName: string, topic: string, options: PubSubSubscriptionOptionsType = {}): PubSubSubscriptionTopicRoutesType {
-    let routes: PubSubSubscriptionTopicRoutesType = {};
+    const routes: PubSubSubscriptionTopicRoutesType = {};
 
     // options.route == DaprPubSubRouteType
     if (typeof options.route === "object") {
@@ -232,7 +233,7 @@ export default class HTTPServerImpl {
   }
 
   generateDaprPubSubSubscriptionList(): DaprPubSubType[] {
-    let dapr = [];
+    const dapr = [];
 
     for (const pubsub of Object.keys(this.pubSubSubscriptions)) {
       for (const topic of Object.keys(this.pubSubSubscriptions[pubsub])) {

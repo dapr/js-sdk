@@ -108,12 +108,12 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     this.pubSubSubscriptions[pubsubName][topic].routes[route ?? this.PUBSUB_DEFAULT_ROUTE_NAME].eventHandlers.push(cb);
   }
 
-  generatePubSubSubscriptionTopicRouteName(route: string = "default") {
+  generatePubSubSubscriptionTopicRouteName(route = "default") {
     return (route || this.PUBSUB_DEFAULT_ROUTE_NAME).replace("/", "");
   }
 
   generatePubSubSubscriptionTopicRoutes(pubsubName: string, topic: string, options: PubSubSubscriptionOptionsType = {}): PubSubSubscriptionTopicRoutesType {
-    let routes: PubSubSubscriptionTopicRoutesType = {};
+    const routes: PubSubSubscriptionTopicRoutesType = {};
 
     // options.route == DaprPubSubRouteType
     if (typeof options.route === "object") {
@@ -234,7 +234,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
   }
 
   generateDaprPubSubSubscriptionList(): DaprPubSubType[] {
-    let dapr = [];
+    const dapr = [];
 
     for (const pubsub of Object.keys(this.pubSubSubscriptions)) {
       for (const topic of Object.keys(this.pubSubSubscriptions[pubsub])) {
@@ -413,15 +413,15 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         }
 
         if (daprConfig?.routes) {
-          let routes = new TopicRoutes();
+          const routes = new TopicRoutes();
 
           if (daprConfig?.routes?.default) {
             routes.setDefault(daprConfig?.routes?.default);
           }
 
           if (daprConfig?.routes?.rules) {
-            for (const ruleItem of daprConfig?.routes?.rules) {
-              let rule = new TopicRule();
+            for (const ruleItem of daprConfig.routes.rules) {
+              const rule = new TopicRule();
               rule.setMatch(ruleItem.match);
               rule.setPath(ruleItem.path);
               routes.addRules(rule);
@@ -430,7 +430,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
           topicSubscription.setRoutes(routes);
         } else {
-          let routes = new TopicRoutes();
+          const routes = new TopicRoutes();
           routes.setDefault(daprConfig?.route || this.PUBSUB_DEFAULT_ROUTE_NAME);
           topicSubscription.setRoutes(routes);
         }
