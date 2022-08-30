@@ -13,7 +13,7 @@ limitations under the License.
 
 import { DaprClient, Temporal } from '../../../src';
 import ActorRuntime from '../../../src/actors/runtime/ActorRuntime';
-import ActorRuntimeConfig from '../../../src/actors/runtime/ActorRuntimeConfig';
+import { ActorRuntimeOptions } from '../../../src/types/actors/ActorRuntimeOptions';
 
 describe('Actor', () => {
     let client: DaprClient;
@@ -27,13 +27,17 @@ describe('Actor', () => {
         const runtime = ActorRuntime.getInstanceByDaprClient(client);
 
         // Reset the runtime config
-        const config = new ActorRuntimeConfig(
-          Temporal.Duration.from({ hours: 1 })
-          , Temporal.Duration.from({ seconds: 30 })
-          , Temporal.Duration.from({ minutes: 1 })
-          , true
-        );
-        runtime.setActorRuntimeConfig(config);
+        const config: ActorRuntimeOptions = {
+            actorIdleTimeout: "1h",
+            actorScanInterval: "30s",
+            drainOngoingCallTimeout: "1m",
+            drainRebalancedActors: true,
+            reentrancy: {
+                enabled: false
+            },
+            remindersStoragePartitions: 1
+        }
+        runtime.setActorRuntimeOptions(config);
 
         // Clear the Actor Managers
         runtime.clearActorManagers();
