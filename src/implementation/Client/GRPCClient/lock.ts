@@ -26,10 +26,10 @@ export default class GRPCClientLock implements IClientLock {
 
     async tryLock(storeName: string, resourceId: string, lockOwner: string, expiryInSeconds: number): Promise<TryLockResponseResult> {
         const request = new TryLockRequest()
-         .setStoreName(storeName)
-         .setResourceId(resourceId)
-         .setLockOwner(lockOwner)
-         .setExpiryinseconds(expiryInSeconds);
+        request.setResourceId(resourceId)
+        request.setLockOwner(lockOwner)
+        request.setStoreName(storeName)
+        request.setExpiryinseconds(expiryInSeconds);
         
         const client = await this.client.getClient();
         return new Promise((resolve, reject) => {
@@ -50,9 +50,9 @@ export default class GRPCClientLock implements IClientLock {
 
     async unlock(storeName: string, resourceId: string, lockOwner: string): Promise<UnLockResponseResult> {
         const request = new UnlockRequest()
-         .setStoreName(storeName)
-         .setResourceId(resourceId)
-         .setLockOwner(lockOwner);
+        request.setResourceId(resourceId)
+        request.setLockOwner(lockOwner)
+        request.setStoreName(storeName)
 
         const client = await this.client.getClient();
         return new Promise((resolve, reject) => {

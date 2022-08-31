@@ -21,6 +21,7 @@ import { SubscribeConfigurationResponse as SubscribeConfigurationResponseResult 
 import { SubscribeConfigurationCallback } from '../../../types/configuration/SubscribeConfigurationCallback';
 import { SubscribeConfigurationStream } from '../../../types/configuration/SubscribeConfigurationStream';
 import { ConfigurationItem } from '../../../types/configuration/ConfigurationItem';
+import { createConfigurationType } from '../../../utils/Client.util';
 
 export default class GRPCClientConfiguration implements IClientConfiguration {
   client: GRPCClient;
@@ -53,26 +54,13 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
           return reject(err);
         }
 
-        const configMap = Object()
-        res.getItemsMap().forEach(function(v, k) {
-          const item: ConfigurationItem = {
-            key : k,
-            value : v.getValue(),
-            version : v.getVersion(),         
-            metadata :  v.getMetadataMap().toObject().reduce((result: object, [key, value]) => {
-            // @ts-ignore
-            result[key] = value;
-            return result
-          }, {}),
-          };
-          configMap[k] = item
-      })
-  
-        const wrapped: SubscribeConfigurationResponseResult = {
+        const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(res.getItemsMap());
+
+        const result: SubscribeConfigurationResponseResult = {
           items: configMap
         }
 
-        return resolve(wrapped);
+        return resolve(result);
       });
     });
   }
@@ -118,20 +106,7 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
 
     stream.on("data", async (data: SubscribeConfigurationResponse) => {
       streamId = data.getId();
-      const configMap = Object()
-      data.getItemsMap().forEach(function(v, k) {
-        const item: ConfigurationItem = {
-          key : k,
-          value : v.getValue(),
-          version : v.getVersion(),         
-          metadata :  v.getMetadataMap().toObject().reduce((result: object, [key, value]) => {
-          // @ts-ignore
-          result[key] = value;
-          return result
-        }, {}),
-        };
-        configMap[k] = item
-    })
+      const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(data.getItemsMap());
 
       const wrapped: SubscribeConfigurationResponseResult = {
         items: configMap
