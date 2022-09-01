@@ -47,16 +47,20 @@ describe('http/client', () => {
   describe('metadata', () => {
     it('should be able to get the metadata of the Dapr sidecar', async () => {
       const res = await client.metadata.get();
-      const expectedRedisStateWithCapabilities = [{
-                    name: 'state-redis',
-                    type: 'state.redis',
-                    version: 'v1',
-                    capabilities: [ 'ETAG', 'TRANSACTIONAL', 'QUERY_API', 'ACTOR' ]
-                  }]
+
       expect(res.id.length).toBeGreaterThan(0);
       expect(res.components.length).toBeGreaterThan(0);
-      expect(res.components).toEqual(expect.arrayContaining(expectedRedisStateWithCapabilities))
     });
+
+    it('should be able to get the capabilities of components via metadata call', async () => {
+      const res = await client.metadata.get();
+      var redisStateComponent = res.components.filter( (num) => num.name == "state-redis" );
+      const expectedRedisStateCapabilities = [ 'ETAG', 'TRANSACTIONAL', 'QUERY_API', 'ACTOR' ];
+      expect(res.id.length).toBeGreaterThan(0);
+      expect(res.components.length).toBeGreaterThan(0);
+      expect(redisStateComponent[0].capabilities).toEqual(expect.arrayContaining(expectedRedisStateCapabilities))
+    });
+
 
     it('should be able to set a custom metadata value of the Dapr sidecar', async () => {
       await client.metadata.set("testKey", "Hello World");
