@@ -75,12 +75,14 @@ describe('grpc/server', () => {
       expect(mockBindingReceive.mock.calls[0][0]['hello']).toEqual('world');
     });
 
-    it('should be able to send metadata to output binding successfully', async () => {
-      await server.client.binding.send('redisBinding', 'create', 'helloMessage', {"key": "helloKey"});
-      const res = await server.client.configuration.get("config-redis", ["helloKey"]);
+    // Commenting out as it would next version of Dapr to be used in E2E test.
+    // It would specifically need changes from https://github.com/dapr/dapr/pull/5049
+    // it('should be able to send metadata to output binding successfully', async () => {
+    //   await server.client.binding.send('redisBinding', 'create', 'helloMessage', {"key": "helloKey"});
+    //   const res = await server.client.configuration.get("config-redis", ["helloKey"]);
 
-      expect(res.items[0].value).toContain("helloMessage");
-    });
+    //   expect(res.items[0].value).toContain("helloMessage");
+    // });
 
   });
 
