@@ -15,6 +15,7 @@ import GRPCClient from './GRPCClient';
 import { InvokeBindingRequest, InvokeBindingResponse } from '../../../proto/dapr/proto/runtime/v1/dapr_pb';
 import IClientBinding from '../../../interfaces/Client/IClientBinding';
 import * as SerializerUtil from "../../../utils/Serializer.util";
+import { createGRPCMetadata } from '../../../utils/Client.util';
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class GRPCClientBinding implements IClientBinding {
@@ -32,11 +33,12 @@ export default class GRPCClientBinding implements IClientBinding {
     msgService.setName(bindingName);
     msgService.setOperation(operation);
     msgService.setData(SerializerUtil.serializeGrpc(data).serializedData);
+    const grpcMetadata = createGRPCMetadata(_metadata);
 
     const client = await this.client.getClient();
 
     return new Promise((resolve, reject) => {
-      client.invokeBinding(msgService, (err, res: InvokeBindingResponse) => {
+      client.invokeBinding(msgService, grpcMetadata, (err, res: InvokeBindingResponse) => {
         if (err) {
           return reject(err);
         }
