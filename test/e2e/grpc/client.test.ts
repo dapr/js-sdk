@@ -142,378 +142,378 @@ describe('grpc/client', () => {
     });
   });
 
-  // describe('health', () => {
-  //   it('should return true if Dapr is ready', async () => {
-  //     const res = await client.health.isHealthy();
-  //     expect(res).toEqual(true);
-  //   });
-  // });
+  describe('health', () => {
+    it('should return true if Dapr is ready', async () => {
+      const res = await client.health.isHealthy();
+      expect(res).toEqual(true);
+    });
+  });
 
-  // describe('pubsub', () => {
-  //   it('should receive if it was successful or not', async () => {
-  //     const res = await client.pubsub.publish('pubsub-redis', 'test-topic', { hello: 'world' });
-  //     expect(res).toEqual(true);
-  //   });
-  // });
+  describe('pubsub', () => {
+    it('should receive if it was successful or not', async () => {
+      const res = await client.pubsub.publish('pubsub-redis', 'test-topic', { hello: 'world' });
+      expect(res).toEqual(true);
+    });
+  });
 
-  // describe('secrets', () => {
-  //   it('should be able to correctly fetch the secrets by a single key', async () => {
-  //     const res = await client.secret.get('secret-envvars', 'TEST_SECRET_1');
-  //     expect(JSON.stringify(res)).toEqual(`{"TEST_SECRET_1":"secret_val_1"}`);
-  //   });
+  describe('secrets', () => {
+    it('should be able to correctly fetch the secrets by a single key', async () => {
+      const res = await client.secret.get('secret-envvars', 'TEST_SECRET_1');
+      expect(JSON.stringify(res)).toEqual(`{"TEST_SECRET_1":"secret_val_1"}`);
+    });
 
-  //   it('should be able to correctly fetch the secrets in bulk', async () => {
-  //     const res = await client.secret.getBulk('secret-envvars');
-  //     expect(Object.keys(res).length).toBeGreaterThan(1);
-  //   });
-  // });
+    it('should be able to correctly fetch the secrets in bulk', async () => {
+      const res = await client.secret.getBulk('secret-envvars');
+      expect(Object.keys(res).length).toBeGreaterThan(1);
+    });
+  });
 
-  // describe('state', () => {
-  //   beforeEach(async () => {
-  //     await client.state.delete("state-redis", "key-1");
-  //     await client.state.delete("state-redis", "key-2");
-  //     await client.state.delete("state-redis", "key-3");
-  //   });
+  describe('state', () => {
+    beforeEach(async () => {
+      await client.state.delete("state-redis", "key-1");
+      await client.state.delete("state-redis", "key-2");
+      await client.state.delete("state-redis", "key-3");
+    });
 
-  //   it('should be able to save the state', async () => {
-  //     await client.state.save('state-redis', [
-  //       {
-  //         key: 'key-1',
-  //         value: 'value-1',
-  //       },
-  //       {
-  //         key: 'key-2',
-  //         value: 'value-2',
-  //       },
-  //       {
-  //         key: 'key-3',
-  //         value: 'value-3',
-  //       },
-  //     ]);
+    it('should be able to save the state', async () => {
+      await client.state.save('state-redis', [
+        {
+          key: 'key-1',
+          value: 'value-1',
+        },
+        {
+          key: 'key-2',
+          value: 'value-2',
+        },
+        {
+          key: 'key-3',
+          value: 'value-3',
+        },
+      ]);
 
-  //     const res = await client.state.get('state-redis', 'key-1');
-  //     expect(res).toEqual('value-1');
-  //   });
+      const res = await client.state.get('state-redis', 'key-1');
+      expect(res).toEqual('value-1');
+    });
 
-  //   it('should be able to add metadata, etag and options', async () => {
-  //     await client.state.save('state-redis', [
-  //       {
-  //         key: 'key-1',
-  //         value: 'value-1',
-  //         etag: "1234",
-  //         options: {
-  //           "concurrency": "first-write",
-  //           "consistency": "strong"
-  //         },
-  //         metadata: {
-  //           hello: "world"
-  //         }
-  //       },
-  //       {
-  //         key: 'key-2',
-  //         value: 'value-2',
-  //       },
-  //       {
-  //         key: 'key-3',
-  //         value: 'value-3',
-  //       },
-  //     ]);
+    it('should be able to add metadata, etag and options', async () => {
+      await client.state.save('state-redis', [
+        {
+          key: 'key-1',
+          value: 'value-1',
+          etag: "1234",
+          options: {
+            "concurrency": "first-write",
+            "consistency": "strong"
+          },
+          metadata: {
+            hello: "world"
+          }
+        },
+        {
+          key: 'key-2',
+          value: 'value-2',
+        },
+        {
+          key: 'key-3',
+          value: 'value-3',
+        },
+      ]);
 
-  //     const res = await client.state.get('state-redis', 'key-1');
-  //     expect(res).toEqual('value-1');
-  //   });
+      const res = await client.state.get('state-redis', 'key-1');
+      expect(res).toEqual('value-1');
+    });
 
-  //   it('should be able to get the state in bulk', async () => {
-  //     await client.state.save('state-redis', [
-  //       {
-  //         key: 'key-1',
-  //         value: 'value-1',
-  //       },
-  //       {
-  //         key: 'key-2',
-  //         value: 'value-2',
-  //       },
-  //       {
-  //         key: 'key-3',
-  //         value: 'value-3',
-  //       },
-  //     ]);
+    it('should be able to get the state in bulk', async () => {
+      await client.state.save('state-redis', [
+        {
+          key: 'key-1',
+          value: 'value-1',
+        },
+        {
+          key: 'key-2',
+          value: 'value-2',
+        },
+        {
+          key: 'key-3',
+          value: 'value-3',
+        },
+      ]);
 
-  //     const res = await client.state.getBulk('state-redis', ['key-3', 'key-2']);
+      const res = await client.state.getBulk('state-redis', ['key-3', 'key-2']);
 
-  //     expect(res).toEqual(
-  //       expect.arrayContaining([
-  //         expect.objectContaining({ key: 'key-2', data: 'value-2' }),
-  //         expect.objectContaining({ key: 'key-3', data: 'value-3' }),
-  //       ]),
-  //     );
-  //   });
+      expect(res).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ key: 'key-2', data: 'value-2' }),
+          expect.objectContaining({ key: 'key-3', data: 'value-3' }),
+        ]),
+      );
+    });
 
-  //   it('should be able to delete a key from the state store', async () => {
-  //     await client.state.save('state-redis', [
-  //       {
-  //         key: 'key-1',
-  //         value: 'value-1',
-  //       },
-  //       {
-  //         key: 'key-2',
-  //         value: 'value-2',
-  //       },
-  //       {
-  //         key: 'key-3',
-  //         value: 'value-3',
-  //       },
-  //     ]);
+    it('should be able to delete a key from the state store', async () => {
+      await client.state.save('state-redis', [
+        {
+          key: 'key-1',
+          value: 'value-1',
+        },
+        {
+          key: 'key-2',
+          value: 'value-2',
+        },
+        {
+          key: 'key-3',
+          value: 'value-3',
+        },
+      ]);
 
-  //     await client.state.delete('state-redis', 'key-2');
-  //     const res = await client.state.get('state-redis', 'key-2');
-  //     expect(res).toEqual('');
-  //   });
+      await client.state.delete('state-redis', 'key-2');
+      const res = await client.state.get('state-redis', 'key-2');
+      expect(res).toEqual('');
+    });
 
-  //   it('should be able to perform a transaction that replaces a key and deletes another', async () => {
-  //     await client.state.transaction('state-redis', [
-  //       {
-  //         operation: 'upsert',
-  //         request: {
-  //           key: 'key-1',
-  //           value: 'my-new-data-1',
-  //         },
-  //       },
-  //       {
-  //         operation: 'delete',
-  //         request: {
-  //           key: 'key-3',
-  //         },
-  //       },
-  //     ]);
+    it('should be able to perform a transaction that replaces a key and deletes another', async () => {
+      await client.state.transaction('state-redis', [
+        {
+          operation: 'upsert',
+          request: {
+            key: 'key-1',
+            value: 'my-new-data-1',
+          },
+        },
+        {
+          operation: 'delete',
+          request: {
+            key: 'key-3',
+          },
+        },
+      ]);
 
-  //     const resTransactionDelete = await client.state.get('state-redis', 'key-3');
-  //     const resTransactionUpsert = await client.state.get('state-redis', 'key-1');
-  //     expect(resTransactionDelete).toEqual('');
-  //     expect(resTransactionUpsert).toEqual('my-new-data-1');
-  //   });
+      const resTransactionDelete = await client.state.get('state-redis', 'key-3');
+      const resTransactionUpsert = await client.state.get('state-redis', 'key-1');
+      expect(resTransactionDelete).toEqual('');
+      expect(resTransactionUpsert).toEqual('my-new-data-1');
+    });
 
-  //   it('should be able to perform a transaction with metadata', async () => {
-  //     await client.state.transaction('state-redis', [
-  //       {
-  //         operation: 'upsert',
-  //         request: {
-  //           key: 'key-with-metadata-1',
-  //           value: 'my-new-data-with-metadata-1',
-  //         },
-  //       },
-  //       {
-  //         operation: 'delete',
-  //         request: {
-  //           key: 'key-with-metadata-2',
-  //         },
-  //       },
-  //     ], {
-  //       trace_id: 'mock trace id here',
-  //     });
+    it('should be able to perform a transaction with metadata', async () => {
+      await client.state.transaction('state-redis', [
+        {
+          operation: 'upsert',
+          request: {
+            key: 'key-with-metadata-1',
+            value: 'my-new-data-with-metadata-1',
+          },
+        },
+        {
+          operation: 'delete',
+          request: {
+            key: 'key-with-metadata-2',
+          },
+        },
+      ], {
+        trace_id: 'mock trace id here',
+      });
 
-  //     const resTransactionDelete = await client.state.get('state-redis', 'key-with-metadata-2');
-  //     const resTransactionUpsert = await client.state.get('state-redis', 'key-with-metadata-1');
-  //     expect(resTransactionDelete).toEqual('');
-  //     expect(resTransactionUpsert).toEqual('my-new-data-with-metadata-1');
-  //   });
+      const resTransactionDelete = await client.state.get('state-redis', 'key-with-metadata-2');
+      const resTransactionUpsert = await client.state.get('state-redis', 'key-with-metadata-1');
+      expect(resTransactionDelete).toEqual('');
+      expect(resTransactionUpsert).toEqual('my-new-data-with-metadata-1');
+    });
 
-  //   it('should be able to add metadata, etag and options', async () => {
-  //     await client.state.save('state-redis', [
-  //       {
-  //         key: 'key-1',
-  //         value: 'value-1',
-  //         etag: "1234",
-  //         options: {
-  //           "concurrency": "first-write",
-  //           "consistency": "strong"
-  //         },
-  //         metadata: {
-  //           hello: "world"
-  //         }
-  //       },
-  //       {
-  //         key: 'key-2',
-  //         value: 'value-2',
-  //       },
-  //       {
-  //         key: 'key-3',
-  //         value: 'value-3',
-  //       },
-  //     ]);
+    it('should be able to add metadata, etag and options', async () => {
+      await client.state.save('state-redis', [
+        {
+          key: 'key-1',
+          value: 'value-1',
+          etag: "1234",
+          options: {
+            "concurrency": "first-write",
+            "consistency": "strong"
+          },
+          metadata: {
+            hello: "world"
+          }
+        },
+        {
+          key: 'key-2',
+          value: 'value-2',
+        },
+        {
+          key: 'key-3',
+          value: 'value-3',
+        },
+      ]);
 
-  //     const res = await client.state.get('state-redis', 'key-1');
-  //     expect(res).toEqual('value-1');
-  //     console.log(res);
-  //   });
-  // });
+      const res = await client.state.get('state-redis', 'key-1');
+      expect(res).toEqual('value-1');
+      console.log(res);
+    });
+  });
 
-  // describe('configuration', () => {
-  //   beforeEach(async () => {
-  //     // Reset the Configuration API
-  //     await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_initialvalue||1");
-  //     await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey2 key2_initialvalue||1");
-  //     await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey3 key3_initialvalue||1");
-  //   });
+  describe('configuration', () => {
+    beforeEach(async () => {
+      // Reset the Configuration API
+      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_initialvalue||1");
+      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey2 key2_initialvalue||1");
+      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey3 key3_initialvalue||1");
+    });
 
-  //   it('should be able to get the configuration items', async () => {
-  //     const config = await client.configuration.get("config-redis", ["myconfigkey1", "myconfigkey2", "myconfigkey3"]);
-  //     expect(config.items.length).toEqual(3);
+    it('should be able to get the configuration items', async () => {
+      const config = await client.configuration.get("config-redis", ["myconfigkey1", "myconfigkey2", "myconfigkey3"]);
+      expect(config.items.length).toEqual(3);
 
-  //     expect(config.items.map(i => i.key).indexOf("myconfigkey1")).toBeGreaterThan(-1);
-  //     expect(config.items.map(i => i.key).indexOf("myconfigkey2")).toBeGreaterThan(-1);
-  //     expect(config.items.map(i => i.key).indexOf("myconfigkey3")).toBeGreaterThan(-1);
+      expect(config.items.map(i => i.key).indexOf("myconfigkey1")).toBeGreaterThan(-1);
+      expect(config.items.map(i => i.key).indexOf("myconfigkey2")).toBeGreaterThan(-1);
+      expect(config.items.map(i => i.key).indexOf("myconfigkey3")).toBeGreaterThan(-1);
 
-  //     expect(config.items.filter(i => i.key == "myconfigkey1")[0].value).toEqual("key1_initialvalue");
-  //     expect(config.items.filter(i => i.key == "myconfigkey2")[0].value).toEqual("key2_initialvalue");
-  //     expect(config.items.filter(i => i.key == "myconfigkey3")[0].value).toEqual("key3_initialvalue");
-  //   });
+      expect(config.items.filter(i => i.key == "myconfigkey1")[0].value).toEqual("key1_initialvalue");
+      expect(config.items.filter(i => i.key == "myconfigkey2")[0].value).toEqual("key2_initialvalue");
+      expect(config.items.filter(i => i.key == "myconfigkey3")[0].value).toEqual("key3_initialvalue");
+    });
 
-  //   it('should be able to get the configuration items with metadata', async () => {
-  //     await client.configuration.get("config-redis", ["myconfigkey1"], { "hello": "world" });
+    it('should be able to get the configuration items with metadata', async () => {
+      await client.configuration.get("config-redis", ["myconfigkey1"], { "hello": "world" });
 
-  //     // Disabled for now as I am unsure if Dapr returns the metadata items
-  //     // Java SDK: https://github.com/dapr/java-sdk/blob/06d92dafca62a6b48e74ccf939feeac7189e360f/sdk/src/test/java/io/dapr/client/DaprPreviewClientGrpcTest.java#L119
-  //     // ^ shows that it is not being tested, it tries but doesn't assert
-  //     // expect(conf.items.filter(i => i.key == "myconfigkey1")[0].metadata).toHaveProperty("hello");
-  //   });
+      // Disabled for now as I am unsure if Dapr returns the metadata items
+      // Java SDK: https://github.com/dapr/java-sdk/blob/06d92dafca62a6b48e74ccf939feeac7189e360f/sdk/src/test/java/io/dapr/client/DaprPreviewClientGrpcTest.java#L119
+      // ^ shows that it is not being tested, it tries but doesn't assert
+      // expect(conf.items.filter(i => i.key == "myconfigkey1")[0].metadata).toHaveProperty("hello");
+    });
 
-  //   it('should be able to subscribe to configuration item changes on all keys', async () => {
-  //     const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
+    it('should be able to subscribe to configuration item changes on all keys', async () => {
+      const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
 
-  //     const stream = await client.configuration.subscribe("config-redis", m);
+      const stream = await client.configuration.subscribe("config-redis", m);
 
-  //     // Update the configuration item
-  //     await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey3 mynewvalue||2");
+      // Update the configuration item
+      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey3 mynewvalue||2");
 
-  //     expect(m.mock.calls[0][0].items.length).toEqual(1);
-  //     expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey3");
-  //     expect(m.mock.calls[0][0].items[0].value).toEqual("mynewvalue");
+      expect(m.mock.calls[0][0].items.length).toEqual(1);
+      expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey3");
+      expect(m.mock.calls[0][0].items[0].value).toEqual("mynewvalue");
 
-  //     stream.stop();
-  //   });
+      stream.stop();
+    });
 
-  //   it('should be able to subscribe to configuration item changes on specific keys', async () => {
-  //     const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
+    it('should be able to subscribe to configuration item changes on specific keys', async () => {
+      const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
 
-  //     const stream = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1", "myconfigkey2"], m);
-  //     await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
+      const stream = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1", "myconfigkey2"], m);
+      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
 
-  //     expect(m.mock.calls.length).toEqual(1);
-  //     expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
-  //     expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
+      expect(m.mock.calls.length).toEqual(1);
+      expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
+      expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
 
-  //     await stream.stop();
-  //   });
+      await stream.stop();
+    });
 
-  //   it('should be able to subscribe with metadata', async () => {
-  //     const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
+    it('should be able to subscribe with metadata', async () => {
+      const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
 
-  //     const stream1 = await client.configuration.subscribeWithMetadata("config-redis", ["myconfigkey1", "myconfigkey2"], { "hello": "world" }, m);
-  //     await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
+      const stream1 = await client.configuration.subscribeWithMetadata("config-redis", ["myconfigkey1", "myconfigkey2"], { "hello": "world" }, m);
+      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
 
-  //     expect(m.mock.calls.length).toEqual(1);
-  //     expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
-  //     expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
+      expect(m.mock.calls.length).toEqual(1);
+      expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
+      expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
 
-  //     await stream1.stop();
-  //   });
+      await stream1.stop();
+    });
 
-  //   it('should be able to unsubscribe', async () => {
-  //     const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
+    it('should be able to unsubscribe', async () => {
+      const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
 
-  //     const stream = await client.configuration.subscribeWithMetadata("config-redis", ["myconfigkey1", "myconfigkey2"], { "hello": "world" }, m);
-  //     await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
+      const stream = await client.configuration.subscribeWithMetadata("config-redis", ["myconfigkey1", "myconfigkey2"], { "hello": "world" }, m);
+      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
 
-  //     expect(m.mock.calls.length).toEqual(1);
-  //     expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
-  //     expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
+      expect(m.mock.calls.length).toEqual(1);
+      expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
+      expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
 
-  //     stream.stop();
+      stream.stop();
 
-  //     await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue2||1");
+      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue2||1");
 
-  //     // Expect no change after stop
-  //     expect(m.mock.calls.length).toEqual(1);
-  //     expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
-  //     expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
-  //   });
+      // Expect no change after stop
+      expect(m.mock.calls.length).toEqual(1);
+      expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
+      expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
+    });
 
-  //   it('should be able to subscribe to configuration items through multiple streams', async () => {
-  //     const m1 = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
-  //     const m2 = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
+    it('should be able to subscribe to configuration items through multiple streams', async () => {
+      const m1 = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
+      const m2 = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
 
-  //     const stream1 = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1"], m1);
-  //     const stream2 = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1"], m2);
+      const stream1 = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1"], m1);
+      const stream2 = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1"], m2);
 
-  //     await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
+      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
 
-  //     expect(m1.mock.calls.length).toEqual(1);
-  //     expect(m1.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
-  //     expect(m1.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
+      expect(m1.mock.calls.length).toEqual(1);
+      expect(m1.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
+      expect(m1.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
 
-  //     expect(m2.mock.calls.length).toEqual(1);
-  //     expect(m2.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
-  //     expect(m2.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
+      expect(m2.mock.calls.length).toEqual(1);
+      expect(m2.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
+      expect(m2.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
 
-  //     stream1.stop();
-  //     stream2.stop();
-  //   });
-  // });
+      stream1.stop();
+      stream2.stop();
+    });
+  });
 
-  // describe('distributed lock', () => {
-  //   it('should be able to acquire a new lock and unlock', async () => {
-  //     const resourceId = uuidv4();
-  //     const tryLock = await client.lock.tryLock("redislock", resourceId, "owner1", 1000);
-  //     expect(tryLock.success).toEqual(true);
-  //     const unlock = await client.lock.unlock("redislock", resourceId, "owner1");
-  //     expect(unlock.status).toEqual(LockStatus.Success);
-  //   });
+  describe('distributed lock', () => {
+    it('should be able to acquire a new lock and unlock', async () => {
+      const resourceId = uuidv4();
+      const tryLock = await client.lock.tryLock("redislock", resourceId, "owner1", 1000);
+      expect(tryLock.success).toEqual(true);
+      const unlock = await client.lock.unlock("redislock", resourceId, "owner1");
+      expect(unlock.status).toEqual(LockStatus.Success);
+    });
 
-  //   it('should be not be able to unlock when the lock is not acquired', async () => {
-  //     const resourceId = uuidv4();
-  //     const unlock = await client.lock.unlock("redislock", resourceId, "owner1");
-  //     expect(unlock.status).toEqual(LockStatus.LockDoesNotExist);
-  //   });
+    it('should be not be able to unlock when the lock is not acquired', async () => {
+      const resourceId = uuidv4();
+      const unlock = await client.lock.unlock("redislock", resourceId, "owner1");
+      expect(unlock.status).toEqual(LockStatus.LockDoesNotExist);
+    });
 
-  //   it('should be able to acquire a lock after the previous lock is expired', async () => {
-  //     const resourceId = uuidv4();
-  //     let tryLock = await client.lock.tryLock("redislock", resourceId, "owner1", 5);
-  //     expect(tryLock.success).toEqual(true);
-  //     await new Promise(resolve => setTimeout(resolve, 2000));
-  //     tryLock = await client.lock.tryLock("redislock", resourceId, "owner2", 5);
-  //     expect(tryLock.success).toEqual(false);
-  //   });
+    it('should be able to acquire a lock after the previous lock is expired', async () => {
+      const resourceId = uuidv4();
+      let tryLock = await client.lock.tryLock("redislock", resourceId, "owner1", 5);
+      expect(tryLock.success).toEqual(true);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      tryLock = await client.lock.tryLock("redislock", resourceId, "owner2", 5);
+      expect(tryLock.success).toEqual(false);
+    });
 
-  //   it('should not be able to acquire a lock when the same lock is acquired by another owner', async () => {
-  //     const resourceId = uuidv4();
-  //     const tryLockOne = await client.lock.tryLock("redislock", resourceId, "owner1", 5);
-  //     expect(tryLockOne.success).toEqual(true);
-  //     const tryLockTwo = await client.lock.tryLock("redislock", resourceId, "owner2", 5);
-  //     expect(tryLockTwo.success).toEqual(false);
-  //   });
+    it('should not be able to acquire a lock when the same lock is acquired by another owner', async () => {
+      const resourceId = uuidv4();
+      const tryLockOne = await client.lock.tryLock("redislock", resourceId, "owner1", 5);
+      expect(tryLockOne.success).toEqual(true);
+      const tryLockTwo = await client.lock.tryLock("redislock", resourceId, "owner2", 5);
+      expect(tryLockTwo.success).toEqual(false);
+    });
 
-  //   it('should be able to acquire a lock when a different lock is acquired by another owner', async () => {
-  //     const tryLockOne = await client.lock.tryLock("redislock", uuidv4(), "owner1", 5);
-  //     expect(tryLockOne.success).toEqual(true);
-  //     const tryLockTwo = await client.lock.tryLock("redislock", uuidv4(), "owner2", 5);
-  //     expect(tryLockTwo.success).toEqual(true);
-  //   });
+    it('should be able to acquire a lock when a different lock is acquired by another owner', async () => {
+      const tryLockOne = await client.lock.tryLock("redislock", uuidv4(), "owner1", 5);
+      expect(tryLockOne.success).toEqual(true);
+      const tryLockTwo = await client.lock.tryLock("redislock", uuidv4(), "owner2", 5);
+      expect(tryLockTwo.success).toEqual(true);
+    });
 
-  //   it('should not be able to acquire a lock when that lock is acquired by another owner/process', async () => {
-  //     const resourceId = uuidv4();
-  //     const tryLockOne = await client.lock.tryLock("redislock", resourceId, "owner3", 5);
-  //     expect(tryLockOne.success).toEqual(true);
-  //     const tryLockTwo = await client.lock.tryLock("redislock", resourceId, "owner4", 5);
-  //     expect(tryLockTwo.success).toEqual(false);
-  //   });
+    it('should not be able to acquire a lock when that lock is acquired by another owner/process', async () => {
+      const resourceId = uuidv4();
+      const tryLockOne = await client.lock.tryLock("redislock", resourceId, "owner3", 5);
+      expect(tryLockOne.success).toEqual(true);
+      const tryLockTwo = await client.lock.tryLock("redislock", resourceId, "owner4", 5);
+      expect(tryLockTwo.success).toEqual(false);
+    });
 
-  //   it('should not be able to unlock a lock when that lock is acquired by another owner/process', async () => {
-  //     const resourceId = uuidv4();
-  //     const tryLockOne = await client.lock.tryLock("redislock", resourceId, "owner5", 5);
-  //     expect(tryLockOne.success).toEqual(true);
-  //     const unlock = await client.lock.unlock("redislock", resourceId, "owner6");
-  //     expect(unlock.status).toEqual(LockStatus.LockBelongsToOthers);
-  //   });
-  // });
+    it('should not be able to unlock a lock when that lock is acquired by another owner/process', async () => {
+      const resourceId = uuidv4();
+      const tryLockOne = await client.lock.tryLock("redislock", resourceId, "owner5", 5);
+      expect(tryLockOne.success).toEqual(true);
+      const unlock = await client.lock.unlock("redislock", resourceId, "owner6");
+      expect(unlock.status).toEqual(LockStatus.LockBelongsToOthers);
+    });
+  });
 });
