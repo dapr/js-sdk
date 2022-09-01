@@ -122,10 +122,11 @@ describe('grpc/client', () => {
 
     it('should be able to get the capabilities of components via metadata call', async () => {
       const res = await client.metadata.get();
-      var redisStateComponent = res.components.filter( (num) => num.name == "state-redis" );
+      const redisStateComponent = res.components.filter( (num) => num.name == "state-redis" );
       const expectedRedisStateCapabilities = [ 'ETAG', 'TRANSACTIONAL', 'QUERY_API', 'ACTOR' ];
       expect(res.id.length).toBeGreaterThan(0);
       expect(res.components.length).toBeGreaterThan(0);
+      expect(redisStateComponent.length).toEqual(1)
       expect(redisStateComponent[0].capabilities).toEqual(expect.arrayContaining(expectedRedisStateCapabilities));
     });
 
