@@ -20,6 +20,7 @@ import { PubSubSubscriptionsType } from "../../types/pubsub/PubSubSubscriptions.
 export default interface IServerPubSub {
   /**
    * Subscribe to a topic.
+   * 
    * @param pubSubName name of the pubsub
    * @param topic name of the topic
    * @param cb callback function to handle messages
@@ -29,9 +30,29 @@ export default interface IServerPubSub {
    */
   subscribe(pubSubName: string, topic: string, cb: TypeDaprPubSubCallback, route?: string | DaprPubSubRouteType, metadata?: KeyValueType)
     : Promise<void>;
+
+  /**
+   * Subscribe to a topic with options
+   * 
+   * @param pubSubName name of the pubsub
+   * @param topic name of the topic
+   * @param options options
+   */
   subscribeWithOptions(pubsubName: string, topic: string, options: PubSubSubscriptionOptionsType)
     : Promise<void>;
-  subscribeOnEvent(pubsubName: string, topic: string, route: string | DaprPubSubRouteType, cb: TypeDaprPubSubCallback): void;
 
+  /**
+   * Subscribe to events on a specific topic that was subscribed to already
+   * 
+   * @param pubSubName name of the pubsub
+   * @param topic name of the topic
+   * @param route The Dapr route representing how messages should be routed to
+   * @param cb callback function to handle messages
+   */
+  subscribeToRoute(pubsubName: string, topic: string, route: string | DaprPubSubRouteType, cb: TypeDaprPubSubCallback): void;
+
+  /**
+   * Get a list of the registered subscriptions
+   */
   getSubscriptions(): PubSubSubscriptionsType;
 }

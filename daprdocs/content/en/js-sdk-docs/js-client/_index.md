@@ -281,7 +281,7 @@ start().catch((e) => {
 
 Subscribing to messages can be done in several ways to offer flexibility of receiving messages on your topics:
 
-* Direct subscribtion through the `subscribe` method
+* Direct subscription through the `subscribe` method
 * Direct susbcription with options through the `subscribeWithOptions` method
 * Subscription afterwards through the `susbcribeOnEvent` method
 
@@ -304,7 +304,7 @@ async function start() {
   const topic = "topic-a";
 
   // Configure Subscriber for a Topic
-  // Method 1: Direct subscribtion through the `subscribe` method
+  // Method 1: Direct subscription through the `subscribe` method
   await server.pubsub.subscribe(pubSubName, topic, async (data: any) => console.log(`Received Data: ${JSON.stringify(data)}`));
 
   // Method 2: Direct susbcription with options through the `subscribeWithOptions` method
@@ -313,8 +313,9 @@ async function start() {
   });
 
   // Method 3: Subscription afterwards through the `susbcribeOnEvent` method
+  // Note: we use default, since if no route was passed (empty options) we utilize "default" as the route name
   await server.pubsub.subscribeWithOptions('pubsub-redis', 'topic-options-1', {});
-  server.pubsub.subscribeOnEvent("pubsub-redis", "topic-options-1", "default", async (data) => { console.log(`Received Data: ${JSON.stringify(data)}`) });
+  server.pubsub.subscribeToRoute("pubsub-redis", "topic-options-1", "default", async (data) => { console.log(`Received Data: ${JSON.stringify(data)}`) });
 
   // Start the server
   await server.start();
@@ -328,7 +329,7 @@ async function start() {
 Dapr [supports routing messages](https://docs.dapr.io/developing-applications/building-blocks/pubsub/howto-route-messages/
 ) to different handlers (routes) based on rules. 
 
-> E.g., think of that you are writing an application that needs to handle messages depending on their "type" with Dapr you can then route it to `handlerType1` and `handlerType2` with a default being `handlerDefault`
+> E.g., you are writing an application that needs to handle messages depending on their "type" with Dapr, you can send them to different routes `handlerType1` and `handlerType2` with the default route being `handlerDefault`
 
 ```javascript
 import { DaprServer } from "@dapr/dapr";
@@ -345,6 +346,7 @@ async function start() {
   const topic = "topic-a";
 
   // Configure Subscriber for a Topic with rule set
+  // Note: the default route and match patterns are optional
   await server.pubsub.subscribe('pubsub-redis', 'topic-1', {
     default: "/default",
     rules: [
@@ -360,26 +362,27 @@ async function start() {
   });
 
   // Add handlers for each route
-  server.pubsub.subscribeOnEvent("pubsub-redis", "topic-1", "default", async (data) => { console.log(`Handling Default`) });
-  server.pubsub.subscribeOnEvent("pubsub-redis", "topic-1", "type-1", async (data) => { console.log(`Handling Type 1`) });
-  server.pubsub.subscribeOnEvent("pubsub-redis", "topic-1", "type-2", async (data) => { console.log(`Handling Type 2`) });
+  server.pubsub.subscribeToRoute("pubsub-redis", "topic-1", "default", async (data) => { console.log(`Handling Default`) });
+  server.pubsub.subscribeToRoute("pubsub-redis", "topic-1", "type-1", async (data) => { console.log(`Handling Type 1`) });
+  server.pubsub.subscribeToRoute("pubsub-redis", "topic-1", "type-2", async (data) => { console.log(`Handling Type 2`) });
 
   // Start the server
   await server.start();
 }
 ```
 
-#### DeadLetter support
+#### Dead Letter Topics
 
-As per https://docs.dapr.io/developing-applications/building-blocks/pubsub/pubsub-deadletter/ Dapr supports deadletter messages. This means that when a message fails to be processed, it gets sent to a deadletter portion of the queue. E.g., when a message fails to be handled on `/my-queue` it will be sent to `/my-queue-failed`.
+Dapr supports [dead letter topic](https://docs.dapr.io/developing-applications/building-blocks/pubsub/pubsub-deadletter/). This means that when a message fails to be processed, it gets sent to a dead letter queue. E.g., when a message fails to be handled on `/my-queue` it will be sent to `/my-queue-failed`.
+E.g., when a message fails to be handled on `/my-queue` it will be sent to `/my-queue-failed`.
 
-In the Javascript SDK we implement this through the `subscribeWithOptions` call that allows you to specify options to the subscribe method. For deadletter, we offer:
+You can use the following options with `subscribeWithOptions` method:
 * `deadletterTopic`: Specify a deadletter topic name (note: if none is provided we create one named `deadletter`)
 * `deadletterCallback`: The method to trigger as handler for our deadletter
 
 Implementing Deadletter support in the JS SDK can be done by either
 * Passing the `deadletterCallback` as an option 
-* By subscribing to route manually with `subscribeOnEvent`
+* By subscribing to route manually with `subscribeToRoute`
 
 An example is provided below
 
@@ -404,8 +407,8 @@ async function start() {
 
   // Method 2 (subscribe afterwards)
   await server.pubsub.subscribeWithOptions('pubsub-redis', 'topic-options-1', { deadletterTopic: "my-deadletter-topic" });
-  server.pubsub.subscribeOnEvent("pubsub-redis", "topic-options-1", "default", async () => { throw new Error("Triggering Deadletter") });
-  server.pubsub.subscribeOnEvent("pubsub-redis", "topic-options-1", "my-deadletter-topic", async () => { console.log("Handling Deadletter message") });
+  server.pubsub.subscribeToRoute("pubsub-redis", "topic-options-1", "default", async () => { throw new Error("Triggering Deadletter") });
+  server.pubsub.subscribeToRoute("pubsub-redis", "topic-options-1", "my-deadletter-topic", async () => { console.log("Handling Deadletter message") });
 
   // Start server
   await server.start();

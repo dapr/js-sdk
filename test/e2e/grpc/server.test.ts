@@ -287,7 +287,7 @@ describe('grpc/server', () => {
 
     it('should allow us to register an event handler after the server started', async () => {
       const countEventHandlers = server.pubsub.getSubscriptions()["pubsub-redis"]["topic-options-1"].routes["default"].eventHandlers.length;
-      server.pubsub.subscribeOnEvent("pubsub-redis", "topic-options-1", "", async () => null);
+      server.pubsub.subscribeToRoute("pubsub-redis", "topic-options-1", "", async () => null);
       const countEventHandlersNew = server.pubsub.getSubscriptions()["pubsub-redis"]["topic-options-1"].routes["default"].eventHandlers.length;
       expect(countEventHandlersNew).toEqual(countEventHandlers + 1);
     });
@@ -299,7 +299,7 @@ describe('grpc/server', () => {
 
     it('should allow us to listen on the deadletter topic', async () => {
       const countEventHandlers = server.pubsub.getSubscriptions()["pubsub-redis"]["topic-options-2"].routes["my-deadletter-topic"].eventHandlers.length;
-      server.pubsub.subscribeOnEvent("pubsub-redis", "topic-options-2", "my-deadletter-topic", async () => null);
+      server.pubsub.subscribeToRoute("pubsub-redis", "topic-options-2", "my-deadletter-topic", async () => null);
       const countEventHandlersNew = server.pubsub.getSubscriptions()["pubsub-redis"]["topic-options-2"].routes["my-deadletter-topic"].eventHandlers.length;
       expect(countEventHandlersNew).toEqual(countEventHandlers + 1);
     });
