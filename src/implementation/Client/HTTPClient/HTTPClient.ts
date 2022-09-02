@@ -63,21 +63,15 @@ export default class HTTPClient implements IClient {
     // Add a custom agent so we can decide if we want to reuse connections or not
     // we use an agent so we can reuse an open connection, limiting handshake requirements
     // Note: when using an agent, we will encounter TCPWRAP since the connection doesn't get destroyed
-    if (this.options.isKeepAlive) {
+    const keepAlive = this.options.isKeepAlive;
+    const keepAliveMsecs = 30 * 1000; // it is applicable only when keepAlive is set to true
+
       if(!HTTPClient.httpAgent) {
-        HTTPClient.httpAgent = new http.Agent({ keepAlive: true, keepAliveMsecs: 30 * 1000 });
+        HTTPClient.httpAgent = new http.Agent({ keepAlive: keepAlive, keepAliveMsecs: keepAliveMsecs });
       }
       if(!HTTPClient.httpsAgent) {
-        HTTPClient.httpsAgent = new https.Agent({ keepAlive: true, keepAliveMsecs: 30 * 1000 });
+        HTTPClient.httpsAgent = new https.Agent({ keepAlive: keepAlive, keepAliveMsecs: keepAliveMsecs });
       }
-    } else {
-      if(!HTTPClient.httpAgent) {
-        HTTPClient.httpAgent = new http.Agent();
-      }
-      if(!HTTPClient.httpsAgent) {
-        HTTPClient.httpsAgent = new https.Agent();
-      }
-    }
   }
 
   async getClient(requiresInitialization = true): Promise<typeof fetch> {
