@@ -44,7 +44,7 @@ export default class GRPCServer implements IServer {
     // Create Server
     this.server = new grpc.Server();
     this.serverCredentials = grpc.ServerCredentials.createInsecure();
-    this.serverImpl = new GRPCServerImpl(client.options.logger);
+    this.serverImpl = new GRPCServerImpl(this.server, client.options.logger);
 
     // Add our implementation
     this.logger.info("Adding Service Implementation - AppCallbackService")

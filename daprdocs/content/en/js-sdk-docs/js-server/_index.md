@@ -141,8 +141,8 @@ async function start() {
   const pubSubName = "my-pubsub-name";
   const topic = "topic-a";
 
-  // Configure Subscriber for a Topic
-  await server.pubsub.subscribe(pubSubName, topic, async (data: any) => console.log(`Got Data: ${JSON.stringify(data)}`));
+  // Method 1: Direct subscription through the `subscribe` method
+  await server.pubsub.subscribe(pubSubName, topic, async (data: any) => console.log(`Received Data: ${JSON.stringify(data)}`));
 
   await server.start();
 }

@@ -15,7 +15,9 @@ import { TypeDaprPubSubCallback } from '../../../types/DaprPubSubCallback.type';
 import IServerPubSub from '../../../interfaces/Server/IServerPubSub';
 import HTTPServer from './HTTPServer';
 import { Logger } from '../../../logger/Logger';
-import SubscribedMessageHttpResponse from '../../../enum/SubscribedMessageHttpResponse.enum';
+import { PubSubSubscriptionOptionsType } from '../../../types/pubsub/PubSubSubscriptionOptions.type'
+import { DaprPubSubRouteType } from '../../../types/pubsub/DaprPubSubRouteType.type';
+import { PubSubSubscriptionsType } from '../../../types/pubsub/PubSubSubscriptions.type';
 import { KeyValueType } from '../../../types/KeyValue.type';
 
 // https://docs.dapr.io/reference/api/pubsub_api/
@@ -28,32 +30,52 @@ export default class HTTPServerPubSub implements IServerPubSub {
     this.logger = new Logger("HTTPServer", "PubSub", server.client.options.logger);
   }
 
-  async subscribe(pubsubName: string, topic: string, cb: TypeDaprPubSubCallback, route = "", metadata?: KeyValueType) {
-    if (!route) {
-      route = `route-${pubsubName}-${topic}`;
+  async subscribe(pubsubName: string, topic: string, cb: TypeDaprPubSubCallback
+    , route: string | DaprPubSubRouteType = "", metadata?: KeyValueType): Promise<void> {
+    this.server.getServerImpl().registerPubsubSubscription(pubsubName, topic, { route, metadata });
+
+    // Add the callback to the event handlers manually
+    // @todo: we will deprecate this way of working? and require subscribeToRoute?
+    this.subscribeToRoute(pubsubName, topic, route, cb)
+  }
+
+  async subscribeWithOptions(pubsubName: string, topic: string, options: PubSubSubscriptionOptionsType = {}): Promise<void> {
+    this.server.getServerImpl().registerPubsubSubscription(pubsubName, topic, options);
+
+    if (options.callback) {
+      this.subscribeToRoute(pubsubName, topic, options?.route, options.callback);
+    }
+  }
+
+  subscribeToRoute(pubsubName: string, topic: string
+    , route: string | DaprPubSubRouteType | undefined, cb: TypeDaprPubSubCallback): void {
+    if (!route || typeof route === "string") {
+      this.subscribeToRouteStringType(pubsubName, topic, route, cb);
+    } else {
+      this.subscribeToRouteDaprPubSubRouteType(pubsubName, topic, route, cb);
+    }
+  }
+
+  subscribeToRouteDaprPubSubRouteType(pubsubName: string, topic: string
+    , route: DaprPubSubRouteType, cb: TypeDaprPubSubCallback): void {
+    // Register the default
+    if (route.default) {
+      this.server.getServerImpl().registerPubSubSubscriptionEventHandler(pubsubName, topic, route.default, cb);
     }
 
-    // Register the handler
-    await this.server.getServerImpl().registerPubSubSubscriptionRoute(pubsubName, topic, route, metadata);
-
-    this.server.getServer().post(`/${route}`, async (req, res) => {
-      // @ts-ignore
-      // Parse the data of the body, we prioritize fetching the data key in body if possible
-      // i.e. Redis returns { data: {} } and other services return {}
-      // @todo: This will be deprecated in an upcoming major version and only req.body will be returned
-      const data = req?.body?.data || req?.body;
-
-      // Process our callback
-      try {
-        await cb(data);
-      } catch (e) {
-        this.logger.error(`[route-${topic}] Message processing failed, dropping: ${e}`);
-        return res.send({ status: SubscribedMessageHttpResponse.DROP });
+    // Register the rules
+    if (route.rules) {
+      for (const rule of route.rules) {
+        this.server.getServerImpl().registerPubSubSubscriptionEventHandler(pubsubName, topic, rule.path, cb);
       }
+    }
+  }
 
-      // Let Dapr know that the message was processed correctly
-      this.logger.debug(`[route-${topic}] Acknowledging the message`);
-      return res.send({ status: SubscribedMessageHttpResponse.SUCCESS });
-    });
+  subscribeToRouteStringType(pubsubName: string, topic: string, route: string | undefined, cb: TypeDaprPubSubCallback): void {
+    this.server.getServerImpl().registerPubSubSubscriptionEventHandler(pubsubName, topic, route, cb);
+  }
+
+  getSubscriptions(): PubSubSubscriptionsType {
+    return this.server.getServerImpl().pubSubSubscriptions;
   }
 }

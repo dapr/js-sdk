@@ -79,8 +79,6 @@ generateGrpc() {
     echo "[protoc] Generating RPC for $PATH_PROTO/$PATH_FILE"
 
     # Tools to be installed by npm (see package.json)
-    # npm install grpc-tools --save-dev
-    # npm install grpc_tools_node_protoc_ts --save-dev
     PROTOC_GEN_TS_PATH="${PATH_ROOT}/node_modules/.bin/protoc-gen-ts"
     PROTOC_GEN_GRPC_PATH="${PATH_ROOT}/node_modules/.bin/grpc_tools_node_protoc_plugin"
 
