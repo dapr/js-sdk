@@ -22,7 +22,7 @@ const daprAppId = 'test-suite';
 describe('http/server', () => {
   let server: DaprServer;
   const mockBindingReceive = jest.fn(async (_data: object) => console.log('mockBindingReceive'));
-  const mockPubSubNormal = jest.fn(async (_data: object) => null);
+  const mockPubSub = jest.fn(async (_data: object) => null);
   const mockPubSubError = jest.fn(async (_data: object) => { throw new Error("DROPPING MESSAGE") });
 
   // We need to start listening on some endpoints already
@@ -37,10 +37,10 @@ describe('http/server', () => {
     // dapr publish --publish-app-id test-suite --pubsub pubsub-redis --topic test-topic --data '{ "hello": "world" }'
     await server.pubsub.subscribeWithOptions('pubsub-redis', 'topic-options-1', {});
     await server.pubsub.subscribeWithOptions('pubsub-redis', 'topic-options-2', { deadLetterTopic: "my-deadletter-topic" });
-    await server.pubsub.subscribeWithOptions('pubsub-redis', 'topic-options-3', { deadLetterTopic: "my-deadletter-topic", deadLetterCallback: mockPubSubNormal });
-    await server.pubsub.subscribeWithOptions('pubsub-redis', 'topic-options-4', { deadLetterCallback: mockPubSubNormal });
-    await server.pubsub.subscribeWithOptions('pubsub-redis', 'topic-options-5', { callback: mockPubSubError, deadLetterCallback: mockPubSubNormal });
-    await server.pubsub.subscribeWithOptions('pubsub-redis', 'topic-options-6', { callback: mockPubSubNormal });
+    await server.pubsub.subscribeWithOptions('pubsub-redis', 'topic-options-3', { deadLetterTopic: "my-deadletter-topic", deadLetterCallback: mockPubSub });
+    await server.pubsub.subscribeWithOptions('pubsub-redis', 'topic-options-4', { deadLetterCallback: mockPubSub });
+    await server.pubsub.subscribeWithOptions('pubsub-redis', 'topic-options-5', { callback: mockPubSubError, deadLetterCallback: mockPubSub });
+    await server.pubsub.subscribeWithOptions('pubsub-redis', 'topic-options-6', { callback: mockPubSub });
     await server.pubsub.subscribeWithOptions('pubsub-redis', 'topic-options-7', {
       route: {
         default: "/default",
@@ -57,10 +57,10 @@ describe('http/server', () => {
       }
     });
 
-    await server.pubsub.subscribe('pubsub-redis', 'topic-1', mockPubSubNormal);
-    await server.pubsub.subscribe('pubsub-redis', 'topic-2', mockPubSubNormal, "single-route");
-    await server.pubsub.subscribe('pubsub-redis', 'topic-3', mockPubSubNormal, "/no-leading-slash");
-    await server.pubsub.subscribe('pubsub-redis', 'topic-4', mockPubSubNormal, {
+    await server.pubsub.subscribe('pubsub-redis', 'topic-1', mockPubSub);
+    await server.pubsub.subscribe('pubsub-redis', 'topic-2', mockPubSub, "single-route");
+    await server.pubsub.subscribe('pubsub-redis', 'topic-3', mockPubSub, "/no-leading-slash");
+    await server.pubsub.subscribe('pubsub-redis', 'topic-4', mockPubSub, {
       default: "/default",
       rules: [
         {
@@ -73,9 +73,9 @@ describe('http/server', () => {
         }
       ]
     });
-    await server.pubsub.subscribe('pubsub-redis', 'test-topic-ce-raw', mockPubSubNormal, undefined, { rawPayload: true });
-    await server.pubsub.subscribe('pubsub-redis', 'test-topic-raw-raw', mockPubSubNormal, undefined, { rawPayload: true });
-    await server.pubsub.subscribe('pubsub-redis', 'test-topic-raw-ce', mockPubSubNormal);
+    await server.pubsub.subscribe('pubsub-redis', 'test-topic-ce-raw', mockPubSub, undefined, { rawPayload: true });
+    await server.pubsub.subscribe('pubsub-redis', 'test-topic-raw-raw', mockPubSub, undefined, { rawPayload: true });
+    await server.pubsub.subscribe('pubsub-redis', 'test-topic-raw-ce', mockPubSub);
 
     // Start server
     await server.start();
@@ -83,7 +83,7 @@ describe('http/server', () => {
 
   beforeEach(() => {
     mockBindingReceive.mockClear();
-    mockPubSubNormal.mockClear();
+    mockPubSub.mockClear();
     mockPubSubError.mockClear();
   });
 
@@ -112,11 +112,11 @@ describe('http/server', () => {
       // Delay a bit for event to arrive
       await new Promise((resolve, _reject) => setTimeout(resolve, 250));
 
-      expect(mockPubSubNormal.mock.calls.length).toBe(1);
+      expect(mockPubSub.mock.calls.length).toBe(1);
 
       // Also test for receiving data
       // @ts-ignore
-      expect(mockPubSubNormal.mock.calls[0][0]['hello']).toEqual('world');
+      expect(mockPubSub.mock.calls[0][0]['hello']).toEqual('world');
     });
 
     it('should be able to send and receive events when using options callback without a route', async () => {
@@ -125,11 +125,11 @@ describe('http/server', () => {
       // Delay a bit for event to arrive
       await new Promise((resolve, _reject) => setTimeout(resolve, 250));
 
-      expect(mockPubSubNormal.mock.calls.length).toBe(1);
+      expect(mockPubSub.mock.calls.length).toBe(1);
 
       // Also test for receiving data
       // @ts-ignore
-      expect(mockPubSubNormal.mock.calls[0][0]['hello']).toEqual('world');
+      expect(mockPubSub.mock.calls[0][0]['hello']).toEqual('world');
     });
 
     it('should only allow one subscription per topic', async () => {
@@ -151,11 +151,11 @@ describe('http/server', () => {
 
       // Delay a bit for event to arrive
       await new Promise((resolve, _reject) => setTimeout(resolve, 250));
-      expect(mockPubSubNormal.mock.calls.length).toBe(1);
+      expect(mockPubSub.mock.calls.length).toBe(1);
 
       // Also test for receiving data
       // @ts-ignore
-      const rawData = mockPubSubNormal.mock.calls[0][0]['data_base64'];
+      const rawData = mockPubSub.mock.calls[0][0]['data_base64'];
       const data = JSON.parse(Buffer.from(rawData, 'base64').toString());
       // @ts-ignore
       expect(data['data']['hello']).toEqual('world-ce-raw');
@@ -167,11 +167,11 @@ describe('http/server', () => {
 
       // Delay a bit for event to arrive
       await new Promise((resolve, _reject) => setTimeout(resolve, 250));
-      expect(mockPubSubNormal.mock.calls.length).toBe(1);
+      expect(mockPubSub.mock.calls.length).toBe(1);
 
       // Also test for receiving data
       // @ts-ignore
-      const rawData = mockPubSubNormal.mock.calls[0][0]['data_base64'];
+      const rawData = mockPubSub.mock.calls[0][0]['data_base64'];
       const data = JSON.parse(Buffer.from(rawData, 'base64').toString());
       // @ts-ignore
       expect(data['hello']).toEqual('world-raw-raw');
@@ -183,11 +183,11 @@ describe('http/server', () => {
 
       // Delay a bit for event to arrive
       await new Promise((resolve, _reject) => setTimeout(resolve, 250));
-      expect(mockPubSubNormal.mock.calls.length).toBe(1);
+      expect(mockPubSub.mock.calls.length).toBe(1);
 
       // Also test for receiving data
       // @ts-ignore
-      expect(mockPubSubNormal.mock.calls[0][0]['hello']).toEqual('world-raw-ce');
+      expect(mockPubSub.mock.calls[0][0]['hello']).toEqual('world-raw-ce');
     })
 
     it('should receive if it was successful or not', async () => {

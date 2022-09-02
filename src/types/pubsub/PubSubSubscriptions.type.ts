@@ -14,21 +14,6 @@ limitations under the License.
 import { PubSubSubscriptionType } from "./PubSubSubscription.type";
 
 /**
- * Internally we create an hierarchy of:
- * {
- *   pubsubName: {
- *     topicName: {
- *       routes: {
- *         routeName: {
- *           eventHandlers: [],
- *           path: ""
- *         }
- *       },
- *       dapr: {}
- *     }
- *   }
- * }
- * 
  * This defines the entire object containing pubsubNames
  */
 export type PubSubSubscriptionsType = {
