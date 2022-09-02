@@ -66,12 +66,12 @@ export default class HTTPClient implements IClient {
     const keepAlive = this.options.isKeepAlive;
     const keepAliveMsecs = 30 * 1000; // it is applicable only when keepAlive is set to true
 
-      if(!HTTPClient.httpAgent) {
-        HTTPClient.httpAgent = new http.Agent({ keepAlive: keepAlive, keepAliveMsecs: keepAliveMsecs });
-      }
-      if(!HTTPClient.httpsAgent) {
-        HTTPClient.httpsAgent = new https.Agent({ keepAlive: keepAlive, keepAliveMsecs: keepAliveMsecs });
-      }
+    if(!HTTPClient.httpAgent) {
+      HTTPClient.httpAgent = new http.Agent({ keepAlive: keepAlive, keepAliveMsecs: keepAliveMsecs });
+    }
+    if(!HTTPClient.httpsAgent) {
+      HTTPClient.httpsAgent = new https.Agent({ keepAlive: keepAlive, keepAliveMsecs: keepAliveMsecs });
+    }
   }
 
   async getClient(requiresInitialization = true): Promise<typeof fetch> {
