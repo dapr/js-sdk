@@ -31,4 +31,13 @@ describe('DaprClient', () => {
       expect(msg).toEqual("DAPR_INCORRECT_SIDECAR_PORT");
     }
   });
+
+  it('same http client should be returned for multiple DaprClient invocations', () => {
+    const daprClient1 = new DaprClient(host, port);
+    const daprClient2 = new DaprClient(host, port);
+    return Promise.all([daprClient1.getDaprClient().getClient(false), 
+      daprClient2.getDaprClient().getClient(false)]).then(function(values) {
+      expect(values[0]).toEqual(values[1]);
+    });
+  });
 });
