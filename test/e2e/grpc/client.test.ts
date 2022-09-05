@@ -120,13 +120,25 @@ describe('grpc/client', () => {
       // expect(res.components.length).toBeGreaterThan(0);
     });
 
+    // Commenting out as it would need next version of Dapr to be used in E2E test.
+    // It would specifically require changes from https://github.com/dapr/dapr/pull/5052
+    // it('should be able to get the capabilities of components via metadata call', async () => {
+    //   const res = await client.metadata.get();
+    //   const redisStateComponent = res.components.filter( (component) => component.name == "state-redis" );
+    //   const expectedRedisStateCapabilities = [ 'ETAG', 'TRANSACTIONAL', 'QUERY_API', 'ACTOR' ];
+    //   expect(res.id.length).toBeGreaterThan(0);
+    //   expect(res.components.length).toBeGreaterThan(0);
+    //   expect(redisStateComponent.length).toEqual(1)
+    //   expect(redisStateComponent[0].capabilities).toEqual(expect.arrayContaining(expectedRedisStateCapabilities));
+    // });
+
+
     it('should be able to set a custom metadata value of the Dapr sidecar', async () => {
       await client.metadata.set("testKey", "Hello World");
 
       const res = await client.metadata.get();
 
       // app id is not set in grpc?
-      // expect(res.id.length).toBeGreaterThan(0);
       // expect(res.id.length).toBeGreaterThan(0);
       // expect(res.components.length).toBeGreaterThan(0);
       expect(res.extended["testKey"]).toEqual("Hello World");
