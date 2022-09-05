@@ -68,6 +68,8 @@ export default class ParkingSensorImpl extends AbstractActor implements ParkingS
 
 To configure actor runtime, use the `DaprClientOptions`. The various parameters and their default values are documented at [How-to: Use virtual actors in Dapr](https://docs.dapr.io/developing-applications/building-blocks/actors/howto-actors/#configuration-parameters).
 
+Note, the timeouts and intervals should be formatted as [time.ParseDuration](https://pkg.go.dev/time#ParseDuration) strings.
+
 ```javascript
 import { CommunicationProtocolEnum, DaprClient, DaprServer } from "@dapr/dapr";
 
