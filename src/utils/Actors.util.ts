@@ -12,30 +12,15 @@ limitations under the License.
 */
 
 import { ActorRuntimeOptions } from "../types/actors/ActorRuntimeOptions";
+import { KeyValueType } from "../types/KeyValue.type";
 
 /**
  * Get response object for /dapr/config API call.
  * See https://docs.dapr.io/reference/api/actors_api/#get-registered-actors
  */
-export function getRegisteredActorResponse(entities: string[], options: ActorRuntimeOptions): {[k: string]: any} {
-    const res: {[k: string]: any} = {};
-    res["entities"] = entities
-
-    if (options.actorIdleTimeout) { res["actorIdleTimeout"] = options.actorIdleTimeout }
-    if (options.actorScanInterval) { res["actorScanInterval"] = options.actorScanInterval }
-    if (options.drainOngoingCallTimeout) { res["drainOngoingCallTimeout"] = options.drainOngoingCallTimeout }
-    if (options.drainRebalancedActors) { res["drainRebalancedActors"] = options.drainRebalancedActors }
-    if (options.remindersStoragePartitions) { res["remindersStoragePartitions"] = options.remindersStoragePartitions }
-
-    if (options.reentrancy) {
-        res["reentrancy"] = {};
-        if (options.reentrancy.enabled) {
-            res["reentrancy"]["enabled"] = options.reentrancy.enabled;
-        }
-        if (options.reentrancy.maxStackDepth) {
-            res["reentrancy"]["maxStackDepth"] = options.reentrancy.maxStackDepth;
-        }
+export function getRegisteredActorResponse(entities: string[], options: ActorRuntimeOptions): KeyValueType {
+    return {
+        "entities": entities,
+        ...options
     }
-
-    return res
 }
