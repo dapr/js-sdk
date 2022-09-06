@@ -13,11 +13,11 @@ limitations under the License.
 
 import { DaprClient } from "../..";
 import IClient from "../../interfaces/Client/IClient";
+import { ActorRuntimeOptions } from "../../types/actors/ActorRuntimeOptions";
 import Class from "../../types/Class";
 import ActorId from "../ActorId";
 import AbstractActor from "./AbstractActor";
 import ActorManager from "./ActorManager";
-import ActorRuntimeConfig from "./ActorRuntimeConfig";
 
 /**
  * Creates instances of "Actor" and activates and deactivates "Actor"
@@ -27,7 +27,6 @@ export default class ActorRuntime {
 
   private readonly daprClient: DaprClient;
   private actorManagers: Map<string, ActorManager<any>>;
-  private actorRuntimeConfig: ActorRuntimeConfig = new ActorRuntimeConfig();
 
   // @todo: we need to make sure race condition cannot happen when accessing the active actors
   // NodeJS has an event loop (main thread -> runs JS code) and a worker pool (threadpool -> automatically created for offloading work through libuv) threads
@@ -73,12 +72,12 @@ export default class ActorRuntime {
     return Array.from(this.actorManagers.keys());
   }
 
-  getActorRuntimeConfig(): ActorRuntimeConfig {
-    return this.actorRuntimeConfig;
+  getActorRuntimeOptions(): ActorRuntimeOptions {
+    return this.daprClient.options.actor ?? {};
   }
 
-  setActorRuntimeConfig(config: ActorRuntimeConfig): void {
-    this.actorRuntimeConfig = config;
+  setActorRuntimeOptions(options: ActorRuntimeOptions): void {
+    this.daprClient.options.actor = options;
   }
 
   clearActorManagers(): void {

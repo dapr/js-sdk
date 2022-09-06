@@ -11,23 +11,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { ActorRuntimeOptions } from "./actors/ActorRuntimeOptions";
-import { LoggerOptions } from "./logger/LoggerOptions";
+import { ActorRuntimeOptions } from "../types/actors/ActorRuntimeOptions";
+import { KeyValueType } from "../types/KeyValue.type";
 
-export type DaprClientOptions = {
-  /**
-   * If set to false, the HTTP client will not reuse the same connection for multiple requests.
-   * Default is true.
-   */
-  isKeepAlive?: boolean;
-
-  /**
-   * Options related to logging.
-   */
-  logger?: LoggerOptions;
-
-  /**
-   * Options related to actors.
-   */
-  actor?: ActorRuntimeOptions;
+/**
+ * Get response object for /dapr/config API call.
+ * See https://docs.dapr.io/reference/api/actors_api/#get-registered-actors
+ */
+export function getRegisteredActorResponse(entities: string[], options: ActorRuntimeOptions): KeyValueType {
+    return {
+        "entities": entities,
+        ...options
+    }
 }

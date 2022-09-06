@@ -18,10 +18,10 @@ import Class from '../../../types/Class';
 import ActorRuntime from '../../../actors/runtime/ActorRuntime';
 import IRequest from '../../../types/http/IRequest';
 import IResponse from '../../../types/http/IResponse';
-import { GetRegisteredActorsType } from '../../../types/response/GetRegisteredActors.type';
 import BufferSerializer from '../../../actors/runtime/BufferSerializer';
 import { DaprClient } from '../../..';
 import { Logger } from '../../../logger/Logger';
+import { getRegisteredActorResponse } from '../../../utils/Actors.util';
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class HTTPServerActor implements IServerActor {
@@ -70,19 +70,15 @@ export default class HTTPServerActor implements IServerActor {
     this.server.getServer().put("/actors/:actorTypeName/:actorId/method/remind/:reminderName", this.handlerReminder.bind(this));
   }
 
-  private async handlerHealth(req: IRequest, res: IResponse): Promise<void> {
+  private async handlerHealth(_req: IRequest, res: IResponse): Promise<void> {
     return res.send("ok");
   }
 
-  private async handlerConfig(req: IRequest, res: IResponse): Promise<void> {
+  private async handlerConfig(_req: IRequest, res: IResponse): Promise<void> {
     const actorRuntime = ActorRuntime.getInstance(this.client.getDaprClient());
-
-    const result: GetRegisteredActorsType = {
-      entities: actorRuntime.getRegisteredActorTypes(),
-      ...actorRuntime.getActorRuntimeConfig().toDictionary()
-    }
-
-    return res.send(result);
+    return res.send(getRegisteredActorResponse(
+        actorRuntime.getRegisteredActorTypes(), 
+        actorRuntime.getActorRuntimeOptions()));
   }
 
   private async handlerDeactivate(req: IRequest, res: IResponse): Promise<void> {

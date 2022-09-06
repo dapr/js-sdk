@@ -11,7 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { CommunicationProtocolEnum, DaprClient, DaprServer } from '../../../src';
+import { CommunicationProtocolEnum, DaprClient, DaprClientOptions, DaprServer } from '../../../src';
+import fetch from "node-fetch";
 
 import * as NodeJSUtil from '../../../src/utils/NodeJS.util';
 import ActorId from '../../../src/actors/ActorId';
@@ -35,6 +36,21 @@ const sidecarHost = "127.0.0.1";
 const sidecarPort = "50000";
 const serverStartWaitTimeMs = 5 * 1000;
 
+const daprClientOptions: DaprClientOptions = {
+  isKeepAlive: false,
+  actor: {
+    actorIdleTimeout: '1h',
+    actorScanInterval: '30s',
+    drainOngoingCallTimeout: '1m',
+    drainRebalancedActors: true,
+    reentrancy: {
+      enabled: true,
+      maxStackDepth: 32
+    },
+    remindersStoragePartitions: 0,
+  }
+}
+
 describe('http/actors', () => {
   let server: DaprServer;
   let client: DaprClient;
@@ -44,16 +60,11 @@ describe('http/actors', () => {
   beforeAll(async () => {
     // Start server and client with keepAlive on the client set to false.
     // this means that we won't re-use connections here which is necessary for the tests
-    // since it will keep handles open else
-    server = new DaprServer(serverHost, serverPort, sidecarHost, sidecarPort, CommunicationProtocolEnum.HTTP, {
-      isKeepAlive: false
-    });
+    // since it will keep handles open else it has to be initialized before the server starts! 
+    server = new DaprServer(serverHost, serverPort, sidecarHost, sidecarPort, CommunicationProtocolEnum.HTTP, daprClientOptions);
+    
+    client = new DaprClient(sidecarHost, sidecarPort, CommunicationProtocolEnum.HTTP, daprClientOptions);
 
-    client = new DaprClient(sidecarHost, sidecarPort, CommunicationProtocolEnum.HTTP, {
-      isKeepAlive: false
-    });
-
-    // has to be initialized before the server started! 
     // This will initialize the actor routes. 
     // Actors themselves can be initialized later
     await server.actor.init();
@@ -77,6 +88,23 @@ describe('http/actors', () => {
   afterAll(async () => {
     await server.stop(); // if we hang here, it means connections are open that were not closed. Debug why
     // await client.stop();
+  });
+
+  describe('configuration', () => {
+    it('actor configuration endpoint should contain the correct parameters', async () => {
+      const res = await fetch(`http://${serverHost}:${serverPort}/dapr/config`)
+      expect(res.status).toBe(200);
+
+      const config = JSON.parse(await res.text())
+
+      expect(config.entities.length).toBe(8);      
+      expect(config.actorIdleTimeout).toBe('1h');
+      expect(config.actorScanInterval).toBe('30s');
+      expect(config.drainOngoingCallTimeout).toBe('1m');
+      expect(config.drainRebalancedActors).toBe(true);
+      expect(config.reentrancy.enabled).toBe(true);
+      expect(config.reentrancy.maxStackDepth).toBe(32);
+    });
   });
 
   describe('actorProxy', () => {

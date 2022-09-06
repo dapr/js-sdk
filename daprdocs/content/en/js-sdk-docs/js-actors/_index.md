@@ -64,6 +64,38 @@ export default class ParkingSensorImpl extends AbstractActor implements ParkingS
 }
 ```
 
+### Configuring Actor Runtime
+
+To configure actor runtime, use the `DaprClientOptions`. The various parameters and their default values are documented at [How-to: Use virtual actors in Dapr](https://docs.dapr.io/developing-applications/building-blocks/actors/howto-actors/#configuration-parameters).
+
+Note, the timeouts and intervals should be formatted as [time.ParseDuration](https://pkg.go.dev/time#ParseDuration) strings.
+
+```javascript
+import { CommunicationProtocolEnum, DaprClient, DaprServer } from "@dapr/dapr";
+
+// Configure the actor runtime with the DaprClientOptions.
+const clientOptions = {
+  actor: {
+    actorIdleTimeout: '1h',
+    actorScanInterval: '30s',
+    drainOngoingCallTimeout: '1m',
+    drainRebalancedActors: true,
+    reentrancy: {
+      enabled: true,
+      maxStackDepth: 32
+    },
+    remindersStoragePartitions: 0,
+  }
+}
+
+// Use the options when creating DaprServer and DaprClient.
+
+// Note, DaprServer creates a DaprClient internally, which needs to be configured with clientOptions.
+const server = new DaprServer(serverHost, serverPort, daprHost, daprPort, clientOptions);
+
+const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.HTTP, clientOptions);
+```
+
 ## Registering Actors
 Initialize and register your actors by using the `DaprServer` package:
 
@@ -91,7 +123,7 @@ console.log(`Registered Actors: ${JSON.stringify(resRegisteredActors)}`);
 After Actors are registered, create a Proxy object that implements `ParkingSensorInterface` using the `ActorProxyBuilder`. You can invoke the actor methods by directly calling methods on the Proxy object. Internally, it translates to making a network call to the Actor API and fetches the result back.
 
 ```javascript
-import { DaprClient, ActorId } from "@dapr/dapr";
+import { ActorId, DaprClient } from "@dapr/dapr";
 import ParkingSensorImpl from "./ParkingSensorImpl";
 import ParkingSensorInterface from "./ParkingSensorInterface";
 
