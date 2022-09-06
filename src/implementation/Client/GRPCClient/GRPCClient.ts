@@ -20,6 +20,7 @@ import { Settings } from '../../../utils/Settings.util';
 import { Logger } from "../../../logger/Logger";
 import GRPCClientSidecar from "./sidecar";
 import DaprClient from "../DaprClient";
+import { GrpcOptions } from '../../../types/GrpcOptions';
 
 export default class GRPCClient implements IClient {
   private isInitialized: boolean;
@@ -44,7 +45,7 @@ export default class GRPCClient implements IClient {
     this.isInitialized = false;
 
     this.logger.info(`Opening connection to ${this.clientHost}:${this.clientPort}`);
-    this.client = this.generateClient(this.clientHost, this.clientPort, this.clientCredentials);
+    this.client = this.generateClient(this.clientHost, this.clientPort, this.clientCredentials, options.grpc);
   }
 
   getClientHost(): string {
@@ -72,8 +73,8 @@ export default class GRPCClient implements IClient {
     return this.clientCredentials;
   }
 
-  private generateClient(host: string, port: string, credentials: grpc.ChannelCredentials): GrpcDaprClient {
-    const client = new GrpcDaprClient(`${host}:${port}`, credentials);
+  private generateClient(host: string, port: string, credentials: grpc.ChannelCredential, options?: GrpcOptions): GrpcDaprClient {
+    const client = new GrpcDaprClient(`${host}:${port}`, credentials, options);
     return client;
   }
 

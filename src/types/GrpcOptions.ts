@@ -11,20 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { LoggerOptions } from "./logger/LoggerOptions";
-import { GrpcOptions } from "./GrpcOptions";
-
-export type DaprClientOptions = {
-  /**
-   * If set to false, the HTTP client will not reuse the same connection for multiple requests.
-   * Default is true.
-   */
-  isKeepAlive?: boolean;
-
-  /**
-   * Options related to logging.
-   */
-  logger?: LoggerOptions;
-
-  grpc?: GrpcOptions;
+export type GrpcOptions = {
+  'grpc.max_send_message_length'?: number;
+  'grpc.max_receive_message_length'?: number;
 }
