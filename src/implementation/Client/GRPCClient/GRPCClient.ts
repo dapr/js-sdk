@@ -115,7 +115,7 @@ export default class GRPCClient implements IClient {
   }
 
   async _startAwaitSidecarStarted(): Promise<void> {
-    await DaprClient.awaitSidecarStarted(async () => await GRPCClientSidecar.isStarted(this));
+    await DaprClient.awaitSidecarStarted(async () => await GRPCClientSidecar.isStarted(this), this.logger);
   }
 
   /**

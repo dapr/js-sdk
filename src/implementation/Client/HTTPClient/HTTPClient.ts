@@ -113,7 +113,7 @@ export default class HTTPClient implements IClient {
   }
 
   async _startAwaitSidecarStarted(): Promise<void> {
-    await DaprClient.awaitSidecarStarted(async () => await HTTPClientSidecar.isStarted(this));
+    await DaprClient.awaitSidecarStarted(async () => await HTTPClientSidecar.isStarted(this), this.logger);
   }
 
   async stop(): Promise<void> {
