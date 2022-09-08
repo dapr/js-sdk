@@ -149,9 +149,7 @@ export default class DaprClient {
     return new DaprClient(client.getClientHost(), client.getClientPort(), client.getClientCommunicationProtocol(), client.getOptions());
   }
 
-  static async awaitSidecarStarted(fnIsSidecarStarted: () => Promise<boolean>): Promise<void> {
-    const logger = new Logger("DaprClient", "DaprClient");
-
+  static async awaitSidecarStarted(fnIsSidecarStarted: () => Promise<boolean>, logger: Logger): Promise<void> {
     // Dapr will probe every 50ms to see if we are listening on our port: https://github.com/dapr/dapr/blob/a43712c97ead550ca2f733e9f7e7769ecb195d8b/pkg/runtime/runtime.go#L1694
     // if we are using actors we will change this to 4s to let the placement tables update
     let isStarted = await fnIsSidecarStarted();
