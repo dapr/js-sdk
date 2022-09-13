@@ -387,6 +387,69 @@ start().catch((e) => {
 });
 ```
 
+### Distributed Lock API
+
+#### Try Lock and Unlock APIs
+
+```javascript
+import { CommunicationProtocolEnum, DaprClient } from "@dapr/dapr";
+import { LockStatus } from "@dapr/dapr/types/lock/UnlockResponse";
+
+const daprHost = "127.0.0.1";
+const daprPortDefault = "3500";
+
+async function start() {
+  const client = new DaprClient(
+    daprHost,
+    process.env.DAPR_GRPC_PORT ?? daprPortDefault,
+    CommunicationProtocolEnum.GRPC
+  );
+
+  const storeName = "redislock";
+  const resourceId = "resourceId";
+  const lockOwner = "owner1";
+  let expiryInSeconds = 1000;
+
+  console.log(`Acquiring lock on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
+  const tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
+  console.log(tryLockResponse);
+
+  console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
+  const unlockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
+  console.log("Unlock API response: " + getResponseStatus(unlockResponse.status));
+
+  // Checking if the lock exists.
+  console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
+  const lockDoesNotExistResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
+  console.log("Unlock API response when lock is not acquired: " + getResponseStatus(lockDoesNotExistResponse.status));
+
+  expiryInSeconds = 25;
+  console.log(`Acquiring lock on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
+  const tryLockResponse1 = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
+  console.log("Acquired Lock? " + tryLockResponse1.success);
+
+  await new Promise(resolve => setTimeout(resolve, 20000));
+}
+
+function getResponseStatus(status: LockStatus) {
+  switch(status) {
+    case LockStatus.Success:
+      return "Success";
+    case LockStatus.LockDoesNotExist: 
+      return "LockDoesNotExist";
+    case LockStatus.LockBelongsToOthers:
+      return "LockBelongsToOthers";
+    default:
+      return "InternalError";
+  }
+}
+
+start().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
+```
+
 ## Related links
 
 - [JavaScript SDK examples](https://github.com/dapr/js-sdk/tree/master/examples)
