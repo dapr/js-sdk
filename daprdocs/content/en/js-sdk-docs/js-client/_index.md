@@ -449,6 +449,7 @@ start().catch((e) => {
   process.exit(1);
 });
 ```
+> For a full guide on distributed locks visit [How-To: Use Distributed Locks]({{< ref howto-use-distributed-lock.md >}}).
 
 ## Related links
 
