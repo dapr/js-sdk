@@ -500,6 +500,54 @@ start().catch((e) => {
 });
 ```
 
+### Distributed Lock API
+
+#### Try Lock and Unlock APIs
+
+```javascript
+import { CommunicationProtocolEnum, DaprClient } from "@dapr/dapr";
+import { LockStatus } from "@dapr/dapr/types/lock/UnlockResponse";
+
+const daprHost = "127.0.0.1";
+const daprPortDefault = "3500";
+
+async function start() {
+  const client = new DaprClient(daprHost, daprPort);
+
+  const storeName = "redislock";
+  const resourceId = "resourceId";
+  const lockOwner = "owner1";
+  let expiryInSeconds = 1000;
+
+  console.log(`Acquiring lock on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
+  const tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
+  console.log(tryLockResponse);
+
+  console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
+  const unlockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
+  console.log("Unlock API response: " + getResponseStatus(unlockResponse.status));
+}
+
+function getResponseStatus(status: LockStatus) {
+  switch(status) {
+    case LockStatus.Success:
+      return "Success";
+    case LockStatus.LockDoesNotExist: 
+      return "LockDoesNotExist";
+    case LockStatus.LockBelongsToOthers:
+      return "LockBelongsToOthers";
+    default:
+      return "InternalError";
+  }
+}
+
+start().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
+```
+> For a full guide on distributed locks visit [How-To: Use Distributed Locks]({{< ref howto-use-distributed-lock.md >}}).
+
 ## Related links
 
 - [JavaScript SDK examples](https://github.com/dapr/js-sdk/tree/master/examples)
