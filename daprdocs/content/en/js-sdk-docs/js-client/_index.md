@@ -399,11 +399,7 @@ const daprHost = "127.0.0.1";
 const daprPortDefault = "3500";
 
 async function start() {
-  const client = new DaprClient(
-    daprHost,
-    process.env.DAPR_GRPC_PORT ?? daprPortDefault,
-    CommunicationProtocolEnum.GRPC
-  );
+  const client = new DaprClient(daprHost, daprPort);
 
   const storeName = "redislock";
   const resourceId = "resourceId";
@@ -417,18 +413,6 @@ async function start() {
   console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
   const unlockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
   console.log("Unlock API response: " + getResponseStatus(unlockResponse.status));
-
-  // Checking if the lock exists.
-  console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
-  const lockDoesNotExistResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
-  console.log("Unlock API response when lock is not acquired: " + getResponseStatus(lockDoesNotExistResponse.status));
-
-  expiryInSeconds = 25;
-  console.log(`Acquiring lock on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
-  const tryLockResponse1 = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
-  console.log("Acquired Lock? " + tryLockResponse1.success);
-
-  await new Promise(resolve => setTimeout(resolve, 20000));
 }
 
 function getResponseStatus(status: LockStatus) {
