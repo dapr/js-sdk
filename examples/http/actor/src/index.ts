@@ -15,10 +15,12 @@ import { ActorId, ActorProxyBuilder, DaprServer, DaprClient } from "@dapr/dapr";
 import ActorCounterImpl from "./actor/implementations/ActorCounterImpl";
 import ActorReminderImpl from "./actor/implementations/ActorReminderImpl";
 import ActorSayImpl from "./actor/implementations/ActorSayImpl";
+import ActorStateImpl from "./actor/implementations/ActorStateImpl";
 import ActorTimerImpl from "./actor/implementations/ActorTimerImpl";
 import ActorCounterInterface from "./actor/interfaces/ActorCounterInterface";
 import ActorReminderInterface from "./actor/interfaces/ActorReminderInterface";
 import ActorSayInterface from "./actor/interfaces/ActorSayInterface";
+import ActorStateInterface from "./actor/interfaces/ActorStateInterface";
 import ActorTimerInterface from "./actor/interfaces/ActorTimerInterface";
 
 const daprHost = "127.0.0.1";
@@ -40,6 +42,7 @@ async function start() {
   server.actor.registerActor(ActorCounterImpl);
   server.actor.registerActor(ActorTimerImpl);
   server.actor.registerActor(ActorReminderImpl);
+  server.actor.registerActor(ActorStateImpl);
 
   // We initialize after registering our listeners since these should be defined upfront.
   // Dapr waits until we are listening on the port. Once that is detected it scans the binding list to process.
@@ -63,6 +66,9 @@ async function start() {
   logHeader("EXAMPLE 4 - ACTORS Timer");
   await exampleActorTimer(client);
 
+  logHeader("EXAMPLE 5 - ACTORS State");
+  await exampleActorState(client);
+
   await server.stop();
 }
 
@@ -76,11 +82,11 @@ async function exampleActorSay(client: DaprClient) {
 
   // Invoke the actor methods.
   log("Example1", `Trying to invoke method 'sayString' with string "${inputStr}"`);
-  const resActorInvokeSayStr = await actor.sayString(inputStr);
+  const resActorInvokeSayStr = actor.sayString(inputStr);
   log("Example1", `Invoked method with "${inputStr}" and got data: ${resActorInvokeSayStr}`);
 
   log("Example1", `Trying to invoke method 'sayObject' with object "${JSON.stringify(inputObj)}"`);
-  const resActorInvokeSayObj = await actor.sayObject(inputObj);
+  const resActorInvokeSayObj = actor.sayObject(inputObj);
   log("Example1", `Invoked method with ${JSON.stringify(inputObj)} and got data: ${JSON.stringify(resActorInvokeSayObj)}`);
 }
 
@@ -156,6 +162,56 @@ async function exampleActorTimer(client: DaprClient) {
   // Stop the timer.
   log("Example4", "Invoking 'stop' and unregistering the timer");
   await timerActor.stop();
+}
+
+async function exampleActorState(client: DaprClient) {
+  // Create a new actor instance from a proxy builder.
+  const stateBuilder = new ActorProxyBuilder<ActorStateInterface>(ActorStateImpl, client);
+  const stateActor = stateBuilder.build(ActorId.createRandomId());
+
+  class MyCustomType {
+    public name: string;
+    public age: number;
+    public constructor(name: string, age: number) {
+      this.name = name;
+      this.age = age;
+    }
+  }
+
+  // Set state
+  await stateActor.setState("my-numeric-key", 1);
+  await stateActor.setState("my-string-key", "Hello World!");
+  await stateActor.setState("my-object-key", { message: "Hello World!" });
+  await stateActor.setState("my-custom-type-key", new MyCustomType("John Doe", 42));
+
+  // Get state
+  const resStateGetNumeric = await stateActor.getState<number>("my-numeric-key");
+  if (resStateGetNumeric) {
+    log("Example5", `Invoked 'getState' for "my-numeric-key" and got data: ${resStateGetNumeric}`);
+  } else {
+    log("Example5", `Invoked 'getState' for "my-numeric-key" and got no data`);
+  }
+
+  const resStateGetString = await stateActor.getState<string>("my-string-key");
+  if (resStateGetString) {
+    log("Example5", `Invoked 'getState' for "my-string-key" and got data: ${resStateGetString}`);
+  } else {
+    log("Example5", `Invoked 'getState' for "my-string-key" and got no data`);
+  }
+
+  const resStateGetObject = await stateActor.getState<{message: string}>("my-object-key");
+  if (resStateGetObject) {
+    log("Example5", `Invoked 'getState' for "my-object-key" and got data.message: ${resStateGetObject.message}`);
+  } else {
+    log("Example5", `Invoked 'getState' for "my-object-key" and got no data`);
+  }
+
+  const resStateGetCustomType = await stateActor.getState<MyCustomType>("my-custom-type-key");
+  if (resStateGetCustomType) {
+    log("Example5", `Invoked 'getState' for "my-custom-type-key" and got data.name: ${resStateGetCustomType.name}`);
+  } else {
+    log("Example5", `Invoked 'getState' for "my-custom-type-key" and got no data`);
+  }
 }
 
 function log(identifier: string, message: string) {
