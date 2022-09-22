@@ -153,6 +153,13 @@ export default class HTTPClient implements IClient {
       params.headers = {};
     }
 
+    if (this.options.daprApiToken) {
+      params.headers = {
+        ...params.headers,
+        'dapr-api-token': this.options.daprApiToken,
+      };
+    }
+
     if (!params?.method) {
       params.method = "GET";
     }
