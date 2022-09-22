@@ -147,24 +147,30 @@ await actor.carEnter();
 ## Using states with Actor
 
 ```ts
-// ...
+import { AbstractActor } from "@dapr/dapr";
+import ActorStateInterface from "./ActorStateInterface";
 
-const PARKING_SENSOR_PARKED_STATE_NAME = "parking-sensor-parked"
+export default class ActorStateExample extends AbstractActor implements ActorStateInterface {
+    async setState(key: string, value: any): Promise<void> {
+        await this.getStateManager().setState(key, value);
+        await this.getStateManager().saveState();
+    }
 
-const actor = builder.build(new ActorId("my-actor")) 
+    async removeState(key: string): Promise<void> {
+        await this.getStateManager().removeState(key);
+        await this.getStateManager().saveState();
+    }
 
-// SET state
-await actor.getStateManager().setState(PARKING_SENSOR_PARKED_STATE_NAME, true);
+    // getState with a specific type
+    async getState<T>(key: string): Promise<T | null> {
+        return await this.getStateManager<T>().getState(key);
+    }
 
-// GET state
-const value = await actor.getStateManager().getState(PARKING_SENSOR_PARKED_STATE_NAME);
-if (!value) {
-  console.log(`Received: ${value}!`);
+    // getState without type as `any`
+    async getState(key: string): Promise<any> {
+        return await this.getStateManager().getState(key);
+    }
 }
-
-// DELETE state
-await actor.removeState(PARKING_SENSOR_PARKED_STATE_NAME);
-...
 ```
 
 ## Actor Timers and Reminders
