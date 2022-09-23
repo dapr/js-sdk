@@ -3,11 +3,13 @@
     "parser": "@typescript-eslint/parser",
     "plugins": [
         "@typescript-eslint",
-        "header"
+        "header",
+        "prettier"
     ],
     "extends": [
         "eslint:recommended",
-        "plugin:@typescript-eslint/recommended"
+        "plugin:@typescript-eslint/recommended",
+        "prettier"
     ],
     "env": {
         "browser": true,
@@ -34,6 +36,7 @@
             "See the License for the specific language governing permissions and",
             "limitations under the License.",
             ""
-        ], 2]
+        ], 2],
+        "prettier/prettier": ["error"]
     }
 }
