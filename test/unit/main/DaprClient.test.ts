@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { DaprClient } from "../../../src";
+import { CommunicationProtocolEnum, DaprClient } from "../../../src";
 
 const host = "127.0.0.1";
 const port = "50001";
@@ -40,4 +40,9 @@ describe('DaprClient', () => {
       expect(values[0]).toEqual(values[1]);
     });
   });
+
+  it('should return dapr api token', () => {
+    const daprClient = new DaprClient(host, port,CommunicationProtocolEnum.HTTP, { daprApiToken: "test" });
+    expect(daprClient.getOptions().daprApiToken).toEqual("test");
+  })
 });

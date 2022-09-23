@@ -25,7 +25,6 @@ describe('http/client', () => {
   beforeAll(async () => {
     client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.HTTP, {
       isKeepAlive: false,
-      daprApiToken: 'securedtoken',
     });
 
   }, 10 * 1000);
