@@ -24,7 +24,7 @@ describe('http/client', () => {
   // we put a timeout of 10s since it takes around 4s for Dapr to boot up
   beforeAll(async () => {
     client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.HTTP, {
-      isKeepAlive: false,
+      isKeepAlive: false
     });
 
   }, 10 * 1000);
