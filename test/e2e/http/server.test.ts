@@ -357,7 +357,10 @@ describe('http/server', () => {
 
       await server.invoker.listen('hello-world', mock, { method: HttpMethod.POST });
       const res = await server.client.invoker.invoke(daprAppId, 'hello-world', HttpMethod.POST, {
-        hello: 'world',
+       body:{ hello: 'world'},
+       headers:{
+        'Authorization':"Bearer secret token"
+       }
       });
 
       // Delay a bit for event to arrive
