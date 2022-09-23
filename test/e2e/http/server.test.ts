@@ -343,7 +343,11 @@ describe('http/server', () => {
       const mock = jest.fn(async (_data: object) => ({ hello: 'world' }));
 
       await server.invoker.listen('hello-world', mock, { method: HttpMethod.GET });
-      const res = await server.client.invoker.invoke(daprAppId, 'hello-world', HttpMethod.GET);
+      const res = await server.client.invoker.invoke(daprAppId, 'hello-world', HttpMethod.GET,{},{
+        headers:{
+          'Authorization':"Bearer secret token"
+         }
+      });
 
       // Delay a bit for event to arrive
       // await new Promise((resolve, reject) => setTimeout(resolve, 250));
@@ -356,8 +360,8 @@ describe('http/server', () => {
       const mock = jest.fn(async (_data: object) => ({ hello: 'world' }));
 
       await server.invoker.listen('hello-world', mock, { method: HttpMethod.POST });
-      const res = await server.client.invoker.invoke(daprAppId, 'hello-world', HttpMethod.POST, {
-       body:{ hello: 'world'},
+      const res = await server.client.invoker.invoke(daprAppId, 'hello-world', HttpMethod.POST,{ hello: 'world'}, {
+      
        headers:{
         'Authorization':"Bearer secret token"
        }

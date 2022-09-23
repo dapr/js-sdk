@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-export type InvokerParamsType={
+export type InvokerOptions={
 headers?:object
-body?:object
+
 }

@@ -20,7 +20,8 @@ import { InvokeServiceRequest } from '../../../proto/dapr/proto/runtime/v1/dapr_
 import * as HttpVerbUtil from "../../../utils/HttpVerb.util";
 import IClientInvoker from '../../../interfaces/Client/IClientInvoker';
 import * as SerializerUtil from "../../../utils/Serializer.util"
-import { InvokerParamsType } from "../../../types/InvokerParams.type";
+
+import { InvokerOptions } from "../../../types/InvokerOptions.type";
 
 // https://docs.dapr.io/reference/api/service_invocation_api/
 export default class GRPCClientInvoker implements IClientInvoker {
@@ -31,22 +32,23 @@ export default class GRPCClientInvoker implements IClientInvoker {
   }
 
   // @todo: should return a specific typed Promise<TypeInvokerInvokeResponse> instead of Promise<nothing>
-  async invoke(appId: string, methodName: string, method: HttpMethod = HttpMethod.GET, params:InvokerParamsType): Promise<object> {
-    const headers= params.headers!=undefined?params.headers:{}
-    const body=params.body
-    const fetchOptions: any = {
+  async invoke(appId: string, methodName: string, method: HttpMethod = HttpMethod.GET, data?: object,options:InvokerOptions={}): Promise<object> {
+    
+    const headers= options.headers!=undefined?options.headers:{}
+ 
+    const fetchOptions = {
       method,
       headers
     };
 
     if (method !== HttpMethod.GET) {
+       //@ts-ignore
       fetchOptions.headers['Content-Type'] = 'application/json';
-
     }
 
 
-    if (method !== HttpMethod.GET &&  typeof body==='object'&& Object.keys(body).length === 0) {
-      // @ts-ignore
+    if (method !== HttpMethod.GET && data !== undefined) {
+      //@ts-ignore
       fetchOptions.body = JSON.stringify(data);
     }
 
@@ -58,7 +60,7 @@ export default class GRPCClientInvoker implements IClientInvoker {
     httpExtension.setVerb(HttpVerbUtil.convertHttpVerbStringToNumber(method));
 
     const msgSerialized = new Any();
-    const {serializedData, contentType} = SerializerUtil.serializeGrpc(body);
+    const {serializedData, contentType} = SerializerUtil.serializeGrpc(data);
     msgSerialized.setValue(serializedData);
 
     const msgInvoke = new InvokeRequest();
