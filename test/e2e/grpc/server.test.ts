@@ -11,9 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { CommunicationProtocolEnum, DaprClient, DaprServer, HttpMethod } from '../../../src';
-import * as grpc from "@grpc/grpc-js";
-import { DaprClient as GrpcDaprClient } from "../../../src/proto/dapr/proto/runtime/v1/dapr_grpc_pb"
+import { CommunicationProtocolEnum, DaprServer, HttpMethod } from '../../../src';
 
 const serverHost = 'localhost';
 const serverPort = '50001';
@@ -23,6 +21,7 @@ const daprAppId = 'test-suite';
 
 describe('grpc/server', () => {
   let server: DaprServer;
+  const mockInvoker = jest.fn(async (_data: object) => _data);
   const mockBindingReceive = jest.fn(async (_data: object) => console.log('mockBindingReceive'));
   const mockPubSub = jest.fn(async (_data: object) => null);
   const mockPubSubError = jest.fn(async (_data: object) => { throw new Error("DROPPING MESSAGE") });
@@ -30,9 +29,12 @@ describe('grpc/server', () => {
   // We need to start listening on some endpoints already
   // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
-    server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+    server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.GRPC, undefined, {
+      bodySizeMb: 10
+    });
 
     await server.binding.receive('binding-mqtt', mockBindingReceive);
+    await server.invoker.listen('test-invoker', mockInvoker, { method: HttpMethod.POST });
 
     // Test with:
     // dapr publish --publish-app-id test-suite --pubsub pubsub-redis --topic test-topic --data '{ "hello": "world" }'
@@ -95,65 +97,29 @@ describe('grpc/server', () => {
   });
 
 
-  // describe('server', () => {
-  //   // @todo: how to create a proper GRPC Client here
-  //   it('should be able to receive payloads larger than 4 MB', async () => {
-  //     const serverTest = new DaprServer(serverHost, "50002", daprHost, daprPort, CommunicationProtocolEnum.GRPC, undefined, {
-  //       bodySizeMb: 10
-  //     });
-  //     await serverTest.start();
+  describe('server', () => {
+    // it('should be able to receive payloads larger than 4 MB', async () => {
+    //   // const body = new Uint8Array(5 * 1024 * 1024);
+    //   // const res = await server.client.invoker.invoke(daprAppId, 'test-invoker', HttpMethod.POST, body);
+    //   // expect(res).toEqual(body);
 
-  //     const mock = jest.fn(async (_data: object) => null);
+    //   try {
+    //     await server.client.invoker.invoke(daprAppId, 'test-invoker', HttpMethod.POST, new Uint8Array(5 * 1024 * 1024));
+    //   } catch (e: any) {
+    //     console.log(e?.details)
+    //     expect(e?.details).toEqual(`grpc: received message larger than max (11534407 vs. ${10 * 1024 * 1024})`);
+    //   }
+    // });
 
-  //     await serverTest.invoker.listen("test", mock, { method: HttpMethod.POST });
-
-  //     const grpcCredentials = grpc.ChannelCredentials.createInsecure();
-  //     const grpcClient = new GrpcDaprClient(`${serverHost}:50002`, grpcCredentials);
-
-  //     // @todo
-  //     grpcClient.invokeService
-
-  //     const res = await fetch(`http://${serverHost}:50002/test`, {
-  //       method: 'POST',
-  //       body: new Uint8Array(5 * 1024 * 1024),
-  //       headers: {
-  //         'Content-Type': 'application/octet-stream'
-  //       }
-  //     });
-
-  //     // @ts-ignore
-  //     const mockBodyParsed = JSON.parse(mock.mock.calls[0][0]['body']);
-
-  //     expect(mockBodyParsed.type).toEqual("Buffer");
-  //     expect(mockBodyParsed.data.length).toEqual(5 * 1024 * 1024);
-
-  //     await serverTest.stop();
-  //   });
-
-
-  //   it('should throw an error if the receive payload is larger than 4 MB and we did not configure a larger size', async () => {
-  //     const serverTest = new DaprServer(serverHost, "50002", daprHost, daprPort, CommunicationProtocolEnum.GRPC);
-  //     await serverTest.start();
-
-  //     const mock = jest.fn(async (_data: object) => null);
-
-  //     await serverTest.invoker.listen("test", mock, { method: HttpMethod.POST });
-
-  //     const res = await fetch(`http://${serverHost}:50002/test`, {
-  //       method: 'POST',
-  //       body: new Uint8Array(5 * 1024 * 1024),
-  //       headers: {
-  //         'Content-Type': 'application/octet-stream'
-  //       }
-  //     });
-
-  //     const resParsed = await res.json();
-  //     console.log(resParsed)
-  //     expect(resParsed.message).toEqual("request entity too large");
-
-  //     await serverTest.stop();
-  //   });
-  // });
+    it('should throw an error if the receive payload is larger than 10 MB and we did not configure a larger size', async () => {
+      try {
+        await server.client.invoker.invoke(daprAppId, 'test-invoker', HttpMethod.POST, new Uint8Array(11 * 1024 * 1024));
+      } catch (e: any) {
+        console.log(e?.details)
+        expect(e?.details).toEqual(`grpc: received message larger than max (11534407 vs. ${10 * 1024 * 1024})`);
+      }
+    });
+  });
 
   describe('binding', () => {
     it('should be able to receive events', async () => {

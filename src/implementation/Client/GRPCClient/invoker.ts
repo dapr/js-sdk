@@ -31,22 +31,6 @@ export default class GRPCClientInvoker implements IClientInvoker {
 
   // @todo: should return a specific typed Promise<TypeInvokerInvokeResponse> instead of Promise<nothing>
   async invoke(appId: string, methodName: string, method: HttpMethod = HttpMethod.GET, data: object = {}): Promise<object> {
-    const fetchOptions = {
-      method
-    };
-
-    if (method !== HttpMethod.GET) {
-      // @ts-ignore
-      fetchOptions.headers = {
-        'Content-Type': 'application/json'
-      };
-    }
-
-    if (method !== HttpMethod.GET && data) {
-      // @ts-ignore
-      fetchOptions.body = JSON.stringify(data);
-    }
-
     // InvokeServiceRequest represents the request message for Service invocation.
     const msgInvokeService = new InvokeServiceRequest();
     msgInvokeService.setId(appId);
@@ -74,9 +58,11 @@ export default class GRPCClientInvoker implements IClientInvoker {
           return reject(err);
         }
 
-        // const res = await fetch(`${this.daprUrl}/invoke/${appId}/method/${methodName}`, fetchOptions);
-        // return ResponseUtil.handleResponse(res);
-        const resData = Buffer.from((res.getData() as Any).getValue()).toString();
+        let resData = "";
+
+        if (res.getData()) {
+          resData = Buffer.from((res.getData() as Any).getValue()).toString();
+        }
 
         try {
           const parsedResData = JSON.parse(resData);

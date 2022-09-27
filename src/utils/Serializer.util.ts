@@ -11,13 +11,32 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-export function serializeGrpc(data: any): {serializedData: Buffer, contentType: string} {
-    let serializedData = data;
-    let contentType = "application/octet-stream";
-    if (!(data instanceof Buffer)) {
-        serializedData = Buffer.from(JSON.stringify(data), "utf-8");
-        contentType = "application/json";
-    }
+export function serializeGrpc(data: any): { serializedData: Buffer, contentType: string } {
+  let serializedData = data;
+  let contentType = "application/octet-stream";
 
-    return {serializedData, contentType};
+  // check if the data type is a typed array
+  // if so, we use application/octet-stream as this means data is Uint8Array, ...
+  const type = getType(data);
+
+  if (type) {
+    contentType = "application/octet-stream";
+    serializedData = Buffer.from(data, "utf-8");;
+  } else if (data instanceof Buffer) {
+    contentType = "application/octet-stream";
+    serializedData = data;
+  } else {
+    contentType = "application/json";
+    serializedData = Buffer.from(JSON.stringify(data), "utf-8");
+  }
+
+  return { serializedData, contentType };
+}
+
+function getType(arr: any) {
+  return isTypedArray(arr) && arr.constructor.name;
+}
+
+function isTypedArray(arr: any) {
+  return ArrayBuffer.isView(arr) && !(arr instanceof DataView);
 }
