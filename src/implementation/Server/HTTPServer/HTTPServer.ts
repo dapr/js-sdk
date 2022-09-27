@@ -18,6 +18,7 @@ import IServer from "../../../interfaces/Server/IServer";
 import { DaprClient } from "../../..";
 import { createHttpTerminator } from 'http-terminator';
 import { Logger } from "../../../logger/Logger";
+import { DaprServerOptions } from "../../../types/DaprServerOptions";
 
 // eslint-disable-next-line
 export interface IServerImplType extends HTTPServerImpl { }
@@ -25,26 +26,34 @@ export interface IServerImplType extends HTTPServerImpl { }
 export interface IServerType extends Restana.Service<Restana.Protocol.HTTP> { }
 
 export default class HTTPServer implements IServer {
+  server: IServerType;
   serverHost: string;
   serverPort: string;
-  isInitialized: boolean;
-  server: IServerType;
   serverAddress: string;
+  serverOptions: DaprServerOptions;
   serverImpl: IServerImplType;
+  isInitialized: boolean;
   client: DaprClient;
   private readonly logger: Logger;
 
-  constructor(client: DaprClient) {
+  constructor(client: DaprClient, options: DaprServerOptions) {
     this.serverHost = "";
     this.serverPort = "";
+    this.serverOptions = options;
     this.client = client;
     this.logger = new Logger("HTTPServer", "HTTPServer", client.options.logger);
 
     this.isInitialized = false;
 
     this.server = Restana();
-    this.server.use(bodyParser.text());
-    this.server.use(bodyParser.raw());
+    this.server.use(bodyParser.text({
+      limit: this.serverOptions.bodySizeMb ? `${this.serverOptions.bodySizeMb}mb` : `4mb`,
+    }));
+
+    this.server.use(bodyParser.raw({
+      limit: this.serverOptions.bodySizeMb ? `${this.serverOptions.bodySizeMb}mb` : `4mb`,
+    }));
+
     this.server.use(bodyParser.json({
       type: [
         "application/json",
@@ -53,7 +62,8 @@ export default class HTTPServer implements IServer {
         // https://github.com/cloudevents/spec/blob/v1.0.1/json-format.md
         "application/cloudevents+json",
         "application/*+json",
-      ]
+      ],
+      limit: this.serverOptions.bodySizeMb ? `${this.serverOptions.bodySizeMb}mb` : `4mb`,
     }));
 
     // body-parser is not async compatible, so we have to make it

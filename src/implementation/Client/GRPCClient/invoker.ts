@@ -42,7 +42,7 @@ export default class GRPCClientInvoker implements IClientInvoker {
       };
     }
 
-    if (method !== HttpMethod.GET && data !== {}) {
+    if (method !== HttpMethod.GET && data) {
       // @ts-ignore
       fetchOptions.body = JSON.stringify(data);
     }
@@ -55,7 +55,7 @@ export default class GRPCClientInvoker implements IClientInvoker {
     httpExtension.setVerb(HttpVerbUtil.convertHttpVerbStringToNumber(method));
 
     const msgSerialized = new Any();
-    const {serializedData, contentType} = SerializerUtil.serializeGrpc(data);
+    const { serializedData, contentType } = SerializerUtil.serializeGrpc(data);
     msgSerialized.setValue(serializedData);
 
     const msgInvoke = new InvokeRequest();

@@ -17,6 +17,7 @@ import { AppCallbackService } from "../../../proto/dapr/proto/runtime/v1/appcall
 import IServer from "../../../interfaces/Server/IServer";
 import { DaprClient } from "../../..";
 import { Logger } from "../../../logger/Logger";
+import { DaprServerOptions } from "../../../types/DaprServerOptions";
 
 // eslint-disable-next-line
 export interface IServerType extends grpc.Server { }
@@ -27,22 +28,24 @@ export default class GRPCServer implements IServer {
   isInitialized: boolean;
   serverHost: string;
   serverPort: string;
+  serverOptions: DaprServerOptions;
   server: IServerType;
   serverImpl: IServerImplType;
   serverCredentials: grpc.ServerCredentials;
   client: DaprClient;
   private readonly logger: Logger;
 
-  constructor(client: DaprClient) {
+  constructor(client: DaprClient, options: DaprServerOptions) {
     this.isInitialized = false;
 
     this.serverHost = "";
     this.serverPort = "";
+    this.serverOptions = options;
     this.client = client;
     this.logger = new Logger("GRPCServer", "GRPCServer", client.options.logger);
 
     // Create Server
-    this.server = new grpc.Server();
+    this.server = new grpc.Server(this.generateChannelOptions());
     this.serverCredentials = grpc.ServerCredentials.createInsecure();
     this.serverImpl = new GRPCServerImpl(this.server, client.options.logger);
 
@@ -50,6 +53,18 @@ export default class GRPCServer implements IServer {
     this.logger.info("Adding Service Implementation - AppCallbackService")
     // @ts-ignore
     this.server.addService(AppCallbackService, this.serverImpl);
+  }
+
+  generateChannelOptions(): Record<string, string | number> {
+    const options: Record<string, string | number> = {};
+
+    // See: GRPC_ARG_MAX_SEND_MESSAGE_LENGTH, it is in bytes
+    // https://grpc.github.io/grpc/core/group__grpc__arg__keys.html#gab4defdabac3610ef8a5946848592458c
+    if (this.serverOptions.bodySizeMb) {
+      options["grpc.max_receive_message_length"] = this.serverOptions.bodySizeMb * 1024 * 1024;
+    }
+
+    return options;
   }
 
   getServerAddress(): string {
@@ -107,6 +122,9 @@ export default class GRPCServer implements IServer {
   private async initializeBind(): Promise<void> {
     this.logger.info(`Starting to listen on ${this.serverHost}:${this.serverPort}`);
     return new Promise((resolve, reject) => {
+      const channelOptions = {
+
+      }
       this.server.bindAsync(`${this.serverHost}:${this.serverPort}`, this.serverCredentials, (err, _port) => {
         if (err) {
           return reject(err);

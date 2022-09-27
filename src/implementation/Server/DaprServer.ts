@@ -33,11 +33,14 @@ import { DaprClientOptions } from '../../types/DaprClientOptions';
 import { DaprClient } from '../..';
 import { Settings } from '../../utils/Settings.util';
 import { Logger } from '../../logger/Logger';
+import { DaprServerOptions } from '../../types/DaprServerOptions';
+import { ServerOptions } from 'https';
 
 export default class DaprServer {
   // App details
   private readonly serverHost: string;
   private readonly serverPort: string;
+  private readonly serverOptions: DaprServerOptions;
   // Dapr Sidecar
   private readonly daprHost: string;
   private readonly daprPort: string;
@@ -58,9 +61,11 @@ export default class DaprServer {
     , daprPort?: string
     , communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP
     , clientOptions: DaprClientOptions = {}
+    , serverOptions: DaprServerOptions = {}
   ) {
     this.serverHost = serverHost ?? Settings.getDefaultHost();
     this.serverPort = serverPort ?? Settings.getDefaultAppPort(communicationProtocol);
+    this.serverOptions = serverOptions;
     this.daprHost = daprHost ?? Settings.getDefaultHost();
     this.daprPort = daprPort ?? Settings.getDefaultPort(communicationProtocol);
     this.logger = new Logger("DaprServer", "DaprServer", clientOptions.logger);
@@ -84,7 +89,7 @@ export default class DaprServer {
     // Builder
     switch (communicationProtocol) {
       case CommunicationProtocolEnum.GRPC: {
-        const server = new GRPCServer(this.client);
+        const server = new GRPCServer(this.client, this.serverOptions);
         this.daprServer = server;
 
         this.pubsub = new GRPCServerPubSub(server);
@@ -95,7 +100,7 @@ export default class DaprServer {
       }
       case CommunicationProtocolEnum.HTTP:
       default: {
-        const server = new HTTPServer(this.client);
+        const server = new HTTPServer(this.client, this.serverOptions);
         this.daprServer = server;
 
         this.pubsub = new HTTPServerPubSub(server);

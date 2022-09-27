@@ -12,6 +12,7 @@ limitations under the License.
 */
 
 import { CommunicationProtocolEnum, DaprServer, HttpMethod } from '../../../src';
+import fetch from "node-fetch";
 
 const serverHost = '127.0.0.1';
 const serverPort = '50001';
@@ -89,6 +90,58 @@ describe('http/server', () => {
 
   afterAll(async () => {
     await server.stop();
+  });
+
+  describe('server', () => {
+    it('should be able to receive payloads larger than 4 MB', async () => {
+      const serverTest = new DaprServer(serverHost, "50002", daprHost, daprPort, CommunicationProtocolEnum.HTTP, undefined, {
+        bodySizeMb: 10
+      });
+      await serverTest.start();
+
+      const mock = jest.fn(async (_data: object) => null);
+
+      await serverTest.invoker.listen("test", mock, { method: HttpMethod.POST });
+
+      const res = await fetch(`http://${serverHost}:50002/test`, {
+        method: 'POST',
+        body: new Uint8Array(5 * 1024 * 1024),
+        headers: {
+          'Content-Type': 'application/octet-stream'
+        }
+      });
+
+      // @ts-ignore
+      const mockBodyParsed = JSON.parse(mock.mock.calls[0][0]['body']);
+
+      expect(mockBodyParsed.type).toEqual("Buffer");
+      expect(mockBodyParsed.data.length).toEqual(5 * 1024 * 1024);
+
+      await serverTest.stop();
+    });
+
+
+    it('should throw an error if the receive payload is larger than 4 MB and we did not configure a larger size', async () => {
+      const serverTest = new DaprServer(serverHost, "50002", daprHost, daprPort, CommunicationProtocolEnum.HTTP);
+      await serverTest.start();
+
+      const mock = jest.fn(async (_data: object) => null);
+
+      await serverTest.invoker.listen("test", mock, { method: HttpMethod.POST });
+
+      const res = await fetch(`http://${serverHost}:50002/test`, {
+        method: 'POST',
+        body: new Uint8Array(5 * 1024 * 1024),
+        headers: {
+          'Content-Type': 'application/octet-stream'
+        }
+      });
+
+      const resParsed = await res.json();
+      expect(resParsed.message).toEqual("request entity too large");
+
+      await serverTest.stop();
+    });
   });
 
   describe('binding', () => {
