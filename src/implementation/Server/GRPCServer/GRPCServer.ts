@@ -55,6 +55,7 @@ export default class GRPCServer implements IServer {
     this.server.addService(AppCallbackService, this.serverImpl);
   }
 
+  // See: https://cs.github.com/nestjs/nest/blob/f4e9ac6208f3e7ee7ad44c3de713c9086f657977/packages/microservices/external/grpc-options.interface.ts 
   generateChannelOptions(): Record<string, string | number> {
     const options: Record<string, string | number> = {};
 
@@ -122,9 +123,6 @@ export default class GRPCServer implements IServer {
   private async initializeBind(): Promise<void> {
     this.logger.info(`Starting to listen on ${this.serverHost}:${this.serverPort}`);
     return new Promise((resolve, reject) => {
-      const channelOptions = {
-
-      }
       this.server.bindAsync(`${this.serverHost}:${this.serverPort}`, this.serverCredentials, (err, _port) => {
         if (err) {
           return reject(err);

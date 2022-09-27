@@ -34,7 +34,6 @@ import { DaprClient } from '../..';
 import { Settings } from '../../utils/Settings.util';
 import { Logger } from '../../logger/Logger';
 import { DaprServerOptions } from '../../types/DaprServerOptions';
-import { ServerOptions } from 'https';
 
 export default class DaprServer {
   // App details
