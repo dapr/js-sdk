@@ -12,6 +12,6 @@ limitations under the License.
 */
 
 export type InvokerOptions={
-headers?:object
+ headers?: object
 
 }
