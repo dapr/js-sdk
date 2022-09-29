@@ -37,6 +37,7 @@ mkdir build/
 # Build Package
 echo "Building Library"
 npm run lint
+npm run pretty
 npx tsc --outDir ./build/
 
 # Prepare Publish

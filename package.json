@@ -26,7 +26,8 @@
     "prebuild": "./scripts/prebuild.sh",
     "build": "./scripts/build.sh",
     "start:dev": "npm run build && nodemon --ext \".ts,.js\" --watch \"./src\" --exec \"npm run build\"",
-    "pretty": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
+    "pretty": "prettier --list-different \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "pretty-fix": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
   },
   "keywords": [],
   "author": "Xavier Geerinck",
