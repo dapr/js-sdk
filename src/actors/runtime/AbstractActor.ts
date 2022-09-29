@@ -217,7 +217,7 @@ export default abstract class AbstractActor {
     return this.daprStateProvider;
   }
 
-  getStateManager(): ActorStateManager<any> {
+  getStateManager<T>(): ActorStateManager<T> {
     return this.stateManager;
   }
 
