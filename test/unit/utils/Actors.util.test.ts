@@ -14,44 +14,44 @@ limitations under the License.
 import { ActorRuntimeOptions } from "../../../src/types/actors/ActorRuntimeOptions";
 import { getRegisteredActorResponse } from "../../../src/utils/Actors.util";
 
-describe('Actors.util', () => {
-    describe('buildActorRuntimeConfigurationResponse', () => {
-        it('only contains specified properties and entities', () => {
-            const options: ActorRuntimeOptions = {
-                drainRebalancedActors: true,
-            }
-            const res = getRegisteredActorResponse([], options);
-            expect(res).toEqual({
-                entities: [],
-                drainRebalancedActors: true,
-            });
-        })
-
-        it('propagates all the entities and options to response', () => {
-            const options: ActorRuntimeOptions = {
-                actorIdleTimeout: "1h",
-                actorScanInterval: "30s",
-                drainOngoingCallTimeout: "30s",
-                drainRebalancedActors: true,
-                remindersStoragePartitions: 1,
-                reentrancy: {
-                    enabled: true,
-                    maxStackDepth: 10,
-                }
-            }
-            const res = getRegisteredActorResponse(["e1", "e2"], options);
-            expect(res).toEqual({
-                entities: ["e1", "e2"],
-                actorIdleTimeout: "1h",
-                actorScanInterval: "30s",
-                drainOngoingCallTimeout: "30s",
-                drainRebalancedActors: true,
-                remindersStoragePartitions: 1,
-                reentrancy: {
-                    enabled: true,
-                    maxStackDepth: 10,
-                }
-            });
-        });
+describe("Actors.util", () => {
+  describe("buildActorRuntimeConfigurationResponse", () => {
+    it("only contains specified properties and entities", () => {
+      const options: ActorRuntimeOptions = {
+        drainRebalancedActors: true,
+      };
+      const res = getRegisteredActorResponse([], options);
+      expect(res).toEqual({
+        entities: [],
+        drainRebalancedActors: true,
+      });
     });
+
+    it("propagates all the entities and options to response", () => {
+      const options: ActorRuntimeOptions = {
+        actorIdleTimeout: "1h",
+        actorScanInterval: "30s",
+        drainOngoingCallTimeout: "30s",
+        drainRebalancedActors: true,
+        remindersStoragePartitions: 1,
+        reentrancy: {
+          enabled: true,
+          maxStackDepth: 10,
+        },
+      };
+      const res = getRegisteredActorResponse(["e1", "e2"], options);
+      expect(res).toEqual({
+        entities: ["e1", "e2"],
+        actorIdleTimeout: "1h",
+        actorScanInterval: "30s",
+        drainOngoingCallTimeout: "30s",
+        drainRebalancedActors: true,
+        remindersStoragePartitions: 1,
+        reentrancy: {
+          enabled: true,
+          maxStackDepth: 10,
+        },
+      });
+    });
+  });
 });

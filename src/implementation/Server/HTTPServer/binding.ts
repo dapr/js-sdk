@@ -11,10 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import HTTPServer from './HTTPServer';
-import HttpStatusCode from '../../../enum/HttpStatusCode.enum';
-import IServerBinding from '../../../interfaces/Server/IServerBinding';
-import { Logger } from '../../../logger/Logger';
+import HTTPServer from "./HTTPServer";
+import HttpStatusCode from "../../../enum/HttpStatusCode.enum";
+import IServerBinding from "../../../interfaces/Server/IServerBinding";
+import { Logger } from "../../../logger/Logger";
 
 // https://docs.dapr.io/reference/api/bindings_api/
 type FunctionDaprInputCallback = (data: any) => Promise<any>;
@@ -52,10 +52,12 @@ export default class HTTPServerBinding implements IServerBinding {
 
         this.logger.error(`receive failed: ${e}`);
 
-        return res.end(JSON.stringify({
-          error: "COULD_NOT_PROCESS_CALLBACK",
-          error_msg: `Something happened while processing the input binding callback`
-        }));
+        return res.end(
+          JSON.stringify({
+            error: "COULD_NOT_PROCESS_CALLBACK",
+            error_msg: `Something happened while processing the input binding callback`,
+          }),
+        );
       }
     });
   }

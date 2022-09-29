@@ -11,9 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import HTTPClient from './HTTPClient';
-import { HttpMethod } from '../../../enum/HttpMethod.enum';
-import IClientInvoker from '../../../interfaces/Client/IClientInvoker';
+import HTTPClient from "./HTTPClient";
+import { HttpMethod } from "../../../enum/HttpMethod.enum";
+import IClientInvoker from "../../../interfaces/Client/IClientInvoker";
 
 // https://docs.dapr.io/reference/api/service_invocation_api/
 export default class HTTPClientInvoker implements IClientInvoker {
@@ -25,13 +25,13 @@ export default class HTTPClientInvoker implements IClientInvoker {
 
   async invoke(appId: string, methodName: string, method: HttpMethod = HttpMethod.GET, data?: object): Promise<object> {
     const fetchOptions = {
-      method
+      method,
     };
 
     if (method !== HttpMethod.GET) {
       // @ts-ignore
       fetchOptions.headers = {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       };
     }
 

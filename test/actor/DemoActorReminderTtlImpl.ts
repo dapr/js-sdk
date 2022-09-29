@@ -18,11 +18,13 @@ export default class DemoActorReminderTtlImpl extends AbstractActor implements D
   counter = 0;
 
   async init(): Promise<string> {
-    await super.registerActorReminder("my-reminder-name",
+    await super.registerActorReminder(
+      "my-reminder-name",
       Temporal.Duration.from({ milliseconds: 1500 }), //dueTime
       Temporal.Duration.from({ seconds: 1 }), //period
       Temporal.Duration.from({ seconds: 1 }), //ttl
-      123);
+      123,
+    );
     return "Actor Initialized";
   }
 
@@ -40,7 +42,7 @@ export default class DemoActorReminderTtlImpl extends AbstractActor implements D
 
   /**
    * @override
-   * @param data 
+   * @param data
    */
   async receiveReminder(data: string): Promise<void> {
     this.counter += parseInt(data);

@@ -50,8 +50,8 @@ export default class ActorTimerData {
   toObject(): object {
     return {
       callback: this.callback,
-      data: this.state
-    }
+      data: this.state,
+    };
   }
 
   static fromObject(reminderName: string, obj: any): ActorTimerData {

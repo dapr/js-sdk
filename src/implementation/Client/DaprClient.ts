@@ -11,51 +11,51 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import IClientBinding from '../../interfaces/Client/IClientBinding';
-import IClientPubSub from '../../interfaces/Client/IClientPubSub';
-import IClientState from '../../interfaces/Client/IClientState';
-import IClientInvoker from '../../interfaces/Client/IClientInvoker';
-import IClientSecret from '../../interfaces/Client/IClientSecret';
-import IClientHealth from '../../interfaces/Client/IClientHealth';
-import IClientMetadata from '../../interfaces/Client/IClientMetadata';
-import IClientSidecar from '../../interfaces/Client/IClientSidecar';
-import IClientConfiguration from '../../interfaces/Client/IClientConfiguration';
+import IClientBinding from "../../interfaces/Client/IClientBinding";
+import IClientPubSub from "../../interfaces/Client/IClientPubSub";
+import IClientState from "../../interfaces/Client/IClientState";
+import IClientInvoker from "../../interfaces/Client/IClientInvoker";
+import IClientSecret from "../../interfaces/Client/IClientSecret";
+import IClientHealth from "../../interfaces/Client/IClientHealth";
+import IClientMetadata from "../../interfaces/Client/IClientMetadata";
+import IClientSidecar from "../../interfaces/Client/IClientSidecar";
+import IClientConfiguration from "../../interfaces/Client/IClientConfiguration";
 import IClientProxy from "../../interfaces/Client/IClientProxy";
-import IClientLock from '../../interfaces/Client/IClientLock';
-import IClientActorBuilder from '../../interfaces/Client/IClientActorBuilder';
-import IClient from '../../interfaces/Client/IClient';
+import IClientLock from "../../interfaces/Client/IClientLock";
+import IClientActorBuilder from "../../interfaces/Client/IClientActorBuilder";
+import IClient from "../../interfaces/Client/IClient";
 
-import GRPCClientBinding from './GRPCClient/binding';
-import GRPCClientPubSub from './GRPCClient/pubsub';
-import GRPCClientState from './GRPCClient/state';
-import GRPCClientInvoker from './GRPCClient/invoker';
-import GRPCClientSecret from './GRPCClient/secret';
-import GRPCClientHealth from './GRPCClient/health';
-import GRPCClientMetadata from './GRPCClient/metadata';
-import GRPCClientSidecar from './GRPCClient/sidecar';
-import GRPCClientConfiguration from './GRPCClient/configuration';
-import GRPCClientLock from './GRPCClient/lock';
-import GRPCClientActor from './GRPCClient/actor';
-import GRPCClient from './GRPCClient/GRPCClient';
+import GRPCClientBinding from "./GRPCClient/binding";
+import GRPCClientPubSub from "./GRPCClient/pubsub";
+import GRPCClientState from "./GRPCClient/state";
+import GRPCClientInvoker from "./GRPCClient/invoker";
+import GRPCClientSecret from "./GRPCClient/secret";
+import GRPCClientHealth from "./GRPCClient/health";
+import GRPCClientMetadata from "./GRPCClient/metadata";
+import GRPCClientSidecar from "./GRPCClient/sidecar";
+import GRPCClientConfiguration from "./GRPCClient/configuration";
+import GRPCClientLock from "./GRPCClient/lock";
+import GRPCClientActor from "./GRPCClient/actor";
+import GRPCClient from "./GRPCClient/GRPCClient";
 
-import HTTPClientBinding from './HTTPClient/binding';
-import HTTPClientPubSub from './HTTPClient/pubsub';
-import HTTPClientState from './HTTPClient/state';
-import HTTPClientInvoker from './HTTPClient/invoker';
-import HTTPClientSecret from './HTTPClient/secret';
-import HTTPClientHealth from './HTTPClient/health';
-import HTTPClientMetadata from './HTTPClient/metadata';
-import HTTPClientSidecar from './HTTPClient/sidecar';
-import HTTPClientConfiguration from './HTTPClient/configuration';
-import HTTPClientProxy from './HTTPClient/proxy';
-import HTTPClientLock from './HTTPClient/lock';
-import HTTPClientActor from './HTTPClient/actor';
-import HTTPClient from './HTTPClient/HTTPClient';
+import HTTPClientBinding from "./HTTPClient/binding";
+import HTTPClientPubSub from "./HTTPClient/pubsub";
+import HTTPClientState from "./HTTPClient/state";
+import HTTPClientInvoker from "./HTTPClient/invoker";
+import HTTPClientSecret from "./HTTPClient/secret";
+import HTTPClientHealth from "./HTTPClient/health";
+import HTTPClientMetadata from "./HTTPClient/metadata";
+import HTTPClientSidecar from "./HTTPClient/sidecar";
+import HTTPClientConfiguration from "./HTTPClient/configuration";
+import HTTPClientProxy from "./HTTPClient/proxy";
+import HTTPClientLock from "./HTTPClient/lock";
+import HTTPClientActor from "./HTTPClient/actor";
+import HTTPClient from "./HTTPClient/HTTPClient";
 
-import CommunicationProtocolEnum from '../../enum/CommunicationProtocol.enum';
-import { DaprClientOptions } from '../../types/DaprClientOptions';
-import { Settings } from '../../utils/Settings.util';
-import { Logger } from '../../logger/Logger';
+import CommunicationProtocolEnum from "../../enum/CommunicationProtocol.enum";
+import { DaprClientOptions } from "../../types/DaprClientOptions";
+import { Settings } from "../../utils/Settings.util";
+import { Logger } from "../../logger/Logger";
 import GRPCClientProxy from "./GRPCClient/proxy";
 import * as NodeJSUtils from "../../utils/NodeJS.util";
 import { SDK_PACKAGE_NAME } from "../../version";
@@ -83,10 +83,10 @@ export default class DaprClient {
   private readonly logger: Logger;
 
   constructor(
-    daprHost?: string
-    , daprPort?: string
-    , communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP
-    , options: DaprClientOptions = {},
+    daprHost?: string,
+    daprPort?: string,
+    communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP,
+    options: DaprClientOptions = {},
   ) {
     this.daprHost = daprHost ?? Settings.getDefaultHost();
     this.daprPort = daprPort ?? Settings.getDefaultPort(communicationProtocol);
@@ -96,11 +96,13 @@ export default class DaprClient {
 
     // Validation on port
     if (!/^[0-9]+$/.test(this.daprPort)) {
-      throw new Error('DAPR_INCORRECT_SIDECAR_PORT');
+      throw new Error("DAPR_INCORRECT_SIDECAR_PORT");
     }
 
     if (String(SDK_PACKAGE_NAME) === "dapr-client") {
-      this.logger.warn("dapr-client is deprecated. Please use @dapr/dapr instead. For more information, see https://github.com/dapr/js-sdk/issues/259")
+      this.logger.warn(
+        "dapr-client is deprecated. Please use @dapr/dapr instead. For more information, see https://github.com/dapr/js-sdk/issues/259",
+      );
     }
 
     // Builder
@@ -146,7 +148,12 @@ export default class DaprClient {
   }
 
   static create(client: IClient): DaprClient {
-    return new DaprClient(client.getClientHost(), client.getClientPort(), client.getClientCommunicationProtocol(), client.getOptions());
+    return new DaprClient(
+      client.getClientHost(),
+      client.getClientPort(),
+      client.getClientCommunicationProtocol(),
+      client.getOptions(),
+    );
   }
 
   static async awaitSidecarStarted(fnIsSidecarStarted: () => Promise<boolean>, logger: Logger): Promise<void> {

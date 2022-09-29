@@ -10,17 +10,17 @@
 /* eslint-disable */
 // @ts-nocheck
 
-var jspb = require('google-protobuf');
+var jspb = require("google-protobuf");
 var goog = jspb;
-var global = Function('return this')();
+var global = Function("return this")();
 
-goog.exportSymbol('proto.dapr.proto.internals.v1.APIVersion', null, global);
+goog.exportSymbol("proto.dapr.proto.internals.v1.APIVersion", null, global);
 /**
  * @enum {number}
  */
 proto.dapr.proto.internals.v1.APIVersion = {
   APIVERSION_UNSPECIFIED: 0,
-  V1: 1
+  V1: 1,
 };
 
 goog.object.extend(exports, proto.dapr.proto.internals.v1);

@@ -12,20 +12,20 @@ limitations under the License.
 */
 
 import * as grpc from "@grpc/grpc-js";
-import { CommunicationProtocolEnum, DaprClient, LogLevel } from '../../../src';
-import { SubscribeConfigurationResponse } from '../../../src/types/configuration/SubscribeConfigurationResponse';
-import { LockStatus } from '../../../src/types/lock/UnlockResponse';
-import * as DockerUtils from '../../utils/DockerUtil';
-import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runtime/v1/dapr_grpc_pb"
-import { Empty } from 'google-protobuf/google/protobuf/empty_pb';
+import { CommunicationProtocolEnum, DaprClient, LogLevel } from "../../../src";
+import { SubscribeConfigurationResponse } from "../../../src/types/configuration/SubscribeConfigurationResponse";
+import { LockStatus } from "../../../src/types/lock/UnlockResponse";
+import * as DockerUtils from "../../utils/DockerUtil";
+import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runtime/v1/dapr_grpc_pb";
+import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 import { InterceptingListener } from "@grpc/grpc-js/build/src/call-stream";
 import { NextCall } from "@grpc/grpc-js/build/src/client-interceptors";
 import { v4 as uuidv4 } from "uuid";
 
-const daprHost = 'localhost';
-const daprPort = '50000'; // Dapr Sidecar Port of this Example Server
+const daprHost = "localhost";
+const daprPort = "50000"; // Dapr Sidecar Port of this Example Server
 
-describe('grpc/client', () => {
+describe("grpc/client", () => {
   let client: DaprClient;
 
   // We need to start listening on some endpoints already
@@ -33,8 +33,8 @@ describe('grpc/client', () => {
   beforeAll(async () => {
     client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC, {
       logger: {
-        level: LogLevel.Debug
-      }
+        level: LogLevel.Debug,
+      },
     });
   }, 10 * 1000);
 
@@ -42,8 +42,8 @@ describe('grpc/client', () => {
     await client.stop();
   });
 
-  describe('client', () => {
-    it('should return isInitialized is true if the sidecar has been started', async () => {
+  describe("client", () => {
+    it("should return isInitialized is true if the sidecar has been started", async () => {
       // Awaiting this will ensure the client is started
       await client.getDaprClient().getClient();
 
@@ -52,54 +52,64 @@ describe('grpc/client', () => {
     });
   });
 
-  describe('Proxy', () => {
-    it('should allow to use a proxy builder to proxy a gRPC request', async () => {
+  describe("Proxy", () => {
+    it("should allow to use a proxy builder to proxy a gRPC request", async () => {
       let mockMetadataRes: grpc.Metadata = new grpc.Metadata();
       const mockInterceptor = jest.fn((options: grpc.InterceptorOptions, nextCall: NextCall): grpc.InterceptingCall => {
         return new grpc.InterceptingCall(nextCall(options), {
-          start: function (metadata: grpc.Metadata, listener: InterceptingListener, next: (metadata: grpc.Metadata, listener: InterceptingListener | grpc.Listener) => void) {
+          start: function (
+            metadata: grpc.Metadata,
+            listener: InterceptingListener,
+            next: (metadata: grpc.Metadata, listener: InterceptingListener | grpc.Listener) => void,
+          ) {
             mockMetadataRes = metadata;
             next(metadata, listener);
-          }
-        })
+          },
+        });
       });
 
-      const clientProxy = await client.proxy.create<DaprClientGrpc>(DaprClientGrpc, { interceptors: [mockInterceptor] });
+      const clientProxy = await client.proxy.create<DaprClientGrpc>(DaprClientGrpc, {
+        interceptors: [mockInterceptor],
+      });
 
-      await (new Promise(resolve => (clientProxy.getMetadata(new Empty(), resolve))));
+      await new Promise((resolve) => clientProxy.getMetadata(new Empty(), resolve));
 
       expect(mockInterceptor.mock.calls.length).toBe(1);
-      expect(mockMetadataRes.get('dapr-app-id')[0]).toBe('test-suite');
+      expect(mockMetadataRes.get("dapr-app-id")[0]).toBe("test-suite");
     });
 
-    it('should allow to use a proxy builder that uses daprAppId by setting custom env variable to proxy a gRPC request', async () => {
-
+    it("should allow to use a proxy builder that uses daprAppId by setting custom env variable to proxy a gRPC request", async () => {
       const oldProcessAppId = process.env?.APP_ID;
       process.env.APP_ID = "test-suite-proxy";
 
       let mockMetadataRes: grpc.Metadata = new grpc.Metadata();
       const mockInterceptor = jest.fn((options: grpc.InterceptorOptions, nextCall: NextCall): grpc.InterceptingCall => {
         return new grpc.InterceptingCall(nextCall(options), {
-          start: function (metadata: grpc.Metadata, listener: InterceptingListener, next: (metadata: grpc.Metadata, listener: InterceptingListener | grpc.Listener) => void) {
+          start: function (
+            metadata: grpc.Metadata,
+            listener: InterceptingListener,
+            next: (metadata: grpc.Metadata, listener: InterceptingListener | grpc.Listener) => void,
+          ) {
             mockMetadataRes = metadata;
             next(metadata, listener);
-          }
-        })
+          },
+        });
       });
 
+      const clientProxy = await client.proxy.create<DaprClientGrpc>(DaprClientGrpc, {
+        interceptors: [mockInterceptor],
+      });
 
-      const clientProxy = await client.proxy.create<DaprClientGrpc>(DaprClientGrpc, { interceptors: [mockInterceptor] });
-
-      await (new Promise(resolve => (clientProxy.getMetadata(new Empty(), resolve))));
+      await new Promise((resolve) => clientProxy.getMetadata(new Empty(), resolve));
 
       expect(mockInterceptor.mock.calls.length).toBe(1);
-      expect(mockMetadataRes.get('dapr-app-id')[0]).toBe(process.env.APP_ID);
+      expect(mockMetadataRes.get("dapr-app-id")[0]).toBe(process.env.APP_ID);
       process.env.APP_ID = oldProcessAppId;
     });
   });
 
-  describe('sidecar', () => {
-    it('should return true if the sidecar has been started', async () => {
+  describe("sidecar", () => {
+    it("should return true if the sidecar has been started", async () => {
       await client.getDaprClient().getClient();
 
       // Note: difficult to test as we start up dapr with dapr run, which starts the sidecar for us automatically
@@ -108,11 +118,11 @@ describe('grpc/client', () => {
       // the test will thus randomly have isStarted = true or isStarted = false depending on the startup delay of the sidecar
       await client.health.isHealthy();
       // expect(isHealthy).toBe(false);
-    })
+    });
   });
 
-  describe('metadata', () => {
-    it('should be able to get the metadata of the Dapr sidecar', async () => {
+  describe("metadata", () => {
+    it("should be able to get the metadata of the Dapr sidecar", async () => {
       await client.metadata.get();
 
       // app id is not set in grpc?
@@ -132,8 +142,7 @@ describe('grpc/client', () => {
     //   expect(redisStateComponent[0].capabilities).toEqual(expect.arrayContaining(expectedRedisStateCapabilities));
     // });
 
-
-    it('should be able to set a custom metadata value of the Dapr sidecar', async () => {
+    it("should be able to set a custom metadata value of the Dapr sidecar", async () => {
       await client.metadata.set("testKey", "Hello World");
 
       const res = await client.metadata.get();
@@ -145,213 +154,217 @@ describe('grpc/client', () => {
     });
   });
 
-  describe('health', () => {
-    it('should return true if Dapr is ready', async () => {
+  describe("health", () => {
+    it("should return true if Dapr is ready", async () => {
       const res = await client.health.isHealthy();
       expect(res).toEqual(true);
     });
   });
 
-  describe('pubsub', () => {
-    it('should receive if it was successful or not', async () => {
-      const res = await client.pubsub.publish('pubsub-redis', 'test-topic', { hello: 'world' });
+  describe("pubsub", () => {
+    it("should receive if it was successful or not", async () => {
+      const res = await client.pubsub.publish("pubsub-redis", "test-topic", { hello: "world" });
       expect(res).toEqual(true);
     });
   });
 
-  describe('secrets', () => {
-    it('should be able to correctly fetch the secrets by a single key', async () => {
-      const res = await client.secret.get('secret-envvars', 'TEST_SECRET_1');
+  describe("secrets", () => {
+    it("should be able to correctly fetch the secrets by a single key", async () => {
+      const res = await client.secret.get("secret-envvars", "TEST_SECRET_1");
       expect(JSON.stringify(res)).toEqual(`{"TEST_SECRET_1":"secret_val_1"}`);
     });
 
-    it('should be able to correctly fetch the secrets in bulk', async () => {
-      const res = await client.secret.getBulk('secret-envvars');
+    it("should be able to correctly fetch the secrets in bulk", async () => {
+      const res = await client.secret.getBulk("secret-envvars");
       expect(Object.keys(res).length).toBeGreaterThan(1);
     });
   });
 
-  describe('state', () => {
+  describe("state", () => {
     beforeEach(async () => {
       await client.state.delete("state-redis", "key-1");
       await client.state.delete("state-redis", "key-2");
       await client.state.delete("state-redis", "key-3");
     });
 
-    it('should be able to save the state', async () => {
-      await client.state.save('state-redis', [
+    it("should be able to save the state", async () => {
+      await client.state.save("state-redis", [
         {
-          key: 'key-1',
-          value: 'value-1',
+          key: "key-1",
+          value: "value-1",
         },
         {
-          key: 'key-2',
-          value: 'value-2',
+          key: "key-2",
+          value: "value-2",
         },
         {
-          key: 'key-3',
-          value: 'value-3',
+          key: "key-3",
+          value: "value-3",
         },
       ]);
 
-      const res = await client.state.get('state-redis', 'key-1');
-      expect(res).toEqual('value-1');
+      const res = await client.state.get("state-redis", "key-1");
+      expect(res).toEqual("value-1");
     });
 
-    it('should be able to add metadata, etag and options', async () => {
-      await client.state.save('state-redis', [
+    it("should be able to add metadata, etag and options", async () => {
+      await client.state.save("state-redis", [
         {
-          key: 'key-1',
-          value: 'value-1',
+          key: "key-1",
+          value: "value-1",
           etag: "1234",
           options: {
-            "concurrency": "first-write",
-            "consistency": "strong"
+            concurrency: "first-write",
+            consistency: "strong",
           },
           metadata: {
-            hello: "world"
-          }
+            hello: "world",
+          },
         },
         {
-          key: 'key-2',
-          value: 'value-2',
+          key: "key-2",
+          value: "value-2",
         },
         {
-          key: 'key-3',
-          value: 'value-3',
+          key: "key-3",
+          value: "value-3",
         },
       ]);
 
-      const res = await client.state.get('state-redis', 'key-1');
-      expect(res).toEqual('value-1');
+      const res = await client.state.get("state-redis", "key-1");
+      expect(res).toEqual("value-1");
     });
 
-    it('should be able to get the state in bulk', async () => {
-      await client.state.save('state-redis', [
+    it("should be able to get the state in bulk", async () => {
+      await client.state.save("state-redis", [
         {
-          key: 'key-1',
-          value: 'value-1',
+          key: "key-1",
+          value: "value-1",
         },
         {
-          key: 'key-2',
-          value: 'value-2',
+          key: "key-2",
+          value: "value-2",
         },
         {
-          key: 'key-3',
-          value: 'value-3',
+          key: "key-3",
+          value: "value-3",
         },
       ]);
 
-      const res = await client.state.getBulk('state-redis', ['key-3', 'key-2']);
+      const res = await client.state.getBulk("state-redis", ["key-3", "key-2"]);
 
       expect(res).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ key: 'key-2', data: 'value-2' }),
-          expect.objectContaining({ key: 'key-3', data: 'value-3' }),
+          expect.objectContaining({ key: "key-2", data: "value-2" }),
+          expect.objectContaining({ key: "key-3", data: "value-3" }),
         ]),
       );
     });
 
-    it('should be able to delete a key from the state store', async () => {
-      await client.state.save('state-redis', [
+    it("should be able to delete a key from the state store", async () => {
+      await client.state.save("state-redis", [
         {
-          key: 'key-1',
-          value: 'value-1',
+          key: "key-1",
+          value: "value-1",
         },
         {
-          key: 'key-2',
-          value: 'value-2',
+          key: "key-2",
+          value: "value-2",
         },
         {
-          key: 'key-3',
-          value: 'value-3',
-        },
-      ]);
-
-      await client.state.delete('state-redis', 'key-2');
-      const res = await client.state.get('state-redis', 'key-2');
-      expect(res).toEqual('');
-    });
-
-    it('should be able to perform a transaction that replaces a key and deletes another', async () => {
-      await client.state.transaction('state-redis', [
-        {
-          operation: 'upsert',
-          request: {
-            key: 'key-1',
-            value: 'my-new-data-1',
-          },
-        },
-        {
-          operation: 'delete',
-          request: {
-            key: 'key-3',
-          },
+          key: "key-3",
+          value: "value-3",
         },
       ]);
 
-      const resTransactionDelete = await client.state.get('state-redis', 'key-3');
-      const resTransactionUpsert = await client.state.get('state-redis', 'key-1');
-      expect(resTransactionDelete).toEqual('');
-      expect(resTransactionUpsert).toEqual('my-new-data-1');
+      await client.state.delete("state-redis", "key-2");
+      const res = await client.state.get("state-redis", "key-2");
+      expect(res).toEqual("");
     });
 
-    it('should be able to perform a transaction with metadata', async () => {
-      await client.state.transaction('state-redis', [
+    it("should be able to perform a transaction that replaces a key and deletes another", async () => {
+      await client.state.transaction("state-redis", [
         {
-          operation: 'upsert',
+          operation: "upsert",
           request: {
-            key: 'key-with-metadata-1',
-            value: 'my-new-data-with-metadata-1',
+            key: "key-1",
+            value: "my-new-data-1",
           },
         },
         {
-          operation: 'delete',
+          operation: "delete",
           request: {
-            key: 'key-with-metadata-2',
+            key: "key-3",
           },
         },
-      ], {
-        trace_id: 'mock trace id here',
-      });
+      ]);
 
-      const resTransactionDelete = await client.state.get('state-redis', 'key-with-metadata-2');
-      const resTransactionUpsert = await client.state.get('state-redis', 'key-with-metadata-1');
-      expect(resTransactionDelete).toEqual('');
-      expect(resTransactionUpsert).toEqual('my-new-data-with-metadata-1');
+      const resTransactionDelete = await client.state.get("state-redis", "key-3");
+      const resTransactionUpsert = await client.state.get("state-redis", "key-1");
+      expect(resTransactionDelete).toEqual("");
+      expect(resTransactionUpsert).toEqual("my-new-data-1");
     });
 
-    it('should be able to add metadata, etag and options', async () => {
-      await client.state.save('state-redis', [
+    it("should be able to perform a transaction with metadata", async () => {
+      await client.state.transaction(
+        "state-redis",
+        [
+          {
+            operation: "upsert",
+            request: {
+              key: "key-with-metadata-1",
+              value: "my-new-data-with-metadata-1",
+            },
+          },
+          {
+            operation: "delete",
+            request: {
+              key: "key-with-metadata-2",
+            },
+          },
+        ],
         {
-          key: 'key-1',
-          value: 'value-1',
+          trace_id: "mock trace id here",
+        },
+      );
+
+      const resTransactionDelete = await client.state.get("state-redis", "key-with-metadata-2");
+      const resTransactionUpsert = await client.state.get("state-redis", "key-with-metadata-1");
+      expect(resTransactionDelete).toEqual("");
+      expect(resTransactionUpsert).toEqual("my-new-data-with-metadata-1");
+    });
+
+    it("should be able to add metadata, etag and options", async () => {
+      await client.state.save("state-redis", [
+        {
+          key: "key-1",
+          value: "value-1",
           etag: "1234",
           options: {
-            "concurrency": "first-write",
-            "consistency": "strong"
+            concurrency: "first-write",
+            consistency: "strong",
           },
           metadata: {
-            hello: "world"
-          }
+            hello: "world",
+          },
         },
         {
-          key: 'key-2',
-          value: 'value-2',
+          key: "key-2",
+          value: "value-2",
         },
         {
-          key: 'key-3',
-          value: 'value-3',
+          key: "key-3",
+          value: "value-3",
         },
       ]);
 
-      const res = await client.state.get('state-redis', 'key-1');
-      expect(res).toEqual('value-1');
+      const res = await client.state.get("state-redis", "key-1");
+      expect(res).toEqual("value-1");
       console.log(res);
     });
   });
 
-  describe('configuration', () => {
+  describe("configuration", () => {
     beforeEach(async () => {
       // Reset the Configuration API
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_initialvalue||1");
@@ -359,21 +372,21 @@ describe('grpc/client', () => {
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey3 key3_initialvalue||1");
     });
 
-    it('should be able to get the configuration items', async () => {
+    it("should be able to get the configuration items", async () => {
       const config = await client.configuration.get("config-redis", ["myconfigkey1", "myconfigkey2", "myconfigkey3"]);
       expect(config.items.length).toEqual(3);
 
-      expect(config.items.map(i => i.key).indexOf("myconfigkey1")).toBeGreaterThan(-1);
-      expect(config.items.map(i => i.key).indexOf("myconfigkey2")).toBeGreaterThan(-1);
-      expect(config.items.map(i => i.key).indexOf("myconfigkey3")).toBeGreaterThan(-1);
+      expect(config.items.map((i) => i.key).indexOf("myconfigkey1")).toBeGreaterThan(-1);
+      expect(config.items.map((i) => i.key).indexOf("myconfigkey2")).toBeGreaterThan(-1);
+      expect(config.items.map((i) => i.key).indexOf("myconfigkey3")).toBeGreaterThan(-1);
 
-      expect(config.items.filter(i => i.key == "myconfigkey1")[0].value).toEqual("key1_initialvalue");
-      expect(config.items.filter(i => i.key == "myconfigkey2")[0].value).toEqual("key2_initialvalue");
-      expect(config.items.filter(i => i.key == "myconfigkey3")[0].value).toEqual("key3_initialvalue");
+      expect(config.items.filter((i) => i.key == "myconfigkey1")[0].value).toEqual("key1_initialvalue");
+      expect(config.items.filter((i) => i.key == "myconfigkey2")[0].value).toEqual("key2_initialvalue");
+      expect(config.items.filter((i) => i.key == "myconfigkey3")[0].value).toEqual("key3_initialvalue");
     });
 
-    it('should be able to get the configuration items with metadata', async () => {
-      await client.configuration.get("config-redis", ["myconfigkey1"], { "hello": "world" });
+    it("should be able to get the configuration items with metadata", async () => {
+      await client.configuration.get("config-redis", ["myconfigkey1"], { hello: "world" });
 
       // Disabled for now as I am unsure if Dapr returns the metadata items
       // Java SDK: https://github.com/dapr/java-sdk/blob/06d92dafca62a6b48e74ccf939feeac7189e360f/sdk/src/test/java/io/dapr/client/DaprPreviewClientGrpcTest.java#L119
@@ -381,8 +394,10 @@ describe('grpc/client', () => {
       // expect(conf.items.filter(i => i.key == "myconfigkey1")[0].metadata).toHaveProperty("hello");
     });
 
-    it('should be able to subscribe to configuration item changes on all keys', async () => {
-      const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
+    it("should be able to subscribe to configuration item changes on all keys", async () => {
+      const m = jest.fn(async (_res: SubscribeConfigurationResponse) => {
+        return;
+      });
 
       const stream = await client.configuration.subscribe("config-redis", m);
 
@@ -396,8 +411,10 @@ describe('grpc/client', () => {
       stream.stop();
     });
 
-    it('should be able to subscribe to configuration item changes on specific keys', async () => {
-      const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
+    it("should be able to subscribe to configuration item changes on specific keys", async () => {
+      const m = jest.fn(async (_res: SubscribeConfigurationResponse) => {
+        return;
+      });
 
       const stream = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1", "myconfigkey2"], m);
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
@@ -409,10 +426,17 @@ describe('grpc/client', () => {
       await stream.stop();
     });
 
-    it('should be able to subscribe with metadata', async () => {
-      const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
+    it("should be able to subscribe with metadata", async () => {
+      const m = jest.fn(async (_res: SubscribeConfigurationResponse) => {
+        return;
+      });
 
-      const stream1 = await client.configuration.subscribeWithMetadata("config-redis", ["myconfigkey1", "myconfigkey2"], { "hello": "world" }, m);
+      const stream1 = await client.configuration.subscribeWithMetadata(
+        "config-redis",
+        ["myconfigkey1", "myconfigkey2"],
+        { hello: "world" },
+        m,
+      );
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
 
       expect(m.mock.calls.length).toEqual(1);
@@ -422,10 +446,17 @@ describe('grpc/client', () => {
       await stream1.stop();
     });
 
-    it('should be able to unsubscribe', async () => {
-      const m = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
+    it("should be able to unsubscribe", async () => {
+      const m = jest.fn(async (_res: SubscribeConfigurationResponse) => {
+        return;
+      });
 
-      const stream = await client.configuration.subscribeWithMetadata("config-redis", ["myconfigkey1", "myconfigkey2"], { "hello": "world" }, m);
+      const stream = await client.configuration.subscribeWithMetadata(
+        "config-redis",
+        ["myconfigkey1", "myconfigkey2"],
+        { hello: "world" },
+        m,
+      );
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
 
       expect(m.mock.calls.length).toEqual(1);
@@ -442,9 +473,13 @@ describe('grpc/client', () => {
       expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
     });
 
-    it('should be able to subscribe to configuration items through multiple streams', async () => {
-      const m1 = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
-      const m2 = jest.fn(async (_res: SubscribeConfigurationResponse) => { return; });
+    it("should be able to subscribe to configuration items through multiple streams", async () => {
+      const m1 = jest.fn(async (_res: SubscribeConfigurationResponse) => {
+        return;
+      });
+      const m2 = jest.fn(async (_res: SubscribeConfigurationResponse) => {
+        return;
+      });
 
       const stream1 = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1"], m1);
       const stream2 = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1"], m2);
@@ -464,8 +499,8 @@ describe('grpc/client', () => {
     });
   });
 
-  describe('distributed lock', () => {
-    it('should be able to acquire a new lock and unlock', async () => {
+  describe("distributed lock", () => {
+    it("should be able to acquire a new lock and unlock", async () => {
       const resourceId = uuidv4();
       const tryLock = await client.lock.tryLock("redislock", resourceId, "owner1", 1000);
       expect(tryLock.success).toEqual(true);
@@ -473,22 +508,22 @@ describe('grpc/client', () => {
       expect(unlock.status).toEqual(LockStatus.Success);
     });
 
-    it('should be not be able to unlock when the lock is not acquired', async () => {
+    it("should be not be able to unlock when the lock is not acquired", async () => {
       const resourceId = uuidv4();
       const unlock = await client.lock.unlock("redislock", resourceId, "owner1");
       expect(unlock.status).toEqual(LockStatus.LockDoesNotExist);
     });
 
-    it('should be able to acquire a lock after the previous lock is expired', async () => {
+    it("should be able to acquire a lock after the previous lock is expired", async () => {
       const resourceId = uuidv4();
       let tryLock = await client.lock.tryLock("redislock", resourceId, "owner1", 5);
       expect(tryLock.success).toEqual(true);
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       tryLock = await client.lock.tryLock("redislock", resourceId, "owner2", 5);
       expect(tryLock.success).toEqual(false);
     });
 
-    it('should not be able to acquire a lock when the same lock is acquired by another owner', async () => {
+    it("should not be able to acquire a lock when the same lock is acquired by another owner", async () => {
       const resourceId = uuidv4();
       const tryLockOne = await client.lock.tryLock("redislock", resourceId, "owner1", 5);
       expect(tryLockOne.success).toEqual(true);
@@ -496,14 +531,14 @@ describe('grpc/client', () => {
       expect(tryLockTwo.success).toEqual(false);
     });
 
-    it('should be able to acquire a lock when a different lock is acquired by another owner', async () => {
+    it("should be able to acquire a lock when a different lock is acquired by another owner", async () => {
       const tryLockOne = await client.lock.tryLock("redislock", uuidv4(), "owner1", 5);
       expect(tryLockOne.success).toEqual(true);
       const tryLockTwo = await client.lock.tryLock("redislock", uuidv4(), "owner2", 5);
       expect(tryLockTwo.success).toEqual(true);
     });
 
-    it('should not be able to acquire a lock when that lock is acquired by another owner/process', async () => {
+    it("should not be able to acquire a lock when that lock is acquired by another owner/process", async () => {
       const resourceId = uuidv4();
       const tryLockOne = await client.lock.tryLock("redislock", resourceId, "owner3", 5);
       expect(tryLockOne.success).toEqual(true);
@@ -511,7 +546,7 @@ describe('grpc/client', () => {
       expect(tryLockTwo.success).toEqual(false);
     });
 
-    it('should not be able to unlock a lock when that lock is acquired by another owner/process', async () => {
+    it("should not be able to unlock a lock when that lock is acquired by another owner/process", async () => {
       const resourceId = uuidv4();
       const tryLockOne = await client.lock.tryLock("redislock", resourceId, "owner5", 5);
       expect(tryLockOne.success).toEqual(true);

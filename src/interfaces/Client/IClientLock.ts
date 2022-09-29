@@ -16,7 +16,7 @@ import { UnlockResponse } from "../../types/lock/UnlockResponse";
 
 export default interface IClientLock {
   /**
-   * 
+   *
    * @param storeName storage to store lock information.
    * @param resourceId id of a resource that gets locked.
    * @param lockOwner owner owning the lock.
@@ -25,7 +25,7 @@ export default interface IClientLock {
   tryLock(storeName: string, resourceId: string, lockOwner: string, expiryInSeconds: number): Promise<TryLockResponse>;
 
   /**
-   * 
+   *
    * @param storeName storage to store lock information.
    * @param resourceId id of a resource that gets locked.
    * @param lockOwner owner owning the lock.

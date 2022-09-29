@@ -13,13 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-'use strict';
-var grpc = require('@grpc/grpc-js');
-var dapr_proto_placement_v1_placement_pb = require('../../../../dapr/proto/placement/v1/placement_pb.js');
+"use strict";
+var grpc = require("@grpc/grpc-js");
+var dapr_proto_placement_v1_placement_pb = require("../../../../dapr/proto/placement/v1/placement_pb.js");
 
 function serialize_dapr_proto_placement_v1_Host(arg) {
   if (!(arg instanceof dapr_proto_placement_v1_placement_pb.Host)) {
-    throw new Error('Expected argument of type dapr.proto.placement.v1.Host');
+    throw new Error("Expected argument of type dapr.proto.placement.v1.Host");
   }
   return Buffer.from(arg.serializeBinary());
 }
@@ -30,7 +30,7 @@ function deserialize_dapr_proto_placement_v1_Host(buffer_arg) {
 
 function serialize_dapr_proto_placement_v1_PlacementOrder(arg) {
   if (!(arg instanceof dapr_proto_placement_v1_placement_pb.PlacementOrder)) {
-    throw new Error('Expected argument of type dapr.proto.placement.v1.PlacementOrder');
+    throw new Error("Expected argument of type dapr.proto.placement.v1.PlacementOrder");
   }
   return Buffer.from(arg.serializeBinary());
 }
@@ -39,11 +39,10 @@ function deserialize_dapr_proto_placement_v1_PlacementOrder(buffer_arg) {
   return dapr_proto_placement_v1_placement_pb.PlacementOrder.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
-
 // Placement service is used to report Dapr runtime host status.
-var PlacementService = exports.PlacementService = {
+var PlacementService = (exports.PlacementService = {
   reportDaprStatus: {
-    path: '/dapr.proto.placement.v1.Placement/ReportDaprStatus',
+    path: "/dapr.proto.placement.v1.Placement/ReportDaprStatus",
     requestStream: true,
     responseStream: true,
     requestType: dapr_proto_placement_v1_placement_pb.Host,
@@ -53,6 +52,6 @@ var PlacementService = exports.PlacementService = {
     responseSerialize: serialize_dapr_proto_placement_v1_PlacementOrder,
     responseDeserialize: deserialize_dapr_proto_placement_v1_PlacementOrder,
   },
-};
+});
 
 exports.PlacementClient = grpc.makeGenericClientConstructor(PlacementService);

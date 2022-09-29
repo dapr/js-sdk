@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 export default interface ActorStateInterface {
-    setState(key: string, value: any): Promise<void>;
-    removeState(key: string): Promise<void>;
-    getState<T>(key: string): Promise<T | null>;
+  setState(key: string, value: any): Promise<void>;
+  removeState(key: string): Promise<void>;
+  getState<T>(key: string): Promise<T | null>;
 }

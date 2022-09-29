@@ -13,14 +13,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-'use strict';
-var grpc = require('@grpc/grpc-js');
-var dapr_proto_operator_v1_operator_pb = require('../../../../dapr/proto/operator/v1/operator_pb.js');
-var google_protobuf_empty_pb = require('google-protobuf/google/protobuf/empty_pb.js');
+"use strict";
+var grpc = require("@grpc/grpc-js");
+var dapr_proto_operator_v1_operator_pb = require("../../../../dapr/proto/operator/v1/operator_pb.js");
+var google_protobuf_empty_pb = require("google-protobuf/google/protobuf/empty_pb.js");
 
 function serialize_dapr_proto_operator_v1_ComponentUpdateEvent(arg) {
   if (!(arg instanceof dapr_proto_operator_v1_operator_pb.ComponentUpdateEvent)) {
-    throw new Error('Expected argument of type dapr.proto.operator.v1.ComponentUpdateEvent');
+    throw new Error("Expected argument of type dapr.proto.operator.v1.ComponentUpdateEvent");
   }
   return Buffer.from(arg.serializeBinary());
 }
@@ -31,7 +31,7 @@ function deserialize_dapr_proto_operator_v1_ComponentUpdateEvent(buffer_arg) {
 
 function serialize_dapr_proto_operator_v1_ComponentUpdateRequest(arg) {
   if (!(arg instanceof dapr_proto_operator_v1_operator_pb.ComponentUpdateRequest)) {
-    throw new Error('Expected argument of type dapr.proto.operator.v1.ComponentUpdateRequest');
+    throw new Error("Expected argument of type dapr.proto.operator.v1.ComponentUpdateRequest");
   }
   return Buffer.from(arg.serializeBinary());
 }
@@ -42,7 +42,7 @@ function deserialize_dapr_proto_operator_v1_ComponentUpdateRequest(buffer_arg) {
 
 function serialize_dapr_proto_operator_v1_GetConfigurationRequest(arg) {
   if (!(arg instanceof dapr_proto_operator_v1_operator_pb.GetConfigurationRequest)) {
-    throw new Error('Expected argument of type dapr.proto.operator.v1.GetConfigurationRequest');
+    throw new Error("Expected argument of type dapr.proto.operator.v1.GetConfigurationRequest");
   }
   return Buffer.from(arg.serializeBinary());
 }
@@ -53,7 +53,7 @@ function deserialize_dapr_proto_operator_v1_GetConfigurationRequest(buffer_arg) 
 
 function serialize_dapr_proto_operator_v1_GetConfigurationResponse(arg) {
   if (!(arg instanceof dapr_proto_operator_v1_operator_pb.GetConfigurationResponse)) {
-    throw new Error('Expected argument of type dapr.proto.operator.v1.GetConfigurationResponse');
+    throw new Error("Expected argument of type dapr.proto.operator.v1.GetConfigurationResponse");
   }
   return Buffer.from(arg.serializeBinary());
 }
@@ -64,7 +64,7 @@ function deserialize_dapr_proto_operator_v1_GetConfigurationResponse(buffer_arg)
 
 function serialize_dapr_proto_operator_v1_GetResiliencyRequest(arg) {
   if (!(arg instanceof dapr_proto_operator_v1_operator_pb.GetResiliencyRequest)) {
-    throw new Error('Expected argument of type dapr.proto.operator.v1.GetResiliencyRequest');
+    throw new Error("Expected argument of type dapr.proto.operator.v1.GetResiliencyRequest");
   }
   return Buffer.from(arg.serializeBinary());
 }
@@ -75,7 +75,7 @@ function deserialize_dapr_proto_operator_v1_GetResiliencyRequest(buffer_arg) {
 
 function serialize_dapr_proto_operator_v1_GetResiliencyResponse(arg) {
   if (!(arg instanceof dapr_proto_operator_v1_operator_pb.GetResiliencyResponse)) {
-    throw new Error('Expected argument of type dapr.proto.operator.v1.GetResiliencyResponse');
+    throw new Error("Expected argument of type dapr.proto.operator.v1.GetResiliencyResponse");
   }
   return Buffer.from(arg.serializeBinary());
 }
@@ -86,7 +86,7 @@ function deserialize_dapr_proto_operator_v1_GetResiliencyResponse(buffer_arg) {
 
 function serialize_dapr_proto_operator_v1_ListComponentResponse(arg) {
   if (!(arg instanceof dapr_proto_operator_v1_operator_pb.ListComponentResponse)) {
-    throw new Error('Expected argument of type dapr.proto.operator.v1.ListComponentResponse');
+    throw new Error("Expected argument of type dapr.proto.operator.v1.ListComponentResponse");
   }
   return Buffer.from(arg.serializeBinary());
 }
@@ -97,7 +97,7 @@ function deserialize_dapr_proto_operator_v1_ListComponentResponse(buffer_arg) {
 
 function serialize_dapr_proto_operator_v1_ListComponentsRequest(arg) {
   if (!(arg instanceof dapr_proto_operator_v1_operator_pb.ListComponentsRequest)) {
-    throw new Error('Expected argument of type dapr.proto.operator.v1.ListComponentsRequest');
+    throw new Error("Expected argument of type dapr.proto.operator.v1.ListComponentsRequest");
   }
   return Buffer.from(arg.serializeBinary());
 }
@@ -108,7 +108,7 @@ function deserialize_dapr_proto_operator_v1_ListComponentsRequest(buffer_arg) {
 
 function serialize_dapr_proto_operator_v1_ListResiliencyRequest(arg) {
   if (!(arg instanceof dapr_proto_operator_v1_operator_pb.ListResiliencyRequest)) {
-    throw new Error('Expected argument of type dapr.proto.operator.v1.ListResiliencyRequest');
+    throw new Error("Expected argument of type dapr.proto.operator.v1.ListResiliencyRequest");
   }
   return Buffer.from(arg.serializeBinary());
 }
@@ -119,7 +119,7 @@ function deserialize_dapr_proto_operator_v1_ListResiliencyRequest(buffer_arg) {
 
 function serialize_dapr_proto_operator_v1_ListResiliencyResponse(arg) {
   if (!(arg instanceof dapr_proto_operator_v1_operator_pb.ListResiliencyResponse)) {
-    throw new Error('Expected argument of type dapr.proto.operator.v1.ListResiliencyResponse');
+    throw new Error("Expected argument of type dapr.proto.operator.v1.ListResiliencyResponse");
   }
   return Buffer.from(arg.serializeBinary());
 }
@@ -130,7 +130,7 @@ function deserialize_dapr_proto_operator_v1_ListResiliencyResponse(buffer_arg) {
 
 function serialize_dapr_proto_operator_v1_ListSubscriptionsRequest(arg) {
   if (!(arg instanceof dapr_proto_operator_v1_operator_pb.ListSubscriptionsRequest)) {
-    throw new Error('Expected argument of type dapr.proto.operator.v1.ListSubscriptionsRequest');
+    throw new Error("Expected argument of type dapr.proto.operator.v1.ListSubscriptionsRequest");
   }
   return Buffer.from(arg.serializeBinary());
 }
@@ -141,7 +141,7 @@ function deserialize_dapr_proto_operator_v1_ListSubscriptionsRequest(buffer_arg)
 
 function serialize_dapr_proto_operator_v1_ListSubscriptionsResponse(arg) {
   if (!(arg instanceof dapr_proto_operator_v1_operator_pb.ListSubscriptionsResponse)) {
-    throw new Error('Expected argument of type dapr.proto.operator.v1.ListSubscriptionsResponse');
+    throw new Error("Expected argument of type dapr.proto.operator.v1.ListSubscriptionsResponse");
   }
   return Buffer.from(arg.serializeBinary());
 }
@@ -152,7 +152,7 @@ function deserialize_dapr_proto_operator_v1_ListSubscriptionsResponse(buffer_arg
 
 function serialize_google_protobuf_Empty(arg) {
   if (!(arg instanceof google_protobuf_empty_pb.Empty)) {
-    throw new Error('Expected argument of type google.protobuf.Empty');
+    throw new Error("Expected argument of type google.protobuf.Empty");
   }
   return Buffer.from(arg.serializeBinary());
 }
@@ -161,11 +161,10 @@ function deserialize_google_protobuf_Empty(buffer_arg) {
   return google_protobuf_empty_pb.Empty.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
-
-var OperatorService = exports.OperatorService = {
+var OperatorService = (exports.OperatorService = {
   // Sends events to Dapr sidecars upon component changes.
-componentUpdate: {
-    path: '/dapr.proto.operator.v1.Operator/ComponentUpdate',
+  componentUpdate: {
+    path: "/dapr.proto.operator.v1.Operator/ComponentUpdate",
     requestStream: false,
     responseStream: true,
     requestType: dapr_proto_operator_v1_operator_pb.ComponentUpdateRequest,
@@ -176,8 +175,8 @@ componentUpdate: {
     responseDeserialize: deserialize_dapr_proto_operator_v1_ComponentUpdateEvent,
   },
   // Returns a list of available components
-listComponents: {
-    path: '/dapr.proto.operator.v1.Operator/ListComponents',
+  listComponents: {
+    path: "/dapr.proto.operator.v1.Operator/ListComponents",
     requestStream: false,
     responseStream: false,
     requestType: dapr_proto_operator_v1_operator_pb.ListComponentsRequest,
@@ -188,8 +187,8 @@ listComponents: {
     responseDeserialize: deserialize_dapr_proto_operator_v1_ListComponentResponse,
   },
   // Returns a given configuration by name
-getConfiguration: {
-    path: '/dapr.proto.operator.v1.Operator/GetConfiguration',
+  getConfiguration: {
+    path: "/dapr.proto.operator.v1.Operator/GetConfiguration",
     requestStream: false,
     responseStream: false,
     requestType: dapr_proto_operator_v1_operator_pb.GetConfigurationRequest,
@@ -200,8 +199,8 @@ getConfiguration: {
     responseDeserialize: deserialize_dapr_proto_operator_v1_GetConfigurationResponse,
   },
   // Returns a list of pub/sub subscriptions
-listSubscriptions: {
-    path: '/dapr.proto.operator.v1.Operator/ListSubscriptions',
+  listSubscriptions: {
+    path: "/dapr.proto.operator.v1.Operator/ListSubscriptions",
     requestStream: false,
     responseStream: false,
     requestType: google_protobuf_empty_pb.Empty,
@@ -212,8 +211,8 @@ listSubscriptions: {
     responseDeserialize: deserialize_dapr_proto_operator_v1_ListSubscriptionsResponse,
   },
   // Returns a given resiliency configuration by name
-getResiliency: {
-    path: '/dapr.proto.operator.v1.Operator/GetResiliency',
+  getResiliency: {
+    path: "/dapr.proto.operator.v1.Operator/GetResiliency",
     requestStream: false,
     responseStream: false,
     requestType: dapr_proto_operator_v1_operator_pb.GetResiliencyRequest,
@@ -224,8 +223,8 @@ getResiliency: {
     responseDeserialize: deserialize_dapr_proto_operator_v1_GetResiliencyResponse,
   },
   // Returns a list of resiliency configurations
-listResiliency: {
-    path: '/dapr.proto.operator.v1.Operator/ListResiliency',
+  listResiliency: {
+    path: "/dapr.proto.operator.v1.Operator/ListResiliency",
     requestStream: false,
     responseStream: false,
     requestType: dapr_proto_operator_v1_operator_pb.ListResiliencyRequest,
@@ -236,8 +235,8 @@ listResiliency: {
     responseDeserialize: deserialize_dapr_proto_operator_v1_ListResiliencyResponse,
   },
   // Returns a list of pub/sub subscriptions, ListSubscriptionsRequest to expose pod info
-listSubscriptionsV2: {
-    path: '/dapr.proto.operator.v1.Operator/ListSubscriptionsV2',
+  listSubscriptionsV2: {
+    path: "/dapr.proto.operator.v1.Operator/ListSubscriptionsV2",
     requestStream: false,
     responseStream: false,
     requestType: dapr_proto_operator_v1_operator_pb.ListSubscriptionsRequest,
@@ -247,6 +246,6 @@ listSubscriptionsV2: {
     responseSerialize: serialize_dapr_proto_operator_v1_ListSubscriptionsResponse,
     responseDeserialize: deserialize_dapr_proto_operator_v1_ListSubscriptionsResponse,
   },
-};
+});
 
 exports.OperatorClient = grpc.makeGenericClientConstructor(OperatorService);

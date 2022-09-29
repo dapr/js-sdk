@@ -7,6 +7,6 @@
 import * as jspb from "google-protobuf";
 
 export enum APIVersion {
-    APIVERSION_UNSPECIFIED = 0,
-    V1 = 1,
+  APIVERSION_UNSPECIFIED = 0,
+  V1 = 1,
 }

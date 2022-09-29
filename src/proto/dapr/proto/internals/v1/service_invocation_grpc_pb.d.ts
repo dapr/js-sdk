@@ -11,51 +11,149 @@ import * as dapr_proto_internals_v1_apiversion_pb from "../../../../dapr/proto/i
 import * as dapr_proto_internals_v1_status_pb from "../../../../dapr/proto/internals/v1/status_pb";
 
 interface IServiceInvocationService extends grpc.ServiceDefinition<grpc.UntypedServiceImplementation> {
-    callActor: IServiceInvocationService_ICallActor;
-    callLocal: IServiceInvocationService_ICallLocal;
+  callActor: IServiceInvocationService_ICallActor;
+  callLocal: IServiceInvocationService_ICallLocal;
 }
 
-interface IServiceInvocationService_ICallActor extends grpc.MethodDefinition<dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest, dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse> {
-    path: "/dapr.proto.internals.v1.ServiceInvocation/CallActor";
-    requestStream: false;
-    responseStream: false;
-    requestSerialize: grpc.serialize<dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest>;
-    requestDeserialize: grpc.deserialize<dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest>;
-    responseSerialize: grpc.serialize<dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse>;
-    responseDeserialize: grpc.deserialize<dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse>;
+interface IServiceInvocationService_ICallActor
+  extends grpc.MethodDefinition<
+    dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest,
+    dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse
+  > {
+  path: "/dapr.proto.internals.v1.ServiceInvocation/CallActor";
+  requestStream: false;
+  responseStream: false;
+  requestSerialize: grpc.serialize<dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest>;
+  requestDeserialize: grpc.deserialize<dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest>;
+  responseSerialize: grpc.serialize<dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse>;
+  responseDeserialize: grpc.deserialize<dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse>;
 }
-interface IServiceInvocationService_ICallLocal extends grpc.MethodDefinition<dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest, dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse> {
-    path: "/dapr.proto.internals.v1.ServiceInvocation/CallLocal";
-    requestStream: false;
-    responseStream: false;
-    requestSerialize: grpc.serialize<dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest>;
-    requestDeserialize: grpc.deserialize<dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest>;
-    responseSerialize: grpc.serialize<dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse>;
-    responseDeserialize: grpc.deserialize<dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse>;
+interface IServiceInvocationService_ICallLocal
+  extends grpc.MethodDefinition<
+    dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest,
+    dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse
+  > {
+  path: "/dapr.proto.internals.v1.ServiceInvocation/CallLocal";
+  requestStream: false;
+  responseStream: false;
+  requestSerialize: grpc.serialize<dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest>;
+  requestDeserialize: grpc.deserialize<dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest>;
+  responseSerialize: grpc.serialize<dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse>;
+  responseDeserialize: grpc.deserialize<dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse>;
 }
 
 export const ServiceInvocationService: IServiceInvocationService;
 
 export interface IServiceInvocationServer extends grpc.UntypedServiceImplementation {
-    callActor: grpc.handleUnaryCall<dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest, dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse>;
-    callLocal: grpc.handleUnaryCall<dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest, dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse>;
+  callActor: grpc.handleUnaryCall<
+    dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest,
+    dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse
+  >;
+  callLocal: grpc.handleUnaryCall<
+    dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest,
+    dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse
+  >;
 }
 
 export interface IServiceInvocationClient {
-    callActor(request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse) => void): grpc.ClientUnaryCall;
-    callActor(request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse) => void): grpc.ClientUnaryCall;
-    callActor(request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse) => void): grpc.ClientUnaryCall;
-    callLocal(request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse) => void): grpc.ClientUnaryCall;
-    callLocal(request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse) => void): grpc.ClientUnaryCall;
-    callLocal(request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse) => void): grpc.ClientUnaryCall;
+  callActor(
+    request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest,
+    callback: (
+      error: grpc.ServiceError | null,
+      response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse,
+    ) => void,
+  ): grpc.ClientUnaryCall;
+  callActor(
+    request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest,
+    metadata: grpc.Metadata,
+    callback: (
+      error: grpc.ServiceError | null,
+      response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse,
+    ) => void,
+  ): grpc.ClientUnaryCall;
+  callActor(
+    request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest,
+    metadata: grpc.Metadata,
+    options: Partial<grpc.CallOptions>,
+    callback: (
+      error: grpc.ServiceError | null,
+      response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse,
+    ) => void,
+  ): grpc.ClientUnaryCall;
+  callLocal(
+    request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest,
+    callback: (
+      error: grpc.ServiceError | null,
+      response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse,
+    ) => void,
+  ): grpc.ClientUnaryCall;
+  callLocal(
+    request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest,
+    metadata: grpc.Metadata,
+    callback: (
+      error: grpc.ServiceError | null,
+      response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse,
+    ) => void,
+  ): grpc.ClientUnaryCall;
+  callLocal(
+    request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest,
+    metadata: grpc.Metadata,
+    options: Partial<grpc.CallOptions>,
+    callback: (
+      error: grpc.ServiceError | null,
+      response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse,
+    ) => void,
+  ): grpc.ClientUnaryCall;
 }
 
 export class ServiceInvocationClient extends grpc.Client implements IServiceInvocationClient {
-    constructor(address: string, credentials: grpc.ChannelCredentials, options?: Partial<grpc.ClientOptions>);
-    public callActor(request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse) => void): grpc.ClientUnaryCall;
-    public callActor(request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse) => void): grpc.ClientUnaryCall;
-    public callActor(request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse) => void): grpc.ClientUnaryCall;
-    public callLocal(request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse) => void): grpc.ClientUnaryCall;
-    public callLocal(request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse) => void): grpc.ClientUnaryCall;
-    public callLocal(request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse) => void): grpc.ClientUnaryCall;
+  constructor(address: string, credentials: grpc.ChannelCredentials, options?: Partial<grpc.ClientOptions>);
+  public callActor(
+    request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest,
+    callback: (
+      error: grpc.ServiceError | null,
+      response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse,
+    ) => void,
+  ): grpc.ClientUnaryCall;
+  public callActor(
+    request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest,
+    metadata: grpc.Metadata,
+    callback: (
+      error: grpc.ServiceError | null,
+      response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse,
+    ) => void,
+  ): grpc.ClientUnaryCall;
+  public callActor(
+    request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest,
+    metadata: grpc.Metadata,
+    options: Partial<grpc.CallOptions>,
+    callback: (
+      error: grpc.ServiceError | null,
+      response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse,
+    ) => void,
+  ): grpc.ClientUnaryCall;
+  public callLocal(
+    request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest,
+    callback: (
+      error: grpc.ServiceError | null,
+      response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse,
+    ) => void,
+  ): grpc.ClientUnaryCall;
+  public callLocal(
+    request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest,
+    metadata: grpc.Metadata,
+    callback: (
+      error: grpc.ServiceError | null,
+      response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse,
+    ) => void,
+  ): grpc.ClientUnaryCall;
+  public callLocal(
+    request: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest,
+    metadata: grpc.Metadata,
+    options: Partial<grpc.CallOptions>,
+    callback: (
+      error: grpc.ServiceError | null,
+      response: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse,
+    ) => void,
+  ): grpc.ClientUnaryCall;
 }

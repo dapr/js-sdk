@@ -18,5 +18,5 @@ import { PubSubSubscriptionTopicRouteType } from "./PubSubSubscriptionTopicRoute
  */
 export type PubSubSubscriptionTopicRoutesType = {
   // The key of the route
-  [key: string]: PubSubSubscriptionTopicRouteType
-}
+  [key: string]: PubSubSubscriptionTopicRouteType;
+};

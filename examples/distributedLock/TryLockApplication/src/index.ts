@@ -21,7 +21,7 @@ async function start() {
   const client = new DaprClient(
     daprHost,
     process.env.DAPR_GRPC_PORT ?? daprPortDefault,
-    CommunicationProtocolEnum.GRPC
+    CommunicationProtocolEnum.GRPC,
   );
 
   const storeName = "redislock";
@@ -47,14 +47,14 @@ async function start() {
   const tryLockResponse1 = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
   console.log("Acquired Lock? " + tryLockResponse1.success);
 
-  await new Promise(resolve => setTimeout(resolve, 20000));
+  await new Promise((resolve) => setTimeout(resolve, 20000));
 }
 
 function getResponseStatus(status: LockStatus) {
-  switch(status) {
+  switch (status) {
     case LockStatus.Success:
       return "Success";
-    case LockStatus.LockDoesNotExist: 
+    case LockStatus.LockDoesNotExist:
       return "LockDoesNotExist";
     case LockStatus.LockBelongsToOthers:
       return "LockBelongsToOthers";

@@ -12,6 +12,6 @@ limitations under the License.
 */
 
 export default interface ActorSayInterface {
-    sayString(msg: string): string;
-    sayObject(msg: object): object;
+  sayString(msg: string): string;
+  sayObject(msg: object): object;
 }

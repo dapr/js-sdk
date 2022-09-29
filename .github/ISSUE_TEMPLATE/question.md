@@ -1,9 +1,9 @@
 ---
 name: Question
 about: Ask a question about js-sdk
-title: ''
+title: ""
 labels: kind/question
-assignees: ''
-
+assignees: ""
 ---
+
 ## Ask your question here

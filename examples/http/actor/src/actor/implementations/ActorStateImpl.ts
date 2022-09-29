@@ -15,17 +15,17 @@ import { AbstractActor } from "@dapr/dapr";
 import ActorStateInterface from "../interfaces/ActorStateInterface";
 
 export default class ActorStateImpl extends AbstractActor implements ActorStateInterface {
-    async setState(key: string, value: any): Promise<void> {
-        await this.getStateManager().setState(key, value);
-        await this.getStateManager().saveState();
-    }
+  async setState(key: string, value: any): Promise<void> {
+    await this.getStateManager().setState(key, value);
+    await this.getStateManager().saveState();
+  }
 
-    async removeState(key: string): Promise<void> {
-        await this.getStateManager().removeState(key);
-        await this.getStateManager().saveState();
-    }
+  async removeState(key: string): Promise<void> {
+    await this.getStateManager().removeState(key);
+    await this.getStateManager().saveState();
+  }
 
-    async getState<T>(key: string): Promise<T | null> {
-        return await this.getStateManager<T>().getState(key);
-    }
+  async getState<T>(key: string): Promise<T | null> {
+    return await this.getStateManager<T>().getState(key);
+  }
 }

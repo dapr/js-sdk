@@ -30,16 +30,25 @@ export default class DaprPubSub implements IServerPubSub {
     this.logger = new Logger("GRPCServer", "PubSub", server.client.options.logger);
   }
 
-  async subscribe(pubsubName: string, topic: string, cb: TypeDaprPubSubCallback
-    , route: string | DaprPubSubRouteType = "", metadata?: KeyValueType): Promise<void> {
+  async subscribe(
+    pubsubName: string,
+    topic: string,
+    cb: TypeDaprPubSubCallback,
+    route: string | DaprPubSubRouteType = "",
+    metadata?: KeyValueType,
+  ): Promise<void> {
     this.server.getServerImpl().registerPubsubSubscription(pubsubName, topic, { route, metadata });
 
     // Add the callback to the event handlers manually
     // @todo: we will deprecate this way of working? and require subscribeToRoute?
-    this.subscribeToRoute(pubsubName, topic, route, cb)
+    this.subscribeToRoute(pubsubName, topic, route, cb);
   }
 
-  async subscribeWithOptions(pubsubName: string, topic: string, options: PubSubSubscriptionOptionsType = {}): Promise<void> {
+  async subscribeWithOptions(
+    pubsubName: string,
+    topic: string,
+    options: PubSubSubscriptionOptionsType = {},
+  ): Promise<void> {
     this.server.getServerImpl().registerPubsubSubscription(pubsubName, topic, options);
 
     if (options.callback) {
@@ -47,8 +56,12 @@ export default class DaprPubSub implements IServerPubSub {
     }
   }
 
-  subscribeToRoute(pubsubName: string, topic: string
-    , route: string | DaprPubSubRouteType | undefined, cb: TypeDaprPubSubCallback): void {
+  subscribeToRoute(
+    pubsubName: string,
+    topic: string,
+    route: string | DaprPubSubRouteType | undefined,
+    cb: TypeDaprPubSubCallback,
+  ): void {
     if (!route || typeof route === "string") {
       this.subscribeToRouteStringType(pubsubName, topic, route, cb);
     } else {
@@ -56,8 +69,12 @@ export default class DaprPubSub implements IServerPubSub {
     }
   }
 
-  subscribeToRouteDaprPubSubRouteType(pubsubName: string, topic: string
-    , route: DaprPubSubRouteType, cb: TypeDaprPubSubCallback): void {
+  subscribeToRouteDaprPubSubRouteType(
+    pubsubName: string,
+    topic: string,
+    route: DaprPubSubRouteType,
+    cb: TypeDaprPubSubCallback,
+  ): void {
     // Register the default
     if (route.default) {
       this.server.getServerImpl().registerPubSubSubscriptionEventHandler(pubsubName, topic, route.default, cb);
@@ -71,7 +88,12 @@ export default class DaprPubSub implements IServerPubSub {
     }
   }
 
-  subscribeToRouteStringType(pubsubName: string, topic: string, route: string | undefined, cb: TypeDaprPubSubCallback): void {
+  subscribeToRouteStringType(
+    pubsubName: string,
+    topic: string,
+    route: string | undefined,
+    cb: TypeDaprPubSubCallback,
+  ): void {
     this.server.getServerImpl().registerPubSubSubscriptionEventHandler(pubsubName, topic, route, cb);
   }
 
