@@ -13,7 +13,7 @@ limitations under the License.
 
 
 /** 
-* To pass Invoker options 
+* Options related to service invocation.
 */
 export type InvokerOptions={
   /** 
