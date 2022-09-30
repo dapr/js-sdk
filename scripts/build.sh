@@ -35,8 +35,11 @@ mkdir build/
 # ./build-grpc.sh
 
 # Build Package
-echo "Building Library"
+echo "Running eslint"
 npm run lint
+echo "Running prettier"
+npm run pretty
+echo "Building Library"
 npx tsc --outDir ./build/
 
 # Prepare Publish

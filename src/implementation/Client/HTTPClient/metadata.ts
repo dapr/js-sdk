@@ -11,9 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import HTTPClient from './HTTPClient';
-import { GetMetadataResponse } from '../../../types/metadata/GetMetadataResponse';
-import IClientMetadata from '../../../interfaces/Client/IClientMetadata';
+import HTTPClient from "./HTTPClient";
+import { GetMetadataResponse } from "../../../types/metadata/GetMetadataResponse";
+import IClientMetadata from "../../../interfaces/Client/IClientMetadata";
 
 // https://docs.dapr.io/reference/api/metadata_api
 export default class HTTPClientMetadata implements IClientMetadata {
@@ -32,9 +32,9 @@ export default class HTTPClientMetadata implements IClientMetadata {
     await this.client.execute(`/metadata/${key}`, {
       method: "PUT",
       headers: {
-        "Content-Type": "text/plain"
+        "Content-Type": "text/plain",
       },
-      body: value
+      body: value,
     });
 
     return true;

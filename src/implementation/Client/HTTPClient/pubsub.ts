@@ -11,11 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import HTTPClient from './HTTPClient';
-import IClientPubSub from '../../../interfaces/Client/IClientPubSub';
-import { Logger } from '../../../logger/Logger';
-import { KeyValueType } from '../../../types/KeyValue.type';
-import { createHTTPMetadataQueryParam } from '../../../utils/Client.util';
+import HTTPClient from "./HTTPClient";
+import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
+import { Logger } from "../../../logger/Logger";
+import { KeyValueType } from "../../../types/KeyValue.type";
+import { createHTTPMetadataQueryParam } from "../../../utils/Client.util";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPClientPubSub implements IClientPubSub {
@@ -32,9 +32,9 @@ export default class HTTPClientPubSub implements IClientPubSub {
 
     try {
       await this.client.execute(`/publish/${pubSubName}/${topic}?${queryParams}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
       });

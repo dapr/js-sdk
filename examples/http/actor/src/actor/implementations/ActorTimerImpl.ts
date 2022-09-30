@@ -23,7 +23,8 @@ export default class ActorTimerImpl extends AbstractActor implements ActorTimerI
     incrementBy: number,
     dueTimeSeconds: number,
     periodSeconds: number,
-    ttlSeconds: number): Promise<string> {
+    ttlSeconds: number,
+  ): Promise<string> {
     this.timerName = timerName;
 
     await super.registerActorTimer(
@@ -32,7 +33,8 @@ export default class ActorTimerImpl extends AbstractActor implements ActorTimerI
       Temporal.Duration.from({ seconds: dueTimeSeconds }),
       Temporal.Duration.from({ seconds: periodSeconds }),
       Temporal.Duration.from({ seconds: ttlSeconds }),
-      incrementBy);
+      incrementBy,
+    );
 
     return "Actor Initialized";
   }

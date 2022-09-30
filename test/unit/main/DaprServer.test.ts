@@ -16,14 +16,14 @@ import { DaprServer } from "../../../src";
 const host = "127.0.0.1";
 const port = "50001";
 
-describe('DaprServer', () => {
-  it('should allow us to create a DaprServer', () => {
+describe("DaprServer", () => {
+  it("should allow us to create a DaprServer", () => {
     const server = new DaprServer(host, port, host, port);
     expect(server.getDaprHost()).toEqual(host);
     expect(server.getDaprPort()).toEqual(port);
   });
 
-  it('should throw an error on a wrong port for server', () => {
+  it("should throw an error on a wrong port for server", () => {
     try {
       new DaprServer(host, host);
     } catch (e) {
@@ -32,7 +32,7 @@ describe('DaprServer', () => {
     }
   });
 
-  it('should throw an error on a wrong port for client', () => {
+  it("should throw an error on a wrong port for client", () => {
     try {
       new DaprServer(host, port, host, host);
     } catch (e) {

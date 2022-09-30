@@ -53,7 +53,9 @@ export default class ActorStateManager<T> {
       return false;
     }
 
-    const didExist = await this.actor.getStateProvider().containsState(this.actor.getActorType(), this.actor.getActorId(), stateName);
+    const didExist = await this.actor
+      .getStateProvider()
+      .containsState(this.actor.getActorType(), this.actor.getActorId(), stateName);
 
     if (!didExist) {
       return false;
@@ -87,8 +89,9 @@ export default class ActorStateManager<T> {
       return [true, val !== undefined ? val : null];
     }
 
-    const [hasValue, value] = await this.actor.getStateProvider().tryLoadState(this.actor.getActorType(), this.actor.getActorId(), stateName);
-
+    const [hasValue, value] = await this.actor
+      .getStateProvider()
+      .tryLoadState(this.actor.getActorType(), this.actor.getActorId(), stateName);
 
     if (hasValue) {
       stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.NONE));
@@ -110,7 +113,10 @@ export default class ActorStateManager<T> {
 
       stateMetadata.setValue(value);
 
-      if (stateMetadata.getChangeKind() === StateChangeKind.NONE || stateMetadata.getChangeKind() === StateChangeKind.REMOVE) {
+      if (
+        stateMetadata.getChangeKind() === StateChangeKind.NONE ||
+        stateMetadata.getChangeKind() === StateChangeKind.REMOVE
+      ) {
         stateMetadata.setChangeKind(StateChangeKind.UPDATE);
       }
 
@@ -119,7 +125,9 @@ export default class ActorStateManager<T> {
       return;
     }
 
-    const didExist = await this.actor.getStateProvider().containsState(this.actor.getActorType(), this.actor.getActorId(), stateName);
+    const didExist = await this.actor
+      .getStateProvider()
+      .containsState(this.actor.getActorType(), this.actor.getActorId(), stateName);
 
     if (didExist) {
       stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.UPDATE));
@@ -143,7 +151,7 @@ export default class ActorStateManager<T> {
       const stateMetadata = stateChangeTracker.get(stateName);
 
       if (stateMetadata?.getChangeKind() === StateChangeKind.REMOVE) {
-        return false
+        return false;
       } else if (stateMetadata?.getChangeKind() === StateChangeKind.ADD) {
         stateChangeTracker.delete(stateName);
         return true;
@@ -154,7 +162,9 @@ export default class ActorStateManager<T> {
       return true;
     }
 
-    const didExist = await this.actor.getStateProvider().containsState(this.actor.getActorType(), this.actor.getActorId(), stateName);
+    const didExist = await this.actor
+      .getStateProvider()
+      .containsState(this.actor.getActorType(), this.actor.getActorId(), stateName);
 
     if (didExist) {
       stateChangeTracker.set(stateName, new StateMetadata(null as any, StateChangeKind.REMOVE));
@@ -172,7 +182,9 @@ export default class ActorStateManager<T> {
       return stateMetadata?.getChangeKind() !== StateChangeKind.REMOVE;
     }
 
-    const doesContainState = await this.actor.getStateProvider().containsState(this.actor.getActorType(), this.actor.getActorId(), stateName);
+    const doesContainState = await this.actor
+      .getStateProvider()
+      .containsState(this.actor.getActorType(), this.actor.getActorId(), stateName);
     return doesContainState;
   }
 
@@ -184,7 +196,7 @@ export default class ActorStateManager<T> {
       return val;
     }
 
-    const changeKind = await this.isStateMarkedForRemove(stateName) ? StateChangeKind.UPDATE : StateChangeKind.ADD;
+    const changeKind = (await this.isStateMarkedForRemove(stateName)) ? StateChangeKind.UPDATE : StateChangeKind.ADD;
     stateChangeTracker.set(stateName, new StateMetadata(value, changeKind));
 
     return value;
@@ -228,7 +240,9 @@ export default class ActorStateManager<T> {
       return newValue;
     }
 
-    const [hasValue, val] = await this.actor.getStateProvider().tryLoadState(this.actor.getActorType(), this.actor.getActorId(), stateName);
+    const [hasValue, val] = await this.actor
+      .getStateProvider()
+      .tryLoadState(this.actor.getActorType(), this.actor.getActorId(), stateName);
 
     if (hasValue) {
       const newValue = updateValueFactory(stateName, val);

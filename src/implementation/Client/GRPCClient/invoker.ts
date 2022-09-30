@@ -12,15 +12,17 @@ limitations under the License.
 */
 
 import { Any } from "google-protobuf/google/protobuf/any_pb";
-import GRPCClient from './GRPCClient';
+import GRPCClient from "./GRPCClient";
 
-import { HttpMethod } from '../../../enum/HttpMethod.enum';
-import { HTTPExtension, InvokeRequest, InvokeResponse } from '../../../proto/dapr/proto/common/v1/common_pb';
-import { InvokeServiceRequest } from '../../../proto/dapr/proto/runtime/v1/dapr_pb';
+import { HttpMethod } from "../../../enum/HttpMethod.enum";
+import { HTTPExtension, InvokeRequest, InvokeResponse } from "../../../proto/dapr/proto/common/v1/common_pb";
+import { InvokeServiceRequest } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import * as HttpVerbUtil from "../../../utils/HttpVerb.util";
+
 import IClientInvoker from '../../../interfaces/Client/IClientInvoker';
 import * as SerializerUtil from "../../../utils/Serializer.util"
 import { InvokerOptions } from "../../../types/InvokerOptions.type";
+
 
 // https://docs.dapr.io/reference/api/service_invocation_api/
 export default class GRPCClientInvoker implements IClientInvoker {
@@ -31,9 +33,10 @@ export default class GRPCClientInvoker implements IClientInvoker {
   }
 
   // @todo: should return a specific typed Promise<TypeInvokerInvokeResponse> instead of Promise<nothing>
+
   async invoke(appId: string, methodName: string, method: HttpMethod = HttpMethod.GET, data?: object,options:InvokerOptions={}): Promise<object> {
     
-    const headers= options.headers!=undefined?options.headers:{}
+    const headers = options.headers ?? {}
  
     const fetchOptions = {
       method,
@@ -43,6 +46,7 @@ export default class GRPCClientInvoker implements IClientInvoker {
     if (method !== HttpMethod.GET) {
        //@ts-ignore
       fetchOptions.headers['Content-Type'] = 'application/json';
+
     }
 
 

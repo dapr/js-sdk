@@ -21,7 +21,7 @@ const serverPort = "50051"; // App Port of this Example Server
 const daprAppId = "example-hello-world";
 
 async function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function start() {
@@ -29,13 +29,17 @@ async function start() {
   const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
 
   console.log("===============================================================");
-  console.log("REGISTERING SERVER HANDLERS")
+  console.log("REGISTERING SERVER HANDLERS");
   console.log("===============================================================");
-  await server.binding.receive("binding-rabbitmq", async (data: any) => console.log(`[Dapr-JS][Example][Binding Receive] Got Data: ${JSON.stringify(data)}`));
-  await server.pubsub.subscribe("pubsub-redis", "test-topic", async (data: any) => console.log(`[Dapr-JS][Example][PubSub Subscribe] Got Data: ${JSON.stringify(data)}`));
+  await server.binding.receive("binding-rabbitmq", async (data: any) =>
+    console.log(`[Dapr-JS][Example][Binding Receive] Got Data: ${JSON.stringify(data)}`),
+  );
+  await server.pubsub.subscribe("pubsub-redis", "test-topic", async (data: any) =>
+    console.log(`[Dapr-JS][Example][PubSub Subscribe] Got Data: ${JSON.stringify(data)}`),
+  );
 
   console.log("===============================================================");
-  console.log("INITIALIZING")
+  console.log("INITIALIZING");
   console.log("===============================================================");
   // We initialize after registering our listeners since these should be defined upfront
   // this is how Dapr works, it waits until we are listening on the port. Once that is detected
@@ -43,23 +47,31 @@ async function start() {
   await server.start();
 
   console.log("===============================================================");
-  console.log("EXECUTING CLIENT -INVOKER")
+  console.log("EXECUTING CLIENT -INVOKER");
   console.log("===============================================================");
-  await server.invoker.listen("hello-world", async (data: any) => {
-    console.log("[Dapr-JS][Example] POST /hello-world");
-    console.log(`[Dapr-JS][Example] Received: ${JSON.stringify(data.body)}`);
-    console.log(`[Dapr-JS][Example] Replying to Client`);
-    return { hello: "world received from POST" };
-  }, { method: HttpMethod.POST });
+  await server.invoker.listen(
+    "hello-world",
+    async (data: any) => {
+      console.log("[Dapr-JS][Example] POST /hello-world");
+      console.log(`[Dapr-JS][Example] Received: ${JSON.stringify(data.body)}`);
+      console.log(`[Dapr-JS][Example] Replying to Client`);
+      return { hello: "world received from POST" };
+    },
+    { method: HttpMethod.POST },
+  );
 
-  await server.invoker.listen("hello-world", async () => {
-    console.log("[Dapr-JS][Example] GET /hello-world");
-    console.log(`[Dapr-JS][Example] Replying to Client`);
-    return { hello: "world received from GET" };
-  }, { method: HttpMethod.GET });
+  await server.invoker.listen(
+    "hello-world",
+    async () => {
+      console.log("[Dapr-JS][Example] GET /hello-world");
+      console.log(`[Dapr-JS][Example] Replying to Client`);
+      return { hello: "world received from GET" };
+    },
+    { method: HttpMethod.GET },
+  );
 
   const r = await client.invoker.invoke(daprAppId, "hello-world", HttpMethod.POST, {
-    hello: "world"
+    hello: "world",
   });
   console.log(r);
   const r2 = await client.invoker.invoke(daprAppId, "hello-world", HttpMethod.GET);
@@ -92,16 +104,16 @@ async function start() {
   await client.state.save("state-redis", [
     {
       key: "key-1",
-      value: "value-1"
+      value: "value-1",
     },
     {
       key: "key-2",
-      value: "value-2"
+      value: "value-2",
     },
     {
       key: "key-3",
-      value: "value-3"
-    }
+      value: "value-3",
+    },
   ]);
 
   const resState = await client.state.get("state-redis", "key-1");
@@ -120,19 +132,23 @@ async function start() {
       operation: "upsert",
       request: {
         key: "key-1",
-        value: "my-new-data-1"
-      }
+        value: "my-new-data-1",
+      },
     },
     {
       operation: "delete",
       request: {
-        key: "key-3"
-      }
-    }
+        key: "key-3",
+      },
+    },
   ]);
   const resTransactionDelete = await client.state.get("state-redis", "key-3");
   const resTransactionUpsert = await client.state.get("state-redis", "key-1");
-  console.log(`[Dapr-JS][Example][State] Transaction changed key-1 to: ${JSON.stringify(resTransactionUpsert)} and deleted key-3: ${JSON.stringify(resTransactionDelete)}`);
+  console.log(
+    `[Dapr-JS][Example][State] Transaction changed key-1 to: ${JSON.stringify(
+      resTransactionUpsert,
+    )} and deleted key-3: ${JSON.stringify(resTransactionDelete)}`,
+  );
 }
 
 start().catch((e) => {

@@ -11,13 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import HTTPClient from '../../../implementation/Client/HTTPClient/HTTPClient';
-import { OperationType } from '../../../types/Operation.type';
-import { ActorReminderType } from '../../../types/ActorReminder.type';
-import { ActorTimerType } from '../../../types/ActorTimer.type';
-import IClientActor from '../../../interfaces/Client/IClientActor';
-import { KeyValueType } from '../../../types/KeyValue.type';
-import ActorId from '../../ActorId';
+import HTTPClient from "../../../implementation/Client/HTTPClient/HTTPClient";
+import { OperationType } from "../../../types/Operation.type";
+import { ActorReminderType } from "../../../types/ActorReminder.type";
+import { ActorTimerType } from "../../../types/ActorTimer.type";
+import IClientActor from "../../../interfaces/Client/IClientActor";
+import { KeyValueType } from "../../../types/KeyValue.type";
+import ActorId from "../../ActorId";
 
 // https://docs.dapr.io/reference/api/actors_api/
 export default class ActorClientHTTP implements IClientActor {
@@ -30,7 +30,7 @@ export default class ActorClientHTTP implements IClientActor {
   async invoke(actorType: string, actorId: ActorId, methodName: string, body?: any): Promise<object> {
     const result = await this.client.execute(`/actors/${actorType}/${actorId.getId()}/method/${methodName}`, {
       method: "POST", // we always use POST calls for Invoking (ref: https://github.com/dapr/js-sdk/pull/137#discussion_r772636068)
-      body
+      body,
     });
 
     return result as object;
@@ -38,11 +38,11 @@ export default class ActorClientHTTP implements IClientActor {
 
   async stateTransaction(actorType: string, actorId: ActorId, operations: OperationType[]): Promise<void> {
     await this.client.execute(`/actors/${actorType}/${actorId.getId()}/state`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(operations)
+      body: JSON.stringify(operations),
     });
   }
 
@@ -51,17 +51,22 @@ export default class ActorClientHTTP implements IClientActor {
     return result as any;
   }
 
-  async registerActorReminder(actorType: string, actorId: ActorId, name: string, reminder: ActorReminderType): Promise<void> {
+  async registerActorReminder(
+    actorType: string,
+    actorId: ActorId,
+    name: string,
+    reminder: ActorReminderType,
+  ): Promise<void> {
     await this.client.execute(`/actors/${actorType}/${actorId.getId()}/reminders/${name}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        period: reminder.period.toString().toLocaleLowerCase().replace('pt', ''),
-        dueTime: reminder?.dueTime?.toString()?.toLocaleLowerCase().replace('pt', ''),
-        ttl: reminder?.ttl?.toString()?.toLocaleLowerCase().replace('pt', ''),
-        data: reminder.data
+        period: reminder.period.toString().toLocaleLowerCase().replace("pt", ""),
+        dueTime: reminder?.dueTime?.toString()?.toLocaleLowerCase().replace("pt", ""),
+        ttl: reminder?.ttl?.toString()?.toLocaleLowerCase().replace("pt", ""),
+        data: reminder.data,
       }),
     });
   }
@@ -73,35 +78,35 @@ export default class ActorClientHTTP implements IClientActor {
 
   async unregisterActorReminder(actorType: string, actorId: ActorId, name: string): Promise<void> {
     await this.client.execute(`/actors/${actorType}/${actorId.getId()}/reminders/${name}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
   async registerActorTimer(actorType: string, actorId: ActorId, name: string, timer: ActorTimerType): Promise<void> {
     await this.client.execute(`/actors/${actorType}/${actorId.getId()}/timers/${name}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        period: timer.period.toString().toLocaleLowerCase().replace('pt', ''),
-        dueTime: timer?.dueTime?.toString()?.toLocaleLowerCase().replace('pt', ''),
-        ttl: timer?.ttl?.toString()?.toLocaleLowerCase().replace('pt', ''),
+        period: timer.period.toString().toLocaleLowerCase().replace("pt", ""),
+        dueTime: timer?.dueTime?.toString()?.toLocaleLowerCase().replace("pt", ""),
+        ttl: timer?.ttl?.toString()?.toLocaleLowerCase().replace("pt", ""),
         data: timer.data,
-        callback: timer.callback
+        callback: timer.callback,
       }),
     });
   }
 
   async unregisterActorTimer(actorType: string, actorId: ActorId, name: string): Promise<void> {
     await this.client.execute(`/actors/${actorType}/${actorId.getId()}/timers/${name}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
   async deactivate(actorType: string, actorId: string): Promise<void> {
     await this.client.execute(`/actors/${actorType}/${actorId}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 

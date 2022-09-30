@@ -1,9 +1,9 @@
 ---
 name: Proposal
 about: Create a proposal for js-sdk
-title: ''
+title: ""
 labels: kind/proposal
-assignees: ''
-
+assignees: ""
 ---
+
 ## Describe the proposal

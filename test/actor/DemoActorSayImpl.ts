@@ -27,20 +27,20 @@ export default class DemoActorSayImpl extends AbstractActor implements DemoActor
     return {
       a: {
         value: a,
-        type: typeof a
+        type: typeof a,
       },
       b: {
         value: b,
-        type: typeof b
+        type: typeof b,
       },
       c: {
         value: c,
-        type: typeof c
+        type: typeof c,
       },
       d: {
         value: d,
-        type: typeof d
-      }
+        type: typeof d,
+      },
     };
   }
 }

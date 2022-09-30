@@ -30,4 +30,10 @@ export type DaprClientOptions = {
    * Options related to actors.
    */
   actor?: ActorRuntimeOptions;
-}
+
+  /**
+   * API token to authenticate with Dapr.
+   * See https://docs.dapr.io/operations/security/api-token/.
+   */
+  daprApiToken?: string;
+};

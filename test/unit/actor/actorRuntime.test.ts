@@ -12,19 +12,19 @@ limitations under the License.
 */
 
 import { v4 as uuidv4 } from "uuid";
-import { DaprClient } from '../../../src';
-import ActorRuntime from '../../../src/actors/runtime/ActorRuntime';
+import { DaprClient } from "../../../src";
+import ActorRuntime from "../../../src/actors/runtime/ActorRuntime";
 import ActorId from "../../../src/actors/ActorId";
-import DemoActorCounterImpl from '../../actor/DemoActorCounterImpl';
-import DemoActorSayImpl from '../../actor/DemoActorSayImpl';
+import DemoActorCounterImpl from "../../actor/DemoActorCounterImpl";
+import DemoActorSayImpl from "../../actor/DemoActorSayImpl";
 import { ActorRuntimeOptions } from "../../../src/types/actors/ActorRuntimeOptions";
 
-describe('ActorRuntime', () => {
+describe("ActorRuntime", () => {
   let client: DaprClient;
   let runtime: ActorRuntime;
 
   beforeAll(async () => {
-    jest.mock('../../../src/implementation/Client/DaprClient'); // converts DaprClient into a mock constructor
+    jest.mock("../../../src/implementation/Client/DaprClient"); // converts DaprClient into a mock constructor
     client = new DaprClient("127.0.0.1", "1000");
   });
 
@@ -38,17 +38,17 @@ describe('ActorRuntime', () => {
       drainOngoingCallTimeout: "1m",
       drainRebalancedActors: true,
       reentrancy: {
-          enabled: false
+        enabled: false,
       },
-      remindersStoragePartitions: 1
-    }
+      remindersStoragePartitions: 1,
+    };
     runtime.setActorRuntimeOptions(options);
 
     // Clear the Actor Managers
     runtime.clearActorManagers();
   });
 
-  it('should have an actor config that matches the default values', async () => {
+  it("should have an actor config that matches the default values", async () => {
     const config = runtime.getActorRuntimeOptions();
 
     expect(config.actorIdleTimeout).toEqual("1h");
@@ -59,18 +59,18 @@ describe('ActorRuntime', () => {
     expect(config.remindersStoragePartitions).toEqual(1);
   });
 
-  it('should allow us to change the actor runtime config values', async () => {
+  it("should allow us to change the actor runtime config values", async () => {
     const newOptions: ActorRuntimeOptions = {
       actorIdleTimeout: "3h",
       actorScanInterval: "10s",
       drainOngoingCallTimeout: "2m",
       drainRebalancedActors: false,
       reentrancy: {
-          enabled: true,
-          maxStackDepth: 10
+        enabled: true,
+        maxStackDepth: 10,
       },
-      remindersStoragePartitions: 2
-    }
+      remindersStoragePartitions: 2,
+    };
 
     runtime.setActorRuntimeOptions(newOptions);
 
@@ -85,7 +85,7 @@ describe('ActorRuntime', () => {
     expect(config.remindersStoragePartitions).toEqual(2);
   });
 
-  it('should be able to register an actor', async () => {
+  it("should be able to register an actor", async () => {
     await runtime.registerActor(DemoActorCounterImpl);
     await runtime.registerActor(DemoActorSayImpl);
 
@@ -93,7 +93,7 @@ describe('ActorRuntime', () => {
     expect(runtime.getRegisteredActorTypes().indexOf(DemoActorSayImpl.name)).toBeGreaterThan(-1);
   });
 
-  it('should only register an actor once', async () => {
+  it("should only register an actor once", async () => {
     await runtime.registerActor(DemoActorCounterImpl);
     await runtime.registerActor(DemoActorCounterImpl);
 
@@ -101,7 +101,7 @@ describe('ActorRuntime', () => {
     expect(runtime.getRegisteredActorTypes().length).toEqual(1);
   });
 
-  it('should be able to invoke an actor', async () => {
+  it("should be able to invoke an actor", async () => {
     const actorId = uuidv4();
 
     await runtime.registerActor(DemoActorSayImpl);
@@ -110,7 +110,7 @@ describe('ActorRuntime', () => {
     expect(res.toString()).toEqual(`Actor said: "Hello World"`);
   });
 
-  it('should receive an error if the actor method does not exist', async () => {
+  it("should receive an error if the actor method does not exist", async () => {
     const actorId = uuidv4();
 
     await runtime.registerActor(DemoActorCounterImpl);
@@ -119,17 +119,19 @@ describe('ActorRuntime', () => {
       await runtime.invoke(DemoActorCounterImpl.name, actorId, "someRandomMethod");
     } catch (e) {
       const msg = (e as Error).message;
-      expect(msg).toEqual(`{"error":"ACTOR_METHOD_DOES_NOT_EXIST","errorMsg":"The actor method 'someRandomMethod' does not exist on ${DemoActorCounterImpl.name}"}`);
+      expect(msg).toEqual(
+        `{"error":"ACTOR_METHOD_DOES_NOT_EXIST","errorMsg":"The actor method 'someRandomMethod' does not exist on ${DemoActorCounterImpl.name}"}`,
+      );
     }
   });
 
-  it('should be able to fire a reminder', async () => {
+  it("should be able to fire a reminder", async () => {
     // TODO: add this test
     new ActorId(uuidv4());
   });
 
-  it('should be able to fire a timer', async () => {
+  it("should be able to fire a timer", async () => {
     // TODO: add this test
     new ActorId(uuidv4());
   });
-})
+});

@@ -21,10 +21,10 @@ npm install --save @dapr/dapr
 
 ## Structure
 
-The Dapr Javascript SDK contains two major components: 
+The Dapr Javascript SDK contains two major components:
 
-* **DaprServer**: to manage all Dapr sidecar to application communication.
-* **DaprClient**: to manage all application to Dapr sidecar communication.
+- **DaprServer**: to manage all Dapr sidecar to application communication.
+- **DaprClient**: to manage all application to Dapr sidecar communication.
 
 The above communication can be configured to use either of the gRPC or HTTP protocols.
 

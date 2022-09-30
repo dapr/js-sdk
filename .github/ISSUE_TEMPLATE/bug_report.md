@@ -1,20 +1,18 @@
 ---
 name: Bug report
 about: Report a bug in js-sdk
-title: ''
+title: ""
 labels: kind/bug
-assignees: ''
-
+assignees: ""
 ---
+
 ## Expected Behavior
 
 <!-- Briefly describe what you expect to happen -->
 
-
 ## Actual Behavior
 
 <!-- Briefly describe what is actually happening -->
-
 
 ## Steps to Reproduce the Problem
 

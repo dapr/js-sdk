@@ -4,7 +4,7 @@
 
 Each example can be ran in the following way:
 
-> ⚠ The `build` directory should exist! 
+> ⚠ The `build` directory should exist!
 
 ```bash
 # Build main library
@@ -27,7 +27,7 @@ npm run start:dapr
 
 The recommended way is to copy the `hello-world` directory and adapt it to your needs. Useful commands:
 
-* `npm run start:dev`: Start the example with a reload feature
+- `npm run start:dev`: Start the example with a reload feature
 
 ### Initializing Typescript
 
@@ -58,4 +58,3 @@ main()
 })
 EOF
 ```
-

@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import HTTPClient from './HTTPClient';
-import IClientSecret from '../../../interfaces/Client/IClientSecret';
+import HTTPClient from "./HTTPClient";
+import IClientSecret from "../../../interfaces/Client/IClientSecret";
 
 // https://docs.dapr.io/reference/api/secrets_api/
 export default class HTTPClientSecret implements IClientSecret {
@@ -29,10 +29,10 @@ export default class HTTPClientSecret implements IClientSecret {
 
   async getBulk(secretStoreName: string): Promise<object> {
     const result = await this.client.execute(`/secrets/${secretStoreName}/bulk`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     });
 
     return result as object;
