@@ -128,5 +128,11 @@ jobs:
       id: tests
       run: npm run test:e2e:all
 
+    - name: Run E2E test for successful build of dapr version
+      id: sample-test
+      run: |
+        cd test/e2e/dapr_version/sample
+        npm install
+
     - name: Upload test coverage
       uses: codecov/codecov-action@v1
