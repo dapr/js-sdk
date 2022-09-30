@@ -17,7 +17,7 @@ limitations under the License.
 */
 export type InvokerOptions={
   /** 
-  *Headers to include in service Invocation Request   
+  * Headers to include in service invocation request.   
   */
   headers?: object
 }
