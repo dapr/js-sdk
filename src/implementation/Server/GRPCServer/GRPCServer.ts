@@ -19,9 +19,9 @@ import { DaprClient } from "../../..";
 import { Logger } from "../../../logger/Logger";
 
 // eslint-disable-next-line
-export interface IServerType extends grpc.Server { }
+export interface IServerType extends grpc.Server {}
 // eslint-disable-next-line
-export interface IServerImplType extends GRPCServerImpl { }
+export interface IServerImplType extends GRPCServerImpl {}
 
 export default class GRPCServer implements IServer {
   isInitialized: boolean;
@@ -47,17 +47,19 @@ export default class GRPCServer implements IServer {
     this.serverImpl = new GRPCServerImpl(this.server, client.options.logger);
 
     // Add our implementation
-    this.logger.info("Adding Service Implementation - AppCallbackService")
+    this.logger.info("Adding Service Implementation - AppCallbackService");
     // @ts-ignore
     this.server.addService(AppCallbackService, this.serverImpl);
   }
 
   getServerAddress(): string {
     if (!this.isInitialized) {
-      throw new Error(JSON.stringify({
-        error: "GRPC_SERVER_NOT_INITIALIZED",
-        error_message: "The gRPC server was not initialized, did you call `await GRPCServerSingleton.initialize()`?"
-      }));
+      throw new Error(
+        JSON.stringify({
+          error: "GRPC_SERVER_NOT_INITIALIZED",
+          error_message: "The gRPC server was not initialized, did you call `await GRPCServerSingleton.initialize()`?",
+        }),
+      );
     }
 
     return `${this.serverHost}:${this.serverPort}`;
@@ -65,10 +67,12 @@ export default class GRPCServer implements IServer {
 
   getServer(): IServerType {
     if (!this.isInitialized) {
-      throw new Error(JSON.stringify({
-        error: "GRPC_SERVER_NOT_INITIALIZED",
-        error_message: "The gRPC server was not initialized, did you call `await GRPCServerSingleton.initialize()`?"
-      }));
+      throw new Error(
+        JSON.stringify({
+          error: "GRPC_SERVER_NOT_INITIALIZED",
+          error_message: "The gRPC server was not initialized, did you call `await GRPCServerSingleton.initialize()`?",
+        }),
+      );
     }
 
     return this.server as IServerType;
@@ -92,7 +96,6 @@ export default class GRPCServer implements IServer {
 
   async stop(): Promise<void> {
     return new Promise((resolve, reject) => {
-
       this.server.tryShutdown((err) => {
         if (err) {
           return reject(err);
@@ -115,6 +118,6 @@ export default class GRPCServer implements IServer {
         this.logger.info(`Listening on ${this.serverHost}:${this.serverPort}`);
         return resolve();
       });
-    })
+    });
   }
 }

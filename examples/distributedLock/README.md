@@ -1,12 +1,14 @@
 # Example - Distributed Lock APIs
 
-This example demonstrates 2 features (Try Lock & Unlock) from the [Distributed lock API from Dapr](https://github.com/dapr/dapr/issues/3549) that helps developers to keep their data safe from race conditions. For more information, check out the documentation at 
+This example demonstrates 2 features (Try Lock & Unlock) from the [Distributed lock API from Dapr](https://github.com/dapr/dapr/issues/3549) that helps developers to keep their data safe from race conditions. For more information, check out the documentation at
 
 It demonstrates the **Distributed Lock** API's following methods:
+
 - `TryLock`
 - `Unlock`
 
 > **Note:** Make sure to use the latest proto bindings by running scripts/fetch-proto.sh file.
+
 ## Prerequisites
 
 - [Dapr CLI](https://docs.dapr.io/getting-started/install-dapr-cli/)
@@ -19,13 +21,13 @@ The TryLock and Unlock calls are implemented under the client.lock attribute.
 
 #### TryLock Example
 
-```javascript
+```typescript
 const tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
 ```
 
 #### Unlock Example
 
-```javascript
+```typescript
 const unlockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
 ```
 

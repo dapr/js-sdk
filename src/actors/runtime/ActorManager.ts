@@ -22,7 +22,7 @@ import BufferSerializer from "./BufferSerializer";
 /**
  * The Actor Manager manages actor objects of a specific actor type
  */
-const REMINDER_METHOD_NAME = 'receiveReminder'; // the callback method name for the reminder
+const REMINDER_METHOD_NAME = "receiveReminder"; // the callback method name for the reminder
 
 export default class ActorManager<T extends AbstractActor> {
   readonly actorCls: Class<T>;
@@ -43,9 +43,9 @@ export default class ActorManager<T extends AbstractActor> {
 
     // @todo: we need to make sure race condition cannot happen when accessing the active actors
     // NodeJS has an event loop (main thread -> runs JS code) and a worker pool (threadpool -> automatically created for offloading work through libuv) threads
-    // we can have a new thread through the worker_thread module 
+    // we can have a new thread through the worker_thread module
     // https://medium.com/@mohllal/node-js-multithreading-a5cd74958a67
-    // 
+    //
     //
     // Python: asyncio.lock -> implements a mutex lock for asyncio tasks to guarantee exclusive access to a shared resource
     // Java: Collections.synchronizedMap -> is a thread-saf synchronized map to guarantee serial access
@@ -73,10 +73,12 @@ export default class ActorManager<T extends AbstractActor> {
 
   async deactivateActor(actorId: ActorId): Promise<void> {
     if (!this.actors.has(actorId.getId())) {
-      throw new Error(JSON.stringify({
-        error: 'ACTOR_NOT_ACTIVATED',
-        errorMsg: `The actor ${actorId.getId()} was not activated`
-      }));
+      throw new Error(
+        JSON.stringify({
+          error: "ACTOR_NOT_ACTIVATED",
+          errorMsg: `The actor ${actorId.getId()} was not activated`,
+        }),
+      );
     }
 
     const actor = await this.getActiveActor(actorId);
@@ -101,12 +103,12 @@ export default class ActorManager<T extends AbstractActor> {
 
   /**
    * Execute the given method with requestBody on the given Actor
-   * 
-   * @param actorId 
-   * @param actorMethodName 
-   * @param requestBody 
-   * @param actorMethodContext 
-   * @returns 
+   *
+   * @param actorId
+   * @param actorMethodName
+   * @param requestBody
+   * @param actorMethodContext
+   * @returns
    */
   async invoke(actorId: ActorId, actorMethodName: string, requestBody?: Buffer): Promise<any> {
     const requestBodyDeserialized = this.serializer.deserialize(requestBody || Buffer.from(""));
@@ -133,10 +135,12 @@ export default class ActorManager<T extends AbstractActor> {
     // Check if the actor method exists? Skip type-checking as it's the power of Javascript
     // @ts-ignore
     if (typeof actorObject[actorMethodName] !== "function") {
-      throw new Error(JSON.stringify({
-        error: 'ACTOR_METHOD_DOES_NOT_EXIST',
-        errorMsg: `The actor method '${actorMethodName}' does not exist on ${this.actorCls.name}`
-      }));
+      throw new Error(
+        JSON.stringify({
+          error: "ACTOR_METHOD_DOES_NOT_EXIST",
+          errorMsg: `The actor method '${actorMethodName}' does not exist on ${this.actorCls.name}`,
+        }),
+      );
     }
 
     // @todo: actor reentrancy

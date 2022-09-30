@@ -4,7 +4,7 @@ This example shows a car parking area where cars (virtual actors) enter and leav
 
 ## Prerequisites
 
-Start influxdb, telegraf and grafana using docker-compose. 
+Start influxdb, telegraf and grafana using docker-compose.
 
 ```bash
 docker-compose up
@@ -32,5 +32,6 @@ Sample output:
 ![Sample Output](./output.png)
 
 ## References
+
 1. Original blog post: https://xaviergeerinck.com/post/2021/10/09/parking-garage
 1. Influx/Telgraf/Grafana setup inspired from: https://github.com/bcremer/docker-telegraf-influx-grafana-stack

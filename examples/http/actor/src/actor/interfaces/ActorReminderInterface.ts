@@ -12,17 +12,17 @@ limitations under the License.
 */
 
 export default interface ActorReminderInterface {
-    /**
-     * Initialize a reminder.
-     * @param reminderName The name of the reminder.
-     * @param dueTimeSeconds Time in seconds when the reminder should is first due.
-     * @param periodSeconds Time in seconds between subsequent reminders.
-     * @param ttlSeconds Time in seconds after which the reminder is deleted.
-     */
-    init(reminderName: string,  dueTimeSeconds: number, periodSeconds: number, ttlSeconds: number): Promise<string>;
+  /**
+   * Initialize a reminder.
+   * @param reminderName The name of the reminder.
+   * @param dueTimeSeconds Time in seconds when the reminder should is first due.
+   * @param periodSeconds Time in seconds between subsequent reminders.
+   * @param ttlSeconds Time in seconds after which the reminder is deleted.
+   */
+  init(reminderName: string, dueTimeSeconds: number, periodSeconds: number, ttlSeconds: number): Promise<string>;
 
-    /**
-     * Stop a reminder if it is running.
-     */
-    stop(): Promise<void>
+  /**
+   * Stop a reminder if it is running.
+   */
+  stop(): Promise<void>;
 }

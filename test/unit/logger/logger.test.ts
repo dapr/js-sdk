@@ -12,59 +12,59 @@ limitations under the License.
 */
 
 import { LoggerService } from "../../../src";
-import { Logger } from "../../../src/logger/Logger"
-import { LogLevel } from "../../../src/types/logger/LogLevel"
+import { Logger } from "../../../src/logger/Logger";
+import { LogLevel } from "../../../src/types/logger/LogLevel";
 
-describe('Logger', () => {
-    it('should not display logs below the set log level', () => {
-        // arrange
-        const mockLoggerService = new MockLoggerService();
-        const errorLogger = new Logger("component", "area", { level: LogLevel.Error, service: mockLoggerService })
-        const infoLogger = new Logger("component", "area", { level: LogLevel.Info, service: mockLoggerService })
-        const debugLogger = new Logger("component", "area", { level: LogLevel.Debug, service: mockLoggerService })
+describe("Logger", () => {
+  it("should not display logs below the set log level", () => {
+    // arrange
+    const mockLoggerService = new MockLoggerService();
+    const errorLogger = new Logger("component", "area", { level: LogLevel.Error, service: mockLoggerService });
+    const infoLogger = new Logger("component", "area", { level: LogLevel.Info, service: mockLoggerService });
+    const debugLogger = new Logger("component", "area", { level: LogLevel.Debug, service: mockLoggerService });
 
-        // act
-        callAllLogLevels(errorLogger)
-        callAllLogLevels(infoLogger)
-        callAllLogLevels(debugLogger)
+    // act
+    callAllLogLevels(errorLogger);
+    callAllLogLevels(infoLogger);
+    callAllLogLevels(debugLogger);
 
-        // assert
-        expect(mockLoggerService.errorCounter).toBe(1+1+1)
-        expect(mockLoggerService.warnCounter).toBe(0+1+1)
-        expect(mockLoggerService.infoCounter).toBe(0+1+1)
-        expect(mockLoggerService.verboseCounter).toBe(0+0+1)
-        expect(mockLoggerService.debugCounter).toBe(0+0+1)
-    })
-})
+    // assert
+    expect(mockLoggerService.errorCounter).toBe(1 + 1 + 1);
+    expect(mockLoggerService.warnCounter).toBe(0 + 1 + 1);
+    expect(mockLoggerService.infoCounter).toBe(0 + 1 + 1);
+    expect(mockLoggerService.verboseCounter).toBe(0 + 0 + 1);
+    expect(mockLoggerService.debugCounter).toBe(0 + 0 + 1);
+  });
+});
 
 class MockLoggerService implements LoggerService {
-    public errorCounter = 0;
-    public warnCounter = 0;
-    public infoCounter = 0;
-    public verboseCounter = 0;
-    public debugCounter = 0;
+  public errorCounter = 0;
+  public warnCounter = 0;
+  public infoCounter = 0;
+  public verboseCounter = 0;
+  public debugCounter = 0;
 
-    error(_message: any, ..._optionalParams: any[]): void {
-        this.errorCounter++;
-    }
-    warn(_message: any, ..._optionalParams: any[]): void {
-        this.warnCounter++;
-    }
-    info(_message: any, ..._optionalParams: any[]): void {
-        this.infoCounter++;
-    }
-    verbose(_message: any, ..._optionalParams: any[]): void {
-        this.verboseCounter++;
-    }
-    debug(_message: any, ..._optionalParams: any[]): void {
-        this.debugCounter++
-    }
+  error(_message: any, ..._optionalParams: any[]): void {
+    this.errorCounter++;
+  }
+  warn(_message: any, ..._optionalParams: any[]): void {
+    this.warnCounter++;
+  }
+  info(_message: any, ..._optionalParams: any[]): void {
+    this.infoCounter++;
+  }
+  verbose(_message: any, ..._optionalParams: any[]): void {
+    this.verboseCounter++;
+  }
+  debug(_message: any, ..._optionalParams: any[]): void {
+    this.debugCounter++;
+  }
 }
 
 function callAllLogLevels(logger: Logger) {
-    logger.error("message")
-    logger.warn("message")
-    logger.info("message")
-    logger.verbose("message")
-    logger.debug("message")
+  logger.error("message");
+  logger.warn("message");
+  logger.info("message");
+  logger.verbose("message");
+  logger.debug("message");
 }

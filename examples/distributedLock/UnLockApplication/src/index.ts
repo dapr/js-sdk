@@ -21,7 +21,7 @@ async function start() {
   const client = new DaprClient(
     daprHost,
     process.env.DAPR_GRPC_PORT ?? daprPortDefault,
-    CommunicationProtocolEnum.GRPC
+    CommunicationProtocolEnum.GRPC,
   );
 
   const storeName = "redislock";
@@ -37,9 +37,11 @@ async function start() {
 
   console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
   let unLockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
-  console.log("Unlock API response when lock is acquired by a different process: " + getResponseStatus(unLockResponse.status));
+  console.log(
+    "Unlock API response when lock is acquired by a different process: " + getResponseStatus(unLockResponse.status),
+  );
 
-  await new Promise(resolve => setTimeout(resolve, 25000));
+  await new Promise((resolve) => setTimeout(resolve, 25000));
 
   // Trying to acquire the lock after the other process lock is expired
   console.log(`Acquiring lock on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
@@ -48,21 +50,26 @@ async function start() {
 
   console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
   unLockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
-  console.log("Unlock API response when lock is released after the expiry time: " + getResponseStatus(unLockResponse.status));
+  console.log(
+    "Unlock API response when lock is released after the expiry time: " + getResponseStatus(unLockResponse.status),
+  );
 
-  await new Promise(resolve => setTimeout(resolve, 25000));
+  await new Promise((resolve) => setTimeout(resolve, 25000));
 
   // Trying to unlock the lock after the lock used by this process(UnLockApplication) is expired
   console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
   unLockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
-  console.log("Unlock API response when lock is released after the expiry time and lock does not exist: " + getResponseStatus(unLockResponse.status));
+  console.log(
+    "Unlock API response when lock is released after the expiry time and lock does not exist: " +
+      getResponseStatus(unLockResponse.status),
+  );
 }
 
 function getResponseStatus(status: LockStatus) {
-  switch(status) {
+  switch (status) {
     case LockStatus.Success:
       return "Success";
-    case LockStatus.LockDoesNotExist: 
+    case LockStatus.LockDoesNotExist:
       return "LockDoesNotExist";
     case LockStatus.LockBelongsToOthers:
       return "LockBelongsToOthers";

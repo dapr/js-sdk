@@ -17,8 +17,8 @@ import IClient from "../../../interfaces/Client/IClient";
 import http from "http";
 import https from "https";
 import { DaprClientOptions } from "../../../types/DaprClientOptions";
-import { Settings } from '../../../utils/Settings.util';
-import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type"
+import { Settings } from "../../../utils/Settings.util";
+import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type";
 import { Logger } from "../../../logger/Logger";
 import HTTPClientSidecar from "./sidecar";
 
@@ -35,11 +35,7 @@ export default class HTTPClient implements IClient {
   private static httpAgent: http.Agent;
   private static httpsAgent: https.Agent;
 
-  constructor(
-    host = Settings.getDefaultHost()
-    , port = Settings.getDefaultHttpPort()
-    , options: DaprClientOptions = {},
-  ) {
+  constructor(host = Settings.getDefaultHost(), port = Settings.getDefaultHttpPort(), options: DaprClientOptions = {}) {
     this.clientHost = host;
     this.clientPort = port;
     this.options = options;
@@ -50,13 +46,13 @@ export default class HTTPClient implements IClient {
       this.options.isKeepAlive = true;
     }
 
-    if (!this.clientHost.startsWith('http://') && !this.clientHost.startsWith('https://')) {
+    if (!this.clientHost.startsWith("http://") && !this.clientHost.startsWith("https://")) {
       this.clientUrl = `http://${this.clientHost}:${this.clientPort}/v1.0`;
     } else {
       this.clientUrl = `${this.clientHost}:${this.clientPort}/v1.0`;
     }
 
-    if(!HTTPClient.client) {
+    if (!HTTPClient.client) {
       HTTPClient.client = fetch;
     }
 
@@ -66,10 +62,10 @@ export default class HTTPClient implements IClient {
     const keepAlive = this.options.isKeepAlive;
     const keepAliveMsecs = 30 * 1000; // it is applicable only when keepAlive is set to true
 
-    if(!HTTPClient.httpAgent) {
+    if (!HTTPClient.httpAgent) {
       HTTPClient.httpAgent = new http.Agent({ keepAlive: keepAlive, keepAliveMsecs: keepAliveMsecs });
     }
-    if(!HTTPClient.httpsAgent) {
+    if (!HTTPClient.httpsAgent) {
       HTTPClient.httpsAgent = new https.Agent({ keepAlive: keepAlive, keepAliveMsecs: keepAliveMsecs });
     }
   }
@@ -136,16 +132,20 @@ export default class HTTPClient implements IClient {
   }
 
   /**
-   * 
+   *
    * @param url The URL to call
    * @param params The parameters to pass to our URL
    * @param requiresInitialization If false, it doesn't require the Dapr sidecar to be started and might fail
    * @returns The result of the call
    */
-  async execute(url: string, params?: THTTPExecuteParams | undefined | null, requiresInitialization = true): Promise<object | string> {
+  async execute(
+    url: string,
+    params?: THTTPExecuteParams | undefined | null,
+    requiresInitialization = true,
+  ): Promise<object | string> {
     if (!params || typeof params !== "object") {
       params = {
-        method: "GET"
+        method: "GET",
       };
     }
 
@@ -215,10 +215,14 @@ export default class HTTPClient implements IClient {
     // All the others
     else {
       this.logger.debug("Execute response text: %s", txtParsed);
-      throw new Error(JSON.stringify({
-        error: "UNKNOWN",
-        error_msg: `An unknown problem occured and we got the status ${res.status} with response ${JSON.stringify(res)}`
-      }));
+      throw new Error(
+        JSON.stringify({
+          error: "UNKNOWN",
+          error_msg: `An unknown problem occured and we got the status ${res.status} with response ${JSON.stringify(
+            res,
+          )}`,
+        }),
+      );
     }
   }
 }

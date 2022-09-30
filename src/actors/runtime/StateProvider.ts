@@ -59,9 +59,9 @@ export default class StateProvider {
    *         }
    *     }
    * ]
-   * @param actorType 
-   * @param actorId 
-   * @param stateChanges 
+   * @param actorType
+   * @param actorId
+   * @param stateChanges
    */
   async saveState(actorType: string, actorId: ActorId, stateChanges: ActorStateChange<any>[]): Promise<void> {
     const jsonOutput: OperationType[] = [];
@@ -92,8 +92,8 @@ export default class StateProvider {
         operation,
         request: {
           key: state.getStateName(),
-          value: state.getValue() as string
-        }
+          value: state.getValue() as string,
+        },
       });
     }
 

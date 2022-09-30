@@ -12,9 +12,9 @@ limitations under the License.
 */
 
 export type GetRegisteredActorsType = {
-    entities: string[];
-    actorIdleTimeout: string;
-    actorScanInterval: string;
-    drainOngoingCallTimeout: string;
-    drainRebalancedActors: boolean;
-}
+  entities: string[];
+  actorIdleTimeout: string;
+  actorScanInterval: string;
+  drainOngoingCallTimeout: string;
+  drainRebalancedActors: boolean;
+};

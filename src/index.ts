@@ -43,4 +43,4 @@ export {
   LoggerOptions,
   LoggerService,
   ConsoleLoggerService,
-}
+};

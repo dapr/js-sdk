@@ -49,12 +49,14 @@ async function start() {
   await server.start();
 
   log("Init", "Waiting for actors to be ready");
-  await new Promise((resolve) => { setTimeout(resolve, 5 * 1000); });
+  await new Promise((resolve) => {
+    setTimeout(resolve, 5 * 1000);
+  });
 
   const resRegisteredActors = await server.actor.getRegisteredActors();
   log("Init", `Registered Actor Types: ${JSON.stringify(resRegisteredActors)}`);
 
-  logHeader("EXAMPLE 1 - ACTORS Method Invocation")
+  logHeader("EXAMPLE 1 - ACTORS Method Invocation");
   await exampleActorSay(client);
 
   logHeader("EXAMPLE 2 - ACTORS Counter");
@@ -87,7 +89,10 @@ async function exampleActorSay(client: DaprClient) {
 
   log("Example1", `Trying to invoke method 'sayObject' with object "${JSON.stringify(inputObj)}"`);
   const resActorInvokeSayObj = actor.sayObject(inputObj);
-  log("Example1", `Invoked method with ${JSON.stringify(inputObj)} and got data: ${JSON.stringify(resActorInvokeSayObj)}`);
+  log(
+    "Example1",
+    `Invoked method with ${JSON.stringify(inputObj)} and got data: ${JSON.stringify(resActorInvokeSayObj)}`,
+  );
 }
 
 async function exampleActorCount(client: DaprClient) {
@@ -125,7 +130,9 @@ async function exampleActorReminder(client: DaprClient) {
   await reminderActor.init(reminderName, 5, 1, 10);
 
   // Wait for 8 seconds
-  await new Promise((resolve) => { setTimeout(resolve, 8 * 1000); });
+  await new Promise((resolve) => {
+    setTimeout(resolve, 8 * 1000);
+  });
 
   // Stop the reminder.
   log("Example3", "Invoking 'stop' and unregistering the reminder");
@@ -144,7 +151,9 @@ async function exampleActorTimer(client: DaprClient) {
   await timerActor.init(timerName, 100, 5, 1, 10);
 
   // Wait for 2 seconds
-  await new Promise((resolve) => { setTimeout(resolve, 2 * 1000); });
+  await new Promise((resolve) => {
+    setTimeout(resolve, 2 * 1000);
+  });
 
   // Get the value of the counter
   log("Example4", "Invoking 'getCounter'");
@@ -152,7 +161,9 @@ async function exampleActorTimer(client: DaprClient) {
   log("Example4", `Invoked 'getCounter' and got data: ${resTimerGetCounter}`);
 
   // Wait for 5 seconds
-  await new Promise((resolve) => { setTimeout(resolve, 5 * 1000); });
+  await new Promise((resolve) => {
+    setTimeout(resolve, 5 * 1000);
+  });
 
   // Get the value of the counter
   log("Example4", "Invoking 'getCounter'");
@@ -199,7 +210,7 @@ async function exampleActorState(client: DaprClient) {
     log("Example5", `Invoked 'getState' for "my-string-key" and got no data`);
   }
 
-  const resStateGetObject = await stateActor.getState<{message: string}>("my-object-key");
+  const resStateGetObject = await stateActor.getState<{ message: string }>("my-object-key");
   if (resStateGetObject) {
     log("Example5", `Invoked 'getState' for "my-object-key" and got data.message: ${resStateGetObject.message}`);
   } else {

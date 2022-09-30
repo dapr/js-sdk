@@ -21,7 +21,7 @@ async function start() {
   const client = new DaprClient(daprHost, daprPort);
 
   const res = await client.invoker.invoke(daprAppId, "hello-world", HttpMethod.POST, {
-    hello: "world"
+    hello: "world",
   });
   console.log(`[Dapr-JS][Example] ${JSON.stringify(res)}`);
 }

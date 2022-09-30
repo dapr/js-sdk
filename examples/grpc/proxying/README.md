@@ -2,7 +2,6 @@ We support gRPC proxying as shown in [community call 41](https://www.youtube.com
 
 ## How the JS SDK Supports this
 
-
 ## Behind the Scenes (Technical Working)
 
 ![](assets/architecture.png)
@@ -22,7 +21,7 @@ server/     # The gRPC server
 helloworld/ # Contains our Proto description
 ```
 
-We will be using this proto file: 
+We will be using this proto file:
 https://github.com/grpc/grpc-go/blob/master/examples/helloworld/helloworld/helloworld.proto
 
 ### Start Server
@@ -38,4 +37,3 @@ cd server/
 cd client/
 ./start.sh
 ```
-

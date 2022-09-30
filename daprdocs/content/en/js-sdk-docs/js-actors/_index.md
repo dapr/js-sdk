@@ -11,19 +11,22 @@ The Dapr actors package allows you to interact with Dapr virtual actors from a J
 For a more in-depth overview of Dapr actors, visit the [actors overview page]({{< ref actors-overview >}}).
 
 ## Pre-requisites
+
 - [Dapr CLI]({{< ref install-dapr-cli.md >}}) installed
 - Initialized [Dapr environment]({{< ref install-dapr-selfhost.md >}})
 - [Latest LTS version of Node or greater](https://nodejs.org/en/)
 - [JavaScript NPM package installed](https://www.npmjs.com/package/@dapr/dapr)
 
 ## Scenario
-The below code examples loosely describe the scenario of a Parking Garage Spot Monitoring System, which can be seen in this [video](https://www.youtube.com/watch?v=eJCu6a-x9uo&t=3785) by Mark Russinovich. 
+
+The below code examples loosely describe the scenario of a Parking Garage Spot Monitoring System, which can be seen in this [video](https://www.youtube.com/watch?v=eJCu6a-x9uo&t=3785) by Mark Russinovich.
 
 A parking garage consists of hundreds of parking spaces, where each parking space includes a sensor that provides updates to a centralized monitoring system. The parking space sensors (our actors) detect if a parking space is occupied or available.
 
 To jump in and run this example yourself, clone the source code, which can be found in the [JavaScript SDK examples directory](https://github.com/dapr/js-sdk/tree/main/examples/http/actor-parking-sensor).
 
-## Actor Interface 
+## Actor Interface
+
 The actor interface defines the contract that is shared between the actor implementation and the clients calling the actor. In the example below, we have created an interace for a parking garage sensor. Each sensor has 2 methods: `carEnter` and `carLeave`, which defines the state of the parking space:
 
 ```ts
@@ -34,7 +37,8 @@ export default interface ParkingSensorInterface {
 ```
 
 ## Actor Implementation
-An actor implementation defines a class by extending the base type `AbstractActor` and implementing the actor interface (`ParkingSensorInterface` in this case). 
+
+An actor implementation defines a class by extending the base type `AbstractActor` and implementing the actor interface (`ParkingSensorInterface` in this case).
 
 The following code describes an actor implementation along with a few helper methods.
 
@@ -70,23 +74,23 @@ To configure actor runtime, use the `DaprClientOptions`. The various parameters 
 
 Note, the timeouts and intervals should be formatted as [time.ParseDuration](https://pkg.go.dev/time#ParseDuration) strings.
 
-```javascript
+```typescript
 import { CommunicationProtocolEnum, DaprClient, DaprServer } from "@dapr/dapr";
 
 // Configure the actor runtime with the DaprClientOptions.
 const clientOptions = {
   actor: {
-    actorIdleTimeout: '1h',
-    actorScanInterval: '30s',
-    drainOngoingCallTimeout: '1m',
+    actorIdleTimeout: "1h",
+    actorScanInterval: "30s",
+    drainOngoingCallTimeout: "1m",
     drainRebalancedActors: true,
     reentrancy: {
       enabled: true,
-      maxStackDepth: 32
+      maxStackDepth: 32,
     },
     remindersStoragePartitions: 0,
-  }
-}
+  },
+};
 
 // Use the options when creating DaprServer and DaprClient.
 
@@ -97,9 +101,10 @@ const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.HTTP
 ```
 
 ## Registering Actors
+
 Initialize and register your actors by using the `DaprServer` package:
 
-```javascript
+```typescript
 import { DaprServer } from "@dapr/dapr";
 import ParkingSensorImpl from "./ParkingSensorImpl";
 
@@ -117,12 +122,13 @@ await server.start(); // Start the server
 // To get the registered actors, you can invoke `getRegisteredActors`:
 const resRegisteredActors = await server.actor.getRegisteredActors();
 console.log(`Registered Actors: ${JSON.stringify(resRegisteredActors)}`);
-```                                              
+```
 
 ## Invoking Actor Methods
+
 After Actors are registered, create a Proxy object that implements `ParkingSensorInterface` using the `ActorProxyBuilder`. You can invoke the actor methods by directly calling methods on the Proxy object. Internally, it translates to making a network call to the Actor API and fetches the result back.
 
-```javascript
+```typescript
 import { ActorId, DaprClient } from "@dapr/dapr";
 import ParkingSensorImpl from "./ParkingSensorImpl";
 import ParkingSensorInterface from "./ParkingSensorInterface";
@@ -151,29 +157,30 @@ import { AbstractActor } from "@dapr/dapr";
 import ActorStateInterface from "./ActorStateInterface";
 
 export default class ActorStateExample extends AbstractActor implements ActorStateInterface {
-    async setState(key: string, value: any): Promise<void> {
-        await this.getStateManager().setState(key, value);
-        await this.getStateManager().saveState();
-    }
+  async setState(key: string, value: any): Promise<void> {
+    await this.getStateManager().setState(key, value);
+    await this.getStateManager().saveState();
+  }
 
-    async removeState(key: string): Promise<void> {
-        await this.getStateManager().removeState(key);
-        await this.getStateManager().saveState();
-    }
+  async removeState(key: string): Promise<void> {
+    await this.getStateManager().removeState(key);
+    await this.getStateManager().saveState();
+  }
 
-    // getState with a specific type
-    async getState<T>(key: string): Promise<T | null> {
-        return await this.getStateManager<T>().getState(key);
-    }
+  // getState with a specific type
+  async getState<T>(key: string): Promise<T | null> {
+    return await this.getStateManager<T>().getState(key);
+  }
 
-    // getState without type as `any`
-    async getState(key: string): Promise<any> {
-        return await this.getStateManager().getState(key);
-    }
+  // getState without type as `any`
+  async getState(key: string): Promise<any> {
+    return await this.getStateManager().getState(key);
+  }
 }
 ```
 
 ## Actor Timers and Reminders
+
 The JS SDK supports actors that can schedule periodic work on themselves by registering either timers or reminders. The main difference between timers and reminders is that the Dapr actor runtime does not retain any information about timers after deactivation, but persists reminders information using the Dapr actor state provider.
 
 This distinction allows users to trade off between light-weight but stateless timers versus more resource-demanding but stateful reminders.
@@ -181,7 +188,8 @@ This distinction allows users to trade off between light-weight but stateless ti
 The scheduling interface of timers and reminders is identical. For an more in-depth look at the scheduling configurations see the [actors timers and reminders docs]({{< ref "howto-actors.md#actor-timers-and-reminders" >}}).
 
 ### Actor Timers
-```javascript
+
+```typescript
 // ...
 
 const actor = builder.build(new ActorId("my-actor"));
@@ -193,7 +201,7 @@ await actor.registerActorTimer(
   Temporal.Duration.from({ seconds: 2 }), // DueTime
   Temporal.Duration.from({ seconds: 1 }), // Period
   Temporal.Duration.from({ seconds: 1 }), // TTL
-  50 // State to be sent to timer callback.
+  50, // State to be sent to timer callback.
 );
 
 // Delete the timer
@@ -201,7 +209,8 @@ await actor.unregisterActorTimer("timer-id");
 ```
 
 ### Actor Reminders
-```javascript
+
+```typescript
 // ...
 
 const actor = builder.build(new ActorId("my-actor"));
@@ -212,7 +221,7 @@ await actor.registerActorReminder(
   Temporal.Duration.from({ seconds: 2 }), // DueTime
   Temporal.Duration.from({ seconds: 1 }), // Period
   Temporal.Duration.from({ seconds: 1 }), // TTL
-  100 // State to be sent to reminder callback.
+  100, // State to be sent to reminder callback.
 );
 
 // Delete the reminder
@@ -220,6 +229,7 @@ await actor.unregisterActorReminder("reminder-id");
 ```
 
 To handle the callback, you need to override the default `receiveReminder` implementation in your actor. For example, from our original actor implementation:
+
 ```ts
 export default class ParkingSensorImpl extends AbstractActor implements ParkingSensorInterface {
   // ...
