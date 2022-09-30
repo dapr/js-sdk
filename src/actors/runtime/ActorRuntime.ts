@@ -30,9 +30,9 @@ export default class ActorRuntime {
 
   // @todo: we need to make sure race condition cannot happen when accessing the active actors
   // NodeJS has an event loop (main thread -> runs JS code) and a worker pool (threadpool -> automatically created for offloading work through libuv) threads
-  // we can have a new thread through the worker_thread module 
+  // we can have a new thread through the worker_thread module
   // https://medium.com/@mohllal/node-js-multithreading-a5cd74958a67
-  // 
+  //
   //
   // Python: asyncio.lock -> implements a mutex lock for asyncio tasks to guarantee exclusive access to a shared resource
   // Java: Collections.synchronizedMap -> is a thread-saf synchronized map to guarantee serial access
@@ -100,12 +100,12 @@ export default class ActorRuntime {
    * Invokes a method on the actor from the runtime
    * This method will open the manager for the actor type and get the matching object
    * It will then invoke the method on this object
-   * 
-   * @param actorTypeName 
-   * @param actorId 
-   * @param actorMethodName 
-   * @param payload 
-   * @returns 
+   *
+   * @param actorTypeName
+   * @param actorId
+   * @param actorMethodName
+   * @param payload
+   * @returns
    */
   async invoke(actorTypeName: string, actorId: string, actorMethodName: string, requestBody?: Buffer): Promise<Buffer> {
     const actorIdObj = new ActorId(actorId);
@@ -115,7 +115,7 @@ export default class ActorRuntime {
 
   /**
    * Fires a reminder for the actor
-   * 
+   *
    * @param actorTypeName the name fo the actor type
    * @param actorId the actor id
    * @param name the name of the reminder
@@ -129,7 +129,7 @@ export default class ActorRuntime {
 
   /**
    * Fires a timer for the actor
-   * 
+   *
    * @param actorTypeName the name fo the actor type
    * @param actorId the actor id
    * @param name the name of the timer

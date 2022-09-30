@@ -11,11 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import GRPCClient from './GRPCClient';
-import { GetMetadataResponse, SetMetadataRequest } from '../../../proto/dapr/proto/runtime/v1/dapr_pb';
+import GRPCClient from "./GRPCClient";
+import { GetMetadataResponse, SetMetadataRequest } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import { Empty } from "google-protobuf/google/protobuf/empty_pb";
-import IClientMetadata from '../../../interfaces/Client/IClientMetadata';
-import { GetMetadataResponse as GetMetadataResponseResult } from '../../../types/metadata/GetMetadataResponse';
+import IClientMetadata from "../../../interfaces/Client/IClientMetadata";
+import { GetMetadataResponse as GetMetadataResponseResult } from "../../../types/metadata/GetMetadataResponse";
 
 // https://docs.dapr.io/reference/api/metadata_api
 export default class GRPCClientMetadata implements IClientMetadata {
@@ -37,22 +37,25 @@ export default class GRPCClientMetadata implements IClientMetadata {
 
         const wrapped: GetMetadataResponseResult = {
           id: res.getId(),
-          actors: res.getActiveActorsCountList().map(a => ({
+          actors: res.getActiveActorsCountList().map((a) => ({
             type: a.getType(),
-            count: a.getCount()
+            count: a.getCount(),
           })),
-          extended: res.getExtendedMetadataMap().toObject().reduce((result: object, [key, value]) => {
-            // @ts-ignore
-            result[key] = value;
-            return result
-          }, {}),
-          components: res.getRegisteredComponentsList().map(c => ({
+          extended: res
+            .getExtendedMetadataMap()
+            .toObject()
+            .reduce((result: object, [key, value]) => {
+              // @ts-ignore
+              result[key] = value;
+              return result;
+            }, {}),
+          components: res.getRegisteredComponentsList().map((c) => ({
             name: c.getName(),
             type: c.getType(),
             version: c.getVersion(),
-            capabilities: c.getCapabilitiesList()
-          }))
-        }
+            capabilities: c.getCapabilitiesList(),
+          })),
+        };
 
         return resolve(wrapped);
       });

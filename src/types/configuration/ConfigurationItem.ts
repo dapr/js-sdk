@@ -18,4 +18,4 @@ export type ConfigurationItem = {
   value: string;
   version: string;
   metadata: KeyValueType;
-}
+};

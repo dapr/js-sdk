@@ -22,4 +22,4 @@ export type PubSubSubscriptionTopicRouteType = {
 
   // The path on the server (e.g. POST /my-path)
   path: string;
-}
+};

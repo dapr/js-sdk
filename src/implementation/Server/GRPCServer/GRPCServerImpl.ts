@@ -16,8 +16,18 @@ import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 import { Any } from "google-protobuf/google/protobuf/any_pb";
 
 import { IAppCallbackServer } from "../../../proto/dapr/proto/runtime/v1/appcallback_grpc_pb";
-import { HTTPExtension, InvokeRequest, InvokeResponse } from '../../../proto/dapr/proto/common/v1/common_pb';
-import { BindingEventRequest, BindingEventResponse, ListInputBindingsResponse, ListTopicSubscriptionsResponse, TopicEventRequest, TopicEventResponse, TopicRoutes, TopicRule, TopicSubscription } from "../../../proto/dapr/proto/runtime/v1/appcallback_pb";
+import { HTTPExtension, InvokeRequest, InvokeResponse } from "../../../proto/dapr/proto/common/v1/common_pb";
+import {
+  BindingEventRequest,
+  BindingEventResponse,
+  ListInputBindingsResponse,
+  ListTopicSubscriptionsResponse,
+  TopicEventRequest,
+  TopicEventResponse,
+  TopicRoutes,
+  TopicRule,
+  TopicSubscription,
+} from "../../../proto/dapr/proto/runtime/v1/appcallback_pb";
 import { TypeDaprInvokerCallback } from "../../../types/DaprInvokerCallback.type";
 import * as HttpVerbUtil from "../../../utils/HttpVerb.util";
 import { TypeDaprBindingCallback } from "../../../types/DaprBindingCallback.type";
@@ -69,22 +79,28 @@ export default class GRPCServerImpl implements IAppCallbackServer {
   }
 
   /**
-    * When we subscribe, we subscribe to a topic
-    * For this topic we can define "routes" which route to a certain callback depending on the event content
-    * Each of these topics are handled by a EventHandler but there can be multiple handlers per pubsubname-topic-route combination
-    * 
-    * We don't create the EventHandlers here but we ensure that the routes are registered and can receive POST events
-    * -> we create POST /<route> endpoints for each, but we create them uniquely!
-    * -> to ensure uniqueness, we just check if this.pubsubRouteEventHandlers[route] is set
-    * 
-    * @param pubSubName 
-    * @param topicName 
-    * @param cb 
-    * @param options 
-    */
+   * When we subscribe, we subscribe to a topic
+   * For this topic we can define "routes" which route to a certain callback depending on the event content
+   * Each of these topics are handled by a EventHandler but there can be multiple handlers per pubsubname-topic-route combination
+   *
+   * We don't create the EventHandlers here but we ensure that the routes are registered and can receive POST events
+   * -> we create POST /<route> endpoints for each, but we create them uniquely!
+   * -> to ensure uniqueness, we just check if this.pubsubRouteEventHandlers[route] is set
+   *
+   * @param pubSubName
+   * @param topicName
+   * @param cb
+   * @param options
+   */
   registerPubsubSubscription(pubsubName: string, topic: string, options: PubSubSubscriptionOptionsType = {}): void {
-    if (this.pubSubSubscriptions[pubsubName] && this.pubSubSubscriptions[pubsubName][topic] && this.pubSubSubscriptions[pubsubName][topic]) {
-      throw new Error(`The topic '${topic}' is already being subscribed to on PubSub '${pubsubName}', there can only be one topic registered.`);
+    if (
+      this.pubSubSubscriptions[pubsubName] &&
+      this.pubSubSubscriptions[pubsubName][topic] &&
+      this.pubSubSubscriptions[pubsubName][topic]
+    ) {
+      throw new Error(
+        `The topic '${topic}' is already being subscribed to on PubSub '${pubsubName}', there can only be one topic registered.`,
+      );
     }
 
     // Create pubsub subscription it if it doesn't exist
@@ -96,14 +112,23 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     if (!this.pubSubSubscriptions[pubsubName][topic]) {
       this.pubSubSubscriptions[pubsubName][topic] = {
         routes: this.generatePubSubSubscriptionTopicRoutes(pubsubName, topic, options),
-        dapr: this.generateDaprPubSubSubscription(pubsubName, topic, options)
+        dapr: this.generateDaprPubSubSubscription(pubsubName, topic, options),
       };
     }
 
-    this.logger.info(`[Topic = ${topic}] Registered Subscription with routes: ${Object.keys(this.pubSubSubscriptions[pubsubName][topic].routes).join(", ")}`);
+    this.logger.info(
+      `[Topic = ${topic}] Registered Subscription with routes: ${Object.keys(
+        this.pubSubSubscriptions[pubsubName][topic].routes,
+      ).join(", ")}`,
+    );
   }
 
-  registerPubSubSubscriptionEventHandler(pubsubName: string, topic: string, route: string | undefined, cb: TypeDaprPubSubCallback): void {
+  registerPubSubSubscriptionEventHandler(
+    pubsubName: string,
+    topic: string,
+    route: string | undefined,
+    cb: TypeDaprPubSubCallback,
+  ): void {
     route = this.generatePubSubSubscriptionTopicRouteName(route);
     this.pubSubSubscriptions[pubsubName][topic].routes[route ?? this.PUBSUB_DEFAULT_ROUTE_NAME].eventHandlers.push(cb);
   }
@@ -112,7 +137,11 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     return (route || this.PUBSUB_DEFAULT_ROUTE_NAME).replace("/", "");
   }
 
-  generatePubSubSubscriptionTopicRoutes(pubsubName: string, topic: string, options: PubSubSubscriptionOptionsType = {}): PubSubSubscriptionTopicRoutesType {
+  generatePubSubSubscriptionTopicRoutes(
+    pubsubName: string,
+    topic: string,
+    options: PubSubSubscriptionOptionsType = {},
+  ): PubSubSubscriptionTopicRoutesType {
     const routes: PubSubSubscriptionTopicRoutesType = {};
 
     // options.route == DaprPubSubRouteType
@@ -123,8 +152,8 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
         routes[routeName] = {
           eventHandlers: [],
-          path: this.generatePubsubPath(pubsubName, topic, routeName)
-        }
+          path: this.generatePubsubPath(pubsubName, topic, routeName),
+        };
       }
 
       // Add rules
@@ -135,8 +164,8 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
             routes[routeName] = {
               eventHandlers: [],
-              path: this.generatePubsubPath(pubsubName, topic, routeName)
-            }
+              path: this.generatePubsubPath(pubsubName, topic, routeName),
+            };
           }
         }
       }
@@ -147,47 +176,57 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
       routes[routeName] = {
         eventHandlers: [],
-        path: this.generatePubsubPath(pubsubName, topic, routeName)
-      }
+        path: this.generatePubsubPath(pubsubName, topic, routeName),
+      };
     }
 
     // Deadletter Support
     if (options.deadLetterTopic || options.deadLetterCallback) {
-      const routeName = this.generatePubSubSubscriptionTopicRouteName(options?.deadLetterTopic ?? this.PUBSUB_DEFAULT_ROUTE_NAME_DEADLETTER);
+      const routeName = this.generatePubSubSubscriptionTopicRouteName(
+        options?.deadLetterTopic ?? this.PUBSUB_DEFAULT_ROUTE_NAME_DEADLETTER,
+      );
 
       // Initialize the route
       routes[routeName] = {
         eventHandlers: [],
-        path: this.generatePubsubPath(pubsubName, topic, routeName)
-      }
+        path: this.generatePubsubPath(pubsubName, topic, routeName),
+      };
 
       // Add a callback if we have one provided
       if (options.deadLetterCallback) {
-        routes[routeName].eventHandlers.push(options.deadLetterCallback)
+        routes[routeName].eventHandlers.push(options.deadLetterCallback);
       }
     }
 
     return routes;
   }
 
-  generateDaprSubscriptionRoute(pubsubName: string, topic: string, route: string = this.PUBSUB_DEFAULT_ROUTE_NAME): string {
+  generateDaprSubscriptionRoute(
+    pubsubName: string,
+    topic: string,
+    route: string = this.PUBSUB_DEFAULT_ROUTE_NAME,
+  ): string {
     return `/${this.generatePubsubPath(pubsubName, topic, route)}`;
   }
 
   /**
    * Generate a subscription object that will be used in the /dapr/subscribe endpoint
    * this will let dapr know that we have subscriptions and how they map to routes / deadletter
-   * 
-   * Important: we internally translate the provided /example to -> /<pubsubname>-<topic>-example 
+   *
+   * Important: we internally translate the provided /example to -> /<pubsubname>-<topic>-example
    *            or if empty to /<pubsubname>-<topic>-default
    *            this is to ensure that HTTP Server endpoints are unique
-   * 
-   * @param pubsubName 
-   * @param topic 
-   * @param options 
-   * @returns 
+   *
+   * @param pubsubName
+   * @param topic
+   * @param options
+   * @returns
    */
-  generateDaprPubSubSubscription(pubsubName: string, topic: string, options: PubSubSubscriptionOptionsType = {}): DaprPubSubType {
+  generateDaprPubSubSubscription(
+    pubsubName: string,
+    topic: string,
+    options: PubSubSubscriptionOptionsType = {},
+  ): DaprPubSubType {
     // Process metadata
     let metadata: { [key: string]: any } | undefined;
 
@@ -206,16 +245,16 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         topic: topic,
         metadata: metadata,
         route: this.generateDaprSubscriptionRoute(pubsubName, topic),
-        deadLetterTopic: options.deadLetterTopic
-      }
+        deadLetterTopic: options.deadLetterTopic,
+      };
     } else if (typeof options.route === "string") {
       return {
         pubsubname: pubsubName,
         topic: topic,
         metadata: metadata,
         route: this.generateDaprSubscriptionRoute(pubsubName, topic, options.route),
-        deadLetterTopic: options.deadLetterTopic
-      }
+        deadLetterTopic: options.deadLetterTopic,
+      };
     } else {
       return {
         pubsubname: pubsubName,
@@ -223,13 +262,13 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         metadata: metadata,
         routes: options.route && {
           default: this.generateDaprSubscriptionRoute(pubsubName, topic, options.route?.default),
-          rules: options.route?.rules?.map(rule => ({
+          rules: options.route?.rules?.map((rule) => ({
             match: rule.match,
             path: this.generateDaprSubscriptionRoute(pubsubName, topic, rule.path),
-          }))
+          })),
         },
-        deadLetterTopic: options.deadLetterTopic
-      }
+        deadLetterTopic: options.deadLetterTopic,
+      };
     }
   }
 
@@ -246,14 +285,14 @@ export default class GRPCServerImpl implements IAppCallbackServer {
   }
 
   /**
-   * We generate a event handler key based on the path or the route 
+   * We generate a event handler key based on the path or the route
    * If the route is just a string, that is the path
    * Else the path is configured through a rule of DaprPubSubRuleType
-   * 
-   * @param pubsubName 
-   * @param topic 
-   * @param route 
-   * @returns 
+   *
+   * @param pubsubName
+   * @param topic
+   * @param route
+   * @returns
    */
   generatePubsubPath(pubsubName: string, topic: string, route: string): string {
     let routeParsed = "";
@@ -267,8 +306,8 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
     // Then, process it
     // Remove leading slashes
-    if (routeParsed.startsWith('/')) {
-      routeParsed = routeParsed.replace('/', ''); // will only remove first occurence
+    if (routeParsed.startsWith("/")) {
+      routeParsed = routeParsed.replace("/", ""); // will only remove first occurence
     }
 
     return `${pubsubName.toLowerCase()}--${topic.toLowerCase()}--${routeParsed}`;
@@ -282,14 +321,17 @@ export default class GRPCServerImpl implements IAppCallbackServer {
   // '(call: ServerUnaryCall<InvokeRequest, InvokeResponse>, callback: sendUnaryData<InvokeResponse>) => Promise<...>'
   // handleUnaryCall<InvokeRequest, InvokeResponse>'.
 
-  async onInvoke(call: grpc.ServerUnaryCall<InvokeRequest, InvokeResponse>, callback: grpc.sendUnaryData<InvokeResponse>): Promise<void> {
+  async onInvoke(
+    call: grpc.ServerUnaryCall<InvokeRequest, InvokeResponse>,
+    callback: grpc.sendUnaryData<InvokeResponse>,
+  ): Promise<void> {
     const method = call.request.getMethod();
     const query = (call.request.getHttpExtension() as HTTPExtension).toObject();
     const methodStr = HttpVerbUtil.convertHttpVerbNumberToString(query.verb);
     const handlersInvokeKey = `${methodStr.toLowerCase()}|${method.toLowerCase()}`;
 
     if (!this.handlersInvoke[handlersInvokeKey]) {
-      this.logger.warn(`${methodStr} /${method} was not handled`)
+      this.logger.warn(`${methodStr} /${method} was not handled`);
       return;
     }
 
@@ -302,8 +344,8 @@ export default class GRPCServerImpl implements IAppCallbackServer {
       body,
       query: query.querystring,
       metadata: {
-        contentType
-      }
+        contentType,
+      },
     });
 
     // Generate Response
@@ -322,7 +364,10 @@ export default class GRPCServerImpl implements IAppCallbackServer {
   }
 
   // @todo: WIP
-  async onBindingEvent(call: grpc.ServerUnaryCall<BindingEventRequest, BindingEventResponse>, callback: grpc.sendUnaryData<BindingEventResponse>): Promise<void> {
+  async onBindingEvent(
+    call: grpc.ServerUnaryCall<BindingEventRequest, BindingEventResponse>,
+    callback: grpc.sendUnaryData<BindingEventResponse>,
+  ): Promise<void> {
     const req = call.request;
     const handlerKey = this.createInputBindingHandlerKey(req.getName());
 
@@ -350,7 +395,10 @@ export default class GRPCServerImpl implements IAppCallbackServer {
   }
 
   // @todo: WIP
-  async onTopicEvent(call: grpc.ServerUnaryCall<TopicEventRequest, TopicEventResponse>, callback: grpc.sendUnaryData<TopicEventResponse>): Promise<void> {
+  async onTopicEvent(
+    call: grpc.ServerUnaryCall<TopicEventRequest, TopicEventResponse>,
+    callback: grpc.sendUnaryData<TopicEventResponse>,
+  ): Promise<void> {
     const req = call.request;
     const pubsubName = req.getPubsubName();
     const topic = req.getTopic();
@@ -358,8 +406,14 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     // Route is unique to pubsub and topic and has format pubsub--topic--route so we strip it since else we can't find the route
     const route = this.generatePubSubSubscriptionTopicRouteName(req.getPath().replace(`${pubsubName}--${topic}--`, ""));
 
-    if (!this.pubSubSubscriptions[pubsubName] || !this.pubSubSubscriptions[pubsubName][topic] || !this.pubSubSubscriptions[pubsubName][topic].routes[route]) {
-      this.logger.warn(`The topic '${topic}' is not being subscribed to on PubSub '${pubsubName}' for route '${route}'.`);
+    if (
+      !this.pubSubSubscriptions[pubsubName] ||
+      !this.pubSubSubscriptions[pubsubName][topic] ||
+      !this.pubSubSubscriptions[pubsubName][topic].routes[route]
+    ) {
+      this.logger.warn(
+        `The topic '${topic}' is not being subscribed to on PubSub '${pubsubName}' for route '${route}'.`,
+      );
       return;
     }
 
@@ -376,7 +430,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
     try {
       const eventHandlers = this.pubSubSubscriptions[pubsubName][topic].routes[route].eventHandlers;
-      await Promise.all(eventHandlers.map(cb => cb(dataParsed)));
+      await Promise.all(eventHandlers.map((cb) => cb(dataParsed)));
       res.setStatus(TopicEventResponse.TopicEventResponseStatus.SUCCESS);
     } catch (e) {
       // @todo: for now we drop, maybe we should allow retrying as well more easily?
@@ -388,7 +442,10 @@ export default class GRPCServerImpl implements IAppCallbackServer {
   }
 
   // Dapr will call this on startup to see which topics it is subscribed to
-  async listTopicSubscriptions(call: grpc.ServerUnaryCall<Empty, ListTopicSubscriptionsResponse>, callback: grpc.sendUnaryData<ListTopicSubscriptionsResponse>): Promise<void> {
+  async listTopicSubscriptions(
+    call: grpc.ServerUnaryCall<Empty, ListTopicSubscriptionsResponse>,
+    callback: grpc.sendUnaryData<ListTopicSubscriptionsResponse>,
+  ): Promise<void> {
     const res = new ListTopicSubscriptionsResponse();
 
     const subscriptions = [];
@@ -445,7 +502,10 @@ export default class GRPCServerImpl implements IAppCallbackServer {
   }
 
   // @todo: WIP
-  async listInputBindings(call: grpc.ServerUnaryCall<Empty, ListInputBindingsResponse>, callback: grpc.sendUnaryData<ListInputBindingsResponse>): Promise<void> {
+  async listInputBindings(
+    call: grpc.ServerUnaryCall<Empty, ListInputBindingsResponse>,
+    callback: grpc.sendUnaryData<ListInputBindingsResponse>,
+  ): Promise<void> {
     const res = new ListInputBindingsResponse();
     res.setBindingsList(Object.keys(this.handlersBindings));
     return callback(null, res);

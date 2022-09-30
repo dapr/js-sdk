@@ -14,15 +14,15 @@ limitations under the License.
 import AbstractActor from "./AbstractActor";
 
 export default class StateManager {
-    actor: AbstractActor;
+  actor: AbstractActor;
 
-    constructor(actor: AbstractActor) {
-        this.actor = actor;
+  constructor(actor: AbstractActor) {
+    this.actor = actor;
 
-        // if (!this.actor.runtimeCtx) {
-        //     throw new Error('RUNTIME_CONTEXT_NOT_SET');
-        // }
+    // if (!this.actor.runtimeCtx) {
+    //     throw new Error('RUNTIME_CONTEXT_NOT_SET');
+    // }
 
-        // this.typeName = this.actor.runtimeCtx.
-    }
+    // this.typeName = this.actor.runtimeCtx.
+  }
 }

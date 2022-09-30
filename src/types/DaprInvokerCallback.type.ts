@@ -18,7 +18,7 @@ export interface DaprInvokerCallbackContentMetadata {
 export interface DaprInvokerCallbackContent {
   body?: string;
   query?: string;
-  metadata?: DaprInvokerCallbackContentMetadata
+  metadata?: DaprInvokerCallbackContentMetadata;
 }
 
 export type TypeDaprInvokerCallback = (data: DaprInvokerCallbackContent) => Promise<any | void>;

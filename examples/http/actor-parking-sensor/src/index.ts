@@ -24,7 +24,7 @@ async function start() {
   const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
   const client = new DaprClient(daprHost, daprPort);
 
-  logHeader("INITIALIZING")
+  logHeader("INITIALIZING");
 
   await server.actor.init(); // Let the server know we need actors
   server.actor.registerActor(ParkingSensorImpl); // Register the actor
@@ -86,7 +86,7 @@ function logHeader(message: string) {
 }
 
 async function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 start().catch((e) => {

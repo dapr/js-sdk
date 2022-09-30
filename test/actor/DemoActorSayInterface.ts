@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 export default interface DemoActorSayInterface {
-    sayString(msg: string): string;
-    sayObject(msg: object): object;
-    sayMulti(a: number, b: string, c: object, d: number[]): object;
+  sayString(msg: string): string;
+  sayObject(msg: object): object;
+  sayMulti(a: number, b: string, c: object, d: number[]): object;
 }

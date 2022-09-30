@@ -19,4 +19,4 @@ import { PubSubSubscriptionTopicType } from "./PubSubSubscriptionTopic.type";
 export type PubSubSubscriptionType = {
   // Key of the topic
   [key: string]: PubSubSubscriptionTopicType;
-}
+};
