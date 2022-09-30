@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import HTTPClient from './HTTPClient';
-import IClientHealth from '../../../interfaces/Client/IClientHealth';
+import HTTPClient from "./HTTPClient";
+import IClientHealth from "../../../interfaces/Client/IClientHealth";
 
 // https://docs.dapr.io/reference/api/health_api/
 export default class HTTPClientHealth implements IClientHealth {

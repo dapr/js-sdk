@@ -1,9 +1,9 @@
 ---
 name: Feature Request
 about: Create a Feature Request for js-sdk
-title: ''
+title: ""
 labels: kind/enhancement
-assignees: ''
-
+assignees: ""
 ---
+
 ## Describe the feature

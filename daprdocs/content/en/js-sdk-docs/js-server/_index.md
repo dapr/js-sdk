@@ -14,7 +14,7 @@ The Dapr Server will allow you to receive communication from the Dapr Sidecar an
 
 - [Dapr CLI]({{< ref install-dapr-cli.md >}}) installed
 - Initialized [Dapr environment]({{< ref install-dapr-selfhost.md >}})
-- [Latest LTS version of Node or greater](https://nodejs.org/en/) 
+- [Latest LTS version of Node or greater](https://nodejs.org/en/)
 
 ## Installing and importing Dapr's JS SDK
 
@@ -32,10 +32,10 @@ import { DaprServer, CommunicationProtocolEnum } from "@dapr/dapr";
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
 const daprPort = "3500"; // Dapr Sidecar Port of this Example Server
 const serverHost = "127.0.0.1"; // App Host of this Example Server
-const serverPort = "50051"; // App Port of this Example Server 
+const serverPort = "50051"; // App Port of this Example Server
 
 // HTTP Example
-const server = new DaprServer(serverHost, serverPort, daprHost, daprPort); 
+const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
 
 // GRPC Example
 const server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.GRPC);
@@ -50,10 +50,10 @@ To run the examples, you can use two different protocols to interact with the Da
 ```typescript
 import { DaprServer } from "@dapr/dapr";
 
-const server= new DaprServer(appHost, appPort, daprHost, daprPort);
+const server = new DaprServer(appHost, appPort, daprHost, daprPort);
 // initialize subscribtions, ... before server start
 // the dapr sidecar relies on these
-await server.start(); 
+await server.start();
 ```
 
 ```bash
@@ -76,7 +76,7 @@ import { DaprServer, CommunicationProtocol } from "@dapr/dapr";
 const server = new DaprServer(appHost, appPort, daprHost, daprPort, CommunicationProtocol.GRPC);
 // initialize subscribtions, ... before server start
 // the dapr sidecar relies on these
-await server.start(); 
+await server.start();
 ```
 
 ```bash
@@ -108,7 +108,7 @@ const serverPort = "50051"; // App Port of this Example Server "
 async function start() {
   const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
 
-  await server.invoker.listen('hello-world', mock, { method: HttpMethod.GET });
+  await server.invoker.listen("hello-world", mock, { method: HttpMethod.GET });
 
   // You can now invoke the service with your app id and method "hello-world"
 
@@ -129,9 +129,9 @@ start().catch((e) => {
 
 Subscribing to messages can be done in several ways to offer flexibility of receiving messages on your topics:
 
-* Direct subscription through the `subscribe` method
-* Direct susbcription with options through the `subscribeWithOptions` method
-* Subscription afterwards through the `susbcribeOnEvent` method
+- Direct subscription through the `subscribe` method
+- Direct susbcription with options through the `subscribeWithOptions` method
+- Subscription afterwards through the `susbcribeOnEvent` method
 
 > Dapr requires subscriptions to be set up on startup, but in the JS SDK we allow event handlers to be added afterwards as well, providing you the flexibility of programming.
 
@@ -153,17 +153,21 @@ async function start() {
 
   // Configure Subscriber for a Topic
   // Method 1: Direct subscription through the `subscribe` method
-  await server.pubsub.subscribe(pubSubName, topic, async (data: any) => console.log(`Received Data: ${JSON.stringify(data)}`));
+  await server.pubsub.subscribe(pubSubName, topic, async (data: any) =>
+    console.log(`Received Data: ${JSON.stringify(data)}`),
+  );
 
   // Method 2: Direct susbcription with options through the `subscribeWithOptions` method
-  await server.pubsub.subscribeWithOptions(pubSubName, topic, { 
-    callback: async (data: any) => console.log(`Received Data: ${JSON.stringify(data)}`) 
+  await server.pubsub.subscribeWithOptions(pubSubName, topic, {
+    callback: async (data: any) => console.log(`Received Data: ${JSON.stringify(data)}`),
   });
 
   // Method 3: Subscription afterwards through the `susbcribeOnEvent` method
   // Note: we use default, since if no route was passed (empty options) we utilize "default" as the route name
-  await server.pubsub.subscribeWithOptions('pubsub-redis', 'topic-options-1', {});
-  server.pubsub.subscribeToRoute("pubsub-redis", "topic-options-1", "default", async (data) => { console.log(`Received Data: ${JSON.stringify(data)}`) });
+  await server.pubsub.subscribeWithOptions("pubsub-redis", "topic-options-1", {});
+  server.pubsub.subscribeToRoute("pubsub-redis", "topic-options-1", "default", async (data) => {
+    console.log(`Received Data: ${JSON.stringify(data)}`);
+  });
 
   // Start the server
   await server.start();
@@ -174,8 +178,7 @@ async function start() {
 
 #### Subscribe to messages rule based
 
-Dapr [supports routing messages](https://docs.dapr.io/developing-applications/building-blocks/pubsub/howto-route-messages/
-) to different handlers (routes) based on rules. 
+Dapr [supports routing messages](https://docs.dapr.io/developing-applications/building-blocks/pubsub/howto-route-messages/) to different handlers (routes) based on rules.
 
 > E.g., you are writing an application that needs to handle messages depending on their "type" with Dapr, you can send them to different routes `handlerType1` and `handlerType2` with the default route being `handlerDefault`
 
@@ -195,24 +198,30 @@ async function start() {
 
   // Configure Subscriber for a Topic with rule set
   // Note: the default route and match patterns are optional
-  await server.pubsub.subscribe('pubsub-redis', 'topic-1', {
+  await server.pubsub.subscribe("pubsub-redis", "topic-1", {
     default: "/default",
     rules: [
       {
         match: `event.type == "my-type-1"`,
-        path: "/type-1"
+        path: "/type-1",
       },
       {
         match: `event.type == "my-type-2"`,
-        path: "/type-2"
-      }
-    ]
+        path: "/type-2",
+      },
+    ],
   });
 
   // Add handlers for each route
-  server.pubsub.subscribeToRoute("pubsub-redis", "topic-1", "default", async (data) => { console.log(`Handling Default`) });
-  server.pubsub.subscribeToRoute("pubsub-redis", "topic-1", "type-1", async (data) => { console.log(`Handling Type 1`) });
-  server.pubsub.subscribeToRoute("pubsub-redis", "topic-1", "type-2", async (data) => { console.log(`Handling Type 2`) });
+  server.pubsub.subscribeToRoute("pubsub-redis", "topic-1", "default", async (data) => {
+    console.log(`Handling Default`);
+  });
+  server.pubsub.subscribeToRoute("pubsub-redis", "topic-1", "type-1", async (data) => {
+    console.log(`Handling Type 1`);
+  });
+  server.pubsub.subscribeToRoute("pubsub-redis", "topic-1", "type-2", async (data) => {
+    console.log(`Handling Type 2`);
+  });
 
   // Start the server
   await server.start();
@@ -225,12 +234,14 @@ Dapr supports [dead letter topic](https://docs.dapr.io/developing-applications/b
 E.g., when a message fails to be handled on `/my-queue` it will be sent to `/my-queue-failed`.
 
 You can use the following options with `subscribeWithOptions` method:
-* `deadletterTopic`: Specify a deadletter topic name (note: if none is provided we create one named `deadletter`)
-* `deadletterCallback`: The method to trigger as handler for our deadletter
+
+- `deadletterTopic`: Specify a deadletter topic name (note: if none is provided we create one named `deadletter`)
+- `deadletterCallback`: The method to trigger as handler for our deadletter
 
 Implementing Deadletter support in the JS SDK can be done by either
-* Passing the `deadletterCallback` as an option 
-* By subscribing to route manually with `subscribeToRoute`
+
+- Passing the `deadletterCallback` as an option
+- By subscribing to route manually with `subscribeToRoute`
 
 An example is provided below
 
@@ -248,15 +259,25 @@ async function start() {
   const pubSubName = "my-pubsub-name";
 
   // Method 1 (direct subscribing through subscribeWithOptions)
-  await server.pubsub.subscribeWithOptions('pubsub-redis', 'topic-options-5', { 
-    callback: async (data: any) => { throw new Error("Triggering Deadletter") }, 
-    deadLetterCallback: async (data: any) => { console.log("Handling Deadletter message") } 
+  await server.pubsub.subscribeWithOptions("pubsub-redis", "topic-options-5", {
+    callback: async (data: any) => {
+      throw new Error("Triggering Deadletter");
+    },
+    deadLetterCallback: async (data: any) => {
+      console.log("Handling Deadletter message");
+    },
   });
 
   // Method 2 (subscribe afterwards)
-  await server.pubsub.subscribeWithOptions('pubsub-redis', 'topic-options-1', { deadletterTopic: "my-deadletter-topic" });
-  server.pubsub.subscribeToRoute("pubsub-redis", "topic-options-1", "default", async () => { throw new Error("Triggering Deadletter") });
-  server.pubsub.subscribeToRoute("pubsub-redis", "topic-options-1", "my-deadletter-topic", async () => { console.log("Handling Deadletter message") });
+  await server.pubsub.subscribeWithOptions("pubsub-redis", "topic-options-1", {
+    deadletterTopic: "my-deadletter-topic",
+  });
+  server.pubsub.subscribeToRoute("pubsub-redis", "topic-options-1", "default", async () => {
+    throw new Error("Triggering Deadletter");
+  });
+  server.pubsub.subscribeToRoute("pubsub-redis", "topic-options-1", "my-deadletter-topic", async () => {
+    console.log("Handling Deadletter message");
+  });
 
   // Start server
   await server.start();
@@ -270,8 +291,8 @@ async function start() {
 ```typescript
 import { DaprServer } from "@dapr/dapr";
 
-const daprHost = "127.0.0.1"; 
-const daprPort = "3500"; 
+const daprHost = "127.0.0.1";
+const daprPort = "3500";
 const serverHost = "127.0.0.1";
 const serverPort = "5051";
 
@@ -280,7 +301,9 @@ async function start() {
 
   const bindingName = "my-binding-name";
 
-  const response = await server.binding.receive(bindingName, async (data: any) => console.log(`Got Data: ${JSON.stringify(data)}`));
+  const response = await server.binding.receive(bindingName, async (data: any) =>
+    console.log(`Got Data: ${JSON.stringify(data)}`),
+  );
 
   await server.start();
 }
@@ -302,14 +325,14 @@ start().catch((e) => {
 ```typescript
 import { DaprServer } from "dapr-client";
 
-const daprHost = "127.0.0.1"; 
-const daprPort = "3500"; 
+const daprHost = "127.0.0.1";
+const daprPort = "3500";
 const serverHost = "127.0.0.1";
 const serverPort = "5051";
 
 async function start() {
-    const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
-    const config = await client.configuration.get("config-redis", ["myconfigkey1", "myconfigkey2"]);
+  const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+  const config = await client.configuration.get("config-redis", ["myconfigkey1", "myconfigkey2"]);
 }
 
 start().catch((e) => {
@@ -323,19 +346,19 @@ start().catch((e) => {
 ```typescript
 import { DaprServer } from "dapr-client";
 
-const daprHost = "127.0.0.1"; 
-const daprPort = "3500"; 
+const daprHost = "127.0.0.1";
+const daprPort = "3500";
 const serverHost = "127.0.0.1";
 const serverPort = "5051";
 
 async function start() {
-    const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
-    const stream = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1", "myconfigkey2"], () => {
-        // Received a key update
-    });
+  const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+  const stream = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1", "myconfigkey2"], () => {
+    // Received a key update
+  });
 
-    // When you are ready to stop listening, call the following
-    await stream.close();
+  // When you are ready to stop listening, call the following
+  await stream.close();
 }
 
 start().catch((e) => {
@@ -343,7 +366,6 @@ start().catch((e) => {
   process.exit(1);
 });
 ```
-
 
 ## Related links
 

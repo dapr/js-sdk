@@ -20,11 +20,9 @@ There are five levels of logging in **descending order of importance** - `error`
 import { CommunicationProtocolEnum, DaprClient, LogLevel } from "@dapr/dapr";
 
 // create a client instance with log level set to verbose.
-const client = new DaprClient(
-    daprHost, 
-    daprPort, 
-    CommunicationProtocolEnum.HTTP, 
-    { logger: { level: LogLevel.Verbose } });
+const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.HTTP, {
+  logger: { level: LogLevel.Verbose },
+});
 ```
 
 > For more details on how to use the Client, see [JavaScript Client]({{< ref js-client >}}).
@@ -35,13 +33,9 @@ const client = new DaprClient(
 import { CommunicationProtocolEnum, DaprServer, LogLevel } from "@dapr/dapr";
 
 // create a server instance with log level set to error.
-const server = new DaprServer(
-    serverHost,
-    serverPort, 
-    daprHost,
-    daprPort,
-    CommunicationProtocolEnum.HTTP,
-    { logger: { level: LogLevel.Error } });
+const server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.HTTP, {
+  logger: { level: LogLevel.Error },
+});
 ```
 
 > For more details on how to use the Server, see [JavaScript Server]({{< ref js-server >}}).
@@ -56,35 +50,32 @@ Create a new implementation of `LoggerService`.
 
 ```ts
 import { LoggerService } from "@dapr/dapr";
-import * as winston from 'winston';
+import * as winston from "winston";
 
 export class WinstonLoggerService implements LoggerService {
-    private logger;
+  private logger;
 
-    constructor() {
-        this.logger = winston.createLogger({
-            transports: [
-                new winston.transports.Console(),
-                new winston.transports.File({ filename: 'combined.log' })
-            ]
-        });
-    }
+  constructor() {
+    this.logger = winston.createLogger({
+      transports: [new winston.transports.Console(), new winston.transports.File({ filename: "combined.log" })],
+    });
+  }
 
-    error(message: any, ...optionalParams: any[]): void {
-        this.logger.error(message, ...optionalParams)
-    }
-    warn(message: any, ...optionalParams: any[]): void {
-        this.logger.warn(message, ...optionalParams)
-    }
-    info(message: any, ...optionalParams: any[]): void {
-        this.logger.info(message, ...optionalParams)
-    }
-    verbose(message: any, ...optionalParams: any[]): void {
-        this.logger.verbose(message, ...optionalParams)
-    }
-    debug(message: any, ...optionalParams: any[]): void {
-        this.logger.debug(message, ...optionalParams)
-    }
+  error(message: any, ...optionalParams: any[]): void {
+    this.logger.error(message, ...optionalParams);
+  }
+  warn(message: any, ...optionalParams: any[]): void {
+    this.logger.warn(message, ...optionalParams);
+  }
+  info(message: any, ...optionalParams: any[]): void {
+    this.logger.info(message, ...optionalParams);
+  }
+  verbose(message: any, ...optionalParams: any[]): void {
+    this.logger.verbose(message, ...optionalParams);
+  }
+  debug(message: any, ...optionalParams: any[]): void {
+    this.logger.debug(message, ...optionalParams);
+  }
 }
 ```
 
@@ -97,9 +88,7 @@ import { WinstonLoggerService } from "./WinstonLoggerService";
 const winstonLoggerService = new WinstonLoggerService();
 
 // create a client instance with log level set to verbose and logger service as winston.
-const client = new DaprClient(
-    daprHost,
-    daprPort,
-    CommunicationProtocolEnum.HTTP,
-    { logger: { level: LogLevel.Verbose, service: winstonLoggerService } });
+const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.HTTP, {
+  logger: { level: LogLevel.Verbose, service: winstonLoggerService },
+});
 ```

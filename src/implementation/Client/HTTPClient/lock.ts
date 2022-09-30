@@ -11,21 +11,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import HTTPClient from './HTTPClient';
-import { TryLockResponse as TryLockResponseResult} from '../../../types/lock/TryLockResponse';
-import { UnlockResponse as UnLockResponseResult} from '../../../types/lock/UnlockResponse';
-import IClientLock from '../../../interfaces/Client/IClientLock';
+import HTTPClient from "./HTTPClient";
+import { TryLockResponse as TryLockResponseResult } from "../../../types/lock/TryLockResponse";
+import { UnlockResponse as UnLockResponseResult } from "../../../types/lock/UnlockResponse";
+import IClientLock from "../../../interfaces/Client/IClientLock";
 
 export default class HTTPClientLock implements IClientLock {
-    client: HTTPClient;
+  client: HTTPClient;
 
-    constructor(client: HTTPClient) {
-        this.client = client;
-    }
-    tryLock(_storeName: string, _resourceId: string, _lockOwner: string, _expiryInSeconds: number): Promise<TryLockResponseResult> {
-        throw new Error('HTTP is currently not supported.');
-    }
-    unlock(_storeName: string, _resourceId: string, _lockOwner: string): Promise<UnLockResponseResult> {
-        throw new Error('HTTP is currently not supported.');
-    }
+  constructor(client: HTTPClient) {
+    this.client = client;
+  }
+  tryLock(
+    _storeName: string,
+    _resourceId: string,
+    _lockOwner: string,
+    _expiryInSeconds: number,
+  ): Promise<TryLockResponseResult> {
+    throw new Error("HTTP is currently not supported.");
+  }
+  unlock(_storeName: string, _resourceId: string, _lockOwner: string): Promise<UnLockResponseResult> {
+    throw new Error("HTTP is currently not supported.");
+  }
 }

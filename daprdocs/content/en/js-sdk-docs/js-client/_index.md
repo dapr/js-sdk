@@ -8,13 +8,13 @@ description: JavaScript Client SDK for developing Dapr applications
 
 ## Introduction
 
-The Dapr Client allows you to communicate with the Dapr Sidecar and get access to its client facing features such as  Publishing Events, Invoking Output Bindings, State Management, Secret Management, and much more.
+The Dapr Client allows you to communicate with the Dapr Sidecar and get access to its client facing features such as Publishing Events, Invoking Output Bindings, State Management, Secret Management, and much more.
 
 ## Pre-requisites
 
 - [Dapr CLI]({{< ref install-dapr-cli.md >}}) installed
 - Initialized [Dapr environment]({{< ref install-dapr-selfhost.md >}})
-- [Latest LTS version of Node or greater](https://nodejs.org/en/) 
+- [Latest LTS version of Node or greater](https://nodejs.org/en/)
 
 ## Installing and importing Dapr's JS SDK
 
@@ -32,7 +32,7 @@ import { DaprClient, DaprServer, HttpMethod, CommunicationProtocolEnum } from "@
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
 const daprPort = "3500"; // Dapr Sidecar Port of this Example Server
 const serverHost = "127.0.0.1"; // App Host of this Example Server
-const serverPort = "50051"; // App Port of this Example Server 
+const serverPort = "50051"; // App Port of this Example Server
 
 // HTTP Example
 const client = new DaprClient(daprHost, daprPort);
@@ -79,7 +79,7 @@ npm run start:dapr-grpc
 
 ## Proxying Requests
 
-By proxying requests, we can utilize the unique capabilities that Dapr brings with its sidecar architecture such as service discovery, logging, etc., enabling us to instantly "upgrade" our gRPC services. This feature of gRPC proxying was demonstrated in [community call 41](https://www.youtube.com/watch?v=B_vkXqptpXY&t=71s). 
+By proxying requests, we can utilize the unique capabilities that Dapr brings with its sidecar architecture such as service discovery, logging, etc., enabling us to instantly "upgrade" our gRPC services. This feature of gRPC proxying was demonstrated in [community call 41](https://www.youtube.com/watch?v=B_vkXqptpXY&t=71s).
 
 ### Creating a Proxy
 
@@ -114,22 +114,22 @@ The JavaScript Client SDK allows you to interface with all of the [Dapr building
 #### Invoke a Service
 
 ```typescript
-import { DaprClient, HttpMethod } from "@dapr/dapr"; 
+import { DaprClient, HttpMethod } from "@dapr/dapr";
 
-const daprHost = "127.0.0.1"; 
-const daprPort = "3500"; 
+const daprHost = "127.0.0.1";
+const daprPort = "3500";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort); 
+  const client = new DaprClient(daprHost, daprPort);
 
   const serviceAppId = "my-app-id";
   const serviceMethod = "say-hello";
-  
+
   // POST Request
-  const response = await client.invoker.invoke(serviceAppId , serviceMethod , HttpMethod.POST, { hello: "world" });
+  const response = await client.invoker.invoke(serviceAppId, serviceMethod, HttpMethod.POST, { hello: "world" });
 
   // GET Request
-  const response = await client.invoker.invoke(serviceAppId , serviceMethod , HttpMethod.GET);
+  const response = await client.invoker.invoke(serviceAppId, serviceMethod, HttpMethod.GET);
 }
 
 start().catch((e) => {
@@ -140,19 +140,18 @@ start().catch((e) => {
 
 > For a full guide on service invocation visit [How-To: Invoke a service]({{< ref howto-invoke-discover-services.md >}}).
 
-
 ### State Management API
 
 #### Save, Get and Delete application state
 
 ```typescript
-import { DaprClient } from "@dapr/dapr"; 
+import { DaprClient } from "@dapr/dapr";
 
-const daprHost = "127.0.0.1"; 
-const daprPort = "3500"; 
+const daprHost = "127.0.0.1";
+const daprPort = "3500";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort); 
+  const client = new DaprClient(daprHost, daprPort);
 
   const serviceStoreName = "my-state-store-name";
 
@@ -160,12 +159,12 @@ async function start() {
   const response = await client.state.save(serviceStoreName, [
     {
       key: "first-key-name",
-      value: "hello"
+      value: "hello",
     },
     {
       key: "second-key-name",
-      value: "world"
-    }
+      value: "world",
+    },
   ]);
 
   // Get State
@@ -180,15 +179,15 @@ async function start() {
       operation: "upsert",
       request: {
         key: "first-key-name",
-        value: "new-data"
-      }
+        value: "new-data",
+      },
     },
     {
       operation: "delete",
       request: {
-        key: "second-key-name"
-      }
-    }
+        key: "second-key-name",
+      },
+    },
   ]);
 
   // Delete State
@@ -203,7 +202,6 @@ start().catch((e) => {
 
 > For a full list of state operations visit [How-To: Get & save state]({{< ref howto-get-save-state.md >}}).
 
-
 #### Query State API
 
 ```typescript
@@ -216,29 +214,29 @@ async function start() {
     filter: {
       OR: [
         {
-          EQ: { "person.org": "Dev Ops" }
+          EQ: { "person.org": "Dev Ops" },
         },
         {
-          "AND": [
+          AND: [
             {
-              "EQ": { "person.org": "Finance" }
+              EQ: { "person.org": "Finance" },
             },
             {
-              "IN": { "state": ["CA", "WA"] }
-            }
-          ]
-        }
-      ]
+              IN: { state: ["CA", "WA"] },
+            },
+          ],
+        },
+      ],
     },
     sort: [
       {
         key: "state",
-        order: "DESC"
-      }
+        order: "DESC",
+      },
     ],
     page: {
-      limit: 10
-    }
+      limit: 10,
+    },
   });
 
   console.log(res);
@@ -255,17 +253,17 @@ start().catch((e) => {
 #### Publish messages
 
 ```typescript
-import { DaprClient } from "@dapr/dapr"; 
+import { DaprClient } from "@dapr/dapr";
 
-const daprHost = "127.0.0.1"; 
-const daprPort = "3500"; 
+const daprHost = "127.0.0.1";
+const daprPort = "3500";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort); 
+  const client = new DaprClient(daprHost, daprPort);
 
   const pubSubName = "my-pubsub-name";
   const topic = "topic-a";
-  const message = { hello: "world" }
+  const message = { hello: "world" };
 
   // Publish Message to Topic
   const response = await client.pubsub.publish(pubSubName, topic, message);
@@ -284,13 +282,13 @@ start().catch((e) => {
 **Output Bindings**
 
 ```typescript
-import { DaprClient } from "@dapr/dapr"; 
+import { DaprClient } from "@dapr/dapr";
 
-const daprHost = "127.0.0.1"; 
-const daprPort = "3500"; 
+const daprHost = "127.0.0.1";
+const daprPort = "3500";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort); 
+  const client = new DaprClient(daprHost, daprPort);
 
   const bindingName = "my-binding-name";
   const bindingOperation = "create";
@@ -312,13 +310,13 @@ start().catch((e) => {
 #### Retrieve secrets
 
 ```typescript
-import { DaprClient } from "@dapr/dapr"; 
+import { DaprClient } from "@dapr/dapr";
 
-const daprHost = "127.0.0.1"; 
-const daprPort = "3500"; 
+const daprHost = "127.0.0.1";
+const daprPort = "3500";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort); 
+  const client = new DaprClient(daprHost, daprPort);
 
   const secretStoreName = "my-secret-store";
   const secretKey = "secret-key";
@@ -349,10 +347,9 @@ const daprHost = "127.0.0.1";
 const daprAppId = "example-config";
 
 async function start() {
-
   const client = new DaprClient(daprHost, process.env.DAPR_HTTP_PORT);
 
-  const config = await client.configuration.get('config-store', ['key1', 'key2']);
+  const config = await client.configuration.get("config-store", ["key1", "key2"]);
   console.log(config);
 }
 
@@ -391,10 +388,10 @@ async function start() {
 }
 
 function getResponseStatus(status: LockStatus) {
-  switch(status) {
+  switch (status) {
     case LockStatus.Success:
       return "Success";
-    case LockStatus.LockDoesNotExist: 
+    case LockStatus.LockDoesNotExist:
       return "LockDoesNotExist";
     case LockStatus.LockBelongsToOthers:
       return "LockBelongsToOthers";
@@ -408,6 +405,7 @@ start().catch((e) => {
   process.exit(1);
 });
 ```
+
 > For a full guide on distributed locks visit [How-To: Use Distributed Locks]({{< ref howto-use-distributed-lock.md >}}).
 
 ## Related links

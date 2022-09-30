@@ -36,4 +36,4 @@ export type DaprClientOptions = {
    * See https://docs.dapr.io/operations/security/api-token/.
    */
   daprApiToken?: string;
-}
+};

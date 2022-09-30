@@ -24,7 +24,9 @@ async function start() {
   const client = new DaprClient(daprHost, daprPort);
 
   // Initialize the server to subscribe (listen)
-  await server.pubsub.subscribe("my-pubsub-component", "my-topic", async (data: any) => console.log(`Received: ${JSON.stringify(data)}`));
+  await server.pubsub.subscribe("my-pubsub-component", "my-topic", async (data: any) =>
+    console.log(`Received: ${JSON.stringify(data)}`),
+  );
   await server.start();
 
   // Send a message

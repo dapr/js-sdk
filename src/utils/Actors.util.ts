@@ -19,8 +19,8 @@ import { KeyValueType } from "../types/KeyValue.type";
  * See https://docs.dapr.io/reference/api/actors_api/#get-registered-actors
  */
 export function getRegisteredActorResponse(entities: string[], options: ActorRuntimeOptions): KeyValueType {
-    return {
-        "entities": entities,
-        ...options
-    }
+  return {
+    entities: entities,
+    ...options,
+  };
 }

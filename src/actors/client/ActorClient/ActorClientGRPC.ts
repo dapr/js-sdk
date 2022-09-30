@@ -13,13 +13,25 @@ limitations under the License.
 
 import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 import { Any } from "google-protobuf/google/protobuf/any_pb";
-import { ExecuteActorStateTransactionRequest, GetActorStateRequest, GetActorStateResponse, GetMetadataResponse, InvokeActorRequest, InvokeActorResponse, RegisterActorReminderRequest, RegisterActorTimerRequest, TransactionalActorStateOperation, UnregisterActorReminderRequest, UnregisterActorTimerRequest } from '../../../proto/dapr/proto/runtime/v1/dapr_pb';
-import GRPCClient from '../../../implementation/Client/GRPCClient/GRPCClient';
-import { OperationType } from '../../../types/Operation.type';
-import { ActorReminderType } from '../../../types/ActorReminder.type';
-import { ActorTimerType } from '../../../types/ActorTimer.type';
-import IClientActor from '../../../interfaces/Client/IClientActor';
-import { KeyValueType } from '../../../types/KeyValue.type';
+import {
+  ExecuteActorStateTransactionRequest,
+  GetActorStateRequest,
+  GetActorStateResponse,
+  GetMetadataResponse,
+  InvokeActorRequest,
+  InvokeActorResponse,
+  RegisterActorReminderRequest,
+  RegisterActorTimerRequest,
+  TransactionalActorStateOperation,
+  UnregisterActorReminderRequest,
+  UnregisterActorTimerRequest,
+} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import GRPCClient from "../../../implementation/Client/GRPCClient/GRPCClient";
+import { OperationType } from "../../../types/Operation.type";
+import { ActorReminderType } from "../../../types/ActorReminder.type";
+import { ActorTimerType } from "../../../types/ActorTimer.type";
+import IClientActor from "../../../interfaces/Client/IClientActor";
+import { KeyValueType } from "../../../types/KeyValue.type";
 import ActorId from "../../ActorId";
 
 // https://docs.dapr.io/reference/api/actors_api/
@@ -32,7 +44,7 @@ export default class ActorClientGRPC implements IClientActor {
 
   async invoke(actorType: string, actorId: ActorId, methodName: string, body?: any): Promise<object> {
     const msgService = new InvokeActorRequest();
-    msgService.setActorId(actorId.getId())
+    msgService.setActorId(actorId.getId());
     msgService.setActorType(actorType);
     msgService.setMethod(methodName);
 
@@ -98,7 +110,7 @@ export default class ActorClientGRPC implements IClientActor {
   async stateGet(actorType: string, actorId: ActorId, key: string): Promise<KeyValueType | string> {
     const msgService = new GetActorStateRequest();
     msgService.setActorType(actorType);
-    msgService.setActorId(actorId.getId())
+    msgService.setActorId(actorId.getId());
     msgService.setKey(key);
 
     const client = await this.client.getClient();
@@ -122,14 +134,19 @@ export default class ActorClientGRPC implements IClientActor {
     });
   }
 
-  async registerActorReminder(actorType: string, actorId: ActorId, name: string, reminder: ActorReminderType): Promise<void> {
+  async registerActorReminder(
+    actorType: string,
+    actorId: ActorId,
+    name: string,
+    reminder: ActorReminderType,
+  ): Promise<void> {
     const msgService = new RegisterActorReminderRequest();
     msgService.setActorType(actorType);
     msgService.setActorId(actorId.getId());
     msgService.setName(name);
 
     if (reminder.data) {
-      msgService.setData(Buffer.from(reminder?.data.toString(), "utf-8"))
+      msgService.setData(Buffer.from(reminder?.data.toString(), "utf-8"));
     }
 
     if (reminder.period) {
@@ -189,7 +206,7 @@ export default class ActorClientGRPC implements IClientActor {
     }
 
     if (timer.data) {
-      msgService.setData(Buffer.from(timer.data, "utf-8"))
+      msgService.setData(Buffer.from(timer.data, "utf-8"));
     }
 
     if (timer.period) {
@@ -262,7 +279,6 @@ export default class ActorClientGRPC implements IClientActor {
     const client = await this.client.getClient();
 
     return new Promise((resolve, reject) => {
-
       client.getMetadata(new Empty(), (err, res: GetMetadataResponse) => {
         if (err) {
           return reject(err);
