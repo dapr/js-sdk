@@ -19,13 +19,13 @@ The TryLock and Unlock calls are implemented under the client.lock attribute.
 
 #### TryLock Example
 
-```javascript
+```typescript
 const tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
 ```
 
 #### Unlock Example
 
-```javascript
+```typescript
 const unlockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
 ```
 

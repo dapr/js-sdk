@@ -31,7 +31,7 @@ const client = new DaprClient(
 
 ### DaprServer
 
-```js
+```ts
 import { CommunicationProtocolEnum, DaprServer, LogLevel } from "@dapr/dapr";
 
 // create a server instance with log level set to error.

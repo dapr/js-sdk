@@ -70,7 +70,7 @@ To configure actor runtime, use the `DaprClientOptions`. The various parameters 
 
 Note, the timeouts and intervals should be formatted as [time.ParseDuration](https://pkg.go.dev/time#ParseDuration) strings.
 
-```javascript
+```typescript
 import { CommunicationProtocolEnum, DaprClient, DaprServer } from "@dapr/dapr";
 
 // Configure the actor runtime with the DaprClientOptions.
@@ -99,7 +99,7 @@ const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.HTTP
 ## Registering Actors
 Initialize and register your actors by using the `DaprServer` package:
 
-```javascript
+```typescript
 import { DaprServer } from "@dapr/dapr";
 import ParkingSensorImpl from "./ParkingSensorImpl";
 
@@ -122,7 +122,7 @@ console.log(`Registered Actors: ${JSON.stringify(resRegisteredActors)}`);
 ## Invoking Actor Methods
 After Actors are registered, create a Proxy object that implements `ParkingSensorInterface` using the `ActorProxyBuilder`. You can invoke the actor methods by directly calling methods on the Proxy object. Internally, it translates to making a network call to the Actor API and fetches the result back.
 
-```javascript
+```typescript
 import { ActorId, DaprClient } from "@dapr/dapr";
 import ParkingSensorImpl from "./ParkingSensorImpl";
 import ParkingSensorInterface from "./ParkingSensorInterface";
@@ -181,7 +181,7 @@ This distinction allows users to trade off between light-weight but stateless ti
 The scheduling interface of timers and reminders is identical. For an more in-depth look at the scheduling configurations see the [actors timers and reminders docs]({{< ref "howto-actors.md#actor-timers-and-reminders" >}}).
 
 ### Actor Timers
-```javascript
+```typescript
 // ...
 
 const actor = builder.build(new ActorId("my-actor"));
@@ -201,7 +201,7 @@ await actor.unregisterActorTimer("timer-id");
 ```
 
 ### Actor Reminders
-```javascript
+```typescript
 // ...
 
 const actor = builder.build(new ActorId("my-actor"));

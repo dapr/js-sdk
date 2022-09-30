@@ -26,7 +26,7 @@ npm i @dapr/dapr --save
 
 2. Import the libraries:
 
-```javascript
+```typescript
 import { DaprClient, DaprServer, HttpMethod, CommunicationProtocolEnum } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
@@ -47,7 +47,7 @@ To run the examples, you can use two different protocols to interact with the Da
 
 ### Using HTTP (default)
 
-```javascript
+```typescript
 import { DaprClient } from "@dapr/dapr";
 const client = new DaprClient(daprHost, daprPort);
 ```
@@ -64,7 +64,7 @@ npm run start:dapr-http
 
 Since HTTP is the default, you will have to adapt the communication protocol to use gRPC. You can do this by passing an extra argument to the client or server constructor.
 
-```javascript
+```typescript
 import { DaprClient, CommunicationProtocol } from "@dapr/dapr";
 const client = new DaprClient(daprHost, daprPort, CommunicationProtocol.GRPC);
 ```
@@ -85,7 +85,7 @@ By proxying requests, we can utilize the unique capabilities that Dapr brings wi
 
 To perform gRPC proxying, simply create a proxy by calling the `client.proxy.create()` method:
 
-```javascript
+```typescript
 // As always, create a client to our dapr sidecar
 // this client takes care of making sure the sidecar is started, that we can communicate, ...
 const clientSidecar = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
@@ -113,7 +113,7 @@ The JavaScript Client SDK allows you to interface with all of the [Dapr building
 
 #### Invoke a Service
 
-```javascript
+```typescript
 import { DaprClient, HttpMethod } from "@dapr/dapr"; 
 
 const daprHost = "127.0.0.1"; 
@@ -145,7 +145,7 @@ start().catch((e) => {
 
 #### Save, Get and Delete application state
 
-```javascript
+```typescript
 import { DaprClient } from "@dapr/dapr"; 
 
 const daprHost = "127.0.0.1"; 
@@ -206,7 +206,7 @@ start().catch((e) => {
 
 #### Query State API
 
-```javascript
+```typescript
 import { DaprClient } from "@dapr/dapr";
 
 async function start() {
@@ -254,7 +254,7 @@ start().catch((e) => {
 
 #### Publish messages
 
-```javascript
+```typescript
 import { DaprClient } from "@dapr/dapr"; 
 
 const daprHost = "127.0.0.1"; 
@@ -283,7 +283,7 @@ start().catch((e) => {
 
 **Output Bindings**
 
-```javascript
+```typescript
 import { DaprClient } from "@dapr/dapr"; 
 
 const daprHost = "127.0.0.1"; 
@@ -311,7 +311,7 @@ start().catch((e) => {
 
 #### Retrieve secrets
 
-```javascript
+```typescript
 import { DaprClient } from "@dapr/dapr"; 
 
 const daprHost = "127.0.0.1"; 
@@ -342,7 +342,7 @@ start().catch((e) => {
 
 #### Get Configuration Keys
 
-```javascript
+```typescript
 import { DaprClient } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1";
@@ -366,7 +366,7 @@ start().catch((e) => {
 
 #### Try Lock and Unlock APIs
 
-```javascript
+```typescript
 import { CommunicationProtocolEnum, DaprClient } from "@dapr/dapr";
 import { LockStatus } from "@dapr/dapr/types/lock/UnlockResponse";
 

@@ -2,7 +2,6 @@
     "name": "@dapr/dapr",
     "version": "2.4.1",
     "description": "The official Dapr (https://dapr.io) SDK for Node.js",
-    "main": "./build/index.js",
     "types": "./build/index.d.ts",
     "scripts": {
         "test": "npm run test:unit:all && npm run test:e2e:all",
@@ -26,7 +25,9 @@
         "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
         "prebuild": "./scripts/prebuild.sh",
         "build": "./scripts/build.sh",
-        "start:dev": "npm run build && nodemon --ext \".ts,.js\" --watch \"./src\" --exec \"npm run build\""
+        "start:dev": "npm run build && nodemon --ext \".ts,.js\" --watch \"./src\" --exec \"npm run build\"",
+        "pretty": "prettier --list-different \"**/*.{ts,tsx,js,jsx,json,md}\"",
+        "pretty-fix": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
     },
     "keywords": [],
     "author": "Xavier Geerinck",
@@ -50,8 +51,10 @@
         "@types/uuid": "^8.3.1",
         "@typescript-eslint/eslint-plugin": "^5.1.0",
         "@typescript-eslint/parser": "^5.1.0",
-        "eslint-plugin-header": "^3.1.1",
         "eslint": "^8.1.0",
+        "eslint-config-prettier": "^8.5.0",
+        "eslint-plugin-header": "^3.1.1",
+        "eslint-plugin-prettier": "^4.2.1",
         "grpc_tools_node_protoc_ts": "^5.3.2",
         "jest": "^27.2.0",
         "nodemon": "^2.0.12",

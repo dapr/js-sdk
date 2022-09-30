@@ -26,7 +26,7 @@ npm i @dapr/dapr --save
 
 2. Import the libraries:
 
-```javascript
+```typescript
 import { DaprServer, CommunicationProtocolEnum } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
@@ -47,7 +47,7 @@ To run the examples, you can use two different protocols to interact with the Da
 
 ### Using HTTP (default)
 
-```javascript
+```typescript
 import { DaprServer } from "@dapr/dapr";
 
 const server= new DaprServer(appHost, appPort, daprHost, daprPort);
@@ -70,7 +70,7 @@ npm run start:dapr-http
 
 Since HTTP is the default, you will have to adapt the communication protocol to use gRPC. You can do this by passing an extra argument to the client or server constructor.
 
-```javascript
+```typescript
 import { DaprServer, CommunicationProtocol } from "@dapr/dapr";
 
 const server = new DaprServer(appHost, appPort, daprHost, daprPort, CommunicationProtocol.GRPC);
@@ -97,7 +97,7 @@ The JavaScript Server SDK allows you to interface with all of the [Dapr building
 
 #### Listen to an Invocation
 
-```javascript
+```typescript
 import { DaprServer } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
@@ -137,7 +137,7 @@ Subscribing to messages can be done in several ways to offer flexibility of rece
 
 An example is provided below
 
-```javascript
+```typescript
 import { DaprServer } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
@@ -179,7 +179,7 @@ Dapr [supports routing messages](https://docs.dapr.io/developing-applications/bu
 
 > E.g., you are writing an application that needs to handle messages depending on their "type" with Dapr, you can send them to different routes `handlerType1` and `handlerType2` with the default route being `handlerDefault`
 
-```javascript
+```typescript
 import { DaprServer } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
@@ -234,7 +234,7 @@ Implementing Deadletter support in the JS SDK can be done by either
 
 An example is provided below
 
-```javascript
+```typescript
 import { DaprServer } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
@@ -267,7 +267,7 @@ async function start() {
 
 #### Receive an Input Binding
 
-```javascript
+```typescript
 import { DaprServer } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1"; 
@@ -299,7 +299,7 @@ start().catch((e) => {
 
 #### Getting a configuration value
 
-```javascript
+```typescript
 import { DaprServer } from "dapr-client";
 
 const daprHost = "127.0.0.1"; 
@@ -320,7 +320,7 @@ start().catch((e) => {
 
 #### Subscribing to Key Changes
 
-```javascript
+```typescript
 import { DaprServer } from "dapr-client";
 
 const daprHost = "127.0.0.1"; 

@@ -10,7 +10,7 @@ The service invocation methods are created as a warpper on the [Dapr Service Inv
 
 ### Invoking a method
 
-```javascript
+```typescript
 await client.invoker.invoke("app-id", "method", { hello: "world" });
 ```
 
@@ -18,7 +18,7 @@ await client.invoker.invoke("app-id", "method", { hello: "world" });
 
 On top of the invoking, this SDK also implements a trivial way to listen to app invocations. Instead of creating your own web server, you can simply run the following commands which will listen to calls coming in on the provided endpoint.
 
-```javascript
+```typescript
 const invokerListen = (req: IRequest, res: IResponse) => { console.log(data); }
 await client.invoker.listen("method", invokerListen.bind(this), options)
 ```
