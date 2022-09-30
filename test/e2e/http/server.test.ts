@@ -382,14 +382,8 @@ describe("http/server", () => {
     it("should be able to listen and invoke a service with GET", async () => {
       const mock = jest.fn(async (_data: object) => ({ hello: "world" }));
 
-
-      await server.invoker.listen('hello-world', mock, { method: HttpMethod.GET });
-      const res = await server.client.invoker.invoke(daprAppId, 'hello-world', HttpMethod.GET,{},{
-        headers:{
-          'Authorization':"Bearer secret token"
-         }
-      });
-
+      await server.invoker.listen("hello-world", mock, { method: HttpMethod.GET });
+      const res = await server.client.invoker.invoke(daprAppId, "hello-world", HttpMethod.GET);
 
       // Delay a bit for event to arrive
       // await new Promise((resolve, reject) => setTimeout(resolve, 250));
@@ -401,14 +395,9 @@ describe("http/server", () => {
     it("should be able to listen and invoke a service with POST data", async () => {
       const mock = jest.fn(async (_data: object) => ({ hello: "world" }));
 
-
-      await server.invoker.listen('hello-world', mock, { method: HttpMethod.POST });
-      const res = await server.client.invoker.invoke(daprAppId, 'hello-world', HttpMethod.POST,{ hello: 'world'}, {
-      
-       headers:{
-        'Authorization':"Bearer secret token"
-       }
-
+      await server.invoker.listen("hello-world", mock, { method: HttpMethod.POST });
+      const res = await server.client.invoker.invoke(daprAppId, "hello-world", HttpMethod.POST, {
+        hello: "world",
       });
 
       // Delay a bit for event to arrive

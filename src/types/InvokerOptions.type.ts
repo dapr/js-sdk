@@ -11,7 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+
+/** 
+* To pass Invoker options 
+*/
 export type InvokerOptions={
- headers?: object
+  /** 
+  *Headers to include in service Invocation Request   
+  */
+  headers?: object
 
 }

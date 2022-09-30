@@ -15,6 +15,7 @@ limitations under the License.
 import HTTPClient from "./HTTPClient";
 import { HttpMethod } from "../../../enum/HttpMethod.enum";
 import IClientInvoker from "../../../interfaces/Client/IClientInvoker";
+import { InvokerOptions } from "../../../types/InvokerOptions.type";
 
 
 // https://docs.dapr.io/reference/api/service_invocation_api/

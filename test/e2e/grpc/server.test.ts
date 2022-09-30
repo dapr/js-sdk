@@ -24,10 +24,7 @@ describe("grpc/server", () => {
   const mockBindingReceive = jest.fn(async (_data: object) => console.log("mockBindingReceive"));
   const mockPubSub = jest.fn(async (_data: object) => null);
   const mockPubSubError = jest.fn(async (_data: object) => {
-
-
     throw new Error("DROPPING MESSAGE");
-
   });
 
   // We need to start listening on some endpoints already
@@ -39,7 +36,6 @@ describe("grpc/server", () => {
 
     // Test with:
     // dapr publish --publish-app-id test-suite --pubsub pubsub-redis --topic test-topic --data '{ "hello": "world" }'
-
     await server.pubsub.subscribeWithOptions("pubsub-redis", "topic-options-1", {});
     await server.pubsub.subscribeWithOptions("pubsub-redis", "topic-options-2", {
       deadLetterTopic: "my-deadletter-topic",
@@ -55,24 +51,20 @@ describe("grpc/server", () => {
     });
     await server.pubsub.subscribeWithOptions("pubsub-redis", "topic-options-6", { callback: mockPubSub });
     await server.pubsub.subscribeWithOptions("pubsub-redis", "topic-options-7", {
-
       route: {
-        default: '/default',
+        default: "/default",
         rules: [
           {
             match: `event.type == "my-type-1"`,
-
             path: "/type-1",
           },
           {
             match: `event.type == "my-type-2"`,
             path: "/type-2",
-
           },
         ],
       },
     });
-
 
     await server.pubsub.subscribe("pubsub-redis", "topic-1", mockPubSub);
     await server.pubsub.subscribe("pubsub-redis", "topic-2", mockPubSub, "single-route");
@@ -87,7 +79,6 @@ describe("grpc/server", () => {
         {
           match: `event.type == "my-type-2"`,
           path: "/type-2",
-
         },
       ],
     });
@@ -156,11 +147,9 @@ describe("grpc/server", () => {
       const mock = jest.fn(async (_data: object) => null);
 
       try {
-
         let server2 = new DaprServer("127.0.0.1", "50002", daprHost, daprPort, CommunicationProtocolEnum.HTTP);
         await server2.pubsub.subscribe("pubsub-redis", "demo-topic", mock);
         await server2.pubsub.subscribe("pubsub-redis", "demo-topic", mock, "/test");
-
         server2 = undefined as any; // clean it up
       } catch (e: any) {
         expect(e.message).toEqual(
@@ -225,11 +214,9 @@ describe("grpc/server", () => {
 
       expect(JSON.stringify(subs)).toContain(
         JSON.stringify({
-
           pubsubname: "pubsub-redis",
           topic: "topic-1",
           route: "/pubsub-redis--topic-1--default",
-
         }),
       );
     });
@@ -239,11 +226,9 @@ describe("grpc/server", () => {
 
       expect(JSON.stringify(subs)).toContain(
         JSON.stringify({
-
           pubsubname: "pubsub-redis",
           topic: "topic-2",
           route: "/pubsub-redis--topic-2--single-route",
-
         }),
       );
     });
@@ -253,11 +238,9 @@ describe("grpc/server", () => {
 
       expect(JSON.stringify(subs)).toContain(
         JSON.stringify({
-
           pubsubname: "pubsub-redis",
           topic: "topic-3",
           route: "/pubsub-redis--topic-3--no-leading-slash",
-
         }),
       );
     });
@@ -267,7 +250,6 @@ describe("grpc/server", () => {
 
       expect(JSON.stringify(subs)).toContain(
         JSON.stringify({
-
           pubsubname: "pubsub-redis",
           topic: "topic-4",
           routes: {
@@ -280,7 +262,6 @@ describe("grpc/server", () => {
               {
                 match: `event.type == "my-type-2"`,
                 path: "/pubsub-redis--topic-4--type-2",
-
               },
             ],
           },
@@ -293,7 +274,6 @@ describe("grpc/server", () => {
 
       expect(JSON.stringify(subs)).toContain(
         JSON.stringify({
-<
           pubsubname: "pubsub-redis",
           topic: "topic-options-7",
           routes: {
@@ -306,7 +286,6 @@ describe("grpc/server", () => {
               {
                 match: `event.type == "my-type-2"`,
                 path: "/pubsub-redis--topic-options-7--type-2",
-
               },
             ],
           },
@@ -323,15 +302,12 @@ describe("grpc/server", () => {
       const subs = server.pubsub.getSubscriptions();
       expect(JSON.stringify(subs)).toContain(
         JSON.stringify({
-
           pubsubname: "pubsub-redis",
           topic: "topic-options-1",
           route: "/pubsub-redis--topic-options-1--default",
-
         }),
       );
     });
-
 
     it("should allow us to register an event handler after the server started", async () => {
       const countEventHandlers =
@@ -339,13 +315,12 @@ describe("grpc/server", () => {
       server.pubsub.subscribeToRoute("pubsub-redis", "topic-options-1", "", async () => null);
       const countEventHandlersNew =
         server.pubsub.getSubscriptions()["pubsub-redis"]["topic-options-1"].routes["default"].eventHandlers.length;
-
       expect(countEventHandlersNew).toEqual(countEventHandlers + 1);
     });
 
     it("should provide a deadletter route if we pass a deadletter topic to the options", async () => {
       const subs = server.pubsub.getSubscriptions();
-      expect(JSON.stringify(subs)).toContain('pubsub-redis--topic-options-2--my-deadletter-topic');
+      expect(JSON.stringify(subs)).toContain("pubsub-redis--topic-options-2--my-deadletter-topic");
     });
 
     it("should allow us to listen on the deadletter topic", async () => {
@@ -355,7 +330,6 @@ describe("grpc/server", () => {
       server.pubsub.subscribeToRoute("pubsub-redis", "topic-options-2", "my-deadletter-topic", async () => null);
       const countEventHandlersNew =
         server.pubsub.getSubscriptions()["pubsub-redis"]["topic-options-2"].routes["my-deadletter-topic"].eventHandlers
-
           .length;
       expect(countEventHandlersNew).toEqual(countEventHandlers + 1);
     });
@@ -363,24 +337,21 @@ describe("grpc/server", () => {
     it("should allow us to provide deadletter support through subscribeWithOptions with named deadletter route", async () => {
       const routes = server.pubsub.getSubscriptions()["pubsub-redis"]["topic-options-3"].routes;
 
-
       // Ensure the topic is named as we passed it
-      expect(Object.keys(routes)).toContain('my-deadletter-topic');
+      expect(Object.keys(routes)).toContain("my-deadletter-topic");
 
       // Ensure it has an event handler bound to it
-      expect(routes['my-deadletter-topic'].eventHandlers.length).toBeGreaterThan(0);
+      expect(routes["my-deadletter-topic"].eventHandlers.length).toBeGreaterThan(0);
     });
-
 
     it("should allow us to provide deadletter support through subscribeWithOptions with a default deadletter route if none was provided", async () => {
       const routes = server.pubsub.getSubscriptions()["pubsub-redis"]["topic-options-4"].routes;
 
-
       // Ensure the topic is named with the default "deadletter" if none was provided
-      expect(Object.keys(routes)).toContain('deadletter');
+      expect(Object.keys(routes)).toContain("deadletter");
 
       // Ensure it has an event handler bound to it
-      expect(routes['deadletter'].eventHandlers.length).toBeGreaterThan(0);
+      expect(routes["deadletter"].eventHandlers.length).toBeGreaterThan(0);
     });
 
     it("should be able to send and receive events through deadletter", async () => {
@@ -403,13 +374,8 @@ describe("grpc/server", () => {
     it("should be able to listen and invoke a service with GET", async () => {
       const mock = jest.fn(async (_data: object) => ({ hello: "world" }));
 
-
-      await server.invoker.listen('hello-world', mock, { method: HttpMethod.GET });
-      const res = await server.client.invoker.invoke(daprAppId, 'hello-world', HttpMethod.GET,{},{
-        headers:{
-          'Authorization':"Bearer secret token"
-         }
-      });
+      await server.invoker.listen("hello-world", mock, { method: HttpMethod.GET });
+      const res = await server.client.invoker.invoke(daprAppId, "hello-world", HttpMethod.GET);
 
       // Delay a bit for event to arrive
       // await new Promise((resolve, reject) => setTimeout(resolve, 250));
@@ -421,14 +387,9 @@ describe("grpc/server", () => {
     it("should be able to listen and invoke a service with POST data", async () => {
       const mock = jest.fn(async (_data: object) => ({ hello: "world" }));
 
-
-      await server.invoker.listen('hello-world', mock, { method: HttpMethod.POST });
-      const res = await server.client.invoker.invoke(daprAppId, 'hello-world', HttpMethod.POST, { hello: 'world' }, {
-     
-        headers: {
-          Authorization: 'Bearer secretToken',
-        }
-
+      await server.invoker.listen("hello-world", mock, { method: HttpMethod.POST });
+      const res = await server.client.invoker.invoke(daprAppId, "hello-world", HttpMethod.POST, {
+        hello: "world",
       });
 
       // Delay a bit for event to arrive
