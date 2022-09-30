@@ -18,7 +18,7 @@ const res = await actor.sayMulti(123, "123", { hello: "world 123" }, [1, 2, 3]);
 2. By utilizing the Actor builder, where we create a Proxy object that does this for us.
 
 ```typescript
-const builder = new ActorProxyBuilder()<DemoActorSayImpl>(DemoActorSayImpl, client);
+const builder = new ActorProxyBuilder<DemoActorSayImpl>(DemoActorSayImpl, client);
 const actor = builder.build(ActorId.createRandomId());
 const res = await actor.sayMulti(123, "123", { hello: "world 123" }, [1, 2, 3]);
 ```

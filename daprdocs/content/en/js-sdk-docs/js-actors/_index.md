@@ -74,7 +74,7 @@ To configure actor runtime, use the `DaprClientOptions`. The various parameters 
 
 Note, the timeouts and intervals should be formatted as [time.ParseDuration](https://pkg.go.dev/time#ParseDuration) strings.
 
-```javascript
+```ts
 import { CommunicationProtocolEnum, DaprClient, DaprServer } from "@dapr/dapr";
 
 // Configure the actor runtime with the DaprClientOptions.
@@ -104,7 +104,7 @@ const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.HTTP
 
 Initialize and register your actors by using the `DaprServer` package:
 
-```javascript
+```ts
 import { DaprServer } from "@dapr/dapr";
 import ParkingSensorImpl from "./ParkingSensorImpl";
 
@@ -128,7 +128,7 @@ console.log(`Registered Actors: ${JSON.stringify(resRegisteredActors)}`);
 
 After Actors are registered, create a Proxy object that implements `ParkingSensorInterface` using the `ActorProxyBuilder`. You can invoke the actor methods by directly calling methods on the Proxy object. Internally, it translates to making a network call to the Actor API and fetches the result back.
 
-```javascript
+```ts
 import { ActorId, DaprClient } from "@dapr/dapr";
 import ParkingSensorImpl from "./ParkingSensorImpl";
 import ParkingSensorInterface from "./ParkingSensorInterface";
@@ -139,7 +139,7 @@ const daprPort = "50000";
 const client = new DaprClient(daprHost, daprPort);
 
 // Create a new actor builder. It can be used to create multiple actors of a type.
-const builder = new ActorProxyBuilder() < ParkingSensorInterface > (ParkingSensorImpl, client);
+const builder = new ActorProxyBuilder<ParkingSensorInterface>(ParkingSensorImpl, client);
 
 // Create a new actor instance.
 const actor = builder.build(new ActorId("my-actor"));
@@ -189,7 +189,7 @@ The scheduling interface of timers and reminders is identical. For an more in-de
 
 ### Actor Timers
 
-```javascript
+```ts
 // ...
 
 const actor = builder.build(new ActorId("my-actor"));
@@ -210,7 +210,7 @@ await actor.unregisterActorTimer("timer-id");
 
 ### Actor Reminders
 
-```javascript
+```ts
 // ...
 
 const actor = builder.build(new ActorId("my-actor"));
