@@ -133,7 +133,7 @@ Subscribing to messages can be done in several ways to offer flexibility of rece
 - Direct susbcription with options through the `subscribeWithOptions` method
 - Subscription afterwards through the `susbcribeOnEvent` method
 
-Each time an event arrives, we then pass its body as `data` and the headers `headers` which can contain properties of the event publisher (e.g. a device id from IoT Hub)
+Each time an event arrives, we pass its body as `data` and the headers as `headers`, which can contain properties of the event publisher (e.g., a device ID from IoT Hub)
 
 > Dapr requires subscriptions to be set up on startup, but in the JS SDK we allow event handlers to be added afterwards as well, providing you the flexibility of programming.
 
