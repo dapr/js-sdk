@@ -23,6 +23,7 @@ describe("http/server", () => {
   let server: DaprServer;
   const mockBindingReceive = jest.fn(async (_data: object) => console.log("mockBindingReceive"));
   const mockPubSub = jest.fn(async (_data: object) => null);
+  const mockPubSubWithHeaders = jest.fn(async (_data: object, _headers: object) => null);
   const mockPubSubError = jest.fn(async (_data: object) => {
     throw new Error("DROPPING MESSAGE");
   });
@@ -83,6 +84,7 @@ describe("http/server", () => {
         },
       ],
     });
+    await server.pubsub.subscribe("pubsub-redis", "topic-5", mockPubSubWithHeaders);
     await server.pubsub.subscribe("pubsub-redis", "test-topic-ce-raw", mockPubSub, undefined, { rawPayload: true });
     await server.pubsub.subscribe("pubsub-redis", "test-topic-raw-raw", mockPubSub, undefined, { rawPayload: true });
     await server.pubsub.subscribe("pubsub-redis", "test-topic-raw-ce", mockPubSub);
@@ -127,6 +129,23 @@ describe("http/server", () => {
       // Also test for receiving data
       // @ts-ignore
       expect(mockPubSub.mock.calls[0][0]["hello"]).toEqual("world");
+    });
+
+    it("should be able to receive events with their respective headers", async () => {
+      await server.client.pubsub.publish("pubsub-redis", "topic-5", { hello: "world" });
+
+      // Delay a bit for event to arrive
+      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+
+      expect(mockPubSubWithHeaders.mock.calls.length).toBe(1);
+
+      // Also test for receiving data
+      // @ts-ignore
+      expect(mockPubSubWithHeaders.mock.calls[0][1]?.["content-type"]).toEqual("application/cloudevents+json");
+      // @ts-ignore
+      expect(mockPubSubWithHeaders.mock.calls[0][1]?.["content-length"]).toEqual("380");
+      // @ts-ignore
+      expect(mockPubSubWithHeaders.mock.calls[0][1]?.["pubsubname"]).toEqual("pubsub-redis");
     });
 
     it("should be able to send and receive events when using options callback without a route", async () => {
