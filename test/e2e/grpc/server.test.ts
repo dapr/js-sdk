@@ -31,9 +31,15 @@ describe("grpc/server", () => {
   // We need to start listening on some endpoints already
   // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
-    server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.GRPC, undefined, {
-      bodySizeMb: 10,
-    });
+    server = new DaprServer(
+      serverHost,
+      serverPort,
+      daprHost,
+      daprPort,
+      CommunicationProtocolEnum.GRPC,
+      { bodySizeMb: 20 }, // we set sending larger than receiving to test the error handling
+      { bodySizeMb: 10 },
+    );
 
     await server.binding.receive("binding-mqtt", mockBindingReceive);
     await server.invoker.listen("test-invoker", mockInvoker, { method: HttpMethod.POST });
@@ -107,32 +113,29 @@ describe("grpc/server", () => {
   });
 
   describe("server", () => {
-    // it('should be able to receive payloads larger than 4 MB', async () => {
-    //   // const body = new Uint8Array(5 * 1024 * 1024);
-    //   // const res = await server.client.invoker.invoke(daprAppId, 'test-invoker', HttpMethod.POST, body);
-    //   // expect(res).toEqual(body);
-
-    //   try {
-    //     await server.client.invoker.invoke(daprAppId, 'test-invoker', HttpMethod.POST, new Uint8Array(5 * 1024 * 1024));
-    //   } catch (e: any) {
-    //     console.log(e?.details)
-    //     expect(e?.details).toEqual(`grpc: received message larger than max (11534407 vs. ${10 * 1024 * 1024})`);
-    //   }
-    // });
-
     it("should throw an error if the receive payload is larger than 10 MB and we did not configure a larger size", async () => {
+      const payload = new Uint8Array(11 * 1024 * 1024);
+
       try {
-        await server.client.invoker.invoke(
-          daprAppId,
-          "test-invoker",
-          HttpMethod.POST,
-          new Uint8Array(11 * 1024 * 1024),
-        );
+        await server.client.invoker.invoke(daprAppId, "test-invoker", HttpMethod.POST, payload);
       } catch (e: any) {
-        console.log(e?.details);
         expect(e?.details).toEqual(`grpc: received message larger than max (11534407 vs. ${10 * 1024 * 1024})`);
       }
     });
+
+    // @todo: we get "rpc error: code = ResourceExhausted desc = stream terminated by RST_STREAM with error code: ENHANCE_YOUR_CALM"
+    // this might be an error in the actual usage of the test rather than the test itself
+    // it("should be able to receive payloads larger than 4 MB", async () => {
+    //   await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
+    //   const payload = new Uint8Array(5 * 1024 * 1024);
+    //   const res = await server.client.invoker.invoke(daprAppId, "test-invoker", HttpMethod.POST, payload);
+
+    //   // Delay a bit for event to arrive
+    //   await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+
+    //   console.log(res);
+    //   // expect(res).toEqual(body);
+    // });
   });
 
   describe("binding", () => {

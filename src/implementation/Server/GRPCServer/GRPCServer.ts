@@ -45,7 +45,8 @@ export default class GRPCServer implements IServer {
     this.logger = new Logger("GRPCServer", "GRPCServer", client.options.logger);
 
     // Create Server
-    this.server = new grpc.Server(this.generateChannelOptions());
+    const grpcChannelOptions = this.generateChannelOptions();
+    this.server = new grpc.Server(grpcChannelOptions);
     this.serverCredentials = grpc.ServerCredentials.createInsecure();
     this.serverImpl = new GRPCServerImpl(this.server, client.options.logger);
 
@@ -55,15 +56,14 @@ export default class GRPCServer implements IServer {
     this.server.addService(AppCallbackService, this.serverImpl);
   }
 
-  // See: https://cs.github.com/nestjs/nest/blob/f4e9ac6208f3e7ee7ad44c3de713c9086f657977/packages/microservices/external/grpc-options.interface.ts 
+  // See: https://cs.github.com/nestjs/nest/blob/f4e9ac6208f3e7ee7ad44c3de713c9086f657977/packages/microservices/external/grpc-options.interface.ts
   generateChannelOptions(): Record<string, string | number> {
     const options: Record<string, string | number> = {};
 
     // See: GRPC_ARG_MAX_SEND_MESSAGE_LENGTH, it is in bytes
-    // https://grpc.github.io/grpc/core/group__grpc__arg__keys.html#gab4defdabac3610ef8a5946848592458c
-    if (this.serverOptions.bodySizeMb) {
-      options["grpc.max_receive_message_length"] = this.serverOptions.bodySizeMb * 1024 * 1024;
-    }
+    // https://grpc.github.io/grpc/core/group__grpc__arg__keys.html#ga813f94f9ac3174571dd712c96cdbbdc1
+    // Default is 4Mb
+    options["grpc.max_receive_message_length"] = (this.serverOptions.bodySizeMb ?? 4) * 1024 * 1024;
 
     return options;
   }

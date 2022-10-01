@@ -36,4 +36,10 @@ export type DaprClientOptions = {
    * See https://docs.dapr.io/operations/security/api-token/.
    */
   daprApiToken?: string;
+
+  /**
+   * The maximum size of the request body in megabytes.
+   * Default is 4MB.
+   */
+  bodySizeMb?: number;
 };
