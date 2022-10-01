@@ -430,7 +430,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     const res = new TopicEventResponse();
 
     // Get the headers
-    let headers: { [key: string]: string } = {};
+    const headers: { [key: string]: string } = {};
 
     for (const [key, value] of Object.entries(call.metadata.toHttp2Headers())) {
       if (value) {
