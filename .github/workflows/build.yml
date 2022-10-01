@@ -33,48 +33,51 @@ jobs:
     env:
       NODE_VER: 16.14.0
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    # Setup .npmrc file to publish to npm
-    - name: Configure .npmrc for NPM publish to @dapr
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ env.NODE_VER }}
-        registry-url: 'https://registry.npmjs.org'
-    
-    - name: Build Package
-      run: npm run build
+      # Setup .npmrc file to publish to npm
+      - name: Configure .npmrc for NPM publish to @dapr
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VER }}
+          registry-url: "https://registry.npmjs.org"
 
-    # @TODO: add a depend on the test-e2e pipeline?
-    - name: Run unit tests
-      id: tests
-      run: npm run test:unit:all
+      - name: Run prettier
+        run: npm run pretty-fix
 
-    - name: Upload test coverage
-      uses: codecov/codecov-action@v1
-    
-    - name: Is Release?
-      if: startswith(github.ref, 'refs/tags/v')
-      run: echo "DEPLOY_PACKAGE=true" >> $GITHUB_ENV
+      - name: Build Package
+        run: npm run build
 
-    # note: package.json gets updated here for the new package name
-    - name: Publish to npm (@dapr/dapr)
-      if: env.DEPLOY_PACKAGE == 'true'
-      run: npm publish build/ --access public
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # @TODO: add a depend on the test-e2e pipeline?
+      - name: Run unit tests
+        id: tests
+        run: npm run test:unit:all
 
-    - name: "[dapr-client] Configure to publish to dapr-client for deprecation notice reasons"
-      if: env.DEPLOY_PACKAGE == 'true'
-      run: sed -i s#"@dapr/dapr"#"dapr-client"# package.json 
-    
-    - name: "[dapr-client] Build Package"
-      if: env.DEPLOY_PACKAGE == 'true'
-      run: npm run build
+      - name: Upload test coverage
+        uses: codecov/codecov-action@v1
 
-    # note: package.json gets updated here for the new package name
-    - name: "[dapr-client] Publish to npm (dapr-client)"
-      if: env.DEPLOY_PACKAGE == 'true'
-      run: npm publish build/ --access public
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Is Release?
+        if: startswith(github.ref, 'refs/tags/v')
+        run: echo "DEPLOY_PACKAGE=true" >> $GITHUB_ENV
+
+      # note: package.json gets updated here for the new package name
+      - name: Publish to npm (@dapr/dapr)
+        if: env.DEPLOY_PACKAGE == 'true'
+        run: npm publish build/ --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: "[dapr-client] Configure to publish to dapr-client for deprecation notice reasons"
+        if: env.DEPLOY_PACKAGE == 'true'
+        run: sed -i s#"@dapr/dapr"#"dapr-client"# package.json
+
+      - name: "[dapr-client] Build Package"
+        if: env.DEPLOY_PACKAGE == 'true'
+        run: npm run build
+
+      # note: package.json gets updated here for the new package name
+      - name: "[dapr-client] Publish to npm (dapr-client)"
+        if: env.DEPLOY_PACKAGE == 'true'
+        run: npm publish build/ --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
