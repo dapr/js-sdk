@@ -161,7 +161,8 @@ async function start() {
 
   // Method 2: Direct susbcription with options through the `subscribeWithOptions` method
   await server.pubsub.subscribeWithOptions(pubSubName, topic, {
-    callback: async (data: any, headers: object) => console.log(`Received Data: ${JSON.stringify(data)} with headers: ${JSON.stringify(headers)}`),
+    callback: async (data: any, headers: object) =>
+      console.log(`Received Data: ${JSON.stringify(data)} with headers: ${JSON.stringify(headers)}`),
   });
 
   // Method 3: Subscription afterwards through the `susbcribeOnEvent` method
