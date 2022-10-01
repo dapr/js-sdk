@@ -23,5 +23,4 @@ export type DaprPubSubRouteType = {
 
   // The default path to use if no rule was matched
   default?: string;
-}
-
+};

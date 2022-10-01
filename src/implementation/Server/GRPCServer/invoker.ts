@@ -11,12 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import GRPCServer from './GRPCServer';
-import { TypeDaprInvokerCallback } from '../../../types/DaprInvokerCallback.type';
-import { InvokerListenOptionsType } from '../../../types/InvokerListenOptions.type';
-import { HttpMethod } from '../../../enum/HttpMethod.enum';
-import IServerInvoker from '../../../interfaces/Server/IServerInvoker';
-import { Logger } from '../../../logger/Logger';
+import GRPCServer from "./GRPCServer";
+import { TypeDaprInvokerCallback } from "../../../types/DaprInvokerCallback.type";
+import { InvokerListenOptionsType } from "../../../types/InvokerListenOptions.type";
+import { HttpMethod } from "../../../enum/HttpMethod.enum";
+import IServerInvoker from "../../../interfaces/Server/IServerInvoker";
+import { Logger } from "../../../logger/Logger";
 
 // https://docs.dapr.io/reference/api/service_invocation_api/
 export default class DaprInvoker implements IServerInvoker {
@@ -29,8 +29,8 @@ export default class DaprInvoker implements IServerInvoker {
   }
 
   async listen(methodName: string, cb: TypeDaprInvokerCallback, options: InvokerListenOptionsType = {}): Promise<any> {
-    const httpMethod: HttpMethod = options?.method?.toLowerCase() as HttpMethod || HttpMethod.GET;
-    this.logger.info(`Registering onInvoke Handler ${httpMethod} /${methodName}`)
+    const httpMethod: HttpMethod = (options?.method?.toLowerCase() as HttpMethod) || HttpMethod.GET;
+    this.logger.info(`Registering onInvoke Handler ${httpMethod} /${methodName}`);
     this.server.getServerImpl().registerOnInvokeHandler(httpMethod, methodName, cb);
   }
 }

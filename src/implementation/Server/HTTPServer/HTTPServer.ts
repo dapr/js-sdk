@@ -16,14 +16,14 @@ import bodyParser from "body-parser";
 import HTTPServerImpl from "./HTTPServerImpl";
 import IServer from "../../../interfaces/Server/IServer";
 import { DaprClient } from "../../..";
-import { createHttpTerminator } from 'http-terminator';
+import { createHttpTerminator } from "http-terminator";
 import { Logger } from "../../../logger/Logger";
 import { DaprServerOptions } from "../../../types/DaprServerOptions";
 
 // eslint-disable-next-line
-export interface IServerImplType extends HTTPServerImpl { }
+export interface IServerImplType extends HTTPServerImpl {}
 // eslint-disable-next-line
-export interface IServerType extends Restana.Service<Restana.Protocol.HTTP> { }
+export interface IServerType extends Restana.Service<Restana.Protocol.HTTP> {}
 
 export default class HTTPServer implements IServer {
   server: IServerType;
@@ -46,25 +46,31 @@ export default class HTTPServer implements IServer {
     this.isInitialized = false;
 
     this.server = Restana();
-    this.server.use(bodyParser.text({
-      limit: this.serverOptions.bodySizeMb ? `${this.serverOptions.bodySizeMb}mb` : `4mb`,
-    }));
+    this.server.use(
+      bodyParser.text({
+        limit: this.serverOptions.bodySizeMb ? `${this.serverOptions.bodySizeMb}mb` : `4mb`,
+      }),
+    );
 
-    this.server.use(bodyParser.raw({
-      limit: this.serverOptions.bodySizeMb ? `${this.serverOptions.bodySizeMb}mb` : `4mb`,
-    }));
+    this.server.use(
+      bodyParser.raw({
+        limit: this.serverOptions.bodySizeMb ? `${this.serverOptions.bodySizeMb}mb` : `4mb`,
+      }),
+    );
 
-    this.server.use(bodyParser.json({
-      type: [
-        "application/json",
+    this.server.use(
+      bodyParser.json({
+        type: [
+          "application/json",
 
-        // Support cloudevents 
-        // https://github.com/cloudevents/spec/blob/v1.0.1/json-format.md
-        "application/cloudevents+json",
-        "application/*+json",
-      ],
-      limit: this.serverOptions.bodySizeMb ? `${this.serverOptions.bodySizeMb}mb` : `4mb`,
-    }));
+          // Support cloudevents
+          // https://github.com/cloudevents/spec/blob/v1.0.1/json-format.md
+          "application/cloudevents+json",
+          "application/*+json",
+        ],
+        limit: this.serverOptions.bodySizeMb ? `${this.serverOptions.bodySizeMb}mb` : `4mb`,
+      }),
+    );
 
     // body-parser is not async compatible, so we have to make it
     // this.server.use((req, res, next) => {
@@ -82,10 +88,12 @@ export default class HTTPServer implements IServer {
 
   getServerAddress(): string {
     if (!this.isInitialized) {
-      throw new Error(JSON.stringify({
-        error: "HTTP_SERVER_NOT_INITIALIZED",
-        error_message: "The HTTP server was not initialized, did you call `await HTTPServerSingleton.initialize()`?"
-      }));
+      throw new Error(
+        JSON.stringify({
+          error: "HTTP_SERVER_NOT_INITIALIZED",
+          error_message: "The HTTP server was not initialized, did you call `await HTTPServerSingleton.initialize()`?",
+        }),
+      );
     }
 
     return this.serverAddress;
@@ -119,7 +127,7 @@ export default class HTTPServer implements IServer {
 
     // Add PubSub Routes
     this.logger.info(`Registering ${this.serverImpl.pubSubSubscriptions.length} PubSub Subscriptions`);
-    this.server.get('/dapr/subscribe', (req, res) => {
+    this.server.get("/dapr/subscribe", (req, res) => {
       res.send(this.serverImpl.generateDaprPubSubSubscriptionList());
       this.logger.info(`Registered ${this.serverImpl.pubSubSubscriptions.length} PubSub Subscriptions`);
     });

@@ -11,29 +11,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import IServer from '../../interfaces/Server/IServer';
-import IServerPubSub from '../../interfaces/Server/IServerPubSub';
-import IServerBinding from '../../interfaces/Server/IServerBinding';
-import IServerInvoker from '../../interfaces/Server/IServerInvoker';
-import IServerActor from '../../interfaces/Server/IServerActor';
+import IServer from "../../interfaces/Server/IServer";
+import IServerPubSub from "../../interfaces/Server/IServerPubSub";
+import IServerBinding from "../../interfaces/Server/IServerBinding";
+import IServerInvoker from "../../interfaces/Server/IServerInvoker";
+import IServerActor from "../../interfaces/Server/IServerActor";
 
-import CommunicationProtocolEnum from '../../enum/CommunicationProtocol.enum';
-import GRPCServer from './GRPCServer/GRPCServer';
-import GRPCServerPubSub from './GRPCServer/pubsub';
-import GRPCServerBinding from './GRPCServer/binding';
-import GRPCServerInvoker from './GRPCServer/invoker';
-import GRPCServerActor from './GRPCServer/actor';
+import CommunicationProtocolEnum from "../../enum/CommunicationProtocol.enum";
+import GRPCServer from "./GRPCServer/GRPCServer";
+import GRPCServerPubSub from "./GRPCServer/pubsub";
+import GRPCServerBinding from "./GRPCServer/binding";
+import GRPCServerInvoker from "./GRPCServer/invoker";
+import GRPCServerActor from "./GRPCServer/actor";
 
-import HTTPServer from './HTTPServer/HTTPServer';
-import HTTPServerPubSub from './HTTPServer/pubsub';
-import HTTPServerBinding from './HTTPServer/binding';
-import HTTPServerInvoker from './HTTPServer/invoker';
-import HTTPServerActor from './HTTPServer/actor';
-import { DaprClientOptions } from '../../types/DaprClientOptions';
-import { DaprClient } from '../..';
-import { Settings } from '../../utils/Settings.util';
-import { Logger } from '../../logger/Logger';
-import { DaprServerOptions } from '../../types/DaprServerOptions';
+import HTTPServer from "./HTTPServer/HTTPServer";
+import HTTPServerPubSub from "./HTTPServer/pubsub";
+import HTTPServerBinding from "./HTTPServer/binding";
+import HTTPServerInvoker from "./HTTPServer/invoker";
+import HTTPServerActor from "./HTTPServer/actor";
+import { DaprClientOptions } from "../../types/DaprClientOptions";
+import { DaprClient } from "../..";
+import { Settings } from "../../utils/Settings.util";
+import { Logger } from "../../logger/Logger";
+import { DaprServerOptions } from "../../types/DaprServerOptions";
 
 export default class DaprServer {
   // App details
@@ -54,13 +54,13 @@ export default class DaprServer {
   readonly client: DaprClient;
 
   constructor(
-    serverHost?: string
-    , serverPort?: string
-    , daprHost?: string
-    , daprPort?: string
-    , communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP
-    , clientOptions: DaprClientOptions = {}
-    , serverOptions: DaprServerOptions = {}
+    serverHost?: string,
+    serverPort?: string,
+    daprHost?: string,
+    daprPort?: string,
+    communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP,
+    clientOptions: DaprClientOptions = {},
+    serverOptions: DaprServerOptions = {},
   ) {
     this.serverHost = serverHost ?? Settings.getDefaultHost();
     this.serverPort = serverPort ?? Settings.getDefaultAppPort(communicationProtocol);
@@ -78,11 +78,11 @@ export default class DaprServer {
 
     // Validation on port
     if (!/^[0-9]+$/.test(this.serverPort)) {
-      throw new Error('DAPR_INCORRECT_SERVER_PORT');
+      throw new Error("DAPR_INCORRECT_SERVER_PORT");
     }
 
     if (!/^[0-9]+$/.test(this.daprPort)) {
-      throw new Error('DAPR_INCORRECT_SIDECAR_PORT');
+      throw new Error("DAPR_INCORRECT_SIDECAR_PORT");
     }
 
     // Builder

@@ -19,8 +19,8 @@ import { PubSubSubscriptionTopicRoutesType } from "./PubSubSubscriptionTopicRout
  */
 export type PubSubSubscriptionTopicType = {
   // The routes defined in a topic
-  routes: PubSubSubscriptionTopicRoutesType
+  routes: PubSubSubscriptionTopicRoutesType;
 
   // dapr is configured on topic level
   dapr: DaprPubSubType;
-}
+};

@@ -11,12 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { TypeDaprInvokerCallback } from '../../../types/DaprInvokerCallback.type';
-import { InvokerListenOptionsType } from '../../../types/InvokerListenOptions.type';
-import { HttpMethod } from '../../../enum/HttpMethod.enum';
-import HTTPServer from './HTTPServer';
-import IServerInvoker from '../../../interfaces/Server/IServerInvoker';
-import { Logger } from '../../../logger/Logger';
+import { TypeDaprInvokerCallback } from "../../../types/DaprInvokerCallback.type";
+import { InvokerListenOptionsType } from "../../../types/InvokerListenOptions.type";
+import { HttpMethod } from "../../../enum/HttpMethod.enum";
+import HTTPServer from "./HTTPServer";
+import IServerInvoker from "../../../interfaces/Server/IServerInvoker";
+import { Logger } from "../../../logger/Logger";
 
 // https://docs.dapr.io/reference/api/service_invocation_api/
 export default class HTTPServerInvoker implements IServerInvoker {
@@ -29,7 +29,7 @@ export default class HTTPServerInvoker implements IServerInvoker {
   }
 
   async listen(methodName: string, cb: TypeDaprInvokerCallback, options: InvokerListenOptionsType = {}) {
-    const serverMethod: HttpMethod = options?.method?.toLowerCase() as HttpMethod || HttpMethod.GET;
+    const serverMethod: HttpMethod = (options?.method?.toLowerCase() as HttpMethod) || HttpMethod.GET;
 
     const server = await this.server.getServer();
     // @TODO should pass rest of headers to callback
@@ -38,8 +38,8 @@ export default class HTTPServerInvoker implements IServerInvoker {
         body: JSON.stringify(req.body),
         query: req.originalUrl,
         metadata: {
-          contentType: req.headers['content-type']
-        }
+          contentType: req.headers["content-type"],
+        },
       });
 
       // Make sure we close the request after the callback
@@ -54,6 +54,6 @@ export default class HTTPServerInvoker implements IServerInvoker {
       }
     });
 
-    this.logger.info(`Listening on ${serverMethod.toUpperCase()} /${methodName}`)
+    this.logger.info(`Listening on ${serverMethod.toUpperCase()} /${methodName}`);
   }
 }

@@ -12,20 +12,20 @@ limitations under the License.
 */
 
 import { AbstractActor } from "@dapr/dapr";
-import ActorCounterInterface from "../interfaces/ActorCounterInterface";
+import ActorStateInterface from "../interfaces/ActorStateInterface";
 
-export default class ActorCounterImpl extends AbstractActor implements ActorCounterInterface {
-  counter = 0;
-
-  async count(): Promise<void> {
-    this.counter++;
+export default class ActorStateImpl extends AbstractActor implements ActorStateInterface {
+  async setState(key: string, value: any): Promise<void> {
+    await this.getStateManager().setState(key, value);
+    await this.getStateManager().saveState();
   }
 
-  async countBy(amount: number, multiplier = 1): Promise<void> {
-    this.counter += amount * multiplier;
+  async removeState(key: string): Promise<void> {
+    await this.getStateManager().removeState(key);
+    await this.getStateManager().saveState();
   }
 
-  async getCounter(): Promise<number> {
-    return this.counter;
+  async getState<T>(key: string): Promise<T | null> {
+    return await this.getStateManager<T>().getState(key);
   }
 }

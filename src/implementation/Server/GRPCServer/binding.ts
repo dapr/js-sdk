@@ -11,10 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import GRPCServer from './GRPCServer';
-import { TypeDaprBindingCallback } from '../../../types/DaprBindingCallback.type';
-import IServerBinding from '../../../interfaces/Server/IServerBinding';
-import { Logger } from '../../../logger/Logger';
+import GRPCServer from "./GRPCServer";
+import { TypeDaprBindingCallback } from "../../../types/DaprBindingCallback.type";
+import IServerBinding from "../../../interfaces/Server/IServerBinding";
+import { Logger } from "../../../logger/Logger";
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class DaprBinding implements IServerBinding {

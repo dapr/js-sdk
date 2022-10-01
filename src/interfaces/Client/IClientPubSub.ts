@@ -21,5 +21,5 @@ export default interface IClientPubSub {
    * @param data data to publish
    * @param metadata metadata for the message
    */
-  publish(pubSubName: string, topic: string, data?: object, metadata?: KeyValueType): Promise<boolean>
+  publish(pubSubName: string, topic: string, data?: object, metadata?: KeyValueType): Promise<boolean>;
 }

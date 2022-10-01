@@ -19,4 +19,4 @@ export type KeyValuePairType = {
   etag?: string;
   metadata?: KeyValueType;
   options?: object;
-}
+};

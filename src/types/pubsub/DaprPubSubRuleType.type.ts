@@ -22,5 +22,4 @@ export type DaprPubSubRuleType = {
 
   // The path to send the event towards if it matches
   path: string;
-}
-
+};

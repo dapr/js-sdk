@@ -25,7 +25,7 @@ export type DaprPubSubType = {
   // The topic name
   topic: string;
 
-  // Metadata 
+  // Metadata
   metadata?: KeyValueType;
 
   // A singular route to send the event to
@@ -36,5 +36,4 @@ export type DaprPubSubType = {
 
   // The path to send unprocessable events to
   deadLetterTopic?: string;
-}
-
+};

@@ -22,13 +22,24 @@ export default class ActorProxyBuilder<T> {
   actorTypeClass: Class<T>;
 
   constructor(actorTypeClass: Class<T>, daprClient: DaprClient);
-  constructor(actorTypeClass: Class<T>, host: string, port: string, communicationProtocol: CommunicationProtocolEnum, clientOptions: DaprClientOptions);
+  constructor(
+    actorTypeClass: Class<T>,
+    host: string,
+    port: string,
+    communicationProtocol: CommunicationProtocolEnum,
+    clientOptions: DaprClientOptions,
+  );
   constructor(actorTypeClass: Class<T>, ...args: any[]) {
     this.actorTypeClass = actorTypeClass;
 
     if (args.length == 1) {
       const [daprClient] = args;
-      this.actorClient = new ActorClient(daprClient.getDaprHost(), daprClient.getDaprPort(), daprClient.getCommunicationProtocol(), daprClient.getOptions());
+      this.actorClient = new ActorClient(
+        daprClient.getDaprHost(),
+        daprClient.getDaprPort(),
+        daprClient.getCommunicationProtocol(),
+        daprClient.getOptions(),
+      );
     } else {
       const [host, port, communicationProtocol, clientOptions] = args;
       this.actorClient = new ActorClient(host, port, communicationProtocol, clientOptions);
@@ -47,7 +58,7 @@ export default class ActorProxyBuilder<T> {
 
           return res;
         };
-      }
+      },
     };
 
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy
@@ -55,7 +66,7 @@ export default class ActorProxyBuilder<T> {
     const proxy = new Proxy(this.actorTypeClass, handler);
 
     // Return a NOT strongly typed API
-    // @todo: this should return a strongly typed API as well, but requires reflection. How to do this in typescript? 
+    // @todo: this should return a strongly typed API as well, but requires reflection. How to do this in typescript?
     return proxy as unknown as T;
   }
 }

@@ -16,14 +16,14 @@ limitations under the License.
  * when saves change is called to a set of actor states.
  */
 enum StateChangeKind {
-    // No change in state
-    NONE = 0,
-    // The state needs to be added
-    ADD = 1,
-    // The state needs to be updated
-    UPDATE = 2,
-    // The state needs to be removed
-    REMOVE = 3
+  // No change in state
+  NONE = 0,
+  // The state needs to be added
+  ADD = 1,
+  // The state needs to be updated
+  UPDATE = 2,
+  // The state needs to be removed
+  REMOVE = 3,
 }
 
 export default StateChangeKind;

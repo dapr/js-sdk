@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import HTTPClient from './HTTPClient';
-import IClientBinding from '../../../interfaces/Client/IClientBinding';
+import HTTPClient from "./HTTPClient";
+import IClientBinding from "../../../interfaces/Client/IClientBinding";
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class HTTPClientBinding implements IClientBinding {
@@ -25,14 +25,14 @@ export default class HTTPClientBinding implements IClientBinding {
   // Send an event to an external system
   async send(bindingName: string, operation: string, data: any, metadata: object = {}): Promise<object> {
     const result = await this.client.execute(`/bindings/${bindingName}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         operation,
         data,
-        metadata
+        metadata,
       }),
     });
 

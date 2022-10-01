@@ -32,7 +32,7 @@ export default class ParkingSensorImpl extends AbstractActor implements ParkingS
     await this.getDaprClient().binding.send("binding-influxdb", "create", {
       measurement: "sensor-states",
       tags: `sensor=${this.getActorId().getId()}`,
-      values: `lat=${sensorLocationLat},lng=${sensorLocationLng},isParked=1`
+      values: `lat=${sensorLocationLat},lng=${sensorLocationLng},isParked=1`,
     });
   }
 
@@ -45,7 +45,7 @@ export default class ParkingSensorImpl extends AbstractActor implements ParkingS
     await this.getDaprClient().binding.send("binding-influxdb", "create", {
       measurement: "sensor-states",
       tags: `sensor=${this.getActorId().getId()}`,
-      values: `lat=${sensorLocationLat},lng=${sensorLocationLng},isParked=0`
+      values: `lat=${sensorLocationLat},lng=${sensorLocationLng},isParked=0`,
     });
   }
 
@@ -57,8 +57,8 @@ export default class ParkingSensorImpl extends AbstractActor implements ParkingS
     return {
       sensorValue,
       sensorLocationLat,
-      sensorLocationLng
-    }
+      sensorLocationLng,
+    };
   }
 
   /**
@@ -75,7 +75,7 @@ export default class ParkingSensorImpl extends AbstractActor implements ParkingS
     await this.getStateManager().setState(STATE_NAME_PARKING_SENSOR_LOCATION_LNG, spotLocation.lng);
   }
 
-  private generateRandomPoint(center: { lat: number, lng: number }, radius: number) {
+  private generateRandomPoint(center: { lat: number; lng: number }, radius: number) {
     const x0 = center.lng;
     const y0 = center.lat;
 
@@ -93,6 +93,6 @@ export default class ParkingSensorImpl extends AbstractActor implements ParkingS
     const xp = x / Math.cos(y0);
 
     // Resulting point.
-    return { 'lat': y + y0, 'lng': xp + x0 };
+    return { lat: y + y0, lng: xp + x0 };
   }
 }

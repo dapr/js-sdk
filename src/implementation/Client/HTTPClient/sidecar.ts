@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import HTTPClient from './HTTPClient';
-import IClientSidecar from '../../../interfaces/Client/IClientSidecar';
+import HTTPClient from "./HTTPClient";
+import IClientSidecar from "../../../interfaces/Client/IClientSidecar";
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class HTTPClientSidecar implements IClientSidecar {
@@ -24,7 +24,7 @@ export default class HTTPClientSidecar implements IClientSidecar {
 
   async shutdown(): Promise<void> {
     await this.client.execute(`/shutdown`, {
-      method: 'POST'
+      method: "POST",
     });
   }
 

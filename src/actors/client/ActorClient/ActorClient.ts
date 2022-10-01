@@ -11,13 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import CommunicationProtocolEnum from '../../../enum/CommunicationProtocol.enum';
-import GRPCClient from '../../../implementation/Client/GRPCClient/GRPCClient';
-import HTTPClient from '../../../implementation/Client/HTTPClient/HTTPClient';
-import IClientActor from '../../../interfaces/Client/IClientActor';
-import { DaprClientOptions } from '../../../types/DaprClientOptions';
-import ActorClientGRPC from './ActorClientGRPC';
-import ActorClientHTTP from './ActorClientHTTP';
+import CommunicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
+import GRPCClient from "../../../implementation/Client/GRPCClient/GRPCClient";
+import HTTPClient from "../../../implementation/Client/HTTPClient/HTTPClient";
+import IClientActor from "../../../interfaces/Client/IClientActor";
+import { DaprClientOptions } from "../../../types/DaprClientOptions";
+import ActorClientGRPC from "./ActorClientGRPC";
+import ActorClientHTTP from "./ActorClientHTTP";
 
 export default class ActorClient {
   readonly daprHost: string;
@@ -26,7 +26,12 @@ export default class ActorClient {
   readonly actor: IClientActor;
   readonly options: DaprClientOptions;
 
-  constructor(daprHost: string, daprPort: string, communicationProtocol: CommunicationProtocolEnum, options: DaprClientOptions = {}) {
+  constructor(
+    daprHost: string,
+    daprPort: string,
+    communicationProtocol: CommunicationProtocolEnum,
+    options: DaprClientOptions = {},
+  ) {
     this.daprHost = daprHost;
     this.daprPort = daprPort;
     this.communicationProtocol = communicationProtocol;

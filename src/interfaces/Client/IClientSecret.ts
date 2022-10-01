@@ -12,6 +12,6 @@ limitations under the License.
 */
 
 export default interface IClientSecret {
-    get(secretStoreName: string, key: string, metadata?: string): Promise<object>;
-    getBulk(secretStoreName: string): Promise<object>;
+  get(secretStoreName: string, key: string, metadata?: string): Promise<object>;
+  getBulk(secretStoreName: string): Promise<object>;
 }

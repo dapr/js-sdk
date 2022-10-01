@@ -17,27 +17,27 @@ import { LoggerService } from "../types/logger/LoggerService";
  * ConsoleLoggerService uses the in-built console module to log messages.
  */
 export class ConsoleLoggerService implements LoggerService {
-    error(message: any, ...optionalParams: any[]): void {
-        console.error(`${this.getTime()} ERROR ${message}`, ...optionalParams);
-    }
+  error(message: any, ...optionalParams: any[]): void {
+    console.error(`${this.getTime()} ERROR ${message}`, ...optionalParams);
+  }
 
-    warn(message: any, ...optionalParams: any[]): void {
-        console.warn(`${this.getTime()} WARN ${message}`, ...optionalParams);
-    }
+  warn(message: any, ...optionalParams: any[]): void {
+    console.warn(`${this.getTime()} WARN ${message}`, ...optionalParams);
+  }
 
-    info(message: any, ...optionalParams: any[]): void {
-        console.info(`${this.getTime()} INFO ${message}`, ...optionalParams);
-    }
+  info(message: any, ...optionalParams: any[]): void {
+    console.info(`${this.getTime()} INFO ${message}`, ...optionalParams);
+  }
 
-    verbose(message: any, ...optionalParams: any[]): void {
-        console.log(`${this.getTime()} VERBOSE ${message}`, ...optionalParams);
-    }
+  verbose(message: any, ...optionalParams: any[]): void {
+    console.log(`${this.getTime()} VERBOSE ${message}`, ...optionalParams);
+  }
 
-    debug(message: any, ...optionalParams: any[]): void {
-        console.debug(`${this.getTime()} DEBUG ${message}`, ...optionalParams);
-    }
+  debug(message: any, ...optionalParams: any[]): void {
+    console.debug(`${this.getTime()} DEBUG ${message}`, ...optionalParams);
+  }
 
-    private getTime(): string {
-        return (new Date()).toISOString();
-    }
+  private getTime(): string {
+    return new Date().toISOString();
+  }
 }

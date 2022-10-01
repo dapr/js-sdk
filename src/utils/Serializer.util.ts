@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-export function serializeGrpc(data: any): { serializedData: string | Uint8Array, contentType: string } {
+export function serializeGrpc(data: any): { serializedData: string | Uint8Array; contentType: string } {
   let serializedData: string | Uint8Array = data;
   let contentType = "application/octet-stream";
 

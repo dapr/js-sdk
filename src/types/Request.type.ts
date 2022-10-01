@@ -21,4 +21,4 @@ export type IRequest = {
   etag?: IEtag;
   metadata?: IRequestMetadata;
   options?: IStateOptions;
-}
+};
