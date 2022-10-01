@@ -42,9 +42,6 @@ jobs:
           node-version: ${{ env.NODE_VER }}
           registry-url: "https://registry.npmjs.org"
 
-      - name: Run prettier
-        run: npm run pretty-fix
-
       - name: Build Package
         run: npm run build
 
