@@ -103,10 +103,18 @@ describe("http/server", () => {
   });
 
   describe("server", () => {
-    it('should be able to receive payloads larger than 4 MB', async () => {
-      const serverTest = new DaprServer(serverHost, "50002", daprHost, daprPort, CommunicationProtocolEnum.HTTP, undefined, {
-        maxBodySizeMb: 10
-      });
+    it("should be able to receive payloads larger than 4 MB", async () => {
+      const serverTest = new DaprServer(
+        serverHost,
+        "50002",
+        daprHost,
+        daprPort,
+        CommunicationProtocolEnum.HTTP,
+        undefined,
+        {
+          maxBodySizeMb: 10,
+        },
+      );
       await serverTest.start();
 
       const mock = jest.fn(async (_data: object) => null);
@@ -114,15 +122,15 @@ describe("http/server", () => {
       await serverTest.invoker.listen("test", mock, { method: HttpMethod.POST });
 
       await fetch(`http://${serverHost}:50002/test`, {
-        method: 'POST',
+        method: "POST",
         body: new Uint8Array(5 * 1024 * 1024),
         headers: {
-          'Content-Type': 'application/octet-stream'
-        }
+          "Content-Type": "application/octet-stream",
+        },
       });
 
       // @ts-ignore
-      const mockBodyParsed = JSON.parse(mock.mock.calls[0][0]['body']);
+      const mockBodyParsed = JSON.parse(mock.mock.calls[0][0]["body"]);
 
       expect(mockBodyParsed.type).toEqual("Buffer");
       expect(mockBodyParsed.data.length).toEqual(5 * 1024 * 1024);
@@ -130,8 +138,7 @@ describe("http/server", () => {
       await serverTest.stop();
     });
 
-
-    it('should throw an error if the receive payload is larger than 4 MB and we did not configure a larger size', async () => {
+    it("should throw an error if the receive payload is larger than 4 MB and we did not configure a larger size", async () => {
       const serverTest = new DaprServer(serverHost, "50002", daprHost, daprPort, CommunicationProtocolEnum.HTTP);
       await serverTest.start();
 
@@ -140,11 +147,11 @@ describe("http/server", () => {
       await serverTest.invoker.listen("test", mock, { method: HttpMethod.POST });
 
       const res = await fetch(`http://${serverHost}:50002/test`, {
-        method: 'POST',
+        method: "POST",
         body: new Uint8Array(5 * 1024 * 1024),
         headers: {
-          'Content-Type': 'application/octet-stream'
-        }
+          "Content-Type": "application/octet-stream",
+        },
       });
 
       const resParsed = await res.json();
@@ -154,9 +161,9 @@ describe("http/server", () => {
     });
   });
 
-  describe('binding', () => {
-    it('should be able to receive events', async () => {
-      await server.client.binding.send('binding-mqtt', 'create', { hello: 'world' });
+  describe("binding", () => {
+    it("should be able to receive events", async () => {
+      await server.client.binding.send("binding-mqtt", "create", { hello: "world" });
 
       // Delay a bit for event to arrive
       await new Promise((resolve, _reject) => setTimeout(resolve, 250));

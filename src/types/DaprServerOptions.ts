@@ -17,4 +17,4 @@ export type DaprServerOptions = {
    * Default is 4MB.
    */
   maxBodySizeMb?: number;
-}
+};

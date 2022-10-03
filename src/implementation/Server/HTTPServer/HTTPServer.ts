@@ -21,9 +21,9 @@ import { Logger } from "../../../logger/Logger";
 import { DaprServerOptions } from "../../../types/DaprServerOptions";
 
 // eslint-disable-next-line
-export interface IServerImplType extends HTTPServerImpl { }
+export interface IServerImplType extends HTTPServerImpl {}
 // eslint-disable-next-line
-export interface IServerType extends Restana.Service<Restana.Protocol.HTTP> { }
+export interface IServerType extends Restana.Service<Restana.Protocol.HTTP> {}
 
 export default class HTTPServer implements IServer {
   server: IServerType;
