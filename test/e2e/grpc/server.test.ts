@@ -125,7 +125,7 @@ describe("grpc/server", () => {
 
     it("should be able to receive payloads larger than 4 MB", async () => {
       await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
-      const payload = new Uint8Array(10 * 1024 * 1024);
+      const payload = new Uint8Array(5 * 1024 * 1024);
 
       try {
         const res = await server.client.invoker.invoke(daprAppId, "test-invoker", HttpMethod.POST, payload);
