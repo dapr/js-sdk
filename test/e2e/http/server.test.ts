@@ -113,7 +113,7 @@ describe("http/server", () => {
 
       await serverTest.invoker.listen("test", mock, { method: HttpMethod.POST });
 
-      const res = await fetch(`http://${serverHost}:50002/test`, {
+      await fetch(`http://${serverHost}:50002/test`, {
         method: 'POST',
         body: new Uint8Array(5 * 1024 * 1024),
         headers: {
