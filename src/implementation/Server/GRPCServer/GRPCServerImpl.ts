@@ -400,6 +400,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     callback: grpc.sendUnaryData<TopicEventResponse>,
   ): Promise<void> {
     const req = call.request;
+
     const pubsubName = req.getPubsubName();
     const topic = req.getTopic();
 
@@ -428,9 +429,18 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
     const res = new TopicEventResponse();
 
+    // Get the headers
+    const headers: { [key: string]: string } = {};
+
+    for (const [key, value] of Object.entries(call.metadata.toHttp2Headers())) {
+      if (value) {
+        headers[key] = value.toString();
+      }
+    }
+
     try {
       const eventHandlers = this.pubSubSubscriptions[pubsubName][topic].routes[route].eventHandlers;
-      await Promise.all(eventHandlers.map((cb) => cb(dataParsed)));
+      await Promise.all(eventHandlers.map((cb) => cb(dataParsed, headers)));
       res.setStatus(TopicEventResponse.TopicEventResponseStatus.SUCCESS);
     } catch (e) {
       // @todo: for now we drop, maybe we should allow retrying as well more easily?

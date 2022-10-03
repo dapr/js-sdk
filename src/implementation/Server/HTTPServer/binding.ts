@@ -32,7 +32,7 @@ export default class HTTPServerBinding implements IServerBinding {
   async receive(bindingName: string, cb: FunctionDaprInputCallback) {
     const server = await this.server.getServer();
 
-    server.options(`/${bindingName}`, (_req, res) => {
+    server.options(`/${bindingName}`, async (_req, res) => {
       return res.end();
     });
 

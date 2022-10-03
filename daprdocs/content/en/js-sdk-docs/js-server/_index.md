@@ -133,6 +133,8 @@ Subscribing to messages can be done in several ways to offer flexibility of rece
 - Direct susbcription with options through the `subscribeWithOptions` method
 - Subscription afterwards through the `susbcribeOnEvent` method
 
+Each time an event arrives, we pass its body as `data` and the headers as `headers`, which can contain properties of the event publisher (e.g., a device ID from IoT Hub)
+
 > Dapr requires subscriptions to be set up on startup, but in the JS SDK we allow event handlers to be added afterwards as well, providing you the flexibility of programming.
 
 An example is provided below
@@ -153,20 +155,21 @@ async function start() {
 
   // Configure Subscriber for a Topic
   // Method 1: Direct subscription through the `subscribe` method
-  await server.pubsub.subscribe(pubSubName, topic, async (data: any) =>
-    console.log(`Received Data: ${JSON.stringify(data)}`),
+  await server.pubsub.subscribe(pubSubName, topic, async (data: any, headers: object) =>
+    console.log(`Received Data: ${JSON.stringify(data)} with headers: ${JSON.stringify(headers)}`),
   );
 
   // Method 2: Direct susbcription with options through the `subscribeWithOptions` method
   await server.pubsub.subscribeWithOptions(pubSubName, topic, {
-    callback: async (data: any) => console.log(`Received Data: ${JSON.stringify(data)}`),
+    callback: async (data: any, headers: object) =>
+      console.log(`Received Data: ${JSON.stringify(data)} with headers: ${JSON.stringify(headers)}`),
   });
 
   // Method 3: Subscription afterwards through the `susbcribeOnEvent` method
   // Note: we use default, since if no route was passed (empty options) we utilize "default" as the route name
   await server.pubsub.subscribeWithOptions("pubsub-redis", "topic-options-1", {});
-  server.pubsub.subscribeToRoute("pubsub-redis", "topic-options-1", "default", async (data) => {
-    console.log(`Received Data: ${JSON.stringify(data)}`);
+  server.pubsub.subscribeToRoute("pubsub-redis", "topic-options-1", "default", async (data: any, headers: object) => {
+    console.log(`Received Data: ${JSON.stringify(data)} with headers: ${JSON.stringify(headers)}`);
   });
 
   // Start the server

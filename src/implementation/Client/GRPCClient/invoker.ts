@@ -47,7 +47,7 @@ export default class GRPCClientInvoker implements IClientInvoker {
       };
     }
 
-    if (method !== HttpMethod.GET && data !== {}) {
+    if (method !== HttpMethod.GET) {
       // @ts-ignore
       fetchOptions.body = JSON.stringify(data);
     }
