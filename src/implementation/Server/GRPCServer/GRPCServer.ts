@@ -20,9 +20,9 @@ import { Logger } from "../../../logger/Logger";
 import { DaprServerOptions } from "../../../types/DaprServerOptions";
 
 // eslint-disable-next-line
-export interface IServerType extends grpc.Server {}
+export interface IServerType extends grpc.Server { }
 // eslint-disable-next-line
-export interface IServerImplType extends GRPCServerImpl {}
+export interface IServerImplType extends GRPCServerImpl { }
 
 export default class GRPCServer implements IServer {
   isInitialized: boolean;
@@ -63,7 +63,7 @@ export default class GRPCServer implements IServer {
     // See: GRPC_ARG_MAX_SEND_MESSAGE_LENGTH, it is in bytes
     // https://grpc.github.io/grpc/core/group__grpc__arg__keys.html#ga813f94f9ac3174571dd712c96cdbbdc1
     // Default is 4Mb
-    options["grpc.max_receive_message_length"] = (this.serverOptions.bodySizeMb ?? 4) * 1024 * 1024;
+    options["grpc.max_receive_message_length"] = (this.serverOptions.maxBodySizeMb ?? 4) * 1024 * 1024;
 
     return options;
   }

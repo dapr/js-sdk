@@ -37,8 +37,8 @@ describe("grpc/server", () => {
       daprHost,
       daprPort,
       CommunicationProtocolEnum.GRPC,
-      { bodySizeMb: 20 }, // we set sending larger than receiving to test the error handling
-      { bodySizeMb: 10 },
+      { maxBodySizeMb: 20 }, // we set sending larger than receiving to test the error handling
+      { maxBodySizeMb: 10 },
     );
 
     await server.binding.receive("binding-mqtt", mockBindingReceive);

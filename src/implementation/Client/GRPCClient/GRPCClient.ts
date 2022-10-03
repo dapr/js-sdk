@@ -74,7 +74,7 @@ export default class GRPCClient implements IClient {
     // See: GRPC_ARG_MAX_SEND_MESSAGE_LENGTH, it is in bytes
     // https://grpc.github.io/grpc/core/group__grpc__arg__keys.html#ga813f94f9ac3174571dd712c96cdbbdc1
     // Default is 4Mb
-    options["grpc.max_send_message_length"] = (this.options.bodySizeMb ?? 4) * 1024 * 1024;
+    options["grpc.max_send_message_length"] = (this.options.maxBodySizeMb ?? 4) * 1024 * 1024;
 
     return options;
   }

@@ -105,7 +105,7 @@ describe("http/server", () => {
   describe("server", () => {
     it('should be able to receive payloads larger than 4 MB', async () => {
       const serverTest = new DaprServer(serverHost, "50002", daprHost, daprPort, CommunicationProtocolEnum.HTTP, undefined, {
-        bodySizeMb: 10
+        maxBodySizeMb: 10
       });
       await serverTest.start();
 

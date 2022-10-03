@@ -41,5 +41,5 @@ export type DaprClientOptions = {
    * The maximum size of the request body in megabytes.
    * Default is 4MB.
    */
-  bodySizeMb?: number;
+  maxBodySizeMb?: number;
 };
