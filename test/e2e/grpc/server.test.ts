@@ -98,6 +98,7 @@ describe("grpc/server", () => {
     mockBindingReceive.mockClear();
     mockPubSub.mockClear();
     mockPubSubError.mockClear();
+    mockPubSubWithHeaders.mockClear();
   });
 
   afterAll(async () => {
