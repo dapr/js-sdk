@@ -123,8 +123,6 @@ describe("grpc/server", () => {
       }
     });
 
-    // @todo: we get "rpc error: code = ResourceExhausted desc = stream terminated by RST_STREAM with error code: ENHANCE_YOUR_CALM"
-    // this might be an error in the actual usage of the test rather than the test itself
     it("should be able to receive payloads larger than 4 MB", async () => {
       await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
       const payload = new Uint8Array(10 * 1024 * 1024);

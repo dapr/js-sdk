@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-export function serializeGrpc(data: any): { serializedData: string | Uint8Array; contentType: string } {
-  let serializedData: string | Uint8Array = data;
+export function serializeGrpc(data: any): { serializedData: Buffer; contentType: string } {
+  let serializedData: Buffer = data;
   let contentType = "application/octet-stream";
 
   // check if the data type is a typed array
@@ -21,13 +21,16 @@ export function serializeGrpc(data: any): { serializedData: string | Uint8Array;
 
   if (type) {
     contentType = "application/octet-stream";
-    serializedData = data;
+    serializedData = Buffer.from(data);
   } else if (data instanceof Buffer) {
     contentType = "application/octet-stream";
-    serializedData = data;
-  } else {
+    serializedData = Buffer.from(data);
+  } else if (typeof data === "object") {
     contentType = "application/json";
-    serializedData = Buffer.from(JSON.stringify(data), "utf-8");
+    serializedData = Buffer.from(JSON.stringify(data));
+  } else {
+    contentType = "application/octet-stream";
+    serializedData = Buffer.from(data);
   }
 
   return { serializedData, contentType };

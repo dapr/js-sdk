@@ -14,11 +14,24 @@ limitations under the License.
 import * as SerializerUtil from "../../../src/utils/Serializer.util";
 
 describe("serializer", () => {
-  it("Object should be serialized to Buffer", () => {
+  it("Object should be serialized to Buffer as application/json", () => {
     const data = SerializerUtil.serializeGrpc({ Hello: "World" });
     expect(Buffer.compare(data.serializedData, Buffer.from(JSON.stringify({ Hello: "World" })))).toEqual(0);
     expect(data.contentType).toEqual("application/json");
   });
+
+  it("String should be serialized to Buffer as application/octet-stream", () => {
+    const data = SerializerUtil.serializeGrpc("hello-world");
+    expect(Buffer.compare(data.serializedData, Buffer.from("hello-world", "utf-8"))).toEqual(0);
+    expect(data.contentType).toEqual("application/octet-stream");
+  });
+
+  it("Buffer should be serialized to Buffer as application/octet-stream", () => {
+    const data = SerializerUtil.serializeGrpc(Buffer.from("hello-world"));
+    expect(Buffer.compare(data.serializedData, Buffer.from("hello-world", "utf-8"))).toEqual(0);
+    expect(data.contentType).toEqual("application/octet-stream");
+  });
+
   it("Buffer object should not be serialized again", () => {
     const data = SerializerUtil.serializeGrpc(Buffer.from("Hello World"));
     expect(Buffer.compare(data.serializedData, Buffer.from("Hello World"))).toEqual(0);
