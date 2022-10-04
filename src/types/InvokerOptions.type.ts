@@ -11,13 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
-/** 
-* Options related to service invocation.
-*/
-export type InvokerOptions={
-  /** 
-  * Headers to include in service invocation request.   
-  */
-  headers?: object
-}
+/**
+ * Options related to service invocation.
+ */
+export type InvokerOptions = {
+  /**
+   * Headers to include in service invocation request.
+   */
+  headers?: object;
+};
