@@ -27,8 +27,7 @@
     "build": "./scripts/build.sh",
     "start:dev": "npm run build && nodemon --ext \".ts,.js\" --watch \"./src\" --exec \"npm run build\"",
     "pretty": "prettier --list-different \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "pretty-fix": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "prepare": "husky install"
+    "pretty-fix": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
   },
   "keywords": [],
   "author": "Xavier Geerinck",
