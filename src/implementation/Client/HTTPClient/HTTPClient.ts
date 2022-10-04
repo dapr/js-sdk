@@ -21,6 +21,7 @@ import { Settings } from "../../../utils/Settings.util";
 import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type";
 import { Logger } from "../../../logger/Logger";
 import HTTPClientSidecar from "./sidecar";
+import { SDK_VERSION } from "../../../version";
 
 export default class HTTPClient implements IClient {
   private isInitialized: boolean;
@@ -156,6 +157,8 @@ export default class HTTPClient implements IClient {
     if (this.options.daprApiToken) {
       params.headers["dapr-api-token"] = this.options.daprApiToken;
     }
+
+    params.headers["user-agent"] = `dapr-sdk-js/v${SDK_VERSION} http/1`;
 
     if (!params?.method) {
       params.method = "GET";
