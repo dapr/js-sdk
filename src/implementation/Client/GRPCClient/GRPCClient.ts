@@ -20,6 +20,7 @@ import { Settings } from "../../../utils/Settings.util";
 import { Logger } from "../../../logger/Logger";
 import GRPCClientSidecar from "./sidecar";
 import DaprClient from "../DaprClient";
+import { SDK_VERSION } from "../../../version";
 
 export default class GRPCClient implements IClient {
   private isInitialized: boolean;
@@ -69,7 +70,9 @@ export default class GRPCClient implements IClient {
   }
 
   private generateClient(host: string, port: string, credentials: grpc.ChannelCredentials): GrpcDaprClient {
-    const client = new GrpcDaprClient(`${host}:${port}`, credentials);
+    const client = new GrpcDaprClient(`${host}:${port}`, credentials, {
+      "grpc.primary_user_agent": "dapr-sdk-js/v" + SDK_VERSION,
+    });
     return client;
   }
 
