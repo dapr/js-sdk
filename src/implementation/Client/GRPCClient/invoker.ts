@@ -18,7 +18,6 @@ import { HttpMethod } from "../../../enum/HttpMethod.enum";
 import { HTTPExtension, InvokeRequest, InvokeResponse } from "../../../proto/dapr/proto/common/v1/common_pb";
 import { InvokeServiceRequest } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import * as HttpVerbUtil from "../../../utils/HttpVerb.util";
-
 import IClientInvoker from "../../../interfaces/Client/IClientInvoker";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import { InvokerOptions } from "../../../types/InvokerOptions.type";
@@ -52,7 +51,7 @@ export default class GRPCClientInvoker implements IClientInvoker {
       fetchOptions.headers["Content-Type"] = "application/json";
     }
 
-    if (method !== HttpMethod.GET && data !== undefined) {
+    if (method !== HttpMethod.GET) {
       //@ts-ignore
       fetchOptions.body = JSON.stringify(data);
     }

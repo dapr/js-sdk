@@ -26,7 +26,7 @@ import { ConsoleLoggerService } from "./logger/ConsoleLoggerService";
 import { LogLevel } from "./types/logger/LogLevel";
 import GRPCClient from "./implementation/Client/GRPCClient/GRPCClient";
 import HTTPClient from "./implementation/Client/HTTPClient/HTTPClient";
-
+import { InvokerOptions } from "./types/InvokerOptions.type";
 export {
   DaprClient,
   DaprServer,
@@ -43,4 +43,5 @@ export {
   LoggerOptions,
   LoggerService,
   ConsoleLoggerService,
+  InvokerOptions,
 };
