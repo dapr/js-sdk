@@ -28,7 +28,6 @@ import {
   TopicRule,
   TopicSubscription,
 } from "../../../proto/dapr/proto/runtime/v1/appcallback_pb";
-import { TypeDaprInvokerCallback } from "../../../types/DaprInvokerCallback.type";
 import * as HttpVerbUtil from "../../../utils/HttpVerb.util";
 import { TypeDaprBindingCallback } from "../../../types/DaprBindingCallback.type";
 import { TypeDaprPubSubCallback } from "../../../types/DaprPubSubCallback.type";
@@ -39,6 +38,7 @@ import { IServerType } from "./GRPCServer";
 import { PubSubSubscriptionsType } from "../../../types/pubsub/PubSubSubscriptions.type";
 import { DaprPubSubType } from "../../../types/pubsub/DaprPubSub.type";
 import { PubSubSubscriptionTopicRoutesType } from "../../../types/pubsub/PubSubSubscriptionTopicRoutes.type";
+import { DaprInvokerCallbackFunction } from "../../../types/DaprInvokerCallback.type";
 
 // https://github.com/badsyntax/grpc-js-typescript/issues/1#issuecomment-705419742
 // @ts-ignore
@@ -48,7 +48,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
   private readonly logger: Logger;
   private readonly server: IServerType;
 
-  handlersInvoke: { [key: string]: TypeDaprInvokerCallback };
+  handlersInvoke: { [key: string]: DaprInvokerCallbackFunction };
   handlersBindings: { [key: string]: TypeDaprBindingCallback };
   pubSubSubscriptions: PubSubSubscriptionsType;
 
@@ -73,7 +73,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     return `${httpMethod.toLowerCase()}|${methodName.toLowerCase()}`;
   }
 
-  registerOnInvokeHandler(httpMethod: string, methodName: string, cb: TypeDaprInvokerCallback): void {
+  registerOnInvokeHandler(httpMethod: string, methodName: string, cb: DaprInvokerCallbackFunction): void {
     const handlerKey = this.createOnInvokeHandlerKey(httpMethod, methodName);
     this.handlersInvoke[handlerKey] = cb;
   }
@@ -313,7 +313,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     return `${pubsubName.toLowerCase()}--${topic.toLowerCase()}--${routeParsed}`;
   }
 
-  registerInputBindingHandler(bindingName: string, cb: TypeDaprInvokerCallback): void {
+  registerInputBindingHandler(bindingName: string, cb: DaprInvokerCallbackFunction): void {
     const handlerKey = this.createInputBindingHandlerKey(bindingName);
     this.handlersBindings[handlerKey] = cb;
   }

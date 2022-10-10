@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { TypeDaprInvokerCallback } from "../../../types/DaprInvokerCallback.type";
+import { DaprInvokerCallbackFunction } from "../../../types/DaprInvokerCallback.type";
 import { InvokerListenOptionsType } from "../../../types/InvokerListenOptions.type";
 import { HttpMethod } from "../../../enum/HttpMethod.enum";
 import HTTPServer from "./HTTPServer";
@@ -28,7 +28,7 @@ export default class HTTPServerInvoker implements IServerInvoker {
     this.logger = new Logger("HTTPServer", "Invoker", server.client.options.logger);
   }
 
-  async listen(methodName: string, cb: TypeDaprInvokerCallback, options: InvokerListenOptionsType = {}) {
+  async listen(methodName: string, cb: DaprInvokerCallbackFunction, options: InvokerListenOptionsType = {}) {
     const serverMethod: HttpMethod = (options?.method?.toLowerCase() as HttpMethod) || HttpMethod.GET;
 
     const server = await this.server.getServer();
