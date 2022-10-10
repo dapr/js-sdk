@@ -28,7 +28,11 @@ export default class DaprInvoker implements IServerInvoker {
     this.logger = new Logger("GRPCServer", "Invoker", server.client.options.logger);
   }
 
-  async listen(methodName: string, cb: DaprInvokerCallbackFunction, options: InvokerListenOptionsType = {}): Promise<any> {
+  async listen(
+    methodName: string,
+    cb: DaprInvokerCallbackFunction,
+    options: InvokerListenOptionsType = {},
+  ): Promise<any> {
     const httpMethod: HttpMethod = (options?.method?.toLowerCase() as HttpMethod) || HttpMethod.GET;
     this.logger.info(`Registering onInvoke Handler ${httpMethod} /${methodName}`);
     this.server.getServerImpl().registerOnInvokeHandler(httpMethod, methodName, cb);
