@@ -433,9 +433,9 @@ describe("http/server", () => {
       const mock = jest.fn(async (data: DaprInvokerCallbackContent) => data.headers);
 
       await server.invoker.listen("hello-world-headers", mock, { method: HttpMethod.GET });
-      const res = await server.client.invoker.invoke(daprAppId, "hello-world-headers", HttpMethod.GET, undefined,
-        { headers: { "x-foo": "bar-baz" } }
-      );
+      const res = await server.client.invoker.invoke(daprAppId, "hello-world-headers", HttpMethod.GET, undefined, {
+        headers: { "x-foo": "bar-baz" },
+      });
 
       // Delay a bit for event to arrive
       await new Promise((resolve, _reject) => setTimeout(resolve, 250));
