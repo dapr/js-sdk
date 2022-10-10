@@ -36,7 +36,7 @@ export default class GRPCClientInvoker implements IClientInvoker {
     appId: string,
     methodName: string,
     method: HttpMethod = HttpMethod.GET,
-    data?: object,
+    data: object = {},
     options: InvokerOptions = {},
   ): Promise<object> {
     const headers = options.headers ?? {};

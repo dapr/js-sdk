@@ -35,7 +35,6 @@ export default class HTTPClientInvoker implements IClientInvoker {
 
     const fetchOptions = {
       method,
-
       headers,
     };
 
