@@ -129,8 +129,12 @@ async function start() {
   const response = await client.invoker.invoke(serviceAppId, serviceMethod, HttpMethod.POST, { hello: "world" });
 
   // POST Request with headers
-  const response = await client.invoker.invoke(serviceAppId, serviceMethod, HttpMethod.POST, { hello: "world" }, 
-    { headers: { "X-User-ID": "123" }}
+  const response = await client.invoker.invoke(
+    serviceAppId,
+    serviceMethod,
+    HttpMethod.POST,
+    { hello: "world" },
+    { headers: { "X-User-ID": "123" } },
   );
 
   // GET Request
