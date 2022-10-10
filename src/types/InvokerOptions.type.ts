@@ -11,12 +11,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { KeyValueType } from "./KeyValue.type";
+
 /**
  * Options related to service invocation.
  */
 export type InvokerOptions = {
   /**
-   * Headers to include in service invocation request.
+   * Headers to include in the service invocation request.
+   * Note, this is ignored when using the gRPC protocol.
    */
-  headers?: object;
+  headers?: KeyValueType;
 };

@@ -32,7 +32,6 @@ export default class HTTPServerInvoker implements IServerInvoker {
     const serverMethod: HttpMethod = (options?.method?.toLowerCase() as HttpMethod) || HttpMethod.GET;
 
     const server = await this.server.getServer();
-    // @TODO should pass rest of headers to callback
     server[serverMethod](`/${methodName}`, async (req, res) => {
       const invokeResponse = await cb({
         body: JSON.stringify(req.body),
@@ -40,6 +39,7 @@ export default class HTTPServerInvoker implements IServerInvoker {
         metadata: {
           contentType: req.headers["content-type"],
         },
+        headers: req.headers,
       });
 
       // Make sure we close the request after the callback

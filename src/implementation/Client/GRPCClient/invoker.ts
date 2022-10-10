@@ -37,25 +37,8 @@ export default class GRPCClientInvoker implements IClientInvoker {
     methodName: string,
     method: HttpMethod = HttpMethod.GET,
     data: object = {},
-    options: InvokerOptions = {},
+    _options: InvokerOptions = {},
   ): Promise<object> {
-    const headers = options.headers ?? {};
-
-    const fetchOptions = {
-      method,
-      headers,
-    };
-
-    if (method !== HttpMethod.GET) {
-      //@ts-ignore
-      fetchOptions.headers["Content-Type"] = "application/json";
-    }
-
-    if (method !== HttpMethod.GET) {
-      //@ts-ignore
-      fetchOptions.body = JSON.stringify(data);
-    }
-
     // InvokeServiceRequest represents the request message for Service invocation.
     const msgInvokeService = new InvokeServiceRequest();
     msgInvokeService.setId(appId);
