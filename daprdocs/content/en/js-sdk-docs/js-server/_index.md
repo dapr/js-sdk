@@ -98,7 +98,7 @@ The JavaScript Server SDK allows you to interface with all of the [Dapr building
 #### Listen to an Invocation
 
 ```typescript
-import { DaprServer } from "@dapr/dapr";
+import { DaprServer, DaprInvokerCallbackContent } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1"; // Dapr Sidecar Host
 const daprPort = "3500"; // Dapr Sidecar Port of this Example Server
@@ -108,7 +108,14 @@ const serverPort = "50051"; // App Port of this Example Server "
 async function start() {
   const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
 
-  await server.invoker.listen("hello-world", mock, { method: HttpMethod.GET });
+  const callbackFunction = (data: DaprInvokerCallbackContent) => {
+    console.log("Received body: ", data.body);
+    console.log("Received metadata: ", data.metadata);
+    console.log("Received query: ", data.query);
+    console.log("Received headers: ", data.headers); // only available in HTTP
+  };
+
+  await server.invoker.listen("hello-world", callbackFunction, { method: HttpMethod.GET });
 
   // You can now invoke the service with your app id and method "hello-world"
 

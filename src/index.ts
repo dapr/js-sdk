@@ -27,7 +27,7 @@ import { LogLevel } from "./types/logger/LogLevel";
 import GRPCClient from "./implementation/Client/GRPCClient/GRPCClient";
 import HTTPClient from "./implementation/Client/HTTPClient/HTTPClient";
 import { InvokerOptions } from "./types/InvokerOptions.type";
-import { DaprInvokerCallbackContent, DaprInvokerCallbackResponse } from "./types/DaprInvokerCallback.type";
+import { DaprInvokerCallbackContent, DaprInvokerCallbackFunction } from "./types/DaprInvokerCallback.type";
 export {
   DaprClient,
   DaprServer,
@@ -45,6 +45,6 @@ export {
   LoggerService,
   ConsoleLoggerService,
   InvokerOptions,
-  DaprInvokerCallbackResponse as TypeDaprInvokerCallback,
+  DaprInvokerCallbackFunction as TypeDaprInvokerCallback,
   DaprInvokerCallbackContent,
 };

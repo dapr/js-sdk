@@ -41,4 +41,4 @@ export interface DaprInvokerCallbackContent {
   headers?: KeyValueType;
 }
 
-export type DaprInvokerCallbackResponse = (data: DaprInvokerCallbackContent) => Promise<any | void>;
+export type DaprInvokerCallbackFunction = (data: DaprInvokerCallbackContent) => Promise<any | void>;
