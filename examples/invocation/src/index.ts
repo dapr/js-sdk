@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { DaprServer, DaprClient, HttpMethod } from "@dapr/dapr";
+import { DaprServer, DaprClient, HttpMethod, DaprInvokerCallbackContent, CommunicationProtocolEnum } from "@dapr/dapr";
 
 // Common settings
 const daprAppId = "example-invocation";
@@ -20,10 +20,8 @@ const daprHost = "127.0.0.1";
 const serverPort = "50051"; // App Port of this Example Server
 
 async function start() {
-  // Note that the DAPR_HTTP_PORT and DAPR_GRPC_PORT environment variables are set by DAPR itself. https://docs.dapr.io/reference/environment/
-  const server = new DaprServer(serverHost, serverPort, daprHost, process.env.DAPR_HTTP_PORT);
-
-  const client = new DaprClient(daprHost, process.env.DAPR_HTTP_PORT);
+  const server = new DaprServer(serverHost, serverPort, daprHost);
+  const client = new DaprClient(daprHost);
 
   // Note that invoker listeners can be set up after start() has been called
   await server.start();
@@ -31,9 +29,10 @@ async function start() {
   console.log("Setting up invocation endpoints");
   await server.invoker.listen(
     "hello-world",
-    async (data: Record<string, any>) => {
+    async (data: DaprInvokerCallbackContent) => {
       // Data is automatically parsed when received
-      console.log(`Received: ${JSON.stringify(data.body)} on POST hello-world`);
+      console.log(`Received: ${JSON.stringify(data.body)} as body on POST hello-world`);
+      console.log(`Received: ${JSON.stringify(data.headers)} as headers on POST hello-world`);
       return { hello: "world received from POST" };
     },
     { method: HttpMethod.POST },
@@ -48,10 +47,13 @@ async function start() {
     { method: HttpMethod.GET },
   );
 
+  // Wait for 500ms to allow the server to start
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
   console.log("Invoking endpoints");
-  const r = await client.invoker.invoke(daprAppId, "hello-world", HttpMethod.POST, {
-    hello: "world",
-  });
+  const r = await client.invoker.invoke(daprAppId, "hello-world", HttpMethod.POST,
+    { hello: "world" },
+    { headers: { 'X-Application-Type': 'examples/invocation' } });
   console.log(`Response to POST request: ${JSON.stringify(r)}`);
   const r2 = await client.invoker.invoke(daprAppId, "hello-world", HttpMethod.GET);
   console.log(`Response to GET request: ${JSON.stringify(r2)}`);
