@@ -12,6 +12,8 @@ limitations under the License.
 */
 
 import { CommunicationProtocolEnum, DaprServer, HttpMethod } from "../../../src";
+import { DaprInvokerCallbackContent } from "../../../src/types/DaprInvokerCallback.type";
+import { KeyValueType } from "../../../src/types/KeyValue.type";
 
 const serverHost = "127.0.0.1";
 const serverPort = "50001";
@@ -425,6 +427,22 @@ describe("http/server", () => {
 
       expect(mock.mock.calls.length).toBe(1);
       expect(JSON.stringify(res)).toEqual(`{"hello":"world"}`);
+    });
+
+    it("should be able to listen and invoke a service with headers", async () => {
+      const mock = jest.fn(async (data: DaprInvokerCallbackContent) => data.headers);
+
+      await server.invoker.listen("hello-world-headers", mock, { method: HttpMethod.GET });
+      const res = await server.client.invoker.invoke(daprAppId, "hello-world-headers", HttpMethod.GET, undefined, {
+        headers: { "x-foo": "bar-baz" },
+      });
+
+      // Delay a bit for event to arrive
+      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+
+      expect(mock.mock.calls.length).toBe(1);
+      const headers = res as KeyValueType;
+      expect(headers["x-foo"]).toEqual("bar-baz");
     });
   });
 });

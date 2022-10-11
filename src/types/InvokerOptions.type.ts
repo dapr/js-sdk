@@ -11,9 +11,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { DaprInvokerCallbackFunction } from "../../types/DaprInvokerCallback.type";
-import { InvokerListenOptionsType } from "../../types/InvokerListenOptions.type";
+import { KeyValueType } from "./KeyValue.type";
 
-export default interface IServerInvoker {
-  listen(methodName: string, cb: DaprInvokerCallbackFunction, options?: InvokerListenOptionsType): Promise<any>;
-}
+/**
+ * Options related to service invocation.
+ */
+export type InvokerOptions = {
+  /**
+   * Headers to include in the service invocation request.
+   * Note, this is ignored when using the gRPC protocol.
+   */
+  headers?: KeyValueType;
+};
