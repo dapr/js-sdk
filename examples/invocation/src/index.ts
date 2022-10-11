@@ -51,9 +51,13 @@ async function start() {
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   console.log("Invoking endpoints");
-  const r = await client.invoker.invoke(daprAppId, "hello-world", HttpMethod.POST,
+  const r = await client.invoker.invoke(
+    daprAppId,
+    "hello-world",
+    HttpMethod.POST,
     { hello: "world" },
-    { headers: { 'X-Application-Type': 'examples/invocation' } });
+    { headers: { "X-Application-Type": "examples/invocation" } },
+  );
   console.log(`Response to POST request: ${JSON.stringify(r)}`);
   const r2 = await client.invoker.invoke(daprAppId, "hello-world", HttpMethod.GET);
   console.log(`Response to GET request: ${JSON.stringify(r2)}`);
