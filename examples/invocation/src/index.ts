@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { DaprServer, DaprClient, HttpMethod, DaprInvokerCallbackContent, CommunicationProtocolEnum } from "@dapr/dapr";
+import { DaprServer, DaprClient, HttpMethod, DaprInvokerCallbackContent } from "@dapr/dapr";
 
 // Common settings
 const daprAppId = "example-invocation";
