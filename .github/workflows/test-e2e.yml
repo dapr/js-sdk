@@ -129,7 +129,7 @@ jobs:
       run: npm run test:e2e:all
 
     - name: Run E2E test to show successful typescript build
-      id: sample-test
+      id: typescript-build-test
       run: |
         cd test/e2e/typescript-build
         npm install
