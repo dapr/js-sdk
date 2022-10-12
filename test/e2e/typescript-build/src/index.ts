@@ -17,9 +17,8 @@ const daprHost = "127.0.0.1";
 const daprPortDefault = "3500";
 
 async function start() {
-  const client = new DaprClient(daprHost, process.env.DAPR_HTTP_PORT ?? daprPortDefault);
+  const _client = new DaprClient(daprHost, process.env.DAPR_HTTP_PORT ?? daprPortDefault);
   console.log("e2e test to show successful typescript build");
-  console.log(client);
 }
 
 start().catch((e) => {
