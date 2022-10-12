@@ -128,7 +128,7 @@ jobs:
       id: tests
       run: npm run test:e2e:all
 
-    - name: Run E2E test for successful build of dapr version
+    - name: Run E2E test to show successful typescript build
       id: sample-test
       run: |
         cd test/e2e/typescript-build
