@@ -128,5 +128,12 @@ jobs:
       id: tests
       run: npm run test:e2e:all
 
+    - name: Run E2E test to show successful typescript build
+      id: typescript-build-test
+      run: |
+        cd test/e2e/typescript-build
+        npm install
+        dapr run --app-id typescript-build npm run start
+
     - name: Upload test coverage
       uses: codecov/codecov-action@v1
