@@ -200,32 +200,14 @@ export default class HTTPClient implements IClient {
     }
 
     // 2XX -> OK; 3XX -> Redirects and Found
-    if (res.status >= 200 && res.status <= 399) {
+    if (res.status >= 200 && res.status <= 400) {
       return txtParsed;
-    }
-    // 400 = Bad Request, 401 = Unauthorized, 404 = Not Found , 403 = Forbidden , 500 = Internal Server Error, 502 = Bad Gateway
-    else if (
-      res.status === 400 ||
-      res.status === 401 ||
-      res.status === 403 ||
-      res.status === 404 ||
-      res.status === 500 ||
-      res.status === 502
-    ) {
-      throw new Error(JSON.stringify({ status: res.status, originError: txtParsed }));
     }
 
     // All the others
     else {
       this.logger.debug("Execute response text: %s", txtParsed);
-      throw new Error(
-        JSON.stringify({
-          error: "UNKNOWN",
-          error_msg: `An unknown problem occured and we got the status ${res.status} with response ${JSON.stringify(
-            res,
-          )}`,
-        }),
-      );
+      throw new Error(JSON.stringify({ status: res.status, originError: txtParsed }));
     }
   }
 }
