@@ -15,4 +15,4 @@ import { ConfigurationItem } from "./configuration/ConfigurationItem";
 
 export type ConfigurationType = {
   [key: string]: ConfigurationItem;
-}
+};

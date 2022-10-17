@@ -15,4 +15,4 @@ import { ConfigurationType } from "../KeyConfig.type";
 
 export type GetConfigurationResponse = {
   items: ConfigurationType;
-}
+};

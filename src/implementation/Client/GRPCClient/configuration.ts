@@ -27,8 +27,8 @@ import { GetConfigurationResponse as GetConfigurationResponseResult } from "../.
 import { SubscribeConfigurationResponse as SubscribeConfigurationResponseResult } from "../../../types/configuration/SubscribeConfigurationResponse";
 import { SubscribeConfigurationCallback } from "../../../types/configuration/SubscribeConfigurationCallback";
 import { SubscribeConfigurationStream } from "../../../types/configuration/SubscribeConfigurationStream";
-import { ConfigurationItem } from '../../../types/configuration/ConfigurationItem';
-import { createConfigurationType } from '../../../utils/Client.util';
+import { ConfigurationItem } from "../../../types/configuration/ConfigurationItem";
+import { createConfigurationType } from "../../../utils/Client.util";
 
 export default class GRPCClientConfiguration implements IClientConfiguration {
   client: GRPCClient;
@@ -64,8 +64,8 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
         const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(res.getItemsMap());
 
         const result: SubscribeConfigurationResponseResult = {
-          items: configMap
-        }
+          items: configMap,
+        };
 
         return resolve(result);
       });
@@ -130,8 +130,8 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
       const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(data.getItemsMap());
 
       const wrapped: SubscribeConfigurationResponseResult = {
-        items: configMap
-      }
+        items: configMap,
+      };
 
       await cb(wrapped);
     });

@@ -68,7 +68,7 @@ describe("grpc/client", () => {
         });
       });
 
-      const clientProxy = await client.proxy.create<DaprClientGrpc>(DaprClientGrpc, {
+      const clientProxy = (await client.proxy.create)<DaprClientGrpc>(DaprClientGrpc, {
         interceptors: [mockInterceptor],
       });
 
@@ -96,7 +96,7 @@ describe("grpc/client", () => {
         });
       });
 
-      const clientProxy = await client.proxy.create<DaprClientGrpc>(DaprClientGrpc, {
+      const clientProxy = (await client.proxy.create)<DaprClientGrpc>(DaprClientGrpc, {
         interceptors: [mockInterceptor],
       });
 
@@ -163,7 +163,9 @@ describe("grpc/client", () => {
 
   describe("pubsub", () => {
     it("should receive if it was successful or not", async () => {
-      const res = await client.pubsub.publish("pubsub-redis", "test-topic", { hello: "world" });
+      const res = await client.pubsub.publish("pubsub-redis", "test-topic", {
+        hello: "world",
+      });
       expect(res).toEqual(true);
     });
   });
@@ -385,7 +387,9 @@ describe("grpc/client", () => {
     });
 
     it("should be able to get the configuration items with metadata", async () => {
-      await client.configuration.get("config-redis", ["myconfigkey1"], { hello: "world" });
+      await client.configuration.get("config-redis", ["myconfigkey1"], {
+        hello: "world",
+      });
 
       // Disabled for now as I am unsure if Dapr returns the metadata items
       // Java SDK: https://github.com/dapr/java-sdk/blob/06d92dafca62a6b48e74ccf939feeac7189e360f/sdk/src/test/java/io/dapr/client/DaprPreviewClientGrpcTest.java#L119
@@ -485,7 +489,7 @@ describe("grpc/client", () => {
       expect(Object.keys(m1.mock.calls[0][0].items).length).toEqual(1);
       expect("myconfigkey1" in m1.mock.calls[0][0].items);
       expect(m1.mock.calls[0][0].items["myconfigkey1"].value == "key1_mynewvalue");
-      
+
       expect(Object.keys(m2.mock.calls[0][0].items).length).toEqual(1);
       expect("myconfigkey1" in m2.mock.calls[0][0].items);
       expect(m2.mock.calls[0][0].items["myconfigkey1"].value == "key1_mynewvalue");
