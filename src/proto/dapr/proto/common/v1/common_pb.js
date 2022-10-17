@@ -2,6 +2,7 @@
 /**
  * @fileoverview
  * @enhanceable
+ * @suppress {missingRequire} reports error on implicit type usages.
  * @suppress {messageConventions} JS Compiler reports an error if a variable or
  *     field starts with 'MSG_' and isn't a translatable message.
  * @public
@@ -12,7 +13,7 @@
 
 var jspb = require('google-protobuf');
 var goog = jspb;
-var global = Function('return this')();
+var global = (function() { return this || window || global || self || Function('return this')(); }).call(null);
 
 var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js');
 goog.object.extend(proto, google_protobuf_any_pb);
@@ -1451,9 +1452,8 @@ proto.dapr.proto.common.v1.ConfigurationItem.prototype.toObject = function(opt_i
  */
 proto.dapr.proto.common.v1.ConfigurationItem.toObject = function(includeInstance, msg) {
   var f, obj = {
-    key: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    value: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    version: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    value: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    version: jspb.Message.getFieldWithDefault(msg, 2, ""),
     metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
@@ -1493,17 +1493,13 @@ proto.dapr.proto.common.v1.ConfigurationItem.deserializeBinaryFromReader = funct
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setKey(value);
+      msg.setValue(value);
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
-      msg.setValue(value);
-      break;
-    case 3:
-      var value = /** @type {string} */ (reader.readString());
       msg.setVersion(value);
       break;
-    case 4:
+    case 3:
       var value = msg.getMetadataMap();
       reader.readMessage(value, function(message, reader) {
         jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "", "");
@@ -1538,39 +1534,32 @@ proto.dapr.proto.common.v1.ConfigurationItem.prototype.serializeBinary = functio
  */
 proto.dapr.proto.common.v1.ConfigurationItem.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getKey();
+  f = message.getValue();
   if (f.length > 0) {
     writer.writeString(
       1,
       f
     );
   }
-  f = message.getValue();
+  f = message.getVersion();
   if (f.length > 0) {
     writer.writeString(
       2,
       f
     );
   }
-  f = message.getVersion();
-  if (f.length > 0) {
-    writer.writeString(
-      3,
-      f
-    );
-  }
   f = message.getMetadataMap(true);
   if (f && f.getLength() > 0) {
-    f.serializeBinary(4, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+    f.serializeBinary(3, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
 };
 
 
 /**
- * optional string key = 1;
+ * optional string value = 1;
  * @return {string}
  */
-proto.dapr.proto.common.v1.ConfigurationItem.prototype.getKey = function() {
+proto.dapr.proto.common.v1.ConfigurationItem.prototype.getValue = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
@@ -1579,16 +1568,16 @@ proto.dapr.proto.common.v1.ConfigurationItem.prototype.getKey = function() {
  * @param {string} value
  * @return {!proto.dapr.proto.common.v1.ConfigurationItem} returns this
  */
-proto.dapr.proto.common.v1.ConfigurationItem.prototype.setKey = function(value) {
+proto.dapr.proto.common.v1.ConfigurationItem.prototype.setValue = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
 /**
- * optional string value = 2;
+ * optional string version = 2;
  * @return {string}
  */
-proto.dapr.proto.common.v1.ConfigurationItem.prototype.getValue = function() {
+proto.dapr.proto.common.v1.ConfigurationItem.prototype.getVersion = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
@@ -1597,38 +1586,20 @@ proto.dapr.proto.common.v1.ConfigurationItem.prototype.getValue = function() {
  * @param {string} value
  * @return {!proto.dapr.proto.common.v1.ConfigurationItem} returns this
  */
-proto.dapr.proto.common.v1.ConfigurationItem.prototype.setValue = function(value) {
+proto.dapr.proto.common.v1.ConfigurationItem.prototype.setVersion = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
 /**
- * optional string version = 3;
- * @return {string}
- */
-proto.dapr.proto.common.v1.ConfigurationItem.prototype.getVersion = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
-};
-
-
-/**
- * @param {string} value
- * @return {!proto.dapr.proto.common.v1.ConfigurationItem} returns this
- */
-proto.dapr.proto.common.v1.ConfigurationItem.prototype.setVersion = function(value) {
-  return jspb.Message.setProto3StringField(this, 3, value);
-};
-
-
-/**
- * map<string, string> metadata = 4;
+ * map<string, string> metadata = 3;
  * @param {boolean=} opt_noLazyCreate Do not create the map if
  * empty, instead returning `undefined`
  * @return {!jspb.Map<string,string>}
  */
 proto.dapr.proto.common.v1.ConfigurationItem.prototype.getMetadataMap = function(opt_noLazyCreate) {
   return /** @type {!jspb.Map<string,string>} */ (
-      jspb.Message.getMapField(this, 4, opt_noLazyCreate,
+      jspb.Message.getMapField(this, 3, opt_noLazyCreate,
       null));
 };
 
