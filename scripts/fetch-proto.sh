@@ -1,23 +1,28 @@
 #!/bin/bash
 OS=$(echo `uname`|tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
-BRANCH_NAME="v1.8.0"
-
-# Proto buf generation
-APPCALLBACK="appcallback"
-COMMON="common"
-DAPR="dapr"
-RUNTIME="runtime"
-GOOGLE_ANY="runtime"
+ORG_NAME="dapr"
+REPO_NAME="dapr"
+BRANCH_NAME="v1.9.0"
 
 # Path to store output
 PATH_ROOT=$(pwd)
-# PATH_PROTO="$PATH_ROOT/src/grpc"
-# PATH_PROTO_DAPR="$PATH_PROTO/dapr/proto"
-# SRC="./src/grpc"
 
-# Http request CLI
+# HTTP request CLI
 HTTP_REQUEST_CLI=curl
+
+# Install gRPC tools
+prerequisiteInstallGrpcTools() {
+    echo "Installing gRPC tools..."
+    # Note, grpc tools does not support native M1 architecture,
+    # so we need to install its x64 version.
+    # See https://github.com/grpc/grpc-node/issues/1880
+    if [ "$ARCH" = "arm64" ]; then
+        npm install grpc-tools --target_arch=x64 --no-save
+    else
+        npm install grpc-tools --no-save
+    fi
+}
 
 # Make sure curl or wget are installed
 prerequisiteCheckHttpRequestCLI() {
@@ -31,6 +36,7 @@ prerequisiteCheckHttpRequestCLI() {
     fi
 }
 
+# Check if protoc is available
 prerequisiteCheckProtobuf() {
     if ! type "protoc" > /dev/null; then
         echo "protoc is not installed, trying to install"
@@ -109,26 +115,27 @@ generateGrpcSuccess() {
 # -----------------------------------------------------------------------------
 #trap "fail_trap" EXIT
 
-echo "Checking Dependencies"
+echo "Checking dependencies"
 prerequisiteCheckProtobuf
 prerequisiteCheckHttpRequestCLI
+prerequisiteInstallGrpcTools
 
 echo ""
-echo "Removing old Proto Files"
+echo "Removing old proto files"
 rm -rf "$PATH_ROOT/src/proto"
 mkdir -p "$PATH_ROOT/src/proto"
 
 echo ""
-echo "Downloading latest Dapr gRPC files"
-downloadFile "https://raw.githubusercontent.com/dapr/dapr/$BRANCH_NAME/dapr/proto/common/v1/common.proto" "$PATH_ROOT/src/proto/dapr/proto/common/v1/common.proto"
-downloadFile "https://raw.githubusercontent.com/dapr/dapr/$BRANCH_NAME/dapr/proto/internals/v1/apiversion.proto" "$PATH_ROOT/src/proto/dapr/proto/internals/v1/apiversion.proto"
-downloadFile "https://raw.githubusercontent.com/dapr/dapr/$BRANCH_NAME/dapr/proto/internals/v1/service_invocation.proto" "$PATH_ROOT/src/proto/dapr/proto/internals/v1/service_invocation.proto"
-downloadFile "https://raw.githubusercontent.com/dapr/dapr/$BRANCH_NAME/dapr/proto/internals/v1/status.proto" "$PATH_ROOT/src/proto/dapr/proto/internals/v1/status.proto"
-downloadFile "https://raw.githubusercontent.com/dapr/dapr/$BRANCH_NAME/dapr/proto/operator/v1/operator.proto" "$PATH_ROOT/src/proto/dapr/proto/operator/v1/operator.proto"
-downloadFile "https://raw.githubusercontent.com/dapr/dapr/$BRANCH_NAME/dapr/proto/placement/v1/placement.proto" "$PATH_ROOT/src/proto/dapr/proto/placement/v1/placement.proto"
-downloadFile "https://raw.githubusercontent.com/dapr/dapr/$BRANCH_NAME/dapr/proto/runtime/v1/appcallback.proto" "$PATH_ROOT/src/proto/dapr/proto/runtime/v1/appcallback.proto"
-downloadFile "https://raw.githubusercontent.com/dapr/dapr/$BRANCH_NAME/dapr/proto/runtime/v1/dapr.proto" "$PATH_ROOT/src/proto/dapr/proto/runtime/v1/dapr.proto"
-downloadFile "https://raw.githubusercontent.com/dapr/dapr/$BRANCH_NAME/dapr/proto/sentry/v1/sentry.proto" "$PATH_ROOT/src/proto/dapr/proto/sentry/v1/sentry.proto"
+echo "Downloading latest Dapr gRPC files from $ORG_NAME/$REPO_NAME@$BRANCH_NAME"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/common/v1/common.proto" "$PATH_ROOT/src/proto/dapr/proto/common/v1/common.proto"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/internals/v1/apiversion.proto" "$PATH_ROOT/src/proto/dapr/proto/internals/v1/apiversion.proto"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/internals/v1/service_invocation.proto" "$PATH_ROOT/src/proto/dapr/proto/internals/v1/service_invocation.proto"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/internals/v1/status.proto" "$PATH_ROOT/src/proto/dapr/proto/internals/v1/status.proto"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/operator/v1/operator.proto" "$PATH_ROOT/src/proto/dapr/proto/operator/v1/operator.proto"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/placement/v1/placement.proto" "$PATH_ROOT/src/proto/dapr/proto/placement/v1/placement.proto"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/runtime/v1/appcallback.proto" "$PATH_ROOT/src/proto/dapr/proto/runtime/v1/appcallback.proto"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/runtime/v1/dapr.proto" "$PATH_ROOT/src/proto/dapr/proto/runtime/v1/dapr.proto"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/sentry/v1/sentry.proto" "$PATH_ROOT/src/proto/dapr/proto/sentry/v1/sentry.proto"
 
 echo ""
 echo "Downloading latest Google Protobuf gRPC files"

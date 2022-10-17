@@ -14,5 +14,5 @@ limitations under the License.
 export enum EStateConsistency {
   CONSISTENCY_UNSPECIFIED = 0,
   CONSISTENCY_EVENTUAL = 1,
-  CONSISTENCY_STRONG = 2
+  CONSISTENCY_STRONG = 2,
 }

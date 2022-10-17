@@ -12,14 +12,15 @@ limitations under the License.
 */
 
 import * as grpc from "@grpc/grpc-js";
-import { DaprClient as GrpcDaprClient } from "../../../proto/dapr/proto/runtime/v1/dapr_grpc_pb"
+import { DaprClient as GrpcDaprClient } from "../../../proto/dapr/proto/runtime/v1/dapr_grpc_pb";
 import IClient from "../../../interfaces/Client/IClient";
 import CommunicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
 import { DaprClientOptions } from "../../../types/DaprClientOptions";
-import { Settings } from '../../../utils/Settings.util';
+import { Settings } from "../../../utils/Settings.util";
 import { Logger } from "../../../logger/Logger";
 import GRPCClientSidecar from "./sidecar";
 import DaprClient from "../DaprClient";
+import { SDK_VERSION } from "../../../version";
 
 export default class GRPCClient implements IClient {
   private isInitialized: boolean;
@@ -31,11 +32,7 @@ export default class GRPCClient implements IClient {
   private readonly options: DaprClientOptions;
   private readonly logger: Logger;
 
-  constructor(
-    host = Settings.getDefaultHost()
-    , port = Settings.getDefaultGrpcPort()
-    , options: DaprClientOptions = {},
-  ) {
+  constructor(host = Settings.getDefaultHost(), port = Settings.getDefaultGrpcPort(), options: DaprClientOptions = {}) {
     this.clientHost = host;
     this.clientPort = port;
     this.options = options;
@@ -73,7 +70,9 @@ export default class GRPCClient implements IClient {
   }
 
   private generateClient(host: string, port: string, credentials: grpc.ChannelCredentials): GrpcDaprClient {
-    const client = new GrpcDaprClient(`${host}:${port}`, credentials);
+    const client = new GrpcDaprClient(`${host}:${port}`, credentials, {
+      "grpc.primary_user_agent": "dapr-sdk-js/v" + SDK_VERSION,
+    });
     return client;
   }
 
@@ -111,11 +110,11 @@ export default class GRPCClient implements IClient {
 
         return resolve();
       });
-    })
+    });
   }
 
   async _startAwaitSidecarStarted(): Promise<void> {
-    await DaprClient.awaitSidecarStarted(async () => await GRPCClientSidecar.isStarted(this));
+    await DaprClient.awaitSidecarStarted(async () => await GRPCClientSidecar.isStarted(this), this.logger);
   }
 
   /**

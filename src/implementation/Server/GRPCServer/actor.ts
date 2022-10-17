@@ -11,10 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import GRPCServer from './GRPCServer';
-import IServerActor from '../../../interfaces/Server/IServerActor';
-import AbstractActor from '../../../actors/runtime/AbstractActor';
-import Class from '../../../types/Class';
+import GRPCServer from "./GRPCServer";
+import IServerActor from "../../../interfaces/Server/IServerActor";
+import AbstractActor from "../../../actors/runtime/AbstractActor";
+import Class from "../../../types/Class";
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class GRPCServerActor implements IServerActor {
@@ -25,18 +25,18 @@ export default class GRPCServerActor implements IServerActor {
   }
 
   deactivateActor(_actorType: string, _actorId: string): Promise<void> {
-    throw new Error('GRPC is currently not supported.');
+    throw new Error("GRPC is currently not supported.");
   }
 
   init(): Promise<void> {
-    throw new Error('GRPC is currently not supported.');
+    throw new Error("GRPC is currently not supported.");
   }
 
   getRegisteredActors(): Promise<string[]> {
-    throw new Error('GRPC is currently not supported.');
+    throw new Error("GRPC is currently not supported.");
   }
 
   registerActor<T extends AbstractActor>(_cls: Class<T>): Promise<void> {
-    throw new Error('GRPC is currently not supported.');
+    throw new Error("GRPC is currently not supported.");
   }
 }

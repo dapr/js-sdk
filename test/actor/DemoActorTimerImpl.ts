@@ -18,8 +18,14 @@ export default class DemoActorTimerImpl extends AbstractActor implements DemoAct
   counter = 0;
 
   async init(): Promise<string> {
-    await super.registerActorTimer("my-timer-name", "countBy", Temporal.Duration.from({ seconds: 2 }), Temporal.Duration.from({ seconds: 1 }), 
-                                  undefined, 100);
+    await super.registerActorTimer(
+      "my-timer-name",
+      "countBy",
+      Temporal.Duration.from({ seconds: 2 }),
+      Temporal.Duration.from({ seconds: 1 }),
+      undefined,
+      100,
+    );
     return "Actor Initialized";
   }
 

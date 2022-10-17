@@ -12,12 +12,12 @@ limitations under the License.
 */
 
 export enum LockStatus {
-    Success,
-    LockDoesNotExist,
-    LockBelongsToOthers,
-    InternalError
+  Success,
+  LockDoesNotExist,
+  LockBelongsToOthers,
+  InternalError,
 }
 
 export type UnlockResponse = {
-    status: LockStatus;
-}
+  status: LockStatus;
+};

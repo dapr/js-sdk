@@ -6806,7 +6806,8 @@ proto.dapr.proto.runtime.v1.InvokeActorRequest.toObject = function(includeInstan
     actorType: jspb.Message.getFieldWithDefault(msg, 1, ""),
     actorId: jspb.Message.getFieldWithDefault(msg, 2, ""),
     method: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    data: msg.getData_asB64()
+    data: msg.getData_asB64(),
+    metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -6858,6 +6859,12 @@ proto.dapr.proto.runtime.v1.InvokeActorRequest.deserializeBinaryFromReader = fun
     case 4:
       var value = /** @type {!Uint8Array} */ (reader.readBytes());
       msg.setData(value);
+      break;
+    case 5:
+      var value = msg.getMetadataMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
       break;
     default:
       reader.skipField();
@@ -6915,6 +6922,10 @@ proto.dapr.proto.runtime.v1.InvokeActorRequest.serializeBinaryToWriter = functio
       4,
       f
     );
+  }
+  f = message.getMetadataMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(5, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
 };
 
@@ -7000,6 +7011,24 @@ proto.dapr.proto.runtime.v1.InvokeActorRequest.prototype.getData_asU8 = function
 /** @param {!(string|Uint8Array)} value */
 proto.dapr.proto.runtime.v1.InvokeActorRequest.prototype.setData = function(value) {
   jspb.Message.setProto3BytesField(this, 4, value);
+};
+
+
+/**
+ * map<string, string> metadata = 5;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.dapr.proto.runtime.v1.InvokeActorRequest.prototype.getMetadataMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 5, opt_noLazyCreate,
+      null));
+};
+
+
+proto.dapr.proto.runtime.v1.InvokeActorRequest.prototype.clearMetadataMap = function() {
+  this.getMetadataMap().clear();
 };
 
 

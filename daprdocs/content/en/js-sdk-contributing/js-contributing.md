@@ -8,6 +8,8 @@ description: Guidelines for contributing to the Dapr JavaScript SDK
 
 When contributing to the [JavaScript SDK](https://github.com/dapr/js-sdk) the following rules and best-practices should be followed.
 
+💡 You can run `npm pretty-fix` to run prettier on all your files
+
 ## Commit Guidelines
 
 The Dapr Javascript SDK uses the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
@@ -41,11 +43,13 @@ type(scope)!: subject
   Examples:
 
   - Commit that adds a `test`:
+
   ```
   test(actors): add an actor test
   ```
 
   - Commit that changes many things at once:
+
   ```
   style: adopt eslint
   ```
@@ -82,6 +86,7 @@ type(scope)!: subject
   Formatting tricks: the commit subject may contain:
 
   - Links to related issues or PRs by writing `#issue`. This will be highlighted by the changelog tool:
+
     ```
     feat(archlinux): add support for aura AUR helper (#9467)
     ```
@@ -102,9 +107,9 @@ subject is clear and precise enough that users will know what change by just loo
 
 To ensure consistency throughout the source code, keep these rules in mind as you are working:
 
-* All features or bug fixes **must be tested** by one or more specs (unit-tests).
-* All public API methods **must be documented**.
-* We follow [ESLint RecommendedRules][https://eslint.org/docs/rules/].
+- All features or bug fixes **must be tested** by one or more specs (unit-tests).
+- All public API methods **must be documented**.
+- We follow [ESLint RecommendedRules][https://eslint.org/docs/rules/].
 
 ## Examples
 
@@ -117,5 +122,5 @@ The `examples` directory contains code samples for users to run to try out speci
 
 The `daprdocs` directory contains the markdown files that are rendered into the [Dapr Docs](https://docs.dapr.io) website. When the documentation website is built, this repo is cloned and configured so that its contents are rendered with the docs content. When writing docs, keep in mind:
 
-   - All rules in the [docs guide]({{< ref contributing-docs.md >}}) should be followed in addition to these.
-   - All files and directories should be prefixed with `js-` to ensure all file/directory names are globally unique across all Dapr documentation.
+- All rules in the [docs guide]({{< ref contributing-docs.md >}}) should be followed in addition to these.
+- All files and directories should be prefixed with `js-` to ensure all file/directory names are globally unique across all Dapr documentation.

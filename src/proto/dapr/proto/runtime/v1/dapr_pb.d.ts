@@ -918,6 +918,9 @@ export class InvokeActorRequest extends jspb.Message {
     getData_asB64(): string;
     setData(value: Uint8Array | string): InvokeActorRequest;
 
+    getMetadataMap(): jspb.Map<string, string>;
+    clearMetadataMap(): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): InvokeActorRequest.AsObject;
     static toObject(includeInstance: boolean, msg: InvokeActorRequest): InvokeActorRequest.AsObject;
@@ -934,6 +937,8 @@ export namespace InvokeActorRequest {
         actorId: string,
         method: string,
         data: Uint8Array | string,
+
+        metadataMap: Array<[string, string]>,
     }
 }
 

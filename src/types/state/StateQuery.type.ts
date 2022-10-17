@@ -11,23 +11,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { Enumerable } from "../common/Enumerable.type"
+import { Enumerable } from "../common/Enumerable.type";
 
 export type StateQueryType = {
   filter: StateQueryFilter;
   sort: StateQuerySort[];
   page: StateQueryPagination;
-}
+};
 
 type StateQuerySort = {
   key: string;
   order?: "ASC" | "DESC";
-}
+};
 
 type StateQueryPagination = {
   limit: number;
   token?: string;
-}
+};
 
 type StateQueryFilter = {
   // Operations
@@ -35,7 +35,7 @@ type StateQueryFilter = {
   OR?: Enumerable<StateQueryFilterInput>;
   EQ?: Enumerable<StateQueryFilterInput>;
   IN?: Enumerable<StateQueryFilterInput>;
-}
+};
 
 type StateQueryFilterInput = {
   // Operations can be nested, so repeat here
@@ -46,4 +46,4 @@ type StateQueryFilterInput = {
 
   // Next to that we can have the { key: value }
   [key: string]: any;
-}
+};

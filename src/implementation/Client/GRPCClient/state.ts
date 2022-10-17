@@ -11,17 +11,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import GRPCClient from './GRPCClient';
-import { DeleteStateRequest, ExecuteStateTransactionRequest, GetBulkStateRequest, GetBulkStateResponse, GetStateRequest, GetStateResponse, QueryStateRequest, QueryStateResponse, SaveStateRequest, TransactionalStateOperation } from '../../../proto/dapr/proto/runtime/v1/dapr_pb';
-import { Etag, StateItem, StateOptions } from '../../../proto/dapr/proto/common/v1/common_pb';
-import { KeyValuePairType } from '../../../types/KeyValuePair.type';
-import { OperationType } from '../../../types/Operation.type';
-import { IRequestMetadata } from '../../../types/RequestMetadata.type';
-import IClientState from '../../../interfaces/Client/IClientState';
-import { KeyValueType } from '../../../types/KeyValue.type';
-import { merge } from '../../../utils/Map.util';
-import { StateQueryType } from '../../../types/state/StateQuery.type';
-import { StateQueryResponseType } from '../../../types/state/StateQueryResponse.type';
+import GRPCClient from "./GRPCClient";
+import {
+  DeleteStateRequest,
+  ExecuteStateTransactionRequest,
+  GetBulkStateRequest,
+  GetBulkStateResponse,
+  GetStateRequest,
+  GetStateResponse,
+  QueryStateRequest,
+  QueryStateResponse,
+  SaveStateRequest,
+  TransactionalStateOperation,
+} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import { Etag, StateItem, StateOptions } from "../../../proto/dapr/proto/common/v1/common_pb";
+import { KeyValuePairType } from "../../../types/KeyValuePair.type";
+import { OperationType } from "../../../types/Operation.type";
+import { IRequestMetadata } from "../../../types/RequestMetadata.type";
+import IClientState from "../../../interfaces/Client/IClientState";
+import { KeyValueType } from "../../../types/KeyValue.type";
+import { merge } from "../../../utils/Map.util";
+import { StateQueryType } from "../../../types/state/StateQuery.type";
+import { StateQueryResponseType } from "../../../types/state/StateQueryResponse.type";
 
 // https://docs.dapr.io/reference/api/state_api/
 export default class GRPCClientState implements IClientState {
@@ -37,7 +48,12 @@ export default class GRPCClientState implements IClientState {
     for (const stateObject of stateObjects) {
       const si = new StateItem();
       si.setKey(stateObject.key);
-      si.setValue(Buffer.from(typeof stateObject.value === "object" ? JSON.stringify(stateObject.value) : stateObject.value.toString(), "utf-8"));
+      si.setValue(
+        Buffer.from(
+          typeof stateObject.value === "object" ? JSON.stringify(stateObject.value) : stateObject.value.toString(),
+          "utf-8",
+        ),
+      );
       stateList.push(si);
     }
 
@@ -62,8 +78,7 @@ export default class GRPCClientState implements IClientState {
   async get(storeName: string, key: string): Promise<KeyValueType | string> {
     const msgService = new GetStateRequest();
     msgService.setStoreName(storeName);
-    msgService.setKey(key)
-
+    msgService.setKey(key);
 
     // @todo: https://docs.dapr.io/reference/api/state_api/#optional-behaviors
     // msgService.setConsistency()
@@ -71,7 +86,6 @@ export default class GRPCClientState implements IClientState {
     const client = await this.client.getClient();
 
     return new Promise((resolve, reject) => {
-
       client.getState(msgService, (err, res: GetStateResponse) => {
         if (err) {
           return reject(err);
@@ -87,7 +101,7 @@ export default class GRPCClientState implements IClientState {
           return resolve(resData);
         }
       });
-    })
+    });
   }
 
   async getBulk(storeName: string, keys: string[], parallelism = 10, _metadata = ""): Promise<KeyValueType[]> {
@@ -109,22 +123,24 @@ export default class GRPCClientState implements IClientState {
         // https://docs.dapr.io/reference/api/state_api/#http-response-2
         const items = res.getItemsList();
 
-        return resolve(items.map(i => {
-          const resDataStr = Buffer.from(i.getData()).toString()
-          let data: string;
-          try {
-            data = JSON.parse(resDataStr);
-          } catch (e) {
-            data = resDataStr;
-          }
-          return {
-            key: i.getKey(),
-            data,
-            etag: i.getEtag()
-          }
-        }));
+        return resolve(
+          items.map((i) => {
+            const resDataStr = Buffer.from(i.getData()).toString();
+            let data: string;
+            try {
+              data = JSON.parse(resDataStr);
+            } catch (e) {
+              data = resDataStr;
+            }
+            return {
+              key: i.getKey(),
+              data,
+              etag: i.getEtag(),
+            };
+          }),
+        );
       });
-    })
+    });
   }
 
   async delete(storeName: string, key: string): Promise<void> {
@@ -150,7 +166,11 @@ export default class GRPCClientState implements IClientState {
     });
   }
 
-  async transaction(storeName: string, operations: OperationType[] = [], metadata: IRequestMetadata | null = null): Promise<void> {
+  async transaction(
+    storeName: string,
+    operations: OperationType[] = [],
+    metadata: IRequestMetadata | null = null,
+  ): Promise<void> {
     const transactionItems: TransactionalStateOperation[] = [];
 
     for (const o of operations) {
@@ -204,7 +224,7 @@ export default class GRPCClientState implements IClientState {
   async query(storeName: string, query: StateQueryType): Promise<StateQueryResponseType> {
     const msgService = new QueryStateRequest();
     msgService.setStoreName(storeName);
-    msgService.setQuery(JSON.stringify(query))
+    msgService.setQuery(JSON.stringify(query));
 
     const client = await this.client.getClient();
 
@@ -215,7 +235,7 @@ export default class GRPCClientState implements IClientState {
         }
 
         // https://docs.dapr.io/reference/api/state_api/#response-body
-        // map the res from gRPC 
+        // map the res from gRPC
         const resMapped: StateQueryResponseType = {
           results: res.getResultsList().map((i) => ({
             key: i.getKey(),
@@ -223,7 +243,7 @@ export default class GRPCClientState implements IClientState {
             etag: i.getEtag(),
             error: i.getError(),
           })),
-          token: res.getToken()
+          token: res.getToken(),
         };
 
         return resolve(resMapped);

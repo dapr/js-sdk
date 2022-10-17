@@ -17,57 +17,57 @@ import IClient from "../../../interfaces/Client/IClient";
 import http from "http";
 import https from "https";
 import { DaprClientOptions } from "../../../types/DaprClientOptions";
-import { Settings } from '../../../utils/Settings.util';
-import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type"
+import { Settings } from "../../../utils/Settings.util";
+import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type";
 import { Logger } from "../../../logger/Logger";
 import HTTPClientSidecar from "./sidecar";
+import { SDK_VERSION } from "../../../version";
 
 export default class HTTPClient implements IClient {
   private isInitialized: boolean;
 
-  private readonly client: typeof fetch;
+  private static client: typeof fetch;
   private readonly clientHost: string;
   private readonly clientPort: string;
   private readonly clientUrl: string;
   private readonly options: DaprClientOptions;
   private readonly logger: Logger;
 
-  private readonly httpAgent;
-  private readonly httpsAgent;
+  private static httpAgent: http.Agent;
+  private static httpsAgent: https.Agent;
 
-  constructor(
-    host = Settings.getDefaultHost()
-    , port = Settings.getDefaultHttpPort()
-    , options: DaprClientOptions = {},
-  ) {
+  constructor(host = Settings.getDefaultHost(), port = Settings.getDefaultHttpPort(), options: DaprClientOptions = {}) {
     this.clientHost = host;
     this.clientPort = port;
     this.options = options;
     this.logger = new Logger("HTTPClient", "HTTPClient", this.options.logger);
     this.isInitialized = false;
-
     // fallback to default
     if (this.options.isKeepAlive === undefined) {
       this.options.isKeepAlive = true;
     }
 
-    if (!this.clientHost.startsWith('http://') && !this.clientHost.startsWith('https://')) {
+    if (!this.clientHost.startsWith("http://") && !this.clientHost.startsWith("https://")) {
       this.clientUrl = `http://${this.clientHost}:${this.clientPort}/v1.0`;
     } else {
       this.clientUrl = `${this.clientHost}:${this.clientPort}/v1.0`;
     }
 
-    this.client = fetch;
+    if (!HTTPClient.client) {
+      HTTPClient.client = fetch;
+    }
 
     // Add a custom agent so we can decide if we want to reuse connections or not
     // we use an agent so we can reuse an open connection, limiting handshake requirements
     // Note: when using an agent, we will encounter TCPWRAP since the connection doesn't get destroyed
-    if (this.options.isKeepAlive) {
-      this.httpAgent = new http.Agent({ keepAlive: true, keepAliveMsecs: 30 * 1000 });
-      this.httpsAgent = new https.Agent({ keepAlive: true, keepAliveMsecs: 30 * 1000 });
-    } else {
-      this.httpAgent = new http.Agent();
-      this.httpsAgent = new https.Agent();
+    const keepAlive = this.options.isKeepAlive;
+    const keepAliveMsecs = 30 * 1000; // it is applicable only when keepAlive is set to true
+
+    if (!HTTPClient.httpAgent) {
+      HTTPClient.httpAgent = new http.Agent({ keepAlive: keepAlive, keepAliveMsecs: keepAliveMsecs });
+    }
+    if (!HTTPClient.httpsAgent) {
+      HTTPClient.httpsAgent = new https.Agent({ keepAlive: keepAlive, keepAliveMsecs: keepAliveMsecs });
     }
   }
 
@@ -78,7 +78,7 @@ export default class HTTPClient implements IClient {
       await this.start();
     }
 
-    return this.client;
+    return HTTPClient.client;
   }
 
   getClientHost(): string {
@@ -110,12 +110,12 @@ export default class HTTPClient implements IClient {
   }
 
   async _startAwaitSidecarStarted(): Promise<void> {
-    await DaprClient.awaitSidecarStarted(async () => await HTTPClientSidecar.isStarted(this));
+    await DaprClient.awaitSidecarStarted(async () => await HTTPClientSidecar.isStarted(this), this.logger);
   }
 
   async stop(): Promise<void> {
-    this.httpAgent.destroy();
-    this.httpsAgent.destroy();
+    HTTPClient.httpAgent.destroy();
+    HTTPClient.httpsAgent.destroy();
   }
 
   async start(): Promise<void> {
@@ -133,22 +133,32 @@ export default class HTTPClient implements IClient {
   }
 
   /**
-   * 
+   *
    * @param url The URL to call
    * @param params The parameters to pass to our URL
    * @param requiresInitialization If false, it doesn't require the Dapr sidecar to be started and might fail
    * @returns The result of the call
    */
-  async execute(url: string, params?: THTTPExecuteParams | undefined | null, requiresInitialization = true): Promise<object | string> {
+  async execute(
+    url: string,
+    params?: THTTPExecuteParams | undefined | null,
+    requiresInitialization = true,
+  ): Promise<object | string> {
     if (!params || typeof params !== "object") {
       params = {
-        method: "GET"
+        method: "GET",
       };
     }
 
     if (!params?.headers) {
       params.headers = {};
     }
+
+    if (this.options.daprApiToken) {
+      params.headers["dapr-api-token"] = this.options.daprApiToken;
+    }
+
+    params.headers["user-agent"] = `dapr-sdk-js/v${SDK_VERSION} http/1`;
 
     if (!params?.method) {
       params.method = "GET";
@@ -171,7 +181,7 @@ export default class HTTPClient implements IClient {
     }
 
     const urlFull = url.startsWith("http") ? url : `${this.clientUrl}${url}`;
-    const agent = urlFull.startsWith("https") ? this.httpsAgent : this.httpAgent;
+    const agent = urlFull.startsWith("https") ? HTTPClient.httpsAgent : HTTPClient.httpAgent;
     params.agent = agent;
 
     this.logger.debug(`Fetching ${params.method} ${urlFull} with body: (${params.body})`);
@@ -208,10 +218,14 @@ export default class HTTPClient implements IClient {
     // All the others
     else {
       this.logger.debug("Execute response text: %s", txtParsed);
-      throw new Error(JSON.stringify({
-        error: "UNKNOWN",
-        error_msg: `An unknown problem occured and we got the status ${res.status} with response ${JSON.stringify(res)}`
-      }));
+      throw new Error(
+        JSON.stringify({
+          error: "UNKNOWN",
+          error_msg: `An unknown problem occured and we got the status ${res.status} with response ${JSON.stringify(
+            res,
+          )}`,
+        }),
+      );
     }
   }
 }

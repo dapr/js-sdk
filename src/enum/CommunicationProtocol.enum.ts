@@ -12,8 +12,8 @@ limitations under the License.
 */
 
 enum CommunicationProtocolEnum {
-    GRPC,
-    HTTP
+  GRPC,
+  HTTP,
 }
 
 export default CommunicationProtocolEnum;

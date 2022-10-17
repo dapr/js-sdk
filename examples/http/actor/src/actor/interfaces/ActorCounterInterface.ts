@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 export default interface ActorCounterInterface {
-    count(): Promise<void>;
-    countBy(amount: number, multiplier: number): Promise<void>;
-    getCounter(): Promise<number>;
+  count(): Promise<void>;
+  countBy(amount: number, multiplier: number): Promise<void>;
+  getCounter(): Promise<number>;
 }

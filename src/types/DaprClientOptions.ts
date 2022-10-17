@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { ActorRuntimeOptions } from "./actors/ActorRuntimeOptions";
 import { LoggerOptions } from "./logger/LoggerOptions";
 
 export type DaprClientOptions = {
@@ -24,4 +25,15 @@ export type DaprClientOptions = {
    * Options related to logging.
    */
   logger?: LoggerOptions;
-}
+
+  /**
+   * Options related to actors.
+   */
+  actor?: ActorRuntimeOptions;
+
+  /**
+   * API token to authenticate with Dapr.
+   * See https://docs.dapr.io/operations/security/api-token/.
+   */
+  daprApiToken?: string;
+};

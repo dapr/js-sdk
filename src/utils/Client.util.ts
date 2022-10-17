@@ -23,23 +23,23 @@ import { Map } from "google-protobuf";
  * @returns grpc.Metadata object
  */
 export function createGRPCMetadata(metadata: KeyValueType = {}): grpc.Metadata {
-    const grpcMetadata = new grpc.Metadata();
-    for (const [key, value] of Object.entries(metadata)) {
-        grpcMetadata.set(key, value);
-    }
-    return grpcMetadata;
+  const grpcMetadata = new grpc.Metadata();
+  for (const [key, value] of Object.entries(metadata)) {
+    grpcMetadata.set(key, value);
+  }
+  return grpcMetadata;
 }
 
 /**
  * Converts a KeyValueType to a HTTP query parameters.
  * The query parameters are separated by "&", and the key value pair is separated by "=".
  * Each metadata key is prefixed with "metadata.".
- * 
+ *
  * Example, if the metadata is { "key1": "value1", "key2": "value2" }, the query parameter will be:
  * "metadata.key1=value1&metadata.key2=value2"
- * 
+ *
  * Note, the returned value does not contain the "?" prefix.
- * 
+ *
  * @param metadata key value pair of metadata
  * @returns HTTP query parameter string
  */

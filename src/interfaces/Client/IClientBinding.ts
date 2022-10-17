@@ -12,5 +12,5 @@ limitations under the License.
 */
 
 export default interface IClientBinding {
-    send(bindingName: string, operation: string, data: any, metadata?: object): Promise<object>;
+  send(bindingName: string, operation: string, data: any, metadata?: object): Promise<object>;
 }

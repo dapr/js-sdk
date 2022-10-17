@@ -67,8 +67,8 @@ export default class ActorReminderData {
       dueTime: this.dueTime,
       ttl: this.ttl,
       period: this.period,
-      data: this.state
-    }
+      data: this.state,
+    };
   }
 
   static fromObject(reminderName: string, obj: any): ActorReminderData {
