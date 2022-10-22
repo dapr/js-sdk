@@ -203,7 +203,7 @@ export default class HTTPClient implements IClient {
     if (res.status >= 200 && res.status <= 399) {
       return txtParsed;
     }
-   
+
     // All the others
     else {
       this.logger.debug("Execute response text: %s", txtParsed);
