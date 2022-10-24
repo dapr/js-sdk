@@ -36,7 +36,7 @@ jobs:
     env:
       GOVER: 1.17
       DAPR_CLI_VER: 1.8.0
-      DAPR_RUNTIME_VER: 1.8.0
+      DAPR_RUNTIME_VER: 1.8.4
       DAPR_INSTALL_URL: https://raw.githubusercontent.com/dapr/cli/master/install/install.sh
       DAPR_CLI_REF: '9472e6d977817243d6da28af3e3ca744414c54e6' # TODO, remove once DAPR CLI is upgraded to v1.7
       DAPR_REF: ''
