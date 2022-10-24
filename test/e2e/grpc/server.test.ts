@@ -136,8 +136,6 @@ describe("grpc/server", () => {
 
       // Delay a bit for event to arrive
       await new Promise((resolve, _reject) => setTimeout(resolve, 250));
-
-      // expect(res).toEqual(body);
     });
   });
 
