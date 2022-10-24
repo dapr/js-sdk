@@ -11,9 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { DaprInvokerCallbackFunction } from "../../types/DaprInvokerCallback.type";
-import { InvokerListenOptionsType } from "../../types/InvokerListenOptions.type";
+import { DaprClient } from "@dapr/dapr";
 
-export default interface IServerInvoker {
-  listen(methodName: string, cb: DaprInvokerCallbackFunction, options?: InvokerListenOptionsType): Promise<any>;
+const daprHost = "127.0.0.1";
+const daprPortDefault = "3500";
+
+async function start() {
+  const _client = new DaprClient(daprHost, process.env.DAPR_HTTP_PORT ?? daprPortDefault);
+  console.log("e2e test to show successful typescript build");
 }
+
+start().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

@@ -89,11 +89,12 @@ export default class HTTPServerImpl {
         // i.e. Redis returns { data: {} } and other services return {}
         // @todo: This will be deprecated in an upcoming major version and only req.body will be returned
         const data = req?.body?.data || req?.body;
+        const headers = req.headers;
 
         // Process our callback
         try {
           const eventHandlers = routeObj.eventHandlers;
-          await Promise.all(eventHandlers.map((cb) => cb(data)));
+          await Promise.all(eventHandlers.map((cb) => cb(data, headers)));
         } catch (e) {
           this.logger.error(`[route-${routeObj.path}] Message processing failed, dropping: ${e}`);
           return res.send({ status: SubscribedMessageHttpResponse.DROP });

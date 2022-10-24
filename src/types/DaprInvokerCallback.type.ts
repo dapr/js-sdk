@@ -11,14 +11,34 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { KeyValueType } from "./KeyValue.type";
+
 export interface DaprInvokerCallbackContentMetadata {
   contentType?: string;
 }
 
 export interface DaprInvokerCallbackContent {
+  /**
+   * The body of invocation request from the response.
+   */
   body?: string;
+
+  /**
+   * In HTTP, this represents the HTTP URL of the request.
+   * In gRPC, this represents the HTTP querystring from the gRPC request.
+   */
   query?: string;
+
+  /**
+   * Metadata related to the invocation request.
+   */
   metadata?: DaprInvokerCallbackContentMetadata;
+
+  /**
+   * HTTP headers from the response.
+   * Note, this is ignored when using the gRPC protocol.
+   */
+  headers?: KeyValueType;
 }
 
-export type TypeDaprInvokerCallback = (data: DaprInvokerCallbackContent) => Promise<any | void>;
+export type DaprInvokerCallbackFunction = (data: DaprInvokerCallbackContent) => Promise<any | void>;
