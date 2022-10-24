@@ -41,7 +41,7 @@ describe("http/server", () => {
       daprPort,
       CommunicationProtocolEnum.HTTP,
       { maxBodySizeMb: 20 }, // we set sending larger than receiving to test the error handling
-      { maxBodySizeMb: 10 }
+      { maxBodySizeMb: 10 },
     );
 
     await server.binding.receive("binding-mqtt", mockBindingReceive);
@@ -129,7 +129,6 @@ describe("http/server", () => {
       // Delay a bit for event to arrive
       await new Promise((resolve, _reject) => setTimeout(resolve, 250));
 
-
       // const serverTest = new DaprServer(
       //   serverHost,
       //   "50002",
@@ -173,7 +172,9 @@ describe("http/server", () => {
         // https://nodejs.org/dist/latest/docs/api/errors.html
         // we will receive EPIPE if server closes
         // on upload this is if the body is too large
-        expect(e.message).toEqual("request to http://127.0.0.1:50000/v1.0/invoke/test-suite/method/test-invoker failed, reason: write EPIPE");
+        expect(e.message).toEqual(
+          "request to http://127.0.0.1:50000/v1.0/invoke/test-suite/method/test-invoker failed, reason: write EPIPE",
+        );
       }
     });
   });
