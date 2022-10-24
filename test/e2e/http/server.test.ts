@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import fetch from "node-fetch";
 import { CommunicationProtocolEnum, DaprServer, HttpMethod } from "../../../src";
 
 const serverHost = "127.0.0.1";
