@@ -14,6 +14,7 @@ limitations under the License.
 import HTTPClient from "./HTTPClient";
 import { HttpMethod } from "../../../enum/HttpMethod.enum";
 import IClientInvoker from "../../../interfaces/Client/IClientInvoker";
+import { InvokerOptions } from "../../../types/InvokerOptions.type";
 
 // https://docs.dapr.io/reference/api/service_invocation_api/
 export default class HTTPClientInvoker implements IClientInvoker {
@@ -23,20 +24,27 @@ export default class HTTPClientInvoker implements IClientInvoker {
     this.client = client;
   }
 
-  async invoke(appId: string, methodName: string, method: HttpMethod = HttpMethod.GET, data?: object): Promise<object> {
+  async invoke(
+    appId: string,
+    methodName: string,
+    method: HttpMethod = HttpMethod.GET,
+    data?: object,
+    options: InvokerOptions = {},
+  ): Promise<object> {
+    const headers = options.headers ?? {};
+
     const fetchOptions = {
       method,
+      headers,
     };
 
     if (method !== HttpMethod.GET) {
-      // @ts-ignore
-      fetchOptions.headers = {
-        "Content-Type": "application/json",
-      };
+      //@ts-ignore
+      fetchOptions.headers["Content-Type"] = "application/json";
     }
 
     if (method !== HttpMethod.GET && data !== undefined) {
-      // @ts-ignore
+      //@ts-ignore
       fetchOptions.body = JSON.stringify(data);
     }
 

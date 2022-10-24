@@ -8,6 +8,8 @@ description: Guidelines for contributing to the Dapr JavaScript SDK
 
 When contributing to the [JavaScript SDK](https://github.com/dapr/js-sdk) the following rules and best-practices should be followed.
 
+💡 You can run `npm pretty-fix` to run prettier on all your files
+
 ## Commit Guidelines
 
 The Dapr Javascript SDK uses the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)

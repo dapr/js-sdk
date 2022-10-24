@@ -12,6 +12,8 @@ limitations under the License.
 */
 
 import { CommunicationProtocolEnum, DaprServer, HttpMethod } from "../../../src";
+import { DaprInvokerCallbackContent } from "../../../src/types/DaprInvokerCallback.type";
+import { KeyValueType } from "../../../src/types/KeyValue.type";
 
 const serverHost = "127.0.0.1";
 const serverPort = "50001";
@@ -23,6 +25,7 @@ describe("http/server", () => {
   let server: DaprServer;
   const mockBindingReceive = jest.fn(async (_data: object) => console.log("mockBindingReceive"));
   const mockPubSub = jest.fn(async (_data: object) => null);
+  const mockPubSubWithHeaders = jest.fn(async (_data: object, _headers: object) => null);
   const mockPubSubError = jest.fn(async (_data: object) => {
     throw new Error("DROPPING MESSAGE");
   });
@@ -91,6 +94,7 @@ describe("http/server", () => {
         },
       ],
     });
+    await server.pubsub.subscribe("pubsub-redis", "topic-5", mockPubSubWithHeaders);
     await server.pubsub.subscribe("pubsub-redis", "test-topic-ce-raw", mockPubSub, undefined, { rawPayload: true });
     await server.pubsub.subscribe("pubsub-redis", "test-topic-raw-raw", mockPubSub, undefined, { rawPayload: true });
     await server.pubsub.subscribe("pubsub-redis", "test-topic-raw-ce", mockPubSub);
@@ -103,6 +107,7 @@ describe("http/server", () => {
     mockBindingReceive.mockClear();
     mockPubSub.mockClear();
     mockPubSubError.mockClear();
+    mockPubSubWithHeaders.mockClear();
   });
 
   afterAll(async () => {
@@ -199,6 +204,23 @@ describe("http/server", () => {
       // Also test for receiving data
       // @ts-ignore
       expect(mockPubSub.mock.calls[0][0]["hello"]).toEqual("world");
+    });
+
+    it("should be able to receive events with their respective headers", async () => {
+      await server.client.pubsub.publish("pubsub-redis", "topic-5", { hello: "world" });
+
+      // Delay a bit for event to arrive
+      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+
+      expect(mockPubSubWithHeaders.mock.calls.length).toBe(1);
+
+      // Also test for receiving data
+      // @ts-ignore
+      expect(mockPubSubWithHeaders.mock.calls[0][1]?.["content-type"]).toEqual("application/cloudevents+json");
+      // @ts-ignore
+      expect(mockPubSubWithHeaders.mock.calls[0][1]?.["content-length"]).toEqual("380");
+      // @ts-ignore
+      expect(mockPubSubWithHeaders.mock.calls[0][1]?.["pubsubname"]).toEqual("pubsub-redis");
     });
 
     it("should be able to send and receive events when using options callback without a route", async () => {
@@ -477,6 +499,22 @@ describe("http/server", () => {
 
       expect(mock.mock.calls.length).toBe(1);
       expect(JSON.stringify(res)).toEqual(`{"hello":"world"}`);
+    });
+
+    it("should be able to listen and invoke a service with headers", async () => {
+      const mock = jest.fn(async (data: DaprInvokerCallbackContent) => data.headers);
+
+      await server.invoker.listen("hello-world-headers", mock, { method: HttpMethod.GET });
+      const res = await server.client.invoker.invoke(daprAppId, "hello-world-headers", HttpMethod.GET, undefined, {
+        headers: { "x-foo": "bar-baz" },
+      });
+
+      // Delay a bit for event to arrive
+      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+
+      expect(mock.mock.calls.length).toBe(1);
+      const headers = res as KeyValueType;
+      expect(headers["x-foo"]).toEqual("bar-baz");
     });
   });
 });
