@@ -13,7 +13,7 @@ limitations under the License.
 
 import * as grpc from "@grpc/grpc-js";
 import { KeyValueType } from "../types/KeyValue.type";
-import { ConfigurationType } from "../types/KeyConfig.type";
+import { ConfigurationType } from "../types/configuration/Configuration.type";
 import { ConfigurationItem } from "../types/configuration/ConfigurationItem";
 import { ConfigurationItem as ConfigurationItemProto } from "../proto/dapr/proto/common/v1/common_pb";
 import { Map } from "google-protobuf";
