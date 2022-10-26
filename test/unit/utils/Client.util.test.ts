@@ -11,7 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { createGRPCMetadata, createHTTPMetadataQueryParam } from "../../../src/utils/Client.util";
+import { ConfigurationItem } from "../../../src/proto/dapr/proto/common/v1/common_pb";
+import { createGRPCMetadata, createHTTPMetadataQueryParam, createConfigurationType } from "../../../src/utils/Client.util";
+import { Map } from "google-protobuf";
 
 describe("Client.util", () => {
   describe("getGRPCMetadata", () => {
@@ -76,6 +78,44 @@ describe("Client.util", () => {
       expect(queryParam).toEqual(
         "metadata.key%26with%3Dspecial!ch%23r%23cters=value1%26value2&metadata.key00=value3%20value4",
       );
+    });
+  });
+  describe("createConfigurationType", () => {
+    it("converts a dictionary to a configuration type", () => {
+      const item1 = new ConfigurationItem();
+      item1.setValue("value1");
+      item1.setVersion("v1");
+      item1.getMetadataMap().set("m1", "mv1");
+
+      const item2 = new ConfigurationItem();
+      item2.setValue("value2");
+      item2.setVersion("v2");
+      item2.getMetadataMap().set("m2", "mv2");
+
+      const m: Map<string, ConfigurationItem> = new Map([
+        ["key1", item1],
+        ["key2", item2],
+      ]);
+
+      const config = createConfigurationType(m);
+      expect(config).toEqual({
+        key1: {
+          key: "key1",
+          value: "value1",
+          metadata: {
+            m1: "mv1",
+          },
+          version: "v1",
+        },
+        key2: {
+          key: "key2",
+          value: "value2",
+          metadata: {
+            m2: "mv2",
+          },
+          version: "v2",
+        }
+      });
     });
   });
 });
