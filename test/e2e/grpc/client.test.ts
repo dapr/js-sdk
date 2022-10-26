@@ -409,7 +409,7 @@ describe("grpc/client", () => {
 
       expect(m.mock.calls[0][0].items.length).toEqual(1);
       expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey3");
-      expect(m.mock.calls[0][0].items[0].value).toEqual("mynewvalue")
+      expect(m.mock.calls[0][0].items[0].value).toEqual("mynewvalue");
 
       stream.stop();
     });
