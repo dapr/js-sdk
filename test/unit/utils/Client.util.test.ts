@@ -12,7 +12,11 @@ limitations under the License.
 */
 
 import { ConfigurationItem } from "../../../src/proto/dapr/proto/common/v1/common_pb";
-import { createGRPCMetadata, createHTTPMetadataQueryParam, createConfigurationType } from "../../../src/utils/Client.util";
+import {
+  createGRPCMetadata,
+  createHTTPMetadataQueryParam,
+  createConfigurationType,
+} from "../../../src/utils/Client.util";
 import { Map } from "google-protobuf";
 
 describe("Client.util", () => {
@@ -114,7 +118,7 @@ describe("Client.util", () => {
             m2: "mv2",
           },
           version: "v2",
-        }
+        },
       });
     });
   });
