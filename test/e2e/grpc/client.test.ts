@@ -72,7 +72,7 @@ describe("grpc/client", () => {
         interceptors: [mockInterceptor],
       });
 
-      await new Promise((resolve) => clientProxy.getMetadata(new Empty(), resolve));
+      await new Promise(async (resolve) => (await clientProxy).getMetadata(new Empty(), resolve));
 
       expect(mockInterceptor.mock.calls.length).toBe(1);
       expect(mockMetadataRes.get("dapr-app-id")[0]).toBe("test-suite");
@@ -100,7 +100,7 @@ describe("grpc/client", () => {
         interceptors: [mockInterceptor],
       });
 
-      await new Promise((resolve) => clientProxy.getMetadata(new Empty(), resolve));
+      await new Promise(async (resolve) => (await clientProxy).getMetadata(new Empty(), resolve));
 
       expect(mockInterceptor.mock.calls.length).toBe(1);
       expect(mockMetadataRes.get("dapr-app-id")[0]).toBe(process.env.APP_ID);
