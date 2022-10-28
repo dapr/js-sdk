@@ -206,8 +206,16 @@ export default class HTTPClient implements IClient {
 
     // All the others
     else {
-      this.logger.debug("Execute response text: %s", txtParsed);
-      throw new Error(JSON.stringify({ status: res.status, originError: txtParsed }));
+      this.logger.debug(`Execute response with  status: ${res.status} and text: ${txtParsed}`);
+      throw new Error(
+        JSON.stringify({
+          error: "UNKNOWN",
+          error_msg: `An unknown problem occurred and we got the status ${res.status} with response ${JSON.stringify(
+            res,
+          )}`,
+          status: res.status,
+        }),
+      );
     }
   }
 }
