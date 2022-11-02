@@ -362,7 +362,6 @@ describe("grpc/client", () => {
 
       const res = await client.state.get("state-redis", "key-1");
       expect(res).toEqual("value-1");
-      console.log(res);
     });
   });
 
@@ -431,7 +430,6 @@ describe("grpc/client", () => {
 
     it("should be able to subscribe with metadata", async () => {
       const m = jest.fn(async (_res: SubscribeConfigurationResponse) => {
-        console.log(_res)
         return;
       });
 
