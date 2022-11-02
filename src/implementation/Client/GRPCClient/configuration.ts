@@ -127,7 +127,13 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
 
     stream.on("data", async (data: SubscribeConfigurationResponse) => {
       streamId = data.getId();
-      const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(data.getItemsMap());
+      const items = data.getItemsMap();
+
+      if (items.getLength() == 0) {
+        return;
+      }
+
+      const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(items);
 
       const wrapped: SubscribeConfigurationResponseResult = {
         items: configMap,
