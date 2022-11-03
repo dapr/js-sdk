@@ -118,13 +118,12 @@ describe("grpc/server", () => {
       expect(mockBindingReceive.mock.calls[0][0]["hello"]).toEqual("world");
     });
 
-    it('should be able to send metadata to output binding successfully', async () => {
-      await server.client.binding.send('binding-redis', 'create', 'helloMessage', { "key": "helloKey" });
+    it("should be able to send metadata to output binding successfully", async () => {
+      await server.client.binding.send("binding-redis", "create", "helloMessage", { key: "helloKey" });
 
       const res = await server.client.configuration.get("config-redis", ["helloKey"]);
-      expect(res.items['helloKey'].value).toContain("helloMessage");
+      expect(res.items["helloKey"].value).toContain("helloMessage");
     });
-
   });
 
   describe("pubsub", () => {

@@ -15,7 +15,7 @@ import GRPCClient from "./GRPCClient";
 import { InvokeBindingRequest, InvokeBindingResponse } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import IClientBinding from "../../../interfaces/Client/IClientBinding";
 import * as SerializerUtil from "../../../utils/Serializer.util";
-import { createGRPCMetadata } from '../../../utils/Client.util';
+import { createGRPCMetadata } from "../../../utils/Client.util";
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class GRPCClientBinding implements IClientBinding {
