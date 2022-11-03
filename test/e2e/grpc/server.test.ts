@@ -117,6 +117,13 @@ describe("grpc/server", () => {
       // @ts-ignore
       expect(mockBindingReceive.mock.calls[0][0]["hello"]).toEqual("world");
     });
+
+    it("should be able to send metadata to output binding successfully", async () => {
+      await server.client.binding.send("binding-redis", "create", "helloMessage", { key: "helloKey" });
+
+      const res = await server.client.configuration.get("config-redis", ["helloKey"]);
+      expect(res.items["helloKey"].value).toContain("helloMessage");
+    });
   });
 
   describe("pubsub", () => {
@@ -174,7 +181,7 @@ describe("grpc/server", () => {
       }
     });
 
-    // TODO: uncomment these tests once metadata over gRPC is supported. See https://github.com/dapr/dapr/issues/2860
+    // TODO: uncomment these tests when https://github.com/dapr/dapr/issues/2860 is resolved.
     // it('should be able to send cloud event and receive raw payload', async () => {
     //   const res = await server.client.pubsub.publish('pubsub-redis', 'test-topic-ce-raw', { hello: 'world-ce-raw' });
     //   expect(res).toEqual(true);
@@ -185,7 +192,7 @@ describe("grpc/server", () => {
 
     //   // Also test for receiving data
     //   // @ts-ignore
-    //   const rawData = mockPubSubSubscribeCloudEventRaw.mock.calls[0][0]['data_base64'];
+    //   const rawData = mockPubSub.mock.calls[0][0]['data_base64'];
     //   const data = JSON.parse(Buffer.from(rawData, 'base64').toString());
     //   // @ts-ignore
     //   expect(data['data']['hello']).toEqual('world-ce-raw');
@@ -201,7 +208,7 @@ describe("grpc/server", () => {
 
     //   // Also test for receiving data
     //   // @ts-ignore
-    //   const rawData = mockPubSubSubscribeRawRaw.mock.calls[0][0]['data_base64'];
+    //   const rawData = mockPubSub.mock.calls[0][0]['data_base64'];
     //   const data = JSON.parse(Buffer.from(rawData, 'base64').toString());
     //   // @ts-ignore
     //   expect(data['hello']).toEqual('world-raw-raw');
@@ -217,7 +224,7 @@ describe("grpc/server", () => {
 
     //   // Also test for receiving data
     //   // @ts-ignore
-    //   expect(mockPubSubSubscribeRawCloudEvent.mock.calls[0][0]['hello']).toEqual('world-raw-ce');
+    //   expect(mockPubSub.mock.calls[0][0]['hello']).toEqual('world-raw-ce');
     // })
 
     it("should receive if it was successful or not", async () => {
