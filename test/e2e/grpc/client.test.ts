@@ -163,7 +163,9 @@ describe("grpc/client", () => {
 
   describe("pubsub", () => {
     it("should receive if it was successful or not", async () => {
-      const res = await client.pubsub.publish("pubsub-redis", "test-topic", { hello: "world" });
+      const res = await client.pubsub.publish("pubsub-redis", "test-topic", {
+        hello: "world",
+      });
       expect(res).toEqual(true);
     });
   });
@@ -360,7 +362,6 @@ describe("grpc/client", () => {
 
       const res = await client.state.get("state-redis", "key-1");
       expect(res).toEqual("value-1");
-      console.log(res);
     });
   });
 
@@ -374,19 +375,20 @@ describe("grpc/client", () => {
 
     it("should be able to get the configuration items", async () => {
       const config = await client.configuration.get("config-redis", ["myconfigkey1", "myconfigkey2", "myconfigkey3"]);
-      expect(config.items.length).toEqual(3);
+      expect(Object.keys(config.items).length).toEqual(3);
+      expect("myconfigkey1" in config.items);
+      expect("myconfigkey2" in config.items);
+      expect("myconfigkey3" in config.items);
 
-      expect(config.items.map((i) => i.key).indexOf("myconfigkey1")).toBeGreaterThan(-1);
-      expect(config.items.map((i) => i.key).indexOf("myconfigkey2")).toBeGreaterThan(-1);
-      expect(config.items.map((i) => i.key).indexOf("myconfigkey3")).toBeGreaterThan(-1);
-
-      expect(config.items.filter((i) => i.key == "myconfigkey1")[0].value).toEqual("key1_initialvalue");
-      expect(config.items.filter((i) => i.key == "myconfigkey2")[0].value).toEqual("key2_initialvalue");
-      expect(config.items.filter((i) => i.key == "myconfigkey3")[0].value).toEqual("key3_initialvalue");
+      expect(config.items["myconfigkey3"].value == "key1_initialvalue");
+      expect(config.items["myconfigkey3"].value == "key2_initialvalue");
+      expect(config.items["myconfigkey3"].value == "key3_initialvalue");
     });
 
     it("should be able to get the configuration items with metadata", async () => {
-      await client.configuration.get("config-redis", ["myconfigkey1"], { hello: "world" });
+      await client.configuration.get("config-redis", ["myconfigkey1"], {
+        hello: "world",
+      });
 
       // Disabled for now as I am unsure if Dapr returns the metadata items
       // Java SDK: https://github.com/dapr/java-sdk/blob/06d92dafca62a6b48e74ccf939feeac7189e360f/sdk/src/test/java/io/dapr/client/DaprPreviewClientGrpcTest.java#L119
@@ -404,9 +406,9 @@ describe("grpc/client", () => {
       // Update the configuration item
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey3 mynewvalue||2");
 
-      expect(m.mock.calls[0][0].items.length).toEqual(1);
-      expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey3");
-      expect(m.mock.calls[0][0].items[0].value).toEqual("mynewvalue");
+      expect(Object.keys(m.mock.calls[0][0].items).length).toEqual(1);
+      expect("myconfigkey3" in m.mock.calls[0][0].items);
+      expect(m.mock.calls[0][0].items["myconfigkey3"].value).toEqual("mynewvalue");
 
       stream.stop();
     });
@@ -419,11 +421,11 @@ describe("grpc/client", () => {
       const stream = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1", "myconfigkey2"], m);
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
 
-      expect(m.mock.calls.length).toEqual(1);
-      expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
-      expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
+      expect(Object.keys(m.mock.calls[0][0].items).length).toEqual(1);
+      expect("myconfigkey1" in m.mock.calls[0][0].items);
+      expect(m.mock.calls[0][0].items["myconfigkey1"].value).toEqual("key1_mynewvalue");
 
-      await stream.stop();
+      stream.stop();
     });
 
     it("should be able to subscribe with metadata", async () => {
@@ -439,11 +441,11 @@ describe("grpc/client", () => {
       );
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
 
-      expect(m.mock.calls.length).toEqual(1);
-      expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
-      expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
+      expect(Object.keys(m.mock.calls[0][0].items).length).toEqual(1);
+      expect("myconfigkey1" in m.mock.calls[0][0].items);
+      expect(m.mock.calls[0][0].items["myconfigkey1"].value).toEqual("key1_mynewvalue");
 
-      await stream1.stop();
+      stream1.stop();
     });
 
     it("should be able to unsubscribe", async () => {
@@ -459,18 +461,18 @@ describe("grpc/client", () => {
       );
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
 
-      expect(m.mock.calls.length).toEqual(1);
-      expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
-      expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
+      expect(Object.keys(m.mock.calls[0][0].items).length).toEqual(1);
+      expect("myconfigkey1" in m.mock.calls[0][0].items);
+      expect(m.mock.calls[0][0].items["myconfigkey1"].value).toEqual("key1_mynewvalue");
 
       stream.stop();
 
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue2||1");
 
       // Expect no change after stop
-      expect(m.mock.calls.length).toEqual(1);
-      expect(m.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
-      expect(m.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
+      expect(Object.keys(m.mock.calls[0][0].items).length).toEqual(1);
+      expect("myconfigkey1" in m.mock.calls[0][0].items);
+      expect(m.mock.calls[0][0].items["myconfigkey1"].value).toEqual("key1_mynewvalue");
     });
 
     it("should be able to subscribe to configuration items through multiple streams", async () => {
@@ -486,13 +488,13 @@ describe("grpc/client", () => {
 
       await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
 
-      expect(m1.mock.calls.length).toEqual(1);
-      expect(m1.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
-      expect(m1.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
+      expect(Object.keys(m1.mock.calls[0][0].items).length).toEqual(1);
+      expect("myconfigkey1" in m1.mock.calls[0][0].items);
+      expect(m1.mock.calls[0][0].items["myconfigkey1"].value).toEqual("key1_mynewvalue");
 
-      expect(m2.mock.calls.length).toEqual(1);
-      expect(m2.mock.calls[0][0].items[0].key).toEqual("myconfigkey1");
-      expect(m2.mock.calls[0][0].items[0].value).toEqual("key1_mynewvalue");
+      expect(Object.keys(m2.mock.calls[0][0].items).length).toEqual(1);
+      expect("myconfigkey1" in m2.mock.calls[0][0].items);
+      expect(m2.mock.calls[0][0].items["myconfigkey1"].value).toEqual("key1_mynewvalue");
 
       stream1.stop();
       stream2.stop();
