@@ -17,18 +17,15 @@ import ActorReminderInterface from "../interfaces/ActorReminderInterface";
 export default class ActorReminderImpl extends AbstractActor implements ActorReminderInterface {
   private reminderName: string | undefined;
 
-  async init(
-    reminderName: string,
-    dueTimeSeconds: number,
-    periodSeconds: number,
-    ttlSeconds: number): Promise<string> {
+  async init(reminderName: string, dueTimeSeconds: number, periodSeconds: number, ttlSeconds: number): Promise<string> {
     this.reminderName = reminderName;
 
     await super.registerActorReminder(
       this.reminderName,
       Temporal.Duration.from({ seconds: dueTimeSeconds }),
       Temporal.Duration.from({ seconds: periodSeconds }),
-      Temporal.Duration.from({ seconds: ttlSeconds }));
+      Temporal.Duration.from({ seconds: ttlSeconds }),
+    );
 
     return "Actor Initialized";
   }

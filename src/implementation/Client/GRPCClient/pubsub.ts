@@ -11,13 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import GRPCClient from './GRPCClient';
+import GRPCClient from "./GRPCClient";
 import { PublishEventRequest } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
-import { Logger } from '../../../logger/Logger';
+import { Logger } from "../../../logger/Logger";
 import * as SerializerUtil from "../../../utils/Serializer.util";
-import { KeyValueType } from '../../../types/KeyValue.type';
-import { createGRPCMetadata } from '../../../utils/Client.util';
+import { KeyValueType } from "../../../types/KeyValue.type";
+import { createGRPCMetadata } from "../../../utils/Client.util";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class GRPCClientPubSub implements IClientPubSub {

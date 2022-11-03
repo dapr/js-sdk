@@ -11,11 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import GRPCClient from './GRPCClient';
+import GRPCClient from "./GRPCClient";
 import * as grpc from "@grpc/grpc-js";
-import Class from '../../../types/Class';
-import { GRPCClientProxy as GRPCClientProxyImpl } from './GRPCClientProxy';
-import IClientProxy from '../../../interfaces/Client/IClientProxy';
+import Class from "../../../types/Class";
+import { GRPCClientProxy as GRPCClientProxyImpl } from "./GRPCClientProxy";
+import IClientProxy from "../../../interfaces/Client/IClientProxy";
 
 export default class GRPCClientProxy implements IClientProxy {
   client: GRPCClient;

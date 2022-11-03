@@ -11,4 +11,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-export type TypeDaprPubSubCallback = (data: any) => Promise<any | void>;
+export type TypeDaprPubSubCallback = (data: any, headers: object) => Promise<any | void>;

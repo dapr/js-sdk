@@ -19,4 +19,4 @@ export type ActorTimerType = {
   data?: any; // the data to pass
   ttl?: Temporal.Duration; // e.g. 1m
   callback: string; // which method to execute as callback method
-}
+};

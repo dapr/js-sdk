@@ -63,6 +63,17 @@ function deserialize_dapr_proto_runtime_v1_BindingEventResponse(buffer_arg) {
   return dapr_proto_runtime_v1_appcallback_pb.BindingEventResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_HealthCheckResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_appcallback_pb.HealthCheckResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.HealthCheckResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_HealthCheckResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_appcallback_pb.HealthCheckResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_ListInputBindingsResponse(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_appcallback_pb.ListInputBindingsResponse)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.ListInputBindingsResponse');
@@ -189,3 +200,21 @@ onBindingEvent: {
 };
 
 exports.AppCallbackClient = grpc.makeGenericClientConstructor(AppCallbackService);
+// AppCallbackHealthCheck V1 is an optional extension to AppCallback V1 to implement
+// the HealthCheck method.
+var AppCallbackHealthCheckService = exports.AppCallbackHealthCheckService = {
+  // Health check.
+healthCheck: {
+    path: '/dapr.proto.runtime.v1.AppCallbackHealthCheck/HealthCheck',
+    requestStream: false,
+    responseStream: false,
+    requestType: google_protobuf_empty_pb.Empty,
+    responseType: dapr_proto_runtime_v1_appcallback_pb.HealthCheckResponse,
+    requestSerialize: serialize_google_protobuf_Empty,
+    requestDeserialize: deserialize_google_protobuf_Empty,
+    responseSerialize: serialize_dapr_proto_runtime_v1_HealthCheckResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_HealthCheckResponse,
+  },
+};
+
+exports.AppCallbackHealthCheckClient = grpc.makeGenericClientConstructor(AppCallbackHealthCheckService);

@@ -30,9 +30,9 @@ A custom script is utilized here since we have 2 libraries in one for HTTP and g
 
 Tests are written per protocol layer: http or grpc. This is done because Dapr requires endpoints to be registered for for pubsub and bindings, making us having to start up the test, initialize those endpoints and then run. Since Dapr is a sidecar architecture, we thus have to start 2 test suites seperately. It requires the following containers:
 
-* **EMQX:** Used for Binding Tests
-    * Credentials: http://localhost:18083 (user: admin, pass: public)
-* **MongoDB:** Used for State Query API
+- **EMQX:** Used for Binding Tests
+  - Credentials: http://localhost:18083 (user: admin, pass: public)
+- **MongoDB:** Used for State Query API
 
 ```bash
 # Start Container
@@ -58,9 +58,9 @@ Publishing is automated in the CI/CD pipeline. Each time a version is release (G
 
 1. Fork the [js-sdk](https://github.com/dapr/js-sdk) repo to your GitHub account.
 1. Go to `Settings` in the forked repo and click on `Secrets` -> `Action`:
-![GitHub Settings](./assets/github_setting.png)
+   ![GitHub Settings](./assets/github_setting.png)
 1. Add secret variables for Dapr CI
 
-|Secret|Value|Usage|
-|--|--|--|
-|DAPR_BOT_TOKEN|[Your Github Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)|[dapr-bot.yml](https://github.com/dapr/js-sdk/blob/main/.github/workflows/dapr-bot.yml) uses it for administrative actions|
+| Secret         | Value                                                                                                                                                | Usage                                                                                                                      |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| DAPR_BOT_TOKEN | [Your Github Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) | [dapr-bot.yml](https://github.com/dapr/js-sdk/blob/main/.github/workflows/dapr-bot.yml) uses it for administrative actions |

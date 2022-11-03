@@ -11,9 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import GRPCClient from './GRPCClient';
-import { InvokeBindingRequest, InvokeBindingResponse } from '../../../proto/dapr/proto/runtime/v1/dapr_pb';
-import IClientBinding from '../../../interfaces/Client/IClientBinding';
+import GRPCClient from "./GRPCClient";
+import { InvokeBindingRequest, InvokeBindingResponse } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import IClientBinding from "../../../interfaces/Client/IClientBinding";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import { createGRPCMetadata } from '../../../utils/Client.util';
 
@@ -47,7 +47,7 @@ export default class GRPCClientBinding implements IClientBinding {
         return resolve({
           data: res.getData(),
           metadata: res.getMetadataMap(),
-          operation
+          operation,
         });
       });
     });

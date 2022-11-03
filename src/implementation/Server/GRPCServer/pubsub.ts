@@ -15,6 +15,9 @@ import GRPCServer from "./GRPCServer";
 import { TypeDaprPubSubCallback } from "../../../types/DaprPubSubCallback.type";
 import IServerPubSub from "../../../interfaces/Server/IServerPubSub";
 import { Logger } from "../../../logger/Logger";
+import { PubSubSubscriptionOptionsType } from "../../../types/pubsub/PubSubSubscriptionOptions.type";
+import { DaprPubSubRouteType } from "../../../types/pubsub/DaprPubSubRouteType.type";
+import { PubSubSubscriptionsType } from "../../../types/pubsub/PubSubSubscriptions.type";
 import { KeyValueType } from "../../../types/KeyValue.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
@@ -27,8 +30,74 @@ export default class DaprPubSub implements IServerPubSub {
     this.logger = new Logger("GRPCServer", "PubSub", server.client.options.logger);
   }
 
-  async subscribe(pubSubName: string, topic: string, cb: TypeDaprPubSubCallback, _route?: "", metadata?: KeyValueType): Promise<void> {
-    this.logger.info(`Registering onTopicEvent Handler: PubSub = ${pubSubName}; Topic = ${topic}; Metadata: ${metadata}`)
-    this.server.getServerImpl().registerPubSubSubscriptionHandler(pubSubName, topic, cb, metadata);
+  async subscribe(
+    pubsubName: string,
+    topic: string,
+    cb: TypeDaprPubSubCallback,
+    route: string | DaprPubSubRouteType = "",
+    metadata?: KeyValueType,
+  ): Promise<void> {
+    this.server.getServerImpl().registerPubsubSubscription(pubsubName, topic, { route, metadata });
+
+    // Add the callback to the event handlers manually
+    // @todo: we will deprecate this way of working? and require subscribeToRoute?
+    this.subscribeToRoute(pubsubName, topic, route, cb);
+  }
+
+  async subscribeWithOptions(
+    pubsubName: string,
+    topic: string,
+    options: PubSubSubscriptionOptionsType = {},
+  ): Promise<void> {
+    this.server.getServerImpl().registerPubsubSubscription(pubsubName, topic, options);
+
+    if (options.callback) {
+      this.subscribeToRoute(pubsubName, topic, options?.route, options.callback);
+    }
+  }
+
+  subscribeToRoute(
+    pubsubName: string,
+    topic: string,
+    route: string | DaprPubSubRouteType | undefined,
+    cb: TypeDaprPubSubCallback,
+  ): void {
+    if (!route || typeof route === "string") {
+      this.subscribeToRouteStringType(pubsubName, topic, route, cb);
+    } else {
+      this.subscribeToRouteDaprPubSubRouteType(pubsubName, topic, route, cb);
+    }
+  }
+
+  subscribeToRouteDaprPubSubRouteType(
+    pubsubName: string,
+    topic: string,
+    route: DaprPubSubRouteType,
+    cb: TypeDaprPubSubCallback,
+  ): void {
+    // Register the default
+    if (route.default) {
+      this.server.getServerImpl().registerPubSubSubscriptionEventHandler(pubsubName, topic, route.default, cb);
+    }
+
+    // Register the rules
+    if (route.rules) {
+      for (const rule of route.rules) {
+        this.server.getServerImpl().registerPubSubSubscriptionEventHandler(pubsubName, topic, rule.path, cb);
+      }
+    }
+  }
+
+  subscribeToRouteStringType(
+    pubsubName: string,
+    topic: string,
+    route: string | undefined,
+    cb: TypeDaprPubSubCallback,
+  ): void {
+    this.server.getServerImpl().registerPubSubSubscriptionEventHandler(pubsubName, topic, route, cb);
+  }
+
+  getSubscriptions(): PubSubSubscriptionsType {
+    return this.server.getServerImpl().pubSubSubscriptions;
   }
 }

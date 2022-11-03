@@ -2,6 +2,7 @@
 /**
  * @fileoverview
  * @enhanceable
+ * @suppress {missingRequire} reports error on implicit type usages.
  * @suppress {messageConventions} JS Compiler reports an error if a variable or
  *     field starts with 'MSG_' and isn't a translatable message.
  * @public
@@ -12,7 +13,7 @@
 
 var jspb = require('google-protobuf');
 var goog = jspb;
-var global = Function('return this')();
+var global = (function() { return this || window || global || self || Function('return this')(); }).call(null);
 
 var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js');
 goog.object.extend(proto, google_protobuf_any_pb);
@@ -877,7 +878,7 @@ if (goog.DEBUG && !COMPILED) {
  * @constructor
  */
 proto.dapr.proto.runtime.v1.GetConfigurationResponse = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.dapr.proto.runtime.v1.GetConfigurationResponse.repeatedFields_, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.dapr.proto.runtime.v1.GetConfigurationResponse, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
@@ -940,7 +941,7 @@ if (goog.DEBUG && !COMPILED) {
  * @constructor
  */
 proto.dapr.proto.runtime.v1.SubscribeConfigurationResponse = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.dapr.proto.runtime.v1.SubscribeConfigurationResponse.repeatedFields_, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.dapr.proto.runtime.v1.SubscribeConfigurationResponse, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
@@ -7675,7 +7676,8 @@ proto.dapr.proto.runtime.v1.InvokeActorRequest.toObject = function(includeInstan
     actorType: jspb.Message.getFieldWithDefault(msg, 1, ""),
     actorId: jspb.Message.getFieldWithDefault(msg, 2, ""),
     method: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    data: msg.getData_asB64()
+    data: msg.getData_asB64(),
+    metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -7727,6 +7729,12 @@ proto.dapr.proto.runtime.v1.InvokeActorRequest.deserializeBinaryFromReader = fun
     case 4:
       var value = /** @type {!Uint8Array} */ (reader.readBytes());
       msg.setData(value);
+      break;
+    case 5:
+      var value = msg.getMetadataMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "", "");
+         });
       break;
     default:
       reader.skipField();
@@ -7784,6 +7792,10 @@ proto.dapr.proto.runtime.v1.InvokeActorRequest.serializeBinaryToWriter = functio
       4,
       f
     );
+  }
+  f = message.getMetadataMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(5, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
 };
 
@@ -7882,6 +7894,28 @@ proto.dapr.proto.runtime.v1.InvokeActorRequest.prototype.getData_asU8 = function
 proto.dapr.proto.runtime.v1.InvokeActorRequest.prototype.setData = function(value) {
   return jspb.Message.setProto3BytesField(this, 4, value);
 };
+
+
+/**
+ * map<string, string> metadata = 5;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.dapr.proto.runtime.v1.InvokeActorRequest.prototype.getMetadataMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 5, opt_noLazyCreate,
+      null));
+};
+
+
+/**
+ * Clears values from the map. The map will be non-null.
+ * @return {!proto.dapr.proto.runtime.v1.InvokeActorRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.InvokeActorRequest.prototype.clearMetadataMap = function() {
+  this.getMetadataMap().clear();
+  return this;};
 
 
 
@@ -9100,13 +9134,6 @@ proto.dapr.proto.runtime.v1.GetConfigurationRequest.prototype.clearMetadataMap =
 
 
 
-/**
- * List of repeated fields within this message type.
- * @private {!Array<number>}
- * @const
- */
-proto.dapr.proto.runtime.v1.GetConfigurationResponse.repeatedFields_ = [1];
-
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -9138,8 +9165,7 @@ proto.dapr.proto.runtime.v1.GetConfigurationResponse.prototype.toObject = functi
  */
 proto.dapr.proto.runtime.v1.GetConfigurationResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    itemsList: jspb.Message.toObjectList(msg.getItemsList(),
-    dapr_proto_common_v1_common_pb.ConfigurationItem.toObject, includeInstance)
+    itemsMap: (f = msg.getItemsMap()) ? f.toObject(includeInstance, proto.dapr.proto.common.v1.ConfigurationItem.toObject) : []
   };
 
   if (includeInstance) {
@@ -9177,9 +9203,10 @@ proto.dapr.proto.runtime.v1.GetConfigurationResponse.deserializeBinaryFromReader
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new dapr_proto_common_v1_common_pb.ConfigurationItem;
-      reader.readMessage(value,dapr_proto_common_v1_common_pb.ConfigurationItem.deserializeBinaryFromReader);
-      msg.addItems(value);
+      var value = msg.getItemsMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.dapr.proto.common.v1.ConfigurationItem.deserializeBinaryFromReader, "", new proto.dapr.proto.common.v1.ConfigurationItem());
+         });
       break;
     default:
       reader.skipField();
@@ -9210,53 +9237,33 @@ proto.dapr.proto.runtime.v1.GetConfigurationResponse.prototype.serializeBinary =
  */
 proto.dapr.proto.runtime.v1.GetConfigurationResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getItemsList();
-  if (f.length > 0) {
-    writer.writeRepeatedMessage(
-      1,
-      f,
-      dapr_proto_common_v1_common_pb.ConfigurationItem.serializeBinaryToWriter
-    );
+  f = message.getItemsMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(1, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.dapr.proto.common.v1.ConfigurationItem.serializeBinaryToWriter);
   }
 };
 
 
 /**
- * repeated dapr.proto.common.v1.ConfigurationItem items = 1;
- * @return {!Array<!proto.dapr.proto.common.v1.ConfigurationItem>}
+ * map<string, dapr.proto.common.v1.ConfigurationItem> items = 1;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,!proto.dapr.proto.common.v1.ConfigurationItem>}
  */
-proto.dapr.proto.runtime.v1.GetConfigurationResponse.prototype.getItemsList = function() {
-  return /** @type{!Array<!proto.dapr.proto.common.v1.ConfigurationItem>} */ (
-    jspb.Message.getRepeatedWrapperField(this, dapr_proto_common_v1_common_pb.ConfigurationItem, 1));
+proto.dapr.proto.runtime.v1.GetConfigurationResponse.prototype.getItemsMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.dapr.proto.common.v1.ConfigurationItem>} */ (
+      jspb.Message.getMapField(this, 1, opt_noLazyCreate,
+      proto.dapr.proto.common.v1.ConfigurationItem));
 };
 
 
 /**
- * @param {!Array<!proto.dapr.proto.common.v1.ConfigurationItem>} value
- * @return {!proto.dapr.proto.runtime.v1.GetConfigurationResponse} returns this
-*/
-proto.dapr.proto.runtime.v1.GetConfigurationResponse.prototype.setItemsList = function(value) {
-  return jspb.Message.setRepeatedWrapperField(this, 1, value);
-};
-
-
-/**
- * @param {!proto.dapr.proto.common.v1.ConfigurationItem=} opt_value
- * @param {number=} opt_index
- * @return {!proto.dapr.proto.common.v1.ConfigurationItem}
- */
-proto.dapr.proto.runtime.v1.GetConfigurationResponse.prototype.addItems = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.dapr.proto.common.v1.ConfigurationItem, opt_index);
-};
-
-
-/**
- * Clears the list making it empty but non-null.
+ * Clears values from the map. The map will be non-null.
  * @return {!proto.dapr.proto.runtime.v1.GetConfigurationResponse} returns this
  */
-proto.dapr.proto.runtime.v1.GetConfigurationResponse.prototype.clearItemsList = function() {
-  return this.setItemsList([]);
-};
+proto.dapr.proto.runtime.v1.GetConfigurationResponse.prototype.clearItemsMap = function() {
+  this.getItemsMap().clear();
+  return this;};
 
 
 
@@ -9639,13 +9646,6 @@ proto.dapr.proto.runtime.v1.UnsubscribeConfigurationRequest.prototype.setId = fu
 
 
 
-/**
- * List of repeated fields within this message type.
- * @private {!Array<number>}
- * @const
- */
-proto.dapr.proto.runtime.v1.SubscribeConfigurationResponse.repeatedFields_ = [2];
-
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -9678,8 +9678,7 @@ proto.dapr.proto.runtime.v1.SubscribeConfigurationResponse.prototype.toObject = 
 proto.dapr.proto.runtime.v1.SubscribeConfigurationResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
     id: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    itemsList: jspb.Message.toObjectList(msg.getItemsList(),
-    dapr_proto_common_v1_common_pb.ConfigurationItem.toObject, includeInstance)
+    itemsMap: (f = msg.getItemsMap()) ? f.toObject(includeInstance, proto.dapr.proto.common.v1.ConfigurationItem.toObject) : []
   };
 
   if (includeInstance) {
@@ -9721,9 +9720,10 @@ proto.dapr.proto.runtime.v1.SubscribeConfigurationResponse.deserializeBinaryFrom
       msg.setId(value);
       break;
     case 2:
-      var value = new dapr_proto_common_v1_common_pb.ConfigurationItem;
-      reader.readMessage(value,dapr_proto_common_v1_common_pb.ConfigurationItem.deserializeBinaryFromReader);
-      msg.addItems(value);
+      var value = msg.getItemsMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.dapr.proto.common.v1.ConfigurationItem.deserializeBinaryFromReader, "", new proto.dapr.proto.common.v1.ConfigurationItem());
+         });
       break;
     default:
       reader.skipField();
@@ -9761,13 +9761,9 @@ proto.dapr.proto.runtime.v1.SubscribeConfigurationResponse.serializeBinaryToWrit
       f
     );
   }
-  f = message.getItemsList();
-  if (f.length > 0) {
-    writer.writeRepeatedMessage(
-      2,
-      f,
-      dapr_proto_common_v1_common_pb.ConfigurationItem.serializeBinaryToWriter
-    );
+  f = message.getItemsMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(2, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.dapr.proto.common.v1.ConfigurationItem.serializeBinaryToWriter);
   }
 };
 
@@ -9791,41 +9787,25 @@ proto.dapr.proto.runtime.v1.SubscribeConfigurationResponse.prototype.setId = fun
 
 
 /**
- * repeated dapr.proto.common.v1.ConfigurationItem items = 2;
- * @return {!Array<!proto.dapr.proto.common.v1.ConfigurationItem>}
+ * map<string, dapr.proto.common.v1.ConfigurationItem> items = 2;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,!proto.dapr.proto.common.v1.ConfigurationItem>}
  */
-proto.dapr.proto.runtime.v1.SubscribeConfigurationResponse.prototype.getItemsList = function() {
-  return /** @type{!Array<!proto.dapr.proto.common.v1.ConfigurationItem>} */ (
-    jspb.Message.getRepeatedWrapperField(this, dapr_proto_common_v1_common_pb.ConfigurationItem, 2));
+proto.dapr.proto.runtime.v1.SubscribeConfigurationResponse.prototype.getItemsMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.dapr.proto.common.v1.ConfigurationItem>} */ (
+      jspb.Message.getMapField(this, 2, opt_noLazyCreate,
+      proto.dapr.proto.common.v1.ConfigurationItem));
 };
 
 
 /**
- * @param {!Array<!proto.dapr.proto.common.v1.ConfigurationItem>} value
- * @return {!proto.dapr.proto.runtime.v1.SubscribeConfigurationResponse} returns this
-*/
-proto.dapr.proto.runtime.v1.SubscribeConfigurationResponse.prototype.setItemsList = function(value) {
-  return jspb.Message.setRepeatedWrapperField(this, 2, value);
-};
-
-
-/**
- * @param {!proto.dapr.proto.common.v1.ConfigurationItem=} opt_value
- * @param {number=} opt_index
- * @return {!proto.dapr.proto.common.v1.ConfigurationItem}
- */
-proto.dapr.proto.runtime.v1.SubscribeConfigurationResponse.prototype.addItems = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.dapr.proto.common.v1.ConfigurationItem, opt_index);
-};
-
-
-/**
- * Clears the list making it empty but non-null.
+ * Clears values from the map. The map will be non-null.
  * @return {!proto.dapr.proto.runtime.v1.SubscribeConfigurationResponse} returns this
  */
-proto.dapr.proto.runtime.v1.SubscribeConfigurationResponse.prototype.clearItemsList = function() {
-  return this.setItemsList([]);
-};
+proto.dapr.proto.runtime.v1.SubscribeConfigurationResponse.prototype.clearItemsMap = function() {
+  this.getItemsMap().clear();
+  return this;};
 
 
 

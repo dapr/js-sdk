@@ -11,8 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import GRPCClient from './GRPCClient';
-import { GetBulkSecretRequest, GetBulkSecretResponse, GetSecretRequest, GetSecretResponse } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import GRPCClient from "./GRPCClient";
+import {
+  GetBulkSecretRequest,
+  GetBulkSecretResponse,
+  GetSecretRequest,
+  GetSecretResponse,
+} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import IClientSecret from "../../../interfaces/Client/IClientSecret";
 
 // https://docs.dapr.io/reference/api/secrets_api/
@@ -38,12 +43,15 @@ export default class GRPCClientSecret implements IClientSecret {
         }
 
         // Convert [ [ 'TEST_SECRET_1', 'secret_val_1' ] ] => [ { TEST_SECRET_1: 'secret_val_1' } ]
-        const items = res.getDataMap().getEntryList().map((item) => ({ [item[0]]: item[1] }));
+        const items = res
+          .getDataMap()
+          .getEntryList()
+          .map((item) => ({ [item[0]]: item[1] }));
 
         // Return first item (it's a single get)
         return resolve(items[0]);
       });
-    })
+    });
   }
 
   async getBulk(secretStoreName: string): Promise<object> {
@@ -63,6 +71,6 @@ export default class GRPCClientSecret implements IClientSecret {
         // tslint:disable-next-line
         return resolve(res.getDataMap()["map_"]);
       });
-    })
+    });
   }
 }

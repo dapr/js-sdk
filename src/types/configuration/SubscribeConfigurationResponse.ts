@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { ConfigurationItem } from "./ConfigurationItem";
+import { ConfigurationType } from "./Configuration.type";
 
 export type SubscribeConfigurationResponse = {
-  items: ConfigurationItem[];
-}
+  items: ConfigurationType;
+};

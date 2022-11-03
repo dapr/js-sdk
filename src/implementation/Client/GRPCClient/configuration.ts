@@ -11,15 +11,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import GRPCClient from './GRPCClient';
+import GRPCClient from "./GRPCClient";
 import * as grpc from "@grpc/grpc-js";
-import { GetConfigurationRequest, GetConfigurationResponse, SubscribeConfigurationRequest, SubscribeConfigurationResponse, UnsubscribeConfigurationRequest, UnsubscribeConfigurationResponse } from '../../../proto/dapr/proto/runtime/v1/dapr_pb';
-import IClientConfiguration from '../../../interfaces/Client/IClientConfiguration';
-import { KeyValueType } from '../../../types/KeyValue.type';
-import { GetConfigurationResponse as GetConfigurationResponseResult } from '../../../types/configuration/GetConfigurationResponse';
-import { SubscribeConfigurationResponse as SubscribeConfigurationResponseResult } from '../../../types/configuration/SubscribeConfigurationResponse';
-import { SubscribeConfigurationCallback } from '../../../types/configuration/SubscribeConfigurationCallback';
-import { SubscribeConfigurationStream } from '../../../types/configuration/SubscribeConfigurationStream';
+import {
+  GetConfigurationRequest,
+  GetConfigurationResponse,
+  SubscribeConfigurationRequest,
+  SubscribeConfigurationResponse,
+  UnsubscribeConfigurationRequest,
+  UnsubscribeConfigurationResponse,
+} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import IClientConfiguration from "../../../interfaces/Client/IClientConfiguration";
+import { KeyValueType } from "../../../types/KeyValue.type";
+import { GetConfigurationResponse as GetConfigurationResponseResult } from "../../../types/configuration/GetConfigurationResponse";
+import { SubscribeConfigurationResponse as SubscribeConfigurationResponseResult } from "../../../types/configuration/SubscribeConfigurationResponse";
+import { SubscribeConfigurationCallback } from "../../../types/configuration/SubscribeConfigurationCallback";
+import { SubscribeConfigurationStream } from "../../../types/configuration/SubscribeConfigurationStream";
+import { ConfigurationItem } from "../../../types/configuration/ConfigurationItem";
+import { createConfigurationType } from "../../../utils/Client.util";
 
 export default class GRPCClientConfiguration implements IClientConfiguration {
   client: GRPCClient;
@@ -35,7 +44,7 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
     msg.setStoreName(storeName);
 
     if (keys && keys.length > 0) {
-      msg.setKeysList(keys.filter(i => i !== ""));
+      msg.setKeysList(keys.filter((i) => i !== ""));
     }
 
     if (metadataObj) {
@@ -52,44 +61,51 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
           return reject(err);
         }
 
-        const wrapped: GetConfigurationResponseResult = {
-          items: res.getItemsList().map((item) => ({
-            key: item.getKey(),
-            value: item.getValue(),
-            version: item.getVersion(),
-            metadata: item.getMetadataMap().toObject().reduce((result: object, [key, value]) => {
-              // @ts-ignore
-              result[key] = value;
-              return result
-            }, {}),
-          }))
-        }
+        const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(res.getItemsMap());
 
-        return resolve(wrapped);
+        const result: SubscribeConfigurationResponseResult = {
+          items: configMap,
+        };
+
+        return resolve(result);
       });
     });
   }
 
   async subscribe(storeName: string, cb: SubscribeConfigurationCallback): Promise<SubscribeConfigurationStream> {
-    return this._subscribe(storeName, cb)
+    return this._subscribe(storeName, cb);
   }
 
-  async subscribeWithKeys(storeName: string, keys: string[], cb: SubscribeConfigurationCallback): Promise<SubscribeConfigurationStream> {
-    return this._subscribe(storeName, cb, keys)
+  async subscribeWithKeys(
+    storeName: string,
+    keys: string[],
+    cb: SubscribeConfigurationCallback,
+  ): Promise<SubscribeConfigurationStream> {
+    return this._subscribe(storeName, cb, keys);
   }
 
-  async subscribeWithMetadata(storeName: string, keys: string[], metadata: KeyValueType, cb: SubscribeConfigurationCallback): Promise<SubscribeConfigurationStream> {
-    return this._subscribe(storeName, cb, keys, metadata)
+  async subscribeWithMetadata(
+    storeName: string,
+    keys: string[],
+    metadata: KeyValueType,
+    cb: SubscribeConfigurationCallback,
+  ): Promise<SubscribeConfigurationStream> {
+    return this._subscribe(storeName, cb, keys, metadata);
   }
 
-  async _subscribe(storeName: string, cb: SubscribeConfigurationCallback, keys?: string[], metadataObj?: KeyValueType): Promise<SubscribeConfigurationStream> {
+  async _subscribe(
+    storeName: string,
+    cb: SubscribeConfigurationCallback,
+    keys?: string[],
+    metadataObj?: KeyValueType,
+  ): Promise<SubscribeConfigurationStream> {
     const metadata = new grpc.Metadata();
 
     const msg = new SubscribeConfigurationRequest();
     msg.setStoreName(storeName);
 
     if (keys && keys.length > 0) {
-      msg.setKeysList(keys.filter(i => i !== ""));
+      msg.setKeysList(keys.filter((i) => i !== ""));
     } else {
       msg.setKeysList([]);
     }
@@ -102,28 +118,26 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
 
     const client = await this.client.getClient();
 
-    // Open a stream. Note that this is a never-ending stream 
+    // Open a stream. Note that this is a never-ending stream
     // and will stay open as long as the client is open
-    // we will thus create a set with our listeners so we don't 
+    // we will thus create a set with our listeners so we don't
     // break on multi listeners
     const stream = client.subscribeConfigurationAlpha1(msg, metadata);
     let streamId: string;
 
     stream.on("data", async (data: SubscribeConfigurationResponse) => {
       streamId = data.getId();
+      const items = data.getItemsMap();
+
+      if (items.getLength() == 0) {
+        return;
+      }
+
+      const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(items);
 
       const wrapped: SubscribeConfigurationResponseResult = {
-        items: data.getItemsList().map((item) => ({
-          key: item.getKey(),
-          value: item.getValue(),
-          version: item.getVersion(),
-          metadata: item.getMetadataMap().toObject().reduce((result: object, [key, value]) => {
-            // @ts-ignore
-            result[key] = value;
-            return result
-          }, {}),
-        }))
-      }
+        items: configMap,
+      };
 
       await cb(wrapped);
     });
@@ -146,8 +160,8 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
 
             return resolve();
           });
-        })
-      }
+        });
+      },
     };
   }
 }

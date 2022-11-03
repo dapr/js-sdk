@@ -1,26 +1,26 @@
 {
-    "name": "dapr-client-example-http-actor-parking-sensor",
-    "version": "1.0.0",
-    "description": "An example utilizing the Dapr JS SDK",
-    "main": "index.js",
-    "private": true,
-    "scripts": {
-        "build": "rimraf ./dist && tsc",
-        "start": "npm run build && node dist/index.js",
-        "start:dev": "npm run build && nodemon --ext \".ts,.js\" --watch \"./src\" --exec \"ts-node ./src/index.ts\"",
-        "start:dapr": "dapr run --app-id example-actor-parking-sensor --app-protocol http --app-port 50001 --dapr-http-port 50000 --components-path ./components --config ./dapr-config.yaml npm run start"
-    },
-    "keywords": [],
-    "license": "ISC",
-    "devDependencies": {
-        "nodemon": "^2.0.7",
-        "rimraf": "^3.0.2",
-        "ts-node": "^9.1.1",
-        "typescript": "^4.2.4"
-    },
-    "dependencies": {
-        "@dapr/dapr": "file:../../../build",
-        "@types/node": "^15.3.0",
-        "google-protobuf": "^3.17.0"
-    }
+  "name": "dapr-client-example-http-actor-parking-sensor",
+  "version": "1.0.0",
+  "description": "An example utilizing the Dapr JS SDK",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "build": "rimraf ./dist && tsc",
+    "start": "npm run build && node dist/index.js",
+    "start:dev": "npm run build && nodemon --ext \".ts,.js\" --watch \"./src\" --exec \"ts-node ./src/index.ts\"",
+    "start:dapr": "dapr run --app-id example-actor-parking-sensor --app-protocol http --app-port 50001 --dapr-http-port 50000 --components-path ./components --config ./dapr-config.yaml npm run start"
+  },
+  "keywords": [],
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^2.0.20",
+    "rimraf": "^3.0.2",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.4"
+  },
+  "dependencies": {
+    "@dapr/dapr": "file:../../../build",
+    "@types/node": "^15.3.0",
+    "google-protobuf": "^3.17.0"
+  }
 }

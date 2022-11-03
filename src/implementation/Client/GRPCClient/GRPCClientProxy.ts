@@ -35,12 +35,16 @@ export class GRPCClientProxy<T> {
     // Create an interceptor that adds 'dapr-app-id' to each call as metadata
     const interceptorDaprAppId = (options: grpc.InterceptorOptions, nextCall: NextCall): grpc.InterceptingCall => {
       return new grpc.InterceptingCall(nextCall(options), {
-        start: (metadata: grpc.Metadata, listener: InterceptingListener, next: (metadata: grpc.Metadata, listener: InterceptingListener | grpc.Listener) => void) => {
-          metadata.add('dapr-app-id', `${Settings.getAppId()}`);
+        start: (
+          metadata: grpc.Metadata,
+          listener: InterceptingListener,
+          next: (metadata: grpc.Metadata, listener: InterceptingListener | grpc.Listener) => void,
+        ) => {
+          metadata.add("dapr-app-id", `${Settings.getAppId()}`);
           next(metadata, listener);
-        }
+        },
       });
-    }
+    };
 
     interceptors.push(interceptorDaprAppId);
 
@@ -59,9 +63,9 @@ export class GRPCClientProxy<T> {
     this.grpcClientOptions.interceptors = [...this.generateInterceptors(), ...this.grpcClientOptions.interceptors];
 
     const clientCustom = new this.clsProxy(
-      `${this.grpcClient.getClientHost()}:${this.grpcClient.getClientPort()}`
-      , this.grpcClient.getClientCredentials()
-      , this.grpcClientOptions
+      `${this.grpcClient.getClientHost()}:${this.grpcClient.getClientPort()}`,
+      this.grpcClient.getClientCredentials(),
+      this.grpcClientOptions,
     );
 
     return clientCustom;

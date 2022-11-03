@@ -6,9 +6,9 @@ This page covers how the documentation is structured for the Dapr JavaScript SDK
 
 All Dapr documentation is hosted at [docs.dapr.io](https://docs.dapr.io), including the docs for the [JavaScript SDK](https://docs.dapr.io/developing-applications/sdks/javascript/). Head over there if you want to read the docs.
 
-### JavaScript SDK docs source 
+### JavaScript SDK docs source
 
-Although the docs site code and content is in the [docs repo](https://github.com/dapr/docs), the JavaScript SDK content and images are within the `content` and `static` directories, respectively. 
+Although the docs site code and content is in the [docs repo](https://github.com/dapr/docs), the JavaScript SDK content and images are within the `content` and `static` directories, respectively.
 
 This allows separation of roles and expertise between maintainers, and makes it easy to find the docs files you are looking for.
 

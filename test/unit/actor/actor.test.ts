@@ -11,33 +11,37 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { DaprClient, Temporal } from '../../../src';
-import ActorRuntime from '../../../src/actors/runtime/ActorRuntime';
-import ActorRuntimeConfig from '../../../src/actors/runtime/ActorRuntimeConfig';
+import { DaprClient } from "../../../src";
+import ActorRuntime from "../../../src/actors/runtime/ActorRuntime";
+import { ActorRuntimeOptions } from "../../../src/types/actors/ActorRuntimeOptions";
 
-describe('Actor', () => {
-    let client: DaprClient;
+describe("Actor", () => {
+  let client: DaprClient;
 
-    beforeAll(async () => {
-        jest.mock('../../../src/implementation/Client/DaprClient'); // converts DaprClient into a mock constructor
-        client = new DaprClient("127.0.0.1", "1000");
-    });
+  beforeAll(async () => {
+    jest.mock("../../../src/implementation/Client/DaprClient"); // converts DaprClient into a mock constructor
+    client = new DaprClient("127.0.0.1", "1000");
+  });
 
-    beforeEach(async () => {
-        const runtime = ActorRuntime.getInstanceByDaprClient(client);
+  beforeEach(async () => {
+    const runtime = ActorRuntime.getInstanceByDaprClient(client);
 
-        // Reset the runtime config
-        const config = new ActorRuntimeConfig(
-          Temporal.Duration.from({ hours: 1 })
-          , Temporal.Duration.from({ seconds: 30 })
-          , Temporal.Duration.from({ minutes: 1 })
-          , true
-        );
-        runtime.setActorRuntimeConfig(config);
+    // Reset the runtime config
+    const config: ActorRuntimeOptions = {
+      actorIdleTimeout: "1h",
+      actorScanInterval: "30s",
+      drainOngoingCallTimeout: "1m",
+      drainRebalancedActors: true,
+      reentrancy: {
+        enabled: false,
+      },
+      remindersStoragePartitions: 1,
+    };
+    runtime.setActorRuntimeOptions(config);
 
-        // Clear the Actor Managers
-        runtime.clearActorManagers();
-    });
+    // Clear the Actor Managers
+    runtime.clearActorManagers();
+  });
 
-    it('says hello', () => expect("hello").toEqual("hello"))
-})
+  it("says hello", () => expect("hello").toEqual("hello"));
+});

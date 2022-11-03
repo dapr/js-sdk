@@ -11,9 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import GRPCClient from './GRPCClient';
+import GRPCClient from "./GRPCClient";
 import IClientSidecar from "../../../interfaces/Client/IClientSidecar";
-import { GetMetadataResponse } from '../../../proto/dapr/proto/runtime/v1/dapr_pb';
+import { GetMetadataResponse } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 
 // https://docs.dapr.io/reference/api/secrets_api/

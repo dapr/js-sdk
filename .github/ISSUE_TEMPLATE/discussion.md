@@ -1,8 +1,7 @@
 ---
 name: Feature Request
 about: Start a discussion for js-sdk
-title: ''
+title: ""
 labels: kind/discussion
-assignees: ''
-
+assignees: ""
 ---

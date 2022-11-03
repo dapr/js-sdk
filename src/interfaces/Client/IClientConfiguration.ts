@@ -20,6 +20,15 @@ export default interface IClientConfiguration {
   // https://github.com/dapr/dapr/blob/master/dapr/proto/runtime/v1/dapr.proto#L90
   get(storeName: string, keys?: string[], metadata?: KeyValueType): Promise<GetConfigurationResponse>;
   subscribe(storeName: string, cb: SubscribeConfigurationCallback): Promise<SubscribeConfigurationStream>;
-  subscribeWithKeys(storeName: string, keys: string[], cb: SubscribeConfigurationCallback): Promise<SubscribeConfigurationStream>;
-  subscribeWithMetadata(storeName: string, keys: string[], metadata: KeyValueType, cb: SubscribeConfigurationCallback): Promise<SubscribeConfigurationStream>;
+  subscribeWithKeys(
+    storeName: string,
+    keys: string[],
+    cb: SubscribeConfigurationCallback,
+  ): Promise<SubscribeConfigurationStream>;
+  subscribeWithMetadata(
+    storeName: string,
+    keys: string[],
+    metadata: KeyValueType,
+    cb: SubscribeConfigurationCallback,
+  ): Promise<SubscribeConfigurationStream>;
 }
