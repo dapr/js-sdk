@@ -22,6 +22,7 @@ import BufferSerializer from "../../../actors/runtime/BufferSerializer";
 import { DaprClient } from "../../..";
 import { Logger } from "../../../logger/Logger";
 import { getRegisteredActorResponse } from "../../../utils/Actors.util";
+import HttpStatusCode from "../../../enum/HttpStatusCode.enum";
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class HTTPServerActor implements IServerActor {
@@ -98,13 +99,18 @@ export default class HTTPServerActor implements IServerActor {
     // @todo: reentrancy id? (https://github.com/dapr/python-sdk/blob/master/ext/flask_dapr/flask_dapr/actor.py#L91)
 
     const dataSerialized = this.serializer.serialize(body);
-    const result = await ActorRuntime.getInstance(this.client.getDaprClient()).invoke(
-      actorTypeName,
-      actorId,
-      methodName,
-      dataSerialized,
-    );
-    return this.handleResult(res, result);
+    try {
+      const result = await ActorRuntime.getInstance(this.client.getDaprClient()).invoke(
+        actorTypeName,
+        actorId,
+        methodName,
+        dataSerialized,
+      );
+      return this.handleResult(res, result);
+    } catch (err) {
+      res.statusCode = HttpStatusCode.BAD_REQUEST;
+      return this.handleResult(res, err);
+    }
   }
 
   private async handlerTimer(req: IRequest, res: IResponse): Promise<void> {
