@@ -109,3 +109,36 @@ export class AppCallbackClient extends grpc.Client implements IAppCallbackClient
     public onBindingEvent(request: dapr_proto_runtime_v1_appcallback_pb.BindingEventRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.BindingEventResponse) => void): grpc.ClientUnaryCall;
     public onBindingEvent(request: dapr_proto_runtime_v1_appcallback_pb.BindingEventRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.BindingEventResponse) => void): grpc.ClientUnaryCall;
 }
+
+interface IAppCallbackHealthCheckService extends grpc.ServiceDefinition<grpc.UntypedServiceImplementation> {
+    healthCheck: IAppCallbackHealthCheckService_IHealthCheck;
+}
+
+interface IAppCallbackHealthCheckService_IHealthCheck extends grpc.MethodDefinition<google_protobuf_empty_pb.Empty, dapr_proto_runtime_v1_appcallback_pb.HealthCheckResponse> {
+    path: "/dapr.proto.runtime.v1.AppCallbackHealthCheck/HealthCheck";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<google_protobuf_empty_pb.Empty>;
+    requestDeserialize: grpc.deserialize<google_protobuf_empty_pb.Empty>;
+    responseSerialize: grpc.serialize<dapr_proto_runtime_v1_appcallback_pb.HealthCheckResponse>;
+    responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_appcallback_pb.HealthCheckResponse>;
+}
+
+export const AppCallbackHealthCheckService: IAppCallbackHealthCheckService;
+
+export interface IAppCallbackHealthCheckServer extends grpc.UntypedServiceImplementation {
+    healthCheck: grpc.handleUnaryCall<google_protobuf_empty_pb.Empty, dapr_proto_runtime_v1_appcallback_pb.HealthCheckResponse>;
+}
+
+export interface IAppCallbackHealthCheckClient {
+    healthCheck(request: google_protobuf_empty_pb.Empty, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.HealthCheckResponse) => void): grpc.ClientUnaryCall;
+    healthCheck(request: google_protobuf_empty_pb.Empty, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.HealthCheckResponse) => void): grpc.ClientUnaryCall;
+    healthCheck(request: google_protobuf_empty_pb.Empty, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.HealthCheckResponse) => void): grpc.ClientUnaryCall;
+}
+
+export class AppCallbackHealthCheckClient extends grpc.Client implements IAppCallbackHealthCheckClient {
+    constructor(address: string, credentials: grpc.ChannelCredentials, options?: Partial<grpc.ClientOptions>);
+    public healthCheck(request: google_protobuf_empty_pb.Empty, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.HealthCheckResponse) => void): grpc.ClientUnaryCall;
+    public healthCheck(request: google_protobuf_empty_pb.Empty, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.HealthCheckResponse) => void): grpc.ClientUnaryCall;
+    public healthCheck(request: google_protobuf_empty_pb.Empty, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.HealthCheckResponse) => void): grpc.ClientUnaryCall;
+}

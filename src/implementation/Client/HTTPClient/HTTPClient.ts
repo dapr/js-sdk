@@ -203,27 +203,17 @@ export default class HTTPClient implements IClient {
     if (res.status >= 200 && res.status <= 399) {
       return txtParsed;
     }
-    // 400 = Bad Request, 401 = Unauthorized, 404 = Not Found
-    else if (res.status === 400 || res.status === 401 || res.status === 404) {
-      throw new Error(JSON.stringify(txtParsed));
-    }
-    // 403 = Forbidden
-    else if (res.status === 403) {
-      throw new Error(JSON.stringify(txtParsed));
-    }
-    // 500 = Internal Server Error, 502 = Bad Gateway
-    else if (res.status === 500 || res.status === 502) {
-      throw new Error(JSON.stringify(txtParsed));
-    }
+
     // All the others
     else {
-      this.logger.debug("Execute response text: %s", txtParsed);
+      this.logger.debug(`Execute response with  status: ${res.status} and text: ${txtParsed}`);
       throw new Error(
         JSON.stringify({
           error: "UNKNOWN",
-          error_msg: `An unknown problem occured and we got the status ${res.status} with response ${JSON.stringify(
+          error_msg: `An unknown problem occurred and we got the status ${res.status} with response ${JSON.stringify(
             res,
           )}`,
+          status: res.status,
         }),
       );
     }

@@ -27,6 +27,8 @@ import { GetConfigurationResponse as GetConfigurationResponseResult } from "../.
 import { SubscribeConfigurationResponse as SubscribeConfigurationResponseResult } from "../../../types/configuration/SubscribeConfigurationResponse";
 import { SubscribeConfigurationCallback } from "../../../types/configuration/SubscribeConfigurationCallback";
 import { SubscribeConfigurationStream } from "../../../types/configuration/SubscribeConfigurationStream";
+import { ConfigurationItem } from "../../../types/configuration/ConfigurationItem";
+import { createConfigurationType } from "../../../utils/Client.util";
 
 export default class GRPCClientConfiguration implements IClientConfiguration {
   client: GRPCClient;
@@ -59,23 +61,13 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
           return reject(err);
         }
 
-        const wrapped: GetConfigurationResponseResult = {
-          items: res.getItemsList().map((item) => ({
-            key: item.getKey(),
-            value: item.getValue(),
-            version: item.getVersion(),
-            metadata: item
-              .getMetadataMap()
-              .toObject()
-              .reduce((result: object, [key, value]) => {
-                // @ts-ignore
-                result[key] = value;
-                return result;
-              }, {}),
-          })),
+        const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(res.getItemsMap());
+
+        const result: SubscribeConfigurationResponseResult = {
+          items: configMap,
         };
 
-        return resolve(wrapped);
+        return resolve(result);
       });
     });
   }
@@ -135,21 +127,16 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
 
     stream.on("data", async (data: SubscribeConfigurationResponse) => {
       streamId = data.getId();
+      const items = data.getItemsMap();
+
+      if (items.getLength() == 0) {
+        return;
+      }
+
+      const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(items);
 
       const wrapped: SubscribeConfigurationResponseResult = {
-        items: data.getItemsList().map((item) => ({
-          key: item.getKey(),
-          value: item.getValue(),
-          version: item.getVersion(),
-          metadata: item
-            .getMetadataMap()
-            .toObject()
-            .reduce((result: object, [key, value]) => {
-              // @ts-ignore
-              result[key] = value;
-              return result;
-            }, {}),
-        })),
+        items: configMap,
       };
 
       await cb(wrapped);

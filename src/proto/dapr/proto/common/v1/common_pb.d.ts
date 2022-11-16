@@ -204,8 +204,6 @@ export namespace StateOptions {
 }
 
 export class ConfigurationItem extends jspb.Message { 
-    getKey(): string;
-    setKey(value: string): ConfigurationItem;
     getValue(): string;
     setValue(value: string): ConfigurationItem;
     getVersion(): string;
@@ -226,7 +224,6 @@ export class ConfigurationItem extends jspb.Message {
 
 export namespace ConfigurationItem {
     export type AsObject = {
-        key: string,
         value: string,
         version: string,
 

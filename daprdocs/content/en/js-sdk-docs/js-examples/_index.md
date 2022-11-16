@@ -17,14 +17,14 @@ description: Get started with the Dapr Javascript SDK through some of our exampl
 
 > Want your article added? [Let us know!](https://github.com/dapr/js-sdk/discussions/categories/articles) so we can add it below
 
-- [xaviergeerinck.com - Create an Azure IoT Hub Stream Processor with Dapr](https://xaviergeerinck.com/post/2022/05/19/dapr-stream-processor)
+- [xaviergeerinck.com - Create an Azure IoT Hub Stream Processor with Dapr](https://xaviergeerinck.com/2022/05/19/create-an-azure-iot-hub-stream-processor-with-dapr/)
 
-- [xaviergeerinck.com - Integrate Dapr with Nest.JS and the Dapr KS SDK](https://xaviergeerinck.com/post/2022/03/29/dapr-with-nestjs)
+- [xaviergeerinck.com - Integrate Dapr with Nest.JS and the Dapr JS SDK](https://xaviergeerinck.com/2022/03/29/integrate-dapr-with-nest-js-and-the-dapr-js-sdk/)
 
-- [xaviergeerinck.com - Parking Garage Sensor implementation using Dapr Actors](https://xaviergeerinck.com/post/2021/10/09/parking-garage)
+- [xaviergeerinck.com - Parking Garage Sensor implementation using Dapr Actors](https://xaviergeerinck.com/2021/10/09/parking-garage-sensor-implementation-using-dapr-actors/)
 
-- [xaviergeerinck.com - Running Dapr on Azure IoT Edge](https://xaviergeerinck.com/post/2021/04/23/iot-edge)
+- [xaviergeerinck.com - Running Dapr on Azure IoT Edge](https://xaviergeerinck.com/2021/04/23/running-dapr-on-azure-iot-edge/)
 
-- [xaviergeerinck.com - Creating an Email Microservice with Typescript and Dapr](https://xaviergeerinck.com/post/2021/03/25/creating-email-microservice)
+- [xaviergeerinck.com - Tutorial - Creating an Email Microservice with Typescript and Dapr](https://xaviergeerinck.com/2021/03/25/tutorial---creating-an-email-microservice-with-typescript-and-dapr/)
 
-- [xaviergeerinck.com - Creating a User Login/Register Microservice](https://xaviergeerinck.com/post/2020/04/10/creating-account-microservice)
+- [xaviergeerinck.com - Dapr - Creating a User Login/Register Microservice](https://xaviergeerinck.com/2020/04/10/dapr---creating-a-user-login-register-microservice/)

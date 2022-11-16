@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { ConfigurationType } from "./Configuration.type";
+import { ConfigurationItem } from "./ConfigurationItem";
 
-export type GetConfigurationResponse = {
-  items: ConfigurationType;
+export type ConfigurationType = {
+  [key: string]: ConfigurationItem;
 };
