@@ -128,39 +128,6 @@ describe("http/server", () => {
 
       // Delay a bit for event to arrive
       await new Promise((resolve, _reject) => setTimeout(resolve, 250));
-
-      // const serverTest = new DaprServer(
-      //   serverHost,
-      //   "50002",
-      //   daprHost,
-      //   daprPort,
-      //   CommunicationProtocolEnum.HTTP,
-      //   undefined,
-      //   {
-      //     maxBodySizeMb: 10,
-      //   },
-      // );
-      // await serverTest.start();
-
-      // const mock = jest.fn(async (_data: object) => null);
-
-      // await serverTest.invoker.listen("test", mock, { method: HttpMethod.POST });
-
-      // await fetch(`http://${serverHost}:50002/test`, {
-      //   method: "POST",
-      //   body: new Uint8Array(5 * 1024 * 1024),
-      //   headers: {
-      //     "Content-Type": "application/octet-stream",
-      //   },
-      // });
-
-      // // @ts-ignore
-      // const mockBodyParsed = JSON.parse(mock.mock.calls[0][0]["body"]);
-
-      // expect(mockBodyParsed.type).toEqual("Buffer");
-      // expect(mockBodyParsed.data.length).toEqual(5 * 1024 * 1024);
-
-      // await serverTest.stop();
     });
 
     it("should throw an error if the receive payload is larger than 4 MB and we did not configure a larger size", async () => {
@@ -219,7 +186,7 @@ describe("http/server", () => {
       // @ts-ignore
       expect(mockPubSubWithHeaders.mock.calls[0][1]?.["content-type"]).toEqual("application/cloudevents+json");
       // @ts-ignore
-      expect(mockPubSubWithHeaders.mock.calls[0][1]?.["content-length"]).toEqual("380");
+      expect(mockPubSubWithHeaders.mock.calls[0][1]?.["content-length"]).toEqual("415");
       // @ts-ignore
       expect(mockPubSubWithHeaders.mock.calls[0][1]?.["pubsubname"]).toEqual("pubsub-redis");
     });
