@@ -77,11 +77,24 @@ dapr run --app-id example-sdk --app-protocol grpc -- npm run start
 npm run start:dapr-grpc
 ```
 
-## Proxying Requests
+## General
+
+### Increasing Body Size
+
+You can increase the body size that is used to communicate to the Sidecar and the server by using a Client flag.
+
+```typescript
+import { DaprClient, CommunicationProtocol } from "@dapr/dapr";
+
+// Allow a body size of 10Mb to be used
+const client = new DaprClient(daprHost, daprPort, CommunicationProtocol.HTTP, { maxBodySizeMb: 10 });
+```
+
+### Proxying Requests
 
 By proxying requests, we can utilize the unique capabilities that Dapr brings with its sidecar architecture such as service discovery, logging, etc., enabling us to instantly "upgrade" our gRPC services. This feature of gRPC proxying was demonstrated in [community call 41](https://www.youtube.com/watch?v=B_vkXqptpXY&t=71s).
 
-### Creating a Proxy
+#### Creating a Proxy
 
 To perform gRPC proxying, simply create a proxy by calling the `client.proxy.create()` method:
 
@@ -96,7 +109,7 @@ const clientProxy = await clientSidecar.proxy.create<GreeterClient>(GreeterClien
 
 We can now call the methods as defined in our `GreeterClient` interface (which in this case is from the [Hello World example](https://github.com/grpc/grpc-go/blob/master/examples/helloworld/helloworld/helloworld.proto))
 
-### Behind the Scenes (Technical Working)
+#### Behind the Scenes (Technical Working)
 
 ![Architecture](assets/architecture.png)
 
@@ -104,6 +117,7 @@ We can now call the methods as defined in our `GreeterClient` interface (which i
 2. We can now call the Dapr Sidecar through a client that will connect to the Sidecar
 3. Whilst calling the Dapr Sidecar, we provide a metadata key named `dapr-app-id` with the value of our gRPC server booted in Dapr (e.g. `server` in our example)
 4. Dapr will now forward the call to the gRPC server configured
+
 
 ## Building blocks
 
