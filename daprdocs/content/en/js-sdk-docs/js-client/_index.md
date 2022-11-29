@@ -118,7 +118,6 @@ We can now call the methods as defined in our `GreeterClient` interface (which i
 3. Whilst calling the Dapr Sidecar, we provide a metadata key named `dapr-app-id` with the value of our gRPC server booted in Dapr (e.g. `server` in our example)
 4. Dapr will now forward the call to the gRPC server configured
 
-
 ## Building blocks
 
 The JavaScript Client SDK allows you to interface with all of the [Dapr building blocks]({{< ref building-blocks >}}) focusing on Client to Sidecar features.
