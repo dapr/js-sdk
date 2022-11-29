@@ -23,7 +23,7 @@ const daprAppId = "test-suite";
 
 describe("http/server", () => {
   let server: DaprServer;
-  const mockBindingReceive = jest.fn(async (_data: object) => console.log("mockBindingReceive"));
+  const mockBindingReceive = jest.fn(async (_data: object) => null);
   const mockPubSub = jest.fn(async (_data: object) => null);
   const mockPubSubWithHeaders = jest.fn(async (_data: object, _headers: object) => null);
   const mockPubSubError = jest.fn(async (_data: object) => {
@@ -112,7 +112,6 @@ describe("http/server", () => {
 
       // Delay a bit for event to arrive
       await new Promise((resolve, _reject) => setTimeout(resolve, 250));
-      expect(mockBindingReceive.mock.calls.length).toBe(1);
 
       // Also test for receiving data
       // @ts-ignore
@@ -127,11 +126,8 @@ describe("http/server", () => {
       // Delay a bit for event to arrive
       await new Promise((resolve, _reject) => setTimeout(resolve, 250));
 
-      expect(mockPubSub.mock.calls.length).toBe(1);
-
-      // Also test for receiving data
       // @ts-ignore
-      expect(mockPubSub.mock.calls[0][0]["hello"]).toEqual("world");
+      expect(mockPubSub.mock.calls[0][0]["data"]).toEqual({ hello: "world" });
     });
 
     it("should be able to receive events with their respective headers", async () => {
@@ -146,7 +142,7 @@ describe("http/server", () => {
       // @ts-ignore
       expect(mockPubSubWithHeaders.mock.calls[0][1]?.["content-type"]).toEqual("application/cloudevents+json");
       // @ts-ignore
-      expect(mockPubSubWithHeaders.mock.calls[0][1]?.["content-length"]).toEqual("380");
+      expect(mockPubSubWithHeaders.mock.calls[0][1]?.["content-length"]).toEqual("415");
       // @ts-ignore
       expect(mockPubSubWithHeaders.mock.calls[0][1]?.["pubsubname"]).toEqual("pubsub-redis");
     });
@@ -161,7 +157,7 @@ describe("http/server", () => {
 
       // Also test for receiving data
       // @ts-ignore
-      expect(mockPubSub.mock.calls[0][0]["hello"]).toEqual("world");
+      expect(mockPubSub.mock.calls[0][0]["data"]).toEqual({ hello: "world" });
     });
 
     it("should only allow one subscription per topic", async () => {
@@ -237,6 +233,29 @@ describe("http/server", () => {
     it("should receive if it was successful or not", async () => {
       const res = await server.client.pubsub.publish("pubsub-redis", "topic-demo", { hello: "world" });
       expect(res).toEqual(true);
+    });
+
+    it("should receive the entire body instead of just data, this also contains the content type, time, traces, ...", async () => {
+      await server.client.pubsub.publish("pubsub-redis", "topic-options-6", { data: { hello: "world" } });
+
+      // Delay a bit for event to arrive
+      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+
+      expect(mockPubSub.mock.calls.length).toBe(1);
+
+      // Also test for receiving data
+      expect(mockPubSub.mock.calls[0][0]).toHaveProperty("data");
+      expect(mockPubSub.mock.calls[0][0]).toHaveProperty("datacontenttype");
+      expect(mockPubSub.mock.calls[0][0]).toHaveProperty("id");
+      expect(mockPubSub.mock.calls[0][0]).toHaveProperty("pubsubname");
+      expect(mockPubSub.mock.calls[0][0]).toHaveProperty("source");
+      expect(mockPubSub.mock.calls[0][0]).toHaveProperty("specversion");
+      expect(mockPubSub.mock.calls[0][0]).toHaveProperty("time");
+      expect(mockPubSub.mock.calls[0][0]).toHaveProperty("topic");
+      expect(mockPubSub.mock.calls[0][0]).toHaveProperty("traceid");
+      expect(mockPubSub.mock.calls[0][0]).toHaveProperty("traceparent");
+      expect(mockPubSub.mock.calls[0][0]).toHaveProperty("tracestate");
+      expect(mockPubSub.mock.calls[0][0]).toHaveProperty("type");
     });
 
     it('should create route "default" if we don\'t provide a route', async () => {
@@ -396,7 +415,7 @@ describe("http/server", () => {
 
       // Also test for receiving data
       // @ts-ignore
-      expect(mockPubSubError.mock.calls[0][0]["hello"]).toEqual("world");
+      expect(mockPubSubError.mock.calls[0][0]["data"]).toEqual({ hello: "world" });
     });
   });
 

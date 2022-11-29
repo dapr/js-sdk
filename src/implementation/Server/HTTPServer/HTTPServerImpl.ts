@@ -88,7 +88,7 @@ export default class HTTPServerImpl {
         // Parse the data of the body, we prioritize fetching the data key in body if possible
         // i.e. Redis returns { data: {} } and other services return {}
         // @todo: This will be deprecated in an upcoming major version and only req.body will be returned
-        const data = req?.body?.data || req?.body;
+        const data = req?.body;
         const headers = req.headers;
 
         // Process our callback
