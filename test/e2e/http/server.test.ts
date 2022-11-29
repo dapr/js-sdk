@@ -183,12 +183,9 @@ describe("http/server", () => {
       expect(mockPubSubWithHeaders.mock.calls.length).toBe(1);
 
       // Also test for receiving data
-      // @ts-ignore
-      expect(mockPubSubWithHeaders.mock.calls[0][1]?.["content-type"]).toEqual("application/cloudevents+json");
-      // @ts-ignore
-      expect(mockPubSubWithHeaders.mock.calls[0][1]?.["content-length"]).toEqual("415");
-      // @ts-ignore
-      expect(mockPubSubWithHeaders.mock.calls[0][1]?.["pubsubname"]).toEqual("pubsub-redis");
+      expect(mockPubSubWithHeaders.mock.calls[0][1]).toHaveProperty("content-type");
+      expect(mockPubSubWithHeaders.mock.calls[0][1]).toHaveProperty("content-length");
+      expect(mockPubSubWithHeaders.mock.calls[0][1]).toHaveProperty("content-pubsubname");
     });
 
     it("should be able to send and receive events when using options callback without a route", async () => {
