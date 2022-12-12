@@ -17,7 +17,7 @@ import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 import { Logger } from "../../../logger/Logger";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import { KeyValueType } from "../../../types/KeyValue.type";
-import { createGRPCMetadata } from "../../../utils/Client.util";
+import { createGRPCMetadata, getContentType } from "../../../utils/Client.util";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class GRPCClientPubSub implements IClientPubSub {
@@ -31,11 +31,15 @@ export default class GRPCClientPubSub implements IClientPubSub {
   }
 
   // @todo: should return a specific typed Promise<TypePubSubPublishResponse> instead of Promise<any>
-  async publish(pubSubName: string, topic: string, data: object = {}, metadata?: KeyValueType): Promise<boolean> {
+  async publish(pubSubName: string, topic: string, data: object | string, metadata?: KeyValueType): Promise<boolean> {
     const msgService = new PublishEventRequest();
     msgService.setPubsubName(pubSubName);
     msgService.setTopic(topic);
-    msgService.setData(SerializerUtil.serializeGrpc(data).serializedData);
+
+    if (data) {
+      msgService.setData(SerializerUtil.serializeGrpc(data).serializedData);
+      msgService.setDataContentType(getContentType(data));
+    }
 
     const client = await this.client.getClient();
     const grpcMetadata = createGRPCMetadata(metadata);
