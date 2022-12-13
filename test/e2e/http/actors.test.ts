@@ -132,6 +132,17 @@ describe("http/actors", () => {
     });
   });
 
+  describe("invokeNonExistentMethod", () => {
+    it("should not fail if invoked un-existing method on actor", async () => {
+      const builder = new ActorProxyBuilder<DemoActorCounterInterface>(DemoActorCounterImpl, client);
+      const actor = builder.build(ActorId.createRandomId());
+    
+      // @ts-ignore
+      const c1 = await actor.sayHello();
+      expect(c1).toThrow("The actor method 'sayHello' does not exist on 'DemoActorCounterImpl'");
+    });
+  });
+
   describe("invoke", () => {
     it("should register actors correctly", async () => {
       const actors = await server.actor.getRegisteredActors();
