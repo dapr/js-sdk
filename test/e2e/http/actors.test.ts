@@ -136,7 +136,7 @@ describe("http/actors", () => {
     it("should not fail if invoked un-existing method on actor", async () => {
       const builder = new ActorProxyBuilder<DemoActorCounterInterface>(DemoActorCounterImpl, client);
       const actor = builder.build(ActorId.createRandomId());
-    
+
       // @ts-ignore
       const c1 = await actor.sayHello();
       expect(c1).toThrow("The actor method 'sayHello' does not exist on 'DemoActorCounterImpl'");
