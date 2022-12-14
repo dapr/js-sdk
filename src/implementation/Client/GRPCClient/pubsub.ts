@@ -17,7 +17,7 @@ import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 import { Logger } from "../../../logger/Logger";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import { KeyValueType } from "../../../types/KeyValue.type";
-import { createGRPCMetadata, getContentType } from "../../../utils/Client.util";
+import { createGRPCMetadata } from "../../../utils/Client.util";
 import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
