@@ -18,6 +18,7 @@ import { Logger } from "../../../logger/Logger";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import { KeyValueType } from "../../../types/KeyValue.type";
 import { createGRPCMetadata, getContentType } from "../../../utils/Client.util";
+import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class GRPCClientPubSub implements IClientPubSub {
@@ -30,8 +31,12 @@ export default class GRPCClientPubSub implements IClientPubSub {
     this.logger = new Logger("GRPCClient", "PubSub", client.getOptions().logger);
   }
 
-  // @todo: should return a specific typed Promise<TypePubSubPublishResponse> instead of Promise<any>
-  async publish(pubSubName: string, topic: string, data: object | string, metadata?: KeyValueType): Promise<boolean> {
+  async publish(
+    pubSubName: string,
+    topic: string,
+    data: object | string,
+    metadata?: KeyValueType,
+  ): Promise<PubSubPublishResponseType> {
     const msgService = new PublishEventRequest();
     msgService.setPubsubName(pubSubName);
     msgService.setTopic(topic);
@@ -48,11 +53,10 @@ export default class GRPCClientPubSub implements IClientPubSub {
       client.publishEvent(msgService, grpcMetadata, (err, _res) => {
         if (err) {
           this.logger.error(`publish failed: ${err}`);
-          return reject(false);
+          return reject({ error: err });
         }
 
-        // https://docs.dapr.io/reference/api/pubsub_api/#expected-http-response
-        return resolve(true);
+        return resolve({});
       });
     });
   }

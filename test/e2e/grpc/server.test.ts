@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { CommunicationProtocolEnum, DaprServer, HttpMethod } from "../../../src";
+import { CommunicationProtocolEnum, ConsoleLoggerService, DaprServer, HttpMethod } from "../../../src";
 
 const serverHost = "localhost";
 const serverPort = "50001";
@@ -127,7 +127,22 @@ describe("grpc/server", () => {
   });
 
   describe("pubsub", () => {
-    it("should be able to send and receive events", async () => {
+    const logger = new ConsoleLoggerService();
+
+    it("should be able to send and receive plain events", async () => {
+      await server.client.pubsub.publish("pubsub-redis", "topic-1", "Hello, world!");
+
+      // Delay a bit for event to arrive
+      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+
+      expect(mockPubSub.mock.calls.length).toBe(1);
+
+      // Also test for receiving data
+      // @ts-ignore
+      expect(mockPubSub.mock.calls[0][0]).toEqual("Hello, world!");
+    });
+
+    it("should be able to send and receive JSON events", async () => {
       await server.client.pubsub.publish("pubsub-redis", "topic-1", { hello: "world" });
 
       // Delay a bit for event to arrive
@@ -138,6 +153,31 @@ describe("grpc/server", () => {
       // Also test for receiving data
       // @ts-ignore
       expect(mockPubSub.mock.calls[0][0]["hello"]).toEqual("world");
+    });
+
+    it("should be able to send and receive cloud events", async () => {
+      const ce = {
+        specversion: "1.0",
+        type: "com.github.pull.create",
+        source: "https://github.com/cloudevents/spec/pull",
+        id: "A234-1234-1234",
+      };
+
+      await server.client.pubsub.publish("pubsub-redis", "topic-1", ce);
+
+      // Delay a bit for event to arrive
+      await new Promise((resolve, _reject) => setTimeout(resolve, 500));
+
+      expect(mockPubSub.mock.calls.length).toBe(1);
+
+      // Also test for receiving data
+      // @ts-ignore
+      logger.warn("LOGGERDEBUG 3");
+      logger.warn(JSON.stringify(mockPubSub.mock.calls[0]));
+      // expect(mockPubSub.mock.calls[0][0]["specversion"]).toEqual(ce.specversion);
+      // expect(mockPubSub.mock.calls[0][0]["type"]).toEqual(ce.type);
+      // expect(mockPubSub.mock.calls[0][0]["source"]).toEqual(ce.source);
+      // expect(mockPubSub.mock.calls[0][0]["id"]).toEqual(ce.id);
     });
 
     it("should be able to receive events with their respective headers", async () => {

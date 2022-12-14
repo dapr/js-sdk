@@ -16,7 +16,7 @@ import {
   createGRPCMetadata,
   createHTTPMetadataQueryParam,
   createConfigurationType,
-  getContentType
+  getContentType,
 } from "../../../src/utils/Client.util";
 import { Map } from "google-protobuf";
 
@@ -133,40 +133,46 @@ describe("Client.util", () => {
     });
 
     it("returns application/cloudevents+json for a CloudEvent", () => {
-      const validCloudEvents = [{
-        specversion: "1.0",
-        type: "com.github.pull_request.opened",
-        source: "https://github.com/cloudevents/spec/pull",
-        subject: "123",
-        id: "A234-1234-1234",
-        time: "2018-04-05T17:31:00Z",
-        comexampleextension1: "value",
-        comexampleothervalue: 5,
-        datacontenttype: "text/xml",
-        data: "<much wow=\"xml\"/>"
-      }, {
-        specversion: "1.0",
-        type: "com.github.pull_request.opened",
-        source: "https://github.com/cloudevents/spec/pull",
-        id: "A234-1234-1234",
-      }]
+      const validCloudEvents = [
+        {
+          specversion: "1.0",
+          type: "com.github.pull_request.opened",
+          source: "https://github.com/cloudevents/spec/pull",
+          subject: "123",
+          id: "A234-1234-1234",
+          time: "2018-04-05T17:31:00Z",
+          comexampleextension1: "value",
+          comexampleothervalue: 5,
+          datacontenttype: "text/xml",
+          data: '<much wow="xml"/>',
+        },
+        {
+          specversion: "1.0",
+          type: "com.github.pull_request.opened",
+          source: "https://github.com/cloudevents/spec/pull",
+          id: "A234-1234-1234",
+        },
+      ];
 
       validCloudEvents.forEach((cloudEvent) => {
         expect(getContentType(cloudEvent)).toEqual("application/cloudevents+json");
       });
 
-      const invalidCloudEvents = [{
-        specversion: "1.0",
-        type: "com.github.pull_request.opened",
-        id: "A234-1234-1234",
-      }, {
-        type: "com.github.pull_request.opened",
-        source: "https://github.com/cloudevents/spec/pull",
-        id: "A234-1234-1234",
-      },
-      {
-        foo: "bar",
-      }];
+      const invalidCloudEvents = [
+        {
+          specversion: "1.0",
+          type: "com.github.pull_request.opened",
+          id: "A234-1234-1234",
+        },
+        {
+          type: "com.github.pull_request.opened",
+          source: "https://github.com/cloudevents/spec/pull",
+          id: "A234-1234-1234",
+        },
+        {
+          foo: "bar",
+        },
+      ];
 
       invalidCloudEvents.forEach((cloudEvent) => {
         expect(getContentType(cloudEvent)).toEqual("application/json");

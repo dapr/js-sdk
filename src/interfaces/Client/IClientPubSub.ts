@@ -12,10 +12,11 @@ limitations under the License.
 */
 
 import { KeyValueType } from "../../types/KeyValue.type";
+import { PubSubPublishResponseType } from "../../types/pubsub/PubSubPublishResponse.type";
 
 export default interface IClientPubSub {
   /**
-   * Publish data to a topic. 
+   * Publish data to a topic.
    * If the data is a valid cloud event, it will be published with Content-Type: application/cloudevents+json.
    * Otherwise, if it's a JSON object, it will be published with Content-Type: application/json.
    * Otherwise, it will be published with Content-Type: text/plain.
@@ -23,6 +24,13 @@ export default interface IClientPubSub {
    * @param topic name of the topic
    * @param data data to publish
    * @param metadata metadata for the message
+   *
+   * @returns response from the publish
    */
-  publish(pubSubName: string, topic: string, data?: object | string, metadata?: KeyValueType): Promise<boolean>;
+  publish(
+    pubSubName: string,
+    topic: string,
+    data?: object | string,
+    metadata?: KeyValueType,
+  ): Promise<PubSubPublishResponseType>;
 }
