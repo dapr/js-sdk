@@ -121,7 +121,20 @@ describe("http/server", () => {
   });
 
   describe("pubsub", () => {
-    it("should be able to send and receive events", async () => {
+    it("should be able to send and receive plain events", async () => {
+      await server.client.pubsub.publish("pubsub-redis", "topic-1", "Hello, world!");
+
+      // Delay a bit for event to arrive
+      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+
+      expect(mockPubSub.mock.calls.length).toBe(1);
+
+      // Also test for receiving data
+      // @ts-ignore
+      expect(mockPubSub.mock.calls[0][0]).toEqual("Hello, world!");
+    });
+
+    it("should be able to send and receive JSON events", async () => {
       await server.client.pubsub.publish("pubsub-redis", "topic-1", { hello: "world" });
 
       // Delay a bit for event to arrive
@@ -132,6 +145,32 @@ describe("http/server", () => {
       // Also test for receiving data
       // @ts-ignore
       expect(mockPubSub.mock.calls[0][0]["hello"]).toEqual("world");
+    });
+
+    it("should be able to send and receive cloud events", async () => {
+      const ce = {
+        specversion: "1.0",
+        type: "com.github.pull.create",
+        source: "https://github.com/cloudevents/spec/pull",
+        id: "A234-1234-1234",
+      };
+
+      await server.client.pubsub.publish("pubsub-redis", "topic-1", ce);
+
+      // Delay a bit for event to arrive
+      await new Promise((resolve, _reject) => setTimeout(resolve, 500));
+
+      expect(mockPubSub.mock.calls.length).toBe(1);
+
+      // Also test for receiving data
+      // @ts-ignore
+      expect(mockPubSub.mock.calls[0][0]["specversion"]).toEqual(ce.specversion);
+      // @ts-ignore
+      expect(mockPubSub.mock.calls[0][0]["type"]).toEqual(ce.type);
+      // @ts-ignore
+      expect(mockPubSub.mock.calls[0][0]["source"]).toEqual(ce.source);
+      // @ts-ignore
+      expect(mockPubSub.mock.calls[0][0]["id"]).toEqual(ce.id);
     });
 
     it("should be able to receive events with their respective headers", async () => {
