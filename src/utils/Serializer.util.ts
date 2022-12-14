@@ -11,12 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { getContentType } from "./Client.util";
+
 export function serializeGrpc(data: any): { serializedData: Buffer; contentType: string } {
   let serializedData = data;
   let contentType = "application/octet-stream";
   if (!(data instanceof Buffer)) {
     serializedData = Buffer.from(JSON.stringify(data), "utf-8");
-    contentType = "application/json";
+    contentType = getContentType(data);
   }
 
   return { serializedData, contentType };
