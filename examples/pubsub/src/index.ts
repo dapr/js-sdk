@@ -34,7 +34,7 @@ async function start() {
   // Wait for 1 second to allow the server to start.
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  var response;
+  let response;
 
   console.log("[Dapr-JS][Example] Publishing a plain message");
   response = await client.pubsub.publish("my-pubsub-component", "my-topic", "hello, world!");

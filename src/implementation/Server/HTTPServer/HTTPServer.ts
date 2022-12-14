@@ -20,9 +20,9 @@ import { createHttpTerminator } from "http-terminator";
 import { Logger } from "../../../logger/Logger";
 
 // eslint-disable-next-line
-export interface IServerImplType extends HTTPServerImpl { }
+export interface IServerImplType extends HTTPServerImpl {}
 // eslint-disable-next-line
-export interface IServerType extends Restana.Service<Restana.Protocol.HTTP> { }
+export interface IServerType extends Restana.Service<Restana.Protocol.HTTP> {}
 
 export default class HTTPServer implements IServer {
   serverHost: string;
