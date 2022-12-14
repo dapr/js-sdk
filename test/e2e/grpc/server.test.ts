@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { CommunicationProtocolEnum, ConsoleLoggerService, DaprServer, HttpMethod } from "../../../src";
+import { CommunicationProtocolEnum, DaprServer, HttpMethod } from "../../../src";
 
 const serverHost = "localhost";
 const serverPort = "50001";
