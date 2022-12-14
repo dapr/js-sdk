@@ -5,7 +5,7 @@
   "types": "./build/index.d.ts",
   "scripts": {
     "test": "npm run test:unit:all && npm run test:e2e:all",
-    "jest-cmd": "npm run jest-cmd",
+    "jest-cmd": "jest --runInBand --detectOpenHandles",
     "test:load:http": "TEST_SECRET_1=secret_val_1 TEST_SECRET_2=secret_val_2 dapr run --app-id test-suite --app-protocol http --app-port 50001 --dapr-http-port 50000 --components-path ./test/components -- npm run jest-cmd 'test/load'",
     "test:e2e:all": "npm run test:e2e:http; npm run test:e2e:grpc",
     "test:e2e:grpc": "npm run test:e2e:grpc:client && npm run test:e2e:grpc:server",
