@@ -23,7 +23,7 @@ const daprAppId = "test-suite";
 
 describe("http/server", () => {
   let server: DaprServer;
-  const mockBindingReceive = jest.fn(async (_data: object) => console.log("mockBindingReceive"));
+  const mockBindingReceive = jest.fn(async (_data: object) => null);
   const mockPubSub = jest.fn(async (_data: object) => null);
   const mockPubSubWithHeaders = jest.fn(async (_data: object, _headers: object) => null);
   const mockPubSubError = jest.fn(async (_data: object) => {
@@ -111,7 +111,8 @@ describe("http/server", () => {
       await server.client.binding.send("binding-mqtt", "create", { hello: "world" });
 
       // Delay a bit for event to arrive
-      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+      await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
+
       expect(mockBindingReceive.mock.calls.length).toBe(1);
 
       // Also test for receiving data
@@ -131,7 +132,7 @@ describe("http/server", () => {
 
       // Also test for receiving data
       // @ts-ignore
-      expect(mockPubSub.mock.calls[0][0]).toEqual("Hello, world!");
+      expect(mockPubSub.mock.calls[0][0]).toEqual('"Hello, world!"');
     });
 
     it("should be able to send and receive JSON events", async () => {

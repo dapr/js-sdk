@@ -139,7 +139,7 @@ describe("grpc/server", () => {
 
       // Also test for receiving data
       // @ts-ignore
-      expect(mockPubSub.mock.calls[0][0]).toEqual("Hello, world!");
+      expect(mockPubSub.mock.calls[0][0]).toEqual('"Hello, world!"');
     });
 
     it("should be able to send and receive JSON events", async () => {
@@ -172,12 +172,13 @@ describe("grpc/server", () => {
 
       // Also test for receiving data
       // @ts-ignore
-      logger.warn("LOGGERDEBUG 3");
-      logger.warn(JSON.stringify(mockPubSub.mock.calls[0]));
-      // expect(mockPubSub.mock.calls[0][0]["specversion"]).toEqual(ce.specversion);
-      // expect(mockPubSub.mock.calls[0][0]["type"]).toEqual(ce.type);
-      // expect(mockPubSub.mock.calls[0][0]["source"]).toEqual(ce.source);
-      // expect(mockPubSub.mock.calls[0][0]["id"]).toEqual(ce.id);
+      expect(mockPubSub.mock.calls[0][0]["specversion"]).toEqual(ce.specversion);
+      // @ts-ignore
+      expect(mockPubSub.mock.calls[0][0]["type"]).toEqual(ce.type);
+      // @ts-ignore
+      expect(mockPubSub.mock.calls[0][0]["source"]).toEqual(ce.source);
+      // @ts-ignore
+      expect(mockPubSub.mock.calls[0][0]["id"]).toEqual(ce.id);
     });
 
     it("should be able to receive events with their respective headers", async () => {
