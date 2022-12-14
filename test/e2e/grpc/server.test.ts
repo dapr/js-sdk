@@ -127,8 +127,6 @@ describe("grpc/server", () => {
   });
 
   describe("pubsub", () => {
-    const logger = new ConsoleLoggerService();
-
     it("should be able to send and receive plain events", async () => {
       await server.client.pubsub.publish("pubsub-redis", "topic-1", "Hello, world!");
 
