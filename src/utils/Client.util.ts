@@ -79,3 +79,41 @@ export function createConfigurationType(configDict: Map<string, ConfigurationIte
   });
   return configMap;
 }
+
+/**
+ * Checks if the input object is a valid Cloud Event.
+ * A valid Cloud Event is a JSON object that contains id, source, type, and specversion.
+ * See https://github.com/cloudevents/spec/blob/v1.0/spec.md#required-attributes
+ * @param str input object
+ * @returns true if the object is a valid Cloud Event
+ */
+function isCloudEvent(obj: object): boolean {
+  const requiredAttributes = ["id", "source", "type", "specversion"];
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    requiredAttributes.every((attr) => {
+      return Object.prototype.hasOwnProperty.call(obj, attr);
+    })
+  );
+}
+
+/**
+ * Gets the Content-Type for the input data.
+ * If the data is a valid Cloud Event, the Content-Type is "application/cloudevents+json".
+ * If the data is a JSON object, the Content-Type is "application/json".
+ * Otherwise, the Content-Type is "text/plain".
+ * @param data input data
+ * @returns Content-Type header value
+ */
+export function getContentType(data: object | string): string {
+  if (typeof data === "string") {
+    return "text/plain";
+  }
+
+  if (isCloudEvent(data)) {
+    return "application/cloudevents+json";
+  } else {
+    return "application/json";
+  }
+}
