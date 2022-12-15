@@ -111,7 +111,7 @@ describe("http/server", () => {
       await server.client.binding.send("binding-mqtt", "create", { hello: "world" });
 
       // Delay a bit for event to arrive
-      await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
+      await new Promise((resolve, _reject) => setTimeout(resolve, 2000));
 
       expect(mockBindingReceive.mock.calls.length).toBe(1);
 
@@ -186,7 +186,7 @@ describe("http/server", () => {
       // @ts-ignore
       expect(mockPubSubWithHeaders.mock.calls[0][1]?.["content-type"]).toEqual("application/cloudevents+json");
       // @ts-ignore
-      expect(mockPubSubWithHeaders.mock.calls[0][1]?.["content-length"]).toEqual("415");
+      expect(mockPubSubWithHeaders.mock.calls[0][1]?.["content-length"]).toEqual("410");
       // @ts-ignore
       expect(mockPubSubWithHeaders.mock.calls[0][1]?.["pubsubname"]).toEqual("pubsub-redis");
     });
