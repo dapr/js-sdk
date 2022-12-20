@@ -124,20 +124,21 @@ export function getContentType(data: object | string): string {
  * Configure the entries for bulk publish request.
  * If entryIDs are missing, generate UUIDs for them.
  * If contentTypes are missing, infer them based on the data using {@link getContentType}.
+ *
+ * @param entries entries to configure
+ * @returns configured entries
  */
-export function configureBulkPublishEntries(
-  entries: PubSubBulkPublishEntry[],
-): PubSubBulkPublishEntry[] {
+export function configureBulkPublishEntries(entries: PubSubBulkPublishEntry[]): PubSubBulkPublishEntry[] {
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
     // If entryID is missing, generate a UUID for it.
     if (!entry.entryID) {
-      entry.entryID = randomUUID()
+      entry.entryID = randomUUID();
     }
     // If contentType is missing, infer it from the data.
     if (entry.data && !entry.contentType) {
       entry.contentType = getContentType(entry.data);
     }
   }
-  return entries
+  return entries;
 }

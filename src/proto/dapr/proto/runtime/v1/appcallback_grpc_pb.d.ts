@@ -8,6 +8,7 @@ import * as grpc from "@grpc/grpc-js";
 import * as dapr_proto_runtime_v1_appcallback_pb from "../../../../dapr/proto/runtime/v1/appcallback_pb";
 import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
 import * as dapr_proto_common_v1_common_pb from "../../../../dapr/proto/common/v1/common_pb";
+import * as google_protobuf_struct_pb from "google-protobuf/google/protobuf/struct_pb";
 
 interface IAppCallbackService extends grpc.ServiceDefinition<grpc.UntypedServiceImplementation> {
     onInvoke: IAppCallbackService_IOnInvoke;
@@ -141,4 +142,37 @@ export class AppCallbackHealthCheckClient extends grpc.Client implements IAppCal
     public healthCheck(request: google_protobuf_empty_pb.Empty, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.HealthCheckResponse) => void): grpc.ClientUnaryCall;
     public healthCheck(request: google_protobuf_empty_pb.Empty, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.HealthCheckResponse) => void): grpc.ClientUnaryCall;
     public healthCheck(request: google_protobuf_empty_pb.Empty, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.HealthCheckResponse) => void): grpc.ClientUnaryCall;
+}
+
+interface IAppCallbackAlphaService extends grpc.ServiceDefinition<grpc.UntypedServiceImplementation> {
+    onBulkTopicEventAlpha1: IAppCallbackAlphaService_IOnBulkTopicEventAlpha1;
+}
+
+interface IAppCallbackAlphaService_IOnBulkTopicEventAlpha1 extends grpc.MethodDefinition<dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse> {
+    path: "/dapr.proto.runtime.v1.AppCallbackAlpha/OnBulkTopicEventAlpha1";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest>;
+    requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest>;
+    responseSerialize: grpc.serialize<dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse>;
+    responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse>;
+}
+
+export const AppCallbackAlphaService: IAppCallbackAlphaService;
+
+export interface IAppCallbackAlphaServer extends grpc.UntypedServiceImplementation {
+    onBulkTopicEventAlpha1: grpc.handleUnaryCall<dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse>;
+}
+
+export interface IAppCallbackAlphaClient {
+    onBulkTopicEventAlpha1(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse) => void): grpc.ClientUnaryCall;
+    onBulkTopicEventAlpha1(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse) => void): grpc.ClientUnaryCall;
+    onBulkTopicEventAlpha1(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse) => void): grpc.ClientUnaryCall;
+}
+
+export class AppCallbackAlphaClient extends grpc.Client implements IAppCallbackAlphaClient {
+    constructor(address: string, credentials: grpc.ChannelCredentials, options?: Partial<grpc.ClientOptions>);
+    public onBulkTopicEventAlpha1(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse) => void): grpc.ClientUnaryCall;
+    public onBulkTopicEventAlpha1(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse) => void): grpc.ClientUnaryCall;
+    public onBulkTopicEventAlpha1(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse) => void): grpc.ClientUnaryCall;
 }

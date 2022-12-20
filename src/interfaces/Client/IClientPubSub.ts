@@ -45,7 +45,7 @@ export default interface IClientPubSub {
    * @param topic name of the topic
    * @param entries array of entries to publish
    * @param metadata metadata for the request
-   * 
+   *
    * @returns list of failed entries if any
    */
   publishBulk(

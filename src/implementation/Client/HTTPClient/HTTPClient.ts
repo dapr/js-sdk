@@ -27,7 +27,7 @@ type HTTPClientResponse = {
   status: number;
   body: object | string;
   error?: Error;
-}
+};
 
 export default class HTTPClient implements IClient {
   private isInitialized: boolean;

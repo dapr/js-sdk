@@ -14,11 +14,11 @@ limitations under the License.
 import { KeyValueType } from "../KeyValue.type";
 
 /**
- * PubSubBulkPublishEntry defines an entry in a bulk publish request. 
+ * PubSubBulkPublishEntry defines an entry in a bulk publish request.
  */
 export type PubSubBulkPublishEntry = {
-    entryID: string;
-    data?: object | string;
-    metadata?: KeyValueType;
-    contentType?: string;
+  entryID: string;
+  data?: object | string;
+  metadata?: KeyValueType;
+  contentType?: string;
 };

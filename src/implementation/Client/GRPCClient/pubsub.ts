@@ -12,13 +12,19 @@ limitations under the License.
 */
 
 import GRPCClient from "./GRPCClient";
-import { PublishEventRequest } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import {
+  BulkPublishRequest,
+  BulkPublishRequestEntry,
+  PublishEventRequest,
+} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 import { Logger } from "../../../logger/Logger";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import { KeyValueType } from "../../../types/KeyValue.type";
-import { createGRPCMetadata } from "../../../utils/Client.util";
+import { configureBulkPublishEntries, createGRPCMetadata } from "../../../utils/Client.util";
 import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
+import { PubSubBulkPublishEntry } from "../../../types/pubsub/PubSubBulkPublishEntry.type";
+import { PubSubBulkPublishResponseType } from "../../../types/pubsub/PubSubBulkPublishResponse.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class GRPCClientPubSub implements IClientPubSub {
@@ -58,6 +64,39 @@ export default class GRPCClientPubSub implements IClientPubSub {
         }
 
         return resolve({});
+      });
+    });
+  }
+
+  async publishBulk(
+    pubSubName: string,
+    topic: string,
+    entries: PubSubBulkPublishEntry[],
+    metadata?: KeyValueType | undefined,
+  ): Promise<PubSubBulkPublishResponseType> {
+    const bulkPublishRequest = new BulkPublishRequest();
+    bulkPublishRequest.setPubsubName(pubSubName);
+    bulkPublishRequest.setTopic(topic);
+
+    if (entries.length > 0) {
+      const serializedEntries = configureBulkPublishEntries(entries).map((entry) => {
+        const serialized = SerializerUtil.serializeGrpc(entry.data);
+        const bulkPublishEntry = new BulkPublishRequestEntry();
+        bulkPublishEntry.setEvent(serialized.serializedData);
+        bulkPublishEntry.setContentType(serialized.contentType);
+        bulkPublishEntry.setEntryId(entry.entryID);
+        return bulkPublishEntry;
+      });
+
+      bulkPublishRequest.setEntriesList(serializedEntries);
+    }
+
+    const client = await this.client.getClient();
+    const grpcMetadata = createGRPCMetadata(metadata);
+
+    return new Promise((resolve, reject) => {
+      client.bulkPublishEventAlpha1(bulkPublishRequest, grpcMetadata, (err, res) => {
+        // TODO: create a response
       });
     });
   }

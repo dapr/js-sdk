@@ -27,7 +27,7 @@ type BulkPublishResponse = {
     status: string;
     error?: string;
   }[];
-}
+};
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPClientPubSub implements IClientPubSub {
@@ -71,7 +71,7 @@ export default class HTTPClientPubSub implements IClientPubSub {
     pubSubName: string,
     topic: string,
     entries: PubSubBulkPublishEntry[],
-    metadata?: KeyValueType | undefined
+    metadata?: KeyValueType | undefined,
   ): Promise<PubSubBulkPublishResponseType> {
     const queryParams = createHTTPMetadataQueryParam(metadata);
     const params: THTTPExecuteParams = {
@@ -85,7 +85,11 @@ export default class HTTPClientPubSub implements IClientPubSub {
       params.body = JSON.stringify(configureBulkPublishEntries(entries));
     }
 
-    const res = await this.client.executeWithApiVersion("v1.0-alpha1", `/publish/bulk/${pubSubName}/${topic}?${queryParams}`, params);
+    const res = await this.client.executeWithApiVersion(
+      "v1.0-alpha1",
+      `/publish/bulk/${pubSubName}/${topic}?${queryParams}`,
+      params,
+    );
     if (res.error) {
       this.logger.error(`publishBulk failed: ${res.error.message}`);
       if (typeof res.body === "string") {
@@ -95,8 +99,8 @@ export default class HTTPClientPubSub implements IClientPubSub {
         // Some or all entries failed, return the failed entries
         const body = res.body as BulkPublishResponse;
         const failedEntries: PubSubBulkPublishResponseType["failedEntries"] = [];
-        body.statuses.forEach(status => {
-          const entry = entries.find(entry => entry.entryID === status.entryID);
+        body.statuses.forEach((status) => {
+          const entry = entries.find((entry) => entry.entryID === status.entryID);
           if (entry) {
             failedEntries.push({ entry, error: new Error(status.error) });
           }
