@@ -211,7 +211,13 @@ export default class HTTPClient implements IClient {
     if (res.status >= 200 && res.status <= 399) {
       return response;
     } else {
-      response.error = new Error(res.statusText);
+      response.error = new Error(
+        JSON.stringify({
+          error: res.statusText,
+          error_msg: txt,
+          status: res.status,
+        }),
+      );
       return response;
     }
   }
