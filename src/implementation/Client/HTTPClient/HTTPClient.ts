@@ -213,6 +213,7 @@ export default class HTTPClient implements IClient {
           error_msg: `An unknown problem occurred and we got the status ${res.status} with response ${JSON.stringify(
             res,
           )}`,
+          error_detail: txt,
           status: res.status,
         }),
       );
