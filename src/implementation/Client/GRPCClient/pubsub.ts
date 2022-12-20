@@ -24,7 +24,7 @@ import { KeyValueType } from "../../../types/KeyValue.type";
 import { configureBulkPublishEntries, createGRPCMetadata } from "../../../utils/Client.util";
 import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
 import { PubSubBulkPublishEntry } from "../../../types/pubsub/PubSubBulkPublishEntry.type";
-import { PubSubBulkPublishResponseType } from "../../../types/pubsub/PubSubBulkPublishResponse.type";
+import { PubSubBulkPublishResponse } from "../../../types/pubsub/PubSubBulkPublishResponse.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class GRPCClientPubSub implements IClientPubSub {
@@ -73,7 +73,7 @@ export default class GRPCClientPubSub implements IClientPubSub {
     topic: string,
     entries: PubSubBulkPublishEntry[],
     metadata?: KeyValueType | undefined,
-  ): Promise<PubSubBulkPublishResponseType> {
+  ): Promise<PubSubBulkPublishResponse> {
     const bulkPublishRequest = new BulkPublishRequest();
     bulkPublishRequest.setPubsubName(pubSubName);
     bulkPublishRequest.setTopic(topic);

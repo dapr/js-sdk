@@ -19,6 +19,7 @@ import { ConfigurationItem as ConfigurationItemProto } from "../proto/dapr/proto
 import { Map } from "google-protobuf";
 import { PubSubBulkPublishEntry } from "../types/pubsub/PubSubBulkPublishEntry.type";
 import { randomUUID } from "crypto";
+import { PubSubBulkPublishResponse } from "../types/pubsub/PubSubBulkPublishResponse.type";
 /**
  * Converts a KeyValueType to a grpc.Metadata object.
  * @param metadata key value pair of metadata
@@ -141,4 +142,38 @@ export function configureBulkPublishEntries(entries: PubSubBulkPublishEntry[]): 
     }
   }
   return entries;
+}
+
+export type BulkPublishApiResponse = {
+  statuses: {
+    entryID: string;
+    status: string;
+    error?: string;
+  }[];
+};
+
+export function getBulkPublishResponse(
+  response: BulkPublishApiResponse,
+  entries: PubSubBulkPublishEntry[],
+  error?: Error | string
+): PubSubBulkPublishResponse {
+  if (error) {
+    if (typeof error === "string") {
+      // The entire request failed.
+      return { failedEntries: entries.map((entry) => ({ entry, error: new Error(error) })) };
+    } else {
+      // Some or all of the entries failed to be published.
+      const failedEntries: PubSubBulkPublishResponse["failedEntries"] = [];
+      response.statuses.forEach((status) => {
+        const entry = entries.find((entry) => entry.entryID === status.entryID);
+        if (entry) {
+          failedEntries.push({ entry, error: new Error(status.error) });
+        }
+      });
+      return { failedEntries };
+    }
+  } else {
+    // All entries were published successfully.
+    return { failedEntries: [] };
+  }
 }

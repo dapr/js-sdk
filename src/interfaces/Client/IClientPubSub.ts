@@ -13,7 +13,7 @@ limitations under the License.
 
 import { KeyValueType } from "../../types/KeyValue.type";
 import { PubSubBulkPublishEntry } from "../../types/pubsub/PubSubBulkPublishEntry.type";
-import { PubSubBulkPublishResponseType } from "../../types/pubsub/PubSubBulkPublishResponse.type";
+import { PubSubBulkPublishResponse } from "../../types/pubsub/PubSubBulkPublishResponse.type";
 import { PubSubPublishResponseType } from "../../types/pubsub/PubSubPublishResponse.type";
 
 export default interface IClientPubSub {
@@ -53,5 +53,5 @@ export default interface IClientPubSub {
     topic: string,
     entries: PubSubBulkPublishEntry[],
     metadata?: KeyValueType,
-  ): Promise<PubSubBulkPublishResponseType>;
+  ): Promise<PubSubBulkPublishResponse>;
 }

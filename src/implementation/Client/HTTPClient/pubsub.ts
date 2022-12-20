@@ -15,19 +15,11 @@ import HTTPClient from "./HTTPClient";
 import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 import { Logger } from "../../../logger/Logger";
 import { KeyValueType } from "../../../types/KeyValue.type";
-import { configureBulkPublishEntries, createHTTPMetadataQueryParam, getContentType } from "../../../utils/Client.util";
+import { BulkPublishApiResponse, configureBulkPublishEntries, createHTTPMetadataQueryParam, getBulkPublishResponse, getContentType } from "../../../utils/Client.util";
 import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
 import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type";
 import { PubSubBulkPublishEntry } from "../../../types/pubsub/PubSubBulkPublishEntry.type";
-import { PubSubBulkPublishResponseType } from "../../../types/pubsub/PubSubBulkPublishResponse.type";
-
-type BulkPublishResponse = {
-  statuses: {
-    entryID: string;
-    status: string;
-    error?: string;
-  }[];
-};
+import { PubSubBulkPublishResponse } from "../../../types/pubsub/PubSubBulkPublishResponse.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPClientPubSub implements IClientPubSub {
@@ -72,7 +64,7 @@ export default class HTTPClientPubSub implements IClientPubSub {
     topic: string,
     entries: PubSubBulkPublishEntry[],
     metadata?: KeyValueType | undefined,
-  ): Promise<PubSubBulkPublishResponseType> {
+  ): Promise<PubSubBulkPublishResponse> {
     const queryParams = createHTTPMetadataQueryParam(metadata);
     const params: THTTPExecuteParams = {
       method: "POST",
@@ -90,26 +82,10 @@ export default class HTTPClientPubSub implements IClientPubSub {
       `/publish/bulk/${pubSubName}/${topic}?${queryParams}`,
       params,
     );
-    if (res.error) {
-      this.logger.error(`publishBulk failed: ${res.error.message}`);
-      if (typeof res.body === "string") {
-        // Something went wrong, fail the entire request
-        return { failedEntries: entries.map((entry) => ({ entry, error: new Error(res.body as string) })) };
-      } else {
-        // Some or all entries failed, return the failed entries
-        const body = res.body as BulkPublishResponse;
-        const failedEntries: PubSubBulkPublishResponseType["failedEntries"] = [];
-        body.statuses.forEach((status) => {
-          const entry = entries.find((entry) => entry.entryID === status.entryID);
-          if (entry) {
-            failedEntries.push({ entry, error: new Error(status.error) });
-          }
-        });
-        return { failedEntries };
-      }
-    } else {
-      // The request was successful!
-      return { failedEntries: [] };
-    }
+
+    return getBulkPublishResponse(
+      res.body as BulkPublishApiResponse,
+      entries,
+      res.error);
   }
 }

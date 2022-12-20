@@ -28,6 +28,8 @@ import GRPCClient from "./implementation/Client/GRPCClient/GRPCClient";
 import HTTPClient from "./implementation/Client/HTTPClient/HTTPClient";
 import { InvokerOptions } from "./types/InvokerOptions.type";
 import { DaprInvokerCallbackContent, DaprInvokerCallbackFunction } from "./types/DaprInvokerCallback.type";
+import { PubSubBulkPublishEntry } from "./types/pubsub/PubSubBulkPublishEntry.type";
+import { PubSubBulkPublishResponse } from "./types/pubsub/PubSubBulkPublishResponse.type";
 export {
   DaprClient,
   DaprServer,
@@ -47,4 +49,6 @@ export {
   InvokerOptions,
   DaprInvokerCallbackFunction as TypeDaprInvokerCallback,
   DaprInvokerCallbackContent,
+  PubSubBulkPublishEntry,
+  PubSubBulkPublishResponse,
 };
