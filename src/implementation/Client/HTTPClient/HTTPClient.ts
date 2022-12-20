@@ -210,10 +210,7 @@ export default class HTTPClient implements IClient {
       throw new Error(
         JSON.stringify({
           error: "UNKNOWN",
-          error_msg: `An unknown problem occurred and we got the status ${res.status} with response ${JSON.stringify(
-            res,
-          )}`,
-          error_detail: txt,
+          error_msg: txt,
           status: res.status,
         }),
       );
