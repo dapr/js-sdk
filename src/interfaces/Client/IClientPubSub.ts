@@ -12,6 +12,8 @@ limitations under the License.
 */
 
 import { KeyValueType } from "../../types/KeyValue.type";
+import { PubSubBulkPublishEntry } from "../../types/pubsub/PubSubBulkPublishEntry.type";
+import { PubSubBulkPublishResponseType } from "../../types/pubsub/PubSubBulkPublishResponse.type";
 import { PubSubPublishResponseType } from "../../types/pubsub/PubSubPublishResponse.type";
 
 export default interface IClientPubSub {
@@ -33,4 +35,23 @@ export default interface IClientPubSub {
     data?: object | string,
     metadata?: KeyValueType,
   ): Promise<PubSubPublishResponseType>;
+
+  /**
+   * Publish data to a topic in bulk.
+   * If the data is a valid cloud event, it will be published with Content-Type: application/cloudevents+json.
+   * Otherwise, if it's a JSON object, it will be published with Content-Type: application/json.
+   * Otherwise, it will be published with Content-Type: text/plain.
+   * @param pubSubName name of the pubsub component
+   * @param topic name of the topic
+   * @param entries array of entries to publish
+   * @param metadata metadata for the request
+   * 
+   * @returns list of failed entries if any
+   */
+  publishBulk(
+    pubSubName: string,
+    topic: string,
+    entries: PubSubBulkPublishEntry[],
+    metadata?: KeyValueType,
+  ): Promise<PubSubBulkPublishResponseType>;
 }

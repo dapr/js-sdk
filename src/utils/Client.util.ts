@@ -17,6 +17,8 @@ import { ConfigurationType } from "../types/configuration/Configuration.type";
 import { ConfigurationItem } from "../types/configuration/ConfigurationItem";
 import { ConfigurationItem as ConfigurationItemProto } from "../proto/dapr/proto/common/v1/common_pb";
 import { Map } from "google-protobuf";
+import { PubSubBulkPublishEntry } from "../types/pubsub/PubSubBulkPublishEntry.type";
+import { randomUUID } from "crypto";
 /**
  * Converts a KeyValueType to a grpc.Metadata object.
  * @param metadata key value pair of metadata
@@ -116,4 +118,26 @@ export function getContentType(data: object | string): string {
   } else {
     return "application/json";
   }
+}
+
+/**
+ * Configure the entries for bulk publish request.
+ * If entryIDs are missing, generate UUIDs for them.
+ * If contentTypes are missing, infer them based on the data using {@link getContentType}.
+ */
+export function configureBulkPublishEntries(
+  entries: PubSubBulkPublishEntry[],
+): PubSubBulkPublishEntry[] {
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    // If entryID is missing, generate a UUID for it.
+    if (!entry.entryID) {
+      entry.entryID = randomUUID()
+    }
+    // If contentType is missing, infer it from the data.
+    if (entry.data && !entry.contentType) {
+      entry.contentType = getContentType(entry.data);
+    }
+  }
+  return entries
 }

@@ -23,6 +23,12 @@ import { Logger } from "../../../logger/Logger";
 import HTTPClientSidecar from "./sidecar";
 import { SDK_VERSION } from "../../../version";
 
+type HTTPClientResponse = {
+  status: number;
+  body: object | string;
+  error?: Error;
+}
+
 export default class HTTPClient implements IClient {
   private isInitialized: boolean;
 
@@ -127,7 +133,7 @@ export default class HTTPClient implements IClient {
     return;
   }
 
-  async executeWithApiVersion(apiVersion = "v1.0", url: string, params: any = {}): Promise<object | string> {
+  async executeWithApiVersion(apiVersion = "v1.0", url: string, params: any = {}): Promise<HTTPClientResponse> {
     const newClientUrl = this.clientUrl.replace("v1.0", apiVersion);
     return await this.execute(`${newClientUrl}${url}`, params);
   }
@@ -143,7 +149,7 @@ export default class HTTPClient implements IClient {
     url: string,
     params?: THTTPExecuteParams | undefined | null,
     requiresInitialization = true,
-  ): Promise<object | string> {
+  ): Promise<HTTPClientResponse> {
     if (!params || typeof params !== "object") {
       params = {
         method: "GET",
@@ -199,23 +205,14 @@ export default class HTTPClient implements IClient {
       txtParsed = txt;
     }
 
+    const response: HTTPClientResponse = { status: res.status, body: txtParsed };
+
     // 2XX -> OK; 3XX -> Redirects and Found
     if (res.status >= 200 && res.status <= 399) {
-      return txtParsed;
-    }
-
-    // All the others
-    else {
-      this.logger.debug(`Execute response with  status: ${res.status} and text: ${txtParsed}`);
-      throw new Error(
-        JSON.stringify({
-          error: "UNKNOWN",
-          error_msg: `An unknown problem occurred and we got the status ${res.status} with response ${JSON.stringify(
-            res,
-          )}`,
-          status: res.status,
-        }),
-      );
+      return response;
+    } else {
+      response.error = new Error(res.statusText);
+      return response;
     }
   }
 }
