@@ -23,13 +23,13 @@ import * as SerializerUtil from "../../../utils/Serializer.util";
 import { KeyValueType } from "../../../types/KeyValue.type";
 import {
   BulkPublishApiResponse,
-  configureBulkPublishEntries,
   createGRPCMetadata,
+  getBulkPublishEntries,
   getBulkPublishResponse,
 } from "../../../utils/Client.util";
 import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
-import { PubSubBulkPublishEntry } from "../../../types/pubsub/PubSubBulkPublishEntry.type";
 import { PubSubBulkPublishResponse } from "../../../types/pubsub/PubSubBulkPublishResponse.type";
+import { PubSubBulkPublishMessage } from "../../../types/pubsub/PubSubBulkPublishMessage.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class GRPCClientPubSub implements IClientPubSub {
@@ -76,25 +76,24 @@ export default class GRPCClientPubSub implements IClientPubSub {
   async publishBulk(
     pubSubName: string,
     topic: string,
-    entries: PubSubBulkPublishEntry[],
+    messages: PubSubBulkPublishMessage[],
     metadata?: KeyValueType | undefined,
   ): Promise<PubSubBulkPublishResponse> {
     const bulkPublishRequest = new BulkPublishRequest();
     bulkPublishRequest.setPubsubName(pubSubName);
     bulkPublishRequest.setTopic(topic);
 
-    if (entries.length > 0) {
-      const serializedEntries = configureBulkPublishEntries(entries).map((entry) => {
-        const serialized = SerializerUtil.serializeGrpc(entry.data);
-        const bulkPublishEntry = new BulkPublishRequestEntry();
-        bulkPublishEntry.setEvent(serialized.serializedData);
-        bulkPublishEntry.setContentType(serialized.contentType);
-        bulkPublishEntry.setEntryId(entry.entryID);
-        return bulkPublishEntry;
-      });
+    const entries = getBulkPublishEntries(messages);
+    const serializedEntries = entries.map((entry) => {
+      const serialized = SerializerUtil.serializeGrpc(entry.event);
+      const bulkPublishEntry = new BulkPublishRequestEntry();
+      bulkPublishEntry.setEvent(serialized.serializedData);
+      bulkPublishEntry.setContentType(serialized.contentType);
+      bulkPublishEntry.setEntryId(entry.entryID);
+      return bulkPublishEntry;
+    });
 
-      bulkPublishRequest.setEntriesList(serializedEntries);
-    }
+    bulkPublishRequest.setEntriesList(serializedEntries);
 
     const client = await this.client.getClient();
     const grpcMetadata = createGRPCMetadata(metadata);

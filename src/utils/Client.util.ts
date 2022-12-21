@@ -20,6 +20,7 @@ import { Map } from "google-protobuf";
 import { PubSubBulkPublishEntry } from "../types/pubsub/PubSubBulkPublishEntry.type";
 import { randomUUID } from "crypto";
 import { PubSubBulkPublishResponse } from "../types/pubsub/PubSubBulkPublishResponse.type";
+import { PubSubBulkPublishMessage } from "../types/pubsub/PubSubBulkPublishMessage.type";
 /**
  * Converts a KeyValueType to a grpc.Metadata object.
  * @param metadata key value pair of metadata
@@ -122,25 +123,34 @@ export function getContentType(data: object | string): string {
 }
 
 /**
- * Configure the entries for bulk publish request.
+ * Get the entries for bulk publish request.
  * If entryIDs are missing, generate UUIDs for them.
  * If contentTypes are missing, infer them based on the data using {@link getContentType}.
  *
- * @param entries entries to configure
+ * @param messages pubsub bulk publish messages
  * @returns configured entries
  */
-export function configureBulkPublishEntries(entries: PubSubBulkPublishEntry[]): PubSubBulkPublishEntry[] {
-  for (let i = 0; i < entries.length; i++) {
-    const entry = entries[i];
-    // If entryID is missing, generate a UUID for it.
-    if (!entry.entryID) {
-      entry.entryID = randomUUID();
+export function getBulkPublishEntries(messages: PubSubBulkPublishMessage[]): PubSubBulkPublishEntry[] {
+  const entries: PubSubBulkPublishEntry[] = [];
+
+  messages.forEach((message) => {
+    if (typeof message !== "string" && "event" in message) {
+      entries.push({
+        entryID: message.entryID ? message.entryID : randomUUID(),
+        event: message.event,
+        contentType: message.contentType ? message.contentType : getContentType(message.event),
+        metadata: message.metadata ? message.metadata : {},
+      });
+    } else {
+      entries.push({
+        entryID: randomUUID(),
+        event: message,
+        contentType: getContentType(message),
+        metadata: {},
+      });
     }
-    // If contentType is missing, infer it from the data.
-    if (entry.data && !entry.contentType) {
-      entry.contentType = getContentType(entry.data);
-    }
-  }
+  });
+
   return entries;
 }
 

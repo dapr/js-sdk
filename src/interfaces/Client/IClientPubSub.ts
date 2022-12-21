@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import { KeyValueType } from "../../types/KeyValue.type";
-import { PubSubBulkPublishEntry } from "../../types/pubsub/PubSubBulkPublishEntry.type";
+import { PubSubBulkPublishMessage } from "../../types/pubsub/PubSubBulkPublishMessage.type";
 import { PubSubBulkPublishResponse } from "../../types/pubsub/PubSubBulkPublishResponse.type";
 import { PubSubPublishResponseType } from "../../types/pubsub/PubSubPublishResponse.type";
 
@@ -43,7 +43,7 @@ export default interface IClientPubSub {
    * Otherwise, it will be published with Content-Type: text/plain.
    * @param pubSubName name of the pubsub component
    * @param topic name of the topic
-   * @param entries array of entries to publish
+   * @param messages array of messages to publish
    * @param metadata metadata for the request
    *
    * @returns list of failed entries if any
@@ -51,7 +51,7 @@ export default interface IClientPubSub {
   publishBulk(
     pubSubName: string,
     topic: string,
-    entries: PubSubBulkPublishEntry[],
+    messages: PubSubBulkPublishMessage[],
     metadata?: KeyValueType,
   ): Promise<PubSubBulkPublishResponse>;
 }

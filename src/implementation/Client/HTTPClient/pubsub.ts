@@ -17,15 +17,15 @@ import { Logger } from "../../../logger/Logger";
 import { KeyValueType } from "../../../types/KeyValue.type";
 import {
   BulkPublishApiResponse,
-  configureBulkPublishEntries,
   createHTTPMetadataQueryParam,
+  getBulkPublishEntries,
   getBulkPublishResponse,
   getContentType,
 } from "../../../utils/Client.util";
 import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
 import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type";
-import { PubSubBulkPublishEntry } from "../../../types/pubsub/PubSubBulkPublishEntry.type";
 import { PubSubBulkPublishResponse } from "../../../types/pubsub/PubSubBulkPublishResponse.type";
+import { PubSubBulkPublishMessage } from "../../../types/pubsub/PubSubBulkPublishMessage.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPClientPubSub implements IClientPubSub {
@@ -68,7 +68,7 @@ export default class HTTPClientPubSub implements IClientPubSub {
   async publishBulk(
     pubSubName: string,
     topic: string,
-    entries: PubSubBulkPublishEntry[],
+    messages: PubSubBulkPublishMessage[],
     metadata?: KeyValueType | undefined,
   ): Promise<PubSubBulkPublishResponse> {
     const queryParams = createHTTPMetadataQueryParam(metadata);
@@ -79,9 +79,8 @@ export default class HTTPClientPubSub implements IClientPubSub {
       },
     };
 
-    if (entries.length > 0) {
-      params.body = JSON.stringify(configureBulkPublishEntries(entries));
-    }
+    const entries = getBulkPublishEntries(messages);
+    params.body = JSON.stringify(entries);
 
     let bulkPublishError: Error | undefined;
     let bulkPublishResponse: BulkPublishApiResponse;
