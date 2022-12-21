@@ -155,7 +155,7 @@ export type BulkPublishApiResponse = {
 export function getBulkPublishResponse(
   response: BulkPublishApiResponse,
   entries: PubSubBulkPublishEntry[],
-  error?: Error | string
+  error?: Error | string,
 ): PubSubBulkPublishResponse {
   if (error) {
     if (typeof error === "string") {

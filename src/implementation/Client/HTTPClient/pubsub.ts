@@ -15,7 +15,13 @@ import HTTPClient from "./HTTPClient";
 import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 import { Logger } from "../../../logger/Logger";
 import { KeyValueType } from "../../../types/KeyValue.type";
-import { BulkPublishApiResponse, configureBulkPublishEntries, createHTTPMetadataQueryParam, getBulkPublishResponse, getContentType } from "../../../utils/Client.util";
+import {
+  BulkPublishApiResponse,
+  configureBulkPublishEntries,
+  createHTTPMetadataQueryParam,
+  getBulkPublishResponse,
+  getContentType,
+} from "../../../utils/Client.util";
 import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
 import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type";
 import { PubSubBulkPublishEntry } from "../../../types/pubsub/PubSubBulkPublishEntry.type";
@@ -81,21 +87,18 @@ export default class HTTPClientPubSub implements IClientPubSub {
     let bulkPublishResponse: BulkPublishApiResponse;
 
     try {
-      bulkPublishResponse = await this.client.executeWithApiVersion(
+      bulkPublishResponse = (await this.client.executeWithApiVersion(
         "v1.0-alpha1",
         `/publish/bulk/${pubSubName}/${topic}?${queryParams}`,
         params,
-      ) as BulkPublishApiResponse;
+      )) as BulkPublishApiResponse;
     } catch (e: any) {
       this.logger.error(`Failure publishing bulk messages: ${e}`);
-      const errorDetails = JSON.parse(e.message)
-      bulkPublishResponse = JSON.parse(errorDetails.error_msg)
+      const errorDetails = JSON.parse(e.message);
+      bulkPublishResponse = JSON.parse(errorDetails.error_msg);
       bulkPublishError = e;
     }
 
-    return getBulkPublishResponse(
-      bulkPublishResponse,
-      entries,
-      bulkPublishError);
+    return getBulkPublishResponse(bulkPublishResponse, entries, bulkPublishError);
   }
 }

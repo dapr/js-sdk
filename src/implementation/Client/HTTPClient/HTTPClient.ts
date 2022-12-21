@@ -208,7 +208,7 @@ export default class HTTPClient implements IClient {
           error: res.statusText,
           error_msg: txt,
           status: res.status,
-        })
+        }),
       );
     }
   }
