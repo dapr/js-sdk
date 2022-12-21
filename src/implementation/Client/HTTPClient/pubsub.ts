@@ -77,15 +77,25 @@ export default class HTTPClientPubSub implements IClientPubSub {
       params.body = JSON.stringify(configureBulkPublishEntries(entries));
     }
 
-    const res = await this.client.executeWithApiVersion(
-      "v1.0-alpha1",
-      `/publish/bulk/${pubSubName}/${topic}?${queryParams}`,
-      params,
-    );
+    let bulkPublishError: Error | undefined;
+    let bulkPublishResponse: BulkPublishApiResponse;
+
+    try {
+      bulkPublishResponse = await this.client.executeWithApiVersion(
+        "v1.0-alpha1",
+        `/publish/bulk/${pubSubName}/${topic}?${queryParams}`,
+        params,
+      ) as BulkPublishApiResponse;
+    } catch (e: any) {
+      this.logger.error(`Failure publishing bulk messages: ${e}`);
+      const errorDetails = JSON.parse(e.message)
+      bulkPublishResponse = JSON.parse(errorDetails.error_msg)
+      bulkPublishError = e;
+    }
 
     return getBulkPublishResponse(
-      res.body as BulkPublishApiResponse,
+      bulkPublishResponse,
       entries,
-      res.error);
+      bulkPublishError);
   }
 }

@@ -21,7 +21,7 @@ import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 import { Logger } from "../../../logger/Logger";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import { KeyValueType } from "../../../types/KeyValue.type";
-import { configureBulkPublishEntries, createGRPCMetadata } from "../../../utils/Client.util";
+import { BulkPublishApiResponse, configureBulkPublishEntries, createGRPCMetadata, getBulkPublishResponse } from "../../../utils/Client.util";
 import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
 import { PubSubBulkPublishEntry } from "../../../types/pubsub/PubSubBulkPublishEntry.type";
 import { PubSubBulkPublishResponse } from "../../../types/pubsub/PubSubBulkPublishResponse.type";
@@ -94,9 +94,18 @@ export default class GRPCClientPubSub implements IClientPubSub {
     const client = await this.client.getClient();
     const grpcMetadata = createGRPCMetadata(metadata);
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
       client.bulkPublishEventAlpha1(bulkPublishRequest, grpcMetadata, (err, res) => {
-        // TODO: create a response
+        let responses: BulkPublishApiResponse = { statuses: [] }
+        res?.getStatusesList().forEach((entry) => {
+          responses.statuses.push({
+            entryID: entry.getEntryId(),
+            error: entry.getError(),
+            status: entry.getStatus().toString(),
+          })
+        });
+
+        resolve(getBulkPublishResponse(responses, entries, err as Error));
       });
     });
   }
