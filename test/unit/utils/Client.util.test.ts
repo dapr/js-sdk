@@ -21,7 +21,6 @@ import {
   getBulkPublishResponse,
 } from "../../../src/utils/Client.util";
 import { Map } from "google-protobuf";
-import exp from "constants";
 import { PubSubBulkPublishEntry } from "../../../src/types/pubsub/PubSubBulkPublishEntry.type";
 import { PubSubBulkPublishApiResponse } from "../../../src/types/pubsub/PubSubBulkPublishApiResponse.type";
 
