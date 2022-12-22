@@ -16,7 +16,6 @@ import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 import { Logger } from "../../../logger/Logger";
 import { KeyValueType } from "../../../types/KeyValue.type";
 import {
-  BulkPublishApiResponse,
   createHTTPMetadataQueryParam,
   getBulkPublishEntries,
   getBulkPublishResponse,
@@ -82,22 +81,25 @@ export default class HTTPClientPubSub implements IClientPubSub {
     const entries = getBulkPublishEntries(messages);
     params.body = JSON.stringify(entries);
 
-    let bulkPublishError: Error | undefined;
-    let bulkPublishResponse: BulkPublishApiResponse;
-
     try {
-      bulkPublishResponse = (await this.client.executeWithApiVersion(
+      await this.client.executeWithApiVersion(
         "v1.0-alpha1",
         `/publish/bulk/${pubSubName}/${topic}?${queryParams}`,
         params,
-      )) as BulkPublishApiResponse;
-    } catch (e: any) {
-      this.logger.error(`Failure publishing bulk messages: ${e}`);
-      const errorDetails = JSON.parse(e.message);
-      bulkPublishResponse = JSON.parse(errorDetails.error_msg);
-      bulkPublishError = e;
+      );
+      // If no error is thrown, all messages were published successfully
+      return { failedEntries: [] };
+    } catch (error: any) {
+      this.logger.error(`Failure publishing bulk messages: ${error}`);
+      try {
+        // If the error is returned by the bulk publish API,
+        // parse the error message and return the response
+        const bulkPublishResponse = JSON.parse(JSON.parse(error.message).error_msg);
+        return getBulkPublishResponse({ entries: entries, response: bulkPublishResponse });
+      } catch (_innerError: any) {
+        // Fail all messages with the original error
+        return getBulkPublishResponse({ entries: entries, error: error });
+      }
     }
-
-    return getBulkPublishResponse(bulkPublishResponse, entries, bulkPublishError);
   }
 }

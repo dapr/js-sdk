@@ -131,29 +131,29 @@ export function getContentType(data: object | string): string {
  * @returns configured entries
  */
 export function getBulkPublishEntries(messages: PubSubBulkPublishMessage[]): PubSubBulkPublishEntry[] {
-  const entries: PubSubBulkPublishEntry[] = [];
-
-  messages.forEach((message) => {
+  return messages.map((message) => {
+    // If message is a PubSubBulkPublishEntry, use it directly
     if (typeof message !== "string" && "event" in message) {
-      entries.push({
+      return {
         entryID: message.entryID ? message.entryID : randomUUID(),
         event: message.event,
         contentType: message.contentType ? message.contentType : getContentType(message.event),
         metadata: message.metadata ? message.metadata : {},
-      });
-    } else {
-      entries.push({
-        entryID: randomUUID(),
-        event: message,
-        contentType: getContentType(message),
-        metadata: {},
-      });
+      };
     }
+    // Otherwise, create a PubSubBulkPublishEntry from the message
+    return {
+      entryID: randomUUID(),
+      event: message,
+      contentType: getContentType(message),
+      metadata: {},
+    };
   });
-
-  return entries;
 }
 
+/**
+ * Response from a bulk publish request.
+ */
 export type BulkPublishApiResponse = {
   statuses: {
     entryID: string;
@@ -162,28 +162,36 @@ export type BulkPublishApiResponse = {
   }[];
 };
 
+/**
+ * Get the response for bulk publish request.
+ *
+ * @param response bulk publish API response
+ * @param entries entries for bulk publish request
+ * @param error error from bulk publish request
+ * @returns SDK response for bulk publish request
+ */
 export function getBulkPublishResponse(
-  response: BulkPublishApiResponse,
-  entries: PubSubBulkPublishEntry[],
-  error?: Error | string,
+  params:
+    | {
+        entries: PubSubBulkPublishEntry[];
+        response: BulkPublishApiResponse;
+      }
+    | {
+        entries: PubSubBulkPublishEntry[];
+        error: Error;
+      },
 ): PubSubBulkPublishResponse {
-  if (error) {
-    if (typeof error === "string") {
-      // The entire request failed.
-      return { failedEntries: entries.map((entry) => ({ entry, error: new Error(error) })) };
-    } else {
-      // Some or all of the entries failed to be published.
-      const failedEntries: PubSubBulkPublishResponse["failedEntries"] = [];
-      response.statuses.forEach((status) => {
-        const entry = entries.find((entry) => entry.entryID === status.entryID);
-        if (entry) {
-          failedEntries.push({ entry, error: new Error(status.error) });
-        }
-      });
-      return { failedEntries };
-    }
-  } else {
-    // All entries were published successfully.
-    return { failedEntries: [] };
+  if ("error" in params) {
+    // The entire request failed. This typically indicates a problem with the request or the connection.
+    return { failedEntries: params.entries.map((entry) => ({ entry, error: params.error })) };
   }
+
+  // Some or all of the entries failed to be published.
+  return {
+    failedEntries:
+      params.response.statuses.flatMap((status) => {
+        const entry = params.entries.find((entry) => entry.entryID === status.entryID);
+        return entry ? { entry: entry, error: new Error(status.error) } : [];
+      }) ?? [],
+  };
 }

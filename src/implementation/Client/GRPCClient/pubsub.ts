@@ -21,12 +21,7 @@ import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 import { Logger } from "../../../logger/Logger";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import { KeyValueType } from "../../../types/KeyValue.type";
-import {
-  BulkPublishApiResponse,
-  createGRPCMetadata,
-  getBulkPublishEntries,
-  getBulkPublishResponse,
-} from "../../../utils/Client.util";
+import { createGRPCMetadata, getBulkPublishEntries, getBulkPublishResponse } from "../../../utils/Client.util";
 import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
 import { PubSubBulkPublishResponse } from "../../../types/pubsub/PubSubBulkPublishResponse.type";
 import { PubSubBulkPublishMessage } from "../../../types/pubsub/PubSubBulkPublishMessage.type";
@@ -98,18 +93,29 @@ export default class GRPCClientPubSub implements IClientPubSub {
     const client = await this.client.getClient();
     const grpcMetadata = createGRPCMetadata(metadata);
 
-    return new Promise((resolve, _reject) => {
+    return new Promise((resolve, reject) => {
       client.bulkPublishEventAlpha1(bulkPublishRequest, grpcMetadata, (err, res) => {
-        const responses: BulkPublishApiResponse = { statuses: [] };
-        res?.getStatusesList().forEach((entry) => {
-          responses.statuses.push({
-            entryID: entry.getEntryId(),
-            error: entry.getError(),
-            status: entry.getStatus().toString(),
-          });
-        });
+        if (err) {
+          return reject(getBulkPublishResponse({ entries: entries, error: err }));
+        }
 
-        resolve(getBulkPublishResponse(responses, entries, err as Error));
+        const failedEntries = res?.getStatusesList() ?? [];
+        if (failedEntries.length > 0) {
+          return reject(
+            getBulkPublishResponse({
+              entries: entries,
+              response: {
+                statuses: failedEntries.map((entry) => ({
+                  entryID: entry.getEntryId(),
+                  error: entry.getError(),
+                  status: entry.getStatus().toString(),
+                })),
+              },
+            }),
+          );
+        }
+
+        return resolve({ failedEntries: [] });
       });
     });
   }
