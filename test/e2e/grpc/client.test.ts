@@ -161,27 +161,6 @@ describe("grpc/client", () => {
     });
   });
 
-  describe("pubsub", () => {
-    const ce = {
-      specversion: "1.0",
-      type: "com.github.pull.create",
-      source: "https://github.com/cloudevents/spec/pull",
-      id: "A234-1234-1234",
-    };
-    it("should be able to publish a plain text", async () => {
-      const res = await client.pubsub.publish("pubsub-redis", "test-topic", "Hello World");
-      expect(res.error).toEqual(undefined);
-    });
-    it("should be able to publish a JSON", async () => {
-      const res = await client.pubsub.publish("pubsub-redis", "test-topic", { hello: "world" });
-      expect(res.error).toEqual(undefined);
-    });
-    it("should be able to publish a cloud event", async () => {
-      const res = await client.pubsub.publish("pubsub-redis", "test-topic", ce);
-      expect(res.error).toEqual(undefined);
-    });
-  });
-
   describe("secrets", () => {
     it("should be able to correctly fetch the secrets by a single key", async () => {
       const res = await client.secret.get("secret-envvars", "TEST_SECRET_1");

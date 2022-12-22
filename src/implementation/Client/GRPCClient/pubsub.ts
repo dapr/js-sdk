@@ -95,6 +95,8 @@ export default class GRPCClientPubSub implements IClientPubSub {
 
     return new Promise((resolve, reject) => {
       client.bulkPublishEventAlpha1(bulkPublishRequest, grpcMetadata, (err, res) => {
+        this.logger.debug(`bulkPublishEventAlpha1: ${err?.message} response: ${res.getStatusesList()}`);
+
         if (err) {
           return reject(getBulkPublishResponse({ entries: entries, error: err }));
         }
