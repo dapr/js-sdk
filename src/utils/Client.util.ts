@@ -21,6 +21,7 @@ import { PubSubBulkPublishEntry } from "../types/pubsub/PubSubBulkPublishEntry.t
 import { randomUUID } from "crypto";
 import { PubSubBulkPublishResponse } from "../types/pubsub/PubSubBulkPublishResponse.type";
 import { PubSubBulkPublishMessage } from "../types/pubsub/PubSubBulkPublishMessage.type";
+import { PubSubBulkPublishApiResponse } from "../types/pubsub/PubSubBulkPublishApiResponse.type";
 /**
  * Converts a KeyValueType to a grpc.Metadata object.
  * @param metadata key value pair of metadata
@@ -152,17 +153,6 @@ export function getBulkPublishEntries(messages: PubSubBulkPublishMessage[]): Pub
 }
 
 /**
- * Response from a bulk publish request.
- */
-export type BulkPublishApiResponse = {
-  statuses: {
-    entryID: string;
-    status: string;
-    error?: string;
-  }[];
-};
-
-/**
  * Get the response for bulk publish request.
  *
  * @param response bulk publish API response
@@ -174,7 +164,7 @@ export function getBulkPublishResponse(
   params:
     | {
         entries: PubSubBulkPublishEntry[];
-        response: BulkPublishApiResponse;
+        response: PubSubBulkPublishApiResponse;
       }
     | {
         entries: PubSubBulkPublishEntry[];
