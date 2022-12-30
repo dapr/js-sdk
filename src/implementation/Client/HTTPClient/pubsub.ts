@@ -88,7 +88,7 @@ export default class HTTPClientPubSub implements IClientPubSub {
         params,
       );
       // If no error is thrown, all messages were published successfully
-      return { failedEntries: [] };
+      return { failedMessages: [] };
     } catch (error: any) {
       this.logger.error(`Failure publishing bulk messages: ${error}`);
       try {

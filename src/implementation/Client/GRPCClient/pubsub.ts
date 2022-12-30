@@ -115,7 +115,7 @@ export default class GRPCClientPubSub implements IClientPubSub {
           );
         }
 
-        return resolve({ failedEntries: [] });
+        return resolve({ failedMessages: [] });
       });
     });
   }

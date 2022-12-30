@@ -173,15 +173,15 @@ export function getBulkPublishResponse(
 ): PubSubBulkPublishResponse {
   if ("error" in params) {
     // The entire request failed. This typically indicates a problem with the request or the connection.
-    return { failedEntries: params.entries.map((entry) => ({ entry, error: params.error })) };
+    return { failedMessages: params.entries.map((message) => ({ message, error: params.error })) };
   }
 
   // Some or all of the entries failed to be published.
   return {
-    failedEntries:
+    failedMessages:
       params.response.statuses.flatMap((status) => {
-        const entry = params.entries.find((entry) => entry.entryID === status.entryID);
-        return entry ? { entry: entry, error: new Error(status.error) } : [];
+        const message = params.entries.find((message) => message.entryID === status.entryID);
+        return message ? { message: message, error: new Error(status.error) } : [];
       }) ?? [],
   };
 }

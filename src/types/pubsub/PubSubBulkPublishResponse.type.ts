@@ -14,7 +14,7 @@ limitations under the License.
 import { PubSubBulkPublishEntry } from "./PubSubBulkPublishEntry.type";
 
 type PubSubBulkPublishResponseFailedEntry = {
-  entry: PubSubBulkPublishEntry;
+  message: PubSubBulkPublishEntry;
   error: Error;
 };
 
@@ -22,5 +22,5 @@ type PubSubBulkPublishResponseFailedEntry = {
  * PubSubBulkPublishResponse defines the response from a bulk publish request.
  */
 export type PubSubBulkPublishResponse = {
-  failedEntries: PubSubBulkPublishResponseFailedEntry[];
+  failedMessages: PubSubBulkPublishResponseFailedEntry[];
 };
