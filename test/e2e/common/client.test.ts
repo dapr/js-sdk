@@ -76,12 +76,12 @@ describe("common/client", () => {
     runIt("should be able to publish multiple plain text messages", async (client: DaprClient) => {
       const messages = ["Hello World", "Hello World 2"];
       const res = await client.pubsub.publishBulk("pubsub-redis", "test-topic", messages);
-      expect(res.failedEntries.length).toEqual(0);
+      expect(res.failedMessages.length).toEqual(0);
     });
     runIt("should be able to publish multiple JSON messages", async (client: DaprClient) => {
       const messages = [{ hello: "world" }, { hello: "world 2" }];
       const res = await client.pubsub.publishBulk("pubsub-redis", "test-topic", messages);
-      expect(res.failedEntries.length).toEqual(0);
+      expect(res.failedMessages.length).toEqual(0);
     });
     runIt("should be able to publish multiple custom bulk publish messages", async (client: DaprClient) => {
       const messages = [
@@ -102,7 +102,7 @@ describe("common/client", () => {
         },
       ];
       const res = await client.pubsub.publishBulk("pubsub-redis", "test-topic", messages);
-      expect(res.failedEntries.length).toEqual(0);
+      expect(res.failedMessages.length).toEqual(0);
     });
     // Uncomment this once it is fixed in runtime.
     // runIt("should fail the entire request on duplicate entry IDs", async (client: DaprClient) => {
@@ -124,7 +124,7 @@ describe("common/client", () => {
     //     },
     //   ];
     //   const res = await client.pubsub.publishBulk("pubsub-redis", "test-topic", messages);
-    //   expect(res.failedEntries.length).toEqual(3);
+    //   expect(res.failedMessages.length).toEqual(3);
     // });
   });
 });
