@@ -25,6 +25,7 @@ import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishRe
 import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type";
 import { PubSubBulkPublishResponse } from "../../../types/pubsub/PubSubBulkPublishResponse.type";
 import { PubSubBulkPublishMessage } from "../../../types/pubsub/PubSubBulkPublishMessage.type";
+import { PubSubBulkPublishEntry } from "../../../types/pubsub/PubSubBulkPublishEntry.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPClientPubSub implements IClientPubSub {
@@ -87,19 +88,31 @@ export default class HTTPClientPubSub implements IClientPubSub {
         `/publish/bulk/${pubSubName}/${topic}?${queryParams}`,
         params,
       );
-      // If no error is thrown, all messages were published successfully
-      return { failedMessages: [] };
     } catch (error: any) {
       this.logger.error(`Failure publishing bulk messages: ${error}`);
-      try {
-        // If the error is returned by the bulk publish API,
-        // parse the error message and return the response
-        const bulkPublishResponse = JSON.parse(JSON.parse(error.message).error_msg);
-        return getBulkPublishResponse({ entries: entries, response: bulkPublishResponse });
-      } catch (_innerError: any) {
-        // Fail all messages with the original error
-        return getBulkPublishResponse({ entries: entries, error: error });
-      }
+      return this.handleBulkPublishError(entries, error);
     }
+
+    // If no error is thrown, all messages were published successfully
+    return { failedMessages: [] };
+  }
+
+  private async handleBulkPublishError(
+    entries: PubSubBulkPublishEntry[],
+    error: any,
+  ): Promise<PubSubBulkPublishResponse> {
+    try {
+      // If the error is returned by the bulk publish API,
+      // parse the error message and return the response
+      const err = JSON.parse(error.message);
+      if (err.error_msg) {
+        const bulkPublishResponse = JSON.parse(err.error_msg);
+        return getBulkPublishResponse({ entries: entries, response: bulkPublishResponse });
+      }
+    } catch (_innerError: any) {
+      // This can indicate a general error with the request (e.g., network error, invalid pubsub name, etc.).
+    }
+
+    return getBulkPublishResponse({ entries: entries, error: error });
   }
 }

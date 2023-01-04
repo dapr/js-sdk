@@ -52,6 +52,7 @@ describe("Client.util", () => {
       expect(grpcMetadata.toJSON()).toEqual({});
     });
   });
+
   describe("getHTTPMetadataQueryParam", () => {
     it("converts a KeyValueType to a HTTP query parameters", () => {
       const metadata = {
@@ -89,6 +90,7 @@ describe("Client.util", () => {
       );
     });
   });
+
   describe("createConfigurationType", () => {
     it("converts a dictionary to a configuration type", () => {
       const item1 = new ConfigurationItem();
@@ -183,6 +185,7 @@ describe("Client.util", () => {
       });
     });
   });
+
   describe("getBulkPublishEntries", () => {
     it("returns correct responses for string and object array", () => {
       const testCases = [
@@ -208,6 +211,7 @@ describe("Client.util", () => {
         });
       });
     });
+
     it("returns correct responses for explicit bulk publish entries", () => {
       const input = [
         {
@@ -238,6 +242,7 @@ describe("Client.util", () => {
       });
     });
   });
+
   describe("getBulkPublishResponse", () => {
     const entries: PubSubBulkPublishEntry[] = [
       {
@@ -257,10 +262,10 @@ describe("Client.util", () => {
     it("returns response with a common error", () => {
       const error = new Error("test error");
       const response = getBulkPublishResponse({ entries: entries, error: error });
-      expect(response.failedEntries.length).toEqual(entries.length);
-      response.failedEntries.forEach((failedEntry) => {
-        expect(entries.includes(failedEntry.entry)).toBeTruthy();
-        expect(failedEntry.error).toEqual(error);
+      expect(response.failedMessages.length).toEqual(entries.length);
+      response.failedMessages.forEach((failedMessage) => {
+        expect(entries.includes(failedMessage.message)).toBeTruthy();
+        expect(failedMessage.error).toEqual(error);
       });
     });
 
@@ -276,9 +281,9 @@ describe("Client.util", () => {
       };
 
       const response = getBulkPublishResponse({ entries: entries, response: apiResponse });
-      expect(response.failedEntries.length).toEqual(1);
-      expect(response.failedEntries[0].entry).toEqual(entries[0]);
-      expect(response.failedEntries[0].error).toEqual(new Error(apiResponse.statuses[0].error));
+      expect(response.failedMessages.length).toEqual(1);
+      expect(response.failedMessages[0].message).toEqual(entries[0]);
+      expect(response.failedMessages[0].error).toEqual(new Error(apiResponse.statuses[0].error));
     });
   });
 });
