@@ -32,7 +32,9 @@ describe("grpc/client", () => {
   // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
     client = new DaprClient({
-      daprHost: daprHost, daprPort: daprPort, communicationProtocol: CommunicationProtocolEnum.GRPC,
+      daprHost: daprHost,
+      daprPort: daprPort,
+      communicationProtocol: CommunicationProtocolEnum.GRPC,
       logger: {
         level: LogLevel.Debug,
       },
