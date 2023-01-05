@@ -85,6 +85,10 @@ export default class DaprClient {
       daprHost: options.daprHost ?? Settings.getDefaultHost(),
       daprPort: options.daprPort ?? Settings.getDefaultPort(communicationProtocol),
       communicationProtocol: communicationProtocol,
+      isKeepAlive: options.isKeepAlive,
+      logger: options.logger,
+      actor: options.actor,
+      daprApiToken: options.daprApiToken,
     };
 
     this.logger = new Logger("DaprClient", "DaprClient", this.options.logger);
