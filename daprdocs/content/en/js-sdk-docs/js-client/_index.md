@@ -292,10 +292,10 @@ async function start() {
   await client.pubsub.publish(pubSubName, topic, cloudEvent);
 
   // Publish multiple messages to a topic as text/plain
-  await client.pubsub.publishBulk("my-pubsub-component", "my-topic", ["message 1", "message 2", "message 3"]);
+  await client.pubsub.publishBulk(pubSubName, topic, ["message 1", "message 2", "message 3"]);
 
   // Publish multiple messages to a topic as application/json
-  await client.pubsub.publishBulk("my-pubsub-component", "my-topic", [
+  await client.pubsub.publishBulk(pubSubName, topic, [
     { hello: "message 1" },
     { hello: "message 2" },
     { hello: "message 3" },
@@ -319,7 +319,7 @@ async function start() {
       event: "foo message 3",
     },
   ];
-  await client.pubsub.publishBulk("my-pubsub-component", "my-topic", bulkPublishMessages);
+  await client.pubsub.publishBulk(pubSubName, topic, bulkPublishMessages);
 }
 
 start().catch((e) => {
