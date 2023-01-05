@@ -61,6 +61,10 @@ export default class DaprServer {
     this.daprHost = daprHost ?? Settings.getDefaultHost();
     this.daprPort = daprPort ?? Settings.getDefaultPort(communicationProtocol);
 
+    clientOptions.daprHost = this.daprHost;
+    clientOptions.daprPort = this.daprPort;
+    clientOptions.communicationProtocol = communicationProtocol;
+
     // Create a client to interface with the sidecar from the server side
     this.client = new DaprClient(clientOptions);
 
