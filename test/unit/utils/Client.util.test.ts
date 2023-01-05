@@ -271,10 +271,9 @@ describe("Client.util", () => {
 
     it("returns response with individual errors", () => {
       const apiResponse: PubSubBulkPublishApiResponse = {
-        statuses: [
+        failedEntries: [
           {
             entryID: "entry1",
-            status: "FAIL",
             error: "test error 1",
           },
         ],
@@ -283,7 +282,7 @@ describe("Client.util", () => {
       const response = getBulkPublishResponse({ entries: entries, response: apiResponse });
       expect(response.failedMessages.length).toEqual(1);
       expect(response.failedMessages[0].message).toEqual(entries[0]);
-      expect(response.failedMessages[0].error).toEqual(new Error(apiResponse.statuses[0].error));
+      expect(response.failedMessages[0].error).toEqual(new Error(apiResponse.failedEntries[0].error));
     });
   });
 });
