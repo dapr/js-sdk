@@ -37,6 +37,9 @@ const sidecarPort = "50000";
 const serverStartWaitTimeMs = 5 * 1000;
 
 const daprClientOptions: DaprClientOptions = {
+  daprHost: sidecarHost,
+  daprPort: sidecarPort,
+  communicationProtocol: CommunicationProtocolEnum.HTTP,
   isKeepAlive: false,
   actor: {
     actorIdleTimeout: "1h",
@@ -70,7 +73,7 @@ describe("http/actors", () => {
       daprClientOptions,
     );
 
-    client = new DaprClient(sidecarHost, sidecarPort, CommunicationProtocolEnum.HTTP, daprClientOptions);
+    client = new DaprClient(daprClientOptions);
 
     // This will initialize the actor routes.
     // Actors themselves can be initialized later
