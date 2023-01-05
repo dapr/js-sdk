@@ -18,7 +18,6 @@ var grpc = require('@grpc/grpc-js');
 var dapr_proto_runtime_v1_dapr_pb = require('../../../../dapr/proto/runtime/v1/dapr_pb.js');
 var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js');
 var google_protobuf_empty_pb = require('google-protobuf/google/protobuf/empty_pb.js');
-var google_protobuf_timestamp_pb = require('google-protobuf/google/protobuf/timestamp_pb.js');
 var dapr_proto_common_v1_common_pb = require('../../../../dapr/proto/common/v1/common_pb.js');
 
 function serialize_dapr_proto_common_v1_InvokeResponse(arg) {

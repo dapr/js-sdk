@@ -99,16 +99,15 @@ export default class GRPCClientPubSub implements IClientPubSub {
           return reject(getBulkPublishResponse({ entries: entries, error: err }));
         }
 
-        const failedEntries = res?.getStatusesList() ?? [];
+        const failedEntries = res.getFailedentriesList();
         if (failedEntries.length > 0) {
           return reject(
             getBulkPublishResponse({
               entries: entries,
               response: {
-                statuses: failedEntries.map((entry) => ({
+                failedEntries: failedEntries.map((entry) => ({
                   entryID: entry.getEntryId(),
                   error: entry.getError(),
-                  status: entry.getStatus().toString(),
                 })),
               },
             }),

@@ -180,12 +180,12 @@ export function getBulkPublishResponse(
   // Some or all of the entries failed to be published.
   return {
     failedMessages:
-      params.response.statuses.flatMap((status) => {
-        const message = params.entries.find((message) => message.entryID === status.entryID);
+      params.response.failedEntries.flatMap((entry) => {
+        const message = params.entries.find((message) => message.entryID === entry.entryID);
         if (!message) {
           return [];
         }
-        return { message, error: new Error(status.error) };
+        return { message, error: new Error(entry.error) };
       }) ?? [],
   };
 }

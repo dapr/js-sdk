@@ -7,7 +7,6 @@
 import * as jspb from "google-protobuf";
 import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb";
 import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
-import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/timestamp_pb";
 import * as dapr_proto_common_v1_common_pb from "../../../../dapr/proto/common/v1/common_pb";
 
 export class InvokeServiceRequest extends jspb.Message { 
@@ -470,10 +469,10 @@ export namespace BulkPublishRequestEntry {
 }
 
 export class BulkPublishResponse extends jspb.Message { 
-    clearStatusesList(): void;
-    getStatusesList(): Array<BulkPublishResponseEntry>;
-    setStatusesList(value: Array<BulkPublishResponseEntry>): BulkPublishResponse;
-    addStatuses(value?: BulkPublishResponseEntry, index?: number): BulkPublishResponseEntry;
+    clearFailedentriesList(): void;
+    getFailedentriesList(): Array<BulkPublishResponseFailedEntry>;
+    setFailedentriesList(value: Array<BulkPublishResponseFailedEntry>): BulkPublishResponse;
+    addFailedentries(value?: BulkPublishResponseFailedEntry, index?: number): BulkPublishResponseFailedEntry;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): BulkPublishResponse.AsObject;
@@ -487,40 +486,31 @@ export class BulkPublishResponse extends jspb.Message {
 
 export namespace BulkPublishResponse {
     export type AsObject = {
-        statusesList: Array<BulkPublishResponseEntry.AsObject>,
+        failedentriesList: Array<BulkPublishResponseFailedEntry.AsObject>,
     }
 }
 
-export class BulkPublishResponseEntry extends jspb.Message { 
+export class BulkPublishResponseFailedEntry extends jspb.Message { 
     getEntryId(): string;
-    setEntryId(value: string): BulkPublishResponseEntry;
-    getStatus(): BulkPublishResponseEntry.Status;
-    setStatus(value: BulkPublishResponseEntry.Status): BulkPublishResponseEntry;
+    setEntryId(value: string): BulkPublishResponseFailedEntry;
     getError(): string;
-    setError(value: string): BulkPublishResponseEntry;
+    setError(value: string): BulkPublishResponseFailedEntry;
 
     serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): BulkPublishResponseEntry.AsObject;
-    static toObject(includeInstance: boolean, msg: BulkPublishResponseEntry): BulkPublishResponseEntry.AsObject;
+    toObject(includeInstance?: boolean): BulkPublishResponseFailedEntry.AsObject;
+    static toObject(includeInstance: boolean, msg: BulkPublishResponseFailedEntry): BulkPublishResponseFailedEntry.AsObject;
     static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
     static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: BulkPublishResponseEntry, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): BulkPublishResponseEntry;
-    static deserializeBinaryFromReader(message: BulkPublishResponseEntry, reader: jspb.BinaryReader): BulkPublishResponseEntry;
+    static serializeBinaryToWriter(message: BulkPublishResponseFailedEntry, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): BulkPublishResponseFailedEntry;
+    static deserializeBinaryFromReader(message: BulkPublishResponseFailedEntry, reader: jspb.BinaryReader): BulkPublishResponseFailedEntry;
 }
 
-export namespace BulkPublishResponseEntry {
+export namespace BulkPublishResponseFailedEntry {
     export type AsObject = {
         entryId: string,
-        status: BulkPublishResponseEntry.Status,
         error: string,
     }
-
-    export enum Status {
-    SUCCESS = 0,
-    FAILED = 1,
-    }
-
 }
 
 export class InvokeBindingRequest extends jspb.Message { 

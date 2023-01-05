@@ -8,7 +8,6 @@ import * as grpc from "@grpc/grpc-js";
 import * as dapr_proto_runtime_v1_dapr_pb from "../../../../dapr/proto/runtime/v1/dapr_pb";
 import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb";
 import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
-import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/timestamp_pb";
 import * as dapr_proto_common_v1_common_pb from "../../../../dapr/proto/common/v1/common_pb";
 
 interface IDaprService extends grpc.ServiceDefinition<grpc.UntypedServiceImplementation> {
