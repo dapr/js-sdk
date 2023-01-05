@@ -16,6 +16,7 @@ import IClientActorBuilder from "../../../interfaces/Client/IClientActorBuilder"
 import ActorProxyBuilder from "../../../actors/client/ActorProxyBuilder";
 import Class from "../../../types/Class";
 import ActorId from "../../../actors/ActorId";
+import CommunicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
 
 // https://docs.dapr.io/reference/api/actors_api/
 export default class GRPCClientActor implements IClientActorBuilder {
@@ -30,10 +31,10 @@ export default class GRPCClientActor implements IClientActorBuilder {
   create<T>(actorTypeClass: Class<T>): T {
     const builder = new ActorProxyBuilder<T>(
       actorTypeClass,
-      this.client.getClientHost(),
-      this.client.getClientPort(),
-      this.client.getClientCommunicationProtocol(),
-      this.client.getOptions(),
+      this.client.options.daprHost,
+      this.client.options.daprPort,
+      CommunicationProtocolEnum.GRPC,
+      this.client.options,
     );
     const actor = builder.build(ActorId.createRandomId());
     return actor;

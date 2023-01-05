@@ -28,7 +28,7 @@ export default class GRPCClientPubSub implements IClientPubSub {
 
   constructor(client: GRPCClient) {
     this.client = client;
-    this.logger = new Logger("GRPCClient", "PubSub", client.getOptions().logger);
+    this.logger = new Logger("GRPCClient", "PubSub", client.options.logger);
   }
 
   async publish(

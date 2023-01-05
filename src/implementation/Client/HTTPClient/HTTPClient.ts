@@ -12,45 +12,37 @@ limitations under the License.
 */
 
 import fetch from "node-fetch";
-import { CommunicationProtocolEnum, DaprClient } from "../../..";
+import { DaprClient } from "../../..";
 import IClient from "../../../interfaces/Client/IClient";
 import http from "http";
 import https from "https";
 import { DaprClientOptions } from "../../../types/DaprClientOptions";
-import { Settings } from "../../../utils/Settings.util";
 import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type";
 import { Logger } from "../../../logger/Logger";
 import HTTPClientSidecar from "./sidecar";
 import { SDK_VERSION } from "../../../version";
+import { Settings } from "../../../utils/Settings.util";
 
 export default class HTTPClient implements IClient {
-  private isInitialized: boolean;
+  readonly options: DaprClientOptions;
 
+  private isInitialized: boolean;
   private static client: typeof fetch;
-  private readonly clientHost: string;
-  private readonly clientPort: string;
   private readonly clientUrl: string;
-  private readonly options: DaprClientOptions;
   private readonly logger: Logger;
 
   private static httpAgent: http.Agent;
   private static httpsAgent: https.Agent;
 
-  constructor(host = Settings.getDefaultHost(), port = Settings.getDefaultHttpPort(), options: DaprClientOptions = {}) {
-    this.clientHost = host;
-    this.clientPort = port;
+  constructor(options: DaprClientOptions) {
     this.options = options;
     this.logger = new Logger("HTTPClient", "HTTPClient", this.options.logger);
     this.isInitialized = false;
-    // fallback to default
-    if (this.options.isKeepAlive === undefined) {
-      this.options.isKeepAlive = true;
-    }
 
-    if (!this.clientHost.startsWith("http://") && !this.clientHost.startsWith("https://")) {
-      this.clientUrl = `http://${this.clientHost}:${this.clientPort}/v1.0`;
+    if (!this.options.daprHost.startsWith("http://") && !this.options.daprHost.startsWith("https://")) {
+      this.clientUrl = `http://${this.options.daprHost}:${this.options.daprPort}/v1.0`;
     } else {
-      this.clientUrl = `${this.clientHost}:${this.clientPort}/v1.0`;
+      this.clientUrl = `${this.options.daprHost}:${this.options.daprPort}/v1.0`;
     }
 
     if (!HTTPClient.client) {
@@ -60,7 +52,7 @@ export default class HTTPClient implements IClient {
     // Add a custom agent so we can decide if we want to reuse connections or not
     // we use an agent so we can reuse an open connection, limiting handshake requirements
     // Note: when using an agent, we will encounter TCPWRAP since the connection doesn't get destroyed
-    const keepAlive = this.options.isKeepAlive;
+    const keepAlive = this.options.isKeepAlive ?? Settings.getDefaultKeepAlive();
     const keepAliveMsecs = 30 * 1000; // it is applicable only when keepAlive is set to true
 
     if (!HTTPClient.httpAgent) {
@@ -79,26 +71,6 @@ export default class HTTPClient implements IClient {
     }
 
     return HTTPClient.client;
-  }
-
-  getClientHost(): string {
-    return this.clientHost;
-  }
-
-  getClientPort(): string {
-    return this.clientPort;
-  }
-
-  getClientUrl(): string {
-    return this.clientUrl;
-  }
-
-  getClientCommunicationProtocol(): CommunicationProtocolEnum {
-    return CommunicationProtocolEnum.HTTP;
-  }
-
-  getOptions(): DaprClientOptions {
-    return this.options;
   }
 
   setIsInitialized(isInitialized: boolean): void {
