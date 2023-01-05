@@ -25,7 +25,7 @@ describe("ActorRuntime", () => {
 
   beforeAll(async () => {
     jest.mock("../../../src/implementation/Client/DaprClient"); // converts DaprClient into a mock constructor
-    client = new DaprClient("127.0.0.1", "1000");
+    client = new DaprClient({ daprHost: "127.0.0.1", daprPort: "1000" });
   });
 
   beforeEach(async () => {
