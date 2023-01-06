@@ -61,28 +61,34 @@ describe("common/client", () => {
       source: "https://github.com/cloudevents/spec/pull",
       id: "A234-1234-1234",
     };
+
     runIt("should be able to publish a plain text", async (client: DaprClient) => {
       const res = await client.pubsub.publish("pubsub-redis", "test-topic", "Hello World");
       expect(res.error).toEqual(undefined);
     });
+
     runIt("should be able to publish a JSON", async (client: DaprClient) => {
       const res = await client.pubsub.publish("pubsub-redis", "test-topic", { hello: "world" });
       expect(res.error).toEqual(undefined);
     });
+
     runIt("should be able to publish a cloud event", async (client: DaprClient) => {
       const res = await client.pubsub.publish("pubsub-redis", "test-topic", ce);
       expect(res.error).toEqual(undefined);
     });
+
     runIt("should be able to publish multiple plain text messages", async (client: DaprClient) => {
       const messages = ["Hello World", "Hello World 2"];
       const res = await client.pubsub.publishBulk("pubsub-redis", "test-topic", messages);
       expect(res.failedMessages.length).toEqual(0);
     });
+
     runIt("should be able to publish multiple JSON messages", async (client: DaprClient) => {
       const messages = [{ hello: "world" }, { hello: "world 2" }];
       const res = await client.pubsub.publishBulk("pubsub-redis", "test-topic", messages);
       expect(res.failedMessages.length).toEqual(0);
     });
+
     runIt("should be able to publish multiple custom bulk publish messages", async (client: DaprClient) => {
       const messages = [
         {
@@ -104,27 +110,27 @@ describe("common/client", () => {
       const res = await client.pubsub.publishBulk("pubsub-redis", "test-topic", messages);
       expect(res.failedMessages.length).toEqual(0);
     });
-    // Uncomment this once it is fixed in runtime.
-    // runIt("should fail the entire request on duplicate entry IDs", async (client: DaprClient) => {
-    //   const messages = [
-    //     {
-    //       entryID: "1",
-    //       event: "Hello World",
-    //       contentType: "text/plain",
-    //     },
-    //     {
-    //       entryID: "1",
-    //       event: { hello: "world 2" },
-    //       contentType: "application/json",
-    //     },
-    //     {
-    //       entryID: "3",
-    //       event: "Hello World 3",
-    //       contentType: "text/plain",
-    //     },
-    //   ];
-    //   const res = await client.pubsub.publishBulk("pubsub-redis", "test-topic", messages);
-    //   expect(res.failedMessages.length).toEqual(3);
-    // });
+
+    runIt("should fail the entire request on duplicate entry IDs", async (client: DaprClient) => {
+      const messages = [
+        {
+          entryID: "1",
+          event: "Hello World",
+          contentType: "text/plain",
+        },
+        {
+          entryID: "1",
+          event: { hello: "world 2" },
+          contentType: "application/json",
+        },
+        {
+          entryID: "3",
+          event: "Hello World 3",
+          contentType: "text/plain",
+        },
+      ];
+      const res = await client.pubsub.publishBulk("pubsub-redis", "test-topic", messages);
+      expect(res.failedMessages.length).toEqual(3);
+    });
   });
 });
