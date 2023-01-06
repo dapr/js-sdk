@@ -93,15 +93,15 @@ export default class GRPCClientPubSub implements IClientPubSub {
     const client = await this.client.getClient();
     const grpcMetadata = createGRPCMetadata(metadata);
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
       client.bulkPublishEventAlpha1(bulkPublishRequest, grpcMetadata, (err, res) => {
         if (err) {
-          return reject(getBulkPublishResponse({ entries: entries, error: err }));
+          return resolve(getBulkPublishResponse({ entries: entries, error: err }));
         }
 
         const failedEntries = res.getFailedentriesList();
         if (failedEntries.length > 0) {
-          return reject(
+          return resolve(
             getBulkPublishResponse({
               entries: entries,
               response: {
