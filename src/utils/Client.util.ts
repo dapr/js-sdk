@@ -100,20 +100,46 @@ function isCloudEvent(obj: object): boolean {
 
 /**
  * Gets the Content-Type for the input data.
+ * 
  * If the data is a valid Cloud Event, the Content-Type is "application/cloudevents+json".
  * If the data is a JSON object, the Content-Type is "application/json".
- * Otherwise, the Content-Type is "text/plain".
+ * If the data is a string, the Content-Type is "text/plain".
+ * Otherwise, the Content-Type is "application/octet-stream".
+ * 
  * @param data input data
  * @returns Content-Type header value
  */
 export function getContentType(data: object | string): string {
-  if (typeof data === "string") {
-    return "text/plain";
-  }
+  const type = getType(data);
 
-  if (isCloudEvent(data)) {
+  if (type) {
+    return "application/octet-stream";
+  } else if (data instanceof Buffer) {
+    return "application/octet-stream";
+  } else if (typeof data === "object" && isCloudEvent(data)) {
     return "application/cloudevents+json";
-  } else {
+  } else if (typeof data === "object") {
     return "application/json";
+  } else if (typeof data === "string") {
+    return "text/plain";
+  } else {
+    return "application/octet-stream";
   }
+}
+
+/**
+ * Determine the type of the input data.
+ * 
+ * @param arr 
+ * @returns 
+ */
+function getType(arr: any) {
+  return isTypedArray(arr) && arr.constructor.name;
+}
+
+/**
+ * Checks if the input object is a typed array.
+ */
+function isTypedArray(arr: any) {
+  return ArrayBuffer.isView(arr) && !(arr instanceof DataView);
 }

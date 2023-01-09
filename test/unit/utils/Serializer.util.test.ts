@@ -20,10 +20,24 @@ describe("serializer", () => {
     expect(data.contentType).toEqual("application/json");
   });
 
-  it("String should be serialized to Buffer as application/octet-stream", () => {
+  it("Object in CloudEvent Format should be serialized to Buffer as application/cloudevents+json", () => {
+    const obj = {
+      id: "demo",
+      source: "demo",
+      type: "demo",
+      specversion: "demo"
+    }
+
+    const data = SerializerUtil.serializeGrpc(obj);
+
+    expect(Buffer.compare(data.serializedData, Buffer.from(JSON.stringify(obj)))).toEqual(0);
+    expect(data.contentType).toEqual("application/cloudevents+json");
+  });
+
+  it("String should be serialized as text/plain", () => {
     const data = SerializerUtil.serializeGrpc("hello-world");
-    expect(Buffer.compare(data.serializedData, Buffer.from("hello-world", "utf-8"))).toEqual(0);
-    expect(data.contentType).toEqual("application/octet-stream");
+    expect(data.serializedData).toEqual("hello-world");
+    expect(data.contentType).toEqual("text/plain");
   });
 
   it("Buffer should be serialized to Buffer as application/octet-stream", () => {

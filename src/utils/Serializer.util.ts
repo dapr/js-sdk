@@ -15,11 +15,23 @@ import { getContentType } from "./Client.util";
 
 export function serializeGrpc(data: any): { serializedData: Buffer; contentType: string } {
   let serializedData: Buffer = data;
-  let contentType = "application/octet-stream";
 
-  if (!(data instanceof Buffer)) {
-    serializedData = Buffer.from(JSON.stringify(data), "utf-8");
-    contentType = getContentType(data);
+  const contentType = getContentType(data);
+
+  switch (contentType) {
+    case "text/plain":
+      serializedData = data;
+      break;
+    case "application/json":
+    case "application/cloudevents+json":
+      serializedData = Buffer.from(JSON.stringify(data));
+      break;
+    case "application/octet-stream":
+      serializedData = Buffer.from(data);
+      break;
+    default:
+      serializedData = Buffer.from(data);
+      break;
   }
 
   return { serializedData, contentType };
