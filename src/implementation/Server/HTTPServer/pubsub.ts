@@ -117,6 +117,29 @@ export default class HTTPServerPubSub implements IServerPubSub {
     this.subscribeToRoute(pubsubName, topic, route, cb);
   }
 
+  async bulkSubscribeWithConfig(
+    pubsubName: string,
+    topic: string,
+    cb: TypeDaprPubSubCallback,
+    maxMessagesCount: number,
+    maxAwaitDurationMs: number,
+    route: string | DaprPubSubRouteType = "",
+    metadata?: KeyValueType,
+  ): Promise<void> {
+    const bulkSubscribe: BulkSubscribeConfig = {
+      enabled: true,
+      maxMessagesCount: maxMessagesCount,
+      maxAwaitDurationMs: maxAwaitDurationMs,
+    };
+    this.server
+      .getServerImpl()
+      .registerPubsubSubscription(pubsubName, topic, { route, metadata, bulkSubscribe: bulkSubscribe });
+
+    // Add the callback to the event handlers manually
+    // @todo: we will deprecate this way of working? and require subscribeToRoute?
+    this.subscribeToRoute(pubsubName, topic, route, cb);
+  }
+
   getSubscriptions(): PubSubSubscriptionsType {
     return this.server.getServerImpl().pubSubSubscriptions;
   }

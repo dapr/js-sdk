@@ -20,6 +20,9 @@ import { PubSubSubscriptionOptionsType } from "../../../types/pubsub/PubSubSubsc
 import { PubSubSubscriptionTopicRoutesType } from "../../../types/pubsub/PubSubSubscriptionTopicRoutes.type";
 import { IServerType } from "./HTTPServer";
 import { TypeDaprPubSubCallback } from "../../../types/DaprPubSubCallback.type";
+import { PubSubSubscriptionTopicRouteType } from "../../../types/pubsub/PubSubSubscriptionTopicRoute.type";
+import { BulkSubscribeResponseEntry } from "../../../types/pubsub/BulkSubscribeResponseEntry.type";
+import { BulkSubscribeResponse } from "../../../types/pubsub/BulkSubscribeResponse.type";
 
 export default class HTTPServerImpl {
   private readonly PUBSUB_DEFAULT_ROUTE_NAME = "default";
@@ -86,36 +89,8 @@ export default class HTTPServerImpl {
       this.server.post(`/${routeObj.path}`, async (req, res) => {
         const bulkSubEnabled = this.pubSubSubscriptions[pubsubName][topic].dapr.bulkSubscribe?.enabled;
         if (bulkSubEnabled) {
-          const resArr: Array<any> = [];
-          // @ts-ignore
-          const entries = req?.body?.entries;
-          for (const ind in entries) {
-            const entry = entries[ind];
-            let data: any;
-            let entryRes: any;
-            if (entry.contentType == "application/octet-stream") {
-              const dataB64 = entry.event;
-              data = Buffer.from(dataB64, "base64").toString();
-            } else if (entry.contentType == "application/cloudevents+json") {
-              data = entry.event.data;
-            }
-            const headers = entry.metadata;
-            // Process our callback
-            try {
-              const eventHandlers = routeObj.eventHandlers;
-              await Promise.all(eventHandlers.map((cb) => cb(data, headers)));
-              entryRes = { status: SubscribedMessageHttpResponse.SUCCESS, entryId: entry.entryId };
-            } catch (e) {
-              this.logger.error(`[route-${routeObj.path}] Message processing failed, dropping: ${e}`);
-              entryRes = { status: SubscribedMessageHttpResponse.DROP, entryId: entry.entryId };
-            }
-            resArr.push(entryRes);
-          }
-          this.logger.debug(`[route-${routeObj.path}] Ack'ing the bulk message`);
-          const bulkResult = {
-            statuses: resArr,
-          };
-          return res.send(bulkResult, 200);
+          const result = await this.processBulkSubscribeMessage(routeObj, req);
+          return res.send(result, 200);
         }
         // @ts-ignore
         // Parse the data of the body, we prioritize fetching the data key in body if possible
@@ -144,6 +119,48 @@ export default class HTTPServerImpl {
         this.pubSubSubscriptions[pubsubName][topic].routes,
       ).join(", ")}`,
     );
+  }
+
+  async processBulkSubscribeMessage(
+    routeObj: PubSubSubscriptionTopicRouteType,
+    req: any,
+  ): Promise<BulkSubscribeResponse> {
+    const resArr: Array<BulkSubscribeResponseEntry> = [];
+    // @ts-ignore
+    const entries = req?.body?.entries;
+    for (const ind in entries) {
+      const entry = entries[ind];
+      let data: any;
+      let entryRes: BulkSubscribeResponseEntry;
+      if (entry.contentType == "application/octet-stream") {
+        const dataB64 = entry.event;
+        data = Buffer.from(dataB64, "base64").toString();
+      } else if (entry.contentType == "application/cloudevents+json") {
+        data = entry.event.data;
+      }
+      const headers = entry.metadata;
+      // Process our callback
+      try {
+        const eventHandlers = routeObj.eventHandlers;
+        await Promise.all(eventHandlers.map((cb) => cb(data, headers)));
+        entryRes = {
+          status: SubscribedMessageHttpResponse.SUCCESS,
+          entryId: entry.entryId,
+        };
+      } catch (e) {
+        this.logger.error(`[route-${routeObj.path}] Message processing failed, dropping: ${e}`);
+        entryRes = {
+          status: SubscribedMessageHttpResponse.DROP,
+          entryId: entry.entryId,
+        };
+      }
+      resArr.push(entryRes);
+    }
+    this.logger.debug(`[route-${routeObj.path}] Ack'ing the bulk message`);
+    const bulkResult: BulkSubscribeResponse = {
+      statuses: resArr,
+    };
+    return bulkResult;
   }
 
   registerPubSubSubscriptionEventHandler(
