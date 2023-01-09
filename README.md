@@ -50,9 +50,9 @@ View the main site [https://dapr.io/](https://dapr.io/) to learn more.
 
 ## Community
 
-For the JS SDK we are utilizing [GitHub Communities](https://github.com/dapr/js-sdk/discussions) to track announcements, articles, and more!
+There are multiple ways to get involved with the SDK community, please see [wiki/Community-engagement](https://github.com/dapr/js-sdk/wiki/Community-engagement) for more information.
 
-The General Dapr community can be found on [Discord](https://discord.com/invite/ptHhX6jc34), where you can ask questions, propose features, and share your thoughts.
+The Dapr community can be found on [Discord](https://discord.com/invite/ptHhX6jc34), where you can ask questions, propose features, and share your thoughts.
 
 ## Contributing
 
@@ -62,9 +62,6 @@ Please see our [Contributing Overview](https://docs.dapr.io/contributing/js-cont
 
 We have a list of [good first issues](https://github.com/dapr/js-sdk/labels/good%20first%20issue) that contain bugs which have a relatively limited scope. This is a great place to get started, gain experience, and get familiar with our contribution process.
 
-## Authors
+## Code of conduct
 
-- [Xavier Geerinck](https://www.linkedin.com/in/xaviergeerinck/) ([@XavierGeerinck](https://twitter.com/XavierGeerinck)) – [M18X](https://xaviergeerinck.com/) & [Proximus](https://proximus.com)
-- [Shubham Sharma](https://www.linkedin.com/in/shubham1172/) ([@shubham1172](https://twitter.com/shubham1172)) – [Microsoft](https://microsoft.com)
-- [Amulya Varote](https://www.linkedin.com/in/amulya-varote-96954287/) - [Microsoft](https://microsoft.com)
-- [Tanvi Gour](https://www.linkedin.com/in/tanvigour/) - [Microsoft](https://microsoft.com)
+Please see [CODE_OF_CONDUCT.md](https://github.com/dapr/js-sdk/blob/main/CODE_OF_CONDUCT.md).

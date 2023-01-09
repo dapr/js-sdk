@@ -285,10 +285,24 @@ async function start() {
 
   const pubSubName = "my-pubsub-name";
   const topic = "topic-a";
-  const message = { hello: "world" };
 
-  // Publish Message to Topic
-  const response = await client.pubsub.publish(pubSubName, topic, message);
+  // Publish message to topic as text/plain
+  const response = await client.pubsub.publish(pubSubName, topic, "hello, world!");
+  // If publish fails, response contains the error
+  console.log(response);
+
+  // Publish message to topic as application/json
+  await client.pubsub.publish(pubSubName, topic, { hello: "world" });
+
+  // Publish message to topic as application/cloudevents+json
+  // You can also use the cloudevent SDK to create cloud events https://github.com/cloudevents/sdk-javascript
+  const cloudEvent = {
+    specversion: "1.0",
+    source: "/some/source",
+    type: "example",
+    id: "1234",
+  };
+  await client.pubsub.publish(pubSubName, topic, cloudEvent);
 }
 
 start().catch((e) => {

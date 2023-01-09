@@ -11,26 +11,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { getContentType } from "./Client.util";
+
 export function serializeGrpc(data: any): { serializedData: Buffer; contentType: string } {
   let serializedData: Buffer = data;
   let contentType = "application/octet-stream";
 
-  // check if the data type is a typed array
-  // if so, we use application/octet-stream as this means data is Uint8Array, ...
-  const type = getType(data);
-
-  if (type) {
-    contentType = "application/octet-stream";
-    serializedData = Buffer.from(data);
-  } else if (data instanceof Buffer) {
-    contentType = "application/octet-stream";
-    serializedData = Buffer.from(data);
-  } else if (typeof data === "object") {
-    contentType = "application/json";
-    serializedData = Buffer.from(JSON.stringify(data));
-  } else {
-    contentType = "application/octet-stream";
-    serializedData = Buffer.from(data);
+  if (!(data instanceof Buffer)) {
+    serializedData = Buffer.from(JSON.stringify(data), "utf-8");
+    contentType = getContentType(data);
   }
 
   return { serializedData, contentType };

@@ -22,7 +22,7 @@ spec:
   version: v1
   metadata:
   - name: consumerID
-    value: "{uuid}"
+    value: "e2e"
   - name: url
     value: "tcp://admin:public@localhost:1883"
   - name: topic

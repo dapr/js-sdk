@@ -23,7 +23,7 @@ const daprAppId = "test-suite";
 
 describe("http/server", () => {
   let server: DaprServer;
-  const mockBindingReceive = jest.fn(async (_data: object) => console.log("mockBindingReceive"));
+  const mockBindingReceive = jest.fn(async (_data: object) => null);
   const mockPubSub = jest.fn(async (_data: object) => null);
   const mockPubSubWithHeaders = jest.fn(async (_data: object, _headers: object) => null);
   const mockPubSubError = jest.fn(async (_data: object) => {
@@ -151,7 +151,8 @@ describe("http/server", () => {
       await server.client.binding.send("binding-mqtt", "create", { hello: "world" });
 
       // Delay a bit for event to arrive
-      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+      await new Promise((resolve, _reject) => setTimeout(resolve, 2000));
+
       expect(mockBindingReceive.mock.calls.length).toBe(1);
 
       // Also test for receiving data
@@ -161,7 +162,20 @@ describe("http/server", () => {
   });
 
   describe("pubsub", () => {
-    it("should be able to send and receive events", async () => {
+    it("should be able to send and receive plain events", async () => {
+      await server.client.pubsub.publish("pubsub-redis", "topic-1", "Hello, world!");
+
+      // Delay a bit for event to arrive
+      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+
+      expect(mockPubSub.mock.calls.length).toBe(1);
+
+      // Also test for receiving data
+      // @ts-ignore
+      expect(mockPubSub.mock.calls[0][0]).toEqual('"Hello, world!"');
+    });
+
+    it("should be able to send and receive JSON events", async () => {
       await server.client.pubsub.publish("pubsub-redis", "topic-1", { hello: "world" });
 
       // Delay a bit for event to arrive
@@ -172,6 +186,32 @@ describe("http/server", () => {
       // Also test for receiving data
       // @ts-ignore
       expect(mockPubSub.mock.calls[0][0]["hello"]).toEqual("world");
+    });
+
+    it("should be able to send and receive cloud events", async () => {
+      const ce = {
+        specversion: "1.0",
+        type: "com.github.pull.create",
+        source: "https://github.com/cloudevents/spec/pull",
+        id: "A234-1234-1234",
+      };
+
+      await server.client.pubsub.publish("pubsub-redis", "topic-1", ce);
+
+      // Delay a bit for event to arrive
+      await new Promise((resolve, _reject) => setTimeout(resolve, 500));
+
+      expect(mockPubSub.mock.calls.length).toBe(1);
+
+      // Also test for receiving data
+      // @ts-ignore
+      expect(mockPubSub.mock.calls[0][0]["specversion"]).toEqual(ce.specversion);
+      // @ts-ignore
+      expect(mockPubSub.mock.calls[0][0]["type"]).toEqual(ce.type);
+      // @ts-ignore
+      expect(mockPubSub.mock.calls[0][0]["source"]).toEqual(ce.source);
+      // @ts-ignore
+      expect(mockPubSub.mock.calls[0][0]["id"]).toEqual(ce.id);
     });
 
     it("should be able to receive events with their respective headers", async () => {
@@ -218,7 +258,7 @@ describe("http/server", () => {
 
     it("should be able to send cloud event and receive raw payload", async () => {
       const res = await server.client.pubsub.publish("pubsub-redis", "test-topic-ce-raw", { hello: "world-ce-raw" });
-      expect(res).toEqual(true);
+      expect(res.error).toBeUndefined();
 
       // Delay a bit for event to arrive
       await new Promise((resolve, _reject) => setTimeout(resolve, 250));
@@ -239,7 +279,7 @@ describe("http/server", () => {
         { hello: "world-raw-raw" },
         { rawPayload: true },
       );
-      expect(res).toEqual(true);
+      expect(res.error).toBeUndefined();
 
       // Delay a bit for event to arrive
       await new Promise((resolve, _reject) => setTimeout(resolve, 250));
@@ -260,7 +300,7 @@ describe("http/server", () => {
         { hello: "world-raw-ce" },
         { rawPayload: true },
       );
-      expect(res).toEqual(true);
+      expect(res.error).toBeUndefined();
 
       // Delay a bit for event to arrive
       await new Promise((resolve, _reject) => setTimeout(resolve, 250));
@@ -273,7 +313,7 @@ describe("http/server", () => {
 
     it("should receive if it was successful or not", async () => {
       const res = await server.client.pubsub.publish("pubsub-redis", "topic-demo", { hello: "world" });
-      expect(res).toEqual(true);
+      expect(res.error).toBeUndefined();
     });
 
     it('should create route "default" if we don\'t provide a route', async () => {
@@ -362,7 +402,7 @@ describe("http/server", () => {
 
     it("should correctly work if we provide a single route with custom options", async () => {
       const res = await server.client.pubsub.publish("pubsub-redis", "topic-route-empty", { hello: "world" });
-      expect(res).toEqual(true);
+      expect(res.error).toBeUndefined();
     });
 
     it("should allow us to register a listener without event handler callback", async () => {
