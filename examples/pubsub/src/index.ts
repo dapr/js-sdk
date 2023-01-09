@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { DaprServer, DaprClient } from "@dapr/dapr";
+import { DaprClient, DaprServer } from "@dapr/dapr";
 
 // Common settings
 const serverHost = "127.0.0.1"; // App Host of this Example Server
@@ -31,11 +31,29 @@ async function start() {
   });
   await server.start();
 
-  // Publish a message
-  console.log("[Dapr-JS][Example] Publishing message");
+  // Wait for 1 second to allow the server to start.
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  // Internally, the message will be serialized using JSON.stringify()
-  await client.pubsub.publish("my-pubsub-component", "my-topic", { hello: "world" });
+  let response;
+
+  console.log("[Dapr-JS][Example] Publishing a plain message");
+  response = await client.pubsub.publish("my-pubsub-component", "my-topic", "hello, world!");
+  console.log(`[Dapr-JS][Example] Publish response: ${JSON.stringify(response)}`);
+
+  console.log("[Dapr-JS][Example] Publishing a JSON message");
+  response = await client.pubsub.publish("my-pubsub-component", "my-topic", { hello: "world" });
+  console.log(`[Dapr-JS][Example] Publish response: ${JSON.stringify(response)}`);
+
+  const cloudEvent = {
+    specversion: "1.0",
+    source: "/some/source",
+    type: "example",
+    id: "1234",
+  };
+
+  console.log("[Dapr-JS][Example] Publishing a cloud event message");
+  response = await client.pubsub.publish("my-pubsub-component", "my-topic", cloudEvent);
+  console.log(`[Dapr-JS][Example] Publish response: ${JSON.stringify(response)}`);
 }
 
 start().catch((e) => {
