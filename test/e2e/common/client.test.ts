@@ -55,6 +55,9 @@ describe("common/client", () => {
   });
 
   describe("pubsub", () => {
+    const pubSubName = "pubsub-redis";
+    const topic = "test-topic";
+
     const ce = {
       specversion: "1.0",
       type: "com.github.pull.create",
@@ -63,29 +66,29 @@ describe("common/client", () => {
     };
 
     runIt("should be able to publish a plain text", async (client: DaprClient) => {
-      const res = await client.pubsub.publish("pubsub-redis", "test-topic", "Hello World");
+      const res = await client.pubsub.publish(pubSubName, topic, "Hello World");
       expect(res.error).toEqual(undefined);
     });
 
     runIt("should be able to publish a JSON", async (client: DaprClient) => {
-      const res = await client.pubsub.publish("pubsub-redis", "test-topic", { hello: "world" });
+      const res = await client.pubsub.publish(pubSubName, topic, { hello: "world" });
       expect(res.error).toEqual(undefined);
     });
 
     runIt("should be able to publish a cloud event", async (client: DaprClient) => {
-      const res = await client.pubsub.publish("pubsub-redis", "test-topic", ce);
+      const res = await client.pubsub.publish(pubSubName, topic, ce);
       expect(res.error).toEqual(undefined);
     });
 
     runIt("should be able to publish multiple plain text messages", async (client: DaprClient) => {
       const messages = ["Hello World", "Hello World 2"];
-      const res = await client.pubsub.publishBulk("pubsub-redis", "test-topic", messages);
+      const res = await client.pubsub.publishBulk(pubSubName, topic, messages);
       expect(res.failedMessages.length).toEqual(0);
     });
 
     runIt("should be able to publish multiple JSON messages", async (client: DaprClient) => {
       const messages = [{ hello: "world" }, { hello: "world 2" }];
-      const res = await client.pubsub.publishBulk("pubsub-redis", "test-topic", messages);
+      const res = await client.pubsub.publishBulk(pubSubName, topic, messages);
       expect(res.failedMessages.length).toEqual(0);
     });
 
@@ -107,7 +110,7 @@ describe("common/client", () => {
           contentType: "application/cloudevents+json",
         },
       ];
-      const res = await client.pubsub.publishBulk("pubsub-redis", "test-topic", messages);
+      const res = await client.pubsub.publishBulk(pubSubName, topic, messages);
       expect(res.failedMessages.length).toEqual(0);
     });
 
@@ -129,7 +132,7 @@ describe("common/client", () => {
           contentType: "text/plain",
         },
       ];
-      const res = await client.pubsub.publishBulk("pubsub-redis", "test-topic", messages);
+      const res = await client.pubsub.publishBulk(pubSubName, topic, messages);
       expect(res.failedMessages.length).toEqual(3);
     });
   });
