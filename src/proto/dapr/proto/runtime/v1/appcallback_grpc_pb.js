@@ -18,6 +18,7 @@ var grpc = require('@grpc/grpc-js');
 var dapr_proto_runtime_v1_appcallback_pb = require('../../../../dapr/proto/runtime/v1/appcallback_pb.js');
 var google_protobuf_empty_pb = require('google-protobuf/google/protobuf/empty_pb.js');
 var dapr_proto_common_v1_common_pb = require('../../../../dapr/proto/common/v1/common_pb.js');
+var google_protobuf_struct_pb = require('google-protobuf/google/protobuf/struct_pb.js');
 
 function serialize_dapr_proto_common_v1_InvokeRequest(arg) {
   if (!(arg instanceof dapr_proto_common_v1_common_pb.InvokeRequest)) {
@@ -94,6 +95,28 @@ function serialize_dapr_proto_runtime_v1_ListTopicSubscriptionsResponse(arg) {
 
 function deserialize_dapr_proto_runtime_v1_ListTopicSubscriptionsResponse(buffer_arg) {
   return dapr_proto_runtime_v1_appcallback_pb.ListTopicSubscriptionsResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_TopicEventBulkRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.TopicEventBulkRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_TopicEventBulkRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_TopicEventBulkResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.TopicEventBulkResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_TopicEventBulkResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_dapr_proto_runtime_v1_TopicEventRequest(arg) {
@@ -218,3 +241,21 @@ healthCheck: {
 };
 
 exports.AppCallbackHealthCheckClient = grpc.makeGenericClientConstructor(AppCallbackHealthCheckService);
+// AppCallbackAlpha V1 is an optional extension to AppCallback V1 to opt
+// for Alpha RPCs.
+var AppCallbackAlphaService = exports.AppCallbackAlphaService = {
+  // Subscribes bulk events from Pubsub
+onBulkTopicEventAlpha1: {
+    path: '/dapr.proto.runtime.v1.AppCallbackAlpha/OnBulkTopicEventAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest,
+    responseType: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_TopicEventBulkRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_TopicEventBulkRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_TopicEventBulkResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_TopicEventBulkResponse,
+  },
+};
+
+exports.AppCallbackAlphaClient = grpc.makeGenericClientConstructor(AppCallbackAlphaService);

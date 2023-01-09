@@ -20,6 +20,7 @@ import { HTTPExtension, InvokeRequest, InvokeResponse } from "../../../proto/dap
 import {
   BindingEventRequest,
   BindingEventResponse,
+  BulkSubscribeConfig,
   ListInputBindingsResponse,
   ListTopicSubscriptionsResponse,
   TopicEventRequest,
@@ -27,6 +28,10 @@ import {
   TopicRoutes,
   TopicRule,
   TopicSubscription,
+  TopicEventBulkRequest,
+  TopicEventBulkResponse,
+  TopicEventBulkResponseEntry,
+  TopicEventCERequest,
 } from "../../../proto/dapr/proto/runtime/v1/appcallback_pb";
 import * as HttpVerbUtil from "../../../utils/HttpVerb.util";
 import { TypeDaprBindingCallback } from "../../../types/DaprBindingCallback.type";
@@ -246,6 +251,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         metadata: metadata,
         route: this.generateDaprSubscriptionRoute(pubsubName, topic),
         deadLetterTopic: options.deadLetterTopic,
+        bulkSubscribe: options.bulkSubscribe,
       };
     } else if (typeof options.route === "string") {
       return {
@@ -254,6 +260,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         metadata: metadata,
         route: this.generateDaprSubscriptionRoute(pubsubName, topic, options.route),
         deadLetterTopic: options.deadLetterTopic,
+        bulkSubscribe: options.bulkSubscribe,
       };
     } else {
       return {
@@ -268,6 +275,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
           })),
         },
         deadLetterTopic: options.deadLetterTopic,
+        bulkSubscribe: options.bulkSubscribe,
       };
     }
   }
@@ -451,6 +459,75 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     return callback(null, res);
   }
 
+  async onBulkTopicEventAlpha1(
+    call: grpc.ServerUnaryCall<TopicEventBulkRequest, TopicEventBulkResponse>,
+    callback: grpc.sendUnaryData<TopicEventBulkResponse>,
+  ): Promise<void> {
+    const req = call.request;
+    const pubsubName = req.getPubsubName();
+    const topic = req.getTopic();
+
+    // Route is unique to pubsub and topic and has format pubsub--topic--route so we strip it since else we can't find the route
+    const route = this.generatePubSubSubscriptionTopicRouteName(req.getPath().replace(`${pubsubName}--${topic}--`, ""));
+
+    if (
+      !this.pubSubSubscriptions[pubsubName] ||
+      !this.pubSubSubscriptions[pubsubName][topic] ||
+      !this.pubSubSubscriptions[pubsubName][topic].routes[route]
+    ) {
+      this.logger.warn(
+        `The topic '${topic}' is not being subscribed to on PubSub '${pubsubName}' for route '${route}'.`,
+      );
+      return;
+    }
+
+    const resArr: TopicEventBulkResponseEntry[] = [];
+    const entries = req.getEntriesList();
+    for (const ind in entries) {
+      const event = entries[ind];
+      let data: any;
+      if (event.hasBytes()) {
+        data = Buffer.from(event.getBytes()).toString();
+      } else if (event.hasCloudEvent()) {
+        const cloudEvent = event.getCloudEvent();
+        if (cloudEvent instanceof TopicEventCERequest) {
+          data = Buffer.from(cloudEvent.getData()).toString();
+        }
+      }
+      let dataParsed: any;
+      try {
+        dataParsed = JSON.parse(data);
+      } catch (e) {
+        dataParsed = data;
+      }
+      const res = new TopicEventBulkResponseEntry();
+
+      // Get the headers
+      const headers: { [key: string]: string } = {};
+
+      for (const [key, value] of Object.entries(call.metadata.toHttp2Headers())) {
+        if (value) {
+          headers[key] = value.toString();
+        }
+      }
+
+      try {
+        const eventHandlers = this.pubSubSubscriptions[pubsubName][topic].routes[route].eventHandlers;
+        await Promise.all(eventHandlers.map((cb) => cb(dataParsed, headers)));
+        res.setStatus(TopicEventResponse.TopicEventResponseStatus.SUCCESS);
+      } catch (e) {
+        this.logger.error(`Error handling topic event: ${e}`);
+        res.setStatus(TopicEventResponse.TopicEventResponseStatus.DROP);
+      }
+      res.setEntryId(event.getEntryId());
+      resArr.push(res);
+    }
+
+    const totalRes = new TopicEventBulkResponse();
+    totalRes.setStatusesList(resArr);
+    return callback(null, totalRes);
+  }
+
   // Dapr will call this on startup to see which topics it is subscribed to
   async listTopicSubscriptions(
     call: grpc.ServerUnaryCall<Empty, ListTopicSubscriptionsResponse>,
@@ -471,6 +548,18 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
         if (daprConfig?.deadLetterTopic) {
           topicSubscription.setDeadLetterTopic(daprConfig.deadLetterTopic);
+        }
+
+        if (daprConfig?.bulkSubscribe) {
+          const bulkSubscribe = new BulkSubscribeConfig();
+          bulkSubscribe.setEnabled(daprConfig.bulkSubscribe.enabled);
+          if (daprConfig?.bulkSubscribe?.maxMessagesCount) {
+            bulkSubscribe.setMaxMessagesCount(daprConfig.bulkSubscribe.maxMessagesCount);
+          }
+          if (daprConfig?.bulkSubscribe?.maxAwaitDurationMs) {
+            bulkSubscribe.setMaxAwaitDurationMs(daprConfig.bulkSubscribe.maxAwaitDurationMs);
+          }
+          topicSubscription.setBulkSubscribe(bulkSubscribe);
         }
 
         if (daprConfig?.metadata) {

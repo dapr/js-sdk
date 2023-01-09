@@ -84,6 +84,39 @@ export default class HTTPServerImpl {
 
       // Add a server POST handler
       this.server.post(`/${routeObj.path}`, async (req, res) => {
+        const bulkSubEnabled = this.pubSubSubscriptions[pubsubName][topic].dapr.bulkSubscribe?.enabled;
+        if (bulkSubEnabled) {
+          const resArr: Array<any> = [];
+          // @ts-ignore
+          const entries = req?.body?.entries;
+          for (const ind in entries) {
+            const entry = entries[ind];
+            let data: any;
+            let entryRes: any;
+            if (entry.contentType == "application/octet-stream") {
+              const dataB64 = entry.event;
+              data = Buffer.from(dataB64, "base64").toString();
+            } else if (entry.contentType == "application/cloudevents+json") {
+              data = entry.event.data;
+            }
+            const headers = entry.metadata;
+            // Process our callback
+            try {
+              const eventHandlers = routeObj.eventHandlers;
+              await Promise.all(eventHandlers.map((cb) => cb(data, headers)));
+              entryRes = { status: SubscribedMessageHttpResponse.SUCCESS, entryId: entry.entryId };
+            } catch (e) {
+              this.logger.error(`[route-${routeObj.path}] Message processing failed, dropping: ${e}`);
+              entryRes = { status: SubscribedMessageHttpResponse.DROP, entryId: entry.entryId };
+            }
+            resArr.push(entryRes);
+          }
+          this.logger.debug(`[route-${routeObj.path}] Ack'ing the bulk message`);
+          const bulkResult = {
+            statuses: resArr,
+          };
+          return res.send(bulkResult, 200);
+        }
         // @ts-ignore
         // Parse the data of the body, we prioritize fetching the data key in body if possible
         // i.e. Redis returns { data: {} } and other services return {}
@@ -236,6 +269,7 @@ export default class HTTPServerImpl {
         metadata: metadata,
         route: this.generateDaprSubscriptionRoute(pubsubName, topic),
         deadLetterTopic: options.deadLetterTopic,
+        bulkSubscribe: options.bulkSubscribe,
       };
     } else if (typeof options.route === "string") {
       return {
@@ -244,6 +278,7 @@ export default class HTTPServerImpl {
         metadata: metadata,
         route: this.generateDaprSubscriptionRoute(pubsubName, topic, options.route),
         deadLetterTopic: options.deadLetterTopic,
+        bulkSubscribe: options.bulkSubscribe,
       };
     } else {
       return {
@@ -258,6 +293,7 @@ export default class HTTPServerImpl {
           })),
         },
         deadLetterTopic: options.deadLetterTopic,
+        bulkSubscribe: options.bulkSubscribe,
       };
     }
   }

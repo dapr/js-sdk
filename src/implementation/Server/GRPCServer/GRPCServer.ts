@@ -13,7 +13,7 @@ limitations under the License.
 
 import * as grpc from "@grpc/grpc-js";
 import GRPCServerImpl from "./GRPCServerImpl";
-import { AppCallbackService } from "../../../proto/dapr/proto/runtime/v1/appcallback_grpc_pb";
+import { AppCallbackService, AppCallbackAlphaService } from "../../../proto/dapr/proto/runtime/v1/appcallback_grpc_pb";
 import IServer from "../../../interfaces/Server/IServer";
 import { DaprClient } from "../../..";
 import { Logger } from "../../../logger/Logger";
@@ -50,6 +50,10 @@ export default class GRPCServer implements IServer {
     this.logger.info("Adding Service Implementation - AppCallbackService");
     // @ts-ignore
     this.server.addService(AppCallbackService, this.serverImpl);
+    // Add our implementation
+    this.logger.info("Adding Service Implementation - AppCallbackAlphaService");
+    // @ts-ignore
+    this.server.addService(AppCallbackAlphaService, this.serverImpl);
   }
 
   getServerAddress(): string {

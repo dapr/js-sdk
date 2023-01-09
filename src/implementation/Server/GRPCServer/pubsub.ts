@@ -19,6 +19,7 @@ import { PubSubSubscriptionOptionsType } from "../../../types/pubsub/PubSubSubsc
 import { DaprPubSubRouteType } from "../../../types/pubsub/DaprPubSubRouteType.type";
 import { PubSubSubscriptionsType } from "../../../types/pubsub/PubSubSubscriptions.type";
 import { KeyValueType } from "../../../types/KeyValue.type";
+import { BulkSubscribeConfig } from "../../../types/pubsub/BulkSubscribeConfig.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class DaprPubSub implements IServerPubSub {
@@ -95,6 +96,25 @@ export default class DaprPubSub implements IServerPubSub {
     cb: TypeDaprPubSubCallback,
   ): void {
     this.server.getServerImpl().registerPubSubSubscriptionEventHandler(pubsubName, topic, route, cb);
+  }
+
+  async bulkSubscribeWithDefaultConfig(
+    pubsubName: string,
+    topic: string,
+    cb: TypeDaprPubSubCallback,
+    route: string | DaprPubSubRouteType = "",
+    metadata?: KeyValueType,
+  ): Promise<void> {
+    const bulkSubscribe: BulkSubscribeConfig = {
+      enabled: true,
+    };
+    this.server
+      .getServerImpl()
+      .registerPubsubSubscription(pubsubName, topic, { route, metadata, bulkSubscribe: bulkSubscribe });
+
+    // Add the callback to the event handlers manually
+    // @todo: we will deprecate this way of working? and require subscribeToRoute?
+    this.subscribeToRoute(pubsubName, topic, route, cb);
   }
 
   getSubscriptions(): PubSubSubscriptionsType {

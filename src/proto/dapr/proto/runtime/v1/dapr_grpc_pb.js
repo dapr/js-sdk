@@ -31,6 +31,28 @@ function deserialize_dapr_proto_common_v1_InvokeResponse(buffer_arg) {
   return dapr_proto_common_v1_common_pb.InvokeResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_BulkPublishRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.BulkPublishRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.BulkPublishRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_BulkPublishRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.BulkPublishRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_BulkPublishResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.BulkPublishResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.BulkPublishResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_BulkPublishResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.BulkPublishResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_DeleteBulkStateRequest(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.DeleteBulkStateRequest)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.DeleteBulkStateRequest');
@@ -218,6 +240,28 @@ function deserialize_dapr_proto_runtime_v1_GetStateResponse(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.GetStateResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_GetWorkflowRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.GetWorkflowRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.GetWorkflowRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_GetWorkflowRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.GetWorkflowRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_GetWorkflowResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.GetWorkflowResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.GetWorkflowResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_GetWorkflowResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.GetWorkflowResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_InvokeActorRequest(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.InvokeActorRequest)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.InvokeActorRequest');
@@ -361,6 +405,17 @@ function deserialize_dapr_proto_runtime_v1_SetMetadataRequest(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.SetMetadataRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_StartWorkflowRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.StartWorkflowRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.StartWorkflowRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_StartWorkflowRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.StartWorkflowRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_SubscribeConfigurationRequest(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationRequest)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.SubscribeConfigurationRequest');
@@ -381,6 +436,28 @@ function serialize_dapr_proto_runtime_v1_SubscribeConfigurationResponse(arg) {
 
 function deserialize_dapr_proto_runtime_v1_SubscribeConfigurationResponse(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_TerminateWorkflowRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.TerminateWorkflowRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.TerminateWorkflowRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_TerminateWorkflowRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.TerminateWorkflowRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_TerminateWorkflowResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.TerminateWorkflowResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.TerminateWorkflowResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_TerminateWorkflowResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.TerminateWorkflowResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_dapr_proto_runtime_v1_TryLockRequest(arg) {
@@ -469,6 +546,17 @@ function serialize_dapr_proto_runtime_v1_UnsubscribeConfigurationResponse(arg) {
 
 function deserialize_dapr_proto_runtime_v1_UnsubscribeConfigurationResponse(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_WorkflowReference(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.WorkflowReference)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.WorkflowReference');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_WorkflowReference(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.WorkflowReference.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_google_protobuf_Empty(arg) {
@@ -592,6 +680,18 @@ publishEvent: {
     requestDeserialize: deserialize_dapr_proto_runtime_v1_PublishEventRequest,
     responseSerialize: serialize_google_protobuf_Empty,
     responseDeserialize: deserialize_google_protobuf_Empty,
+  },
+  // Bulk Publishes multiple events to the specified topic.
+bulkPublishEventAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/BulkPublishEventAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.BulkPublishRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.BulkPublishResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_BulkPublishRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_BulkPublishRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_BulkPublishResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_BulkPublishResponse,
   },
   // Invokes binding data to specific output bindings
 invokeBinding: {
@@ -808,6 +908,42 @@ setMetadata: {
     requestDeserialize: deserialize_dapr_proto_runtime_v1_SetMetadataRequest,
     responseSerialize: serialize_google_protobuf_Empty,
     responseDeserialize: deserialize_google_protobuf_Empty,
+  },
+  // Start Workflow
+startWorkflowAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/StartWorkflowAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.StartWorkflowRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.WorkflowReference,
+    requestSerialize: serialize_dapr_proto_runtime_v1_StartWorkflowRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_StartWorkflowRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_WorkflowReference,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_WorkflowReference,
+  },
+  // Get Workflow details
+getWorkflowAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/GetWorkflowAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.GetWorkflowRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.GetWorkflowResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_GetWorkflowRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_GetWorkflowRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_GetWorkflowResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_GetWorkflowResponse,
+  },
+  // Terminate Workflow
+terminateWorkflowAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/TerminateWorkflowAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.TerminateWorkflowRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.TerminateWorkflowResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_TerminateWorkflowRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_TerminateWorkflowRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_TerminateWorkflowResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_TerminateWorkflowResponse,
   },
   // Shutdown the sidecar
 shutdown: {
