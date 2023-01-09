@@ -24,11 +24,3 @@ export function serializeGrpc(data: any): { serializedData: Buffer; contentType:
 
   return { serializedData, contentType };
 }
-
-function getType(arr: any) {
-  return isTypedArray(arr) && arr.constructor.name;
-}
-
-function isTypedArray(arr: any) {
-  return ArrayBuffer.isView(arr) && !(arr instanceof DataView);
-}
