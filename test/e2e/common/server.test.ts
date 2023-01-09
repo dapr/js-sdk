@@ -56,7 +56,7 @@ describe("common/server", () => {
   };
 
   describe("pubsub", () => {
-    runIt("should be able to send and receive plain events", async (server: DaprServer) => {
+    runIt("should be able to send and receive plain events with bulk publish", async (server: DaprServer) => {
       const messages = ["message1", "message2", "message3"];
       await server.client.pubsub.publishBulk(pubSubName, topic, messages);
 
@@ -68,6 +68,7 @@ describe("common/server", () => {
       mockSubscribeHandler.mock.calls.forEach((call) => {
         let message = JSON.stringify(call[0]);
         // This is required because the message is wrapped in quotes when sent via gRPC.
+        // TODO: Remove this when it is fixed in the SDK.
         message = message.replace(/"/g, "");
         message = message.replace(/\\/g, "");
         expect(messages).toContain(message);
