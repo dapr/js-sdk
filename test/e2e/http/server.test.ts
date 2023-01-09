@@ -116,6 +116,7 @@ describe("http/server", () => {
       // Also test for receiving data
       // @ts-ignore
       expect(mockBindingReceive.mock.calls[0][0]["hello"]).toEqual("world");
+      expect(mockBindingReceive.mock.calls.length).toBe(1);
     });
   });
 
@@ -235,7 +236,7 @@ describe("http/server", () => {
       expect(res).toEqual(true);
     });
 
-    it("should receive the entire body instead of just data, this also contains the content type, time, traces, ...", async () => {
+    it("should be able to receive the entire cloud event", async () => {
       await server.client.pubsub.publish("pubsub-redis", "topic-options-6", { data: { hello: "world" } });
 
       // Delay a bit for event to arrive

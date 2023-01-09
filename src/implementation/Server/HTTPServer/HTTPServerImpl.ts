@@ -84,10 +84,8 @@ export default class HTTPServerImpl {
 
       // Add a server POST handler
       this.server.post(`/${routeObj.path}`, async (req, res) => {
-        // @ts-ignore
         // Parse the data of the body, we prioritize fetching the data key in body if possible
         // i.e. Redis returns { data: {} } and other services return {}
-        // @todo: This will be deprecated in an upcoming major version and only req.body will be returned
         const data = req?.body;
         const headers = req.headers;
 
