@@ -1,5 +1,31 @@
 # Changelog
 
+## 3.x release
+
+### v3.0.0
+
+#### Breaking Changes
+
+##### PUBSUB: `req.body` is being returned now instead of `req.body.data`
+
+We decided to change the way the `req.body` is being returned in the `DaprServer` class. Instead of returning `req.body.data` we now return `req.body`. 
+
+This means that in the example below 
+
+```javascript
+await server.pubsub.subscribe(pubSubName, topic, async (body: any, headers: object) =>
+console.log(`Received Data: ${JSON.stringify(body)} with headers: ${JSON.stringify(headers)}`),
+);
+```
+
+You will have to change `body` to utilize the `data` property. 
+
+```javascript
+await server.pubsub.subscribe(pubSubName, topic, async (body: any, headers: object) =>
+console.log(`Received Data: ${JSON.stringify(body.data)} with headers: ${JSON.stringify(headers)}`),
+);
+```
+
 ## 2.x release
 
 ### v2.0.1
