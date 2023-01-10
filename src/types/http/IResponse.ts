@@ -13,5 +13,5 @@ limitations under the License.
 
 import { Response } from "express";
 
-// tslint:disable-next-line
+// tslint:disable-next-line: interface-over-type-literal
 export default interface IResponse extends Response {}

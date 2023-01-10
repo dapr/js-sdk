@@ -13,5 +13,5 @@ limitations under the License.
 
 import { Request } from "express";
 
-// tslint:disable-next-line
+// tslint:disable-next-line: interface-over-type-literal
 export default interface IRequest extends Request {}
