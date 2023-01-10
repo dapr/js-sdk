@@ -13,5 +13,5 @@ limitations under the License.
 
 import { Request } from "express";
 
-// @linter-ignore
+// @ts-ignore
 export default interface IRequest extends Request {}

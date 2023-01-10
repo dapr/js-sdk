@@ -13,5 +13,5 @@ limitations under the License.
 
 import { Response } from "express";
 
-// @linter-ignore
+// @ts-ignore
 export default interface IResponse extends Response {}
