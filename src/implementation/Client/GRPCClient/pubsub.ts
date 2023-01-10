@@ -48,7 +48,7 @@ export default class GRPCClientPubSub implements IClientPubSub {
     }
 
     const client = await this.client.getClient();
-    const grpcMetadata = createGRPCMetadata({});
+    const grpcMetadata = createGRPCMetadata(metadata);
 
     return new Promise((resolve, reject) => {
       client.publishEvent(msgService, grpcMetadata, (err, _res) => {
