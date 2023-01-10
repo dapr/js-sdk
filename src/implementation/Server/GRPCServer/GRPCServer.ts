@@ -19,10 +19,8 @@ import { DaprClient } from "../../..";
 import { Logger } from "../../../logger/Logger";
 import { DaprServerOptions } from "../../../types/DaprServerOptions";
 
-// eslint-disable-next-line
-export interface IServerType extends grpc.Server {}
-// eslint-disable-next-line
-export interface IServerImplType extends GRPCServerImpl {}
+export type IServerType = grpc.Server;
+export type IServerImplType = GRPCServerImpl;
 
 export default class GRPCServer implements IServer {
   isInitialized: boolean;
