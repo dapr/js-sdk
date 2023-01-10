@@ -25,8 +25,8 @@ describe("serializer", () => {
       id: "demo",
       source: "demo",
       type: "demo",
-      specversion: "demo"
-    }
+      specversion: "demo",
+    };
 
     const data = SerializerUtil.serializeGrpc(obj);
 
