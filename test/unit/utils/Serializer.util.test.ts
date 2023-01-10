@@ -34,9 +34,9 @@ describe("serializer", () => {
     expect(data.contentType).toEqual("application/cloudevents+json");
   });
 
-  it("String should be serialized as text/plain", () => {
+  it("String should be serialized as text/plain and as Buffer", () => {
     const data = SerializerUtil.serializeGrpc("hello-world");
-    expect(data.serializedData).toEqual("hello-world");
+    expect(data.serializedData).toEqual(Buffer.from("hello-world"));
     expect(data.contentType).toEqual("text/plain");
   });
 
