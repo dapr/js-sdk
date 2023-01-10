@@ -11,7 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import Restana from "restana";
+import * as http from "http";
+import express from "express";
 import bodyParser from "body-parser";
 import HTTPServerImpl from "./HTTPServerImpl";
 import IServer from "../../../interfaces/Server/IServer";
@@ -23,10 +24,11 @@ import { DaprServerOptions } from "../../../types/DaprServerOptions";
 // eslint-disable-next-line
 export interface IServerImplType extends HTTPServerImpl {}
 // eslint-disable-next-line
-export interface IServerType extends Restana.Service<Restana.Protocol.HTTP> {}
+export interface IServerType extends express.Express {}
 
 export default class HTTPServer implements IServer {
   server: IServerType;
+  serverInstance: undefined | http.Server; // defined after start()
   serverHost: string;
   serverPort: string;
   serverAddress: string;
@@ -45,16 +47,17 @@ export default class HTTPServer implements IServer {
 
     this.isInitialized = false;
 
-    this.server = Restana();
+    this.server = express();
     this.server.use(
       bodyParser.text({
-        limit: this.serverOptions.maxBodySizeMb ? `${this.serverOptions.maxBodySizeMb}mb` : `4mb`,
+        limit: `${this.serverOptions?.maxBodySizeMb ?? 4}mb`,
       }),
     );
 
     this.server.use(
       bodyParser.raw({
-        limit: this.serverOptions.maxBodySizeMb ? `${this.serverOptions.maxBodySizeMb}mb` : `4mb`,
+        type: ["application/octet-stream"],
+        limit: `${this.serverOptions?.maxBodySizeMb ?? 4}mb`,
       }),
     );
 
@@ -68,18 +71,9 @@ export default class HTTPServer implements IServer {
           "application/cloudevents+json",
           "application/*+json",
         ],
-        limit: this.serverOptions.maxBodySizeMb ? `${this.serverOptions.maxBodySizeMb}mb` : `4mb`,
+        limit: `${this.serverOptions?.maxBodySizeMb ?? 4}mb`,
       }),
     );
-
-    // body-parser is not async compatible, so we have to make it
-    // this.server.use((req, res, next) => {
-    //     return new Promise(resolve => {
-    //         bodyParser.json()(req, res, (err) => {
-    //             return resolve(next(err))
-    //         })
-    //     })
-    // })
 
     this.serverImpl = new HTTPServerImpl(this.server, client.options.logger);
 
@@ -121,7 +115,7 @@ export default class HTTPServer implements IServer {
     this.serverPort = port;
 
     // Initialize Server Listener
-    await this.server.start(parseInt(port, 10));
+    this.serverInstance = await this.server.listen(parseInt(port, 10));
     this.logger.info(`Listening on ${port}`);
     this.serverAddress = `http://${host}:${port}`;
 
@@ -136,9 +130,13 @@ export default class HTTPServer implements IServer {
   }
 
   async stop(): Promise<void> {
-    const httpTerminator = createHttpTerminator({ server: this.server.getServer() });
-    await httpTerminator.terminate();
-    // await this.server.close();
+    if (this.serverInstance) {
+      const httpTerminator = createHttpTerminator({ server: this.serverInstance });
+      await httpTerminator.terminate();
+
+      await this.serverInstance.close();
+    }
+
     this.isInitialized = false;
   }
 }

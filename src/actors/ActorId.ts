@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { v4 as uuidv4 } from "uuid";
+import * as crypto from "crypto";
 
 export default class ActorId {
   private readonly id: string;
@@ -21,7 +21,7 @@ export default class ActorId {
   }
 
   static createRandomId(): ActorId {
-    return new ActorId(uuidv4());
+    return new ActorId(crypto.randomUUID());
   }
 
   getId() {

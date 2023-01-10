@@ -25,6 +25,7 @@ describe("http/server", () => {
   let server: DaprServer;
   const mockBindingReceive = jest.fn(async (_data: object) => null);
   const mockPubSub = jest.fn(async (_data: object) => null);
+  const mockInvoke = jest.fn(async (_data: object) => null);
   const mockPubSubWithHeaders = jest.fn(async (_data: object, _headers: object) => null);
   const mockPubSubError = jest.fn(async (_data: object) => {
     throw new Error("DROPPING MESSAGE");
@@ -105,6 +106,7 @@ describe("http/server", () => {
 
   beforeEach(() => {
     mockBindingReceive.mockClear();
+    mockInvoke.mockClear();
     mockPubSub.mockClear();
     mockPubSubError.mockClear();
     mockPubSubWithHeaders.mockClear();
@@ -119,30 +121,28 @@ describe("http/server", () => {
       await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
       const payload = new Uint8Array(5 * 1024 * 1024);
 
-      try {
-        const res = await server.client.invoker.invoke(daprAppId, "test-invoker", HttpMethod.POST, payload);
-        console.log(res);
-      } catch (e) {
-        console.log(e);
-      }
+      await server.invoker.listen("invoke-large-payload-1", mockInvoke, { method: HttpMethod.POST });
+      await server.client.invoker.invoke(daprAppId, "invoke-large-payload-1", HttpMethod.POST, payload);
 
-      // Delay a bit for event to arrive
-      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+      expect(mockInvoke).toHaveBeenCalledTimes(1);
     });
 
     it("should throw an error if the receive payload is larger than 4 MB and we did not configure a larger size", async () => {
       const payload = new Uint8Array(11 * 1024 * 1024);
+      await server.invoker.listen("invoke-large-payload-2", mockInvoke, { method: HttpMethod.POST });
 
       try {
-        await server.client.invoker.invoke(daprAppId, "test-invoker", HttpMethod.POST, payload);
+        await server.client.invoker.invoke(daprAppId, "invoke-large-payload-2", HttpMethod.POST, payload);
       } catch (e: any) {
         // https://nodejs.org/dist/latest/docs/api/errors.html
         // we will receive EPIPE if server closes
         // on upload this is if the body is too large
         expect(e.message).toEqual(
-          "request to http://127.0.0.1:50000/v1.0/invoke/test-suite/method/test-invoker failed, reason: write EPIPE",
+          "request to http://127.0.0.1:50000/v1.0/invoke/test-suite/method/invoke-large-payload-2 failed, reason: write ECONNRESET",
         );
       }
+
+      expect(mockInvoke).not.toHaveBeenCalledTimes(1);
     });
   });
 
@@ -172,7 +172,7 @@ describe("http/server", () => {
 
       // Also test for receiving data
       // @ts-ignore
-      expect(mockPubSub.mock.calls[0][0]).toEqual('"Hello, world!"');
+      expect(mockPubSub.mock.calls[0][0]).toEqual("Hello, world!");
     });
 
     it("should be able to send and receive JSON events", async () => {
@@ -183,7 +183,6 @@ describe("http/server", () => {
 
       expect(mockPubSub.mock.calls.length).toBe(1);
 
-      // Also test for receiving data
       // @ts-ignore
       expect(mockPubSub.mock.calls[0][0]["hello"]).toEqual("world");
     });
@@ -225,7 +224,7 @@ describe("http/server", () => {
       // Also test for receiving data
       expect(mockPubSubWithHeaders.mock.calls[0][1]).toHaveProperty("content-type");
       expect(mockPubSubWithHeaders.mock.calls[0][1]).toHaveProperty("content-length");
-      expect(mockPubSubWithHeaders.mock.calls[0][1]).toHaveProperty("content-pubsubname");
+      expect(mockPubSubWithHeaders.mock.calls[0][1]).toHaveProperty("pubsubname");
     });
 
     it("should be able to send and receive events when using options callback without a route", async () => {

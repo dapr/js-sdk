@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import * as http from "http";
-import Restana from "restana";
+import { Response } from "express";
 
-export default interface IResponse extends http.ServerResponse, Restana.ResponseExtensions {}
+export default interface IResponse extends Response {}
