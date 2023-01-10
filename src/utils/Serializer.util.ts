@@ -20,13 +20,11 @@ export function serializeGrpc(data: any): { serializedData: Buffer; contentType:
   const contentType = getContentType(data);
 
   switch (contentType) {
-    case "text/plain":
-      serializedData = data;
-      break;
     case "application/json":
     case "application/cloudevents+json":
       serializedData = Buffer.from(JSON.stringify(data));
       break;
+    case "text/plain":
     case "application/octet-stream":
     default:
       serializedData = Buffer.from(data);

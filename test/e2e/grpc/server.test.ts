@@ -166,6 +166,7 @@ describe("grpc/server", () => {
 
   describe("pubsub", () => {
     it("should be able to send and receive plain events", async () => {
+      // [Error: 13 INTERNAL: Request message serialization failure: Unknown base64 encoding at char: ,]
       await server.client.pubsub.publish("pubsub-redis", "topic-1", "Hello, world!");
 
       // Delay a bit for event to arrive
