@@ -22,9 +22,7 @@ import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type"
 import { Logger } from "../../../logger/Logger";
 import HTTPClientSidecar from "./sidecar";
 import { SDK_VERSION } from "../../../version";
-import { getContentType } from "../../../utils/Client.util";
 import * as SerializerUtil from "../../../utils/Serializer.util";
-import { Blob } from "buffer";
 
 export default class HTTPClient implements IClient {
   private isInitialized: boolean;
@@ -175,7 +173,7 @@ export default class HTTPClient implements IClient {
 
     const urlFull = url.startsWith("http") ? url : `${this.clientUrl}${url}`;
     const agent = urlFull.startsWith("https") ? HTTPClient.httpsAgent : HTTPClient.httpAgent;
-    // clientOptions.agent = agent;
+    clientOptions.agent = agent;
 
     this.logger.debug(`Fetching ${clientOptions.method} ${urlFull} with body: (${clientOptions.body})`);
 
