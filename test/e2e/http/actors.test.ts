@@ -92,11 +92,6 @@ describe("http/actors", () => {
     await NodeJSUtil.sleep(serverStartWaitTimeMs);
   }, 30 * 1000);
 
-  afterAll(async () => {
-    await server.stop(); // if we hang here, it means connections are open that were not closed. Debug why
-    // await client.stop();
-  });
-
   describe("configuration", () => {
     it("actor configuration endpoint should contain the correct parameters", async () => {
       const res = await fetch(`http://${serverHost}:${serverPort}/dapr/config`);
