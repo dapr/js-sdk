@@ -32,13 +32,10 @@ export default class GRPCClientInvoker implements IClientInvoker {
 
   // @todo: should return a specific typed Promise<TypeInvokerInvokeResponse> instead of Promise<nothing>
 
-  async invoke(
-    appId: string,
-    methodName: string,
-    method: HttpMethod = HttpMethod.GET,
-    data: object = {},
-    _options: InvokerOptions = {},
-  ): Promise<object> {
+  async invoke(appId: string, methodName: string, options: InvokerOptions = {}): Promise<object> {
+    const method = options.method || HttpMethod.GET;
+    const data = options.data || {};
+
     // InvokeServiceRequest represents the request message for Service invocation.
     const msgInvokeService = new InvokeServiceRequest();
     msgInvokeService.setId(appId);

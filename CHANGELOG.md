@@ -12,6 +12,25 @@ Previously when sending data, it oculd happen that it was incorrectly serialized
 
 As an example, when performing `client.invoke` with `"hello world"` as data instead of an object, the `JSON.serialize` method would be called and we would receive `'"hello world"'` (notice the `'`). Now due to the new serializer we will correctly return the string type.
 
+##### Invocation: Invocation has its `method` and `data` moved to the `options` parameter
+
+Previously when performing an invocation we would run:
+
+```typescript
+const payload = new Uint8Array(11 * 1024 * 1024);
+await client.invoker.invoke(daprAppId, "test-invoker", HttpMethod.POST, payload);
+```
+
+Now you can simply write:
+
+```typescript
+const payload = new Uint8Array(11 * 1024 * 1024);
+await client.invoker.invoke(daprAppId, "test-invoker", {
+    method: HttpMethod.POST,
+    data: payload,
+});
+```
+
 ## 2.x release
 
 ### v2.0.1

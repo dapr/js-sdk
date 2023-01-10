@@ -11,15 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { HttpMethod } from "../../enum/HttpMethod.enum";
 import { InvokerOptions } from "../../types/InvokerOptions.type";
 
 export default interface IClientInvoker {
-  invoke(
-    appId: string,
-    methodName: string,
-    method: HttpMethod,
-    data?: object,
-    options?: InvokerOptions,
-  ): Promise<object>;
+  invoke(appId: string, methodName: string, options: InvokerOptions): Promise<object>;
 }

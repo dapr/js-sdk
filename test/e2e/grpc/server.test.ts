@@ -121,7 +121,10 @@ describe("grpc/server", () => {
       const payload = new Uint8Array(11 * 1024 * 1024);
 
       try {
-        await server.client.invoker.invoke(daprAppId, "test-invoker", HttpMethod.POST, payload);
+        await server.client.invoker.invoke(daprAppId, "test-invoker", {
+          method: HttpMethod.POST,
+          data: payload,
+        });
       } catch (e: any) {
         expect(e?.details).toEqual(`grpc: received message larger than max (11534407 vs. ${10 * 1024 * 1024})`);
       }
@@ -132,7 +135,10 @@ describe("grpc/server", () => {
       const payload = new Uint8Array(5 * 1024 * 1024);
 
       try {
-        const res = await server.client.invoker.invoke(daprAppId, "test-invoker", HttpMethod.POST, payload);
+        const res = await server.client.invoker.invoke(daprAppId, "test-invoker", {
+          method: HttpMethod.POST,
+          data: payload,
+        });
         console.log(res);
       } catch (e) {
         console.log(e);
@@ -475,7 +481,9 @@ describe("grpc/server", () => {
       const mock = jest.fn(async (_data: object) => ({ hello: "world" }));
 
       await server.invoker.listen("hello-world", mock, { method: HttpMethod.GET });
-      const res = await server.client.invoker.invoke(daprAppId, "hello-world", HttpMethod.GET);
+      const res = await server.client.invoker.invoke(daprAppId, "hello-world", {
+        method: HttpMethod.GET,
+      });
 
       // Delay a bit for event to arrive
       // await new Promise((resolve, reject) => setTimeout(resolve, 250));
@@ -488,8 +496,9 @@ describe("grpc/server", () => {
       const mock = jest.fn(async (_data: object) => ({ hello: "world" }));
 
       await server.invoker.listen("hello-world", mock, { method: HttpMethod.POST });
-      const res = await server.client.invoker.invoke(daprAppId, "hello-world", HttpMethod.POST, {
-        hello: "world",
+      const res = await server.client.invoker.invoke(daprAppId, "hello-world", {
+        method: HttpMethod.POST,
+        data: { hello: "world" },
       });
 
       // Delay a bit for event to arrive

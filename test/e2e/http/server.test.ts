@@ -122,7 +122,10 @@ describe("http/server", () => {
       const payload = new Uint8Array(5 * 1024 * 1024);
 
       await server.invoker.listen("invoke-large-payload-1", mockInvoke, { method: HttpMethod.POST });
-      await server.client.invoker.invoke(daprAppId, "invoke-large-payload-1", HttpMethod.POST, payload);
+      await server.client.invoker.invoke(daprAppId, "invoke-large-payload-1", {
+        method: HttpMethod.POST,
+        data: payload,
+      });
 
       expect(mockInvoke).toHaveBeenCalledTimes(1);
     });
@@ -132,7 +135,10 @@ describe("http/server", () => {
       await server.invoker.listen("invoke-large-payload-2", mockInvoke, { method: HttpMethod.POST });
 
       try {
-        await server.client.invoker.invoke(daprAppId, "invoke-large-payload-2", HttpMethod.POST, payload);
+        await server.client.invoker.invoke(daprAppId, "invoke-large-payload-2", {
+          method: HttpMethod.POST,
+          data: payload,
+        });
       } catch (e: any) {
         // https://nodejs.org/dist/latest/docs/api/errors.html
         // we will receive EPIPE if server closes
@@ -481,7 +487,9 @@ describe("http/server", () => {
       const mock = jest.fn(async (_data: object) => ({ hello: "world" }));
 
       await server.invoker.listen("hello-world", mock, { method: HttpMethod.GET });
-      const res = await server.client.invoker.invoke(daprAppId, "hello-world", HttpMethod.GET);
+      const res = await server.client.invoker.invoke(daprAppId, "hello-world", {
+        method: HttpMethod.GET,
+      });
 
       // Delay a bit for event to arrive
       // await new Promise((resolve, reject) => setTimeout(resolve, 250));
@@ -494,8 +502,9 @@ describe("http/server", () => {
       const mock = jest.fn(async (_data: object) => ({ hello: "world" }));
 
       await server.invoker.listen("hello-world", mock, { method: HttpMethod.POST });
-      const res = await server.client.invoker.invoke(daprAppId, "hello-world", HttpMethod.POST, {
-        hello: "world",
+      const res = await server.client.invoker.invoke(daprAppId, "hello-world", {
+        method: HttpMethod.POST,
+        data: { hello: "world" },
       });
 
       // Delay a bit for event to arrive
@@ -509,7 +518,8 @@ describe("http/server", () => {
       const mock = jest.fn(async (data: DaprInvokerCallbackContent) => data.headers);
 
       await server.invoker.listen("hello-world-headers", mock, { method: HttpMethod.GET });
-      const res = await server.client.invoker.invoke(daprAppId, "hello-world-headers", HttpMethod.GET, undefined, {
+      const res = await server.client.invoker.invoke(daprAppId, "hello-world-headers", {
+        method: HttpMethod.GET,
         headers: { "x-foo": "bar-baz" },
       });
 

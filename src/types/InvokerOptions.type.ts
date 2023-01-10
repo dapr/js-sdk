@@ -11,12 +11,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import HttpMethod from "../enum/HttpMethod.enum";
 import { KeyValueType } from "./KeyValue.type";
 
 /**
  * Options related to service invocation.
  */
 export type InvokerOptions = {
+  /**
+   * The HTTP method to use when invoking the service.
+   */
+  method?: HttpMethod;
+
+  /**
+   * The data to send to the service.
+   */
+  data?: object;
+
   /**
    * Headers to include in the service invocation request.
    * Note, this is ignored when using the gRPC protocol.
