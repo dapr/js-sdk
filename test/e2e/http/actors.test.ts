@@ -92,6 +92,12 @@ describe("http/actors", () => {
     await NodeJSUtil.sleep(serverStartWaitTimeMs);
   }, 30 * 1000);
 
+  // We need to stop the server after all tests are done
+  // Note: it can take > 5s so increase timeout as we are testing reminders and timers
+  afterAll(async () => {
+    await server.stop();
+  }, 30 * 1000);
+
   describe("configuration", () => {
     it("actor configuration endpoint should contain the correct parameters", async () => {
       const res = await fetch(`http://${serverHost}:${serverPort}/dapr/config`);
