@@ -87,6 +87,7 @@ You can increase the body size that is used by the application to communicate wi
 import { DaprClient, CommunicationProtocol } from "@dapr/dapr";
 
 // Allow a body size of 10Mb to be used
+// The default is 4Mb
 const client = new DaprClient(daprHost, daprPort, CommunicationProtocol.HTTP, { maxBodySizeMb: 10 });
 ```
 
