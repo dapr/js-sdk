@@ -109,7 +109,7 @@ function isCloudEvent(obj: object): boolean {
  * @param data input data
  * @returns Content-Type header value
  */
-export function getContentType(data: object | string): string {
+export function getContentType(data: any): string {
   const type = getType(data);
 
   // If we have an array, we return the JSON content type
