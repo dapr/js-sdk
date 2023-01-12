@@ -8,7 +8,7 @@
 
 ##### GENERAL: Serialization changed and data is correctly being serialized now
 
-Previously when sending data, it oculd happen that it was incorrectly serialized. This has been resolved and a new serializer is in place that will automatically detect the Content Type for the data on the HTTP Protocol and serialize accordingly. Objects will be send as `application/json`, Cloud Events as `applications/cloudevents+json`, Strings as `text/plain` and others as `application/octet-stream`.
+Previously when sending data, it could happen that it was incorrectly serialized. This has been resolved and a new serializer is in place that will automatically detect the Content-Type for the data when using the HTTP Protocol and serialize accordingly. Objects will be send as `application/json`, Cloud-Events as `applications/cloudevents+json`, Strings as `text/plain`, and others as `application/octet-stream`.
 
 As an example, when performing `client.invoke` with `"hello world"` as data instead of an object, the `JSON.serialize` method would be called and we would receive `'"hello world"'` (notice the `'`). Now due to the new serializer we will correctly return the string type.
 
