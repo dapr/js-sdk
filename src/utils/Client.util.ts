@@ -112,34 +112,40 @@ function isCloudEvent(obj: object): boolean {
 export function getContentType(data: object | string): string {
   const type = getType(data);
 
-  if (type) {
-    return "application/octet-stream";
-  } else if (data instanceof Buffer) {
-    return "application/octet-stream";
-  } else if (typeof data === "object" && isCloudEvent(data)) {
-    return "application/cloudevents+json";
-  } else if (typeof data === "object") {
+  // If we have an array, we return the JSON content type
+  if (type.endsWith("Array")) {
     return "application/json";
-  } else if (typeof data === "string") {
-    return "text/plain";
-  } else {
-    return "application/octet-stream";
+  }
+
+  switch (type) {
+    case "Object":
+      if (isCloudEvent(data as object)) {
+        return "application/cloudevents+json";
+      } else {
+        return "application/json";
+      }
+    case "Boolean":
+    case "Number":
+    case "String":
+      return "text/plain";
+    default:
+      return "application/octet-stream";
   }
 }
 
 /**
- * Determine the type of the input data.
+ * Determine the type of the input data by checking the constructor name
+ * If no name is found, we return the typeof the input data
  *
  * @param arr
- * @returns
+ * @returns string The Data Type, e.g., Uint8Array, Int8Array, Buffer, SlowBuffer, Blob, Oject, Array, etc.
  */
-function getType(arr: any) {
-  return isTypedArray(arr) && arr.constructor.name;
-}
+function getType(o: any) {
+  // If the type is set in the constructor name, return the name
+  // e.g., Uint8Array, Int8Array, Buffer, SlowBuffer, Blob, etc.
+  if (o.constructor.name) {
+    return o.constructor.name;
+  }
 
-/**
- * Checks if the input object is a typed array.
- */
-function isTypedArray(arr: any) {
-  return ArrayBuffer.isView(arr) && !(arr instanceof DataView);
+  return typeof o;
 }
