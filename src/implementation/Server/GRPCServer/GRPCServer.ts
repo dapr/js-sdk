@@ -55,7 +55,7 @@ export default class GRPCServer implements IServer {
   }
 
   // See: https://cs.github.com/nestjs/nest/blob/f4e9ac6208f3e7ee7ad44c3de713c9086f657977/packages/microservices/external/grpc-options.interface.ts
-  generateChannelOptions(): Record<string, string | number> {
+  private generateChannelOptions(): Record<string, string | number> {
     const options: Record<string, string | number> = {};
 
     // See: GRPC_ARG_MAX_SEND_MESSAGE_LENGTH, it is in bytes

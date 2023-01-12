@@ -69,7 +69,7 @@ export default class GRPCClient implements IClient {
     return this.clientCredentials;
   }
 
-  generateChannelOptions(): Record<string, string | number> {
+  private generateChannelOptions(): Record<string, string | number> {
     const options: Record<string, string | number> = {};
 
     // See: GRPC_ARG_MAX_SEND_MESSAGE_LENGTH, it is in bytes
