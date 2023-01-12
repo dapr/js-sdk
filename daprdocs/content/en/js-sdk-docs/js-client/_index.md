@@ -81,7 +81,7 @@ npm run start:dapr-grpc
 
 ### Increasing Body Size
 
-You can increase the body size that is used to communicate to the Sidecar and the server by using a Client flag.
+You can increase the body size that is used by the application to communicate with the sidecar by using a`DaprClient`'s option.
 
 ```typescript
 import { DaprClient, CommunicationProtocol } from "@dapr/dapr";
