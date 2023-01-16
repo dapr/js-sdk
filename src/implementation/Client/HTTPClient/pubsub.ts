@@ -15,7 +15,9 @@ import HTTPClient from "./HTTPClient";
 import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 import { Logger } from "../../../logger/Logger";
 import { KeyValueType } from "../../../types/KeyValue.type";
-import { createHTTPMetadataQueryParam } from "../../../utils/Client.util";
+import { createHTTPMetadataQueryParam, getContentType } from "../../../utils/Client.util";
+import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
+import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPClientPubSub implements IClientPubSub {
@@ -27,22 +29,31 @@ export default class HTTPClientPubSub implements IClientPubSub {
     this.logger = new Logger("HTTPClient", "PubSub", client.getOptions().logger);
   }
 
-  async publish(pubSubName: string, topic: string, data: object = {}, metadata?: KeyValueType): Promise<boolean> {
+  async publish(
+    pubSubName: string,
+    topic: string,
+    data: object | string,
+    metadata?: KeyValueType,
+  ): Promise<PubSubPublishResponseType> {
     const queryParams = createHTTPMetadataQueryParam(metadata);
+    const params: THTTPExecuteParams = {
+      method: "POST",
+      headers: {
+        "Content-Type": getContentType(data),
+      },
+    };
 
-    try {
-      await this.client.execute(`/publish/${pubSubName}/${topic}?${queryParams}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-    } catch (e: any) {
-      this.logger.error(`publish failed: ${e}`);
-      return false;
+    if (data) {
+      params.body = JSON.stringify(data);
     }
 
-    return true;
+    try {
+      await this.client.execute(`/publish/${pubSubName}/${topic}?${queryParams}`, params);
+    } catch (e: any) {
+      this.logger.error(`publish failed: ${e}`);
+      return { error: e };
+    }
+
+    return {};
   }
 }

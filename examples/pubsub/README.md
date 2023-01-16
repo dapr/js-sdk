@@ -11,7 +11,7 @@ dapr init
 # Install dependenies
 npm install
 
-# Start a RabbitMQ Container (for the binding example part)
+# Start a RabbitMQ Container.
 # note: mgmt interface at http://localhost:15672
 docker run -d --rm --hostname my-rabbitmq --name my-rabbitmq \
     -e RABBITMQ_DEFAULT_USER=test-user -e RABBITMQ_DEFAULT_PASS=test-password \
