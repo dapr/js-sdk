@@ -17,8 +17,12 @@ export function serializeGrpc(data: any): { serializedData: Buffer; contentType:
   let serializedData = data;
   let contentType = "application/octet-stream";
   if (!(data instanceof Buffer)) {
-    serializedData = Buffer.from(JSON.stringify(data), "utf-8");
     contentType = getContentType(data);
+    if (contentType === "text/plain") {
+      serializedData = Buffer.from(data, "utf-8");
+    } else {
+      serializedData = Buffer.from(JSON.stringify(data), "utf-8");
+    }
   }
 
   return { serializedData, contentType };
