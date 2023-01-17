@@ -135,7 +135,7 @@ describe("http/actors", () => {
   describe("invokeNonExistentMethod", () => {
     it("should not fail if invoked non-existing method on actor", async () => {
       const builder = new ActorProxyBuilder<DemoActorCounterInterface>(DemoActorCounterImpl, client);
-      const actorId = ActorId.createRandomId()
+      const actorId = ActorId.createRandomId();
       builder.build(actorId);
 
       const baseActorUrl = `http://${sidecarHost}:${sidecarPort}/v1.0/actors/DemoActorCounterImpl/${actorId.toString()}/method`;
