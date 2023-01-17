@@ -45,7 +45,7 @@ const server = new DaprServer(serverHost, serverPort, daprHost, daprPort, Commun
 
 To run the examples, you can use two different protocols to interact with the Dapr sidecar: HTTP (default) or gRPC.
 
-### Using HTTP (default)
+### Using HTTP (built-in express webserver)
 
 ```typescript
 import { DaprServer } from "@dapr/dapr";
@@ -65,6 +65,49 @@ npm run start:dapr-http
 ```
 
 > ℹ️ **Note:** The `app-port` is required here, as this is where our server will need to bind to. Dapr will check for the application to bind to this port, before finishing start-up.
+
+### Using HTTP (bring your own express webserver)
+
+By default, for sidecar to application communication we bring a webserver that is configured to listen to the Sidecar calls as defined in the Dapr API specification. However, in some scenarios (e.g., when you are building a REST API backend and want to integrate Dapr directly in it) you want to bring your own webserver.
+
+As the Dapr JS SDK team, we do support this scenario, but currently this is only available for [`express`](https://www.npmjs.com/package/express). 
+
+> 💡 Note: when bringing your own webserver, we will introduce certain overrides that might happen (e.g., configuring the body size, adding certain routes, ...). We avoid collisions in routes by having our own uniques ones, but cannot guarantee collissions.
+
+```typescript
+import { DaprServer, CommunicationProtocolEnum } from "@dapr/dapr";
+import express from "express";
+
+const yourApp = express();
+
+yourApp.get("/my-custom-endpoint", (req, res) => {
+    res.send({ msg: "My own express app!" });
+});
+
+const daprServer = new DaprServer(
+    "127.0.0.1", // App Host
+    "50002",     // App Port
+    daprHost,
+    daprPort,
+    CommunicationProtocolEnum.HTTP,
+    {},
+    {
+        serverHttp: yourApp,
+    },
+);
+
+// initialize subscribtions, ... before server start
+// the dapr sidecar relies on these
+// this will also initialize the app server itself (removing the need for app.listen to be called)
+await daprServer.start();
+```
+
+After configuring the above, you can call your custom endpoint as you normally would:
+
+```typescript
+const res = await fetch(`http://127.0.0.1:50002/my-custom-endpoint`);
+const json = await res.json();
+```
 
 ### Using gRPC
 

@@ -45,7 +45,7 @@ export default class HTTPServer implements IServer {
 
     this.isInitialized = false;
 
-    this.server = express();
+    this.server = options.serverHttp ?? express();
     this.server.use(
       bodyParser.text({
         limit: `${this.serverOptions?.maxBodySizeMb ?? 4}mb`,

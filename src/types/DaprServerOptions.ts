@@ -11,10 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import express from "express";
+
 export type DaprServerOptions = {
   /**
    * The maximum size of the request body in megabytes.
    * Default is 4MB.
    */
   maxBodySizeMb?: number;
+
+  /**
+   * Bring your own express server instance
+   */
+  serverHttp?: express.Express;
 };

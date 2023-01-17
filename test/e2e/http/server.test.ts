@@ -11,6 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import express from "express";
+import fetch from "node-fetch";
 import { CommunicationProtocolEnum, DaprServer, HttpMethod } from "../../../src";
 import { DaprInvokerCallbackContent } from "../../../src/types/DaprInvokerCallback.type";
 import { KeyValueType } from "../../../src/types/KeyValue.type";
@@ -141,6 +143,53 @@ describe("http/server", () => {
       }
 
       expect(mockInvoke).not.toHaveBeenCalledTimes(1);
+    });
+
+    it("should allow us to pass a custom HTTP Server", async () => {
+      const yourApp = express();
+
+      yourApp.get("/my-custom-endpoint", (req, res) => {
+        res.send({ msg: "My own express app!" });
+      });
+
+      const yourAppDaprServer = new DaprServer(
+        serverHost,
+        "50002",
+        daprHost,
+        daprPort,
+        CommunicationProtocolEnum.HTTP,
+        {},
+        {
+          serverHttp: yourApp,
+        },
+      );
+
+      // initialize subscribtions, ... before server start
+      // the dapr sidecar relies on these
+      // this will also initialize the app server itself (removing the need for app.listen to be called)
+      await yourAppDaprServer.start();
+
+      // Try to call the custom endpoint
+      const res = await fetch(`http://${serverHost}:50002/my-custom-endpoint`);
+      const json = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(json).toBeDefined();
+      expect(json.msg).toBe("My own express app!");
+
+      // Should still be able to call Dapr endpoints
+      // Note: we call manually instead of using the server.client as the server is not running on the default port
+      await yourAppDaprServer.invoker.listen("dapr-endpoint", mockInvoke, { method: HttpMethod.POST });
+
+      await fetch(`http://${serverHost}:50002/dapr-endpoint`, {
+        method: "POST",
+        body: JSON.stringify({}),
+      });
+
+      expect(mockInvoke).toHaveBeenCalledTimes(1);
+
+      // Cleanup the resources
+      await yourAppDaprServer.stop();
     });
   });
 
