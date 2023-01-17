@@ -15,10 +15,10 @@ import { AbstractActor } from "../../src";
 import DemoActorActivateInterface from "./DemoActorActivateInterface";
 
 export default class DemoActorActivateImpl extends AbstractActor implements DemoActorActivateInterface {
-  isActivated: boolean = false;
-  activateCallCount: number = 0;
-  isDeactivated: boolean = false;
-  deactivatedCallCount: number = 0;
+  isActivated = false;
+  activateCallCount = 0;
+  isDeactivated = false;
+  deactivatedCallCount = 0;
 
   async onActivate(): Promise<void> {
     try {
