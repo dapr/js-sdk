@@ -21,7 +21,8 @@ const daprGrpcPort = "50000";
 const daprHttpPort = "3500";
 
 const pubSubName = "pubsub-redis";
-const topic = "test-topic";
+const getTopic = (protocol: string) => "test-topic" + "-" + protocol;
+const getTopicRawPayload = (protocol: string) => "test-topic-raw" + "-" + protocol;
 
 describe("common/server", () => {
     let httpServer: DaprServer;
@@ -33,8 +34,11 @@ describe("common/server", () => {
         httpServer = new DaprServer(serverHost, serverHttpPort, daprHost, daprHttpPort, CommunicationProtocolEnum.HTTP);
         grpcServer = new DaprServer(serverHost, serverGrpcPort, daprHost, daprGrpcPort, CommunicationProtocolEnum.GRPC);
 
-        await httpServer.pubsub.subscribe(pubSubName, topic, mockSubscribeHandler);
-        await grpcServer.pubsub.subscribe(pubSubName, topic, mockSubscribeHandler);
+        await httpServer.pubsub.subscribe(pubSubName, getTopic("http"), mockSubscribeHandler);
+        await grpcServer.pubsub.subscribe(pubSubName, getTopic("grpc"), mockSubscribeHandler);
+
+        await httpServer.pubsub.subscribe(pubSubName, getTopicRawPayload("http"), mockSubscribeHandler, undefined, { rawPayload: true });
+        await grpcServer.pubsub.subscribe(pubSubName, getTopicRawPayload("grpc"), mockSubscribeHandler, undefined, { rawPayload: true });
 
         await httpServer.start();
         await grpcServer.start();
@@ -50,14 +54,14 @@ describe("common/server", () => {
     });
 
     // Helper function to run the test for both HTTP and gRPC.
-    const runIt = (name: string, fn: (server: DaprServer) => void) => {
-        it("http/" + name, () => fn(httpServer));
-        it("grpc/" + name, () => fn(grpcServer));
+    const runIt = (name: string, fn: (server: DaprServer, protocol: string) => void) => {
+        it("http/" + name, () => fn(httpServer, "http"));
+        it("grpc/" + name, () => fn(grpcServer, "grpc"));
     };
 
     describe("pubsub", () => {
-        runIt("should be able to send and receive plain events", async (server: DaprServer) => {
-            await server.client.pubsub.publish(pubSubName, topic, "Hello, world!");
+        runIt("should be able to send and receive plain events", async (server: DaprServer, protocol: string) => {
+            await server.client.pubsub.publish(pubSubName, getTopic(protocol), "Hello, world!");
 
             // Delay a bit for event to arrive
             await new Promise((resolve, _reject) => setTimeout(resolve, 250));
@@ -66,8 +70,8 @@ describe("common/server", () => {
             expect(mockSubscribeHandler.mock.calls[0][0]).toEqual("Hello, world!");
         });
 
-        runIt("should be able to send and receive JSON events", async (server: DaprServer) => {
-            await server.client.pubsub.publish(pubSubName, topic, { message: "Hello, world!" });
+        runIt("should be able to send and receive JSON events", async (server: DaprServer, protocol: string) => {
+            await server.client.pubsub.publish(pubSubName, getTopic(protocol), { message: "Hello, world!" });
 
             // Delay a bit for event to arrive
             await new Promise((resolve, _reject) => setTimeout(resolve, 250));
@@ -76,7 +80,7 @@ describe("common/server", () => {
             expect(mockSubscribeHandler.mock.calls[0][0]).toEqual({ message: "Hello, world!" });
         });
 
-        runIt("should be able to send and receive cloud events", async (server: DaprServer) => {
+        runIt("should be able to send and receive cloud events", async (server: DaprServer, protocol: string) => {
             const ce = {
                 specversion: "1.0",
                 type: "com.github.pull.create",
@@ -86,10 +90,31 @@ describe("common/server", () => {
                 datacontenttype: "text/plain",
             };
 
-            await server.client.pubsub.publish(pubSubName, topic, ce);
+            await server.client.pubsub.publish(pubSubName, getTopic(protocol), ce);
 
             // Delay a bit for event to arrive
             await new Promise((resolve, _reject) => setTimeout(resolve, 500));
+
+            expect(mockSubscribeHandler.mock.calls.length).toBe(1);
+            expect(mockSubscribeHandler.mock.calls[0][0]).toEqual("Hello, world!");
+        });
+
+        runIt("should be able to send plain events and receive as raw payload", async (server: DaprServer, protocol: string) => {
+            await server.client.pubsub.publish(pubSubName, getTopicRawPayload(protocol), "Hello, world!");
+
+            // Delay a bit for event to arrive
+            await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+
+            expect(mockSubscribeHandler.mock.calls.length).toBe(1);
+            const rawData: any = mockSubscribeHandler.mock.calls[0][0];
+            expect(rawData["data"]).toEqual("Hello, world!");
+        });
+
+        runIt("should be able to send and receive plain events as raw payload", async (server: DaprServer, protocol: string) => {
+            await server.client.pubsub.publish(pubSubName, getTopicRawPayload(protocol), "Hello, world!", { "rawPayload": "true" });
+
+            // Delay a bit for event to arrive
+            await new Promise((resolve, _reject) => setTimeout(resolve, 250));
 
             expect(mockSubscribeHandler.mock.calls.length).toBe(1);
             expect(mockSubscribeHandler.mock.calls[0][0]).toEqual("Hello, world!");

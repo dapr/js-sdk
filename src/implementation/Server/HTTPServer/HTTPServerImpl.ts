@@ -89,11 +89,22 @@ export default class HTTPServerImpl {
         // TODO: remove this
         this.logger.info(`[route-${routeObj.path}] Received message from Dapr: ${JSON.stringify(req.body)}`);
 
-        // Data can be present in req.body.data or req.body.data_base64.
+        // Data can be present in req.body.data or req.body.data_base64
         var data: any;
-        const payload = req.body ?? {};
+        const payload = req.body ?? "";
         if (payload instanceof Object && !(payload instanceof Array || payload instanceof Buffer)) {
-          data = payload.data ?? payload.data_base64;
+          if (payload.data) {
+            // If data is present in req.body.data, use that as-is.
+            data = payload.data;
+          } else if (payload.data_base64 && typeof payload.data_base64 === "string") {
+            // If data is present in req.body.data_base64, decode it from base64.
+            data = Buffer.from(payload.data_base64, "base64").toString();
+            try {
+              data = JSON.parse(data);
+            } catch (_e) {
+              data = data;
+            }
+          }
         }
 
         // TODO: remove this

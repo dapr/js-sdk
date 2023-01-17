@@ -419,26 +419,11 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
     const data = Buffer.from(req.getData()).toString();
     let dataParsed: any;
-
     try {
       dataParsed = JSON.parse(data);
-    } catch (e) {
+    } catch (_e) {
       dataParsed = data;
     }
-
-    // TODO: remove
-    this.logger.info(
-      "Received data: ",
-      data,
-      " for route: ",
-      route,
-      " on topic: ",
-      topic,
-      " on pubsub: ",
-      pubsubName,
-      " data parsed:",
-      dataParsed,
-    );
 
     const res = new TopicEventResponse();
 
