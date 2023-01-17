@@ -13,7 +13,7 @@ limitations under the License.
 
 import express from "express";
 import fetch from "node-fetch";
-import { CommunicationProtocolEnum, DaprServer, HttpMethod, LogLevel } from "../../../src";
+import { CommunicationProtocolEnum, DaprServer, HttpMethod } from "../../../src";
 import { DaprInvokerCallbackContent } from "../../../src/types/DaprInvokerCallback.type";
 import { KeyValueType } from "../../../src/types/KeyValue.type";
 
