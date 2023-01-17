@@ -13,7 +13,7 @@ limitations under the License.
 
 import express from "express";
 import fetch from "node-fetch";
-import { CommunicationProtocolEnum, DaprServer, HttpMethod } from "../../../src";
+import { CommunicationProtocolEnum, DaprServer, HttpMethod, LogLevel } from "../../../src";
 import { DaprInvokerCallbackContent } from "../../../src/types/DaprInvokerCallback.type";
 import { KeyValueType } from "../../../src/types/KeyValue.type";
 
@@ -43,7 +43,7 @@ describe("http/server", () => {
       daprHost,
       daprPort,
       CommunicationProtocolEnum.HTTP,
-      { maxBodySizeMb: 20 }, // we set sending larger than receiving to test the error handling
+      { maxBodySizeMb: 20, logger: { level: LogLevel.Debug } }, // we set sending larger than receiving to test the error handling
       { maxBodySizeMb: 10 },
     );
 
@@ -119,32 +119,6 @@ describe("http/server", () => {
   });
 
   describe("server", () => {
-    it("should be able to receive payloads larger than 4 MB", async () => {
-      await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
-      const payload = new Uint8Array(5 * 1024 * 1024);
-
-      await server.invoker.listen("invoke-large-payload-1", mockInvoke, { method: HttpMethod.POST });
-      await server.client.invoker.invoke(daprAppId, "invoke-large-payload-1", HttpMethod.POST, payload);
-
-      expect(mockInvoke).toHaveBeenCalledTimes(1);
-    });
-
-    it("should throw an error if the receive payload is larger than 4 MB and we did not configure a larger size", async () => {
-      const payload = new Uint8Array(11 * 1024 * 1024);
-      await server.invoker.listen("invoke-large-payload-2", mockInvoke, { method: HttpMethod.POST });
-
-      try {
-        await server.client.invoker.invoke(daprAppId, "invoke-large-payload-2", HttpMethod.POST, payload);
-      } catch (e: any) {
-        // https://nodejs.org/dist/latest/docs/api/errors.html
-        // we will receive EPIPE if server closes
-        // on upload this is if the body is too large
-        expect(e.message).toBeDefined();
-      }
-
-      expect(mockInvoke).not.toHaveBeenCalledTimes(1);
-    });
-
     it("should allow us to pass a custom HTTP Server", async () => {
       const yourApp = express();
 
@@ -190,6 +164,34 @@ describe("http/server", () => {
 
       // Cleanup the resources
       await yourAppDaprServer.stop();
+    });
+
+    it("should be able to receive payloads larger than 4 MB", async () => {
+      await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
+
+      // Create a 5Mb payload
+      const payload = new Uint8Array(5 * 1024 * 1024);
+
+      await server.invoker.listen("invoke-large-payload-1", mockInvoke, { method: HttpMethod.POST });
+      await server.client.invoker.invoke(daprAppId, "invoke-large-payload-1", HttpMethod.POST, payload);
+
+      expect(mockInvoke).toHaveBeenCalledTimes(1);
+    });
+
+    it("should throw an error if the receive payload is larger than 4 MB and we did not configure a larger size", async () => {
+      const payload = new Uint8Array(11 * 1024 * 1024);
+      await server.invoker.listen("invoke-large-payload-2", mockInvoke, { method: HttpMethod.POST });
+
+      try {
+        await server.client.invoker.invoke(daprAppId, "invoke-large-payload-2", HttpMethod.POST, payload);
+      } catch (e: any) {
+        // https://nodejs.org/dist/latest/docs/api/errors.html
+        // we will receive EPIPE if server closes
+        // on upload this is if the body is too large
+        expect(e.message).toBeDefined();
+      }
+
+      expect(mockInvoke).not.toHaveBeenCalledTimes(1);
     });
   });
 

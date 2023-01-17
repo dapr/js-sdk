@@ -92,5 +92,15 @@ describe("serializer", () => {
       expect(data.serializedData).toEqual(Buffer.from("Hello World"));
       expect(data.contentType).toEqual("application/octet-stream");
     });
+
+    it("should not cause the body to be inflated", () => {
+      const payload = new Uint8Array(5 * 1024 * 1024);
+      const data = SerializerUtil.serializeHttp(payload);
+
+      const payloadLength = Math.round(payload.length);
+      const dataLength = Math.round(Object.keys(data.serializedData).length);
+
+      expect(payloadLength).toEqual(dataLength);
+    });
   });
 });

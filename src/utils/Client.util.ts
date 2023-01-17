@@ -110,14 +110,11 @@ function isCloudEvent(obj: object): boolean {
  * @returns Content-Type header value
  */
 export function getContentType(data: any): string {
+  // Identify the exact type of the input data
   const type = getType(data);
 
-  // If we have an array, we return the JSON content type
-  if (type.endsWith("Array")) {
-    return "application/json";
-  }
-
   switch (type) {
+    case "Array":
     case "Object":
       if (isCloudEvent(data as object)) {
         return "application/cloudevents+json";
@@ -128,6 +125,7 @@ export function getContentType(data: any): string {
     case "Number":
     case "String":
       return "text/plain";
+    // Uint8Array, Int8Array, Buffer, SlowBuffer, Blob, etc.
     default:
       return "application/octet-stream";
   }

@@ -39,7 +39,7 @@ export function serializeHttp(data: any): {
   serializedData: BodyInit;
   contentType: string;
 } {
-  let serializedData: BodyInit = data;
+  let serializedData: BodyInit;
 
   const contentType = getContentType(data);
 

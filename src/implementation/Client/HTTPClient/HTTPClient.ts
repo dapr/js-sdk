@@ -175,7 +175,11 @@ export default class HTTPClient implements IClient {
     const agent = urlFull.startsWith("https") ? HTTPClient.httpsAgent : HTTPClient.httpAgent;
     clientOptions.agent = agent;
 
-    this.logger.debug(`Fetching ${clientOptions.method} ${urlFull} with body: (${clientOptions.body})`);
+    this.logger.debug(
+      `Fetching ${clientOptions.method} ${urlFull} with (headers: ${JSON.stringify(
+        clientOptions.headers,
+      )}, body size: ${(clientOptions.body?.toString()?.length ?? 0) / 1024 / 1024} Mb)`,
+    );
 
     const client = await this.getClient(requiresInitialization);
     const res = await client(urlFull, clientOptions);

@@ -23,6 +23,7 @@ export type LoggerOptions = {
    * Default is LogLevel.Info.
    */
   level?: LogLevel;
+
   /**
    * Logging implementation to use.
    * Default is to use the console.

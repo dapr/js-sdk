@@ -45,6 +45,8 @@ export default class HTTPServer implements IServer {
 
     this.isInitialized = false;
 
+    this.logger.debug(`Configured HTTPServer Options: ${JSON.stringify(options)}`);
+
     this.server = options.serverHttp ?? express();
     this.server.use(
       bodyParser.text({
@@ -54,7 +56,7 @@ export default class HTTPServer implements IServer {
 
     this.server.use(
       bodyParser.raw({
-        type: ["application/octet-stream"],
+        type: ["application/octet-stream", "*/*"],
         limit: `${this.serverOptions?.maxBodySizeMb ?? 4}mb`,
       }),
     );
