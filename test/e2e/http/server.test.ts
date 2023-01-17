@@ -43,7 +43,7 @@ describe("http/server", () => {
       daprHost,
       daprPort,
       CommunicationProtocolEnum.HTTP,
-      { maxBodySizeMb: 20, logger: { level: LogLevel.Debug } }, // we set sending larger than receiving to test the error handling
+      { maxBodySizeMb: 20 }, // we set sending larger than receiving to test the error handling
       { maxBodySizeMb: 10 },
     );
 
