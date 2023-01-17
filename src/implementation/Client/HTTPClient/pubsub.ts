@@ -36,14 +36,18 @@ export default class HTTPClientPubSub implements IClientPubSub {
     metadata?: KeyValueType,
   ): Promise<PubSubPublishResponseType> {
     const queryParams = createHTTPMetadataQueryParam(metadata);
+    const contentType = getContentType(data);
     const params: THTTPExecuteParams = {
       method: "POST",
       headers: {
-        "Content-Type": getContentType(data),
+        "Content-Type": contentType,
       },
     };
 
-    if (data) {
+    // Send the data as-is if it's a string, otherwise stringify it.
+    if (data && contentType === "text/plain") {
+      params.body = data as string;
+    } else if (data) {
       params.body = JSON.stringify(data);
     }
 

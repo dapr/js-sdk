@@ -84,24 +84,32 @@ export default class HTTPServerImpl {
 
       // Add a server POST handler
       this.server.post(`/${routeObj.path}`, async (req, res) => {
-        // @ts-ignore
-        // Parse the data of the body, we prioritize fetching the data key in body if possible
-        // i.e. Redis returns { data: {} } and other services return {}
-        // @todo: This will be deprecated in an upcoming major version and only req.body will be returned
-        const data = req?.body?.data || req?.body;
         const headers = req.headers;
+
+        // TODO: remove this
+        this.logger.info(`[route-${routeObj.path}] Received message from Dapr: ${JSON.stringify(req.body)}`);
+
+        // Data can be present in req.body.data or req.body.data_base64.
+        var data: any;
+        const payload = req.body ?? {};
+        if (payload instanceof Object && !(payload instanceof Array || payload instanceof Buffer)) {
+          data = payload.data ?? payload.data_base64;
+        }
+
+        // TODO: remove this
+        this.logger.info(`[route - ${routeObj.path}]Processing message: ${data}`);
 
         // Process our callback
         try {
           const eventHandlers = routeObj.eventHandlers;
           await Promise.all(eventHandlers.map((cb) => cb(data, headers)));
         } catch (e) {
-          this.logger.error(`[route-${routeObj.path}] Message processing failed, dropping: ${e}`);
+          this.logger.error(`[route - ${routeObj.path}]Message processing failed, dropping: ${e}`);
           return res.send({ status: SubscribedMessageHttpResponse.DROP });
         }
 
         // Let Dapr know that the message was processed correctly
-        this.logger.debug(`[route-${routeObj.path}] Ack'ing the message`);
+        this.logger.debug(`[route - ${routeObj.path}]Ack'ing the message`);
         return res.send({ status: SubscribedMessageHttpResponse.SUCCESS });
       });
     }

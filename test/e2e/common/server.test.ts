@@ -56,5 +56,43 @@ describe("common/server", () => {
     };
 
     describe("pubsub", () => {
+        runIt("should be able to send and receive plain events", async (server: DaprServer) => {
+            await server.client.pubsub.publish(pubSubName, topic, "Hello, world!");
+
+            // Delay a bit for event to arrive
+            await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+
+            expect(mockSubscribeHandler.mock.calls.length).toBe(1);
+            expect(mockSubscribeHandler.mock.calls[0][0]).toEqual("Hello, world!");
+        });
+
+        runIt("should be able to send and receive JSON events", async (server: DaprServer) => {
+            await server.client.pubsub.publish(pubSubName, topic, { message: "Hello, world!" });
+
+            // Delay a bit for event to arrive
+            await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+
+            expect(mockSubscribeHandler.mock.calls.length).toBe(1);
+            expect(mockSubscribeHandler.mock.calls[0][0]).toEqual({ message: "Hello, world!" });
+        });
+
+        runIt("should be able to send and receive cloud events", async (server: DaprServer) => {
+            const ce = {
+                specversion: "1.0",
+                type: "com.github.pull.create",
+                source: "https://github.com/cloudevents/spec/pull",
+                id: "A234-1234-1234",
+                data: "Hello, world!",
+                datacontenttype: "text/plain",
+            };
+
+            await server.client.pubsub.publish(pubSubName, topic, ce);
+
+            // Delay a bit for event to arrive
+            await new Promise((resolve, _reject) => setTimeout(resolve, 500));
+
+            expect(mockSubscribeHandler.mock.calls.length).toBe(1);
+            expect(mockSubscribeHandler.mock.calls[0][0]).toEqual("Hello, world!");
+        });
     });
 });
