@@ -75,7 +75,7 @@ describe("serializer", () => {
       expect(data.contentType).toEqual("application/cloudevents+json");
     });
 
-    it("String should be serialized as text/plain and as Buffer", () => {
+    it("String should be serialized as text/plain and as plain text", () => {
       const data = SerializerUtil.serializeHttp("hello-world");
       expect(data.serializedData).toEqual("hello-world");
       expect(data.contentType).toEqual("text/plain");

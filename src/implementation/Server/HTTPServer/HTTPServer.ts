@@ -56,7 +56,7 @@ export default class HTTPServer implements IServer {
 
     this.server.use(
       bodyParser.raw({
-        type: ["application/octet-stream", "*/*"],
+        type: ["application/octet-stream"],
         limit: `${this.serverOptions?.maxBodySizeMb ?? 4}mb`,
       }),
     );
