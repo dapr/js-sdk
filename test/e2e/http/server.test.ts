@@ -153,7 +153,7 @@ describe("http/server", () => {
 
       // Should still be able to call Dapr endpoints
       // Note: we call manually instead of using the server.client as the server is not running on the default port
-      await yourAppDaprServer.invoker.listen("dapr-endpoint", mockInvoke, { method: HttpMethod.POST });
+      await myAppDaprServer.invoker.listen("dapr-endpoint", mockInvoke, { method: HttpMethod.POST });
 
       await fetch(`http://${serverHost}:50002/dapr-endpoint`, {
         method: "POST",
@@ -163,7 +163,7 @@ describe("http/server", () => {
       expect(mockInvoke).toHaveBeenCalledTimes(1);
 
       // Cleanup the resources
-      await yourAppDaprServer.stop();
+      await myAppDaprServer.stop();
     });
 
     it("should be able to receive payloads larger than 4 MB", async () => {
