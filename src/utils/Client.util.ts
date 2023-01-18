@@ -24,7 +24,7 @@ import { Map } from "google-protobuf";
  */
 export function addMetadataToMap(map: Map<string, string>, metadata: KeyValueType = {}): void {
   for (const [key, value] of Object.entries(metadata)) {
-    map.set(key, value)
+    map.set(key, value);
   }
 }
 
