@@ -25,7 +25,7 @@ describe("serializer", () => {
       expect(Buffer.compare(data.serializedData, Buffer.from("Hello World"))).toEqual(0);
       expect(data.contentType).toEqual("application/octet-stream");
     });
-  })
+  });
 
   describe("http", () => {
     it("should serialize object to JSON", () => {
