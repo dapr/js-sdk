@@ -140,7 +140,7 @@ export default class HTTPServerActor implements IServerActor {
       return res.status(200).send(result);
     } else {
       // @ts-ignore
-      return res.send(`${result}`, 200);
+      return res.status(200).send(`${result}`);
     }
   }
 }
