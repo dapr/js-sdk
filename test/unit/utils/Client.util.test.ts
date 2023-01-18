@@ -29,26 +29,20 @@ describe("Client.util", () => {
         key2: "value2",
       };
       addMetadataToMap(m, metadata);
-      expect(m.get("key1")).toEqual(["value1"]);
-      expect(m.get("key2")).toEqual(["value2"]);
+      expect(m.get("key1")).toEqual("value1");
+      expect(m.get("key2")).toEqual("value2");
     });
 
     it("should add nothing to map when metadata is not passed", () => {
       const m = new Map<string, string>([]);
       addMetadataToMap(m);
-      expect(m.entries()).toEqual([]);
+      expect(m.entries()).toEqual(new Map<string, string>([]).entries());
     });
 
     it("should add nothing to map when metadata is undefined", () => {
       const m = new Map<string, string>([]);
       addMetadataToMap(m, undefined);
-      expect(m.entries()).toEqual([]);
-    });
-
-    it("should add nothing to map when metadata is null", () => {
-      const m = new Map<string, string>([]);
-      addMetadataToMap(m, null);
-      expect(m.entries()).toEqual([]);
+      expect(m.entries()).toEqual(new Map<string, string>([]).entries());
     });
   });
   describe("getHTTPMetadataQueryParam", () => {

@@ -14,14 +14,30 @@ limitations under the License.
 import * as SerializerUtil from "../../../src/utils/Serializer.util";
 
 describe("serializer", () => {
-  it("Object should be serialized to Buffer", () => {
-    const data = SerializerUtil.serializeGrpc({ Hello: "World" });
-    expect(Buffer.compare(data.serializedData, Buffer.from(JSON.stringify({ Hello: "World" })))).toEqual(0);
-    expect(data.contentType).toEqual("application/json");
-  });
-  it("Buffer object should not be serialized again", () => {
-    const data = SerializerUtil.serializeGrpc(Buffer.from("Hello World"));
-    expect(Buffer.compare(data.serializedData, Buffer.from("Hello World"))).toEqual(0);
-    expect(data.contentType).toEqual("application/octet-stream");
+  describe("grpc", () => {
+    it("Object should be serialized to Buffer", () => {
+      const data = SerializerUtil.serializeGrpc({ Hello: "World" });
+      expect(Buffer.compare(data.serializedData, Buffer.from(JSON.stringify({ Hello: "World" })))).toEqual(0);
+      expect(data.contentType).toEqual("application/json");
+    });
+    it("Buffer object should not be serialized again", () => {
+      const data = SerializerUtil.serializeGrpc(Buffer.from("Hello World"));
+      expect(Buffer.compare(data.serializedData, Buffer.from("Hello World"))).toEqual(0);
+      expect(data.contentType).toEqual("application/octet-stream");
+    });
+  })
+
+  describe("http", () => {
+    it("should serialize object to JSON", () => {
+      const data = SerializerUtil.serializeHttp({ Hello: "World" });
+      expect(data.serializedData).toEqual(JSON.stringify({ Hello: "World" }));
+      expect(data.contentType).toEqual("application/json");
+    });
+
+    it("should serialize string to string", () => {
+      const data = SerializerUtil.serializeHttp("Hello World");
+      expect(data.serializedData).toEqual("Hello World");
+      expect(data.contentType).toEqual("text/plain");
+    });
   });
 });
