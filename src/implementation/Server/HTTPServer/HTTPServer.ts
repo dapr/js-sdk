@@ -27,6 +27,7 @@ export type IServerType = express.Express;
 export default class HTTPServer implements IServer {
   server: IServerType;
   serverInstance: undefined | http.Server; // defined after start()
+  serverTerminator: undefined | ReturnType<typeof createHttpTerminator>; // defined after start()
   serverHost: string;
   serverPort: string;
   serverAddress: string;
@@ -119,6 +120,10 @@ export default class HTTPServer implements IServer {
     this.logger.info(`Listening on ${port}`);
     this.serverAddress = `http://${host}:${port}`;
 
+    // Create a terminator, as using a normal server.close() will not close the server immediately, 
+    // but wait for all connections to close.
+    this.serverTerminator = createHttpTerminator({ server: this.serverInstance });
+
     // Add PubSub Routes
     this.logger.info(`Registering ${Object.keys(this.serverImpl.pubSubSubscriptions).length} PubSub Subscriptions`);
     this.server.get("/dapr/subscribe", (req, res) => {
@@ -130,11 +135,8 @@ export default class HTTPServer implements IServer {
   }
 
   async stop(): Promise<void> {
-    if (this.serverInstance) {
-      const httpTerminator = createHttpTerminator({ server: this.serverInstance });
-      await httpTerminator.terminate();
-
-      await this.serverInstance.close();
+    if (this.serverTerminator) {
+      await this.serverTerminator.terminate();
     }
 
     this.isInitialized = false;
