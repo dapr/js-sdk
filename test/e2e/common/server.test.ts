@@ -24,13 +24,22 @@ const customPort = "50002";
 const protocolHttp = "http";
 const protocolGrpc = "grpc";
 const pubSubName = "pubsub-redis";
-const topic = "test-topic";
+const topicDefault = "test-topic";
 const topicRawPayload = "test-topic-raw";
 const topicOptionsWithCallback = "test-topic-options-callback";
 const topicSimpleRoute = "test-topic-routes-1";
 const topicLeadingSlashRoute = "test-topic-routes-2";
+const topicCustomRules = "test-topic-routes-3";
+const topicCustomRulesInOptions = "test-topic-routes-4";
+const topicWithoutCallback = "test-topic-routes-5";
+const topicWithDeadletter = "test-topic-6"
+const topicWithDeadletterInOptions = "test-topic-7"
+const topicWithDeadletterInOptionsDefault = "test-topic-8"
+const topicWithDeadletterAndErrorCb = "test-topic-9"
+const deadLetterTopic = "deadletter-topic";
 const routeSimple = "simple-route";
 const routeWithLeadingSlash = "/leading-slash-route";
+const defaultDeadLetterTopic = "deadletter";
 
 describe("common/server", () => {
     let httpServer: DaprServer;
@@ -38,25 +47,29 @@ describe("common/server", () => {
 
     const getTopic = (topic: string, protocol: string) => topic + "-" + protocol;
     const mockSubscribeHandler = jest.fn(async (_data: object, _headers: object) => null);
+    const mockSubscribeErrorHandler = jest.fn(async (_data: object, _headers: object) => {
+        throw new Error("This will DROP the message!")
+    });
+
+    const sampleRoutes = {
+        default: "/default",
+        rules: [
+            {
+                match: `event.type == "type-1"`,
+                path: "/type-1",
+            },
+            {
+                match: `event.type == "type-2"`,
+                path: "/type-2",
+            }
+        ]
+    };
 
     beforeAll(async () => {
         httpServer = new DaprServer(serverHost, serverHttpPort, daprHost, daprHttpPort, CommunicationProtocolEnum.HTTP);
         grpcServer = new DaprServer(serverHost, serverGrpcPort, daprHost, daprGrpcPort, CommunicationProtocolEnum.GRPC);
 
-        await httpServer.pubsub.subscribe(pubSubName, getTopic(topic, protocolHttp), mockSubscribeHandler);
-        await grpcServer.pubsub.subscribe(pubSubName, getTopic(topic, protocolGrpc), mockSubscribeHandler);
-
-        await httpServer.pubsub.subscribe(pubSubName, getTopic(topicRawPayload, protocolHttp), mockSubscribeHandler, undefined, { rawPayload: true });
-        await grpcServer.pubsub.subscribe(pubSubName, getTopic(topicRawPayload, protocolGrpc), mockSubscribeHandler, undefined, { rawPayload: true });
-
-        await httpServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicOptionsWithCallback, protocolHttp), { callback: mockSubscribeHandler });
-        await grpcServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicOptionsWithCallback, protocolGrpc), { callback: mockSubscribeHandler });
-
-        await httpServer.pubsub.subscribe(pubSubName, getTopic(topicSimpleRoute, protocolHttp), mockSubscribeHandler, routeSimple);
-        await grpcServer.pubsub.subscribe(pubSubName, getTopic(topicSimpleRoute, protocolGrpc), mockSubscribeHandler, routeSimple);
-
-        await httpServer.pubsub.subscribe(pubSubName, getTopic(topicLeadingSlashRoute, protocolHttp), mockSubscribeHandler, routeWithLeadingSlash);
-        await grpcServer.pubsub.subscribe(pubSubName, getTopic(topicLeadingSlashRoute, protocolGrpc), mockSubscribeHandler, routeWithLeadingSlash);
+        await setupPubSubSubscriptions();
 
         await httpServer.start();
         await grpcServer.start();
@@ -79,7 +92,7 @@ describe("common/server", () => {
 
     describe("pubsub", () => {
         runIt("should be able to send and receive plain events", async (server: DaprServer, protocol: string) => {
-            const res = await server.client.pubsub.publish(pubSubName, getTopic(topic, protocol), "Hello, world!");
+            const res = await server.client.pubsub.publish(pubSubName, getTopic(topicDefault, protocol), "Hello, world!");
             expect(res.error).toBeUndefined();
 
             // Delay a bit for event to arrive
@@ -97,7 +110,7 @@ describe("common/server", () => {
         });
 
         runIt("should be able to send and receive JSON events", async (server: DaprServer, protocol: string) => {
-            const res = await server.client.pubsub.publish(pubSubName, getTopic(topic, protocol), { message: "Hello, world!" });
+            const res = await server.client.pubsub.publish(pubSubName, getTopic(topicDefault, protocol), { message: "Hello, world!" });
             expect(res.error).toBeUndefined();
 
             // Delay a bit for event to arrive
@@ -117,7 +130,7 @@ describe("common/server", () => {
                 datacontenttype: "text/plain",
             };
 
-            const res = await server.client.pubsub.publish(pubSubName, getTopic(topic, protocol), ce);
+            const res = await server.client.pubsub.publish(pubSubName, getTopic(topicDefault, protocol), ce);
             expect(res.error).toBeUndefined();
 
             // Delay a bit for event to arrive
@@ -186,7 +199,7 @@ describe("common/server", () => {
 
         runIt("should only allow one subscription per topic", async (server: DaprServer, protocol: string) => {
             const anotherMockHandler = jest.fn(async (_data: object) => null);
-            const anotherTopic = getTopic(topic + "-another", protocol);
+            const anotherTopic = getTopic(topicDefault + "-another", protocol);
             const port = protocol === protocolHttp ? daprHttpPort : daprGrpcPort;
             const commProtocol = protocol === protocolHttp ?
                 CommunicationProtocolEnum.HTTP : CommunicationProtocolEnum.GRPC;
@@ -209,18 +222,202 @@ describe("common/server", () => {
         });
 
         runIt("should create subscriptions for default and custom routes", async (server: DaprServer, protocol: string) => {
-            const expectedRoutes = [
-                `/${pubSubName}--${getTopic(topic, protocol)}--default`,
-                `/${pubSubName}--${getTopic(topicSimpleRoute, protocol)}--${routeSimple}`,
-                `/${pubSubName}--${getTopic(topicLeadingSlashRoute, protocol)}--${routeWithLeadingSlash.substring(1)}`,
-            ]
+            const topicRouteEntry = (topic: string, route: string) =>
+                [getTopic(topic, protocol), `/${pubSubName}--${getTopic(topic, protocol)}--${route}`];
+
+            const topicRoutes = [
+                topicRouteEntry(topicDefault, "default"),
+                topicRouteEntry(topicSimpleRoute, routeSimple),
+                topicRouteEntry(topicLeadingSlashRoute, routeWithLeadingSlash.substring(1))]
 
             const subs = JSON.stringify(server.pubsub.getSubscriptions());
-            expectedRoutes.forEach(expectedRoute => {
+            topicRoutes.forEach(topicRoute => {
                 expect(subs).toContain(
-                    JSON.stringify(expectedRoute),
+                    JSON.stringify({
+                        pubsubname: pubSubName,
+                        topic: topicRoute[0],
+                        route: topicRoute[1],
+                    }),
                 );
             });
         });
+
+        runIt("should create subscriptions with rules and default route", async (server: DaprServer, protocol: string) => {
+            const getSubscriptionEntry = (topic: string) => {
+                const rules = sampleRoutes.rules.map(rule => {
+                    const path = rule.path.startsWith("/") ? rule.path.substring(1) : rule.path;
+                    return {
+                        match: rule.match,
+                        path: `/${pubSubName}--${getTopic(topic, protocol)}--${path}`
+                    }
+                });
+                return {
+                    pubsubname: pubSubName,
+                    topic: getTopic(topic, protocol),
+                    routes: {
+                        default: `/${pubSubName}--${getTopic(topic, protocol)}--default`,
+                        rules: rules
+                    }
+                };
+            };
+
+            const expectedSubs = [
+                getSubscriptionEntry(topicCustomRules),
+                getSubscriptionEntry(topicCustomRulesInOptions),
+            ]
+
+            const subs = JSON.stringify(server.pubsub.getSubscriptions());
+            expectedSubs.forEach(expectedSub => {
+                expect(subs).toContain(JSON.stringify(expectedSub));
+            });
+        });
+
+        runIt("should allow to register a listener without event handler callback", async (server: DaprServer, protocol: string) => {
+            const subs = JSON.stringify(server.pubsub.getSubscriptions());
+
+            expect(subs).toContain(
+                JSON.stringify({
+                    pubsubname: pubSubName,
+                    topic: getTopic(topicWithoutCallback, protocol),
+                    route: `/${pubSubName}--${getTopic(topicWithoutCallback, protocol)}--default`,
+                }),
+            );
+        });
+
+        runIt("should allow to register an event handler after the server has started", async (server: DaprServer, protocol: string) => {
+            const topic = getTopic(topicWithoutCallback, protocol);
+
+            const count1 = server.pubsub.getSubscriptions()[pubSubName][topic].routes["default"].eventHandlers.length;
+            server.pubsub.subscribeToRoute(pubSubName, topic, "", async () => null);
+            const count2 = server.pubsub.getSubscriptions()[pubSubName][topic].routes["default"].eventHandlers.length;
+
+            expect(count2).toEqual(count1 + 1);
+        });
+
+        runIt("should allow to configure deadletter topic", async (server: DaprServer, protocol: string) => {
+            const topic = getTopic(topicWithDeadletter, protocol);
+            const topicDeadLetter = getTopic(deadLetterTopic, protocol);
+
+            const subs = JSON.stringify(server.pubsub.getSubscriptions());
+
+            expect(subs).toContain(
+                JSON.stringify({
+                    pubsubname: pubSubName,
+                    topic: topic,
+                    route: `/${pubSubName}--${topic}--default`,
+                    deadLetterTopic: topicDeadLetter,
+                }),
+            );
+        });
+
+        runIt("should allow to listen on the deadletter topic", async (server: DaprServer, protocol: string) => {
+            const topic = getTopic(topicWithDeadletter, protocol);
+            const topicDeadLetter = getTopic(deadLetterTopic, protocol);
+
+            const count1 = server.pubsub.getSubscriptions()[pubSubName][topic].routes[topicDeadLetter].eventHandlers.length;
+            server.pubsub.subscribeToRoute(pubSubName, topic, topicDeadLetter, async () => null);
+            const count2 = server.pubsub.getSubscriptions()[pubSubName][topic].routes[topicDeadLetter].eventHandlers.length;
+
+            expect(count2).toEqual(count1 + 1);
+        });
+
+        runIt("should allow to configure deadletter topic through subscribeWithOptions", async (server: DaprServer, protocol: string) => {
+            const topic = getTopic(topicWithDeadletterInOptions, protocol);
+            const topicDeadLetter = getTopic(deadLetterTopic, protocol);
+
+            const subs = JSON.stringify(server.pubsub.getSubscriptions());
+            expect(subs).toContain(
+                JSON.stringify({
+                    pubsubname: pubSubName,
+                    topic: topic,
+                    route: `/${pubSubName}--${topic}--default`,
+                    deadLetterTopic: topicDeadLetter,
+                }),
+            );
+
+            // Ensure that it has an event handler bound to it.
+            const eventHandlers = server.pubsub.getSubscriptions()[pubSubName][topic].
+                routes[topicDeadLetter].eventHandlers;
+            expect(eventHandlers.length).toEqual(1);
+        });
+
+        runIt("should allow to configure deadletter topic through subscribeWithOptions with a default deadletter topic if none was provided", async (server: DaprServer, protocol: string) => {
+            const topic = getTopic(topicWithDeadletterInOptionsDefault, protocol);
+
+            const routes = server.pubsub.getSubscriptions()[pubSubName][topic].routes;
+            expect(Object.keys(routes)).toContain(defaultDeadLetterTopic)
+
+            expect(routes[defaultDeadLetterTopic].eventHandlers.length).toEqual(1);
+        });
+
+        runIt("should be able to send and receive events through deadletter", async (server: DaprServer, protocol: string) => {
+            const res = await server.client.pubsub.publish(pubSubName, getTopic(topicWithDeadletterAndErrorCb, protocol), { message: "Hello, world!" });
+            expect(res.error).toBeUndefined();
+
+            // Delay a bit for event to arrive
+            await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+
+            expect(mockSubscribeErrorHandler).toHaveBeenCalledTimes(1);
+            expect(mockSubscribeErrorHandler.mock.calls[0][0]).toEqual({ message: "Hello, world!" });
+            expect(mockSubscribeHandler).toHaveBeenCalledTimes(0);
+        });
     });
+
+    const setupPubSubSubscriptions = async () => {
+        await httpServer.pubsub.subscribe(pubSubName, getTopic(topicDefault, protocolHttp), mockSubscribeHandler);
+        await grpcServer.pubsub.subscribe(pubSubName, getTopic(topicDefault, protocolGrpc), mockSubscribeHandler);
+
+        await httpServer.pubsub.subscribe(pubSubName, getTopic(topicRawPayload, protocolHttp), mockSubscribeHandler, undefined, { rawPayload: true });
+        await grpcServer.pubsub.subscribe(pubSubName, getTopic(topicRawPayload, protocolGrpc), mockSubscribeHandler, undefined, { rawPayload: true });
+
+        await httpServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicOptionsWithCallback, protocolHttp), { callback: mockSubscribeHandler });
+        await grpcServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicOptionsWithCallback, protocolGrpc), { callback: mockSubscribeHandler });
+
+        await httpServer.pubsub.subscribe(pubSubName, getTopic(topicSimpleRoute, protocolHttp), mockSubscribeHandler, routeSimple);
+        await grpcServer.pubsub.subscribe(pubSubName, getTopic(topicSimpleRoute, protocolGrpc), mockSubscribeHandler, routeSimple);
+
+        await httpServer.pubsub.subscribe(pubSubName, getTopic(topicLeadingSlashRoute, protocolHttp), mockSubscribeHandler, routeWithLeadingSlash);
+        await grpcServer.pubsub.subscribe(pubSubName, getTopic(topicLeadingSlashRoute, protocolGrpc), mockSubscribeHandler, routeWithLeadingSlash);
+
+        await httpServer.pubsub.subscribe(pubSubName, getTopic(topicCustomRules, protocolHttp), mockSubscribeHandler, sampleRoutes);
+        await grpcServer.pubsub.subscribe(pubSubName, getTopic(topicCustomRules, protocolGrpc), mockSubscribeHandler, sampleRoutes);
+
+        await httpServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicCustomRulesInOptions, protocolHttp), { route: sampleRoutes });
+        await grpcServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicCustomRulesInOptions, protocolGrpc), { route: sampleRoutes });
+
+        await httpServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicWithoutCallback, protocolHttp), {});
+        await grpcServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicWithoutCallback, protocolGrpc), {});
+
+        await httpServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicWithDeadletter, protocolHttp), {
+            deadLetterTopic: getTopic(deadLetterTopic, protocolHttp),
+        });
+        await grpcServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicWithDeadletter, protocolGrpc), {
+            deadLetterTopic: getTopic(deadLetterTopic, protocolGrpc),
+        });
+
+        await httpServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicWithDeadletterInOptions, protocolHttp), {
+            deadLetterTopic: getTopic(deadLetterTopic, protocolHttp),
+            deadLetterCallback: mockSubscribeHandler,
+        });
+        await grpcServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicWithDeadletterInOptions, protocolGrpc), {
+            deadLetterTopic: getTopic(deadLetterTopic, protocolGrpc),
+            deadLetterCallback: mockSubscribeHandler,
+        });
+
+        await httpServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicWithDeadletterInOptionsDefault, protocolHttp), {
+            deadLetterCallback: mockSubscribeHandler,
+        });
+        await grpcServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicWithDeadletterInOptionsDefault, protocolGrpc), {
+            deadLetterCallback: mockSubscribeHandler,
+        });
+
+        await httpServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicWithDeadletterAndErrorCb, protocolHttp), {
+            deadLetterCallback: mockSubscribeHandler,
+            callback: mockSubscribeErrorHandler
+        });
+        await grpcServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicWithDeadletterAndErrorCb, protocolGrpc), {
+            deadLetterCallback: mockSubscribeHandler,
+            callback: mockSubscribeErrorHandler
+        });
+    };
 });
