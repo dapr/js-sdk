@@ -120,7 +120,7 @@ export default class HTTPServer implements IServer {
     this.logger.info(`Listening on ${port}`);
     this.serverAddress = `http://${host}:${port}`;
 
-    // Create a terminator, as using a normal server.close() will not close the server immediately, 
+    // Create a terminator, as using a normal server.close() will not close the server immediately,
     // but wait for all connections to close.
     this.serverTerminator = createHttpTerminator({ server: this.serverInstance });
 
