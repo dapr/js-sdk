@@ -36,7 +36,7 @@ export function serializeGrpc(data: any): { serializedData: Buffer; contentType:
  * @returns serialized data and content type
  */
 export function serializeHttp(data: any): { serializedData: string; contentType: string } {
-  let contentType = getContentType(data);
+  const contentType = getContentType(data);
   if (contentType === "text/plain") {
     return { serializedData: data, contentType };
   } else {

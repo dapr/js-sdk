@@ -15,7 +15,7 @@ import HTTPClient from "./HTTPClient";
 import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 import { Logger } from "../../../logger/Logger";
 import { KeyValueType } from "../../../types/KeyValue.type";
-import { createHTTPMetadataQueryParam, getContentType } from "../../../utils/Client.util";
+import { createHTTPMetadataQueryParam } from "../../../utils/Client.util";
 import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
 import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type";
 import { serializeHttp } from "../../../utils/Serializer.util";
