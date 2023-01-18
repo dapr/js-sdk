@@ -18,6 +18,7 @@ import { KeyValueType } from "../../../types/KeyValue.type";
 import { createHTTPMetadataQueryParam, getContentType } from "../../../utils/Client.util";
 import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
 import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type";
+import { serializeHttp } from "../../../utils/Serializer.util";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPClientPubSub implements IClientPubSub {
@@ -36,20 +37,14 @@ export default class HTTPClientPubSub implements IClientPubSub {
     metadata?: KeyValueType,
   ): Promise<PubSubPublishResponseType> {
     const queryParams = createHTTPMetadataQueryParam(metadata);
-    const contentType = getContentType(data);
+    const serialized = serializeHttp(data);
     const params: THTTPExecuteParams = {
       method: "POST",
       headers: {
-        "Content-Type": contentType,
+        "Content-Type": serialized.contentType,
       },
+      body: serialized.serializedData,
     };
-
-    // Send the data as-is if it's a string, otherwise stringify it.
-    if (data && contentType === "text/plain") {
-      params.body = data as string;
-    } else if (data) {
-      params.body = JSON.stringify(data);
-    }
 
     try {
       await this.client.execute(`/publish/${pubSubName}/${topic}?${queryParams}`, params);

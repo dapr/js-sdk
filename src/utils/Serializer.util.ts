@@ -27,3 +27,19 @@ export function serializeGrpc(data: any): { serializedData: Buffer; contentType:
 
   return { serializedData, contentType };
 }
+
+/**
+ * Serialize data for HTTP requests.
+ * If data is a string, it is returned as is.
+ * If data is an object, it is serialized as JSON.
+ * @param data input data to be serialized
+ * @returns serialized data and content type
+ */
+export function serializeHttp(data: any): { serializedData: string; contentType: string } {
+  let contentType = getContentType(data);
+  if (contentType === "text/plain") {
+    return { serializedData: data, contentType };
+  } else {
+    return { serializedData: JSON.stringify(data), contentType };
+  }
+}

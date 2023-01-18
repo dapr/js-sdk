@@ -16,6 +16,7 @@ import { InvokeBindingRequest, InvokeBindingResponse } from "../../../proto/dapr
 import IClientBinding from "../../../interfaces/Client/IClientBinding";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import { addMetadataToMap } from "../../../utils/Client.util";
+import { KeyValueType } from "../../../types/KeyValue.type";
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class GRPCClientBinding implements IClientBinding {
@@ -26,13 +27,16 @@ export default class GRPCClientBinding implements IClientBinding {
   }
 
   // Send an event to an external system
-  // @todo: should pass the metadata object
   // @todo: should return a specific typed Promise<TypeBindingResponse> instead of Promise<object>
-  async send(bindingName: string, operation: string, data: any, metadata: object = {}): Promise<object> {
+  async send(bindingName: string, operation: string, data: any, metadata: KeyValueType = {}): Promise<object> {
     const msgService = new InvokeBindingRequest();
     msgService.setName(bindingName);
     msgService.setOperation(operation);
-    msgService.setData(SerializerUtil.serializeGrpc(data).serializedData);
+
+    if (data) {
+      const serialized = SerializerUtil.serializeGrpc(data);
+      msgService.setData(serialized.serializedData);
+    }
 
     addMetadataToMap(msgService.getMetadataMap(), metadata);
 

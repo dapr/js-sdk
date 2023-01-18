@@ -86,41 +86,39 @@ export default class HTTPServerImpl {
       this.server.post(`/${routeObj.path}`, async (req, res) => {
         const headers = req.headers;
 
-        // TODO: remove this
-        this.logger.info(`[route-${routeObj.path}] Received message from Dapr: ${JSON.stringify(req.body)}`);
-
         // Data can be present in req.body.data or req.body.data_base64
-        var data: any;
+        let data: any;
         const payload = req.body ?? "";
+
+        // The payload should be an object with string keys and any values.
+        // If data is present in req.body.data, use that as-is.
+        // Else, data is present in req.body.data_base64, and decode it from base64.
         if (payload instanceof Object && !(payload instanceof Array || payload instanceof Buffer)) {
           if (payload.data) {
-            // If data is present in req.body.data, use that as-is.
             data = payload.data;
           } else if (payload.data_base64 && typeof payload.data_base64 === "string") {
-            // If data is present in req.body.data_base64, decode it from base64.
-            data = Buffer.from(payload.data_base64, "base64").toString();
+            const parsedBase64 = Buffer.from(payload.data_base64, "base64").toString();
             try {
-              data = JSON.parse(data);
+              // This can be JSON, so try to parse it.
+              data = JSON.parse(parsedBase64);
             } catch (_e) {
-              data = data;
+              // If it's not JSON, use the string as-is.
+              data = parsedBase64;
             }
           }
         }
 
-        // TODO: remove this
-        this.logger.info(`[route - ${routeObj.path}]Processing message: ${data}`);
-
-        // Process our callback
+        // Process the callback
         try {
           const eventHandlers = routeObj.eventHandlers;
           await Promise.all(eventHandlers.map((cb) => cb(data, headers)));
         } catch (e) {
-          this.logger.error(`[route - ${routeObj.path}]Message processing failed, dropping: ${e}`);
+          this.logger.error(`[route-${routeObj.path}]Message processing failed, dropping: ${e}`);
           return res.send({ status: SubscribedMessageHttpResponse.DROP });
         }
 
         // Let Dapr know that the message was processed correctly
-        this.logger.debug(`[route - ${routeObj.path}]Ack'ing the message`);
+        this.logger.debug(`[route-${routeObj.path}]Ack'ing the message`);
         return res.send({ status: SubscribedMessageHttpResponse.SUCCESS });
       });
     }
