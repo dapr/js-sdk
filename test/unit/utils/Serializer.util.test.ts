@@ -15,13 +15,13 @@ import * as SerializerUtil from "../../../src/utils/Serializer.util";
 
 describe("serializer", () => {
   describe("grpc", () => {
-    it("Object should be serialized to Buffer as application/json", () => {
+    it("should serialize an object to buffer of type application/json", () => {
       const data = SerializerUtil.serializeGrpc({ Hello: "World" });
       expect(Buffer.compare(data.serializedData, Buffer.from(JSON.stringify({ Hello: "World" })))).toEqual(0);
       expect(data.contentType).toEqual("application/json");
     });
 
-    it("Object in CloudEvent Format should be serialized to Buffer as application/cloudevents+json", () => {
+    it("should serialize an Object in CloudEvent Format to Buffer of type application/cloudevents+json", () => {
       const obj = {
         id: "demo",
         source: "demo",
@@ -35,19 +35,19 @@ describe("serializer", () => {
       expect(data.contentType).toEqual("application/cloudevents+json");
     });
 
-    it("String should be serialized as text/plain and as Buffer", () => {
+    it("should serialize a String to a Buffer of type text/plain", () => {
       const data = SerializerUtil.serializeGrpc("hello-world");
       expect(data.serializedData).toEqual(Buffer.from("hello-world"));
       expect(data.contentType).toEqual("text/plain");
     });
 
-    it("Buffer should be serialized to Buffer as application/octet-stream", () => {
+    it("should serialize a Buffer to Buffer of type application/octet-stream", () => {
       const data = SerializerUtil.serializeGrpc(Buffer.from("hello-world"));
       expect(Buffer.compare(data.serializedData, Buffer.from("hello-world", "utf-8"))).toEqual(0);
       expect(data.contentType).toEqual("application/octet-stream");
     });
 
-    it("Buffer object should not be serialized again", () => {
+    it("should not serialize a Buffer object again", () => {
       const data = SerializerUtil.serializeGrpc(Buffer.from("Hello World"));
       expect(Buffer.compare(data.serializedData, Buffer.from("Hello World"))).toEqual(0);
       expect(data.contentType).toEqual("application/octet-stream");
@@ -55,13 +55,13 @@ describe("serializer", () => {
   });
 
   describe("http", () => {
-    it("Object should be serialized to string as application/json", () => {
+    it("should serialize an Object to string of type application/json", () => {
       const data = SerializerUtil.serializeHttp({ Hello: "World" });
       expect(data.serializedData).toEqual(JSON.stringify({ Hello: "World" }));
       expect(data.contentType).toEqual("application/json");
     });
 
-    it("Object in CloudEvent Format should be serialized to string as application/cloudevents+json", () => {
+    it("should serialize an Object in CloudEvent Format to string of type application/cloudevents+json", () => {
       const obj = {
         id: "demo",
         source: "demo",
@@ -75,19 +75,19 @@ describe("serializer", () => {
       expect(data.contentType).toEqual("application/cloudevents+json");
     });
 
-    it("String should be serialized as text/plain and as plain text", () => {
+    it("should serialize a String to plain text of type text/plain", () => {
       const data = SerializerUtil.serializeHttp("hello-world");
       expect(data.serializedData).toEqual("hello-world");
       expect(data.contentType).toEqual("text/plain");
     });
 
-    it("Buffer should be serialized to Buffer as application/octet-stream", () => {
+    it("should serialize a Buffer to Buffer of type application/octet-stream", () => {
       const data = SerializerUtil.serializeHttp(Buffer.from("hello-world"));
       expect(data.serializedData).toEqual(Buffer.from("hello-world", "utf-8"));
       expect(data.contentType).toEqual("application/octet-stream");
     });
 
-    it("Buffer object should not be serialized again", () => {
+    it("should not serialize a Buffer object again", () => {
       const data = SerializerUtil.serializeHttp(Buffer.from("Hello World"));
       expect(data.serializedData).toEqual(Buffer.from("Hello World"));
       expect(data.contentType).toEqual("application/octet-stream");

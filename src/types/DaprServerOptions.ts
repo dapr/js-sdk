@@ -21,7 +21,7 @@ export type DaprServerOptions = {
   maxBodySizeMb?: number;
 
   /**
-   * Bring your own express server instance
+   * Express server instance
    */
   serverHttp?: express.Express;
 };

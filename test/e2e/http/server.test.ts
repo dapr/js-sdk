@@ -120,13 +120,13 @@ describe("http/server", () => {
 
   describe("server", () => {
     it("should allow us to pass a custom HTTP Server", async () => {
-      const yourApp = express();
+      const myApp = express();
 
-      yourApp.get("/my-custom-endpoint", (req, res) => {
+      myApp.get("/my-custom-endpoint", (req, res) => {
         res.send({ msg: "My own express app!" });
       });
 
-      const yourAppDaprServer = new DaprServer(
+      const myAppDaprServer = new DaprServer(
         serverHost,
         "50002",
         daprHost,
@@ -134,14 +134,14 @@ describe("http/server", () => {
         CommunicationProtocolEnum.HTTP,
         {},
         {
-          serverHttp: yourApp,
+          serverHttp: myApp,
         },
       );
 
       // initialize subscribtions, ... before server start
       // the dapr sidecar relies on these
       // this will also initialize the app server itself (removing the need for app.listen to be called)
-      await yourAppDaprServer.start();
+      await myAppDaprServer.start();
 
       // Try to call the custom endpoint
       const res = await fetch(`http://${serverHost}:50002/my-custom-endpoint`);

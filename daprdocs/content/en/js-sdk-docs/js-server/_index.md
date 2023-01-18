@@ -72,15 +72,15 @@ Instead of using the built-in web server for Dapr sidecar to application communi
 
 Note, this is currently available for [`express`](https://www.npmjs.com/package/express) only.
 
-> 💡 Note: when bringing your own webserver, we will introduce certain overrides that might happen (e.g., configuring the body size, adding certain routes, ...). We avoid collisions in routes by having our own uniques ones, but cannot guarantee collissions.
+> 💡 Note: when using a custom web-server, the SDK will configure server properties like max body size, and add new routes to it. The routes are unique on their own to avoid any collisions with your application, but it's not guaranteed to not collide.
 
 ```typescript
 import { DaprServer, CommunicationProtocolEnum } from "@dapr/dapr";
 import express from "express";
 
-const yourApp = express();
+const myApp = express();
 
-yourApp.get("/my-custom-endpoint", (req, res) => {
+myApp.get("/my-custom-endpoint", (req, res) => {
   res.send({ msg: "My own express app!" });
 });
 
@@ -92,13 +92,12 @@ const daprServer = new DaprServer(
   CommunicationProtocolEnum.HTTP,
   {},
   {
-    serverHttp: yourApp,
+    serverHttp: myApp,
   },
 );
 
-// initialize subscribtions, ... before server start
-// the dapr sidecar relies on these
-// this will also initialize the app server itself (removing the need for app.listen to be called)
+// Initialize subscriptions before the server starts, the Dapr sidecar uses it.
+// This will also initialize the app server itself (removing the need for `app.listen` to be called).
 await daprServer.start();
 ```
 
