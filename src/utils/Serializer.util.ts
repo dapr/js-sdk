@@ -27,7 +27,7 @@ export function serializeGrpc(data: any): { serializedData: Buffer; contentType:
     case "text/plain":
     case "application/octet-stream":
     default:
-      serializedData = Buffer.from(data);
+      serializedData = Buffer.from(data.toString());
       break;
   }
 
@@ -45,7 +45,7 @@ export function serializeHttp(data: any): {
 
   switch (contentType) {
     case "text/plain":
-      serializedData = data;
+      serializedData = data.toString();
       break;
     case "application/json":
     case "application/cloudevents+json":

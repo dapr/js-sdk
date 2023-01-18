@@ -41,6 +41,18 @@ describe("serializer", () => {
       expect(data.contentType).toEqual("text/plain");
     });
 
+    it("should serialize a Number to Buffer of type text/plain", () => {
+      const data = SerializerUtil.serializeGrpc(123);
+      expect(data.serializedData).toEqual(Buffer.from("123"));
+      expect(data.contentType).toEqual("text/plain");
+    });
+
+    it("should serialize a Boolean to Buffer of type text/plain", () => {
+      const data = SerializerUtil.serializeGrpc(true);
+      expect(data.serializedData).toEqual(Buffer.from("true"));
+      expect(data.contentType).toEqual("text/plain");
+    });
+
     it("should serialize a Buffer to Buffer of type application/octet-stream", () => {
       const data = SerializerUtil.serializeGrpc(Buffer.from("hello-world"));
       expect(Buffer.compare(data.serializedData, Buffer.from("hello-world", "utf-8"))).toEqual(0);
@@ -78,6 +90,18 @@ describe("serializer", () => {
     it("should serialize a String to plain text of type text/plain", () => {
       const data = SerializerUtil.serializeHttp("hello-world");
       expect(data.serializedData).toEqual("hello-world");
+      expect(data.contentType).toEqual("text/plain");
+    });
+
+    it("should serialize a Number to plain text of type text/plain", () => {
+      const data = SerializerUtil.serializeHttp(123);
+      expect(data.serializedData).toEqual("123");
+      expect(data.contentType).toEqual("text/plain");
+    });
+
+    it("should serialize a Boolean to plain text of type text/plain", () => {
+      const data = SerializerUtil.serializeHttp(true);
+      expect(data.serializedData).toEqual("true");
       expect(data.contentType).toEqual("text/plain");
     });
 
