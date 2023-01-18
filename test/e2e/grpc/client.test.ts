@@ -20,7 +20,7 @@ import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runt
 import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 import { InterceptingListener } from "@grpc/grpc-js/build/src/call-stream";
 import { NextCall } from "@grpc/grpc-js/build/src/client-interceptors";
-import * as crypto from "crypto";
+import { randomUUID } from "crypto";
 
 const daprHost = "localhost";
 const daprPort = "50000"; // Dapr Sidecar Port of this Example Server
@@ -515,7 +515,7 @@ describe("grpc/client", () => {
 
   describe("distributed lock", () => {
     it("should be able to acquire a new lock and unlock", async () => {
-      const resourceId = crypto.randomUUID();
+      const resourceId = randomUUID();
       const tryLock = await client.lock.tryLock("redislock", resourceId, "owner1", 1000);
       expect(tryLock.success).toEqual(true);
       const unlock = await client.lock.unlock("redislock", resourceId, "owner1");
@@ -523,13 +523,13 @@ describe("grpc/client", () => {
     });
 
     it("should be not be able to unlock when the lock is not acquired", async () => {
-      const resourceId = crypto.randomUUID();
+      const resourceId = randomUUID();
       const unlock = await client.lock.unlock("redislock", resourceId, "owner1");
       expect(unlock.status).toEqual(LockStatus.LockDoesNotExist);
     });
 
     it("should be able to acquire a lock after the previous lock is expired", async () => {
-      const resourceId = crypto.randomUUID();
+      const resourceId = randomUUID();
       let tryLock = await client.lock.tryLock("redislock", resourceId, "owner1", 5);
       expect(tryLock.success).toEqual(true);
       await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -538,7 +538,7 @@ describe("grpc/client", () => {
     });
 
     it("should not be able to acquire a lock when the same lock is acquired by another owner", async () => {
-      const resourceId = crypto.randomUUID();
+      const resourceId = randomUUID();
       const tryLockOne = await client.lock.tryLock("redislock", resourceId, "owner1", 5);
       expect(tryLockOne.success).toEqual(true);
       const tryLockTwo = await client.lock.tryLock("redislock", resourceId, "owner2", 5);
@@ -546,14 +546,14 @@ describe("grpc/client", () => {
     });
 
     it("should be able to acquire a lock when a different lock is acquired by another owner", async () => {
-      const tryLockOne = await client.lock.tryLock("redislock", crypto.randomUUID(), "owner1", 5);
+      const tryLockOne = await client.lock.tryLock("redislock", randomUUID(), "owner1", 5);
       expect(tryLockOne.success).toEqual(true);
-      const tryLockTwo = await client.lock.tryLock("redislock", crypto.randomUUID(), "owner2", 5);
+      const tryLockTwo = await client.lock.tryLock("redislock", randomUUID(), "owner2", 5);
       expect(tryLockTwo.success).toEqual(true);
     });
 
     it("should not be able to acquire a lock when that lock is acquired by another owner/process", async () => {
-      const resourceId = crypto.randomUUID();
+      const resourceId = randomUUID();
       const tryLockOne = await client.lock.tryLock("redislock", resourceId, "owner3", 5);
       expect(tryLockOne.success).toEqual(true);
       const tryLockTwo = await client.lock.tryLock("redislock", resourceId, "owner4", 5);
@@ -561,7 +561,7 @@ describe("grpc/client", () => {
     });
 
     it("should not be able to unlock a lock when that lock is acquired by another owner/process", async () => {
-      const resourceId = crypto.randomUUID();
+      const resourceId = randomUUID();
       const tryLockOne = await client.lock.tryLock("redislock", resourceId, "owner5", 5);
       expect(tryLockOne.success).toEqual(true);
       const unlock = await client.lock.unlock("redislock", resourceId, "owner6");
