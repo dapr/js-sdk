@@ -68,9 +68,9 @@ npm run start:dapr-http
 
 ### Using HTTP (bring your own express webserver)
 
-By default, for sidecar to application communication we bring a webserver that is configured to listen to the Sidecar calls as defined in the Dapr API specification. However, in some scenarios (e.g., when you are building a REST API backend and want to integrate Dapr directly in it) you want to bring your own webserver.
+Instead of using the built-in web server for Dapr sidecar to application communication, you can also bring your own instance. This is helpful in scenarios like when you are building a REST API back-end and want to integrate Dapr directly in it.
 
-As the Dapr JS SDK team, we do support this scenario, but currently this is only available for [`express`](https://www.npmjs.com/package/express).
+Note, this is currently available for [`express`](https://www.npmjs.com/package/express) only.
 
 > 💡 Note: when bringing your own webserver, we will introduce certain overrides that might happen (e.g., configuring the body size, adding certain routes, ...). We avoid collisions in routes by having our own uniques ones, but cannot guarantee collissions.
 
