@@ -64,6 +64,16 @@ describe("serializer", () => {
       expect(Buffer.compare(data.serializedData, Buffer.from("Hello World"))).toEqual(0);
       expect(data.contentType).toEqual("application/octet-stream");
     });
+
+    it("should not cause the body to be inflated", () => {
+      const payload = new Uint8Array(5 * 1024 * 1024);
+      const data = SerializerUtil.serializeGrpc(payload);
+
+      const payloadLength = Math.round(payload.length);
+      const dataLength = Math.round(Object.keys(data.serializedData).length);
+
+      expect(payloadLength).toEqual(dataLength);
+    });
   });
 
   describe("http", () => {
