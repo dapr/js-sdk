@@ -268,8 +268,8 @@ describe("http/actors", () => {
       const res0 = await actor.getCounter();
       expect(res0).toEqual(0);
 
-      // Now we wait for dueTime (1.5s)
-      await NodeJSUtil.sleep(1500);
+      // Now we wait for dueTime (1.5s) + small extra certainty delay (+0.1s)
+      await NodeJSUtil.sleep(1600);
 
       // After that the reminder callback will be called
       // In our case, the callback increments the count attribute
