@@ -12,13 +12,51 @@ limitations under the License.
 */
 
 import { getContentType } from "./Client.util";
+import { BodyInit } from "node-fetch";
 
 export function serializeGrpc(data: any): { serializedData: Buffer; contentType: string } {
-  let serializedData = data;
-  let contentType = "application/octet-stream";
-  if (!(data instanceof Buffer)) {
-    serializedData = Buffer.from(JSON.stringify(data), "utf-8");
-    contentType = getContentType(data);
+  let serializedData: Buffer = data;
+
+  const contentType = getContentType(data);
+
+  switch (contentType) {
+    case "application/json":
+    case "application/cloudevents+json":
+      serializedData = Buffer.from(JSON.stringify(data));
+      break;
+    case "text/plain":
+      serializedData = Buffer.from(data.toString());
+      break;
+    case "application/octet-stream":
+    default:
+      serializedData = Buffer.from(data);
+      break;
+  }
+
+  return { serializedData, contentType };
+}
+
+export function serializeHttp(data: any): {
+  // https://developer.mozilla.org/en-US/docs/Web/API/fetch#body
+  serializedData: BodyInit;
+  contentType: string;
+} {
+  let serializedData: BodyInit;
+
+  const contentType = getContentType(data);
+
+  switch (contentType) {
+    case "application/json":
+    case "application/cloudevents+json":
+      serializedData = JSON.stringify(data);
+      break;
+    case "text/plain":
+      serializedData = data.toString();
+      break;
+    case "application/octet-stream":
+    default:
+      serializedData = data;
+      break;
   }
 
   return { serializedData, contentType };

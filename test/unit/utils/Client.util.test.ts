@@ -48,6 +48,7 @@ describe("Client.util", () => {
       expect(grpcMetadata.toJSON()).toEqual({});
     });
   });
+
   describe("getHTTPMetadataQueryParam", () => {
     it("converts a KeyValueType to a HTTP query parameters", () => {
       const metadata = {
@@ -85,6 +86,7 @@ describe("Client.util", () => {
       );
     });
   });
+
   describe("createConfigurationType", () => {
     it("converts a dictionary to a configuration type", () => {
       const item1 = new ConfigurationItem();
@@ -123,16 +125,32 @@ describe("Client.util", () => {
       });
     });
   });
+
   describe("getContentType", () => {
-    it("returns text/plain for a string", () => {
+    it("should return text/plain for a string", () => {
       expect(getContentType("foobar")).toEqual("text/plain");
     });
 
-    it("returns application/json for an object", () => {
+    it("should return application/octet-stream for a buffer", () => {
+      const payload = new Uint8Array(0.01 * 1024 * 1024);
+      expect(getContentType(payload)).toEqual("application/octet-stream");
+    });
+
+    it("should return application/json for a JSON valid string array", () => {
+      const payload = ["a", "b", "c"];
+      expect(getContentType(payload)).toEqual("application/json");
+    });
+
+    it("should return application/json for a JSON valid number array", () => {
+      const payload = [1, 2, 3];
+      expect(getContentType(payload)).toEqual("application/json");
+    });
+
+    it("should return application/json for an object", () => {
       expect(getContentType({ foo: "bar" })).toEqual("application/json");
     });
 
-    it("returns application/cloudevents+json for a CloudEvent", () => {
+    it("should return application/cloudevents+json for a CloudEvent", () => {
       const validCloudEvents = [
         {
           specversion: "1.0",
