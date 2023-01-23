@@ -16,6 +16,7 @@ import HTTPServerImpl from "../../../src/implementation/Server/HTTPServer/HTTPSe
 
 describe("HttpServerImpl", () => {
   const server = new HTTPServerImpl(express());
+
   describe("extractSubscribeDataFromRequest", () => {
     it("should return string data correctly from req.body.data", () => {
       const req = {
@@ -24,8 +25,10 @@ describe("HttpServerImpl", () => {
         },
       } as any;
       const data = server.extractSubscribeDataFromRequest(req);
+
       expect(data).toEqual("Hello, world!");
     });
+
     it("should return object data correctly from req.body.data", () => {
       const req = {
         body: {
@@ -35,10 +38,12 @@ describe("HttpServerImpl", () => {
         },
       } as any;
       const data = server.extractSubscribeDataFromRequest(req);
+
       expect(data).toEqual({
         foo: "bar",
       });
     });
+
     it("should return data instead of data_base64 if former is present", () => {
       const req = {
         body: {
@@ -47,8 +52,10 @@ describe("HttpServerImpl", () => {
         },
       } as any;
       const data = server.extractSubscribeDataFromRequest(req);
+
       expect(data).toEqual("Hello, world!");
     });
+
     it("should return data_base64 decoded if data is not present", () => {
       const req = {
         body: {
@@ -56,8 +63,10 @@ describe("HttpServerImpl", () => {
         },
       } as any;
       const data = server.extractSubscribeDataFromRequest(req);
+
       expect(data).toEqual("Hello, world!");
     });
+
     it("should parse data_base64 as JSON", () => {
       const req = {
         body: {
@@ -65,10 +74,12 @@ describe("HttpServerImpl", () => {
         },
       } as any;
       const data = server.extractSubscribeDataFromRequest(req);
+
       expect(data).toEqual({
         foo: "bar",
       });
     });
+
     it("should return the req.body if data or data_base64 are not present", () => {
       const req = {
         body: {
@@ -76,6 +87,7 @@ describe("HttpServerImpl", () => {
         },
       } as any;
       const data = server.extractSubscribeDataFromRequest(req);
+
       expect(data).toEqual({
         foo: "bar",
       });

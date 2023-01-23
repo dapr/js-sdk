@@ -48,23 +48,30 @@ export default class HTTPServerImpl {
     const payload = req.body ?? "";
 
     // The payload should be an object with string keys and any values.
-    // If data is present in req.body.data, use that as-is.
-    // Else, data is present in req.body.data_base64, and decode it from base64.
-    if (payload instanceof Object && !(payload instanceof Array || payload instanceof Buffer)) {
-      if (payload.data) {
-        return payload.data;
-      } else if (payload.data_base64 && typeof payload.data_base64 === "string") {
-        const parsedBase64 = Buffer.from(payload.data_base64, "base64").toString();
-        try {
-          // This can be JSON, so try to parse it.
-          return JSON.parse(parsedBase64);
-        } catch (_e) {
-          // If it's not JSON, use the string as-is.
-          return parsedBase64;
-        }
+    if (!(payload instanceof Object) || payload instanceof Array || payload instanceof Buffer) {
+      this.logger.warn(`Could not extract data from request body ${JSON.stringify(payload)}, returning it as-is.`);
+      return payload;
+    }
+
+    // Use data from req.body.data if present.
+    if (payload.data) {
+      return payload.data;
+    }
+
+    // In case of rawPayload, data is present in req.body.data_base64 as base64 encoded string.
+    if (payload.data_base64 && typeof payload.data_base64 === "string") {
+      const parsedBase64 = Buffer.from(payload.data_base64, "base64").toString();
+
+      try {
+        // This can be JSON, so try to parse it.
+        return JSON.parse(parsedBase64);
+      } catch (_e) {
+        // If it's not JSON, use the string as-is.
+        return parsedBase64;
       }
     }
 
+    // If we can't find the data, return the request body as-is.
     this.logger.warn(`Could not extract data from request body ${JSON.stringify(payload)}, returning it as-is.`);
     return payload;
   }
