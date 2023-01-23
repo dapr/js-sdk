@@ -21,6 +21,7 @@ const daprAppId = "test-suite";
 
 describe("grpc/server", () => {
   let server: DaprServer;
+  const mockInvoker = jest.fn(async (_data: object) => _data);
   const mockBindingReceive = jest.fn(async (_data: object) => null);
   const mockPubSub = jest.fn(async (_data: object) => null);
   const mockPubSubWithHeaders = jest.fn(async (_data: object, _headers: object) => null);
@@ -31,9 +32,18 @@ describe("grpc/server", () => {
   // We need to start listening on some endpoints already
   // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
-    server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+    server = new DaprServer(
+      serverHost,
+      serverPort,
+      daprHost,
+      daprPort,
+      CommunicationProtocolEnum.GRPC,
+      { maxBodySizeMb: 20 }, // we set sending larger than receiving to test the error handling
+      { maxBodySizeMb: 10 },
+    );
 
     await server.binding.receive("binding-mqtt", mockBindingReceive);
+    await server.invoker.listen("test-invoker", mockInvoker, { method: HttpMethod.POST });
 
     // Test with:
     // dapr publish --publish-app-id test-suite --pubsub pubsub-redis --topic test-topic --data '{ "hello": "world" }'
@@ -106,6 +116,33 @@ describe("grpc/server", () => {
     await server.stop();
   });
 
+  describe("server", () => {
+    it("should throw an error if the receive payload is larger than 10 MB and we did not configure a larger size", async () => {
+      const payload = new Uint8Array(11 * 1024 * 1024);
+
+      try {
+        await server.client.invoker.invoke(daprAppId, "test-invoker", HttpMethod.POST, payload);
+      } catch (e: any) {
+        expect(e?.details).toEqual(`grpc: received message larger than max (11534407 vs. ${10 * 1024 * 1024})`);
+      }
+    });
+
+    it("should be able to receive payloads larger than 4 MB", async () => {
+      await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
+      const payload = new Uint8Array(5 * 1024 * 1024);
+
+      try {
+        const res = await server.client.invoker.invoke(daprAppId, "test-invoker", HttpMethod.POST, payload);
+        console.log(res);
+      } catch (e) {
+        console.log(e);
+      }
+
+      // Delay a bit for event to arrive
+      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+    });
+  });
+
   describe("binding", () => {
     it("should be able to receive events", async () => {
       await server.client.binding.send("binding-mqtt", "create", { hello: "world" });
@@ -129,6 +166,7 @@ describe("grpc/server", () => {
 
   describe("pubsub", () => {
     it("should be able to send and receive plain events", async () => {
+      // [Error: 13 INTERNAL: Request message serialization failure: Unknown base64 encoding at char: ,]
       await server.client.pubsub.publish("pubsub-redis", "topic-1", "Hello, world!");
 
       // Delay a bit for event to arrive

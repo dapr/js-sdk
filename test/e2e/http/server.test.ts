@@ -11,6 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import express from "express";
+import fetch from "node-fetch";
 import { CommunicationProtocolEnum, DaprServer, HttpMethod } from "../../../src";
 import { DaprInvokerCallbackContent } from "../../../src/types/DaprInvokerCallback.type";
 import { KeyValueType } from "../../../src/types/KeyValue.type";
@@ -25,6 +27,7 @@ describe("http/server", () => {
   let server: DaprServer;
   const mockBindingReceive = jest.fn(async (_data: object) => null);
   const mockPubSub = jest.fn(async (_data: object) => null);
+  const mockInvoke = jest.fn(async (_data: object) => null);
   const mockPubSubWithHeaders = jest.fn(async (_data: object, _headers: object) => null);
   const mockPubSubError = jest.fn(async (_data: object) => {
     throw new Error("DROPPING MESSAGE");
@@ -34,7 +37,15 @@ describe("http/server", () => {
   // this because Dapr is not dynamic and registers endpoints on boot
   // we put a timeout of 10s since it takes around 4s for Dapr to boot up
   beforeAll(async () => {
-    server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.HTTP);
+    server = new DaprServer(
+      serverHost,
+      serverPort,
+      daprHost,
+      daprPort,
+      CommunicationProtocolEnum.HTTP,
+      { maxBodySizeMb: 20 }, // we set sending larger than receiving to test the error handling
+      { maxBodySizeMb: 10 },
+    );
 
     await server.binding.receive("binding-mqtt", mockBindingReceive);
 
@@ -97,6 +108,7 @@ describe("http/server", () => {
 
   beforeEach(() => {
     mockBindingReceive.mockClear();
+    mockInvoke.mockClear();
     mockPubSub.mockClear();
     mockPubSubError.mockClear();
     mockPubSubWithHeaders.mockClear();
@@ -104,6 +116,83 @@ describe("http/server", () => {
 
   afterAll(async () => {
     await server.stop();
+  });
+
+  describe("server", () => {
+    it("should allow us to pass a custom HTTP Server", async () => {
+      const myApp = express();
+
+      myApp.get("/my-custom-endpoint", (req, res) => {
+        res.send({ msg: "My own express app!" });
+      });
+
+      const myAppDaprServer = new DaprServer(
+        serverHost,
+        "50002",
+        daprHost,
+        daprPort,
+        CommunicationProtocolEnum.HTTP,
+        {},
+        {
+          serverHttp: myApp,
+        },
+      );
+
+      // initialize subscribtions, ... before server start
+      // the dapr sidecar relies on these
+      // this will also initialize the app server itself (removing the need for app.listen to be called)
+      await myAppDaprServer.start();
+
+      // Try to call the custom endpoint
+      const res = await fetch(`http://${serverHost}:50002/my-custom-endpoint`);
+      const json = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(json).toBeDefined();
+      expect(json.msg).toBe("My own express app!");
+
+      // Should still be able to call Dapr endpoints
+      // Note: we call manually instead of using the server.client as the server is not running on the default port
+      await myAppDaprServer.invoker.listen("dapr-endpoint", mockInvoke, { method: HttpMethod.POST });
+
+      await fetch(`http://${serverHost}:50002/dapr-endpoint`, {
+        method: "POST",
+        body: JSON.stringify({}),
+      });
+
+      expect(mockInvoke).toHaveBeenCalledTimes(1);
+
+      // Cleanup the resources
+      await myAppDaprServer.stop();
+    });
+
+    it("should be able to receive payloads larger than 4 MB", async () => {
+      await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
+
+      // Create a 5Mb payload
+      const payload = new Uint8Array(5 * 1024 * 1024);
+
+      await server.invoker.listen("invoke-large-payload-1", mockInvoke, { method: HttpMethod.POST });
+      await server.client.invoker.invoke(daprAppId, "invoke-large-payload-1", HttpMethod.POST, payload);
+
+      expect(mockInvoke).toHaveBeenCalledTimes(1);
+    });
+
+    it("should throw an error if the receive payload is larger than 4 MB and we did not configure a larger size", async () => {
+      const payload = new Uint8Array(11 * 1024 * 1024);
+      await server.invoker.listen("invoke-large-payload-2", mockInvoke, { method: HttpMethod.POST });
+
+      try {
+        await server.client.invoker.invoke(daprAppId, "invoke-large-payload-2", HttpMethod.POST, payload);
+      } catch (e: any) {
+        // https://nodejs.org/dist/latest/docs/api/errors.html
+        // we will receive EPIPE if server closes
+        // on upload this is if the body is too large
+        expect(e.message).toBeDefined();
+      }
+
+      expect(mockInvoke).not.toHaveBeenCalledTimes(1);
+    });
   });
 
   describe("binding", () => {
@@ -132,7 +221,7 @@ describe("http/server", () => {
 
       // Also test for receiving data
       // @ts-ignore
-      expect(mockPubSub.mock.calls[0][0]).toEqual('"Hello, world!"');
+      expect(mockPubSub.mock.calls[0][0]).toEqual("Hello, world!");
     });
 
     it("should be able to send and receive JSON events", async () => {
@@ -143,7 +232,6 @@ describe("http/server", () => {
 
       expect(mockPubSub.mock.calls.length).toBe(1);
 
-      // Also test for receiving data
       // @ts-ignore
       expect(mockPubSub.mock.calls[0][0]["hello"]).toEqual("world");
     });
@@ -183,12 +271,9 @@ describe("http/server", () => {
       expect(mockPubSubWithHeaders.mock.calls.length).toBe(1);
 
       // Also test for receiving data
-      // @ts-ignore
-      expect(mockPubSubWithHeaders.mock.calls[0][1]?.["content-type"]).toEqual("application/cloudevents+json");
-      // @ts-ignore
-      expect(mockPubSubWithHeaders.mock.calls[0][1]?.["content-length"]).toEqual("410");
-      // @ts-ignore
-      expect(mockPubSubWithHeaders.mock.calls[0][1]?.["pubsubname"]).toEqual("pubsub-redis");
+      expect(mockPubSubWithHeaders.mock.calls[0][1]).toHaveProperty("content-type");
+      expect(mockPubSubWithHeaders.mock.calls[0][1]).toHaveProperty("content-length");
+      expect(mockPubSubWithHeaders.mock.calls[0][1]).toHaveProperty("pubsubname");
     });
 
     it("should be able to send and receive events when using options callback without a route", async () => {

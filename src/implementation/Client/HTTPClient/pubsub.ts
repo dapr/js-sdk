@@ -15,9 +15,8 @@ import HTTPClient from "./HTTPClient";
 import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 import { Logger } from "../../../logger/Logger";
 import { KeyValueType } from "../../../types/KeyValue.type";
-import { createHTTPMetadataQueryParam, getContentType } from "../../../utils/Client.util";
+import { createHTTPMetadataQueryParam } from "../../../utils/Client.util";
 import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
-import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPClientPubSub implements IClientPubSub {
@@ -36,19 +35,12 @@ export default class HTTPClientPubSub implements IClientPubSub {
     metadata?: KeyValueType,
   ): Promise<PubSubPublishResponseType> {
     const queryParams = createHTTPMetadataQueryParam(metadata);
-    const params: THTTPExecuteParams = {
-      method: "POST",
-      headers: {
-        "Content-Type": getContentType(data),
-      },
-    };
-
-    if (data) {
-      params.body = JSON.stringify(data);
-    }
 
     try {
-      await this.client.execute(`/publish/${pubSubName}/${topic}?${queryParams}`, params);
+      await this.client.execute(`/publish/${pubSubName}/${topic}?${queryParams}`, {
+        method: "POST",
+        body: data,
+      });
     } catch (e: any) {
       this.logger.error(`publish failed: ${e}`);
       return { error: e };

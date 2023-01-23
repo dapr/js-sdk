@@ -11,13 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { v4 as uuidv4 } from "uuid";
 import { DaprClient } from "../../../src";
 import ActorRuntime from "../../../src/actors/runtime/ActorRuntime";
 import ActorId from "../../../src/actors/ActorId";
 import DemoActorCounterImpl from "../../actor/DemoActorCounterImpl";
 import DemoActorSayImpl from "../../actor/DemoActorSayImpl";
 import { ActorRuntimeOptions } from "../../../src/types/actors/ActorRuntimeOptions";
+import { randomUUID } from "crypto";
 
 describe("ActorRuntime", () => {
   let client: DaprClient;
@@ -102,7 +102,7 @@ describe("ActorRuntime", () => {
   });
 
   it("should be able to invoke an actor", async () => {
-    const actorId = uuidv4();
+    const actorId = randomUUID();
 
     await runtime.registerActor(DemoActorSayImpl);
 
@@ -111,7 +111,7 @@ describe("ActorRuntime", () => {
   });
 
   it("should receive an error if the actor method does not exist", async () => {
-    const actorId = uuidv4();
+    const actorId = randomUUID();
 
     await runtime.registerActor(DemoActorCounterImpl);
 
@@ -127,11 +127,11 @@ describe("ActorRuntime", () => {
 
   it("should be able to fire a reminder", async () => {
     // TODO: add this test
-    new ActorId(uuidv4());
+    new ActorId(randomUUID());
   });
 
   it("should be able to fire a timer", async () => {
     // TODO: add this test
-    new ActorId(uuidv4());
+    new ActorId(randomUUID());
   });
 });

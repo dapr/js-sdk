@@ -22,7 +22,7 @@ export default class DemoActorActivateImpl extends AbstractActor implements Demo
 
   async onActivate(): Promise<void> {
     try {
-      const callCountActivated: any = await this.getStateManager().getState("call_count_activated");
+      const callCountActivated = (await this.getStateManager().getState("call_count_activated")) as number;
       await this.getStateManager().setState("is_activated", true);
       await this.getStateManager().setState("call_count_activated", callCountActivated + 1);
     } catch (e) {
@@ -31,16 +31,16 @@ export default class DemoActorActivateImpl extends AbstractActor implements Demo
     }
 
     // Set the properties on activate from the state store
-    const resIsActivated: any = await this.getStateManager().getState("is_activated");
-    const resCallCountActivated: any = await this.getStateManager().getState("call_count_activated");
+    const resIsActivated = (await this.getStateManager().getState("is_activated")) as boolean;
+    const resCallCountActivated = (await this.getStateManager().getState("call_count_activated")) as number;
     this.isActivated = resIsActivated;
     this.activateCallCount = resCallCountActivated;
 
     // This will work the second time, so just catch but do nothing
     // the values are populated after deactivation
     try {
-      const resCallCountDeactivated: any = await this.getStateManager().getState("call_count_deactivated");
-      const resIsDeactivated: any = await this.getStateManager().getState("is_deactivated");
+      const resCallCountDeactivated = (await this.getStateManager().getState("call_count_deactivated")) as number;
+      const resIsDeactivated = (await this.getStateManager().getState("is_deactivated")) as boolean;
       this.isDeactivated = resIsDeactivated;
       this.deactivatedCallCount = resCallCountDeactivated;
     } catch (e) {
@@ -50,7 +50,7 @@ export default class DemoActorActivateImpl extends AbstractActor implements Demo
 
   async onDeactivate(): Promise<void> {
     try {
-      const callCountDeactivated: any = await this.getStateManager().getState("call_count_deactivated");
+      const callCountDeactivated = (await this.getStateManager().getState("call_count_deactivated")) as number;
       await this.getStateManager().setState("is_deactivated", true);
       await this.getStateManager().setState("call_count_deactivated", callCountDeactivated + 1);
     } catch (e) {
