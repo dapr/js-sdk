@@ -27,9 +27,6 @@ export default class HTTPServerImpl {
   private readonly server: IServerType;
   private readonly logger: Logger;
 
-  // pubsubSubscriptions: DaprPubSubType[];
-  // pubsubRouteEventHandlers: { [key: string]: TypeDaprPubSubCallback[] };
-
   // Contains all our event handlers and routes
   pubSubSubscriptions: PubSubSubscriptionsType;
 
@@ -38,6 +35,38 @@ export default class HTTPServerImpl {
     this.logger = new Logger("HTTPServer", "HTTPServerImpl", loggerOptions);
 
     this.pubSubSubscriptions = {};
+  }
+
+  /**
+   * Extracts data from the subscribe request body.
+   * Data should be present in req.body.data or req.body.data_base64 depending on the rawPayload metadata.
+   * If the data is not found, the request body is returned as-is.
+   * @param req HTTP Request
+   * @returns Data from the request body.
+   */
+  extractSubscribeDataFromRequest(req: any): any {
+    const payload = req.body ?? "";
+
+    // The payload should be an object with string keys and any values.
+    // If data is present in req.body.data, use that as-is.
+    // Else, data is present in req.body.data_base64, and decode it from base64.
+    if (payload instanceof Object && !(payload instanceof Array || payload instanceof Buffer)) {
+      if (payload.data) {
+        return payload.data;
+      } else if (payload.data_base64 && typeof payload.data_base64 === "string") {
+        const parsedBase64 = Buffer.from(payload.data_base64, "base64").toString();
+        try {
+          // This can be JSON, so try to parse it.
+          return JSON.parse(parsedBase64);
+        } catch (_e) {
+          // If it's not JSON, use the string as-is.
+          return parsedBase64;
+        }
+      }
+    }
+
+    this.logger.warn(`Could not extract data from request body ${JSON.stringify(payload)}, returning it as-is.`);
+    return payload;
   }
 
   /**
@@ -86,39 +115,19 @@ export default class HTTPServerImpl {
       this.server.post(`/${routeObj.path}`, async (req, res) => {
         const headers = req.headers;
 
-        // Data can be present in req.body.data or req.body.data_base64
-        let data: any;
-        const payload = req.body ?? "";
-
-        // The payload should be an object with string keys and any values.
-        // If data is present in req.body.data, use that as-is.
-        // Else, data is present in req.body.data_base64, and decode it from base64.
-        if (payload instanceof Object && !(payload instanceof Array || payload instanceof Buffer)) {
-          if (payload.data) {
-            data = payload.data;
-          } else if (payload.data_base64 && typeof payload.data_base64 === "string") {
-            const parsedBase64 = Buffer.from(payload.data_base64, "base64").toString();
-            try {
-              // This can be JSON, so try to parse it.
-              data = JSON.parse(parsedBase64);
-            } catch (_e) {
-              // If it's not JSON, use the string as-is.
-              data = parsedBase64;
-            }
-          }
-        }
+        const data = this.extractSubscribeDataFromRequest(req);
 
         // Process the callback
         try {
           const eventHandlers = routeObj.eventHandlers;
           await Promise.all(eventHandlers.map((cb) => cb(data, headers)));
         } catch (e) {
-          this.logger.error(`[route-${routeObj.path}]Message processing failed, dropping: ${e}`);
+          this.logger.error(`[route-${routeObj.path}] Message processing failed, dropping: ${e}`);
           return res.send({ status: SubscribedMessageHttpResponse.DROP });
         }
 
         // Let Dapr know that the message was processed correctly
-        this.logger.debug(`[route-${routeObj.path}]Ack'ing the message`);
+        this.logger.debug(`[route-${routeObj.path}] Acknowledging message`);
         return res.send({ status: SubscribedMessageHttpResponse.SUCCESS });
       });
     }
