@@ -44,7 +44,7 @@ export default class HTTPServerImpl {
    * @param req HTTP Request
    * @returns Data from the request body.
    */
-  extractSubscribeDataFromRequest(req: any): any {
+  extractDataFromSubscribeRequest(req: any): any {
     const payload = req.body ?? "";
 
     // The payload should be an object with string keys and any values.
@@ -122,7 +122,7 @@ export default class HTTPServerImpl {
       this.server.post(`/${routeObj.path}`, async (req, res) => {
         const headers = req.headers;
 
-        const data = this.extractSubscribeDataFromRequest(req);
+        const data = this.extractDataFromSubscribeRequest(req);
 
         // Process the callback
         try {

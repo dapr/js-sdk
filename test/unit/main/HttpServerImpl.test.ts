@@ -24,7 +24,7 @@ describe("HttpServerImpl", () => {
           data: "Hello, world!",
         },
       } as any;
-      const data = server.extractSubscribeDataFromRequest(req);
+      const data = server.extractDataFromSubscribeRequest(req);
 
       expect(data).toEqual("Hello, world!");
     });
@@ -37,7 +37,7 @@ describe("HttpServerImpl", () => {
           },
         },
       } as any;
-      const data = server.extractSubscribeDataFromRequest(req);
+      const data = server.extractDataFromSubscribeRequest(req);
 
       expect(data).toEqual({
         foo: "bar",
@@ -51,7 +51,7 @@ describe("HttpServerImpl", () => {
           data_base64: "SGVsbG8sIHdvcmxkIQ==",
         },
       } as any;
-      const data = server.extractSubscribeDataFromRequest(req);
+      const data = server.extractDataFromSubscribeRequest(req);
 
       expect(data).toEqual("Hello, world!");
     });
@@ -62,7 +62,7 @@ describe("HttpServerImpl", () => {
           data_base64: "SGVsbG8sIHdvcmxkIQ==",
         },
       } as any;
-      const data = server.extractSubscribeDataFromRequest(req);
+      const data = server.extractDataFromSubscribeRequest(req);
 
       expect(data).toEqual("Hello, world!");
     });
@@ -73,7 +73,7 @@ describe("HttpServerImpl", () => {
           data_base64: "eyJmb28iOiAiYmFyIn0=",
         },
       } as any;
-      const data = server.extractSubscribeDataFromRequest(req);
+      const data = server.extractDataFromSubscribeRequest(req);
 
       expect(data).toEqual({
         foo: "bar",
@@ -86,7 +86,7 @@ describe("HttpServerImpl", () => {
           foo: "bar",
         },
       } as any;
-      const data = server.extractSubscribeDataFromRequest(req);
+      const data = server.extractDataFromSubscribeRequest(req);
 
       expect(data).toEqual({
         foo: "bar",
