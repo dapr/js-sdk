@@ -11,22 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { LoggerService } from "./LoggerService";
-import { LogLevel } from "./LogLevel";
+import express from "express";
 
-/**
- * LoggerOptions provides options for configuring the logger.
- */
-export type LoggerOptions = {
+export type DaprServerOptions = {
   /**
-   * The minimum level of messages to log.
-   * Default is LogLevel.Info.
+   * The maximum size of the request body in megabytes.
+   * Default is 4MB.
    */
-  level?: LogLevel;
+  maxBodySizeMb?: number;
 
   /**
-   * Logging implementation to use.
-   * Default is to use the console.
+   * Express server instance
    */
-  service?: LoggerService;
+  serverHttp?: express.Express;
 };

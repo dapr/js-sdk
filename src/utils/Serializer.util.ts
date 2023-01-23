@@ -12,34 +12,52 @@ limitations under the License.
 */
 
 import { getContentType } from "./Client.util";
+import { BodyInit } from "node-fetch";
 
 export function serializeGrpc(data: any): { serializedData: Buffer; contentType: string } {
-  let serializedData = data;
-  let contentType = "application/octet-stream";
-  if (!(data instanceof Buffer)) {
-    contentType = getContentType(data);
-    if (contentType === "text/plain") {
-      serializedData = Buffer.from(data, "utf-8");
-    } else {
-      serializedData = Buffer.from(JSON.stringify(data), "utf-8");
-    }
+  let serializedData: Buffer = data;
+
+  const contentType = getContentType(data);
+
+  switch (contentType) {
+    case "application/json":
+    case "application/cloudevents+json":
+      serializedData = Buffer.from(JSON.stringify(data));
+      break;
+    case "text/plain":
+      serializedData = Buffer.from(data.toString());
+      break;
+    case "application/octet-stream":
+    default:
+      serializedData = Buffer.from(data);
+      break;
   }
 
   return { serializedData, contentType };
 }
 
-/**
- * Serialize data for HTTP requests.
- * If data is a string, it is returned as is.
- * If data is an object, it is serialized as JSON.
- * @param data input data to be serialized
- * @returns serialized data and content type
- */
-export function serializeHttp(data: any): { serializedData: string; contentType: string } {
+export function serializeHttp(data: any): {
+  // https://developer.mozilla.org/en-US/docs/Web/API/fetch#body
+  serializedData: BodyInit;
+  contentType: string;
+} {
+  let serializedData: BodyInit;
+
   const contentType = getContentType(data);
-  if (contentType === "text/plain") {
-    return { serializedData: data, contentType };
-  } else {
-    return { serializedData: JSON.stringify(data), contentType };
+
+  switch (contentType) {
+    case "application/json":
+    case "application/cloudevents+json":
+      serializedData = JSON.stringify(data);
+      break;
+    case "text/plain":
+      serializedData = data.toString();
+      break;
+    case "application/octet-stream":
+    default:
+      serializedData = data;
+      break;
   }
+
+  return { serializedData, contentType };
 }

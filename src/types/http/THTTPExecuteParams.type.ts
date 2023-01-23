@@ -13,9 +13,10 @@ limitations under the License.
 
 import * as http from "http";
 import * as https from "https";
+import { BodyInit } from "node-fetch";
 
 export type THTTPExecuteParams = {
-  body?: string;
+  body?: BodyInit | object;
   headers?: { [key: string]: any };
   method: string;
   agent?: http.Agent | https.Agent;

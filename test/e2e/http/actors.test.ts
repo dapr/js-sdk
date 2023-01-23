@@ -92,10 +92,11 @@ describe("http/actors", () => {
     await NodeJSUtil.sleep(serverStartWaitTimeMs);
   }, 30 * 1000);
 
+  // We need to stop the server after all tests are done
+  // Note: it can take > 5s so increase timeout as we are testing reminders and timers
   afterAll(async () => {
-    await server.stop(); // if we hang here, it means connections are open that were not closed. Debug why
-    // await client.stop();
-  });
+    await server.stop();
+  }, 30 * 1000);
 
   describe("configuration", () => {
     it("actor configuration endpoint should contain the correct parameters", async () => {
@@ -280,7 +281,7 @@ describe("http/actors", () => {
       // Now we wait an extra period - duration (1s)
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Make sure the counter didn't change
+      // Make sure the counter didn't change as we removed it
       const res2 = await actor.getCounter();
       expect(res2).toEqual(123);
     });
