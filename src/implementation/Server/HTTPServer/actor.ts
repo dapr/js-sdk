@@ -89,6 +89,7 @@ export default class HTTPServerActor implements IServerActor {
   private async handlerDeactivate(req: IRequest, res: IResponse): Promise<IResponse> {
     const { actorTypeName, actorId } = req.params;
     const result = await ActorRuntime.getInstance(this.client.getDaprClient()).deactivate(actorTypeName, actorId);
+    res.statusCode = HttpStatusCode.OK;
     return this.handleResult(res, result);
   }
 
@@ -106,9 +107,12 @@ export default class HTTPServerActor implements IServerActor {
         methodName,
         dataSerialized,
       );
+      res.statusCode = HttpStatusCode.OK;
       return this.handleResult(res, result);
     } catch (err) {
-      res.statusCode = HttpStatusCode.BAD_REQUEST;
+      if (err instanceof Error) {
+        res.statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
+      }
       return this.handleResult(res, err);
     }
   }
@@ -143,10 +147,9 @@ export default class HTTPServerActor implements IServerActor {
 
   private handleResult(res: IResponse, result: any) {
     if (result && typeof result === "object") {
-      return res.status(200).send(result);
+      return res.status(res.statusCode).send(result);
     } else {
-      // @ts-ignore
-      return res.status(200).send(`${result}`);
+      return res.status(res.statusCode).send(`${result}`);
     }
   }
 }
