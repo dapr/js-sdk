@@ -56,7 +56,7 @@ The Dapr community can be found on [Discord](https://discord.com/invite/ptHhX6jc
 
 ## Contributing
 
-Please see our [Contributing Overview](https://docs.dapr.io/contributing/js-contributing/).
+Please see our [Contributing Overview](https://docs.dapr.io/contributing/sdk-contrib/js-contributing/).
 
 ### Good First Issues
 
