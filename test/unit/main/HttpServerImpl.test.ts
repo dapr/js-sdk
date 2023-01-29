@@ -92,5 +92,33 @@ describe("HttpServerImpl", () => {
         foo: "bar",
       });
     });
+
+    it("should return the req.body if payload is not structured properly", () => {
+      const requests = [
+        {
+          foo: "bar", // req.body is not present
+        },
+        {
+          body: "Hello, world!", // req.body.data is not an object
+        },
+        {
+          body: [1, 2, 3], // req.body.data is an array
+        },
+        {
+          body: Buffer.from("Hello, world!"), // req.body is a buffer
+        },
+      ];
+
+      requests.forEach((req) => {
+        const data = server.extractDataFromSubscribeRequest(req as any);
+        // If req.body is present, it should be returned as is.
+        // Else, an empty string should be returned.
+        if (req.body) {
+          expect(data).toEqual(req.body);
+        } else {
+          expect(data).toEqual("");
+        }
+      });
+    });
   });
 });
