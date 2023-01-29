@@ -41,6 +41,7 @@ export default class GRPCClientBinding implements IClientBinding {
     addMetadataToMap(msgService.getMetadataMap(), metadata);
 
     const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
       client.invokeBinding(msgService, (err, res: InvokeBindingResponse) => {
         if (err) {
