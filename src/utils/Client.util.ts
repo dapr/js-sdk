@@ -11,23 +11,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import * as grpc from "@grpc/grpc-js";
 import { KeyValueType } from "../types/KeyValue.type";
 import { ConfigurationType } from "../types/configuration/Configuration.type";
 import { ConfigurationItem } from "../types/configuration/ConfigurationItem";
 import { ConfigurationItem as ConfigurationItemProto } from "../proto/dapr/proto/common/v1/common_pb";
 import { Map } from "google-protobuf";
+
 /**
- * Converts a KeyValueType to a grpc.Metadata object.
+ * Adds metadata to a map.
+ * @param map Input map
  * @param metadata key value pair of metadata
- * @returns grpc.Metadata object
  */
-export function createGRPCMetadata(metadata: KeyValueType = {}): grpc.Metadata {
-  const grpcMetadata = new grpc.Metadata();
+export function addMetadataToMap(map: Map<string, string>, metadata: KeyValueType = {}): void {
   for (const [key, value] of Object.entries(metadata)) {
-    grpcMetadata.set(key, value);
+    map.set(key, value);
   }
-  return grpcMetadata;
 }
 
 /**

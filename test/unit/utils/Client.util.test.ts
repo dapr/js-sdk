@@ -13,7 +13,7 @@ limitations under the License.
 
 import { ConfigurationItem } from "../../../src/proto/dapr/proto/common/v1/common_pb";
 import {
-  createGRPCMetadata,
+  addMetadataToMap,
   createHTTPMetadataQueryParam,
   createConfigurationType,
   getContentType,
@@ -22,30 +22,30 @@ import { Map } from "google-protobuf";
 
 describe("Client.util", () => {
   describe("getGRPCMetadata", () => {
-    it("converts a KeyValueType to a grpc.Metadata object", () => {
+    it("should add values to Map", () => {
+      const m = new Map<string, string>([]);
       const metadata = {
         key1: "value1",
         key2: "value2",
       };
-      const grpcMetadata = createGRPCMetadata(metadata);
-      expect(grpcMetadata.get("key1")).toEqual(["value1"]);
-      expect(grpcMetadata.get("key2")).toEqual(["value2"]);
+      addMetadataToMap(m, metadata);
+
+      expect(m.get("key1")).toEqual("value1");
+      expect(m.get("key2")).toEqual("value2");
     });
 
-    it("converts a KeyValueType to a grpc.Metadata object with empty metadata", () => {
-      const metadata = {};
-      const grpcMetadata = createGRPCMetadata(metadata);
-      expect(grpcMetadata.toJSON()).toEqual({});
+    it("should add nothing to map when metadata is not passed", () => {
+      const m = new Map<string, string>([]);
+      addMetadataToMap(m);
+
+      expect(m.entries()).toEqual(new Map<string, string>([]).entries());
     });
 
-    it("converts a KeyValueType to a HTTP query parameters with no metadata", () => {
-      const grpcMetadata = createGRPCMetadata();
-      expect(grpcMetadata.toJSON()).toEqual({});
-    });
+    it("should add nothing to map when metadata is undefined", () => {
+      const m = new Map<string, string>([]);
+      addMetadataToMap(m, undefined);
 
-    it("converts a KeyValueType to a HTTP query parameters with undefined metadata", () => {
-      const grpcMetadata = createGRPCMetadata(undefined);
-      expect(grpcMetadata.toJSON()).toEqual({});
+      expect(m.entries()).toEqual(new Map<string, string>([]).entries());
     });
   });
 
