@@ -11,40 +11,57 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import Restana from "restana";
+import * as http from "http";
+import express from "express";
 import bodyParser from "body-parser";
 import HTTPServerImpl from "./HTTPServerImpl";
 import IServer from "../../../interfaces/Server/IServer";
 import { DaprClient } from "../../..";
 import { createHttpTerminator } from "http-terminator";
 import { Logger } from "../../../logger/Logger";
+import { DaprServerOptions } from "../../../types/DaprServerOptions";
 
-// eslint-disable-next-line
-export interface IServerImplType extends HTTPServerImpl {}
-// eslint-disable-next-line
-export interface IServerType extends Restana.Service<Restana.Protocol.HTTP> {}
+export type IServerImplType = HTTPServerImpl;
+export type IServerType = express.Express;
 
 export default class HTTPServer implements IServer {
+  server: IServerType;
+  serverInstance: undefined | http.Server; // defined after start()
+  serverTerminator: undefined | ReturnType<typeof createHttpTerminator>; // defined after start()
   serverHost: string;
   serverPort: string;
-  isInitialized: boolean;
-  server: IServerType;
   serverAddress: string;
+  serverOptions: DaprServerOptions;
   serverImpl: IServerImplType;
+  isInitialized: boolean;
   client: DaprClient;
   private readonly logger: Logger;
 
-  constructor(client: DaprClient) {
+  constructor(client: DaprClient, options: DaprServerOptions) {
     this.serverHost = "";
     this.serverPort = "";
+    this.serverOptions = options;
     this.client = client;
     this.logger = new Logger("HTTPServer", "HTTPServer", client.options.logger);
 
     this.isInitialized = false;
 
-    this.server = Restana();
-    this.server.use(bodyParser.text());
-    this.server.use(bodyParser.raw());
+    this.logger.debug(`Configured HTTPServer Options: ${JSON.stringify(options)}`);
+
+    this.server = options.serverHttp ?? express();
+    this.server.use(
+      bodyParser.text({
+        limit: `${this.serverOptions?.maxBodySizeMb ?? 4}mb`,
+      }),
+    );
+
+    this.server.use(
+      bodyParser.raw({
+        type: ["application/octet-stream"],
+        limit: `${this.serverOptions?.maxBodySizeMb ?? 4}mb`,
+      }),
+    );
+
     this.server.use(
       bodyParser.json({
         type: [
@@ -55,17 +72,9 @@ export default class HTTPServer implements IServer {
           "application/cloudevents+json",
           "application/*+json",
         ],
+        limit: `${this.serverOptions?.maxBodySizeMb ?? 4}mb`,
       }),
     );
-
-    // body-parser is not async compatible, so we have to make it
-    // this.server.use((req, res, next) => {
-    //     return new Promise(resolve => {
-    //         bodyParser.json()(req, res, (err) => {
-    //             return resolve(next(err))
-    //         })
-    //     })
-    // })
 
     this.serverImpl = new HTTPServerImpl(this.server, client.options.logger);
 
@@ -107,9 +116,13 @@ export default class HTTPServer implements IServer {
     this.serverPort = port;
 
     // Initialize Server Listener
-    await this.server.start(parseInt(port, 10));
+    this.serverInstance = await this.server.listen(parseInt(port, 10));
     this.logger.info(`Listening on ${port}`);
     this.serverAddress = `http://${host}:${port}`;
+
+    // Create a terminator, as using a normal server.close() will not close the server immediately,
+    // but wait for all connections to close.
+    this.serverTerminator = createHttpTerminator({ server: this.serverInstance });
 
     // Add PubSub Routes
     this.logger.info(`Registering ${Object.keys(this.serverImpl.pubSubSubscriptions).length} PubSub Subscriptions`);
@@ -122,9 +135,10 @@ export default class HTTPServer implements IServer {
   }
 
   async stop(): Promise<void> {
-    const httpTerminator = createHttpTerminator({ server: this.server.getServer() });
-    await httpTerminator.terminate();
-    // await this.server.close();
+    if (this.serverTerminator) {
+      await this.serverTerminator.terminate();
+    }
+
     this.isInitialized = false;
   }
 }

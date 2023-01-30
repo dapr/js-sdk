@@ -1,5 +1,21 @@
 # Changelog
 
+## 3.x release
+
+### v3.0.0
+
+#### Breaking Changes
+
+##### General: Fix serialization of data in HTTP
+
+There is a new serializer in place to automatically detect the Content-Type for the data when using the HTTP Protocol and serialize accordingly. Objects will be send as `application/json`, Cloud-Events as `applications/cloudevents+json`, Strings as `text/plain`, and others as `application/octet-stream`.
+
+An example of this change can be seen when performing client.invoke with `"hello world"` as data. The new serializer will correctly return the string type, as opposed to the previous behavior of calling `JSON.serialize` and returning `'"hello world"'`.
+
+##### PubSub: Changes to the subscribe callback for HTTP
+
+The HTTP subscribe callback now returns data after parsing it correctly. Data is either extracted from the body's `data` field, or the `data_base64` field. `data_base64` is always expected to be a base64 encoded string, and will be decoded and parsed as JSON if possible. If it is not JSON, it will be returned as a string. If data is not found in either field, the entire body will be returned as-is.
+
 ## 2.x release
 
 ### v2.0.1

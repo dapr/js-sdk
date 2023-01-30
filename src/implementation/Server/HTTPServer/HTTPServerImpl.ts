@@ -27,9 +27,6 @@ export default class HTTPServerImpl {
   private readonly server: IServerType;
   private readonly logger: Logger;
 
-  // pubsubSubscriptions: DaprPubSubType[];
-  // pubsubRouteEventHandlers: { [key: string]: TypeDaprPubSubCallback[] };
-
   // Contains all our event handlers and routes
   pubSubSubscriptions: PubSubSubscriptionsType;
 
@@ -38,6 +35,45 @@ export default class HTTPServerImpl {
     this.logger = new Logger("HTTPServer", "HTTPServerImpl", loggerOptions);
 
     this.pubSubSubscriptions = {};
+  }
+
+  /**
+   * Extracts data from the subscribe request body.
+   * Data should be present in req.body.data or req.body.data_base64 depending on the rawPayload metadata.
+   * If the data is not found, the request body is returned as-is.
+   * @param req HTTP Request
+   * @returns Data from the request body.
+   */
+  extractDataFromSubscribeRequest(req: any): any {
+    const payload = req.body ?? "";
+
+    // The payload should be an object with string keys and any values.
+    if (!(payload instanceof Object) || payload instanceof Array || payload instanceof Buffer) {
+      this.logger.warn(`Could not extract data from request body ${JSON.stringify(payload)}, returning it as-is.`);
+      return payload;
+    }
+
+    // Use data from req.body.data if present.
+    if (payload.data) {
+      return payload.data;
+    }
+
+    // In case of rawPayload, data is present in req.body.data_base64 as base64 encoded string.
+    if (payload.data_base64 && typeof payload.data_base64 === "string") {
+      const parsedBase64 = Buffer.from(payload.data_base64, "base64").toString();
+
+      try {
+        // This can be JSON, so try to parse it.
+        return JSON.parse(parsedBase64);
+      } catch (_e) {
+        // If it's not JSON, use the string as-is.
+        return parsedBase64;
+      }
+    }
+
+    // If we can't find the data, return the request body as-is.
+    this.logger.warn(`Could not extract data from request body ${JSON.stringify(payload)}, returning it as-is.`);
+    return payload;
   }
 
   /**
@@ -84,14 +120,11 @@ export default class HTTPServerImpl {
 
       // Add a server POST handler
       this.server.post(`/${routeObj.path}`, async (req, res) => {
-        // @ts-ignore
-        // Parse the data of the body, we prioritize fetching the data key in body if possible
-        // i.e. Redis returns { data: {} } and other services return {}
-        // @todo: This will be deprecated in an upcoming major version and only req.body will be returned
-        const data = req?.body?.data || req?.body;
         const headers = req.headers;
 
-        // Process our callback
+        const data = this.extractDataFromSubscribeRequest(req);
+
+        // Process the callback
         try {
           const eventHandlers = routeObj.eventHandlers;
           await Promise.all(eventHandlers.map((cb) => cb(data, headers)));
@@ -101,7 +134,7 @@ export default class HTTPServerImpl {
         }
 
         // Let Dapr know that the message was processed correctly
-        this.logger.debug(`[route-${routeObj.path}] Ack'ing the message`);
+        this.logger.debug(`[route-${routeObj.path}] Acknowledging message`);
         return res.send({ status: SubscribedMessageHttpResponse.SUCCESS });
       });
     }

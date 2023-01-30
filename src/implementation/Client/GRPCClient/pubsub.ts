@@ -21,7 +21,7 @@ import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 import { Logger } from "../../../logger/Logger";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import { KeyValueType } from "../../../types/KeyValue.type";
-import { createGRPCMetadata, getBulkPublishEntries, getBulkPublishResponse } from "../../../utils/Client.util";
+import { addMetadataToMap, getBulkPublishEntries, getBulkPublishResponse } from "../../../utils/Client.util";
 import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
 import { PubSubBulkPublishResponse } from "../../../types/pubsub/PubSubBulkPublishResponse.type";
 import { PubSubBulkPublishMessage } from "../../../types/pubsub/PubSubBulkPublishMessage.type";
@@ -53,11 +53,11 @@ export default class GRPCClientPubSub implements IClientPubSub {
       msgService.setDataContentType(serialized.contentType);
     }
 
-    const client = await this.client.getClient();
-    const grpcMetadata = createGRPCMetadata(metadata);
+    addMetadataToMap(msgService.getMetadataMap(), metadata);
 
+    const client = await this.client.getClient();
     return new Promise((resolve, reject) => {
-      client.publishEvent(msgService, grpcMetadata, (err, _res) => {
+      client.publishEvent(msgService, (err, _res) => {
         if (err) {
           this.logger.error(`publish failed: ${err}`);
           return reject({ error: err });
@@ -89,12 +89,11 @@ export default class GRPCClientPubSub implements IClientPubSub {
     });
 
     bulkPublishRequest.setEntriesList(serializedEntries);
+    addMetadataToMap(bulkPublishRequest.getMetadataMap(), metadata);
 
     const client = await this.client.getClient();
-    const grpcMetadata = createGRPCMetadata(metadata);
-
     return new Promise((resolve, _reject) => {
-      client.bulkPublishEventAlpha1(bulkPublishRequest, grpcMetadata, (err, res) => {
+      client.bulkPublishEventAlpha1(bulkPublishRequest, (err, res) => {
         if (err) {
           return resolve(getBulkPublishResponse({ entries: entries, error: err }));
         }

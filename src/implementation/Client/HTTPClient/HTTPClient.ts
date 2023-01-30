@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import fetch from "node-fetch";
+import fetch, { RequestInit } from "node-fetch";
 import { CommunicationProtocolEnum, DaprClient } from "../../..";
 import IClient from "../../../interfaces/Client/IClient";
 import http from "http";
@@ -22,6 +22,7 @@ import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type"
 import { Logger } from "../../../logger/Logger";
 import HTTPClientSidecar from "./sidecar";
 import { SDK_VERSION } from "../../../version";
+import * as SerializerUtil from "../../../utils/Serializer.util";
 
 export default class HTTPClient implements IClient {
   private isInitialized: boolean;
@@ -144,50 +145,44 @@ export default class HTTPClient implements IClient {
     params?: THTTPExecuteParams | undefined | null,
     requiresInitialization = true,
   ): Promise<object | string> {
-    if (!params || typeof params !== "object") {
-      params = {
-        method: "GET",
-      };
-    }
+    const clientOptions: RequestInit = {};
 
-    if (!params?.headers) {
-      params.headers = {};
-    }
+    // Set Method
+    clientOptions.method = params?.method.toLocaleUpperCase() || (params?.body ? "POST" : "GET");
+
+    // Set Headers
+    clientOptions.headers = params?.headers ?? {};
 
     if (this.options.daprApiToken) {
-      params.headers["dapr-api-token"] = this.options.daprApiToken;
+      clientOptions.headers["dapr-api-token"] = this.options.daprApiToken;
     }
 
-    params.headers["user-agent"] = `dapr-sdk-js/v${SDK_VERSION} http/1`;
+    clientOptions.headers["user-agent"] = `dapr-sdk-js/v${SDK_VERSION} http/1`;
 
-    if (!params?.method) {
-      params.method = "GET";
-    }
+    // Set Body and Content-Type Header
+    if (params?.body) {
+      const { serializedData, contentType } = SerializerUtil.serializeHttp(params?.body);
 
-    if (params?.body && !params?.headers["Content-Type"]) {
-      switch (typeof params?.body) {
-        case "object":
-          params.headers["Content-Type"] = "application/json";
-          params.body = JSON.stringify(params?.body);
-          break;
-        case "string":
-          params.headers["Content-Type"] = "text/plain";
-          break;
-        default:
-          this.logger.warn(`Unknown body type: ${typeof params?.body}, defaulting to "text/plain"`);
-          params.headers["Content-Type"] = "text/plain";
-          break;
+      // Don't overwrite it
+      if (!params?.headers?.["Content-Type"]) {
+        clientOptions.headers["Content-Type"] = contentType;
       }
+
+      clientOptions.body = serializedData;
     }
 
     const urlFull = url.startsWith("http") ? url : `${this.clientUrl}${url}`;
     const agent = urlFull.startsWith("https") ? HTTPClient.httpsAgent : HTTPClient.httpAgent;
-    params.agent = agent;
+    clientOptions.agent = agent;
 
-    this.logger.debug(`Fetching ${params.method} ${urlFull} with body: (${params.body})`);
+    this.logger.debug(
+      `Fetching ${clientOptions.method} ${urlFull} with (headers: ${JSON.stringify(
+        clientOptions.headers,
+      )}, body size: ${(clientOptions.body?.toString()?.length ?? 0) / 1024 / 1024} Mb)`,
+    );
 
     const client = await this.getClient(requiresInitialization);
-    const res = await client(urlFull, params);
+    const res = await client(urlFull, clientOptions);
 
     // Parse body
     const txt = await res.text();

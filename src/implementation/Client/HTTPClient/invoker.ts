@@ -28,7 +28,7 @@ export default class HTTPClientInvoker implements IClientInvoker {
     appId: string,
     methodName: string,
     method: HttpMethod = HttpMethod.GET,
-    data?: object,
+    data?: any,
     options: InvokerOptions = {},
   ): Promise<object> {
     const headers = options.headers ?? {};
@@ -36,17 +36,8 @@ export default class HTTPClientInvoker implements IClientInvoker {
     const fetchOptions = {
       method,
       headers,
+      body: data,
     };
-
-    if (method !== HttpMethod.GET) {
-      //@ts-ignore
-      fetchOptions.headers["Content-Type"] = "application/json";
-    }
-
-    if (method !== HttpMethod.GET && data !== undefined) {
-      //@ts-ignore
-      fetchOptions.body = JSON.stringify(data);
-    }
 
     const result = await this.client.execute(`/invoke/${appId}/method/${methodName}`, fetchOptions);
     return result as object;

@@ -86,9 +86,9 @@ export default abstract class AbstractActor {
    *
    * @param reminderName name of the reminder
    * @param state the state to be send along with the reminder trigger
-   * @param dueTime due time for the first trigger
+   * @param dueTime Specifies the time after which the reminder is invoked
+   * @param period Specifies the period between different invocations
    * @param ttl time to duration after which the reminder will be expired and deleted
-   * @param period frequency for the triggers
    * @param <Type> Type of the state object
    * @return Async void response
    */
