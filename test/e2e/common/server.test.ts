@@ -425,8 +425,7 @@ describe("common/server", () => {
         expect(mockSubscribeHandler.mock.calls.length).toBe(3);
         // Check that the messages are present
         mockSubscribeHandler.mock.calls.forEach((call) => {
-          const message = JSON.stringify(call[0]);
-          expect(messages).toContain(message);
+          expect(messages).toContain(call[0]);
         });
       },
     );
