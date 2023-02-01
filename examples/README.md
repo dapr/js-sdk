@@ -31,7 +31,7 @@ The recommended way is to copy the `hello-world` directory and adapt it to your 
 
 ### Initializing Typescript
 
-> More information: [Typescript - Getting Started](https://xaviergeerinck.com/post/coding/javascript/typescript-getting-started)
+> More information: [Typescript - Getting Started](https://xaviergeerinck.com/2022/09/26/setting-up-a-typescript-project-updated-2022/)
 
 ```bash
 # Init NPM
