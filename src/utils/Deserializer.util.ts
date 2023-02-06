@@ -13,6 +13,7 @@ limitations under the License.
 
 import { CloudEvent } from "cloudevents";
 import { TextDecoder } from "util";
+import { isCloudEvent } from "./CloudEvent.util";
 
 function tryParseJson(data: any): object | string {
   // Check if the data is a Uint8Array, then we decode it first
@@ -34,7 +35,9 @@ export function deserializeGrpc(contentType: string, data: string | Uint8Array):
     case "application/cloudevents+json":
       return tryParseJson(data) as CloudEvent;
     case "application/octet-stream":
-      return data;
+      // Check if the data is a Uint8Array, then we decode it first
+      const decodedData = tryParseJson(data);
+      return decodedData;
     case "text/plain":
     default:
       // By default, try parsing as JSON, this will resolve objects, arrays, strings, numbers, booleans, ...
@@ -47,14 +50,16 @@ export function deserializeHttp(contentType: string, data: any): CloudEvent | an
   if (data instanceof Uint8Array) {
     data = new TextDecoder().decode(data);
   }
-  
+
   switch (contentType) {
     case "application/json":
       return tryParseJson(data) as any;
     case "application/cloudevents+json":
       return tryParseJson(data) as CloudEvent;
     case "application/octet-stream":
-      return Buffer.from(data);
+      // Check if the data is a Uint8Array, then we decode it first
+      const decodedData = tryParseJson(data);
+      return decodedData;
     case "text/plain":
     default:
       // By default, try parsing as JSON, this will resolve objects, arrays, strings, numbers, booleans, ...

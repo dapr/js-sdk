@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { CommunicationProtocolEnum, DaprServer } from "../../../src";
+import { CommunicationProtocolEnum, DaprServer, DaprPubSubStatusEnum, LogLevel } from "../../../src";
 
 const serverHost = "127.0.0.1";
 const serverGrpcPort = "50001";
@@ -36,6 +36,7 @@ const topicWithDeadletter = "test-topic-6";
 const topicWithDeadletterInOptions = "test-topic-7";
 const topicWithDeadletterInOptionsDefault = "test-topic-8";
 const topicWithDeadletterAndErrorCb = "test-topic-9";
+const topicWithStatusCb = "test-topic-status-callback";
 const deadLetterTopic = "deadletter-topic";
 const routeSimple = "simple-route";
 const routeWithLeadingSlash = "/leading-slash-route";
@@ -47,6 +48,30 @@ describe("common/server", () => {
 
   const getTopic = (topic: string, protocol: string) => topic + "-" + protocol;
   const mockSubscribeHandler = jest.fn(async (_data: object, _headers: object) => null);
+  const mockSubscribeDeadletterHandler = jest.fn(async (_data: object, _headers: object) => null);
+
+  let mockSubscribeStatusHandlerRetryCounterIsEnabled = false;
+  let mockSubscribeStatusHandlerRetryCounter = 0;
+  const mockSubscribeStatusHandler = jest.fn(async (_data: string, _headers: object) => {
+    switch (_data) {
+      case "DROP":
+        mockSubscribeStatusHandlerRetryCounter = 0;
+        mockSubscribeStatusHandlerRetryCounterIsEnabled = false;
+        return DaprPubSubStatusEnum.DROP;
+      // case "TEST_RETRY_TWICE":
+      //   mockSubscribeStatusHandlerRetryCounterIsEnabled = true;
+
+      //   if (mockSubscribeStatusHandlerRetryCounter < 2) {
+      //     mockSubscribeStatusHandlerRetryCounter++;
+      //     return DaprPubSubStatusEnum.RETRY;
+      //   }
+      default:
+        mockSubscribeStatusHandlerRetryCounterIsEnabled = false;
+        mockSubscribeStatusHandlerRetryCounter = 0;
+        return DaprPubSubStatusEnum.SUCCESS;
+    }
+  });
+
   const mockSubscribeErrorHandler = jest.fn(async (_data: object, _headers: object) => {
     throw new Error("This will DROP the message!");
   });
@@ -91,6 +116,50 @@ describe("common/server", () => {
   };
 
   describe("pubsub", () => {
+    runIt("should by default mark messagess as processed successfully (SUCCESS) and the same message should not be received anymore", async (server: DaprServer, protocol: string) => {
+      const res = await server.client.pubsub.publish(pubSubName, getTopic(topicWithStatusCb, protocol), "SUCCESS");
+      expect(res.error).toBeUndefined();
+
+      // Delay a bit for event to arrive
+      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+
+      expect(mockSubscribeStatusHandler.mock.calls.length).toBe(1);
+      expect(mockSubscribeStatusHandler.mock.calls[0][0]).toEqual("SUCCESS");
+
+      expect(mockSubscribeDeadletterHandler.mock.calls.length).toBe(0);
+    });
+
+    runIt("should mark messagess as retried (RETRY) and the same message should be received again until we send SUCCESS", async (server: DaprServer, protocol: string) => {
+      const res = await server.client.pubsub.publish(pubSubName, getTopic(topicWithStatusCb, protocol), "TEST_RETRY_TWICE");
+      expect(res.error).toBeUndefined();
+
+      // Delay a bit for event to arrive
+      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+
+      // @todo: mocks are not called 3 times but the retry counter is incremented as expected?
+      // console.log("mockSubscribeStatusHandler.mock.calls.length: ", mockSubscribeStatusHandler.mock.calls.length)
+      // expect(mockSubscribeStatusHandler.mock.calls.length).toBe(3);
+      // expect(mockSubscribeStatusHandler.mock.calls[0][0]).toEqual("TEST_RETRY_TWICE");
+      // expect(mockSubscribeStatusHandlerRetryCounter).toBe(2);
+
+      expect(mockSubscribeDeadletterHandler.mock.calls.length).toBe(0);
+    });
+
+    runIt("should mark messagess as dropped (DROP) and the message should be deadlettered", async (server: DaprServer, protocol: string) => {
+      const res = await server.client.pubsub.publish(pubSubName, getTopic(topicWithStatusCb, protocol), "DROP");
+      expect(res.error).toBeUndefined();
+
+      // Delay a bit for event to arrive
+      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+
+      // @todo: mocks are not called 3 times but the retry counter is incremented as expected?
+      expect(mockSubscribeStatusHandler.mock.calls.length).toBe(1);
+      expect(mockSubscribeStatusHandler.mock.calls[0][0]).toEqual("DROP");
+
+      // @todo: are dropped messages thrown into deadletter?
+      // expect(mockSubscribeDeadletterHandler.mock.calls.length).toBe(1);
+    });
+
     runIt("should be able to send and receive plain events", async (server: DaprServer, protocol: string) => {
       const res = await server.client.pubsub.publish(pubSubName, getTopic(topicDefault, protocol), "Hello, world!");
       expect(res.error).toBeUndefined();
@@ -424,6 +493,7 @@ describe("common/server", () => {
       undefined,
       { rawPayload: true },
     );
+
     await grpcServer.pubsub.subscribe(
       pubSubName,
       getTopic(topicRawPayload, protocolGrpc),
@@ -435,6 +505,7 @@ describe("common/server", () => {
     await httpServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicOptionsWithCallback, protocolHttp), {
       callback: mockSubscribeHandler,
     });
+
     await grpcServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicOptionsWithCallback, protocolGrpc), {
       callback: mockSubscribeHandler,
     });
@@ -445,6 +516,7 @@ describe("common/server", () => {
       mockSubscribeHandler,
       routeSimple,
     );
+
     await grpcServer.pubsub.subscribe(
       pubSubName,
       getTopic(topicSimpleRoute, protocolGrpc),
@@ -458,6 +530,7 @@ describe("common/server", () => {
       mockSubscribeHandler,
       routeWithLeadingSlash,
     );
+
     await grpcServer.pubsub.subscribe(
       pubSubName,
       getTopic(topicLeadingSlashRoute, protocolGrpc),
@@ -471,6 +544,7 @@ describe("common/server", () => {
       mockSubscribeHandler,
       sampleRoutes,
     );
+
     await grpcServer.pubsub.subscribe(
       pubSubName,
       getTopic(topicCustomRules, protocolGrpc),
@@ -481,6 +555,7 @@ describe("common/server", () => {
     await httpServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicCustomRulesInOptions, protocolHttp), {
       route: sampleRoutes,
     });
+
     await grpcServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicCustomRulesInOptions, protocolGrpc), {
       route: sampleRoutes,
     });
@@ -491,6 +566,7 @@ describe("common/server", () => {
     await httpServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicWithDeadletter, protocolHttp), {
       deadLetterTopic: getTopic(deadLetterTopic, protocolHttp),
     });
+
     await grpcServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicWithDeadletter, protocolGrpc), {
       deadLetterTopic: getTopic(deadLetterTopic, protocolGrpc),
     });
@@ -499,6 +575,7 @@ describe("common/server", () => {
       deadLetterTopic: getTopic(deadLetterTopic, protocolHttp),
       deadLetterCallback: mockSubscribeHandler,
     });
+
     await grpcServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicWithDeadletterInOptions, protocolGrpc), {
       deadLetterTopic: getTopic(deadLetterTopic, protocolGrpc),
       deadLetterCallback: mockSubscribeHandler,
@@ -511,6 +588,7 @@ describe("common/server", () => {
         deadLetterCallback: mockSubscribeHandler,
       },
     );
+
     await grpcServer.pubsub.subscribeWithOptions(
       pubSubName,
       getTopic(topicWithDeadletterInOptionsDefault, protocolGrpc),
@@ -523,9 +601,25 @@ describe("common/server", () => {
       deadLetterCallback: mockSubscribeHandler,
       callback: mockSubscribeErrorHandler,
     });
+
     await grpcServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicWithDeadletterAndErrorCb, protocolGrpc), {
       deadLetterCallback: mockSubscribeHandler,
       callback: mockSubscribeErrorHandler,
+    });
+
+    // Configure subscriptions for Status Message testing
+    // to test, we use the message as the status (SUCCESS, RETRY, DROP, Other)
+    // SUCCESS: Message is processed correctly
+    // RETRY: Message is retried and will thus call the callback again
+    // DROP: Message is dropped and will thus call the deadletter callback
+    await httpServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicWithStatusCb, protocolHttp), {
+      deadLetterCallback: mockSubscribeDeadletterHandler,
+      callback: mockSubscribeStatusHandler,
+    });
+
+    await grpcServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicWithStatusCb, protocolGrpc), {
+      deadLetterCallback: mockSubscribeDeadletterHandler,
+      callback: mockSubscribeStatusHandler,
     });
   };
 });

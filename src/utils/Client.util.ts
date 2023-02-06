@@ -16,6 +16,7 @@ import { ConfigurationType } from "../types/configuration/Configuration.type";
 import { ConfigurationItem } from "../types/configuration/ConfigurationItem";
 import { ConfigurationItem as ConfigurationItemProto } from "../proto/dapr/proto/common/v1/common_pb";
 import { Map } from "google-protobuf";
+import { isCloudEvent } from "./CloudEvent.util";
 
 /**
  * Adds metadata to a map.
@@ -76,24 +77,6 @@ export function createConfigurationType(configDict: Map<string, ConfigurationIte
     configMap[k] = item;
   });
   return configMap;
-}
-
-/**
- * Checks if the input object is a valid Cloud Event.
- * A valid Cloud Event is a JSON object that contains id, source, type, and specversion.
- * See https://github.com/cloudevents/spec/blob/v1.0/spec.md#required-attributes
- * @param str input object
- * @returns true if the object is a valid Cloud Event
- */
-function isCloudEvent(obj: object): boolean {
-  const requiredAttributes = ["id", "source", "type", "specversion"];
-  return (
-    typeof obj === "object" &&
-    obj !== null &&
-    requiredAttributes.every((attr) => {
-      return Object.prototype.hasOwnProperty.call(obj, attr);
-    })
-  );
 }
 
 /**

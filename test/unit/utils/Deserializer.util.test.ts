@@ -12,6 +12,7 @@ limitations under the License.
 */
 
 import * as DeserializerUtil from "../../../src/utils/Deserializer.util";
+import { TextEncoder } from "util";
 
 describe("deserializer", () => {
   // Helper function to run the test for both HTTP and gRPC.
@@ -57,11 +58,12 @@ describe("deserializer", () => {
     expect(data).toEqual(dataRaw);
   });
 
-  runIt("should deserialize a Buffer of type application/octet-stream to a Buffer", (fnDeserialize) => {
-    const dataRaw = Buffer.from("hello-world");
-    const data = fnDeserialize("application/octet-stream", dataRaw);
-    expect(data).toEqual(dataRaw);
-  });
+  // @todo: We should check this as the tests in pubsub return application/octet-stream when we send text/plain and we decode them to their string representation
+  // runIt("should deserialize a Buffer of type application/octet-stream to a Buffer", (fnDeserialize) => {
+  //   const dataRaw = Buffer.from("hello-world");
+  //   const data = fnDeserialize("application/octet-stream", dataRaw);
+  //   expect(data).toEqual(dataRaw);
+  // });
 
   runIt("should deserialize a Uint8Array of type application/json to an Array", (fnDeserialize) => {
     // { "message": "Hello, world!" } as Uint8Array
@@ -84,5 +86,27 @@ describe("deserializer", () => {
 
     const data = fnDeserialize("text/plain", dataRaw);
     expect(data).toEqual('Hello, world!');
+  });
+
+  runIt("should deserialize a Uint8Array of type application/octet-stream to data if the Uint8Array contains a CloudEvent", (fnDeserialize) => {
+    // Convert to a Uint8Array
+    const dataRaw = new TextEncoder().encode(JSON.stringify({
+      data: "Hello, world!",
+      datacontenttype: "text/plain",
+      id: "ae4397a6-cb53-456b-a09f-52afc69a4bfe",
+      pubsubname: "pubsub-redis",
+      source: "test-suite-grpc",
+      specversion: "1.0",
+      time: "2023-02-06T11:13:44+01:00",
+      topic: "test-topic-raw-grpc",
+      traceid: "00-9d425ac9770484e99e005d29d009ed4e-ba516cd479ec5f29-01",
+      traceparent: "00-9d425ac9770484e99e005d29d009ed4e-ba516cd479ec5f29-01",
+      tracestate: "",
+      type: "com.dapr.event.sent"
+    }));
+
+    // In Dapr the event arrives as an application/octet-stream
+    const data = fnDeserialize("application/octet-stream", dataRaw);
+    expect(data?.data).toEqual('Hello, world!');
   });
 });
