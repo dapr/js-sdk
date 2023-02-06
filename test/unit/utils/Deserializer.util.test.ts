@@ -62,4 +62,17 @@ describe("deserializer", () => {
     const data = fnDeserialize("application/octet-stream", dataRaw);
     expect(data).toEqual(dataRaw);
   });
+
+  runIt("should deserialize a Uint8Array of type application/json to an Array", (fnDeserialize) => {
+    // { "message": "Hello, world!" } as Uint8Array
+    const dataRaw = new Uint8Array([
+      123,  34, 109, 101, 115, 115,  97,
+      103, 101,  34,  58,  34,  72, 101,
+      108, 108, 111,  44,  32, 119, 111,
+      114, 108, 100,  33,  34, 125
+    ]);
+
+    const data = fnDeserialize("application/json", dataRaw);
+    expect(data).toEqual({ message: "Hello, world!" });
+  });
 });
