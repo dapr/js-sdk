@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import SubscribedMessageHttpResponse from "../../../enum/SubscribedMessageHttpResponse.enum";
 import { Logger } from "../../../logger/Logger";
 import { LoggerOptions } from "../../../types/logger/LoggerOptions";
 import { DaprPubSubType } from "../../../types/pubsub/DaprPubSub.type";
@@ -146,7 +145,7 @@ export default class HTTPServerImpl {
     headers: IncomingHttpHeaders,
   ): Promise<DaprPubSubStatusEnum> {
     const eventHandlers = routeObj.eventHandlers;
-    let statuses = [];
+    const statuses = [];
 
     // Process the callbacks (default: SUCCESS)
     for (const cb of eventHandlers) {

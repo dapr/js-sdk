@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { CommunicationProtocolEnum, DaprServer, DaprPubSubStatusEnum, LogLevel } from "../../../src";
+import { CommunicationProtocolEnum, DaprServer, DaprPubSubStatusEnum } from "../../../src";
 
 const serverHost = "127.0.0.1";
 const serverGrpcPort = "50001";
@@ -50,13 +50,13 @@ describe("common/server", () => {
   const mockSubscribeHandler = jest.fn(async (_data: object, _headers: object) => null);
   const mockSubscribeDeadletterHandler = jest.fn(async (_data: object, _headers: object) => null);
 
-  let mockSubscribeStatusHandlerRetryCounterIsEnabled = false;
-  let mockSubscribeStatusHandlerRetryCounter = 0;
+  // let mockSubscribeStatusHandlerRetryCounterIsEnabled = false;
+  // let mockSubscribeStatusHandlerRetryCounter = 0;
   const mockSubscribeStatusHandler = jest.fn(async (_data: string, _headers: object) => {
     switch (_data) {
       case "DROP":
-        mockSubscribeStatusHandlerRetryCounter = 0;
-        mockSubscribeStatusHandlerRetryCounterIsEnabled = false;
+        // mockSubscribeStatusHandlerRetryCounter = 0;
+        // mockSubscribeStatusHandlerRetryCounterIsEnabled = false;
         return DaprPubSubStatusEnum.DROP;
       // case "TEST_RETRY_TWICE":
       //   mockSubscribeStatusHandlerRetryCounterIsEnabled = true;
@@ -66,8 +66,8 @@ describe("common/server", () => {
       //     return DaprPubSubStatusEnum.RETRY;
       //   }
       default:
-        mockSubscribeStatusHandlerRetryCounterIsEnabled = false;
-        mockSubscribeStatusHandlerRetryCounter = 0;
+        // mockSubscribeStatusHandlerRetryCounterIsEnabled = false;
+        // mockSubscribeStatusHandlerRetryCounter = 0;
         return DaprPubSubStatusEnum.SUCCESS;
     }
   });

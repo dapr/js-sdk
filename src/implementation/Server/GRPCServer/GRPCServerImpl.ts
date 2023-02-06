@@ -460,7 +460,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     headers: { [key: string]: string },
   ): Promise<DaprPubSubStatusEnum> {
     const eventHandlers = routeObj.eventHandlers;
-    let statuses = [];
+    const statuses = [];
 
     // Process the callbacks (default: SUCCESS)
     for (const cb of eventHandlers) {
