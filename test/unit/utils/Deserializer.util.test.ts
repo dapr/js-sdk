@@ -75,4 +75,14 @@ describe("deserializer", () => {
     const data = fnDeserialize("application/json", dataRaw);
     expect(data).toEqual({ message: "Hello, world!" });
   });
+
+  runIt("should deserialize a Uint8Array of type text/plain to an String", (fnDeserialize) => {
+    // "Hello World" as Uint8Array
+    const dataRaw = new Uint8Array([
+      72, 101, 108, 108, 111, 44, 32, 119, 111, 114, 108, 100, 33
+    ]);
+
+    const data = fnDeserialize("text/plain", dataRaw);
+    expect(data).toEqual('Hello, world!');
+  });
 });

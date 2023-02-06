@@ -20,7 +20,6 @@ function tryParseJson(data: any): object | string {
     data = new TextDecoder().decode(data);
   }
 
-  // Now try to parse the data, if it fails return the original data
   try {
     return JSON.parse(data);
   } catch (e) {
@@ -39,11 +38,16 @@ export function deserializeGrpc(contentType: string, data: string | Uint8Array):
     case "text/plain":
     default:
       // By default, try parsing as JSON, this will resolve objects, arrays, strings, numbers, booleans, ...
-      return tryParseJson(data.toString());
+      return tryParseJson(data);
   }
 }
 
 export function deserializeHttp(contentType: string, data: any): CloudEvent | any | unknown {
+  // Check if the data is a Uint8Array, then we decode it first
+  if (data instanceof Uint8Array) {
+    data = new TextDecoder().decode(data);
+  }
+  
   switch (contentType) {
     case "application/json":
       return tryParseJson(data) as any;
