@@ -11,23 +11,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import * as grpc from "@grpc/grpc-js";
 import { KeyValueType } from "../types/KeyValue.type";
 import { ConfigurationType } from "../types/configuration/Configuration.type";
 import { ConfigurationItem } from "../types/configuration/ConfigurationItem";
 import { ConfigurationItem as ConfigurationItemProto } from "../proto/dapr/proto/common/v1/common_pb";
 import { Map } from "google-protobuf";
+
 /**
- * Converts a KeyValueType to a grpc.Metadata object.
+ * Adds metadata to a map.
+ * @param map Input map
  * @param metadata key value pair of metadata
- * @returns grpc.Metadata object
  */
-export function createGRPCMetadata(metadata: KeyValueType = {}): grpc.Metadata {
-  const grpcMetadata = new grpc.Metadata();
+export function addMetadataToMap(map: Map<string, string>, metadata: KeyValueType = {}): void {
   for (const [key, value] of Object.entries(metadata)) {
-    grpcMetadata.set(key, value);
+    map.set(key, value);
   }
-  return grpcMetadata;
 }
 
 /**
@@ -100,20 +98,50 @@ function isCloudEvent(obj: object): boolean {
 
 /**
  * Gets the Content-Type for the input data.
+ *
  * If the data is a valid Cloud Event, the Content-Type is "application/cloudevents+json".
  * If the data is a JSON object, the Content-Type is "application/json".
- * Otherwise, the Content-Type is "text/plain".
+ * If the data is a string, the Content-Type is "text/plain".
+ * Otherwise, the Content-Type is "application/octet-stream".
+ *
  * @param data input data
  * @returns Content-Type header value
  */
-export function getContentType(data: object | string): string {
-  if (typeof data === "string") {
-    return "text/plain";
+export function getContentType(data: any): string {
+  // Identify the exact type of the input data
+  const type = getType(data);
+
+  switch (type) {
+    case "Array":
+    case "Object":
+      if (isCloudEvent(data as object)) {
+        return "application/cloudevents+json";
+      } else {
+        return "application/json";
+      }
+    case "Boolean":
+    case "Number":
+    case "String":
+      return "text/plain";
+    // Uint8Array, Int8Array, Buffer, SlowBuffer, Blob, etc.
+    default:
+      return "application/octet-stream";
+  }
+}
+
+/**
+ * Determine the type of the input data by checking the constructor name
+ * If no name is found, we return the typeof the input data
+ *
+ * @param arr
+ * @returns string The Data Type, e.g., Uint8Array, Int8Array, Buffer, SlowBuffer, Blob, Oject, Array, etc.
+ */
+function getType(o: any) {
+  // If the type is set in the constructor name, return the name
+  // e.g., Uint8Array, Int8Array, Buffer, SlowBuffer, Blob, etc.
+  if (o.constructor.name) {
+    return o.constructor.name;
   }
 
-  if (isCloudEvent(data)) {
-    return "application/cloudevents+json";
-  } else {
-    return "application/json";
-  }
+  return typeof o;
 }

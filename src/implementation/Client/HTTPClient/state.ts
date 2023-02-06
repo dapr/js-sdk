@@ -31,10 +31,7 @@ export default class HTTPClientState implements IClientState {
   async save(storeName: string, stateObjects: KeyValuePairType[]): Promise<void> {
     await this.client.execute(`/state/${storeName}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(stateObjects),
+      body: stateObjects,
     });
   }
 
@@ -46,13 +43,10 @@ export default class HTTPClientState implements IClientState {
   async getBulk(storeName: string, keys: string[], parallelism = 10, metadata = ""): Promise<KeyValueType[]> {
     const result = await this.client.execute(`/state/${storeName}/bulk${metadata ? `?${metadata}` : ""}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+      body: {
         keys,
         parallelism, // the number of parallel operations executed on the state store for a get operation
-      }),
+      },
     });
 
     return result as KeyValueType[];
@@ -71,25 +65,19 @@ export default class HTTPClientState implements IClientState {
   ): Promise<void> {
     await this.client.execute(`/state/${storeName}/transaction`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+      body: {
         operations,
         metadata,
-      }),
+      },
     });
   }
 
   async query(storeName: string, query: StateQueryType): Promise<StateQueryResponseType> {
     const result = await this.client.executeWithApiVersion("v1.0-alpha1", `/state/${storeName}/query`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+      body: {
         ...query,
-      }),
+      },
     });
 
     return result as StateQueryResponseType;

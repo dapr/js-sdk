@@ -26,14 +26,11 @@ export default class HTTPClientBinding implements IClientBinding {
   async send(bindingName: string, operation: string, data: any, metadata: object = {}): Promise<object> {
     const result = await this.client.execute(`/bindings/${bindingName}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+      body: {
         operation,
         data,
         metadata,
-      }),
+      },
     });
 
     return result as object;

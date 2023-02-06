@@ -402,7 +402,6 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     return callback(null, res);
   }
 
-  // @todo: WIP
   async onTopicEvent(
     call: grpc.ServerUnaryCall<TopicEventRequest, TopicEventResponse>,
     callback: grpc.sendUnaryData<TopicEventResponse>,
@@ -428,10 +427,9 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
     const data = Buffer.from(req.getData()).toString();
     let dataParsed: any;
-
     try {
       dataParsed = JSON.parse(data);
-    } catch (e) {
+    } catch (_) {
       dataParsed = data;
     }
 

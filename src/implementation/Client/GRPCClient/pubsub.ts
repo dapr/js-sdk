@@ -17,7 +17,7 @@ import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 import { Logger } from "../../../logger/Logger";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import { KeyValueType } from "../../../types/KeyValue.type";
-import { createGRPCMetadata } from "../../../utils/Client.util";
+import { addMetadataToMap } from "../../../utils/Client.util";
 import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
@@ -47,11 +47,11 @@ export default class GRPCClientPubSub implements IClientPubSub {
       msgService.setDataContentType(serialized.contentType);
     }
 
-    const client = await this.client.getClient();
-    const grpcMetadata = createGRPCMetadata(metadata);
+    addMetadataToMap(msgService.getMetadataMap(), metadata);
 
+    const client = await this.client.getClient();
     return new Promise((resolve, reject) => {
-      client.publishEvent(msgService, grpcMetadata, (err, _res) => {
+      client.publishEvent(msgService, (err, _res) => {
         if (err) {
           this.logger.error(`publish failed: ${err}`);
           return reject({ error: err });

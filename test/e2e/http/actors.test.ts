@@ -92,10 +92,11 @@ describe("http/actors", () => {
     await NodeJSUtil.sleep(serverStartWaitTimeMs);
   }, 30 * 1000);
 
+  // We need to stop the server after all tests are done
+  // Note: it can take > 5s so increase timeout as we are testing reminders and timers
   afterAll(async () => {
-    await server.stop(); // if we hang here, it means connections are open that were not closed. Debug why
-    // await client.stop();
-  });
+    await server.stop();
+  }, 30 * 1000);
 
   describe("configuration", () => {
     it("actor configuration endpoint should contain the correct parameters", async () => {
@@ -129,6 +130,24 @@ describe("http/actors", () => {
       await actor.countBy(1, 10);
       const c3 = await actor.getCounter();
       expect(c3).toEqual(11);
+    });
+  });
+
+  describe("invokeNonExistentMethod", () => {
+    it("should not fail if invoked non-existing method on actor", async () => {
+      const builder = new ActorProxyBuilder<DemoActorCounterInterface>(DemoActorCounterImpl, client);
+      const actorId = ActorId.createRandomId();
+      builder.build(actorId);
+
+      const baseActorUrl = `http://${sidecarHost}:${sidecarPort}/v1.0/actors/DemoActorCounterImpl/${actorId.toString()}/method`;
+
+      const validFunc = await fetch(`${baseActorUrl}/getCounter`);
+      expect(validFunc.status).toBe(200);
+      expect(validFunc.statusText).toBe("OK");
+
+      const nonExistentFunc = await fetch(`${baseActorUrl}/sayHello`);
+      expect(nonExistentFunc.status).toBe(500);
+      expect(nonExistentFunc.statusText).toBe("Internal Server Error");
     });
   });
 
@@ -280,7 +299,7 @@ describe("http/actors", () => {
       // Now we wait an extra period - duration (1s)
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Make sure the counter didn't change
+      // Make sure the counter didn't change as we removed it
       const res2 = await actor.getCounter();
       expect(res2).toEqual(123);
     });
