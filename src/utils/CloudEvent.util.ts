@@ -7,7 +7,7 @@
  */
 export function isCloudEvent(obj: object): boolean {
   const requiredAttributes = ["id", "source", "type", "specversion"];
-  
+
   return (
     typeof obj === "object" &&
     obj !== null &&

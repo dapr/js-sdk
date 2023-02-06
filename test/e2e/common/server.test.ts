@@ -116,49 +116,62 @@ describe("common/server", () => {
   };
 
   describe("pubsub", () => {
-    runIt("should by default mark messagess as processed successfully (SUCCESS) and the same message should not be received anymore", async (server: DaprServer, protocol: string) => {
-      const res = await server.client.pubsub.publish(pubSubName, getTopic(topicWithStatusCb, protocol), "SUCCESS");
-      expect(res.error).toBeUndefined();
+    runIt(
+      "should by default mark messagess as processed successfully (SUCCESS) and the same message should not be received anymore",
+      async (server: DaprServer, protocol: string) => {
+        const res = await server.client.pubsub.publish(pubSubName, getTopic(topicWithStatusCb, protocol), "SUCCESS");
+        expect(res.error).toBeUndefined();
 
-      // Delay a bit for event to arrive
-      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+        // Delay a bit for event to arrive
+        await new Promise((resolve, _reject) => setTimeout(resolve, 250));
 
-      expect(mockSubscribeStatusHandler.mock.calls.length).toBe(1);
-      expect(mockSubscribeStatusHandler.mock.calls[0][0]).toEqual("SUCCESS");
+        expect(mockSubscribeStatusHandler.mock.calls.length).toBe(1);
+        expect(mockSubscribeStatusHandler.mock.calls[0][0]).toEqual("SUCCESS");
 
-      expect(mockSubscribeDeadletterHandler.mock.calls.length).toBe(0);
-    });
+        expect(mockSubscribeDeadletterHandler.mock.calls.length).toBe(0);
+      },
+    );
 
-    runIt("should mark messagess as retried (RETRY) and the same message should be received again until we send SUCCESS", async (server: DaprServer, protocol: string) => {
-      const res = await server.client.pubsub.publish(pubSubName, getTopic(topicWithStatusCb, protocol), "TEST_RETRY_TWICE");
-      expect(res.error).toBeUndefined();
+    runIt(
+      "should mark messagess as retried (RETRY) and the same message should be received again until we send SUCCESS",
+      async (server: DaprServer, protocol: string) => {
+        const res = await server.client.pubsub.publish(
+          pubSubName,
+          getTopic(topicWithStatusCb, protocol),
+          "TEST_RETRY_TWICE",
+        );
+        expect(res.error).toBeUndefined();
 
-      // Delay a bit for event to arrive
-      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+        // Delay a bit for event to arrive
+        await new Promise((resolve, _reject) => setTimeout(resolve, 250));
 
-      // @todo: mocks are not called 3 times but the retry counter is incremented as expected?
-      // console.log("mockSubscribeStatusHandler.mock.calls.length: ", mockSubscribeStatusHandler.mock.calls.length)
-      // expect(mockSubscribeStatusHandler.mock.calls.length).toBe(3);
-      // expect(mockSubscribeStatusHandler.mock.calls[0][0]).toEqual("TEST_RETRY_TWICE");
-      // expect(mockSubscribeStatusHandlerRetryCounter).toBe(2);
+        // @todo: mocks are not called 3 times but the retry counter is incremented as expected?
+        // console.log("mockSubscribeStatusHandler.mock.calls.length: ", mockSubscribeStatusHandler.mock.calls.length)
+        // expect(mockSubscribeStatusHandler.mock.calls.length).toBe(3);
+        // expect(mockSubscribeStatusHandler.mock.calls[0][0]).toEqual("TEST_RETRY_TWICE");
+        // expect(mockSubscribeStatusHandlerRetryCounter).toBe(2);
 
-      expect(mockSubscribeDeadletterHandler.mock.calls.length).toBe(0);
-    });
+        expect(mockSubscribeDeadletterHandler.mock.calls.length).toBe(0);
+      },
+    );
 
-    runIt("should mark messagess as dropped (DROP) and the message should be deadlettered", async (server: DaprServer, protocol: string) => {
-      const res = await server.client.pubsub.publish(pubSubName, getTopic(topicWithStatusCb, protocol), "DROP");
-      expect(res.error).toBeUndefined();
+    runIt(
+      "should mark messagess as dropped (DROP) and the message should be deadlettered",
+      async (server: DaprServer, protocol: string) => {
+        const res = await server.client.pubsub.publish(pubSubName, getTopic(topicWithStatusCb, protocol), "DROP");
+        expect(res.error).toBeUndefined();
 
-      // Delay a bit for event to arrive
-      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+        // Delay a bit for event to arrive
+        await new Promise((resolve, _reject) => setTimeout(resolve, 250));
 
-      // @todo: mocks are not called 3 times but the retry counter is incremented as expected?
-      expect(mockSubscribeStatusHandler.mock.calls.length).toBe(1);
-      expect(mockSubscribeStatusHandler.mock.calls[0][0]).toEqual("DROP");
+        // @todo: mocks are not called 3 times but the retry counter is incremented as expected?
+        expect(mockSubscribeStatusHandler.mock.calls.length).toBe(1);
+        expect(mockSubscribeStatusHandler.mock.calls[0][0]).toEqual("DROP");
 
-      // @todo: are dropped messages thrown into deadletter?
-      // expect(mockSubscribeDeadletterHandler.mock.calls.length).toBe(1);
-    });
+        // @todo: are dropped messages thrown into deadletter?
+        // expect(mockSubscribeDeadletterHandler.mock.calls.length).toBe(1);
+      },
+    );
 
     runIt("should be able to send and receive plain events", async (server: DaprServer, protocol: string) => {
       const res = await server.client.pubsub.publish(pubSubName, getTopic(topicDefault, protocol), "Hello, world!");

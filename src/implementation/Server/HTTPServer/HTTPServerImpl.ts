@@ -140,7 +140,11 @@ export default class HTTPServerImpl {
     );
   }
 
-  async processPubSubCallbacks(routeObj: PubSubSubscriptionTopicRouteType, data: any, headers: IncomingHttpHeaders): Promise<DaprPubSubStatusEnum> {
+  async processPubSubCallbacks(
+    routeObj: PubSubSubscriptionTopicRouteType,
+    data: any,
+    headers: IncomingHttpHeaders,
+  ): Promise<DaprPubSubStatusEnum> {
     const eventHandlers = routeObj.eventHandlers;
     let statuses = [];
 

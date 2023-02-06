@@ -230,7 +230,7 @@ async function start() {
 
 #### Subscribe with SUCCESS/RETRY/DROP status
 
-Dapr supports [status codes for retry logic](https://docs.dapr.io/reference/api/pubsub_api/#expected-http-response) to specify what should happen after a message gets processed. 
+Dapr supports [status codes for retry logic](https://docs.dapr.io/reference/api/pubsub_api/#expected-http-response) to specify what should happen after a message gets processed.
 
 > ⚠️ The JS SDK allows multiple callbacks on the same topic, we handle priority of status on `RETRY` > `DROP` > `SUCCESS` and default to `SUCCESS`
 

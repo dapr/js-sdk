@@ -28,17 +28,20 @@ describe("deserializer", () => {
     expect(data).toEqual({ Hello: "World" });
   });
 
-  runIt("should deserialize a Buffer of type application/cloudevents+json to an Object in CloudEvent Format", (fnDeserialize) => {
-    const dataRaw = {
-      id: "demo",
-      source: "demo",
-      type: "demo",
-      specversion: "demo",
-    };
+  runIt(
+    "should deserialize a Buffer of type application/cloudevents+json to an Object in CloudEvent Format",
+    (fnDeserialize) => {
+      const dataRaw = {
+        id: "demo",
+        source: "demo",
+        type: "demo",
+        specversion: "demo",
+      };
 
-    const data = fnDeserialize("application/cloudevents+json", Buffer.from(JSON.stringify(dataRaw)));
-    expect(data).toEqual(dataRaw);
-  });
+      const data = fnDeserialize("application/cloudevents+json", Buffer.from(JSON.stringify(dataRaw)));
+      expect(data).toEqual(dataRaw);
+    },
+  );
 
   runIt("should deserialize a Buffer of type text/plain to a String", (fnDeserialize) => {
     const dataRaw = "hello-world";
@@ -68,10 +71,8 @@ describe("deserializer", () => {
   runIt("should deserialize a Uint8Array of type application/json to an Array", (fnDeserialize) => {
     // { "message": "Hello, world!" } as Uint8Array
     const dataRaw = new Uint8Array([
-      123,  34, 109, 101, 115, 115,  97,
-      103, 101,  34,  58,  34,  72, 101,
-      108, 108, 111,  44,  32, 119, 111,
-      114, 108, 100,  33,  34, 125
+      123, 34, 109, 101, 115, 115, 97, 103, 101, 34, 58, 34, 72, 101, 108, 108, 111, 44, 32, 119, 111, 114, 108, 100,
+      33, 34, 125,
     ]);
 
     const data = fnDeserialize("application/json", dataRaw);
@@ -80,33 +81,36 @@ describe("deserializer", () => {
 
   runIt("should deserialize a Uint8Array of type text/plain to an String", (fnDeserialize) => {
     // "Hello World" as Uint8Array
-    const dataRaw = new Uint8Array([
-      72, 101, 108, 108, 111, 44, 32, 119, 111, 114, 108, 100, 33
-    ]);
+    const dataRaw = new Uint8Array([72, 101, 108, 108, 111, 44, 32, 119, 111, 114, 108, 100, 33]);
 
     const data = fnDeserialize("text/plain", dataRaw);
-    expect(data).toEqual('Hello, world!');
+    expect(data).toEqual("Hello, world!");
   });
 
-  runIt("should deserialize a Uint8Array of type application/octet-stream to data if the Uint8Array contains a CloudEvent", (fnDeserialize) => {
-    // Convert to a Uint8Array
-    const dataRaw = new TextEncoder().encode(JSON.stringify({
-      data: "Hello, world!",
-      datacontenttype: "text/plain",
-      id: "ae4397a6-cb53-456b-a09f-52afc69a4bfe",
-      pubsubname: "pubsub-redis",
-      source: "test-suite-grpc",
-      specversion: "1.0",
-      time: "2023-02-06T11:13:44+01:00",
-      topic: "test-topic-raw-grpc",
-      traceid: "00-9d425ac9770484e99e005d29d009ed4e-ba516cd479ec5f29-01",
-      traceparent: "00-9d425ac9770484e99e005d29d009ed4e-ba516cd479ec5f29-01",
-      tracestate: "",
-      type: "com.dapr.event.sent"
-    }));
+  runIt(
+    "should deserialize a Uint8Array of type application/octet-stream to data if the Uint8Array contains a CloudEvent",
+    (fnDeserialize) => {
+      // Convert to a Uint8Array
+      const dataRaw = new TextEncoder().encode(
+        JSON.stringify({
+          data: "Hello, world!",
+          datacontenttype: "text/plain",
+          id: "ae4397a6-cb53-456b-a09f-52afc69a4bfe",
+          pubsubname: "pubsub-redis",
+          source: "test-suite-grpc",
+          specversion: "1.0",
+          time: "2023-02-06T11:13:44+01:00",
+          topic: "test-topic-raw-grpc",
+          traceid: "00-9d425ac9770484e99e005d29d009ed4e-ba516cd479ec5f29-01",
+          traceparent: "00-9d425ac9770484e99e005d29d009ed4e-ba516cd479ec5f29-01",
+          tracestate: "",
+          type: "com.dapr.event.sent",
+        }),
+      );
 
-    // In Dapr the event arrives as an application/octet-stream
-    const data = fnDeserialize("application/octet-stream", dataRaw);
-    expect(data?.data).toEqual('Hello, world!');
-  });
+      // In Dapr the event arrives as an application/octet-stream
+      const data = fnDeserialize("application/octet-stream", dataRaw);
+      expect(data?.data).toEqual("Hello, world!");
+    },
+  );
 });
