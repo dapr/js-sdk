@@ -156,10 +156,6 @@ export default class HTTPServerImpl {
       } catch (e) {
         // We catch and log an error, but we don't do anything with it as the statuses should define that
         this.logger.error(`[route-${routeObj.path}] Message processing failed, ${e}`);
-
-        if (status === DaprPubSubStatusEnum.SUCCESS) {
-          status = DaprPubSubStatusEnum.RETRY;
-        }
       }
 
       statuses.push(status ?? DaprPubSubStatusEnum.SUCCESS);

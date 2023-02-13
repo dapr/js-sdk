@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { CloudEvent } from "cloudevents";
 import { TextDecoder } from "util";
 
 function tryParseJson(data: any): object | string {
@@ -27,12 +26,12 @@ function tryParseJson(data: any): object | string {
   }
 }
 
-export function deserializeGrpc(contentType: string, data: string | Uint8Array): CloudEvent | any | unknown {
+export function deserializeGrpc(contentType: string, data: string | Uint8Array): any | unknown {
   switch (contentType) {
     case "application/json":
       return tryParseJson(data) as any;
     case "application/cloudevents+json":
-      return tryParseJson(data) as CloudEvent;
+      return tryParseJson(data);
     case "application/octet-stream":
       // Check if the data is a Uint8Array, then we decode it first
       return tryParseJson(data);
@@ -43,7 +42,7 @@ export function deserializeGrpc(contentType: string, data: string | Uint8Array):
   }
 }
 
-export function deserializeHttp(contentType: string, data: any): CloudEvent | any | unknown {
+export function deserializeHttp(contentType: string, data: any): any | unknown {
   // Check if the data is a Uint8Array, then we decode it first
   if (data instanceof Uint8Array) {
     data = new TextDecoder().decode(data);
@@ -53,7 +52,7 @@ export function deserializeHttp(contentType: string, data: any): CloudEvent | an
     case "application/json":
       return tryParseJson(data) as any;
     case "application/cloudevents+json":
-      return tryParseJson(data) as CloudEvent;
+      return tryParseJson(data);
     case "application/octet-stream":
       // Check if the data is a Uint8Array, then we decode it first
       return tryParseJson(data);
