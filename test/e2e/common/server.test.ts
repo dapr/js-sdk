@@ -120,12 +120,22 @@ describe("common/server", () => {
     runIt(
       "should be able to publish multiple rawPayload messages and receive events using bulk subscribe",
       async (server: DaprServer, protocol: string) => {
-        const res1 = await server.client.pubsub.publish(pubSubName, getTopic(bulkSubscribeTopic, protocol), {
-          message: "Hello, world1111!",
-        }, { rawPayload: "true" });
-        const res2 = await server.client.pubsub.publish(pubSubName, getTopic(bulkSubscribeTopic, protocol), {
-          message: "Hello, world2222!",
-        }, { rawPayload: "true" });
+        const res1 = await server.client.pubsub.publish(
+          pubSubName,
+          getTopic(bulkSubscribeTopic, protocol),
+          {
+            message: "Hello, world1111!",
+          },
+          { rawPayload: "true" },
+        );
+        const res2 = await server.client.pubsub.publish(
+          pubSubName,
+          getTopic(bulkSubscribeTopic, protocol),
+          {
+            message: "Hello, world2222!",
+          },
+          { rawPayload: "true" },
+        );
         expect(res1.error).toBeUndefined();
         expect(res2.error).toBeUndefined();
 
@@ -175,20 +185,34 @@ describe("common/server", () => {
         await new Promise((resolve, _reject) => setTimeout(resolve, 3000));
 
         expect(mockBulkSubscribeCE_RPHandler.mock.calls.length).toBe(2);
-        expect(getDataFromCEObject(mockBulkSubscribeCE_RPHandler.mock.calls[0][0])).toEqual({ message: "Hello, world1111!" });
-        expect(getDataFromCEObject(mockBulkSubscribeCE_RPHandler.mock.calls[1][0])).toEqual({ message: "Hello, world2222!" });
+        expect(getDataFromCEObject(mockBulkSubscribeCE_RPHandler.mock.calls[0][0])).toEqual({
+          message: "Hello, world1111!",
+        });
+        expect(getDataFromCEObject(mockBulkSubscribeCE_RPHandler.mock.calls[1][0])).toEqual({
+          message: "Hello, world2222!",
+        });
       },
     );
 
     runIt(
       "should be able to publish multiple rawPayload messages but receive ce events using bulk subscribe",
       async (server: DaprServer, protocol: string) => {
-        const res1 = await server.client.pubsub.publish(pubSubName, getTopic(bulkSubscribeRP_CETopic, protocol), {
-          message: "Hello, world1111!",
-        }, { rawPayload: "true" });
-        const res2 = await server.client.pubsub.publish(pubSubName, getTopic(bulkSubscribeRP_CETopic, protocol), {
-          message: "Hello, world2222!",
-        }, { rawPayload: "true" });
+        const res1 = await server.client.pubsub.publish(
+          pubSubName,
+          getTopic(bulkSubscribeRP_CETopic, protocol),
+          {
+            message: "Hello, world1111!",
+          },
+          { rawPayload: "true" },
+        );
+        const res2 = await server.client.pubsub.publish(
+          pubSubName,
+          getTopic(bulkSubscribeRP_CETopic, protocol),
+          {
+            message: "Hello, world2222!",
+          },
+          { rawPayload: "true" },
+        );
         expect(res1.error).toBeUndefined();
         expect(res2.error).toBeUndefined();
 
@@ -506,56 +530,56 @@ describe("common/server", () => {
   const setupPubSubSubscriptions = async () => {
     await httpServer.pubsub.subscribe(pubSubName, getTopic(topicDefault, protocolHttp), mockSubscribeHandler);
     await grpcServer.pubsub.subscribe(pubSubName, getTopic(topicDefault, protocolGrpc), mockSubscribeHandler);
-    
+
     await grpcServer.pubsub.bulkSubscribeWithDefaultConfig(
-      pubSubName, 
-      getTopic(bulkSubscribeTopic, protocolGrpc), 
+      pubSubName,
+      getTopic(bulkSubscribeTopic, protocolGrpc),
       mockBulkSubscribeRawPayloadHandler,
       undefined,
-      { rawPayload: true }
+      { rawPayload: true },
     );
     await httpServer.pubsub.bulkSubscribeWithDefaultConfig(
-      pubSubName, 
-      getTopic(bulkSubscribeTopic, protocolHttp), 
+      pubSubName,
+      getTopic(bulkSubscribeTopic, protocolHttp),
       mockBulkSubscribeRawPayloadHandler,
       undefined,
-      { rawPayload: true }
+      { rawPayload: true },
     );
 
     await grpcServer.pubsub.bulkSubscribeWithDefaultConfig(
-      pubSubName, 
-      getTopic(bulkSubscribeCETopic, protocolGrpc), 
+      pubSubName,
+      getTopic(bulkSubscribeCETopic, protocolGrpc),
       mockBulkSubscribeCEHandler,
     );
     await httpServer.pubsub.bulkSubscribeWithDefaultConfig(
-      pubSubName, 
-      getTopic(bulkSubscribeCETopic, protocolHttp), 
+      pubSubName,
+      getTopic(bulkSubscribeCETopic, protocolHttp),
       mockBulkSubscribeCEHandler,
     );
 
     await grpcServer.pubsub.bulkSubscribeWithDefaultConfig(
-      pubSubName, 
-      getTopic(bulkSubscribeCE_RPTopic, protocolGrpc), 
+      pubSubName,
+      getTopic(bulkSubscribeCE_RPTopic, protocolGrpc),
       mockBulkSubscribeCE_RPHandler,
       undefined,
-      { rawPayload: true }
+      { rawPayload: true },
     );
     await httpServer.pubsub.bulkSubscribeWithDefaultConfig(
-      pubSubName, 
-      getTopic(bulkSubscribeCE_RPTopic, protocolHttp), 
+      pubSubName,
+      getTopic(bulkSubscribeCE_RPTopic, protocolHttp),
       mockBulkSubscribeCE_RPHandler,
       undefined,
-      { rawPayload: true }
+      { rawPayload: true },
     );
 
     await grpcServer.pubsub.bulkSubscribeWithDefaultConfig(
-      pubSubName, 
-      getTopic(bulkSubscribeRP_CETopic, protocolGrpc), 
+      pubSubName,
+      getTopic(bulkSubscribeRP_CETopic, protocolGrpc),
       mockBulkSubscribeRP_CEHandler,
     );
     await httpServer.pubsub.bulkSubscribeWithDefaultConfig(
-      pubSubName, 
-      getTopic(bulkSubscribeRP_CETopic, protocolHttp), 
+      pubSubName,
+      getTopic(bulkSubscribeRP_CETopic, protocolHttp),
       mockBulkSubscribeRP_CEHandler,
     );
 
@@ -673,7 +697,6 @@ describe("common/server", () => {
 });
 
 function getDataFromCEObject(obj: object) {
-  let values = Object.values(obj);
+  const values = Object.values(obj);
   return values[0];
 }
-
