@@ -1,9 +1,9 @@
 #!/bin/bash
 OS=$(echo `uname`|tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
-ORG_NAME="DeepanshuA"
+ORG_NAME="dapr"
 REPO_NAME="dapr"
-BRANCH_NAME="declarative_bulksub"
+BRANCH_NAME="master"
 
 # Path to store output
 PATH_ROOT=$(pwd)

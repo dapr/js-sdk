@@ -574,6 +574,7 @@ function deserialize_google_protobuf_Empty(buffer_arg) {
 // Dapr service provides APIs to user application to access Dapr building blocks.
 var DaprService = exports.DaprService = {
   // Invokes a method on a remote Dapr app.
+// Deprecated: Use proxy mode service invocation instead.
 invokeService: {
     path: '/dapr.proto.runtime.v1.Dapr/InvokeService',
     requestStream: false,

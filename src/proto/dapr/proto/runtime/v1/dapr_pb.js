@@ -12950,7 +12950,7 @@ proto.dapr.proto.runtime.v1.StartWorkflowRequest.toObject = function(includeInst
     workflowComponent: jspb.Message.getFieldWithDefault(msg, 2, ""),
     workflowName: jspb.Message.getFieldWithDefault(msg, 3, ""),
     optionsMap: (f = msg.getOptionsMap()) ? f.toObject(includeInstance, undefined) : [],
-    input: (f = msg.getInput()) && google_protobuf_any_pb.Any.toObject(includeInstance, f)
+    input: msg.getInput_asB64()
   };
 
   if (includeInstance) {
@@ -13006,8 +13006,7 @@ proto.dapr.proto.runtime.v1.StartWorkflowRequest.deserializeBinaryFromReader = f
          });
       break;
     case 5:
-      var value = new google_protobuf_any_pb.Any;
-      reader.readMessage(value,google_protobuf_any_pb.Any.deserializeBinaryFromReader);
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
       msg.setInput(value);
       break;
     default:
@@ -13064,12 +13063,11 @@ proto.dapr.proto.runtime.v1.StartWorkflowRequest.serializeBinaryToWriter = funct
   if (f && f.getLength() > 0) {
     f.serializeBinary(4, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
-  f = message.getInput();
-  if (f != null) {
-    writer.writeMessage(
+  f = message.getInput_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
       5,
-      f,
-      google_protobuf_any_pb.Any.serializeBinaryToWriter
+      f
     );
   }
 };
@@ -13152,39 +13150,44 @@ proto.dapr.proto.runtime.v1.StartWorkflowRequest.prototype.clearOptionsMap = fun
 
 
 /**
- * optional google.protobuf.Any input = 5;
- * @return {?proto.google.protobuf.Any}
+ * optional bytes input = 5;
+ * @return {!(string|Uint8Array)}
  */
 proto.dapr.proto.runtime.v1.StartWorkflowRequest.prototype.getInput = function() {
-  return /** @type{?proto.google.protobuf.Any} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_any_pb.Any, 5));
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
 };
 
 
 /**
- * @param {?proto.google.protobuf.Any|undefined} value
+ * optional bytes input = 5;
+ * This is a type-conversion wrapper around `getInput()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.StartWorkflowRequest.prototype.getInput_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getInput()));
+};
+
+
+/**
+ * optional bytes input = 5;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getInput()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.StartWorkflowRequest.prototype.getInput_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getInput()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
  * @return {!proto.dapr.proto.runtime.v1.StartWorkflowRequest} returns this
-*/
+ */
 proto.dapr.proto.runtime.v1.StartWorkflowRequest.prototype.setInput = function(value) {
-  return jspb.Message.setWrapperField(this, 5, value);
-};
-
-
-/**
- * Clears the message field making it undefined.
- * @return {!proto.dapr.proto.runtime.v1.StartWorkflowRequest} returns this
- */
-proto.dapr.proto.runtime.v1.StartWorkflowRequest.prototype.clearInput = function() {
-  return this.setInput(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {boolean}
- */
-proto.dapr.proto.runtime.v1.StartWorkflowRequest.prototype.hasInput = function() {
-  return jspb.Message.getField(this, 5) != null;
+  return jspb.Message.setProto3BytesField(this, 5, value);
 };
 
 

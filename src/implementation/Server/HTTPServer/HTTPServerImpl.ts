@@ -168,6 +168,15 @@ export default class HTTPServerImpl {
       if (entry.contentType == "application/octet-stream") {
         const dataB64 = entry.event;
         data = Buffer.from(dataB64, "base64").toString();
+        let parsedData: any;
+        try {
+          // This can be JSON, so try to parse it.
+          parsedData = JSON.parse(data);
+          data = parsedData;
+        } catch (_e) {
+          // If it's not JSON, use the string as-is.
+          // Skip and continue with the same data
+        }
       } else if (entry.contentType == "application/cloudevents+json") {
         data = entry.event.data;
       }
