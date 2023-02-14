@@ -29,6 +29,19 @@ async function start() {
     // The library parses JSON when possible.
     console.log(`[Dapr-JS][Example] Received on subscription: ${JSON.stringify(data)}`);
   });
+
+  // Publish multiple messages to a topic with default config.
+  await client.pubsub.bulkSubscribeWithDefaultConfig("my-pubsub-component", "my-topic", async (data: Record<string, any>) => {
+    // The library parses JSON when possible.
+    console.log(`[Dapr-JS][Example] Received on subscription: ${JSON.stringify(data)}`);
+  });
+
+  // Publish multiple messages to a topic with specific maxMessagesCount and maxAwaitDurationMs.
+  await client.pubsub.bulkSubscribeWithConfig("my-pubsub-component", "my-topic", async (data: Record<string, any>) => {
+    // The library parses JSON when possible.
+    console.log(`[Dapr-JS][Example] Received on subscription: ${JSON.stringify(data)}`);
+  }, 100, 40);
+
   await server.start();
 
   // Wait for 1 second to allow the server to start.
