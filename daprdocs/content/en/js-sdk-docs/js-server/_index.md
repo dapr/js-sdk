@@ -283,8 +283,6 @@ async function start() {
 
 Dapr [supports bulk subscribing](https://v1-10.docs.dapr.io/developing-applications/building-blocks/pubsub/pubsub-bulk/) a topic.
 
-As above link mentions, 
-
 - Bulk subscription through the `bulkSubscribeWithDefaultConfig` method, utilising default values for maxMessagesCount and maxAwaitDurationMs for related components.
 - Bulk subscription through the `bulkSubscribeWithConfig` method, where-in maxMessagesCount and maxAwaitDurationMs can be configured.
 
