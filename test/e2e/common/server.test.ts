@@ -140,7 +140,7 @@ describe("common/server", () => {
         expect(res2.error).toBeUndefined();
 
         // Delay a bit for event to arrive
-        await new Promise((resolve, _reject) => setTimeout(resolve, 3000));
+        await new Promise((resolve, _reject) => setTimeout(resolve, 4000));
 
         expect(mockBulkSubscribeRawPayloadHandler.mock.calls.length).toBe(2);
         expect(mockBulkSubscribeRawPayloadHandler.mock.calls[0][0]).toEqual({ message: "Hello, world1111!" });
@@ -161,7 +161,7 @@ describe("common/server", () => {
         expect(res2.error).toBeUndefined();
 
         // Delay a bit for event to arrive
-        await new Promise((resolve, _reject) => setTimeout(resolve, 3000));
+        await new Promise((resolve, _reject) => setTimeout(resolve, 4000));
 
         expect(mockBulkSubscribeCEHandler.mock.calls.length).toBe(2);
         expect(mockBulkSubscribeCEHandler.mock.calls[0][0]).toEqual({ message: "Hello, world1111!" });
@@ -182,7 +182,7 @@ describe("common/server", () => {
         expect(res2.error).toBeUndefined();
 
         // Delay a bit for event to arrive
-        await new Promise((resolve, _reject) => setTimeout(resolve, 3000));
+        await new Promise((resolve, _reject) => setTimeout(resolve, 4000));
 
         expect(mockBulkSubscribeCE_RPHandler.mock.calls.length).toBe(2);
         expect(getDataFromCEObject(mockBulkSubscribeCE_RPHandler.mock.calls[0][0])).toEqual({
@@ -217,7 +217,7 @@ describe("common/server", () => {
         expect(res2.error).toBeUndefined();
 
         // Delay a bit for event to arrive
-        await new Promise((resolve, _reject) => setTimeout(resolve, 3000));
+        await new Promise((resolve, _reject) => setTimeout(resolve, 4000));
 
         expect(mockBulkSubscribeRP_CEHandler.mock.calls.length).toBe(2);
       },
