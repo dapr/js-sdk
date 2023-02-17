@@ -61,27 +61,9 @@ export default interface IServerPubSub {
   ): void;
 
   /**
-   * Bulk Subscribe to a topic with default configurations for bulk subscribe.
-   * By default config, it means that maxMessagesCount and maxAwaitDurationMs
-   * are not provided and default values for related component will be used.
-   *
-   * @param pubSubName name of the pubsub
-   * @param topic name of the topic
-   * @param cb callback function to handle messages
-   * @param route The HTTP route override to register for the event subscription.
-   * Default value is `/route-${pubsubName}-${topic}`. Ignored if gRPC is used.
-   * @param metadata metadata for the subscription
-   */
-  bulkSubscribeWithDefaultConfig(
-    pubSubName: string,
-    topic: string,
-    cb: TypeDaprPubSubCallback,
-    route?: string | DaprPubSubRouteType,
-    metadata?: KeyValueType,
-  ): Promise<void>;
-
-  /**
    * Bulk Subscribe to a topic with providing configurations for bulk subscribe.
+   * If maxMessagesCount or/and maxAwaitDurationMs not provided, default values
+   * for related component will be used.
    *
    * @param pubSubName name of the pubsub
    * @param topic name of the topic
@@ -92,14 +74,14 @@ export default interface IServerPubSub {
    * Default value is `/route-${pubsubName}-${topic}`. Ignored if gRPC is used.
    * @param metadata metadata for the subscription
    */
-  bulkSubscribeWithConfig(
+  subscribeBulk(
     pubSubName: string,
     topic: string,
     cb: TypeDaprPubSubCallback,
-    maxMessagesCount?: number,
-    maxAwaitDurationMs?: number,
     route?: string | DaprPubSubRouteType,
     metadata?: KeyValueType,
+    maxMessagesCount?: number,
+    maxAwaitDurationMs?: number,
   ): Promise<void>;
 
   /**

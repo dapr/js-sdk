@@ -98,39 +98,28 @@ export default class DaprPubSub implements IServerPubSub {
     this.server.getServerImpl().registerPubSubSubscriptionEventHandler(pubsubName, topic, route, cb);
   }
 
-  async bulkSubscribeWithDefaultConfig(
+  async subscribeBulk(
     pubsubName: string,
     topic: string,
     cb: TypeDaprPubSubCallback,
     route: string | DaprPubSubRouteType = "",
     metadata?: KeyValueType,
+    maxMessagesCount?: number,
+    maxAwaitDurationMs?: number,
   ): Promise<void> {
+
     const bulkSubscribe: BulkSubscribeConfig = {
       enabled: true,
     };
-    this.server
-      .getServerImpl()
-      .registerPubsubSubscription(pubsubName, topic, { route, metadata, bulkSubscribe: bulkSubscribe });
 
-    // Add the callback to the event handlers manually
-    // @todo: we will deprecate this way of working? and require subscribeToRoute?
-    this.subscribeToRoute(pubsubName, topic, route, cb);
-  }
+    if(maxMessagesCount != undefined) {
+      bulkSubscribe.maxMessagesCount = maxMessagesCount;
+    }
 
-  async bulkSubscribeWithConfig(
-    pubsubName: string,
-    topic: string,
-    cb: TypeDaprPubSubCallback,
-    maxMessagesCount: number,
-    maxAwaitDurationMs: number,
-    route: string | DaprPubSubRouteType = "",
-    metadata?: KeyValueType,
-  ): Promise<void> {
-    const bulkSubscribe: BulkSubscribeConfig = {
-      enabled: true,
-      maxMessagesCount: maxMessagesCount,
-      maxAwaitDurationMs: maxAwaitDurationMs,
-    };
+    if(maxAwaitDurationMs != undefined) {
+      bulkSubscribe.maxAwaitDurationMs = maxAwaitDurationMs;
+    }
+    
     this.server
       .getServerImpl()
       .registerPubsubSubscription(pubsubName, topic, { route, metadata, bulkSubscribe: bulkSubscribe });

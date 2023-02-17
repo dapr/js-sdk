@@ -481,6 +481,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
     const resArr: TopicEventBulkResponseEntry[] = [];
     const entries = req.getEntriesList();
+
     for (const ind in entries) {
       const event = entries[ind];
       let data: any;
@@ -498,6 +499,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
       } catch (e) {
         dataParsed = data;
       }
+
       const res = new TopicEventBulkResponseEntry();
 
       // Get the headers
@@ -517,12 +519,14 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         this.logger.error(`Error handling topic event: ${e}`);
         res.setStatus(TopicEventResponse.TopicEventResponseStatus.DROP);
       }
+
       res.setEntryId(event.getEntryId());
       resArr.push(res);
     }
 
     const totalRes = new TopicEventBulkResponse();
     totalRes.setStatusesList(resArr);
+
     return callback(null, totalRes);
   }
 
@@ -551,12 +555,15 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         if (daprConfig?.bulkSubscribe) {
           const bulkSubscribe = new BulkSubscribeConfig();
           bulkSubscribe.setEnabled(daprConfig.bulkSubscribe.enabled);
+
           if (daprConfig?.bulkSubscribe?.maxMessagesCount) {
             bulkSubscribe.setMaxMessagesCount(daprConfig.bulkSubscribe.maxMessagesCount);
           }
+
           if (daprConfig?.bulkSubscribe?.maxAwaitDurationMs) {
             bulkSubscribe.setMaxAwaitDurationMs(daprConfig.bulkSubscribe.maxAwaitDurationMs);
           }
+          
           topicSubscription.setBulkSubscribe(bulkSubscribe);
         }
 

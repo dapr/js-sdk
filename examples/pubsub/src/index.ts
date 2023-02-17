@@ -31,7 +31,7 @@ async function start() {
   });
 
   // Publish multiple messages to a topic with default config.
-  await client.pubsub.bulkSubscribeWithDefaultConfig(
+  await client.pubsub.subscribeBulk(
     "my-pubsub-component",
     "my-topic",
     async (data: Record<string, any>) => {
@@ -41,7 +41,7 @@ async function start() {
   );
 
   // Publish multiple messages to a topic with specific maxMessagesCount and maxAwaitDurationMs.
-  await client.pubsub.bulkSubscribeWithConfig(
+  await client.pubsub.subscribeBulk(
     "my-pubsub-component",
     "my-topic",
     async (data: Record<string, any>) => {

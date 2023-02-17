@@ -284,8 +284,7 @@ async function start() {
 
 Dapr [supports bulk subscribing](https://v1-10.docs.dapr.io/developing-applications/building-blocks/pubsub/pubsub-bulk/) a topic.
 
-- Bulk subscription through the `bulkSubscribeWithDefaultConfig` method, utilising default values for maxMessagesCount and maxAwaitDurationMs for related components.
-- Bulk subscription through the `bulkSubscribeWithConfig` method, where-in maxMessagesCount and maxAwaitDurationMs can be configured.
+- Bulk subscription through the `subscribeBulk` method, `maxMessagesCount` and `maxAwaitDurationMs` ar eoptional, if not provided default values for related components will be used.
 
 ```typescript
 import { DaprServer } from "@dapr/dapr";
@@ -302,12 +301,12 @@ async function start() {
   const server = new DaprServer(SERVER_HOST, SERVER_PORT, DAPR_HOST, DAPR_HTTP_PORT);
 
   // Publish multiple messages to a topic with default config.
-  await client.pubsub.bulkSubscribeWithDefaultConfig(pubSubName, topic, (data) =>
+  await client.pubsub.subscribeBulk(pubSubName, topic, (data) =>
     console.log("Subscriber received: " + JSON.stringify(data)),
   );
 
   // Publish multiple messages to a topic with specific maxMessagesCount and maxAwaitDurationMs.
-  await client.pubsub.bulkSubscribeWithConfig(
+  await client.pubsub.subscribeBulk(
     pubSubName,
     topic,
     (data) => console.log("Subscriber received: " + JSON.stringify(data)),

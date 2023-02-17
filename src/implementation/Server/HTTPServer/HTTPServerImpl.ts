@@ -128,6 +128,7 @@ export default class HTTPServerImpl {
           const result = await this.processBulkSubscribeMessage(routeObj, req);
           return res.send(result);
         }
+
         const headers = req.headers;
 
         const data = this.extractDataFromSubscribeRequest(req);
