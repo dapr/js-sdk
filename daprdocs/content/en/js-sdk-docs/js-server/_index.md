@@ -282,9 +282,11 @@ async function start() {
 
 #### Bulk Subscribe to messages
 
-Dapr [supports bulk subscribing](https://v1-10.docs.dapr.io/developing-applications/building-blocks/pubsub/pubsub-bulk/) a topic.
+Bulk Subscription is supported and is available through following API:
 
 - Bulk subscription through the `subscribeBulk` method, `maxMessagesCount` and `maxAwaitDurationMs` ar eoptional, if not provided default values for related components will be used.
+
+Please refer [this document](https://v1-10.docs.dapr.io/developing-applications/building-blocks/pubsub/pubsub-bulk/) for more details.
 
 ```typescript
 import { DaprServer } from "@dapr/dapr";

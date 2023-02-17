@@ -563,7 +563,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
           if (daprConfig?.bulkSubscribe?.maxAwaitDurationMs) {
             bulkSubscribe.setMaxAwaitDurationMs(daprConfig.bulkSubscribe.maxAwaitDurationMs);
           }
-          
+
           topicSubscription.setBulkSubscribe(bulkSubscribe);
         }
 

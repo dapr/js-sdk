@@ -176,13 +176,21 @@ describe("common/server", () => {
     runIt(
       "should be able to publish multiple ce messages but receive rawPayload events using bulk subscribe",
       async (server: DaprServer, protocol: string) => {
-        const res1 = await server.client.pubsub.publish(pubSubName, getTopic(bulkSubscribeCloudEvent_to_RawPayloadTopic, protocol), {
-          message: "Hello, world1111!",
-        });
+        const res1 = await server.client.pubsub.publish(
+          pubSubName,
+          getTopic(bulkSubscribeCloudEvent_to_RawPayloadTopic, protocol),
+          {
+            message: "Hello, world1111!",
+          },
+        );
 
-        const res2 = await server.client.pubsub.publish(pubSubName, getTopic(bulkSubscribeCloudEvent_to_RawPayloadTopic, protocol), {
-          message: "Hello, world2222!",
-        });
+        const res2 = await server.client.pubsub.publish(
+          pubSubName,
+          getTopic(bulkSubscribeCloudEvent_to_RawPayloadTopic, protocol),
+          {
+            message: "Hello, world2222!",
+          },
+        );
 
         expect(res1.error).toBeUndefined();
         expect(res2.error).toBeUndefined();

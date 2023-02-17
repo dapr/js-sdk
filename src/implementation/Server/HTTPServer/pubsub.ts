@@ -130,14 +130,14 @@ export default class HTTPServerPubSub implements IServerPubSub {
       enabled: true,
     };
 
-    if(maxMessagesCount != undefined) {
+    if (maxMessagesCount != undefined) {
       bulkSubscribe.maxMessagesCount = maxMessagesCount;
     }
 
-    if(maxAwaitDurationMs != undefined) {
+    if (maxAwaitDurationMs != undefined) {
       bulkSubscribe.maxAwaitDurationMs = maxAwaitDurationMs;
     }
-    
+
     this.server
       .getServerImpl()
       .registerPubsubSubscription(pubsubName, topic, { route, metadata, bulkSubscribe: bulkSubscribe });

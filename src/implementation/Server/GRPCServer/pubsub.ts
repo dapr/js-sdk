@@ -107,19 +107,18 @@ export default class DaprPubSub implements IServerPubSub {
     maxMessagesCount?: number,
     maxAwaitDurationMs?: number,
   ): Promise<void> {
-
     const bulkSubscribe: BulkSubscribeConfig = {
       enabled: true,
     };
 
-    if(maxMessagesCount != undefined) {
+    if (maxMessagesCount != undefined) {
       bulkSubscribe.maxMessagesCount = maxMessagesCount;
     }
 
-    if(maxAwaitDurationMs != undefined) {
+    if (maxAwaitDurationMs != undefined) {
       bulkSubscribe.maxAwaitDurationMs = maxAwaitDurationMs;
     }
-    
+
     this.server
       .getServerImpl()
       .registerPubsubSubscription(pubsubName, topic, { route, metadata, bulkSubscribe: bulkSubscribe });
