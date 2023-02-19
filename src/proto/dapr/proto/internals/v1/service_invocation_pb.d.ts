@@ -108,6 +108,64 @@ export namespace InternalInvokeResponse {
     }
 }
 
+export class InternalInvokeRequestStream extends jspb.Message { 
+
+    hasRequest(): boolean;
+    clearRequest(): void;
+    getRequest(): InternalInvokeRequest | undefined;
+    setRequest(value?: InternalInvokeRequest): InternalInvokeRequestStream;
+
+    hasPayload(): boolean;
+    clearPayload(): void;
+    getPayload(): dapr_proto_common_v1_common_pb.StreamPayload | undefined;
+    setPayload(value?: dapr_proto_common_v1_common_pb.StreamPayload): InternalInvokeRequestStream;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): InternalInvokeRequestStream.AsObject;
+    static toObject(includeInstance: boolean, msg: InternalInvokeRequestStream): InternalInvokeRequestStream.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: InternalInvokeRequestStream, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): InternalInvokeRequestStream;
+    static deserializeBinaryFromReader(message: InternalInvokeRequestStream, reader: jspb.BinaryReader): InternalInvokeRequestStream;
+}
+
+export namespace InternalInvokeRequestStream {
+    export type AsObject = {
+        request?: InternalInvokeRequest.AsObject,
+        payload?: dapr_proto_common_v1_common_pb.StreamPayload.AsObject,
+    }
+}
+
+export class InternalInvokeResponseStream extends jspb.Message { 
+
+    hasResponse(): boolean;
+    clearResponse(): void;
+    getResponse(): InternalInvokeResponse | undefined;
+    setResponse(value?: InternalInvokeResponse): InternalInvokeResponseStream;
+
+    hasPayload(): boolean;
+    clearPayload(): void;
+    getPayload(): dapr_proto_common_v1_common_pb.StreamPayload | undefined;
+    setPayload(value?: dapr_proto_common_v1_common_pb.StreamPayload): InternalInvokeResponseStream;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): InternalInvokeResponseStream.AsObject;
+    static toObject(includeInstance: boolean, msg: InternalInvokeResponseStream): InternalInvokeResponseStream.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: InternalInvokeResponseStream, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): InternalInvokeResponseStream;
+    static deserializeBinaryFromReader(message: InternalInvokeResponseStream, reader: jspb.BinaryReader): InternalInvokeResponseStream;
+}
+
+export namespace InternalInvokeResponseStream {
+    export type AsObject = {
+        response?: InternalInvokeResponse.AsObject,
+        payload?: dapr_proto_common_v1_common_pb.StreamPayload.AsObject,
+    }
+}
+
 export class ListStringValue extends jspb.Message { 
     clearValuesList(): void;
     getValuesList(): Array<string>;
