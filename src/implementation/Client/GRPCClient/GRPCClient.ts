@@ -23,33 +23,21 @@ import DaprClient from "../DaprClient";
 import { SDK_VERSION } from "../../../version";
 
 export default class GRPCClient implements IClient {
-  private isInitialized: boolean;
+  readonly options: DaprClientOptions;
 
+  private isInitialized: boolean;
   private readonly client: GrpcDaprClient;
   private readonly clientCredentials: grpc.ChannelCredentials;
-  private readonly clientHost: string;
-  private readonly clientPort: string;
-  private readonly options: DaprClientOptions;
   private readonly logger: Logger;
 
-  constructor(host = Settings.getDefaultHost(), port = Settings.getDefaultGrpcPort(), options: DaprClientOptions = {}) {
-    this.clientHost = host;
-    this.clientPort = port;
+  constructor(options: DaprClientOptions) {
     this.options = options;
     this.clientCredentials = this.generateCredentials();
     this.logger = new Logger("GRPCClient", "GRPCClient", options.logger);
     this.isInitialized = false;
 
-    this.logger.info(`Opening connection to ${this.clientHost}:${this.clientPort}`);
-    this.client = this.generateClient(this.clientHost, this.clientPort, this.clientCredentials);
-  }
-
-  getClientHost(): string {
-    return this.clientHost;
-  }
-
-  getClientPort(): string {
-    return this.clientPort;
+    this.logger.info(`Opening connection to ${this.options.daprHost}:${this.options.daprPort}`);
+    this.client = this.generateClient(this.options.daprHost, this.options.daprPort, this.clientCredentials);
   }
 
   async getClient(requiresInitialization = true): Promise<GrpcDaprClient> {
@@ -59,10 +47,6 @@ export default class GRPCClient implements IClient {
     }
 
     return this.client;
-  }
-
-  getClientCommunicationProtocol(): CommunicationProtocolEnum {
-    return CommunicationProtocolEnum.GRPC;
   }
 
   getClientCredentials(): grpc.ChannelCredentials {
@@ -98,10 +82,6 @@ export default class GRPCClient implements IClient {
   private generateCredentials(): grpc.ChannelCredentials {
     const credsChannel = grpc.ChannelCredentials.createInsecure();
     return credsChannel;
-  }
-
-  getOptions(): DaprClientOptions {
-    return this.options;
   }
 
   setIsInitialized(isInitialized: boolean): void {

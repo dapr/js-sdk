@@ -11,15 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import CommunicationProtocolEnum from "../../enum/CommunicationProtocol.enum";
 import { DaprClientOptions } from "../../types/DaprClientOptions";
 
 export default interface IClient {
+  options: DaprClientOptions;
+
   getClient(requiresInitialization?: boolean): Promise<any>;
-  getClientHost(): string;
-  getClientPort(): string;
-  getClientCommunicationProtocol(): CommunicationProtocolEnum;
-  getOptions(): DaprClientOptions;
   setIsInitialized(isInitialized: boolean): void;
   getIsInitialized(): boolean;
   stop(): Promise<void>;
