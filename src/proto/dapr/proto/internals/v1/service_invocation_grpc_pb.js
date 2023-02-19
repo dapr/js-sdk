@@ -31,6 +31,17 @@ function deserialize_dapr_proto_internals_v1_InternalInvokeRequest(buffer_arg) {
   return dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_internals_v1_InternalInvokeRequestStream(arg) {
+  if (!(arg instanceof dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequestStream)) {
+    throw new Error('Expected argument of type dapr.proto.internals.v1.InternalInvokeRequestStream');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_internals_v1_InternalInvokeRequestStream(buffer_arg) {
+  return dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequestStream.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_internals_v1_InternalInvokeResponse(arg) {
   if (!(arg instanceof dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse)) {
     throw new Error('Expected argument of type dapr.proto.internals.v1.InternalInvokeResponse');
@@ -40,6 +51,17 @@ function serialize_dapr_proto_internals_v1_InternalInvokeResponse(arg) {
 
 function deserialize_dapr_proto_internals_v1_InternalInvokeResponse(buffer_arg) {
   return dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_internals_v1_InternalInvokeResponseStream(arg) {
+  if (!(arg instanceof dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponseStream)) {
+    throw new Error('Expected argument of type dapr.proto.internals.v1.InternalInvokeResponseStream');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_internals_v1_InternalInvokeResponseStream(buffer_arg) {
+  return dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponseStream.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 
@@ -77,6 +99,26 @@ callLocal: {
     requestDeserialize: deserialize_dapr_proto_internals_v1_InternalInvokeRequest,
     responseSerialize: serialize_dapr_proto_internals_v1_InternalInvokeResponse,
     responseDeserialize: deserialize_dapr_proto_internals_v1_InternalInvokeResponse,
+  },
+  // Invokes a method of the specific service using a stream of data.
+// Although this uses a bi-directional stream, it behaves as a "simple RPC" in which the caller sends the full request (chunked in multiple messages in the stream), then reads the full response (chunked in the stream). 
+// Each message in the stream contains a `InternalInvokeRequestStream` (for caller) or `InternalInvokeResponseStream` (for callee):
+// - The first message in the stream MUST contain a `request` (caller) or `response` (callee) message with all required properties present.
+// - The first message in the stream MAY contain a `payload`, which is not required and may be empty.
+// - Subsequent messages (any message except the first one in the stream) MUST contain a `payload` and MUST NOT contain any other property (like `request` or `response`).
+// - Each message with a `payload` MUST contain a sequence number in `seq`, which is a counter that starts from 0 and MUST be incremented by 1 in each chunk. The `seq` counter MUST NOT be included if the message does not have a `payload`.
+// - When the sender has completed sending the data, it MUST call `CloseSend` on the stream.
+// The caller and callee must send at least one message in the stream. If only 1 message is sent in each direction, that message must contain both a `request`/`response` (the `payload` may be empty).
+callLocalStream: {
+    path: '/dapr.proto.internals.v1.ServiceInvocation/CallLocalStream',
+    requestStream: true,
+    responseStream: true,
+    requestType: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeRequestStream,
+    responseType: dapr_proto_internals_v1_service_invocation_pb.InternalInvokeResponseStream,
+    requestSerialize: serialize_dapr_proto_internals_v1_InternalInvokeRequestStream,
+    requestDeserialize: deserialize_dapr_proto_internals_v1_InternalInvokeRequestStream,
+    responseSerialize: serialize_dapr_proto_internals_v1_InternalInvokeResponseStream,
+    responseDeserialize: deserialize_dapr_proto_internals_v1_InternalInvokeResponseStream,
   },
 };
 

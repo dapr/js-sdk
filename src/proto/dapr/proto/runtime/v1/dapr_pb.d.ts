@@ -402,6 +402,117 @@ export namespace PublishEventRequest {
     }
 }
 
+export class BulkPublishRequest extends jspb.Message { 
+    getPubsubName(): string;
+    setPubsubName(value: string): BulkPublishRequest;
+    getTopic(): string;
+    setTopic(value: string): BulkPublishRequest;
+    clearEntriesList(): void;
+    getEntriesList(): Array<BulkPublishRequestEntry>;
+    setEntriesList(value: Array<BulkPublishRequestEntry>): BulkPublishRequest;
+    addEntries(value?: BulkPublishRequestEntry, index?: number): BulkPublishRequestEntry;
+
+    getMetadataMap(): jspb.Map<string, string>;
+    clearMetadataMap(): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): BulkPublishRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: BulkPublishRequest): BulkPublishRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: BulkPublishRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): BulkPublishRequest;
+    static deserializeBinaryFromReader(message: BulkPublishRequest, reader: jspb.BinaryReader): BulkPublishRequest;
+}
+
+export namespace BulkPublishRequest {
+    export type AsObject = {
+        pubsubName: string,
+        topic: string,
+        entriesList: Array<BulkPublishRequestEntry.AsObject>,
+
+        metadataMap: Array<[string, string]>,
+    }
+}
+
+export class BulkPublishRequestEntry extends jspb.Message { 
+    getEntryId(): string;
+    setEntryId(value: string): BulkPublishRequestEntry;
+    getEvent(): Uint8Array | string;
+    getEvent_asU8(): Uint8Array;
+    getEvent_asB64(): string;
+    setEvent(value: Uint8Array | string): BulkPublishRequestEntry;
+    getContentType(): string;
+    setContentType(value: string): BulkPublishRequestEntry;
+
+    getMetadataMap(): jspb.Map<string, string>;
+    clearMetadataMap(): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): BulkPublishRequestEntry.AsObject;
+    static toObject(includeInstance: boolean, msg: BulkPublishRequestEntry): BulkPublishRequestEntry.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: BulkPublishRequestEntry, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): BulkPublishRequestEntry;
+    static deserializeBinaryFromReader(message: BulkPublishRequestEntry, reader: jspb.BinaryReader): BulkPublishRequestEntry;
+}
+
+export namespace BulkPublishRequestEntry {
+    export type AsObject = {
+        entryId: string,
+        event: Uint8Array | string,
+        contentType: string,
+
+        metadataMap: Array<[string, string]>,
+    }
+}
+
+export class BulkPublishResponse extends jspb.Message { 
+    clearFailedentriesList(): void;
+    getFailedentriesList(): Array<BulkPublishResponseFailedEntry>;
+    setFailedentriesList(value: Array<BulkPublishResponseFailedEntry>): BulkPublishResponse;
+    addFailedentries(value?: BulkPublishResponseFailedEntry, index?: number): BulkPublishResponseFailedEntry;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): BulkPublishResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: BulkPublishResponse): BulkPublishResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: BulkPublishResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): BulkPublishResponse;
+    static deserializeBinaryFromReader(message: BulkPublishResponse, reader: jspb.BinaryReader): BulkPublishResponse;
+}
+
+export namespace BulkPublishResponse {
+    export type AsObject = {
+        failedentriesList: Array<BulkPublishResponseFailedEntry.AsObject>,
+    }
+}
+
+export class BulkPublishResponseFailedEntry extends jspb.Message { 
+    getEntryId(): string;
+    setEntryId(value: string): BulkPublishResponseFailedEntry;
+    getError(): string;
+    setError(value: string): BulkPublishResponseFailedEntry;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): BulkPublishResponseFailedEntry.AsObject;
+    static toObject(includeInstance: boolean, msg: BulkPublishResponseFailedEntry): BulkPublishResponseFailedEntry.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: BulkPublishResponseFailedEntry, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): BulkPublishResponseFailedEntry;
+    static deserializeBinaryFromReader(message: BulkPublishResponseFailedEntry, reader: jspb.BinaryReader): BulkPublishResponseFailedEntry;
+}
+
+export namespace BulkPublishResponseFailedEntry {
+    export type AsObject = {
+        entryId: string,
+        error: string,
+    }
+}
+
 export class InvokeBindingRequest extends jspb.Message { 
     getName(): string;
     setName(value: string): InvokeBindingRequest;
@@ -978,6 +1089,10 @@ export class GetMetadataResponse extends jspb.Message {
 
     getExtendedMetadataMap(): jspb.Map<string, string>;
     clearExtendedMetadataMap(): void;
+    clearSubscriptionsList(): void;
+    getSubscriptionsList(): Array<PubsubSubscription>;
+    setSubscriptionsList(value: Array<PubsubSubscription>): GetMetadataResponse;
+    addSubscriptions(value?: PubsubSubscription, index?: number): PubsubSubscription;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): GetMetadataResponse.AsObject;
@@ -996,6 +1111,7 @@ export namespace GetMetadataResponse {
         registeredComponentsList: Array<RegisteredComponents.AsObject>,
 
         extendedMetadataMap: Array<[string, string]>,
+        subscriptionsList: Array<PubsubSubscription.AsObject>,
     }
 }
 
@@ -1050,6 +1166,88 @@ export namespace RegisteredComponents {
         type: string,
         version: string,
         capabilitiesList: Array<string>,
+    }
+}
+
+export class PubsubSubscription extends jspb.Message { 
+    getPubsubName(): string;
+    setPubsubName(value: string): PubsubSubscription;
+    getTopic(): string;
+    setTopic(value: string): PubsubSubscription;
+
+    getMetadataMap(): jspb.Map<string, string>;
+    clearMetadataMap(): void;
+
+    hasRules(): boolean;
+    clearRules(): void;
+    getRules(): PubsubSubscriptionRules | undefined;
+    setRules(value?: PubsubSubscriptionRules): PubsubSubscription;
+    getDeadLetterTopic(): string;
+    setDeadLetterTopic(value: string): PubsubSubscription;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): PubsubSubscription.AsObject;
+    static toObject(includeInstance: boolean, msg: PubsubSubscription): PubsubSubscription.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: PubsubSubscription, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): PubsubSubscription;
+    static deserializeBinaryFromReader(message: PubsubSubscription, reader: jspb.BinaryReader): PubsubSubscription;
+}
+
+export namespace PubsubSubscription {
+    export type AsObject = {
+        pubsubName: string,
+        topic: string,
+
+        metadataMap: Array<[string, string]>,
+        rules?: PubsubSubscriptionRules.AsObject,
+        deadLetterTopic: string,
+    }
+}
+
+export class PubsubSubscriptionRules extends jspb.Message { 
+    clearRulesList(): void;
+    getRulesList(): Array<PubsubSubscriptionRule>;
+    setRulesList(value: Array<PubsubSubscriptionRule>): PubsubSubscriptionRules;
+    addRules(value?: PubsubSubscriptionRule, index?: number): PubsubSubscriptionRule;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): PubsubSubscriptionRules.AsObject;
+    static toObject(includeInstance: boolean, msg: PubsubSubscriptionRules): PubsubSubscriptionRules.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: PubsubSubscriptionRules, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): PubsubSubscriptionRules;
+    static deserializeBinaryFromReader(message: PubsubSubscriptionRules, reader: jspb.BinaryReader): PubsubSubscriptionRules;
+}
+
+export namespace PubsubSubscriptionRules {
+    export type AsObject = {
+        rulesList: Array<PubsubSubscriptionRule.AsObject>,
+    }
+}
+
+export class PubsubSubscriptionRule extends jspb.Message { 
+    getMatch(): string;
+    setMatch(value: string): PubsubSubscriptionRule;
+    getPath(): string;
+    setPath(value: string): PubsubSubscriptionRule;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): PubsubSubscriptionRule.AsObject;
+    static toObject(includeInstance: boolean, msg: PubsubSubscriptionRule): PubsubSubscriptionRule.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: PubsubSubscriptionRule, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): PubsubSubscriptionRule;
+    static deserializeBinaryFromReader(message: PubsubSubscriptionRule, reader: jspb.BinaryReader): PubsubSubscriptionRule;
+}
+
+export namespace PubsubSubscriptionRule {
+    export type AsObject = {
+        match: string,
+        path: string,
     }
 }
 
@@ -1330,4 +1528,154 @@ export namespace UnlockResponse {
     INTERNAL_ERROR = 3,
     }
 
+}
+
+export class WorkflowReference extends jspb.Message { 
+    getInstanceId(): string;
+    setInstanceId(value: string): WorkflowReference;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): WorkflowReference.AsObject;
+    static toObject(includeInstance: boolean, msg: WorkflowReference): WorkflowReference.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: WorkflowReference, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): WorkflowReference;
+    static deserializeBinaryFromReader(message: WorkflowReference, reader: jspb.BinaryReader): WorkflowReference;
+}
+
+export namespace WorkflowReference {
+    export type AsObject = {
+        instanceId: string,
+    }
+}
+
+export class GetWorkflowRequest extends jspb.Message { 
+    getInstanceId(): string;
+    setInstanceId(value: string): GetWorkflowRequest;
+    getWorkflowType(): string;
+    setWorkflowType(value: string): GetWorkflowRequest;
+    getWorkflowComponent(): string;
+    setWorkflowComponent(value: string): GetWorkflowRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetWorkflowRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: GetWorkflowRequest): GetWorkflowRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetWorkflowRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetWorkflowRequest;
+    static deserializeBinaryFromReader(message: GetWorkflowRequest, reader: jspb.BinaryReader): GetWorkflowRequest;
+}
+
+export namespace GetWorkflowRequest {
+    export type AsObject = {
+        instanceId: string,
+        workflowType: string,
+        workflowComponent: string,
+    }
+}
+
+export class GetWorkflowResponse extends jspb.Message { 
+    getInstanceId(): string;
+    setInstanceId(value: string): GetWorkflowResponse;
+    getStartTime(): number;
+    setStartTime(value: number): GetWorkflowResponse;
+
+    getMetadataMap(): jspb.Map<string, string>;
+    clearMetadataMap(): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetWorkflowResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: GetWorkflowResponse): GetWorkflowResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetWorkflowResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetWorkflowResponse;
+    static deserializeBinaryFromReader(message: GetWorkflowResponse, reader: jspb.BinaryReader): GetWorkflowResponse;
+}
+
+export namespace GetWorkflowResponse {
+    export type AsObject = {
+        instanceId: string,
+        startTime: number,
+
+        metadataMap: Array<[string, string]>,
+    }
+}
+
+export class StartWorkflowRequest extends jspb.Message { 
+    getInstanceId(): string;
+    setInstanceId(value: string): StartWorkflowRequest;
+    getWorkflowComponent(): string;
+    setWorkflowComponent(value: string): StartWorkflowRequest;
+    getWorkflowName(): string;
+    setWorkflowName(value: string): StartWorkflowRequest;
+
+    getOptionsMap(): jspb.Map<string, string>;
+    clearOptionsMap(): void;
+    getInput(): Uint8Array | string;
+    getInput_asU8(): Uint8Array;
+    getInput_asB64(): string;
+    setInput(value: Uint8Array | string): StartWorkflowRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): StartWorkflowRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: StartWorkflowRequest): StartWorkflowRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: StartWorkflowRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): StartWorkflowRequest;
+    static deserializeBinaryFromReader(message: StartWorkflowRequest, reader: jspb.BinaryReader): StartWorkflowRequest;
+}
+
+export namespace StartWorkflowRequest {
+    export type AsObject = {
+        instanceId: string,
+        workflowComponent: string,
+        workflowName: string,
+
+        optionsMap: Array<[string, string]>,
+        input: Uint8Array | string,
+    }
+}
+
+export class TerminateWorkflowRequest extends jspb.Message { 
+    getInstanceId(): string;
+    setInstanceId(value: string): TerminateWorkflowRequest;
+    getWorkflowComponent(): string;
+    setWorkflowComponent(value: string): TerminateWorkflowRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): TerminateWorkflowRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: TerminateWorkflowRequest): TerminateWorkflowRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: TerminateWorkflowRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): TerminateWorkflowRequest;
+    static deserializeBinaryFromReader(message: TerminateWorkflowRequest, reader: jspb.BinaryReader): TerminateWorkflowRequest;
+}
+
+export namespace TerminateWorkflowRequest {
+    export type AsObject = {
+        instanceId: string,
+        workflowComponent: string,
+    }
+}
+
+export class TerminateWorkflowResponse extends jspb.Message { 
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): TerminateWorkflowResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: TerminateWorkflowResponse): TerminateWorkflowResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: TerminateWorkflowResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): TerminateWorkflowResponse;
+    static deserializeBinaryFromReader(message: TerminateWorkflowResponse, reader: jspb.BinaryReader): TerminateWorkflowResponse;
+}
+
+export namespace TerminateWorkflowResponse {
+    export type AsObject = {
+    }
 }
