@@ -257,6 +257,8 @@ async function start() {
 
   // Retry a message
   // Note: this example will keep on retrying to deliver the message
+  // Note 2: each component can have their own retry configuration 
+  //   e.g., https://docs.dapr.io/reference/components-reference/supported-pubsub/setup-redis-pubsub/
   await server.pubsub.subscribe(pubSubName, topic, async (data: any, headers: object) => {
     return DaprPubSubStatusEnum.RETRY;
   });
