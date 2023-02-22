@@ -381,6 +381,11 @@ export class TopicSubscription extends jspb.Message {
     getDeadLetterTopic(): string;
     setDeadLetterTopic(value: string): TopicSubscription;
 
+    hasBulkSubscribe(): boolean;
+    clearBulkSubscribe(): void;
+    getBulkSubscribe(): BulkSubscribeConfig | undefined;
+    setBulkSubscribe(value?: BulkSubscribeConfig): TopicSubscription;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): TopicSubscription.AsObject;
     static toObject(includeInstance: boolean, msg: TopicSubscription): TopicSubscription.AsObject;
@@ -399,6 +404,7 @@ export namespace TopicSubscription {
         metadataMap: Array<[string, string]>,
         routes?: TopicRoutes.AsObject,
         deadLetterTopic: string,
+        bulkSubscribe?: BulkSubscribeConfig.AsObject,
     }
 }
 
@@ -447,6 +453,32 @@ export namespace TopicRule {
     export type AsObject = {
         match: string,
         path: string,
+    }
+}
+
+export class BulkSubscribeConfig extends jspb.Message { 
+    getEnabled(): boolean;
+    setEnabled(value: boolean): BulkSubscribeConfig;
+    getMaxMessagesCount(): number;
+    setMaxMessagesCount(value: number): BulkSubscribeConfig;
+    getMaxAwaitDurationMs(): number;
+    setMaxAwaitDurationMs(value: number): BulkSubscribeConfig;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): BulkSubscribeConfig.AsObject;
+    static toObject(includeInstance: boolean, msg: BulkSubscribeConfig): BulkSubscribeConfig.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: BulkSubscribeConfig, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): BulkSubscribeConfig;
+    static deserializeBinaryFromReader(message: BulkSubscribeConfig, reader: jspb.BinaryReader): BulkSubscribeConfig;
+}
+
+export namespace BulkSubscribeConfig {
+    export type AsObject = {
+        enabled: boolean,
+        maxMessagesCount: number,
+        maxAwaitDurationMs: number,
     }
 }
 

@@ -133,6 +133,24 @@ describe("http/actors", () => {
     });
   });
 
+  describe("invokeNonExistentMethod", () => {
+    it("should not fail if invoked non-existing method on actor", async () => {
+      const builder = new ActorProxyBuilder<DemoActorCounterInterface>(DemoActorCounterImpl, client);
+      const actorId = ActorId.createRandomId();
+      builder.build(actorId);
+
+      const baseActorUrl = `http://${sidecarHost}:${sidecarPort}/v1.0/actors/DemoActorCounterImpl/${actorId.toString()}/method`;
+
+      const validFunc = await fetch(`${baseActorUrl}/getCounter`);
+      expect(validFunc.status).toBe(200);
+      expect(validFunc.statusText).toBe("OK");
+
+      const nonExistentFunc = await fetch(`${baseActorUrl}/sayHello`);
+      expect(nonExistentFunc.status).toBe(500);
+      expect(nonExistentFunc.statusText).toBe("Internal Server Error");
+    });
+  });
+
   describe("invoke", () => {
     it("should register actors correctly", async () => {
       const actors = await server.actor.getRegisteredActors();

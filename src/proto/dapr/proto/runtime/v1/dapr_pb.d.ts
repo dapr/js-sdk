@@ -1614,11 +1614,10 @@ export class StartWorkflowRequest extends jspb.Message {
 
     getOptionsMap(): jspb.Map<string, string>;
     clearOptionsMap(): void;
-
-    hasInput(): boolean;
-    clearInput(): void;
-    getInput(): google_protobuf_any_pb.Any | undefined;
-    setInput(value?: google_protobuf_any_pb.Any): StartWorkflowRequest;
+    getInput(): Uint8Array | string;
+    getInput_asU8(): Uint8Array;
+    getInput_asB64(): string;
+    setInput(value: Uint8Array | string): StartWorkflowRequest;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): StartWorkflowRequest.AsObject;
@@ -1637,7 +1636,7 @@ export namespace StartWorkflowRequest {
         workflowName: string,
 
         optionsMap: Array<[string, string]>,
-        input?: google_protobuf_any_pb.Any.AsObject,
+        input: Uint8Array | string,
     }
 }
 
