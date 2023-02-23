@@ -238,7 +238,7 @@ Dapr supports [status codes for retry logic](https://docs.dapr.io/reference/api/
 
 In the JS SDK we support these messages through the `DaprPubSubStatusEnum` enum. To ensure Dapr will retry we configure a Resiliency policy as well.
 
-**components/resiliency.yaml`
+\*\*components/resiliency.yaml`
 
 ```yaml
 apiVersion: dapr.io/v1alpha1
