@@ -30,10 +30,13 @@ import { DaprInvokerCallbackContent, DaprInvokerCallbackFunction } from "./types
 import { LoggerOptions } from "./types/logger/LoggerOptions";
 import { LoggerService } from "./types/logger/LoggerService";
 import { LogLevel } from "./types/logger/LogLevel";
+import { PubSubBulkPublishResponse } from "./types/pubsub/PubSubBulkPublishResponse.type";
+import { PubSubBulkPublishMessage } from "./types/pubsub/PubSubBulkPublishMessage.type";
 
 import HttpMethod from "./enum/HttpMethod.enum";
 import CommunicationProtocolEnum from "./enum/CommunicationProtocol.enum";
 import DaprPubSubStatusEnum from "./enum/DaprPubSubStatus.enum";
+
 
 export {
   DaprClient,
@@ -55,4 +58,6 @@ export {
   DaprInvokerCallbackContent,
   CommunicationProtocolEnum,
   DaprPubSubStatusEnum,
+  PubSubBulkPublishMessage,
+  PubSubBulkPublishResponse,
 };

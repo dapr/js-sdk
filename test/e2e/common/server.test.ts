@@ -37,6 +37,7 @@ const topicWithDeadletterInOptions = "test-topic-7";
 const topicWithDeadletterInOptionsDefault = "test-topic-8";
 const topicWithDeadletterAndErrorCb = "test-topic-9";
 const topicWithStatusCb = "test-topic-status-callback";
+const topicWithBulk = "test-topic-bulk";
 const deadLetterTopic = "deadletter-topic";
 const routeSimple = "simple-route";
 const routeWithLeadingSlash = "/leading-slash-route";
@@ -497,6 +498,23 @@ describe("common/server", () => {
         expect(mockSubscribeHandler).toHaveBeenCalledTimes(0);
       },
     );
+
+    runIt(
+      "should be able to send and receive plain events with bulk publish",
+      async (server: DaprServer, protocol: string) => {
+        const messages = ["message1", "message2", "message3"];
+        await server.client.pubsub.publishBulk(pubSubName, getTopic(topicWithBulk, protocol), messages);
+
+        // Delay a bit for events to arrive
+        await new Promise((resolve) => setTimeout(resolve, 250));
+
+        expect(mockSubscribeHandler.mock.calls.length).toBe(3);
+        // Check that the messages are present
+        mockSubscribeHandler.mock.calls.forEach((call) => {
+          expect(messages).toContain(call[0]);
+        });
+      },
+    );
   });
 
   const setupPubSubSubscriptions = async () => {
@@ -568,6 +586,9 @@ describe("common/server", () => {
       mockSubscribeHandler,
       sampleRoutes,
     );
+
+    await httpServer.pubsub.subscribe(pubSubName, getTopic(topicWithBulk, protocolHttp), mockSubscribeHandler);
+    await grpcServer.pubsub.subscribe(pubSubName, getTopic(topicWithBulk, protocolGrpc), mockSubscribeHandler);
 
     await httpServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicCustomRulesInOptions, protocolHttp), {
       route: sampleRoutes,

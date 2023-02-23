@@ -105,6 +105,31 @@ export namespace InvokeResponse {
     }
 }
 
+export class StreamPayload extends jspb.Message { 
+    getData(): Uint8Array | string;
+    getData_asU8(): Uint8Array;
+    getData_asB64(): string;
+    setData(value: Uint8Array | string): StreamPayload;
+    getSeq(): number;
+    setSeq(value: number): StreamPayload;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): StreamPayload.AsObject;
+    static toObject(includeInstance: boolean, msg: StreamPayload): StreamPayload.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: StreamPayload, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): StreamPayload;
+    static deserializeBinaryFromReader(message: StreamPayload, reader: jspb.BinaryReader): StreamPayload;
+}
+
+export namespace StreamPayload {
+    export type AsObject = {
+        data: Uint8Array | string,
+        seq: number,
+    }
+}
+
 export class StateItem extends jspb.Message { 
     getKey(): string;
     setKey(value: string): StateItem;
