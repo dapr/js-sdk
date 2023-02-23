@@ -234,7 +234,33 @@ Dapr supports [status codes for retry logic](https://docs.dapr.io/reference/api/
 
 > ⚠️ The JS SDK allows multiple callbacks on the same topic, we handle priority of status on `RETRY` > `DROP` > `SUCCESS` and default to `SUCCESS`
 
-In the JS SDK we support these messages through the `DaprPubSubStatusEnum` enum:
+> ⚠️ Make sure to [configure resiliency](https://docs.dapr.io/operations/resiliency/resiliency-overview/) in your application to handle `RETRY` messages
+
+In the JS SDK we support these messages through the `DaprPubSubStatusEnum` enum. To ensure Dapr will retry we configure a Resiliency policy as well.
+
+**components/resiliency.yaml`
+
+```yaml
+apiVersion: dapr.io/v1alpha1
+kind: Resiliency
+metadata:
+  name: myresiliency
+spec:
+  policies:
+    retries:
+      # Global Retry Policy for Inbound Component operations
+      DefaultComponentInboundRetryPolicy:
+        policy: constant
+        duration: 500ms
+        maxRetries: 10
+  targets:
+    components:
+      messagebus:
+        inbound:
+          retry: DefaultComponentInboundRetryPolicy
+```
+
+**src/index.ts**
 
 ```typescript
 import { DaprServer, DaprPubSubStatusEnum } from "@dapr/dapr";
@@ -257,7 +283,7 @@ async function start() {
 
   // Retry a message
   // Note: this example will keep on retrying to deliver the message
-  // Note 2: each component can have their own retry configuration 
+  // Note 2: each component can have their own retry configuration
   //   e.g., https://docs.dapr.io/reference/components-reference/supported-pubsub/setup-redis-pubsub/
   await server.pubsub.subscribe(pubSubName, topic, async (data: any, headers: object) => {
     return DaprPubSubStatusEnum.RETRY;

@@ -29,9 +29,3 @@ spec:
     value: "myGroup"
   - name: enableTLS
     value: "false"
-  - name: redeliverInterval
-    value: "0.5s"
-  - name: redisMinRetryInterval
-    value: "-1"
-  - name: redisMaxRetryInterval
-    value: "-1"
