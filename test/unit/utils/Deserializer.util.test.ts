@@ -61,13 +61,6 @@ describe("deserializer", () => {
     expect(data).toEqual(dataRaw);
   });
 
-  // @todo: We should check this as the tests in pubsub return application/octet-stream when we send text/plain and we decode them to their string representation
-  // runIt("should deserialize a Buffer of type application/octet-stream to a Buffer", (fnDeserialize) => {
-  //   const dataRaw = Buffer.from("hello-world");
-  //   const data = fnDeserialize("application/octet-stream", dataRaw);
-  //   expect(data).toEqual(dataRaw);
-  // });
-
   runIt("should deserialize a Uint8Array of type application/json to an Array", (fnDeserialize) => {
     // { "message": "Hello, world!" } as Uint8Array
     const dataRaw = new Uint8Array([
