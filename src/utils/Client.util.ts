@@ -158,13 +158,13 @@ export function getBulkPublishEntries(messages: PubSubBulkPublishMessage[]): Pub
 export function getBulkPublishResponse(
   params:
     | {
-      entries: PubSubBulkPublishEntry[];
-      response: PubSubBulkPublishApiResponse;
-    }
+        entries: PubSubBulkPublishEntry[];
+        response: PubSubBulkPublishApiResponse;
+      }
     | {
-      entries: PubSubBulkPublishEntry[];
-      error: Error;
-    },
+        entries: PubSubBulkPublishEntry[];
+        error: Error;
+      },
 ): PubSubBulkPublishResponse {
   if ("error" in params) {
     // The entire request failed. This typically indicates a problem with the request or the connection.

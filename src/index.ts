@@ -37,7 +37,6 @@ import HttpMethod from "./enum/HttpMethod.enum";
 import CommunicationProtocolEnum from "./enum/CommunicationProtocol.enum";
 import DaprPubSubStatusEnum from "./enum/DaprPubSubStatus.enum";
 
-
 export {
   DaprClient,
   DaprServer,
