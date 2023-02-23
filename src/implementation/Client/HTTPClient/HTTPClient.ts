@@ -197,14 +197,10 @@ export default class HTTPClient implements IClient {
     // 2XX -> OK; 3XX -> Redirects and Found
     if (res.status >= 200 && res.status <= 399) {
       return txtParsed;
-    }
-
-    // All the others
-    else {
-      this.logger.debug(`Execute response with  status: ${res.status} and text: ${txtParsed}`);
+    } else {
       throw new Error(
         JSON.stringify({
-          error: "UNKNOWN",
+          error: res.statusText,
           error_msg: txt,
           status: res.status,
         }),

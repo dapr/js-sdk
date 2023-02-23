@@ -16,7 +16,11 @@ import { ConfigurationType } from "../types/configuration/Configuration.type";
 import { ConfigurationItem } from "../types/configuration/ConfigurationItem";
 import { ConfigurationItem as ConfigurationItemProto } from "../proto/dapr/proto/common/v1/common_pb";
 import { Map } from "google-protobuf";
-
+import { PubSubBulkPublishEntry } from "../types/pubsub/PubSubBulkPublishEntry.type";
+import { randomUUID } from "crypto";
+import { PubSubBulkPublishResponse } from "../types/pubsub/PubSubBulkPublishResponse.type";
+import { PubSubBulkPublishMessage } from "../types/pubsub/PubSubBulkPublishMessage.type";
+import { PubSubBulkPublishApiResponse } from "../types/pubsub/PubSubBulkPublishApiResponse.type";
 /**
  * Adds metadata to a map.
  * @param map Input map
@@ -127,6 +131,73 @@ export function getContentType(data: any): string {
     default:
       return "application/octet-stream";
   }
+}
+
+/**
+ * Get the entries for bulk publish request.
+ * If entryIDs are missing, generate UUIDs for them.
+ * If contentTypes are missing, infer them based on the data using {@link getContentType}.
+ *
+ * @param messages pubsub bulk publish messages
+ * @returns configured entries
+ */
+export function getBulkPublishEntries(messages: PubSubBulkPublishMessage[]): PubSubBulkPublishEntry[] {
+  return messages.map((message) => {
+    // If message is a PubSubBulkPublishEntry, use it directly
+    if (typeof message !== "string" && "event" in message) {
+      return {
+        entryID: message.entryID ? message.entryID : randomUUID(),
+        event: message.event,
+        contentType: message.contentType ? message.contentType : getContentType(message.event),
+        metadata: message.metadata ? message.metadata : {},
+      };
+    }
+    // Otherwise, create a PubSubBulkPublishEntry from the message
+    return {
+      entryID: randomUUID(),
+      event: message,
+      contentType: getContentType(message),
+      metadata: {},
+    };
+  });
+}
+
+/**
+ * Get the response for bulk publish request.
+ *
+ * @param response bulk publish API response
+ * @param entries entries for bulk publish request
+ * @param error error from bulk publish request
+ * @returns SDK response for bulk publish request
+ */
+export function getBulkPublishResponse(
+  params:
+    | {
+        entries: PubSubBulkPublishEntry[];
+        response: PubSubBulkPublishApiResponse;
+      }
+    | {
+        entries: PubSubBulkPublishEntry[];
+        error: Error;
+      },
+): PubSubBulkPublishResponse {
+  if ("error" in params) {
+    // The entire request failed. This typically indicates a problem with the request or the connection.
+    const failedMessages = params.entries.map((message) => ({ message, error: params.error }));
+    return { failedMessages };
+  }
+
+  // Some or all of the entries failed to be published.
+  return {
+    failedMessages:
+      params.response.failedEntries.flatMap((entry) => {
+        const message = params.entries.find((message) => message.entryID === entry.entryID);
+        if (!message) {
+          return [];
+        }
+        return { message, error: new Error(entry.error) };
+      }) ?? [],
+  };
 }
 
 /**

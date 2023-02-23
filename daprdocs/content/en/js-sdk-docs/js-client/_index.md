@@ -304,6 +304,36 @@ async function start() {
     id: "1234",
   };
   await client.pubsub.publish(pubSubName, topic, cloudEvent);
+
+  // Publish multiple messages to a topic as text/plain
+  await client.pubsub.publishBulk(pubSubName, topic, ["message 1", "message 2", "message 3"]);
+
+  // Publish multiple messages to a topic as application/json
+  await client.pubsub.publishBulk(pubSubName, topic, [
+    { hello: "message 1" },
+    { hello: "message 2" },
+    { hello: "message 3" },
+  ]);
+
+  // Publish multiple messages with explicit bulk publish messages
+  const bulkPublishMessages = [
+    {
+      entryID: "entry-1",
+      contentType: "application/json",
+      event: { hello: "foo message 1" },
+    },
+    {
+      entryID: "entry-2",
+      contentType: "application/cloudevents+json",
+      event: { ...cloudEvent, data: "foo message 2", datacontenttype: "text/plain" },
+    },
+    {
+      entryID: "entry-3",
+      contentType: "text/plain",
+      event: "foo message 3",
+    },
+  ];
+  await client.pubsub.publishBulk(pubSubName, topic, bulkPublishMessages);
 }
 
 start().catch((e) => {
