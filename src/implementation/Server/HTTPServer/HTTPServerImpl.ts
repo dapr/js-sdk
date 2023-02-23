@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import SubscribedMessageHttpResponse from "../../../enum/SubscribedMessageHttpResponse.enum";
 import { Logger } from "../../../logger/Logger";
 import { LoggerOptions } from "../../../types/logger/LoggerOptions";
 import { DaprPubSubType } from "../../../types/pubsub/DaprPubSub.type";
@@ -20,6 +19,9 @@ import { PubSubSubscriptionOptionsType } from "../../../types/pubsub/PubSubSubsc
 import { PubSubSubscriptionTopicRoutesType } from "../../../types/pubsub/PubSubSubscriptionTopicRoutes.type";
 import { IServerType } from "./HTTPServer";
 import { TypeDaprPubSubCallback } from "../../../types/DaprPubSubCallback.type";
+import DaprPubSubStatusEnum from "../../../enum/DaprPubSubStatus.enum";
+import { IncomingHttpHeaders } from "http";
+import { PubSubSubscriptionTopicRouteType } from "../../../types/pubsub/PubSubSubscriptionTopicRoute.type";
 
 export default class HTTPServerImpl {
   private readonly PUBSUB_DEFAULT_ROUTE_NAME = "default";
@@ -121,21 +123,12 @@ export default class HTTPServerImpl {
       // Add a server POST handler
       this.server.post(`/${routeObj.path}`, async (req, res) => {
         const headers = req.headers;
-
         const data = this.extractDataFromSubscribeRequest(req);
 
-        // Process the callback
-        try {
-          const eventHandlers = routeObj.eventHandlers;
-          await Promise.all(eventHandlers.map((cb) => cb(data, headers)));
-        } catch (e) {
-          this.logger.error(`[route-${routeObj.path}] Message processing failed, dropping: ${e}`);
-          return res.send({ status: SubscribedMessageHttpResponse.DROP });
-        }
-
-        // Let Dapr know that the message was processed correctly
-        this.logger.debug(`[route-${routeObj.path}] Acknowledging message`);
-        return res.send({ status: SubscribedMessageHttpResponse.SUCCESS });
+        // Process the callbacks
+        // we handle priority of status on `RETRY` > `DROP` > `SUCCESS` and default to `SUCCESS`
+        const status = await this.processPubSubCallbacks(routeObj, data, headers);
+        return res.send({ status });
       });
     }
 
@@ -144,6 +137,42 @@ export default class HTTPServerImpl {
         this.pubSubSubscriptions[pubsubName][topic].routes,
       ).join(", ")}`,
     );
+  }
+
+  async processPubSubCallbacks(
+    routeObj: PubSubSubscriptionTopicRouteType,
+    data: any,
+    headers: IncomingHttpHeaders,
+  ): Promise<DaprPubSubStatusEnum> {
+    const eventHandlers = routeObj.eventHandlers;
+    const statuses = [];
+
+    // Process the callbacks (default: SUCCESS)
+    for (const cb of eventHandlers) {
+      let status = DaprPubSubStatusEnum.SUCCESS;
+
+      try {
+        status = await cb(data, headers);
+      } catch (e) {
+        // We catch and log an error, but we don't do anything with it as the statuses should define that
+        this.logger.error(`[route-${routeObj.path}] Message processing failed, ${e}`);
+      }
+
+      statuses.push(status ?? DaprPubSubStatusEnum.SUCCESS);
+    }
+
+    // Look at the statuses and return the highest priority
+    // we handle priority of status on `RETRY` > `DROP` > `SUCCESS`
+    if (statuses.includes(DaprPubSubStatusEnum.RETRY)) {
+      this.logger.debug(`[route-${routeObj.path}] Retrying message`);
+      return DaprPubSubStatusEnum.RETRY;
+    } else if (statuses.includes(DaprPubSubStatusEnum.DROP)) {
+      this.logger.debug(`[route-${routeObj.path}] Dropping message`);
+      return DaprPubSubStatusEnum.DROP;
+    } else {
+      this.logger.debug(`[route-${routeObj.path}] Acknowledging message`);
+      return DaprPubSubStatusEnum.SUCCESS;
+    }
   }
 
   registerPubSubSubscriptionEventHandler(
