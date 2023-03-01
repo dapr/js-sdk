@@ -1,0 +1,17 @@
+apiVersion: dapr.io/v1alpha1
+kind: Resiliency
+metadata:
+  name: myresiliency
+spec:
+  policies:
+    retries:
+      # Global Retry Policy for Inbound Component operations
+      DefaultComponentInboundRetryPolicy:
+        policy: constant
+        duration: 250ms
+        maxRetries: 5
+  targets:
+    components:
+      messagebus:
+        inbound:
+          retry: DefaultComponentInboundRetryPolicy

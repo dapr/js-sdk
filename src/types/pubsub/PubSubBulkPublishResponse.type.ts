@@ -11,18 +11,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import DaprPubSubStatusEnum from "../../enum/DaprPubSubStatus.enum";
+import { PubSubBulkPublishEntry } from "./PubSubBulkPublishEntry.type";
 
-// TODO @DeepanshuA to specify correct line number here
-// https://github.com/dapr/dapr/blob/master/pkg/apis/subscriptions/v2alpha1/types.go#L53
+type PubSubBulkPublishResponseFailedEntry = {
+  message: PubSubBulkPublishEntry;
+  error: Error;
+};
 
 /**
- * BulkSubscribeResponseEntry is the response entry for a bulk subscribe request
- **/
-export type BulkSubscribeResponseEntry = {
-  // The id of the bulk subscribe entry
-  entryId: string;
-
-  // The response status of the bulk subscribe entry
-  status: DaprPubSubStatusEnum;
+ * PubSubBulkPublishResponse defines the response from a bulk publish request.
+ */
+export type PubSubBulkPublishResponse = {
+  failedMessages: PubSubBulkPublishResponseFailedEntry[];
 };

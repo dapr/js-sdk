@@ -73,6 +73,37 @@ async function start() {
   console.log("[Dapr-JS][Example] Publishing a cloud event message");
   response = await client.pubsub.publish("my-pubsub-component", "my-topic", cloudEvent);
   console.log(`[Dapr-JS][Example] Publish response: ${JSON.stringify(response)}`);
+
+  console.log("[Dapr-JS][Example] Bulk publishing multiple plain messages");
+  const messages = ["message 1", "message 2", "message 3"];
+  response = await client.pubsub.publishBulk("my-pubsub-component", "my-topic", messages);
+  console.log(`[Dapr-JS][Example] Bulk publish response: ${JSON.stringify(response)}`);
+
+  console.log("[Dapr-JS][Example] Bulk publishing multiple JSON messages");
+  const jsonMessages = [{ hello: "message 1" }, { hello: "message 2" }, { hello: "message 3" }];
+  response = await client.pubsub.publishBulk("my-pubsub-component", "my-topic", jsonMessages);
+  console.log(`[Dapr-JS][Example] Bulk publish response: ${JSON.stringify(response)}`);
+
+  console.log("[Dapr-JS][Example] Bulk publishing with entryID and custom content type");
+  const bulkPublishMessages = [
+    {
+      entryID: "entry-1",
+      contentType: "application/json",
+      event: { hello: "foo message 1" },
+    },
+    {
+      entryID: "entry-2",
+      contentType: "application/cloudevents+json",
+      event: { ...cloudEvent, data: "foo message 2", datacontenttype: "text/plain" },
+    },
+    {
+      entryID: "entry-3",
+      contentType: "text/plain",
+      event: "foo message 3",
+    },
+  ];
+  response = await client.pubsub.publishBulk("my-pubsub-component", "my-topic", bulkPublishMessages);
+  console.log(`[Dapr-JS][Example] Bulk publish response: ${JSON.stringify(response)}`);
 }
 
 start().catch((e) => {

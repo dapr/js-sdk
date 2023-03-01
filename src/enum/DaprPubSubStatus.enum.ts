@@ -11,18 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import DaprPubSubStatusEnum from "../../enum/DaprPubSubStatus.enum";
+export enum DaprPubSubStatusEnum {
+  SUCCESS = "SUCCESS", // Message is processed successfully
+  RETRY = "RETRY", // Message to be retried by Dapr
+  DROP = "DROP", // Warning is logged and message is dropped
+}
 
-// TODO @DeepanshuA to specify correct line number here
-// https://github.com/dapr/dapr/blob/master/pkg/apis/subscriptions/v2alpha1/types.go#L53
-
-/**
- * BulkSubscribeResponseEntry is the response entry for a bulk subscribe request
- **/
-export type BulkSubscribeResponseEntry = {
-  // The id of the bulk subscribe entry
-  entryId: string;
-
-  // The response status of the bulk subscribe entry
-  status: DaprPubSubStatusEnum;
-};
+export default DaprPubSubStatusEnum;

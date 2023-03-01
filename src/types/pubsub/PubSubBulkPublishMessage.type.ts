@@ -11,18 +11,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import DaprPubSubStatusEnum from "../../enum/DaprPubSubStatus.enum";
+import { KeyValueType } from "../KeyValue.type";
 
-// TODO @DeepanshuA to specify correct line number here
-// https://github.com/dapr/dapr/blob/master/pkg/apis/subscriptions/v2alpha1/types.go#L53
+type PubSubBulkPublishMessageExplicit = {
+  entryID?: string;
+  event: object | string;
+  metadata?: KeyValueType;
+  contentType?: string;
+};
 
 /**
- * BulkSubscribeResponseEntry is the response entry for a bulk subscribe request
- **/
-export type BulkSubscribeResponseEntry = {
-  // The id of the bulk subscribe entry
-  entryId: string;
-
-  // The response status of the bulk subscribe entry
-  status: DaprPubSubStatusEnum;
-};
+ * PubSubBulkPublishMessage is a message in a bulk publish request.
+ */
+export type PubSubBulkPublishMessage = PubSubBulkPublishMessageExplicit | object | string;
