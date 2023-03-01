@@ -197,7 +197,7 @@ export default class HTTPServerImpl {
     };
     return bulkResult;
   }
-  
+
   async processPubSubCallbacks(
     routeObj: PubSubSubscriptionTopicRouteType,
     data: any,

@@ -20,6 +20,7 @@ import { DaprPubSubRouteType } from "../../../types/pubsub/DaprPubSubRouteType.t
 import { PubSubSubscriptionsType } from "../../../types/pubsub/PubSubSubscriptions.type";
 import { KeyValueType } from "../../../types/KeyValue.type";
 import { BulkSubscribeConfig } from "../../../types/pubsub/BulkSubscribeConfig.type";
+import { BulkSubscribeOptions } from "../../../types/pubsub/BulkSubscribeOptions.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPServerPubSub implements IServerPubSub {
@@ -98,37 +99,17 @@ export default class HTTPServerPubSub implements IServerPubSub {
     this.server.getServerImpl().registerPubSubSubscriptionEventHandler(pubsubName, topic, route, cb);
   }
 
-  async bulkSubscribeWithDefaultConfig(
-    pubsubName: string,
-    topic: string,
-    cb: TypeDaprPubSubCallback,
-    route: string | DaprPubSubRouteType = "",
-    metadata?: KeyValueType,
-  ): Promise<void> {
-    const bulkSubscribe: BulkSubscribeConfig = {
-      enabled: true,
-    };
-    this.server
-      .getServerImpl()
-      .registerPubsubSubscription(pubsubName, topic, { route, metadata, bulkSubscribe: bulkSubscribe });
-
-    // Add the callback to the event handlers manually
-    // @todo: we will deprecate this way of working? and require subscribeToRoute?
-    this.subscribeToRoute(pubsubName, topic, route, cb);
-  }
-
   async subscribeBulk(
     pubsubName: string,
     topic: string,
     cb: TypeDaprPubSubCallback,
-    route: string | DaprPubSubRouteType = "",
-    metadata?: KeyValueType,
-    maxMessagesCount?: number,
-    maxAwaitDurationMs?: number,
+    bulkSubscribeOptions: BulkSubscribeOptions,
   ): Promise<void> {
     const bulkSubscribe: BulkSubscribeConfig = {
       enabled: true,
     };
+
+    const { route, metadata, maxMessagesCount, maxAwaitDurationMs } = bulkSubscribeOptions;
 
     if (maxMessagesCount != undefined) {
       bulkSubscribe.maxMessagesCount = maxMessagesCount;

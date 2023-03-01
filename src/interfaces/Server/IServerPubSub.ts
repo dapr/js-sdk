@@ -13,6 +13,7 @@ limitations under the License.
 
 import { TypeDaprPubSubCallback } from "../../types/DaprPubSubCallback.type";
 import { KeyValueType } from "../../types/KeyValue.type";
+import { BulkSubscribeOptions } from "../../types/pubsub/BulkSubscribeOptions.type";
 import { DaprPubSubRouteType } from "../../types/pubsub/DaprPubSubRouteType.type";
 import { PubSubSubscriptionOptionsType } from "../../types/pubsub/PubSubSubscriptionOptions.type";
 import { PubSubSubscriptionsType } from "../../types/pubsub/PubSubSubscriptions.type";
@@ -78,10 +79,7 @@ export default interface IServerPubSub {
     pubSubName: string,
     topic: string,
     cb: TypeDaprPubSubCallback,
-    route?: string | DaprPubSubRouteType,
-    metadata?: KeyValueType,
-    maxMessagesCount?: number,
-    maxAwaitDurationMs?: number,
+    bulkSubscribeOptions?: BulkSubscribeOptions,
   ): Promise<void>;
 
   /**

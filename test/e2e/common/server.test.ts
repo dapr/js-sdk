@@ -655,16 +655,18 @@ describe("common/server", () => {
       pubSubName,
       getTopic(bulkSubscribeTopic, protocolGrpc),
       mockBulkSubscribeRawPayloadHandler,
-      undefined,
-      { rawPayload: true },
+      {
+        metadata: { rawPayload: true },
+      },
     );
 
     await httpServer.pubsub.subscribeBulk(
       pubSubName,
       getTopic(bulkSubscribeTopic, protocolHttp),
       mockBulkSubscribeRawPayloadHandler,
-      undefined,
-      { rawPayload: true },
+      {
+        metadata: { rawPayload: true },
+      },
     );
 
     await grpcServer.pubsub.subscribeBulk(
@@ -683,16 +685,18 @@ describe("common/server", () => {
       pubSubName,
       getTopic(bulkSubscribeCloudEvent_to_RawPayloadTopic, protocolGrpc),
       mockBulkSubscribeCE_RPHandler,
-      undefined,
-      { rawPayload: true },
+      {
+        metadata: { rawPayload: true },
+      },
     );
 
     await httpServer.pubsub.subscribeBulk(
       pubSubName,
       getTopic(bulkSubscribeCloudEvent_to_RawPayloadTopic, protocolHttp),
       mockBulkSubscribeCE_RPHandler,
-      undefined,
-      { rawPayload: true },
+      {
+        metadata: { rawPayload: true },
+      },
     );
 
     await grpcServer.pubsub.subscribeBulk(

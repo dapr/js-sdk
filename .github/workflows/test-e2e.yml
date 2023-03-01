@@ -39,7 +39,7 @@ jobs:
       DAPR_RUNTIME_VER: 1.10.0
       DAPR_INSTALL_URL: https://raw.githubusercontent.com/dapr/cli/master/install/install.sh
       DAPR_CLI_REF: ""
-      DAPR_REF: "2accc6c5ff16b29d8e49fe3e02487b0e959aa0f2"
+      DAPR_REF: ""
       NODE_VER: 16.14.0
     services:
       emqx:

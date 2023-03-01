@@ -20,6 +20,7 @@ import { DaprPubSubRouteType } from "../../../types/pubsub/DaprPubSubRouteType.t
 import { PubSubSubscriptionsType } from "../../../types/pubsub/PubSubSubscriptions.type";
 import { KeyValueType } from "../../../types/KeyValue.type";
 import { BulkSubscribeConfig } from "../../../types/pubsub/BulkSubscribeConfig.type";
+import { BulkSubscribeOptions } from "../../../types/pubsub/BulkSubscribeOptions.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class DaprPubSub implements IServerPubSub {
@@ -102,14 +103,13 @@ export default class DaprPubSub implements IServerPubSub {
     pubsubName: string,
     topic: string,
     cb: TypeDaprPubSubCallback,
-    route: string | DaprPubSubRouteType = "",
-    metadata?: KeyValueType,
-    maxMessagesCount?: number,
-    maxAwaitDurationMs?: number,
+    bulkSubscribeOptions: BulkSubscribeOptions,
   ): Promise<void> {
     const bulkSubscribe: BulkSubscribeConfig = {
       enabled: true,
     };
+
+    const { route, metadata, maxMessagesCount, maxAwaitDurationMs } = bulkSubscribeOptions;
 
     if (maxMessagesCount != undefined) {
       bulkSubscribe.maxMessagesCount = maxMessagesCount;

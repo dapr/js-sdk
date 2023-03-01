@@ -534,7 +534,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
     return callback(null, totalRes);
   }
-  
+
   async processPubSubCallbacks(
     routeObj: PubSubSubscriptionTopicRouteType,
     data: any,
