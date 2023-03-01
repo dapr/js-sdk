@@ -383,8 +383,10 @@ async function start() {
     pubSubName,
     topic,
     (data) => console.log("Subscriber received: " + JSON.stringify(data)),
-    100,
-    40,
+    {
+      maxMessagesCount: 100,
+      maxAwaitDurationMs: 40,
+    }
   );
 }
 ```

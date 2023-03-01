@@ -44,8 +44,10 @@ async function start() {
       // The library parses JSON when possible.
       console.log(`[Dapr-JS][Example] Received on subscription: ${JSON.stringify(data)}`);
     },
-    100,
-    40,
+    {
+      maxMessagesCount: 100,
+      maxAwaitDurationMs: 40,
+    }
   );
 
   await server.start();
