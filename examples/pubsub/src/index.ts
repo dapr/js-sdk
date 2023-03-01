@@ -47,7 +47,7 @@ async function start() {
     {
       maxMessagesCount: 100,
       maxAwaitDurationMs: 40,
-    }
+    },
   );
 
   await server.start();

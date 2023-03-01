@@ -386,7 +386,7 @@ async function start() {
     {
       maxMessagesCount: 100,
       maxAwaitDurationMs: 40,
-    }
+    },
   );
 }
 ```
