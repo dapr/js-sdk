@@ -109,7 +109,7 @@ export default class HTTPServerPubSub implements IServerPubSub {
       enabled: true,
     };
 
-    const { route, metadata, maxMessagesCount, maxAwaitDurationMs } = bulkSubscribeOptions;
+    const { route, metadata, maxMessagesCount, maxAwaitDurationMs } = bulkSubscribeOptions || {};
 
     if (maxMessagesCount != undefined) {
       bulkSubscribe.maxMessagesCount = maxMessagesCount;
