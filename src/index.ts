@@ -11,23 +11,32 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import HttpMethod from "./enum/HttpMethod.enum";
-import CommunicationProtocolEnum from "./enum/CommunicationProtocol.enum";
-import DaprClient from "./implementation/Client/DaprClient";
-import DaprServer from "./implementation/Server/DaprServer";
-import AbstractActor from "./actors/runtime/AbstractActor";
 import { Temporal } from "@js-temporal/polyfill";
-import ActorProxyBuilder from "./actors/client/ActorProxyBuilder";
-import ActorId from "./actors/ActorId";
-import { DaprClientOptions } from "./types/DaprClientOptions";
-import { LoggerOptions } from "./types/logger/LoggerOptions";
-import { LoggerService } from "./types/logger/LoggerService";
-import { ConsoleLoggerService } from "./logger/ConsoleLoggerService";
-import { LogLevel } from "./types/logger/LogLevel";
+
+import DaprServer from "./implementation/Server/DaprServer";
+import DaprClient from "./implementation/Client/DaprClient";
 import GRPCClient from "./implementation/Client/GRPCClient/GRPCClient";
 import HTTPClient from "./implementation/Client/HTTPClient/HTTPClient";
+
+import ActorId from "./actors/ActorId";
+import ActorProxyBuilder from "./actors/client/ActorProxyBuilder";
+import AbstractActor from "./actors/runtime/AbstractActor";
+
+import { ConsoleLoggerService } from "./logger/ConsoleLoggerService";
+
+import { DaprClientOptions } from "./types/DaprClientOptions";
 import { InvokerOptions } from "./types/InvokerOptions.type";
 import { DaprInvokerCallbackContent, DaprInvokerCallbackFunction } from "./types/DaprInvokerCallback.type";
+import { LoggerOptions } from "./types/logger/LoggerOptions";
+import { LoggerService } from "./types/logger/LoggerService";
+import { LogLevel } from "./types/logger/LogLevel";
+import { PubSubBulkPublishResponse } from "./types/pubsub/PubSubBulkPublishResponse.type";
+import { PubSubBulkPublishMessage } from "./types/pubsub/PubSubBulkPublishMessage.type";
+
+import HttpMethod from "./enum/HttpMethod.enum";
+import CommunicationProtocolEnum from "./enum/CommunicationProtocol.enum";
+import DaprPubSubStatusEnum from "./enum/DaprPubSubStatus.enum";
+
 export {
   DaprClient,
   DaprServer,
@@ -37,7 +46,6 @@ export {
   AbstractActor,
   ActorId,
   ActorProxyBuilder,
-  CommunicationProtocolEnum,
   Temporal,
   DaprClientOptions,
   LogLevel,
@@ -47,4 +55,8 @@ export {
   InvokerOptions,
   DaprInvokerCallbackFunction as TypeDaprInvokerCallback,
   DaprInvokerCallbackContent,
+  CommunicationProtocolEnum,
+  DaprPubSubStatusEnum,
+  PubSubBulkPublishMessage,
+  PubSubBulkPublishResponse,
 };

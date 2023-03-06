@@ -7,6 +7,7 @@
 import * as jspb from "google-protobuf";
 import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
 import * as dapr_proto_common_v1_common_pb from "../../../../dapr/proto/common/v1/common_pb";
+import * as google_protobuf_struct_pb from "google-protobuf/google/protobuf/struct_pb";
 
 export class TopicEventRequest extends jspb.Message { 
     getId(): string;
@@ -30,6 +31,11 @@ export class TopicEventRequest extends jspb.Message {
     getPath(): string;
     setPath(value: string): TopicEventRequest;
 
+    hasExtensions(): boolean;
+    clearExtensions(): void;
+    getExtensions(): google_protobuf_struct_pb.Struct | undefined;
+    setExtensions(value?: google_protobuf_struct_pb.Struct): TopicEventRequest;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): TopicEventRequest.AsObject;
     static toObject(includeInstance: boolean, msg: TopicEventRequest): TopicEventRequest.AsObject;
@@ -51,6 +57,7 @@ export namespace TopicEventRequest {
         topic: string,
         pubsubName: string,
         path: string,
+        extensions?: google_protobuf_struct_pb.Struct.AsObject,
     }
 }
 
@@ -79,6 +86,187 @@ export namespace TopicEventResponse {
     DROP = 2,
     }
 
+}
+
+export class TopicEventCERequest extends jspb.Message { 
+    getId(): string;
+    setId(value: string): TopicEventCERequest;
+    getSource(): string;
+    setSource(value: string): TopicEventCERequest;
+    getType(): string;
+    setType(value: string): TopicEventCERequest;
+    getSpecVersion(): string;
+    setSpecVersion(value: string): TopicEventCERequest;
+    getDataContentType(): string;
+    setDataContentType(value: string): TopicEventCERequest;
+    getData(): Uint8Array | string;
+    getData_asU8(): Uint8Array;
+    getData_asB64(): string;
+    setData(value: Uint8Array | string): TopicEventCERequest;
+
+    hasExtensions(): boolean;
+    clearExtensions(): void;
+    getExtensions(): google_protobuf_struct_pb.Struct | undefined;
+    setExtensions(value?: google_protobuf_struct_pb.Struct): TopicEventCERequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): TopicEventCERequest.AsObject;
+    static toObject(includeInstance: boolean, msg: TopicEventCERequest): TopicEventCERequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: TopicEventCERequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): TopicEventCERequest;
+    static deserializeBinaryFromReader(message: TopicEventCERequest, reader: jspb.BinaryReader): TopicEventCERequest;
+}
+
+export namespace TopicEventCERequest {
+    export type AsObject = {
+        id: string,
+        source: string,
+        type: string,
+        specVersion: string,
+        dataContentType: string,
+        data: Uint8Array | string,
+        extensions?: google_protobuf_struct_pb.Struct.AsObject,
+    }
+}
+
+export class TopicEventBulkRequestEntry extends jspb.Message { 
+    getEntryId(): string;
+    setEntryId(value: string): TopicEventBulkRequestEntry;
+
+    hasBytes(): boolean;
+    clearBytes(): void;
+    getBytes(): Uint8Array | string;
+    getBytes_asU8(): Uint8Array;
+    getBytes_asB64(): string;
+    setBytes(value: Uint8Array | string): TopicEventBulkRequestEntry;
+
+    hasCloudEvent(): boolean;
+    clearCloudEvent(): void;
+    getCloudEvent(): TopicEventCERequest | undefined;
+    setCloudEvent(value?: TopicEventCERequest): TopicEventBulkRequestEntry;
+    getContentType(): string;
+    setContentType(value: string): TopicEventBulkRequestEntry;
+
+    getMetadataMap(): jspb.Map<string, string>;
+    clearMetadataMap(): void;
+
+    getEventCase(): TopicEventBulkRequestEntry.EventCase;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): TopicEventBulkRequestEntry.AsObject;
+    static toObject(includeInstance: boolean, msg: TopicEventBulkRequestEntry): TopicEventBulkRequestEntry.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: TopicEventBulkRequestEntry, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): TopicEventBulkRequestEntry;
+    static deserializeBinaryFromReader(message: TopicEventBulkRequestEntry, reader: jspb.BinaryReader): TopicEventBulkRequestEntry;
+}
+
+export namespace TopicEventBulkRequestEntry {
+    export type AsObject = {
+        entryId: string,
+        bytes: Uint8Array | string,
+        cloudEvent?: TopicEventCERequest.AsObject,
+        contentType: string,
+
+        metadataMap: Array<[string, string]>,
+    }
+
+    export enum EventCase {
+        EVENT_NOT_SET = 0,
+        BYTES = 2,
+        CLOUD_EVENT = 3,
+    }
+
+}
+
+export class TopicEventBulkRequest extends jspb.Message { 
+    getId(): string;
+    setId(value: string): TopicEventBulkRequest;
+    clearEntriesList(): void;
+    getEntriesList(): Array<TopicEventBulkRequestEntry>;
+    setEntriesList(value: Array<TopicEventBulkRequestEntry>): TopicEventBulkRequest;
+    addEntries(value?: TopicEventBulkRequestEntry, index?: number): TopicEventBulkRequestEntry;
+
+    getMetadataMap(): jspb.Map<string, string>;
+    clearMetadataMap(): void;
+    getTopic(): string;
+    setTopic(value: string): TopicEventBulkRequest;
+    getPubsubName(): string;
+    setPubsubName(value: string): TopicEventBulkRequest;
+    getType(): string;
+    setType(value: string): TopicEventBulkRequest;
+    getPath(): string;
+    setPath(value: string): TopicEventBulkRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): TopicEventBulkRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: TopicEventBulkRequest): TopicEventBulkRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: TopicEventBulkRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): TopicEventBulkRequest;
+    static deserializeBinaryFromReader(message: TopicEventBulkRequest, reader: jspb.BinaryReader): TopicEventBulkRequest;
+}
+
+export namespace TopicEventBulkRequest {
+    export type AsObject = {
+        id: string,
+        entriesList: Array<TopicEventBulkRequestEntry.AsObject>,
+
+        metadataMap: Array<[string, string]>,
+        topic: string,
+        pubsubName: string,
+        type: string,
+        path: string,
+    }
+}
+
+export class TopicEventBulkResponseEntry extends jspb.Message { 
+    getEntryId(): string;
+    setEntryId(value: string): TopicEventBulkResponseEntry;
+    getStatus(): TopicEventResponse.TopicEventResponseStatus;
+    setStatus(value: TopicEventResponse.TopicEventResponseStatus): TopicEventBulkResponseEntry;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): TopicEventBulkResponseEntry.AsObject;
+    static toObject(includeInstance: boolean, msg: TopicEventBulkResponseEntry): TopicEventBulkResponseEntry.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: TopicEventBulkResponseEntry, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): TopicEventBulkResponseEntry;
+    static deserializeBinaryFromReader(message: TopicEventBulkResponseEntry, reader: jspb.BinaryReader): TopicEventBulkResponseEntry;
+}
+
+export namespace TopicEventBulkResponseEntry {
+    export type AsObject = {
+        entryId: string,
+        status: TopicEventResponse.TopicEventResponseStatus,
+    }
+}
+
+export class TopicEventBulkResponse extends jspb.Message { 
+    clearStatusesList(): void;
+    getStatusesList(): Array<TopicEventBulkResponseEntry>;
+    setStatusesList(value: Array<TopicEventBulkResponseEntry>): TopicEventBulkResponse;
+    addStatuses(value?: TopicEventBulkResponseEntry, index?: number): TopicEventBulkResponseEntry;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): TopicEventBulkResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: TopicEventBulkResponse): TopicEventBulkResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: TopicEventBulkResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): TopicEventBulkResponse;
+    static deserializeBinaryFromReader(message: TopicEventBulkResponse, reader: jspb.BinaryReader): TopicEventBulkResponse;
+}
+
+export namespace TopicEventBulkResponse {
+    export type AsObject = {
+        statusesList: Array<TopicEventBulkResponseEntry.AsObject>,
+    }
 }
 
 export class BindingEventRequest extends jspb.Message { 
@@ -193,6 +381,11 @@ export class TopicSubscription extends jspb.Message {
     getDeadLetterTopic(): string;
     setDeadLetterTopic(value: string): TopicSubscription;
 
+    hasBulkSubscribe(): boolean;
+    clearBulkSubscribe(): void;
+    getBulkSubscribe(): BulkSubscribeConfig | undefined;
+    setBulkSubscribe(value?: BulkSubscribeConfig): TopicSubscription;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): TopicSubscription.AsObject;
     static toObject(includeInstance: boolean, msg: TopicSubscription): TopicSubscription.AsObject;
@@ -211,6 +404,7 @@ export namespace TopicSubscription {
         metadataMap: Array<[string, string]>,
         routes?: TopicRoutes.AsObject,
         deadLetterTopic: string,
+        bulkSubscribe?: BulkSubscribeConfig.AsObject,
     }
 }
 
@@ -259,6 +453,32 @@ export namespace TopicRule {
     export type AsObject = {
         match: string,
         path: string,
+    }
+}
+
+export class BulkSubscribeConfig extends jspb.Message { 
+    getEnabled(): boolean;
+    setEnabled(value: boolean): BulkSubscribeConfig;
+    getMaxMessagesCount(): number;
+    setMaxMessagesCount(value: number): BulkSubscribeConfig;
+    getMaxAwaitDurationMs(): number;
+    setMaxAwaitDurationMs(value: number): BulkSubscribeConfig;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): BulkSubscribeConfig.AsObject;
+    static toObject(includeInstance: boolean, msg: BulkSubscribeConfig): BulkSubscribeConfig.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: BulkSubscribeConfig, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): BulkSubscribeConfig;
+    static deserializeBinaryFromReader(message: BulkSubscribeConfig, reader: jspb.BinaryReader): BulkSubscribeConfig;
+}
+
+export namespace BulkSubscribeConfig {
+    export type AsObject = {
+        enabled: boolean,
+        maxMessagesCount: number,
+        maxAwaitDurationMs: number,
     }
 }
 

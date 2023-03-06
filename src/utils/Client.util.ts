@@ -11,12 +11,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { randomUUID } from "crypto";
+import { Map } from "google-protobuf";
+
+import { ConfigurationItem as ConfigurationItemProto } from "../proto/dapr/proto/common/v1/common_pb";
+import { isCloudEvent } from "./CloudEvent.util";
+
 import { KeyValueType } from "../types/KeyValue.type";
 import { ConfigurationType } from "../types/configuration/Configuration.type";
 import { ConfigurationItem } from "../types/configuration/ConfigurationItem";
-import { ConfigurationItem as ConfigurationItemProto } from "../proto/dapr/proto/common/v1/common_pb";
-import { Map } from "google-protobuf";
-
+import { PubSubBulkPublishEntry } from "../types/pubsub/PubSubBulkPublishEntry.type";
+import { PubSubBulkPublishResponse } from "../types/pubsub/PubSubBulkPublishResponse.type";
+import { PubSubBulkPublishMessage } from "../types/pubsub/PubSubBulkPublishMessage.type";
+import { PubSubBulkPublishApiResponse } from "../types/pubsub/PubSubBulkPublishApiResponse.type";
 /**
  * Adds metadata to a map.
  * @param map Input map
@@ -79,24 +86,6 @@ export function createConfigurationType(configDict: Map<string, ConfigurationIte
 }
 
 /**
- * Checks if the input object is a valid Cloud Event.
- * A valid Cloud Event is a JSON object that contains id, source, type, and specversion.
- * See https://github.com/cloudevents/spec/blob/v1.0/spec.md#required-attributes
- * @param str input object
- * @returns true if the object is a valid Cloud Event
- */
-function isCloudEvent(obj: object): boolean {
-  const requiredAttributes = ["id", "source", "type", "specversion"];
-  return (
-    typeof obj === "object" &&
-    obj !== null &&
-    requiredAttributes.every((attr) => {
-      return Object.prototype.hasOwnProperty.call(obj, attr);
-    })
-  );
-}
-
-/**
  * Gets the Content-Type for the input data.
  *
  * If the data is a valid Cloud Event, the Content-Type is "application/cloudevents+json".
@@ -127,6 +116,73 @@ export function getContentType(data: any): string {
     default:
       return "application/octet-stream";
   }
+}
+
+/**
+ * Get the entries for bulk publish request.
+ * If entryIDs are missing, generate UUIDs for them.
+ * If contentTypes are missing, infer them based on the data using {@link getContentType}.
+ *
+ * @param messages pubsub bulk publish messages
+ * @returns configured entries
+ */
+export function getBulkPublishEntries(messages: PubSubBulkPublishMessage[]): PubSubBulkPublishEntry[] {
+  return messages.map((message) => {
+    // If message is a PubSubBulkPublishEntry, use it directly
+    if (typeof message !== "string" && "event" in message) {
+      return {
+        entryID: message.entryID ? message.entryID : randomUUID(),
+        event: message.event,
+        contentType: message.contentType ? message.contentType : getContentType(message.event),
+        metadata: message.metadata ? message.metadata : {},
+      };
+    }
+    // Otherwise, create a PubSubBulkPublishEntry from the message
+    return {
+      entryID: randomUUID(),
+      event: message,
+      contentType: getContentType(message),
+      metadata: {},
+    };
+  });
+}
+
+/**
+ * Get the response for bulk publish request.
+ *
+ * @param response bulk publish API response
+ * @param entries entries for bulk publish request
+ * @param error error from bulk publish request
+ * @returns SDK response for bulk publish request
+ */
+export function getBulkPublishResponse(
+  params:
+    | {
+        entries: PubSubBulkPublishEntry[];
+        response: PubSubBulkPublishApiResponse;
+      }
+    | {
+        entries: PubSubBulkPublishEntry[];
+        error: Error;
+      },
+): PubSubBulkPublishResponse {
+  if ("error" in params) {
+    // The entire request failed. This typically indicates a problem with the request or the connection.
+    const failedMessages = params.entries.map((message) => ({ message, error: params.error }));
+    return { failedMessages };
+  }
+
+  // Some or all of the entries failed to be published.
+  return {
+    failedMessages:
+      params.response.failedEntries.flatMap((entry) => {
+        const message = params.entries.find((message) => message.entryID === entry.entryID);
+        if (!message) {
+          return [];
+        }
+        return { message, error: new Error(entry.error) };
+      }) ?? [],
+  };
 }
 
 /**

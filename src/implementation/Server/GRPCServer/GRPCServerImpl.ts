@@ -39,6 +39,9 @@ import { PubSubSubscriptionsType } from "../../../types/pubsub/PubSubSubscriptio
 import { DaprPubSubType } from "../../../types/pubsub/DaprPubSub.type";
 import { PubSubSubscriptionTopicRoutesType } from "../../../types/pubsub/PubSubSubscriptionTopicRoutes.type";
 import { DaprInvokerCallbackFunction } from "../../../types/DaprInvokerCallback.type";
+import { PubSubSubscriptionTopicRouteType } from "../../../types/pubsub/PubSubSubscriptionTopicRoute.type";
+import DaprPubSubStatusEnum from "../../../enum/DaprPubSubStatus.enum";
+import { deserializeGrpc } from "../../../utils/Deserializer.util";
 
 // https://github.com/badsyntax/grpc-js-typescript/issues/1#issuecomment-705419742
 // @ts-ignore
@@ -417,13 +420,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
       return;
     }
 
-    const data = Buffer.from(req.getData()).toString();
-    let dataParsed: any;
-    try {
-      dataParsed = JSON.parse(data);
-    } catch (_) {
-      dataParsed = data;
-    }
+    const data = deserializeGrpc(req.getDataContentType(), req.getData());
 
     const res = new TopicEventResponse();
 
@@ -436,17 +433,61 @@ export default class GRPCServerImpl implements IAppCallbackServer {
       }
     }
 
-    try {
-      const eventHandlers = this.pubSubSubscriptions[pubsubName][topic].routes[route].eventHandlers;
-      await Promise.all(eventHandlers.map((cb) => cb(dataParsed, headers)));
-      res.setStatus(TopicEventResponse.TopicEventResponseStatus.SUCCESS);
-    } catch (e) {
-      // @todo: for now we drop, maybe we should allow retrying as well more easily?
-      this.logger.error(`Error handling topic event: ${e}`);
-      res.setStatus(TopicEventResponse.TopicEventResponseStatus.DROP);
+    // Process the callbacks
+    // we handle priority of status on `RETRY` > `DROP` > `SUCCESS` and default to `SUCCESS`
+    const routeObj = this.pubSubSubscriptions[pubsubName][topic].routes[route];
+    const status = await this.processPubSubCallbacks(routeObj, data, headers);
+
+    switch (status) {
+      case DaprPubSubStatusEnum.RETRY:
+        res.setStatus(TopicEventResponse.TopicEventResponseStatus.RETRY);
+        break;
+      case DaprPubSubStatusEnum.DROP:
+        res.setStatus(TopicEventResponse.TopicEventResponseStatus.DROP);
+        break;
+      case DaprPubSubStatusEnum.SUCCESS:
+      default:
+        res.setStatus(TopicEventResponse.TopicEventResponseStatus.SUCCESS);
+        break;
     }
 
     return callback(null, res);
+  }
+
+  async processPubSubCallbacks(
+    routeObj: PubSubSubscriptionTopicRouteType,
+    data: any,
+    headers: { [key: string]: string },
+  ): Promise<DaprPubSubStatusEnum> {
+    const eventHandlers = routeObj.eventHandlers;
+    const statuses = [];
+
+    // Process the callbacks (default: SUCCESS)
+    for (const cb of eventHandlers) {
+      let status = DaprPubSubStatusEnum.SUCCESS;
+
+      try {
+        status = await cb(data, headers);
+      } catch (e) {
+        // We catch and log an error, but we don't do anything with it as the statuses should define that
+        this.logger.error(`[route-${routeObj.path}] Message processing failed, ${e}`);
+      }
+
+      statuses.push(status ?? DaprPubSubStatusEnum.SUCCESS);
+    }
+
+    // Look at the statuses and return the highest priority
+    // we handle priority of status on `RETRY` > `DROP` > `SUCCESS`
+    if (statuses.includes(DaprPubSubStatusEnum.RETRY)) {
+      this.logger.debug(`[route-${routeObj.path}] Retrying message`);
+      return DaprPubSubStatusEnum.RETRY;
+    } else if (statuses.includes(DaprPubSubStatusEnum.DROP)) {
+      this.logger.debug(`[route-${routeObj.path}] Dropping message`);
+      return DaprPubSubStatusEnum.DROP;
+    } else {
+      this.logger.debug(`[route-${routeObj.path}] Acknowledging message`);
+      return DaprPubSubStatusEnum.SUCCESS;
+    }
   }
 
   // Dapr will call this on startup to see which topics it is subscribed to

@@ -228,6 +228,77 @@ async function start() {
 
 > For a full list of state operations visit [How-To: Publish & subscribe]({{< ref howto-publish-subscribe.md >}}).
 
+#### Subscribe with SUCCESS/RETRY/DROP status
+
+Dapr supports [status codes for retry logic](https://docs.dapr.io/reference/api/pubsub_api/#expected-http-response) to specify what should happen after a message gets processed.
+
+> ⚠️ The JS SDK allows multiple callbacks on the same topic, we handle priority of status on `RETRY` > `DROP` > `SUCCESS` and default to `SUCCESS`
+
+> ⚠️ Make sure to [configure resiliency](https://docs.dapr.io/operations/resiliency/resiliency-overview/) in your application to handle `RETRY` messages
+
+In the JS SDK we support these messages through the `DaprPubSubStatusEnum` enum. To ensure Dapr will retry we configure a Resiliency policy as well.
+
+\*\*components/resiliency.yaml`
+
+```yaml
+apiVersion: dapr.io/v1alpha1
+kind: Resiliency
+metadata:
+  name: myresiliency
+spec:
+  policies:
+    retries:
+      # Global Retry Policy for Inbound Component operations
+      DefaultComponentInboundRetryPolicy:
+        policy: constant
+        duration: 500ms
+        maxRetries: 10
+  targets:
+    components:
+      messagebus:
+        inbound:
+          retry: DefaultComponentInboundRetryPolicy
+```
+
+**src/index.ts**
+
+```typescript
+import { DaprServer, DaprPubSubStatusEnum } from "@dapr/dapr";
+
+const daprHost = "127.0.0.1"; // Dapr Sidecar Host
+const daprPort = "3500"; // Dapr Sidecar Port of this Example Server
+const serverHost = "127.0.0.1"; // App Host of this Example Server
+const serverPort = "50051"; // App Port of this Example Server "
+
+async function start() {
+  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
+
+  const pubSubName = "my-pubsub-name";
+  const topic = "topic-a";
+
+  // Process a message successfully
+  await server.pubsub.subscribe(pubSubName, topic, async (data: any, headers: object) => {
+    return DaprPubSubStatusEnum.SUCCESS;
+  });
+
+  // Retry a message
+  // Note: this example will keep on retrying to deliver the message
+  // Note 2: each component can have their own retry configuration
+  //   e.g., https://docs.dapr.io/reference/components-reference/supported-pubsub/setup-redis-pubsub/
+  await server.pubsub.subscribe(pubSubName, topic, async (data: any, headers: object) => {
+    return DaprPubSubStatusEnum.RETRY;
+  });
+
+  // Drop a message
+  await server.pubsub.subscribe(pubSubName, topic, async (data: any, headers: object) => {
+    return DaprPubSubStatusEnum.DROP;
+  });
+
+  // Start the server
+  await server.start();
+}
+```
+
 #### Subscribe to messages rule based
 
 Dapr [supports routing messages](https://docs.dapr.io/developing-applications/building-blocks/pubsub/howto-route-messages/) to different handlers (routes) based on rules.
