@@ -19,8 +19,12 @@ const daprHost = "127.0.0.1";
 const daprPort = "50007"; // Dapr Sidecar Port of this Example
 
 async function start() {
-  const clientSidecar = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
-  const clientProxy = await clientSidecar.proxy.create<GreeterClient>(GreeterClient, "server");
+  const clientSidecar = new DaprClient({
+    daprHost: daprHost,
+    daprPort: daprPort,
+    communicationProtocol: CommunicationProtocolEnum.GRPC,
+  });
+  const clientProxy = await clientSidecar.proxy.create<GreeterClient>(GreeterClient);
 
   const req = new HelloRequest();
   req.setName("Hello World");

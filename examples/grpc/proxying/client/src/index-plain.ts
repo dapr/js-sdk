@@ -20,20 +20,22 @@ const daprHost = "127.0.0.1";
 const daprPort = "50007"; // Dapr Sidecar Port of this Example
 
 async function start() {
-  const clientSidecar = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC, {
-    daprAppId: "server",
+  const clientSidecar = new DaprClient({
+    daprHost: daprHost,
+    daprPort: daprPort,
+    communicationProtocol: CommunicationProtocolEnum.GRPC,
   });
 
-  const clientSidecarGrpc = clientSidecar.getDaprClient() as GRPCClient;
+  const clientSidecarGrpc = clientSidecar.daprClient as GRPCClient;
 
   // Await the dapr sidecar to be started
   // we normally don't need to do this, but we are using the
   // gRPC communication protocol directly while proxying
-  await clientSidecar.awaitSidecarStarted();
+  await clientSidecar.daprClient.getClient();
 
   // Call our method as defined in the proto
   const clientCustom = new GreeterClient(
-    `${clientSidecarGrpc.getClientHost()}:${clientSidecarGrpc.getClientPort()}`,
+    `${clientSidecarGrpc.options.daprHost}:${clientSidecarGrpc.options.daprPort}`,
     clientSidecarGrpc.getClientCredentials(),
   );
 
