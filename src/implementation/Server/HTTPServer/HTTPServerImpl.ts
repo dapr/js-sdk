@@ -157,7 +157,6 @@ export default class HTTPServerImpl {
     for (const ind in entries) {
       const entry = entries[ind];
       let data: any;
-      let entryRes: BulkSubscribeResponseEntry;
 
       if (entry.contentType == "application/octet-stream") {
         const dataB64 = entry.event;
@@ -179,7 +178,7 @@ export default class HTTPServerImpl {
       // Process the callbacks
       // we handle priority of status on `RETRY` > `DROP` > `SUCCESS` and default to `SUCCESS`
       const status = await this.processPubSubCallbacks(routeObj, data, headers);
-      entryRes = {
+      const entryRes: BulkSubscribeResponseEntry = {
         status: status,
         entryId: entry.entryId,
       };
