@@ -22,7 +22,7 @@ import { StateGetBulkOptions } from "../../types/state/StateGetBulkOptions.type"
 export default interface IClientState {
   save(storeName: string, stateObjects: KeyValuePairType[]): Promise<void>;
   get(storeName: string, key: string): Promise<KeyValueType | string>;
-  getBulk(storeName: string, keys: string[], options: StateGetBulkOptions): Promise<KeyValueType[]>;
+  getBulk(storeName: string, keys: string[], options?: StateGetBulkOptions): Promise<KeyValueType[]>;
   delete(storeName: string, key: string): Promise<void>;
   transaction(storeName: string, operations?: OperationType[], metadata?: IRequestMetadata | null): Promise<void>;
   query(storeName: string, query: StateQueryType): Promise<StateQueryResponseType>;

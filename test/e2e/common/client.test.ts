@@ -26,15 +26,21 @@ describe("common/client", () => {
   let grpcClient: DaprClient;
 
   beforeAll(async () => {
-    httpClient = new DaprClient(daprHost, daprHttpPort, CommunicationProtocolEnum.HTTP, {
-      logger: loggerSettings,
+    httpClient = new DaprClient({
+      daprHost: daprHost,
+      daprPort: daprHttpPort,
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
+      logger: loggerSettings
     });
-    await httpClient.getDaprClient().getClient();
+    await httpClient.daprClient.getClient();
 
-    grpcClient = new DaprClient(daprHost, daprGrpcPort, CommunicationProtocolEnum.GRPC, {
+    grpcClient = new DaprClient({
+      daprHost: daprHost,
+      daprPort: daprGrpcPort,
+      communicationProtocol: CommunicationProtocolEnum.GRPC,
       logger: loggerSettings,
     });
-    await grpcClient.getDaprClient().getClient();
+    await grpcClient.daprClient.getClient();
   }, 10 * 1000);
 
   afterAll(async () => {
