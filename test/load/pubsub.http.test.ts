@@ -22,7 +22,11 @@ describe("load/http", () => {
   // We need to start listening on some endpoints already
   // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
-    client = new DaprClient({ daprHost: daprHost, daprPort: daprPort, communicationProtocol: CommunicationProtocolEnum.HTTP });
+    client = new DaprClient({
+      daprHost: daprHost,
+      daprPort: daprPort,
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
+    });
   });
 
   describe("pubsub", () => {

@@ -30,7 +30,7 @@ describe("common/client", () => {
       daprHost: daprHost,
       daprPort: daprHttpPort,
       communicationProtocol: CommunicationProtocolEnum.HTTP,
-      logger: loggerSettings
+      logger: loggerSettings,
     });
     await httpClient.daprClient.getClient();
 
