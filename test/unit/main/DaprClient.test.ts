@@ -35,16 +35,20 @@ describe("DaprClient", () => {
   it("same http client should be returned for multiple DaprClient invocations", () => {
     const daprClient1 = new DaprClient({ daprHost: host, daprPort: port });
     const daprClient2 = new DaprClient({ daprHost: host, daprPort: port });
-    return Promise.all([
-      daprClient1.daprClient.getClient(false),
-      daprClient2.daprClient.getClient(false),
-    ]).then(function (values) {
-      expect(values[0]).toEqual(values[1]);
-    });
+    return Promise.all([daprClient1.daprClient.getClient(false), daprClient2.daprClient.getClient(false)]).then(
+      function (values) {
+        expect(values[0]).toEqual(values[1]);
+      },
+    );
   });
 
   it("should return dapr api token", () => {
-    const daprClient = new DaprClient({ daprHost: host, daprPort: port, communicationProtocol: CommunicationProtocolEnum.HTTP, daprApiToken: "test" });
+    const daprClient = new DaprClient({
+      daprHost: host,
+      daprPort: port,
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
+      daprApiToken: "test",
+    });
     expect(daprClient.options.daprApiToken).toEqual("test");
   });
 });
