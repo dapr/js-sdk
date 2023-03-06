@@ -491,18 +491,12 @@ export default class GRPCServerImpl implements IAppCallbackServer {
       const event = entries[ind];
       let data: any;
       if (event.hasBytes()) {
-        data = Buffer.from(event.getBytes()).toString();
+        data = deserializeGrpc(event.getContentType(), event.getBytes());
       } else if (event.hasCloudEvent()) {
         const cloudEvent = event.getCloudEvent();
         if (cloudEvent instanceof TopicEventCERequest) {
-          data = Buffer.from(cloudEvent.getData()).toString();
+          data = deserializeGrpc(cloudEvent.getDataContentType(), cloudEvent.getData());
         }
-      }
-      let dataParsed: any;
-      try {
-        dataParsed = JSON.parse(data);
-      } catch (e) {
-        dataParsed = data;
       }
 
       const res = new TopicEventBulkResponseEntry();
@@ -516,13 +510,22 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         }
       }
 
-      try {
-        const eventHandlers = this.pubSubSubscriptions[pubsubName][topic].routes[route].eventHandlers;
-        await Promise.all(eventHandlers.map((cb) => cb(dataParsed, headers)));
-        res.setStatus(TopicEventResponse.TopicEventResponseStatus.SUCCESS);
-      } catch (e) {
-        this.logger.error(`Error handling topic event: ${e}`);
-        res.setStatus(TopicEventResponse.TopicEventResponseStatus.DROP);
+      // Process the callbacks
+      // we handle priority of status on `RETRY` > `DROP` > `SUCCESS` and default to `SUCCESS`
+      const routeObj = this.pubSubSubscriptions[pubsubName][topic].routes[route];
+      const status = await this.processPubSubCallbacks(routeObj, data, headers);
+
+      switch (status) {
+        case DaprPubSubStatusEnum.RETRY:
+          res.setStatus(TopicEventResponse.TopicEventResponseStatus.RETRY);
+          break;
+        case DaprPubSubStatusEnum.DROP:
+          res.setStatus(TopicEventResponse.TopicEventResponseStatus.DROP);
+          break;
+        case DaprPubSubStatusEnum.SUCCESS:
+        default:
+          res.setStatus(TopicEventResponse.TopicEventResponseStatus.SUCCESS);
+          break;
       }
 
       res.setEntryId(event.getEntryId());

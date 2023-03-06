@@ -158,6 +158,7 @@ export default class HTTPServerImpl {
       const entry = entries[ind];
       let data: any;
       let entryRes: BulkSubscribeResponseEntry;
+
       if (entry.contentType == "application/octet-stream") {
         const dataB64 = entry.event;
         data = Buffer.from(dataB64, "base64").toString();
@@ -173,28 +174,25 @@ export default class HTTPServerImpl {
       } else if (entry.contentType == "application/cloudevents+json") {
         data = entry.event.data;
       }
+
       const headers = entry.metadata;
-      // Process our callback
-      try {
-        const eventHandlers = routeObj.eventHandlers;
-        await Promise.all(eventHandlers.map((cb) => cb(data, headers)));
-        entryRes = {
-          status: DaprPubSubStatusEnum.SUCCESS,
-          entryId: entry.entryId,
-        };
-      } catch (e) {
-        this.logger.error(`[route-${routeObj.path}] Message processing failed, dropping: ${e}`);
-        entryRes = {
-          status: DaprPubSubStatusEnum.DROP,
-          entryId: entry.entryId,
-        };
-      }
+      // Process the callbacks
+      // we handle priority of status on `RETRY` > `DROP` > `SUCCESS` and default to `SUCCESS`
+      const status = await this.processPubSubCallbacks(routeObj, data, headers);
+      entryRes = {
+        status: status,
+        entryId: entry.entryId,
+      };
+
       resArr.push(entryRes);
     }
+
     this.logger.debug(`[route-${routeObj.path}] Ack'ing the bulk message`);
+
     const bulkResult: BulkSubscribeResponse = {
       statuses: resArr,
     };
+
     return bulkResult;
   }
 
