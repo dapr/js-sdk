@@ -78,9 +78,7 @@ export default class DaprClient {
 
   private readonly logger: Logger;
 
-  constructor(
-    options: Partial<DaprClientOptions> = {},
-  ) {
+  constructor(options: Partial<DaprClientOptions> = {}) {
     const communicationProtocol = options.communicationProtocol ?? Settings.getDefaultCommunicationProtocol();
     this.options = {
       daprHost: options.daprHost ?? Settings.getDefaultHost(),

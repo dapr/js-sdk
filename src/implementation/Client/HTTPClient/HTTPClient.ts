@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import fetch, { RequestInit } from "node-fetch";
-import { CommunicationProtocolEnum, DaprClient } from "../../..";
+import { DaprClient } from "../../..";
 import IClient from "../../../interfaces/Client/IClient";
 import http from "http";
 import https from "https";

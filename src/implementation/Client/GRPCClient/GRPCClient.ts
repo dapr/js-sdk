@@ -14,7 +14,6 @@ limitations under the License.
 import * as grpc from "@grpc/grpc-js";
 import { DaprClient as GrpcDaprClient } from "../../../proto/dapr/proto/runtime/v1/dapr_grpc_pb";
 import IClient from "../../../interfaces/Client/IClient";
-import CommunicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
 import { DaprClientOptions } from "../../../types/DaprClientOptions";
 import { Settings } from "../../../utils/Settings.util";
 import { Logger } from "../../../logger/Logger";

@@ -33,7 +33,7 @@ export default class HTTPClientActor implements IClientActorBuilder {
       this.client.options.daprHost,
       this.client.options.daprPort,
       this.client.options.communicationProtocol,
-      this.client.options
+      this.client.options,
     );
     const actor = builder.build(ActorId.createRandomId());
     return actor;
