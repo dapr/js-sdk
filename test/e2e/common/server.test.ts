@@ -44,8 +44,8 @@ const routeWithLeadingSlash = "/leading-slash-route";
 const defaultDeadLetterTopic = "deadletter";
 const bulkSubscribeTopic = "bulk-subscribe-topic";
 const bulkSubscribeClodEventTopic = "bulk-subscribe-ce-topic";
-const bulkSubscribeCloudEvent_to_RawPayloadTopic = "bulk-subscribe-ce-rp-topic";
-const bulkSubscribeRawPayload_to_ClodEventTopic = "bulk-subscribe-rp-ce-topic";
+const bulkSubscribeCloudEventToRawPayloadTopic = "bulk-subscribe-ce-rp-topic";
+const bulkSubscribeRawPayloadToClodEventTopic = "bulk-subscribe-rp-ce-topic";
 
 describe("common/server", () => {
   let httpServer: DaprServer;
@@ -55,8 +55,8 @@ describe("common/server", () => {
   const mockSubscribeHandler = jest.fn(async (_data: object, _headers: object) => null);
   const mockBulkSubscribeRawPayloadHandler = jest.fn(async (_data: object, _headers: object) => null);
   const mockBulkSubscribeCEHandler = jest.fn(async (_data: object, _headers: object) => null);
-  const mockBulkSubscribeCE_RPHandler = jest.fn(async (_data: object, _headers: object) => null);
-  const mockBulkSubscribeRP_CEHandler = jest.fn(async (_data: object, _headers: object) => null);
+  const mockBulkSubscribeCloudEventToRawPayloadHandler = jest.fn(async (_data: object, _headers: object) => null);
+  const mockBulkSubscribeRawPayloadToCloudEventHandler = jest.fn(async (_data: object, _headers: object) => null);
   const mockSubscribeDeadletterHandler = jest.fn(async (_data: object, _headers: object) => null);
 
   const mockSubscribeStatusHandlerVars: {
@@ -265,7 +265,7 @@ describe("common/server", () => {
       async (server: DaprServer, protocol: string) => {
         const res1 = await server.client.pubsub.publish(
           pubSubName,
-          getTopic(bulkSubscribeCloudEvent_to_RawPayloadTopic, protocol),
+          getTopic(bulkSubscribeCloudEventToRawPayloadTopic, protocol),
           {
             message: "Hello, world1111!",
           },
@@ -273,7 +273,7 @@ describe("common/server", () => {
 
         const res2 = await server.client.pubsub.publish(
           pubSubName,
-          getTopic(bulkSubscribeCloudEvent_to_RawPayloadTopic, protocol),
+          getTopic(bulkSubscribeCloudEventToRawPayloadTopic, protocol),
           {
             message: "Hello, world2222!",
           },
@@ -285,11 +285,11 @@ describe("common/server", () => {
         // Delay a bit for event to arrive
         await new Promise((resolve, _reject) => setTimeout(resolve, 4000));
 
-        expect(mockBulkSubscribeCE_RPHandler.mock.calls.length).toBe(2);
-        expect(getDataFromCEObject(mockBulkSubscribeCE_RPHandler.mock.calls[0][0])).toEqual({
+        expect(mockBulkSubscribeCloudEventToRawPayloadHandler.mock.calls.length).toBe(2);
+        expect(getDataFromCEObject(mockBulkSubscribeCloudEventToRawPayloadHandler.mock.calls[0][0])).toEqual({
           message: "Hello, world1111!",
         });
-        expect(getDataFromCEObject(mockBulkSubscribeCE_RPHandler.mock.calls[1][0])).toEqual({
+        expect(getDataFromCEObject(mockBulkSubscribeCloudEventToRawPayloadHandler.mock.calls[1][0])).toEqual({
           message: "Hello, world2222!",
         });
       },
@@ -300,7 +300,7 @@ describe("common/server", () => {
       async (server: DaprServer, protocol: string) => {
         const res1 = await server.client.pubsub.publish(
           pubSubName,
-          getTopic(bulkSubscribeRawPayload_to_ClodEventTopic, protocol),
+          getTopic(bulkSubscribeRawPayloadToClodEventTopic, protocol),
           {
             message: "Hello, world1111!",
           },
@@ -309,7 +309,7 @@ describe("common/server", () => {
 
         const res2 = await server.client.pubsub.publish(
           pubSubName,
-          getTopic(bulkSubscribeRawPayload_to_ClodEventTopic, protocol),
+          getTopic(bulkSubscribeRawPayloadToClodEventTopic, protocol),
           {
             message: "Hello, world2222!",
           },
@@ -322,7 +322,7 @@ describe("common/server", () => {
         // Delay a bit for event to arrive
         await new Promise((resolve, _reject) => setTimeout(resolve, 4000));
 
-        expect(mockBulkSubscribeRP_CEHandler.mock.calls.length).toBe(2);
+        expect(mockBulkSubscribeRawPayloadToCloudEventHandler.mock.calls.length).toBe(2);
       },
     );
 
@@ -683,8 +683,8 @@ describe("common/server", () => {
 
     await grpcServer.pubsub.subscribeBulk(
       pubSubName,
-      getTopic(bulkSubscribeCloudEvent_to_RawPayloadTopic, protocolGrpc),
-      mockBulkSubscribeCE_RPHandler,
+      getTopic(bulkSubscribeCloudEventToRawPayloadTopic, protocolGrpc),
+      mockBulkSubscribeCloudEventToRawPayloadHandler,
       {
         metadata: { rawPayload: true },
       },
@@ -692,8 +692,8 @@ describe("common/server", () => {
 
     await httpServer.pubsub.subscribeBulk(
       pubSubName,
-      getTopic(bulkSubscribeCloudEvent_to_RawPayloadTopic, protocolHttp),
-      mockBulkSubscribeCE_RPHandler,
+      getTopic(bulkSubscribeCloudEventToRawPayloadTopic, protocolHttp),
+      mockBulkSubscribeCloudEventToRawPayloadHandler,
       {
         metadata: { rawPayload: true },
       },
@@ -701,14 +701,14 @@ describe("common/server", () => {
 
     await grpcServer.pubsub.subscribeBulk(
       pubSubName,
-      getTopic(bulkSubscribeRawPayload_to_ClodEventTopic, protocolGrpc),
-      mockBulkSubscribeRP_CEHandler,
+      getTopic(bulkSubscribeRawPayloadToClodEventTopic, protocolGrpc),
+      mockBulkSubscribeRawPayloadToCloudEventHandler,
     );
 
     await httpServer.pubsub.subscribeBulk(
       pubSubName,
-      getTopic(bulkSubscribeRawPayload_to_ClodEventTopic, protocolHttp),
-      mockBulkSubscribeRP_CEHandler,
+      getTopic(bulkSubscribeRawPayloadToClodEventTopic, protocolHttp),
+      mockBulkSubscribeRawPayloadToCloudEventHandler,
     );
 
     await httpServer.pubsub.subscribe(
