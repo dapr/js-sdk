@@ -18,14 +18,14 @@ const port = "50001";
 
 describe("DaprClient", () => {
   it("should allow us to create a DaprClient", () => {
-    const client = new DaprClient(host, port);
-    expect(client.getDaprHost()).toEqual(host);
-    expect(client.getDaprPort()).toEqual(port);
+    const client = new DaprClient({ daprHost: host, daprPort: port });
+    expect(client.options.daprHost).toEqual(host);
+    expect(client.options.daprPort).toEqual(port);
   });
 
   it("should throw an error on a wrong port", () => {
     try {
-      new DaprClient(host, host);
+      new DaprClient({ daprHost: host, daprPort: host });
     } catch (e) {
       const msg = (e as Error).message;
       expect(msg).toEqual("DAPR_INCORRECT_SIDECAR_PORT");
@@ -33,18 +33,18 @@ describe("DaprClient", () => {
   });
 
   it("same http client should be returned for multiple DaprClient invocations", () => {
-    const daprClient1 = new DaprClient(host, port);
-    const daprClient2 = new DaprClient(host, port);
+    const daprClient1 = new DaprClient({ daprHost: host, daprPort: port });
+    const daprClient2 = new DaprClient({ daprHost: host, daprPort: port });
     return Promise.all([
-      daprClient1.getDaprClient().getClient(false),
-      daprClient2.getDaprClient().getClient(false),
+      daprClient1.daprClient.getClient(false),
+      daprClient2.daprClient.getClient(false),
     ]).then(function (values) {
       expect(values[0]).toEqual(values[1]);
     });
   });
 
   it("should return dapr api token", () => {
-    const daprClient = new DaprClient(host, port, CommunicationProtocolEnum.HTTP, { daprApiToken: "test" });
-    expect(daprClient.getOptions().daprApiToken).toEqual("test");
+    const daprClient = new DaprClient({ daprHost: host, daprPort: port, communicationProtocol: CommunicationProtocolEnum.HTTP, daprApiToken: "test" });
+    expect(daprClient.options.daprApiToken).toEqual("test");
   });
 });
