@@ -17,7 +17,7 @@ const daprHost = "127.0.0.1";
 const daprPortDefault = "3500";
 
 async function start() {
-  const client = new DaprClient({ daprHost: daprHost, daprPort: process.env.DAPR_HTTP_PORT ?? daprPortDefault });
+  const client = new DaprClient({ daprHost, daprPort: process.env.DAPR_HTTP_PORT ?? daprPortDefault });
 
   const config = await client.configuration.get("config-store", ["key1", "key2"]);
   console.log(config);

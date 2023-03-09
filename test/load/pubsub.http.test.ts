@@ -23,8 +23,8 @@ describe("load/http", () => {
   // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
     client = new DaprClient({
-      daprHost: daprHost,
-      daprPort: daprPort,
+      daprHost,
+      daprPort,
       communicationProtocol: CommunicationProtocolEnum.HTTP,
     });
   });

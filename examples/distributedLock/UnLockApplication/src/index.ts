@@ -19,7 +19,7 @@ const daprPortDefault = "3500";
 
 async function start() {
   const client = new DaprClient({
-    daprHost: daprHost,
+    daprHost,
     daprPort: process.env.DAPR_GRPC_PORT ?? daprPortDefault,
     communicationProtocol: CommunicationProtocolEnum.GRPC,
   });

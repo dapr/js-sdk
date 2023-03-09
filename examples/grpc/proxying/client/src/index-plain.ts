@@ -21,8 +21,8 @@ const daprPort = "50007"; // Dapr Sidecar Port of this Example
 
 async function start() {
   const clientSidecar = new DaprClient({
-    daprHost: daprHost,
-    daprPort: daprPort,
+    daprHost,
+    daprPort,
     communicationProtocol: CommunicationProtocolEnum.GRPC,
   });
 

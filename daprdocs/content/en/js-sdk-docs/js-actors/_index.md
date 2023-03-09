@@ -139,7 +139,7 @@ import ParkingSensorInterface from "./ParkingSensorInterface";
 const daprHost = "127.0.0.1";
 const daprPort = "50000";
 
-const client = new DaprClient({ daprHost: daprHost, daprPort: daprPort });
+const client = new DaprClient({ daprHost, daprPort });
 
 // Create a new actor builder. It can be used to create multiple actors of a type.
 const builder = new ActorProxyBuilder<ParkingSensorInterface>(ParkingSensorImpl, client);

@@ -18,7 +18,7 @@ const daprPort = "3500";
 const daprAppId = "my-server";
 
 async function start() {
-  const client = new DaprClient({ daprHost: daprHost, daprPort: daprPort });
+  const client = new DaprClient({ daprHost, daprPort });
 
   const res = await client.invoker.invoke(daprAppId, "hello-world", HttpMethod.POST, {
     hello: "world",

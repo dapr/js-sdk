@@ -27,7 +27,7 @@ describe("common/client", () => {
 
   beforeAll(async () => {
     httpClient = new DaprClient({
-      daprHost: daprHost,
+      daprHost,
       daprPort: daprHttpPort,
       communicationProtocol: CommunicationProtocolEnum.HTTP,
       logger: loggerSettings,
@@ -35,7 +35,7 @@ describe("common/client", () => {
     await httpClient.daprClient.getClient();
 
     grpcClient = new DaprClient({
-      daprHost: daprHost,
+      daprHost,
       daprPort: daprGrpcPort,
       communicationProtocol: CommunicationProtocolEnum.GRPC,
       logger: loggerSettings,
