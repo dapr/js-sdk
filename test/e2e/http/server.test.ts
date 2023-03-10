@@ -39,7 +39,6 @@ describe("http/server", () => {
       clientOptions: {
         daprHost: daprHost,
         daprPort: daprPort,
-        communicationProtocol: CommunicationProtocolEnum.HTTP,
         maxBodySizeMb: 20, // we set sending larger than receiving to test the error handling
       },
       maxBodySizeMb: 10,
@@ -76,7 +75,6 @@ describe("http/server", () => {
         clientOptions: {
           daprHost: daprHost,
           daprPort: daprPort,
-          communicationProtocol: CommunicationProtocolEnum.HTTP,
         },
       });
 

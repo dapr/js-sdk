@@ -26,7 +26,6 @@ async function start() {
     clientOptions: {
       daprHost: daprHost,
       daprPort: daprPort,
-      communicationProtocol: CommunicationProtocolEnum.GRPC,
     },
   });
   await server.start();

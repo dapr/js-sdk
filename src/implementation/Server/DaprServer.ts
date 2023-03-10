@@ -103,10 +103,11 @@ export default class DaprServer {
     clientoptions: Partial<DaprClientOptions> | undefined,
     communicationProtocol: CommunicationProtocolEnum,
   ): DaprClientOptions {
+    const clientCommunicationProtocol = clientoptions?.communicationProtocol ?? communicationProtocol;
     return {
       daprHost: clientoptions?.daprHost ?? Settings.getDefaultHost(),
-      daprPort: clientoptions?.daprPort ?? Settings.getDefaultAppPort(communicationProtocol),
-      communicationProtocol: communicationProtocol,
+      daprPort: clientoptions?.daprPort ?? Settings.getDefaultAppPort(clientCommunicationProtocol),
+      communicationProtocol: clientCommunicationProtocol,
       isKeepAlive: clientoptions?.isKeepAlive,
       logger: clientoptions?.logger,
       actor: clientoptions?.actor,

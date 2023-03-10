@@ -111,7 +111,6 @@ describe("common/server", () => {
       clientOptions: {
         daprHost: daprHost,
         daprPort: daprHttpPort,
-        communicationProtocol: CommunicationProtocolEnum.HTTP,
       },
     });
     grpcServer = new DaprServer({
@@ -121,7 +120,6 @@ describe("common/server", () => {
       clientOptions: {
         daprHost: daprHost,
         daprPort: daprGrpcPort,
-        communicationProtocol: CommunicationProtocolEnum.GRPC,
       },
     });
 
@@ -353,7 +351,6 @@ describe("common/server", () => {
           clientOptions: {
             daprHost: daprHost,
             daprPort: port,
-            communicationProtocol: commProtocol,
           },
         });
 

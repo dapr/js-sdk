@@ -52,7 +52,6 @@ const server = new DaprServer({
   clientOptions: {
     daprHost: daprHost,
     daprPort: daprHttpPort,
-    communicationProtocol: CommunicationProtocolEnum.GRPC,
   },
 });
 ```
@@ -143,7 +142,6 @@ const server = new DaprServer({
   clientOptions: {
     daprHost: daprHost,
     daprPort: daprHttpPort,
-    communicationProtocol: CommunicationProtocolEnum.GRPC,
   },
 });
 // initialize subscribtions, ... before server start

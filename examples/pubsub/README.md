@@ -39,7 +39,6 @@ By default, the example uses HTTP. To use gRPC instead:
     clientOptions: {
       daprHost: daprHost,
       daprPort: process.env.DAPR_GRPC_PORT,
-      communicationProtocol: CommunicationProtocolEnum.GRPC,
     },
   });
   const client = new DaprClient(daprHost, process.env.DAPR_GRPC_PORT, CommunicationProtocolEnum.GRPC);

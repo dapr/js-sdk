@@ -34,7 +34,6 @@ describe("grpc/server", () => {
       clientOptions: {
         daprHost: daprHost,
         daprPort: daprPort,
-        communicationProtocol: CommunicationProtocolEnum.GRPC,
         maxBodySizeMb: 20, // we set sending larger than receiving to test the error handling
       },
       maxBodySizeMb: 10,

@@ -32,7 +32,6 @@ async function start() {
     clientOptions: {
       daprHost: daprHost,
       daprPort: daprPort,
-      communicationProtocol: CommunicationProtocolEnum.GRPC,
     },
   });
   const client = new DaprClient({
