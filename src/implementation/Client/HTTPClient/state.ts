@@ -35,7 +35,11 @@ export default class HTTPClientState implements IClientState {
     this.logger = new Logger("HTTPClient", "State", client.options.logger);
   }
 
-  async save(storeName: string, stateObjects: KeyValuePairType[], metadata?: KeyValueType): Promise<StateSaveResponseType> {
+  async save(
+    storeName: string,
+    stateObjects: KeyValuePairType[],
+    metadata?: KeyValueType,
+  ): Promise<StateSaveResponseType> {
     const queryParams = createHTTPMetadataQueryParam(metadata);
 
     try {

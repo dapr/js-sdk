@@ -15,6 +15,6 @@ limitations under the License.
  * StateSaveResponseType defines the response from a save request.
  */
 export type StateSaveResponseType = {
-    // error contains the error if the save request failed.
-    error?: Error;
+  // error contains the error if the save request failed.
+  error?: Error;
 };

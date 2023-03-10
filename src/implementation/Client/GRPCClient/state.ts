@@ -46,7 +46,11 @@ export default class GRPCClientState implements IClientState {
     this.client = client;
   }
 
-  async save(storeName: string, stateObjects: KeyValuePairType[], metadata?: KeyValueType): Promise<StateSaveResponseType> {
+  async save(
+    storeName: string,
+    stateObjects: KeyValuePairType[],
+    metadata?: KeyValueType,
+  ): Promise<StateSaveResponseType> {
     const stateList: StateItem[] = [];
 
     for (const stateObject of stateObjects) {
@@ -64,7 +68,6 @@ export default class GRPCClientState implements IClientState {
     const msgService = new SaveStateRequest();
     msgService.setStoreName(storeName);
     msgService.setStatesList(stateList);
-
 
     const client = await this.client.getClient();
 
