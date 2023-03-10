@@ -38,19 +38,6 @@ export function addMetadataToMap(map: Map<string, string>, metadata: KeyValueTyp
 }
 
 /**
- * Converts a KeyValueType to a grpc.Metadata.
- * @param metadata key value pair of metadata
- * @returns grpc.Metadata
- */
-export function createGRPCMetadata(metadata: KeyValueType = {}): grpc.Metadata {
-  const grpcMetadata = new grpc.Metadata();
-  for (const [key, value] of Object.entries(metadata)) {
-    grpcMetadata.set(key, value);
-  }
-  return grpcMetadata;
-}
-
-/**
  * Converts a KeyValueType to a HTTP query parameters.
  * The query parameters are separated by "&", and the key value pair is separated by "=".
  * Each metadata key is prefixed with "metadata.".

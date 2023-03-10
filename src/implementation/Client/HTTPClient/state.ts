@@ -60,7 +60,7 @@ export default class HTTPClientState implements IClientState {
     return result as KeyValueType;
   }
 
-  async getBulk(storeName: string, keys: string[], options: StateGetBulkOptions): Promise<KeyValueType[]> {
+  async getBulk(storeName: string, keys: string[], options: StateGetBulkOptions = {}): Promise<KeyValueType[]> {
     const queryParams = createHTTPMetadataQueryParam(options.metadata);
 
     const result = await this.client.execute(`/state/${storeName}/bulk?${queryParams}`, {
