@@ -227,7 +227,9 @@ describe("common/client", () => {
           },
         ],
         {
-          ttlInSeconds: "3", // this should override the ttl in the state item
+          metadata: {
+            ttlInSeconds: "3", // this should override the ttl in the state item
+          },
         },
       );
 

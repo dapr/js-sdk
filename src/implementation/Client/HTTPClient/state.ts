@@ -24,6 +24,7 @@ import { createHTTPMetadataQueryParam } from "../../../utils/Client.util";
 import { Settings } from "../../../utils/Settings.util";
 import { Logger } from "../../../logger/Logger";
 import { StateSaveResponseType } from "../../../types/state/StateSaveResponseType";
+import { StateSaveOptions } from "../../../types/state/StateSaveOptions.type";
 
 // https://docs.dapr.io/reference/api/state_api/
 export default class HTTPClientState implements IClientState {
@@ -38,9 +39,9 @@ export default class HTTPClientState implements IClientState {
   async save(
     storeName: string,
     stateObjects: KeyValuePairType[],
-    metadata?: KeyValueType,
+    options: StateSaveOptions = {},
   ): Promise<StateSaveResponseType> {
-    const queryParams = createHTTPMetadataQueryParam(metadata);
+    const queryParams = createHTTPMetadataQueryParam(options.metadata);
 
     try {
       await this.client.execute(`/state/${storeName}?${queryParams}`, {

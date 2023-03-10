@@ -19,9 +19,10 @@ import { StateQueryType } from "../../types/state/StateQuery.type";
 import { StateQueryResponseType } from "../../types/state/StateQueryResponse.type";
 import { StateGetBulkOptions } from "../../types/state/StateGetBulkOptions.type";
 import { StateSaveResponseType } from "../../types/state/StateSaveResponseType";
+import { StateSaveOptions } from "../../types/state/StateSaveOptions.type";
 
 export default interface IClientState {
-  save(storeName: string, stateObjects: KeyValuePairType[], metadata?: KeyValueType): Promise<StateSaveResponseType>;
+  save(storeName: string, stateObjects: KeyValuePairType[], options?: StateSaveOptions): Promise<StateSaveResponseType>;
   get(storeName: string, key: string): Promise<KeyValueType | string>;
   getBulk(storeName: string, keys: string[], options?: StateGetBulkOptions): Promise<KeyValueType[]>;
   delete(storeName: string, key: string): Promise<void>;

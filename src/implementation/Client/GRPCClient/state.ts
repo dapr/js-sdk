@@ -37,6 +37,7 @@ import { StateGetBulkOptions } from "../../../types/state/StateGetBulkOptions.ty
 import { Settings } from "../../../utils/Settings.util";
 import { addMetadataToMap } from "../../../utils/Client.util";
 import { StateSaveResponseType } from "../../../types/state/StateSaveResponseType";
+import { StateSaveOptions } from "../../../types/state/StateSaveOptions.type";
 
 // https://docs.dapr.io/reference/api/state_api/
 export default class GRPCClientState implements IClientState {
@@ -49,7 +50,7 @@ export default class GRPCClientState implements IClientState {
   async save(
     storeName: string,
     stateObjects: KeyValuePairType[],
-    metadata?: KeyValueType,
+    options: StateSaveOptions = {},
   ): Promise<StateSaveResponseType> {
     const stateList: StateItem[] = [];
 
@@ -62,11 +63,11 @@ export default class GRPCClientState implements IClientState {
           "utf-8",
         ),
       );
-      // Merge metadata from stateObject and metadata.
-      // Note, metadata from request will override metadata from stateObject.
+      // Merge metadata from stateObject and options.
+      // Note, metadata from options will override metadata from stateObject.
       // See https://github.com/dapr/dapr/blob/029ec8cb7a1c88ec5d222bc2b0d1d53541217f19/pkg/http/api.go#L1525-L1532
       addMetadataToMap(si.getMetadataMap(), stateObject.metadata);
-      addMetadataToMap(si.getMetadataMap(), metadata);
+      addMetadataToMap(si.getMetadataMap(), options.metadata);
       stateList.push(si);
     }
 

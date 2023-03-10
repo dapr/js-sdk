@@ -200,7 +200,9 @@ async function start() {
       },
     ],
     {
-      ttlInSeconds: "5", // the request metadata overrides the metadata in the individual state items
+      metadata: {
+        ttlInSeconds: "3", // this should override the ttl in the state item
+      },
     },
   );
 
