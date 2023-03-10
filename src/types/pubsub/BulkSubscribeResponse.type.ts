@@ -13,9 +13,6 @@ limitations under the License.
 
 import { BulkSubscribeResponseEntry } from "./BulkSubscribeResponseEntry.type";
 
-// TODO @DeepanshuA to specify correct line number here
-// https://github.com/dapr/dapr/blob/master/pkg/apis/subscriptions/v2alpha1/types.go#L53
-
 /**
  * BulkSubscribeResponse is the response for a bulk subscribe request
  **/

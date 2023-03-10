@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// TODO @DeepanshuA to specify correct line number here
 // https://github.com/dapr/dapr/blob/master/pkg/apis/subscriptions/v2alpha1/types.go#L53
 
 /**

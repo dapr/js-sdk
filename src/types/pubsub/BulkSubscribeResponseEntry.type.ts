@@ -13,9 +13,6 @@ limitations under the License.
 
 import DaprPubSubStatusEnum from "../../enum/DaprPubSubStatus.enum";
 
-// TODO @DeepanshuA to specify correct line number here
-// https://github.com/dapr/dapr/blob/master/pkg/apis/subscriptions/v2alpha1/types.go#L53
-
 /**
  * BulkSubscribeResponseEntry is the response entry for a bulk subscribe request
  **/
