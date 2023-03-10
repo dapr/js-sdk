@@ -24,7 +24,6 @@ import { PubSubBulkPublishEntry } from "../types/pubsub/PubSubBulkPublishEntry.t
 import { PubSubBulkPublishResponse } from "../types/pubsub/PubSubBulkPublishResponse.type";
 import { PubSubBulkPublishMessage } from "../types/pubsub/PubSubBulkPublishMessage.type";
 import { PubSubBulkPublishApiResponse } from "../types/pubsub/PubSubBulkPublishApiResponse.type";
-import * as grpc from "@grpc/grpc-js";
 
 /**
  * Adds metadata to a map.

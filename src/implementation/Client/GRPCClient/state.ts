@@ -63,9 +63,10 @@ export default class GRPCClientState implements IClientState {
         ),
       );
       // Merge metadata from stateObject and metadata.
-      // Note, metadata from stateObject will overwrite metadata from request.
-      addMetadataToMap(si.getMetadataMap(), metadata);
+      // Note, metadata from request will override metadata from stateObject.
+      // See https://github.com/dapr/dapr/blob/029ec8cb7a1c88ec5d222bc2b0d1d53541217f19/pkg/http/api.go#L1525-L1532
       addMetadataToMap(si.getMetadataMap(), stateObject.metadata);
+      addMetadataToMap(si.getMetadataMap(), metadata);
       stateList.push(si);
     }
 

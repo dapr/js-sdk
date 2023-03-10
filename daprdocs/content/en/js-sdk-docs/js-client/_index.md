@@ -184,16 +184,25 @@ async function start() {
   const serviceStoreName = "my-state-store-name";
 
   // Save State
-  const response = await client.state.save(serviceStoreName, [
+  const response = await client.state.save(
+    serviceStoreName,
+    [
+      {
+        key: "first-key-name",
+        value: "hello",
+        metadata: {
+          foo: "bar",
+        },
+      },
+      {
+        key: "second-key-name",
+        value: "world",
+      },
+    ],
     {
-      key: "first-key-name",
-      value: "hello",
+      ttlInSeconds: "5", // the request metadata overrides the metadata in the individual state items
     },
-    {
-      key: "second-key-name",
-      value: "world",
-    },
-  ]);
+  );
 
   // Get State
   const response = await client.state.get(serviceStoreName, "first-key-name");

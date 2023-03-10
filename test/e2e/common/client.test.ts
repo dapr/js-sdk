@@ -189,6 +189,7 @@ describe("common/client", () => {
           },
           metadata: {
             hello: "world",
+            ttlInSeconds: "1",
           },
         },
         {
@@ -201,8 +202,12 @@ describe("common/client", () => {
         },
       ]);
 
-      const res = await client.state.get(stateStoreName, "key-1");
-      expect(res).toEqual("value-1");
+      const res1 = await client.state.get(stateStoreName, "key-1");
+      expect(res1).toEqual("value-1");
+
+      await sleep(2000);
+      const res2 = await client.state.get(stateStoreName, "key-1");
+      expect(res2).toBeFalsy();
     });
 
     runIt("should be able to save the state with request metadata", async (client: DaprClient) => {
@@ -212,21 +217,42 @@ describe("common/client", () => {
           {
             key: "key-1",
             value: "value-1",
+            metadata: {
+              ttlInSeconds: "1",
+            },
+          },
+          {
+            key: "key-2",
+            value: "value-2",
           },
         ],
         {
-          ttlInSeconds: "3",
+          ttlInSeconds: "3", // this should override the ttl in the state item
         },
       );
 
-      const res = await client.state.get(stateStoreName, "key-1");
-      expect(res).toEqual("value-1");
+      const res1 = await client.state.getBulk(stateStoreName, ["key-1", "key-2"]);
+      expect(res1.length).toEqual(2);
+      expect(res1.find((r) => r.key === "key-1")?.data).toEqual("value-1");
+      expect(res1.find((r) => r.key === "key-2")?.data).toEqual("value-2");
 
-      // wait for the ttl to expire
-      await sleep(3000);
+      // wait for the first ttl to expire
+      await sleep(1500);
 
-      const res2 = await client.state.get(stateStoreName, "key-1");
-      expect(res2).toEqual("");
+      // key-1 should still be there since its TTL is overridden by the request metadata
+      const res2 = await client.state.getBulk(stateStoreName, ["key-1", "key-2"]);
+      expect(res2.length).toEqual(2);
+      expect(res2.find((r) => r.key === "key-1")?.data).toEqual("value-1");
+      expect(res2.find((r) => r.key === "key-2")?.data).toEqual("value-2");
+
+      // wait for the second ttl to expire
+      await sleep(2000);
+
+      const res3 = await client.state.getBulk(stateStoreName, ["key-1", "key-2"]);
+      expect(res3.length).toEqual(2);
+      // HTTP returns undefined, gRPC returns "" for non-existent keys
+      expect(res3.find((r) => r.key === "key-1")?.data).toBeFalsy();
+      expect(res3.find((r) => r.key === "key-2")?.data).toBeFalsy();
     });
 
     runIt("should be able to get the state in bulk", async (client: DaprClient) => {
