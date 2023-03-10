@@ -27,15 +27,18 @@ describe("grpc/server", () => {
   // We need to start listening on some endpoints already
   // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
-    server = new DaprServer(
-      serverHost,
-      serverPort,
-      daprHost,
-      daprPort,
-      CommunicationProtocolEnum.GRPC,
-      { maxBodySizeMb: 20 }, // we set sending larger than receiving to test the error handling
-      { maxBodySizeMb: 10 },
-    );
+    server = new DaprServer({
+      serverHost: serverHost,
+      serverPort: serverPort,
+      communicationProtocol: CommunicationProtocolEnum.GRPC,
+      clientOptions: {
+        daprHost: daprHost,
+        daprPort: daprPort,
+        communicationProtocol: CommunicationProtocolEnum.GRPC,
+        maxBodySizeMb: 20, // we set sending larger than receiving to test the error handling
+      },
+      maxBodySizeMb: 10,
+      });
 
     await server.binding.receive("binding-mqtt", mockBindingReceive);
     await server.invoker.listen("test-invoker", mockInvoker, { method: HttpMethod.POST });

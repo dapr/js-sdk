@@ -12,8 +12,28 @@ limitations under the License.
 */
 
 import express from "express";
+import CommunicationProtocolEnum from "../enum/CommunicationProtocol.enum";
+import { DaprClientOptions } from "./DaprClientOptions";
+import { LoggerOptions } from "./logger/LoggerOptions";
 
 export type DaprServerOptions = {
+
+  /**
+   * Host of the server.
+   */
+  serverHost: string;
+
+  /**
+   * Port of the server.
+    */
+  serverPort: string;
+
+  /**
+   * The protocol to be used for communication with dapr sidecar.
+   * Default is HTTP.
+   */
+  communicationProtocol: CommunicationProtocolEnum;
+
   /**
    * The maximum size of the request body in megabytes.
    * Default is 4MB.
@@ -24,4 +44,14 @@ export type DaprServerOptions = {
    * Express server instance
    */
   serverHttp?: express.Express;
+  
+  /**
+   * The options of the Dapr client.
+   */
+  clientOptions?: Partial<DaprClientOptions>;
+
+  /**
+   * Options related to logging.
+   */
+  logger?: LoggerOptions;  
 };

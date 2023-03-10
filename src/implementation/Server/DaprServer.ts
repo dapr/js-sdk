@@ -29,19 +29,14 @@ import HTTPServerPubSub from "./HTTPServer/pubsub";
 import HTTPServerBinding from "./HTTPServer/binding";
 import HTTPServerInvoker from "./HTTPServer/invoker";
 import HTTPServerActor from "./HTTPServer/actor";
-import { DaprClientOptions } from "../../types/DaprClientOptions";
-import { DaprClient } from "../..";
 import { Settings } from "../../utils/Settings.util";
 import { DaprServerOptions } from "../../types/DaprServerOptions";
+import DaprClient from "../Client/DaprClient";
+import { DaprClientOptions } from "../../types/DaprClientOptions";
 
 export default class DaprServer {
   // App details
-  private readonly serverHost: string;
-  private readonly serverPort: string;
   private readonly serverOptions: DaprServerOptions;
-  // Dapr Sidecar
-  private readonly daprHost: string;
-  private readonly daprPort: string;
 
   readonly daprServer: IServer;
   readonly pubsub: IServerPubSub;
@@ -50,43 +45,36 @@ export default class DaprServer {
   readonly actor: IServerActor;
   readonly client: DaprClient;
 
-  constructor(
-    serverHost?: string,
-    serverPort?: string,
-    daprHost?: string,
-    daprPort?: string,
-    communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP,
-    clientOptions: Partial<DaprClientOptions> = {},
-    serverOptions: DaprServerOptions = {},
-  ) {
-    this.serverHost = serverHost ?? Settings.getDefaultHost();
-    this.serverPort = serverPort ?? Settings.getDefaultAppPort(communicationProtocol);
-    this.serverOptions = serverOptions;
-    this.daprHost = daprHost ?? Settings.getDefaultHost();
-    this.daprPort = daprPort ?? Settings.getDefaultPort(communicationProtocol);
-
-    clientOptions.daprHost = this.daprHost;
-    clientOptions.daprPort = this.daprPort;
-    clientOptions.communicationProtocol = communicationProtocol;
-
+  constructor(serverOptions: Partial<DaprServerOptions> = {}) {
+    const communicationProtocol = serverOptions.communicationProtocol ?? Settings.getDefaultCommunicationProtocol();
+    const clientOptions = this.getClientOptions(serverOptions.clientOptions, communicationProtocol);
+    this.serverOptions = {
+      serverHost: serverOptions.serverHost ?? Settings.getDefaultHost(),
+      serverPort: serverOptions.serverPort ?? Settings.getDefaultAppPort(communicationProtocol),
+      communicationProtocol: communicationProtocol,
+      maxBodySizeMb: serverOptions.maxBodySizeMb,
+      serverHttp: serverOptions.serverHttp,
+      clientOptions: clientOptions,
+      logger: serverOptions.logger,
+    }
     // Create a client to interface with the sidecar from the server side
     this.client = new DaprClient(clientOptions);
 
     // If DAPR_SERVER_PORT was not set, we set it
-    process.env.DAPR_SERVER_PORT = this.serverPort;
-    process.env.DAPR_CLIENT_PORT = this.daprPort;
+    process.env.DAPR_SERVER_PORT = this.serverOptions.serverPort;
+    process.env.DAPR_CLIENT_PORT = clientOptions.daprPort;
 
     // Validation on port
-    if (!/^[0-9]+$/.test(this.serverPort)) {
+    if (!/^[0-9]+$/.test(this.serverOptions.serverPort)) {
       throw new Error("DAPR_INCORRECT_SERVER_PORT");
     }
 
-    if (!/^[0-9]+$/.test(this.daprPort)) {
+    if (!/^[0-9]+$/.test(clientOptions.daprPort)) {
       throw new Error("DAPR_INCORRECT_SIDECAR_PORT");
     }
 
     // Builder
-    switch (communicationProtocol) {
+    switch (serverOptions.communicationProtocol) {
       case CommunicationProtocolEnum.GRPC: {
         const server = new GRPCServer(this.client, this.serverOptions);
         this.daprServer = server;
@@ -111,9 +99,23 @@ export default class DaprServer {
     }
   }
 
+  private getClientOptions(clientoptions: Partial<DaprClientOptions> | undefined,
+    communicationProtocol: CommunicationProtocolEnum): DaprClientOptions {
+    return {
+      daprHost: clientoptions?.daprHost ?? Settings.getDefaultHost(),
+      daprPort: clientoptions?.daprPort ?? Settings.getDefaultAppPort(communicationProtocol),
+      communicationProtocol: communicationProtocol,
+      isKeepAlive: clientoptions?.isKeepAlive,
+      logger: clientoptions?.logger,
+      actor: clientoptions?.actor,
+      daprApiToken: clientoptions?.daprApiToken,
+      maxBodySizeMb: clientoptions?.maxBodySizeMb,
+    }
+  }  
+
   async start(): Promise<void> {
     // First start the server as we need to initialize routes for PubSub, Bindings, ...
-    await this.daprServer.start(this.serverHost, this.serverPort.toString());
+    await this.daprServer.start(this.serverOptions.serverHost, this.serverOptions.serverPort.toString());
 
     // Ensure our sidecar starts and the client is ready
     await this.client.start();
@@ -125,13 +127,5 @@ export default class DaprServer {
 
   getDaprClient(): IServer {
     return this.daprServer;
-  }
-
-  getDaprHost(): string {
-    return this.daprHost;
-  }
-
-  getDaprPort(): string {
-    return this.daprPort;
   }
 }

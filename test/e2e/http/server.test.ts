@@ -32,15 +32,18 @@ describe("http/server", () => {
   // this because Dapr is not dynamic and registers endpoints on boot
   // we put a timeout of 10s since it takes around 4s for Dapr to boot up
   beforeAll(async () => {
-    server = new DaprServer(
-      serverHost,
-      serverPort,
-      daprHost,
-      daprPort,
-      CommunicationProtocolEnum.HTTP,
-      { maxBodySizeMb: 20 }, // we set sending larger than receiving to test the error handling
-      { maxBodySizeMb: 10 },
-    );
+    server = new DaprServer({
+      serverHost: serverHost,
+      serverPort: serverPort,
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
+      clientOptions: {
+        daprHost: daprHost,
+        daprPort: daprPort,
+        communicationProtocol: CommunicationProtocolEnum.HTTP,
+        maxBodySizeMb: 20, // we set sending larger than receiving to test the error handling
+      },
+      maxBodySizeMb: 10,
+    });
 
     await server.binding.receive("binding-mqtt", mockBindingReceive);
 
@@ -65,17 +68,17 @@ describe("http/server", () => {
         res.send({ msg: "My own express app!" });
       });
 
-      const myAppDaprServer = new DaprServer(
-        serverHost,
-        "50002",
-        daprHost,
-        daprPort,
-        CommunicationProtocolEnum.HTTP,
-        {},
-        {
-          serverHttp: myApp,
+      const myAppDaprServer = new DaprServer({
+        serverHost: serverHost,
+        serverPort: "50002",
+        communicationProtocol: CommunicationProtocolEnum.HTTP,
+        serverHttp: myApp,
+        clientOptions: {
+          daprHost: daprHost,
+          daprPort: daprPort,
+          communicationProtocol: CommunicationProtocolEnum.HTTP,
         },
-      );
+      });
 
       // initialize subscribtions, ... before server start
       // the dapr sidecar relies on these

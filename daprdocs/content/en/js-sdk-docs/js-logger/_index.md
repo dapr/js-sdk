@@ -36,9 +36,15 @@ const client = new DaprClient({
 import { CommunicationProtocolEnum, DaprServer, LogLevel } from "@dapr/dapr";
 
 // create a server instance with log level set to error.
-const server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.HTTP, {
-  logger: { level: LogLevel.Error },
-});
+const server = new DaprServer({
+      serverHost: serverHost,
+      serverPort: serverPort,
+      clientOptions: {
+        daprHost: daprHost,
+        daprPort: daprPort,
+        logger: { level: LogLevel.Error },
+      },
+      });
 ```
 
 > For more details on how to use the Server, see [JavaScript Server]({{< ref js-server >}}).

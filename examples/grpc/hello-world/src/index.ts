@@ -25,7 +25,16 @@ async function sleep(ms: number): Promise<void> {
 }
 
 async function start() {
-  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+  const server = new DaprServer({
+    serverHost: serverHost, 
+    serverPort: serverPort,
+    communicationProtocol: CommunicationProtocolEnum.GRPC,
+    clientOptions: {
+      daprHost: daprHost,
+      daprPort: daprPort,
+      communicationProtocol: CommunicationProtocolEnum.GRPC,
+    }
+  });
   const client = new DaprClient({
     daprHost,
     daprPort,

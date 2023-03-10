@@ -64,14 +64,12 @@ describe("http/actors", () => {
     // Start server and client with keepAlive on the client set to false.
     // this means that we won't re-use connections here which is necessary for the tests
     // since it will keep handles open else it has to be initialized before the server starts!
-    server = new DaprServer(
-      serverHost,
-      serverPort,
-      sidecarHost,
-      sidecarPort,
-      CommunicationProtocolEnum.HTTP,
-      daprClientOptions,
-    );
+    server = new DaprServer({
+      serverHost: serverHost,
+      serverPort: serverPort,
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
+      clientOptions: daprClientOptions
+    });
 
     client = new DaprClient(daprClientOptions);
 
