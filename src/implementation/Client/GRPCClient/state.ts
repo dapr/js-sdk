@@ -74,6 +74,7 @@ export default class GRPCClientState implements IClientState {
     msgService.setStatesList(stateList);
 
     const client = await this.client.getClient();
+
     return new Promise((resolve, reject) => {
       client.saveState(msgService, (err, _res) => {
         if (err) {

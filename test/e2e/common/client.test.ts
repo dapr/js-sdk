@@ -302,9 +302,10 @@ describe("common/client", () => {
       },
     );
 
-    runIt("should be able to query state", async (client: DaprClient) => {
+    // TODO: Use runIt when gRPC client supports query state.
+    it("should be able to query state", async () => {
       // First save our data
-      await client.state.save(stateStoreMongoDbName, [
+      await httpClient.state.save(stateStoreMongoDbName, [
         {
           key: "key-1",
           value: {
@@ -395,7 +396,7 @@ describe("common/client", () => {
         },
       ]);
 
-      const res = await client.state.query(stateStoreMongoDbName, {
+      const res = await httpClient.state.query(stateStoreMongoDbName, {
         filter: {
           OR: [
             {
@@ -432,7 +433,7 @@ describe("common/client", () => {
       expect(res.results.map((i) => i.key).indexOf("key-8")).toBeGreaterThan(-1);
 
       for (let i = 1; i <= 8; i++) {
-        await client.state.delete(stateStoreMongoDbName, `key-${i}`);
+        await httpClient.state.delete(stateStoreMongoDbName, `key-${i}`);
       }
     });
   });
