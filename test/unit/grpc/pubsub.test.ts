@@ -22,7 +22,7 @@ describe("grpc/pubsub", () => {
         callback(null, {});
       };
       const mockClient = {
-        getOptions: () => {
+        options: () => {
           return { logger: undefined };
         },
         getClient: () => {

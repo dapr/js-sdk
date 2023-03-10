@@ -36,6 +36,7 @@ import { PubSubBulkPublishMessage } from "./types/pubsub/PubSubBulkPublishMessag
 import HttpMethod from "./enum/HttpMethod.enum";
 import CommunicationProtocolEnum from "./enum/CommunicationProtocol.enum";
 import DaprPubSubStatusEnum from "./enum/DaprPubSubStatus.enum";
+import { StateGetBulkOptions } from "./types/state/StateGetBulkOptions.type";
 
 export {
   DaprClient,
@@ -59,4 +60,5 @@ export {
   DaprPubSubStatusEnum,
   PubSubBulkPublishMessage,
   PubSubBulkPublishResponse,
+  StateGetBulkOptions,
 };

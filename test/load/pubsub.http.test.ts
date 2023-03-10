@@ -22,7 +22,11 @@ describe("load/http", () => {
   // We need to start listening on some endpoints already
   // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
-    client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.HTTP);
+    client = new DaprClient({
+      daprHost,
+      daprPort,
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
+    });
   });
 
   describe("pubsub", () => {
@@ -32,7 +36,7 @@ describe("load/http", () => {
         const amountOfCalls = 2500;
 
         // Create the promises
-        const promises = [];
+        const promises: any[] = [];
 
         for (let i = 0; i < amountOfCalls; i++) {
           promises.push(client.pubsub.publish("pubsub-mqtt", "test-topic", { hello: "world" }));

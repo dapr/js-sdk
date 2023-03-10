@@ -35,10 +35,10 @@ const serverHost = "127.0.0.1"; // App Host of this Example Server
 const serverPort = "50051"; // App Port of this Example Server
 
 // HTTP Example
-const client = new DaprClient(daprHost, daprPort);
+const client = new DaprClient({ daprHost, daprPort });
 
 // GRPC Example
-const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+const client = new DaprClient({ daprHost, daprPort, communicationProtocol: CommunicationProtocolEnum.GRPC });
 ```
 
 ## Running
@@ -49,7 +49,7 @@ To run the examples, you can use two different protocols to interact with the Da
 
 ```typescript
 import { DaprClient } from "@dapr/dapr";
-const client = new DaprClient(daprHost, daprPort);
+const client = new DaprClient({ daprHost, daprPort });
 ```
 
 ```bash
@@ -66,7 +66,7 @@ Since HTTP is the default, you will have to adapt the communication protocol to 
 
 ```typescript
 import { DaprClient, CommunicationProtocol } from "@dapr/dapr";
-const client = new DaprClient(daprHost, daprPort, CommunicationProtocol.GRPC);
+const client = new DaprClient({ daprHost, daprPort, communicationProtocol: CommunicationProtocol.GRPC });
 ```
 
 ```bash
@@ -88,7 +88,12 @@ import { DaprClient, CommunicationProtocol } from "@dapr/dapr";
 
 // Allow a body size of 10Mb to be used
 // The default is 4Mb
-const client = new DaprClient(daprHost, daprPort, CommunicationProtocol.HTTP, { maxBodySizeMb: 10 });
+const client = new DaprClient({
+  daprHost,
+  daprPort,
+  communicationProtocol: CommunicationProtocol.HTTP,
+  maxBodySizeMb: 10,
+});
 ```
 
 ### Proxying Requests
@@ -102,7 +107,7 @@ To perform gRPC proxying, simply create a proxy by calling the `client.proxy.cre
 ```typescript
 // As always, create a client to our dapr sidecar
 // this client takes care of making sure the sidecar is started, that we can communicate, ...
-const clientSidecar = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+const clientSidecar = new DaprClient({ daprHost, daprPort, communicationProtocol: CommunicationProtocol.GRPC });
 
 // Create a Proxy that allows us to use our gRPC code
 const clientProxy = await clientSidecar.proxy.create<GreeterClient>(GreeterClient);
@@ -134,7 +139,7 @@ const daprHost = "127.0.0.1";
 const daprPort = "3500";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort);
+  const client = new DaprClient({ daprHost, daprPort });
 
   const serviceAppId = "my-app-id";
   const serviceMethod = "say-hello";
@@ -174,21 +179,32 @@ const daprHost = "127.0.0.1";
 const daprPort = "3500";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort);
+  const client = new DaprClient({ daprHost, daprPort });
 
   const serviceStoreName = "my-state-store-name";
 
   // Save State
-  const response = await client.state.save(serviceStoreName, [
+  const response = await client.state.save(
+    serviceStoreName,
+    [
+      {
+        key: "first-key-name",
+        value: "hello",
+        metadata: {
+          foo: "bar",
+        },
+      },
+      {
+        key: "second-key-name",
+        value: "world",
+      },
+    ],
     {
-      key: "first-key-name",
-      value: "hello",
+      metadata: {
+        ttlInSeconds: "3", // this should override the ttl in the state item
+      },
     },
-    {
-      key: "second-key-name",
-      value: "world",
-    },
-  ]);
+  );
 
   // Get State
   const response = await client.state.get(serviceStoreName, "first-key-name");
@@ -231,7 +247,7 @@ start().catch((e) => {
 import { DaprClient } from "@dapr/dapr";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort);
+  const client = new DaprClient({ daprHost, daprPort });
 
   const res = await client.state.query("state-mongodb", {
     filter: {
@@ -282,7 +298,7 @@ const daprHost = "127.0.0.1";
 const daprPort = "3500";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort);
+  const client = new DaprClient({ daprHost, daprPort });
 
   const pubSubName = "my-pubsub-name";
   const topic = "topic-a";
@@ -355,7 +371,7 @@ const daprHost = "127.0.0.1";
 const daprPort = "3500";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort);
+  const client = new DaprClient({ daprHost, daprPort });
 
   const bindingName = "my-binding-name";
   const bindingOperation = "create";
@@ -383,7 +399,7 @@ const daprHost = "127.0.0.1";
 const daprPort = "3500";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort);
+  const client = new DaprClient({ daprHost, daprPort });
 
   const secretStoreName = "my-secret-store";
   const secretKey = "secret-key";
@@ -414,7 +430,7 @@ const daprHost = "127.0.0.1";
 const daprAppId = "example-config";
 
 async function start() {
-  const client = new DaprClient(daprHost, process.env.DAPR_HTTP_PORT);
+  const client = new DaprClient({ daprHost, daprPort: process.env.DAPR_HTTP_PORT });
 
   const config = await client.configuration.get("config-store", ["key1", "key2"]);
   console.log(config);
@@ -438,7 +454,7 @@ const daprHost = "127.0.0.1";
 const daprPortDefault = "3500";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort);
+  const client = new DaprClient({ daprHost, daprPort });
 
   const storeName = "redislock";
   const resourceId = "resourceId";

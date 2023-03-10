@@ -33,6 +33,11 @@ import { KeyValueType } from "../../../types/KeyValue.type";
 import { merge } from "../../../utils/Map.util";
 import { StateQueryType } from "../../../types/state/StateQuery.type";
 import { StateQueryResponseType } from "../../../types/state/StateQueryResponse.type";
+import { StateGetBulkOptions } from "../../../types/state/StateGetBulkOptions.type";
+import { Settings } from "../../../utils/Settings.util";
+import { addMetadataToMap } from "../../../utils/Client.util";
+import { StateSaveResponseType } from "../../../types/state/StateSaveResponseType";
+import { StateSaveOptions } from "../../../types/state/StateSaveOptions.type";
 
 // https://docs.dapr.io/reference/api/state_api/
 export default class GRPCClientState implements IClientState {
@@ -42,7 +47,11 @@ export default class GRPCClientState implements IClientState {
     this.client = client;
   }
 
-  async save(storeName: string, stateObjects: KeyValuePairType[]): Promise<void> {
+  async save(
+    storeName: string,
+    stateObjects: KeyValuePairType[],
+    options: StateSaveOptions = {},
+  ): Promise<StateSaveResponseType> {
     const stateList: StateItem[] = [];
 
     for (const stateObject of stateObjects) {
@@ -54,6 +63,11 @@ export default class GRPCClientState implements IClientState {
           "utf-8",
         ),
       );
+      // Merge metadata from stateObject and options.
+      // Note, metadata from options will override metadata from stateObject.
+      // See https://github.com/dapr/dapr/blob/029ec8cb7a1c88ec5d222bc2b0d1d53541217f19/pkg/http/api.go#L1525-L1532
+      addMetadataToMap(si.getMetadataMap(), stateObject.metadata);
+      addMetadataToMap(si.getMetadataMap(), options.metadata);
       stateList.push(si);
     }
 
@@ -66,11 +80,11 @@ export default class GRPCClientState implements IClientState {
     return new Promise((resolve, reject) => {
       client.saveState(msgService, (err, _res) => {
         if (err) {
-          return reject(err);
+          return reject({ error: err });
         }
 
         // https://docs.dapr.io/reference/api/state_api/#response-body
-        return resolve();
+        return resolve({});
       });
     });
   }
@@ -104,16 +118,17 @@ export default class GRPCClientState implements IClientState {
     });
   }
 
-  async getBulk(storeName: string, keys: string[], parallelism = 10, _metadata = ""): Promise<KeyValueType[]> {
+  async getBulk(storeName: string, keys: string[], options: StateGetBulkOptions = {}): Promise<KeyValueType[]> {
     const msgService = new GetBulkStateRequest();
     msgService.setStoreName(storeName);
     msgService.setKeysList(keys);
-    msgService.setParallelism(parallelism);
+    msgService.setParallelism(options.parallelism ?? Settings.getDefaultStateGetBulkParallelism());
     // @todo: https://docs.dapr.io/reference/api/state_api/#optional-behaviors
     // msgService.setConsistency()
 
-    const client = await this.client.getClient();
+    addMetadataToMap(msgService.getMetadataMap(), options.metadata);
 
+    const client = await this.client.getClient();
     return new Promise((resolve, reject) => {
       client.getBulkState(msgService, (err, res: GetBulkStateResponse) => {
         if (err) {

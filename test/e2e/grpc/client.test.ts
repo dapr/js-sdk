@@ -31,7 +31,10 @@ describe("grpc/client", () => {
   // We need to start listening on some endpoints already
   // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
-    client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC, {
+    client = new DaprClient({
+      daprHost,
+      daprPort,
+      communicationProtocol: CommunicationProtocolEnum.GRPC,
       logger: {
         level: LogLevel.Debug,
       },
@@ -45,7 +48,7 @@ describe("grpc/client", () => {
   describe("client", () => {
     it("should return isInitialized is true if the sidecar has been started", async () => {
       // Awaiting this will ensure the client is started
-      await client.getDaprClient().getClient();
+      await client.daprClient.getClient();
 
       const isInitialized = await client.getIsInitialized();
       expect(isInitialized).toBe(true);
@@ -110,7 +113,7 @@ describe("grpc/client", () => {
 
   describe("sidecar", () => {
     it("should return true if the sidecar has been started", async () => {
-      await client.getDaprClient().getClient();
+      await client.daprClient.getClient();
 
       // Note: difficult to test as we start up dapr with dapr run, which starts the sidecar for us automatically
       // there is however a delay between the sidecar being ready and the app starting as they are started asynchronously
@@ -170,189 +173,6 @@ describe("grpc/client", () => {
     it("should be able to correctly fetch the secrets in bulk", async () => {
       const res = await client.secret.getBulk("secret-envvars");
       expect(Object.keys(res).length).toBeGreaterThan(1);
-    });
-  });
-
-  describe("state", () => {
-    beforeEach(async () => {
-      await client.state.delete("state-redis", "key-1");
-      await client.state.delete("state-redis", "key-2");
-      await client.state.delete("state-redis", "key-3");
-    });
-
-    it("should be able to save the state", async () => {
-      await client.state.save("state-redis", [
-        {
-          key: "key-1",
-          value: "value-1",
-        },
-        {
-          key: "key-2",
-          value: "value-2",
-        },
-        {
-          key: "key-3",
-          value: "value-3",
-        },
-      ]);
-
-      const res = await client.state.get("state-redis", "key-1");
-      expect(res).toEqual("value-1");
-    });
-
-    it("should be able to add metadata, etag and options", async () => {
-      await client.state.save("state-redis", [
-        {
-          key: "key-1",
-          value: "value-1",
-          etag: "1234",
-          options: {
-            concurrency: "first-write",
-            consistency: "strong",
-          },
-          metadata: {
-            hello: "world",
-          },
-        },
-        {
-          key: "key-2",
-          value: "value-2",
-        },
-        {
-          key: "key-3",
-          value: "value-3",
-        },
-      ]);
-
-      const res = await client.state.get("state-redis", "key-1");
-      expect(res).toEqual("value-1");
-    });
-
-    it("should be able to get the state in bulk", async () => {
-      await client.state.save("state-redis", [
-        {
-          key: "key-1",
-          value: "value-1",
-        },
-        {
-          key: "key-2",
-          value: "value-2",
-        },
-        {
-          key: "key-3",
-          value: "value-3",
-        },
-      ]);
-
-      const res = await client.state.getBulk("state-redis", ["key-3", "key-2"]);
-
-      expect(res).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ key: "key-2", data: "value-2" }),
-          expect.objectContaining({ key: "key-3", data: "value-3" }),
-        ]),
-      );
-    });
-
-    it("should be able to delete a key from the state store", async () => {
-      await client.state.save("state-redis", [
-        {
-          key: "key-1",
-          value: "value-1",
-        },
-        {
-          key: "key-2",
-          value: "value-2",
-        },
-        {
-          key: "key-3",
-          value: "value-3",
-        },
-      ]);
-
-      await client.state.delete("state-redis", "key-2");
-      const res = await client.state.get("state-redis", "key-2");
-      expect(res).toEqual("");
-    });
-
-    it("should be able to perform a transaction that replaces a key and deletes another", async () => {
-      await client.state.transaction("state-redis", [
-        {
-          operation: "upsert",
-          request: {
-            key: "key-1",
-            value: "my-new-data-1",
-          },
-        },
-        {
-          operation: "delete",
-          request: {
-            key: "key-3",
-          },
-        },
-      ]);
-
-      const resTransactionDelete = await client.state.get("state-redis", "key-3");
-      const resTransactionUpsert = await client.state.get("state-redis", "key-1");
-      expect(resTransactionDelete).toEqual("");
-      expect(resTransactionUpsert).toEqual("my-new-data-1");
-    });
-
-    it("should be able to perform a transaction with metadata", async () => {
-      await client.state.transaction(
-        "state-redis",
-        [
-          {
-            operation: "upsert",
-            request: {
-              key: "key-with-metadata-1",
-              value: "my-new-data-with-metadata-1",
-            },
-          },
-          {
-            operation: "delete",
-            request: {
-              key: "key-with-metadata-2",
-            },
-          },
-        ],
-        {
-          trace_id: "mock trace id here",
-        },
-      );
-
-      const resTransactionDelete = await client.state.get("state-redis", "key-with-metadata-2");
-      const resTransactionUpsert = await client.state.get("state-redis", "key-with-metadata-1");
-      expect(resTransactionDelete).toEqual("");
-      expect(resTransactionUpsert).toEqual("my-new-data-with-metadata-1");
-    });
-
-    it("should be able to add metadata, etag and options", async () => {
-      await client.state.save("state-redis", [
-        {
-          key: "key-1",
-          value: "value-1",
-          etag: "1234",
-          options: {
-            concurrency: "first-write",
-            consistency: "strong",
-          },
-          metadata: {
-            hello: "world",
-          },
-        },
-        {
-          key: "key-2",
-          value: "value-2",
-        },
-        {
-          key: "key-3",
-          value: "value-3",
-        },
-      ]);
-
-      const res = await client.state.get("state-redis", "key-1");
-      expect(res).toEqual("value-1");
     });
   });
 
