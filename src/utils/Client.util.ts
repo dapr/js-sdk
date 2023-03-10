@@ -24,6 +24,8 @@ import { PubSubBulkPublishEntry } from "../types/pubsub/PubSubBulkPublishEntry.t
 import { PubSubBulkPublishResponse } from "../types/pubsub/PubSubBulkPublishResponse.type";
 import { PubSubBulkPublishMessage } from "../types/pubsub/PubSubBulkPublishMessage.type";
 import { PubSubBulkPublishApiResponse } from "../types/pubsub/PubSubBulkPublishApiResponse.type";
+import * as grpc from "@grpc/grpc-js";
+
 /**
  * Adds metadata to a map.
  * @param map Input map
@@ -33,6 +35,19 @@ export function addMetadataToMap(map: Map<string, string>, metadata: KeyValueTyp
   for (const [key, value] of Object.entries(metadata)) {
     map.set(key, value);
   }
+}
+
+/**
+ * Converts a KeyValueType to a grpc.Metadata.
+ * @param metadata key value pair of metadata
+ * @returns grpc.Metadata
+ */
+export function createGRPCMetadata(metadata: KeyValueType = {}): grpc.Metadata {
+  const grpcMetadata = new grpc.Metadata();
+  for (const [key, value] of Object.entries(metadata)) {
+    grpcMetadata.set(key, value);
+  }
+  return grpcMetadata;
 }
 
 /**
@@ -158,13 +173,13 @@ export function getBulkPublishEntries(messages: PubSubBulkPublishMessage[]): Pub
 export function getBulkPublishResponse(
   params:
     | {
-        entries: PubSubBulkPublishEntry[];
-        response: PubSubBulkPublishApiResponse;
-      }
+      entries: PubSubBulkPublishEntry[];
+      response: PubSubBulkPublishApiResponse;
+    }
     | {
-        entries: PubSubBulkPublishEntry[];
-        error: Error;
-      },
+      entries: PubSubBulkPublishEntry[];
+      error: Error;
+    },
 ): PubSubBulkPublishResponse {
   if ("error" in params) {
     // The entire request failed. This typically indicates a problem with the request or the connection.

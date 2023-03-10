@@ -35,7 +35,8 @@ import { StateQueryType } from "../../../types/state/StateQuery.type";
 import { StateQueryResponseType } from "../../../types/state/StateQueryResponse.type";
 import { StateGetBulkOptions } from "../../../types/state/StateGetBulkOptions.type";
 import { Settings } from "../../../utils/Settings.util";
-import { addMetadataToMap } from "../../../utils/Client.util";
+import { addMetadataToMap, createGRPCMetadata } from "../../../utils/Client.util";
+import { StateSaveResponseType } from "../../../types/state/StateSaveResponseType";
 
 // https://docs.dapr.io/reference/api/state_api/
 export default class GRPCClientState implements IClientState {
@@ -45,7 +46,7 @@ export default class GRPCClientState implements IClientState {
     this.client = client;
   }
 
-  async save(storeName: string, stateObjects: KeyValuePairType[]): Promise<void> {
+  async save(storeName: string, stateObjects: KeyValuePairType[], metadata?: KeyValueType): Promise<StateSaveResponseType> {
     const stateList: StateItem[] = [];
 
     for (const stateObject of stateObjects) {
@@ -64,16 +65,17 @@ export default class GRPCClientState implements IClientState {
     msgService.setStoreName(storeName);
     msgService.setStatesList(stateList);
 
+
     const client = await this.client.getClient();
 
     return new Promise((resolve, reject) => {
-      client.saveState(msgService, (err, _res) => {
+      client.saveState(msgService, createGRPCMetadata(metadata), (err, _res) => {
         if (err) {
-          return reject(err);
+          return reject({ error: err });
         }
 
         // https://docs.dapr.io/reference/api/state_api/#response-body
-        return resolve();
+        return resolve({});
       });
     });
   }
