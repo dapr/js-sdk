@@ -19,6 +19,9 @@ import IClientState from "../../../interfaces/Client/IClientState";
 import { KeyValueType } from "../../../types/KeyValue.type";
 import { StateQueryType } from "../../../types/state/StateQuery.type";
 import { StateQueryResponseType } from "../../../types/state/StateQueryResponse.type";
+import { StateGetBulkOptions } from "../../../types/state/StateGetBulkOptions.type";
+import { createHTTPMetadataQueryParam } from "../../../utils/Client.util";
+import { Settings } from "../../../utils/Settings.util";
 
 // https://docs.dapr.io/reference/api/state_api/
 export default class HTTPClientState implements IClientState {
@@ -40,12 +43,14 @@ export default class HTTPClientState implements IClientState {
     return result as KeyValueType;
   }
 
-  async getBulk(storeName: string, keys: string[], parallelism = 10, metadata = ""): Promise<KeyValueType[]> {
-    const result = await this.client.execute(`/state/${storeName}/bulk${metadata ? `?${metadata}` : ""}`, {
+  async getBulk(storeName: string, keys: string[], options: StateGetBulkOptions): Promise<KeyValueType[]> {
+    const queryParams = createHTTPMetadataQueryParam(options.metadata);
+
+    const result = await this.client.execute(`/state/${storeName}/bulk?${queryParams}`, {
       method: "POST",
       body: {
         keys,
-        parallelism, // the number of parallel operations executed on the state store for a get operation
+        parallelism: options.parallelism ?? Settings.getDefaultStateGetBulkParallelism,
       },
     });
 

@@ -31,7 +31,10 @@ describe("grpc/client", () => {
   // We need to start listening on some endpoints already
   // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
-    client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC, {
+    client = new DaprClient({
+      daprHost,
+      daprPort,
+      communicationProtocol: CommunicationProtocolEnum.GRPC,
       logger: {
         level: LogLevel.Debug,
       },
@@ -45,7 +48,7 @@ describe("grpc/client", () => {
   describe("client", () => {
     it("should return isInitialized is true if the sidecar has been started", async () => {
       // Awaiting this will ensure the client is started
-      await client.getDaprClient().getClient();
+      await client.daprClient.getClient();
 
       const isInitialized = await client.getIsInitialized();
       expect(isInitialized).toBe(true);
@@ -110,7 +113,7 @@ describe("grpc/client", () => {
 
   describe("sidecar", () => {
     it("should return true if the sidecar has been started", async () => {
-      await client.getDaprClient().getClient();
+      await client.daprClient.getClient();
 
       // Note: difficult to test as we start up dapr with dapr run, which starts the sidecar for us automatically
       // there is however a delay between the sidecar being ready and the app starting as they are started asynchronously

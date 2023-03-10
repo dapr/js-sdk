@@ -32,7 +32,6 @@ import HTTPServerActor from "./HTTPServer/actor";
 import { DaprClientOptions } from "../../types/DaprClientOptions";
 import { DaprClient } from "../..";
 import { Settings } from "../../utils/Settings.util";
-import { Logger } from "../../logger/Logger";
 import { DaprServerOptions } from "../../types/DaprServerOptions";
 
 export default class DaprServer {
@@ -43,8 +42,6 @@ export default class DaprServer {
   // Dapr Sidecar
   private readonly daprHost: string;
   private readonly daprPort: string;
-
-  private readonly logger: Logger;
 
   readonly daprServer: IServer;
   readonly pubsub: IServerPubSub;
@@ -59,7 +56,7 @@ export default class DaprServer {
     daprHost?: string,
     daprPort?: string,
     communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP,
-    clientOptions: DaprClientOptions = {},
+    clientOptions: Partial<DaprClientOptions> = {},
     serverOptions: DaprServerOptions = {},
   ) {
     this.serverHost = serverHost ?? Settings.getDefaultHost();
@@ -67,10 +64,13 @@ export default class DaprServer {
     this.serverOptions = serverOptions;
     this.daprHost = daprHost ?? Settings.getDefaultHost();
     this.daprPort = daprPort ?? Settings.getDefaultPort(communicationProtocol);
-    this.logger = new Logger("DaprServer", "DaprServer", clientOptions.logger);
+
+    clientOptions.daprHost = this.daprHost;
+    clientOptions.daprPort = this.daprPort;
+    clientOptions.communicationProtocol = communicationProtocol;
 
     // Create a client to interface with the sidecar from the server side
-    this.client = new DaprClient(daprHost, daprPort, communicationProtocol, clientOptions);
+    this.client = new DaprClient(clientOptions);
 
     // If DAPR_SERVER_PORT was not set, we set it
     process.env.DAPR_SERVER_PORT = this.serverPort;

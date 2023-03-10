@@ -33,6 +33,9 @@ import { KeyValueType } from "../../../types/KeyValue.type";
 import { merge } from "../../../utils/Map.util";
 import { StateQueryType } from "../../../types/state/StateQuery.type";
 import { StateQueryResponseType } from "../../../types/state/StateQueryResponse.type";
+import { StateGetBulkOptions } from "../../../types/state/StateGetBulkOptions.type";
+import { Settings } from "../../../utils/Settings.util";
+import { addMetadataToMap } from "../../../utils/Client.util";
 
 // https://docs.dapr.io/reference/api/state_api/
 export default class GRPCClientState implements IClientState {
@@ -104,16 +107,17 @@ export default class GRPCClientState implements IClientState {
     });
   }
 
-  async getBulk(storeName: string, keys: string[], parallelism = 10, _metadata = ""): Promise<KeyValueType[]> {
+  async getBulk(storeName: string, keys: string[], options: StateGetBulkOptions): Promise<KeyValueType[]> {
     const msgService = new GetBulkStateRequest();
     msgService.setStoreName(storeName);
     msgService.setKeysList(keys);
-    msgService.setParallelism(parallelism);
+    msgService.setParallelism(options.parallelism ?? Settings.getDefaultStateGetBulkParallelism());
     // @todo: https://docs.dapr.io/reference/api/state_api/#optional-behaviors
     // msgService.setConsistency()
 
-    const client = await this.client.getClient();
+    addMetadataToMap(msgService.getMetadataMap(), options.metadata);
 
+    const client = await this.client.getClient();
     return new Promise((resolve, reject) => {
       client.getBulkState(msgService, (err, res: GetBulkStateResponse) => {
         if (err) {

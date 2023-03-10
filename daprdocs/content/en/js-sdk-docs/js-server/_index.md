@@ -454,7 +454,11 @@ const serverHost = "127.0.0.1";
 const serverPort = "5051";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+  const client = new DaprClient({
+    daprHost,
+    daprPort,
+    communicationProtocol: CommunicationProtocolEnum.GRPC,
+  });
   const config = await client.configuration.get("config-redis", ["myconfigkey1", "myconfigkey2"]);
 }
 
@@ -475,7 +479,11 @@ const serverHost = "127.0.0.1";
 const serverPort = "5051";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+  const client = new DaprClient({
+    daprHost,
+    daprPort,
+    communicationProtocol: CommunicationProtocolEnum.GRPC,
+  });
   const stream = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1", "myconfigkey2"], () => {
     // Received a key update
   });

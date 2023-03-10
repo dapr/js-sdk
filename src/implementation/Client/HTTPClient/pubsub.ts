@@ -33,7 +33,7 @@ export default class HTTPClientPubSub implements IClientPubSub {
 
   constructor(client: HTTPClient) {
     this.client = client;
-    this.logger = new Logger("HTTPClient", "PubSub", client.getOptions().logger);
+    this.logger = new Logger("HTTPClient", "PubSub", client.options.logger);
   }
 
   async publish(

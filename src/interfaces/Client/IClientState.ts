@@ -17,11 +17,12 @@ import { KeyValuePairType } from "../../types/KeyValuePair.type";
 import { KeyValueType } from "../../types/KeyValue.type";
 import { StateQueryType } from "../../types/state/StateQuery.type";
 import { StateQueryResponseType } from "../../types/state/StateQueryResponse.type";
+import { StateGetBulkOptions } from "../../types/state/StateGetBulkOptions.type";
 
 export default interface IClientState {
   save(storeName: string, stateObjects: KeyValuePairType[]): Promise<void>;
   get(storeName: string, key: string): Promise<KeyValueType | string>;
-  getBulk(storeName: string, keys: string[], parallelism?: number, metadata?: string): Promise<KeyValueType[]>;
+  getBulk(storeName: string, keys: string[], options?: StateGetBulkOptions): Promise<KeyValueType[]>;
   delete(storeName: string, key: string): Promise<void>;
   transaction(storeName: string, operations?: OperationType[], metadata?: IRequestMetadata | null): Promise<void>;
   query(storeName: string, query: StateQueryType): Promise<StateQueryResponseType>;
