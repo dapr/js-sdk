@@ -30,12 +30,12 @@ const serverPort = "50001"; // App Port of this Example Server
 
 async function start() {
   const server = new DaprServer({
-    serverHost: serverHost, 
+    serverHost: serverHost,
     serverPort: serverPort,
     clientOptions: {
       daprHost: daprHost,
       daprPort: daprPort,
-    }
+    },
   });
   const client = new DaprClient({ daprHost, daprPort });
 

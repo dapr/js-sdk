@@ -56,7 +56,7 @@ export default class DaprServer {
       serverHttp: serverOptions.serverHttp,
       clientOptions: clientOptions,
       logger: serverOptions.logger,
-    }
+    };
     // Create a client to interface with the sidecar from the server side
     this.client = new DaprClient(clientOptions);
 
@@ -99,8 +99,10 @@ export default class DaprServer {
     }
   }
 
-  private getClientOptions(clientoptions: Partial<DaprClientOptions> | undefined,
-    communicationProtocol: CommunicationProtocolEnum): DaprClientOptions {
+  private getClientOptions(
+    clientoptions: Partial<DaprClientOptions> | undefined,
+    communicationProtocol: CommunicationProtocolEnum,
+  ): DaprClientOptions {
     return {
       daprHost: clientoptions?.daprHost ?? Settings.getDefaultHost(),
       daprPort: clientoptions?.daprPort ?? Settings.getDefaultAppPort(communicationProtocol),
@@ -110,8 +112,8 @@ export default class DaprServer {
       actor: clientoptions?.actor,
       daprApiToken: clientoptions?.daprApiToken,
       maxBodySizeMb: clientoptions?.maxBodySizeMb,
-    }
-  }  
+    };
+  }
 
   async start(): Promise<void> {
     // First start the server as we need to initialize routes for PubSub, Bindings, ...

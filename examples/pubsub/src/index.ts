@@ -21,12 +21,12 @@ const serverPort = "50051"; // App Port of this Example Server
 async function start() {
   // Note that the DAPR_HTTP_PORT and DAPR_GRPC_PORT environment variables are set by DAPR itself. https://docs.dapr.io/reference/environment/
   const server = new DaprServer({
-    serverHost: serverHost, 
+    serverHost: serverHost,
     serverPort: serverPort,
     clientOptions: {
       daprHost: daprHost,
       daprPort: process.env.DAPR_HTTP_PORT,
-    }
+    },
   });
 
   const client = new DaprClient({ daprHost, daprPort: process.env.DAPR_HTTP_PORT });

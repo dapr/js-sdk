@@ -17,7 +17,6 @@ import { DaprClientOptions } from "./DaprClientOptions";
 import { LoggerOptions } from "./logger/LoggerOptions";
 
 export type DaprServerOptions = {
-
   /**
    * Host of the server.
    */
@@ -25,7 +24,7 @@ export type DaprServerOptions = {
 
   /**
    * Port of the server.
-    */
+   */
   serverPort: string;
 
   /**
@@ -44,7 +43,7 @@ export type DaprServerOptions = {
    * Express server instance
    */
   serverHttp?: express.Express;
-  
+
   /**
    * The options of the Dapr client.
    */
@@ -53,5 +52,5 @@ export type DaprServerOptions = {
   /**
    * Options related to logging.
    */
-  logger?: LoggerOptions;  
+  logger?: LoggerOptions;
 };

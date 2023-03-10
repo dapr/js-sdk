@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { CommunicationProtocolEnum, DaprServer } from "../../../src";
+import { DaprServer } from "../../../src";
 
 const host = "127.0.0.1";
 const port = "50001";
@@ -20,8 +20,8 @@ describe("DaprServer", () => {
   it("should throw an error on a wrong port for server", () => {
     try {
       new DaprServer({
-        serverHost: host, 
-        serverPort: host
+        serverHost: host,
+        serverPort: host,
       });
     } catch (e) {
       const msg = (e as Error).message;
@@ -32,12 +32,12 @@ describe("DaprServer", () => {
   it("should throw an error on a wrong port for client", () => {
     try {
       new DaprServer({
-        serverHost: host, 
-        serverPort: port, 
+        serverHost: host,
+        serverPort: port,
         clientOptions: {
-          daprHost: host, 
+          daprHost: host,
           daprPort: host,
-        }
+        },
       });
     } catch (e) {
       const msg = (e as Error).message;

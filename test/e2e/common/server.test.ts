@@ -105,26 +105,26 @@ describe("common/server", () => {
 
   beforeAll(async () => {
     httpServer = new DaprServer({
-      serverHost: serverHost, 
-      serverPort: serverHttpPort, 
-      communicationProtocol: CommunicationProtocolEnum.HTTP, 
+      serverHost: serverHost,
+      serverPort: serverHttpPort,
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
       clientOptions: {
         daprHost: daprHost,
         daprPort: daprHttpPort,
-        communicationProtocol: CommunicationProtocolEnum.HTTP
-      }
+        communicationProtocol: CommunicationProtocolEnum.HTTP,
+      },
     });
     grpcServer = new DaprServer({
-      serverHost: serverHost, 
-      serverPort: serverGrpcPort, 
+      serverHost: serverHost,
+      serverPort: serverGrpcPort,
       communicationProtocol: CommunicationProtocolEnum.GRPC,
       clientOptions: {
         daprHost: daprHost,
         daprPort: daprGrpcPort,
-        communicationProtocol: CommunicationProtocolEnum.GRPC
-      }
+        communicationProtocol: CommunicationProtocolEnum.GRPC,
+      },
     });
-    
+
     await setupPubSubSubscriptions();
 
     await httpServer.start();
@@ -347,7 +347,7 @@ describe("common/server", () => {
 
       try {
         let anotherServer = new DaprServer({
-          serverHost: serverHost, 
+          serverHost: serverHost,
           serverPort: customPort,
           communicationProtocol: commProtocol,
           clientOptions: {
@@ -356,7 +356,7 @@ describe("common/server", () => {
             communicationProtocol: commProtocol,
           },
         });
-        
+
         await anotherServer.pubsub.subscribe(pubSubName, anotherTopic, anotherMockHandler);
         await anotherServer.pubsub.subscribe(pubSubName, anotherTopic, anotherMockHandler, "/another-route");
         anotherServer = undefined as any; // clean it up

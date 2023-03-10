@@ -38,7 +38,7 @@ describe("grpc/server", () => {
         maxBodySizeMb: 20, // we set sending larger than receiving to test the error handling
       },
       maxBodySizeMb: 10,
-      });
+    });
 
     await server.binding.receive("binding-mqtt", mockBindingReceive);
     await server.invoker.listen("test-invoker", mockInvoker, { method: HttpMethod.POST });

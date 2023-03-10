@@ -68,7 +68,7 @@ describe("http/actors", () => {
       serverHost: serverHost,
       serverPort: serverPort,
       communicationProtocol: CommunicationProtocolEnum.HTTP,
-      clientOptions: daprClientOptions
+      clientOptions: daprClientOptions,
     });
 
     client = new DaprClient(daprClientOptions);

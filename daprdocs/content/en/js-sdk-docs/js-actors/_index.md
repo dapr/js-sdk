@@ -101,7 +101,6 @@ const serverOptions = {
   clientOptions: clientOptions,
 };
 
-
 // Use the options when creating DaprServer and DaprClient.
 
 // Note, DaprServer creates a DaprClient internally, which needs to be configured with clientOptions.
@@ -124,13 +123,13 @@ const serverHost = "127.0.0.1";
 const serverPort = "50001";
 
 const server = new DaprServer({
-      serverHost: serverHost,
-      serverPort: serverPort,
-      clientOptions: {
-        daprHost: daprHost,
-        daprPort: daprPort,
-      },
-      });
+  serverHost: serverHost,
+  serverPort: serverPort,
+  clientOptions: {
+    daprHost: daprHost,
+    daprPort: daprPort,
+  },
+});
 
 await server.actor.init(); // Let the server know we need actors
 server.actor.registerActor(ParkingSensorImpl); // Register the actor
