@@ -386,7 +386,7 @@ async function start() {
     topic,
     (data) => {
       console.log("Subscriber received: " + JSON.stringify(data));
-      return DaprPubSubStatusEnum.SUCCESS; // By default it will return SUCCESS only, App as per different processing, can return RETRY/DROP/SUCCESS.
+      return DaprPubSubStatusEnum.SUCCESS; // If App doesn't return anything, the default is SUCCESS. App can also return RETRY or DROP based on the incoming message.
     },
     {
       maxMessagesCount: 100,
