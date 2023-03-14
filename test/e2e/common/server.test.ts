@@ -238,7 +238,7 @@ describe("common/server", () => {
     );
 
     runIt(
-      "should be able to publish multiple ce messages and receive events using bulk subscribe",
+      "should be able to publish multiple CloudEvents and receive events using bulk subscribe",
       async (server: DaprServer, protocol: string) => {
         const res1 = await server.client.pubsub.publish(pubSubName, getTopic(bulkSubscribeClodEventTopic, protocol), {
           message: "Hello, world1111!",
@@ -261,7 +261,7 @@ describe("common/server", () => {
     );
 
     runIt(
-      "should be able to publish multiple ce messages but receive rawPayload events using bulk subscribe",
+      "should be able to publish multiple CloudEvents but receive rawPayload events using bulk subscribe",
       async (server: DaprServer, protocol: string) => {
         const res1 = await server.client.pubsub.publish(
           pubSubName,
@@ -296,7 +296,7 @@ describe("common/server", () => {
     );
 
     runIt(
-      "should be able to publish multiple rawPayload messages but receive ce events using bulk subscribe",
+      "should be able to publish multiple rawPayload messages and receive CloudEvents using bulk subscribe",
       async (server: DaprServer, protocol: string) => {
         const res1 = await server.client.pubsub.publish(
           pubSubName,

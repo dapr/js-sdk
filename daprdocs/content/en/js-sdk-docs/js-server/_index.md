@@ -357,6 +357,8 @@ Bulk Subscription is supported and is available through following API:
 
 - Bulk subscription through the `subscribeBulk` method: `maxMessagesCount` and `maxAwaitDurationMs` are optional; and if not provided, default values for related components will be used.
 
+App need not iterate through multiple entries inside a received bulk subscribe event. Callback provided by App is applicable per Entry. And, similarly, while writing callback, App can decide to send back SUCCESS/RETRY/DROP, as defined above. 
+
 Please refer [this document](https://v1-10.docs.dapr.io/developing-applications/building-blocks/pubsub/pubsub-bulk/) for more details.
 
 ```typescript
