@@ -211,7 +211,7 @@ describe("common/server", () => {
           pubSubName,
           getTopic(bulkSubscribeTopic, protocol),
           {
-            message: "Hello, world1111!",
+            message: "Message 1!",
           },
           { rawPayload: "true" },
         );
@@ -220,7 +220,7 @@ describe("common/server", () => {
           pubSubName,
           getTopic(bulkSubscribeTopic, protocol),
           {
-            message: "Hello, world2222!",
+            message: "Message 2!",
           },
           { rawPayload: "true" },
         );
@@ -232,8 +232,8 @@ describe("common/server", () => {
         await new Promise((resolve, _reject) => setTimeout(resolve, 4000));
 
         expect(mockBulkSubscribeRawPayloadHandler.mock.calls.length).toBe(2);
-        expect(mockBulkSubscribeRawPayloadHandler.mock.calls[0][0]).toEqual({ message: "Hello, world1111!" });
-        expect(mockBulkSubscribeRawPayloadHandler.mock.calls[1][0]).toEqual({ message: "Hello, world2222!" });
+        expect(mockBulkSubscribeRawPayloadHandler.mock.calls[0][0]).toEqual({ message: "Message 1!" });
+        expect(mockBulkSubscribeRawPayloadHandler.mock.calls[1][0]).toEqual({ message: "Message 2!" });
       },
     );
 
@@ -241,11 +241,11 @@ describe("common/server", () => {
       "should be able to publish multiple CloudEvents and receive events using bulk subscribe",
       async (server: DaprServer, protocol: string) => {
         const res1 = await server.client.pubsub.publish(pubSubName, getTopic(bulkSubscribeClodEventTopic, protocol), {
-          message: "Hello, world1111!",
+          message: "Message 1!",
         });
 
         const res2 = await server.client.pubsub.publish(pubSubName, getTopic(bulkSubscribeClodEventTopic, protocol), {
-          message: "Hello, world2222!",
+          message: "Message 2!",
         });
 
         expect(res1.error).toBeUndefined();
@@ -255,8 +255,8 @@ describe("common/server", () => {
         await new Promise((resolve, _reject) => setTimeout(resolve, 4000));
 
         expect(mockBulkSubscribeCEHandler.mock.calls.length).toBe(2);
-        expect(mockBulkSubscribeCEHandler.mock.calls[0][0]).toEqual({ message: "Hello, world1111!" });
-        expect(mockBulkSubscribeCEHandler.mock.calls[1][0]).toEqual({ message: "Hello, world2222!" });
+        expect(mockBulkSubscribeCEHandler.mock.calls[0][0]).toEqual({ message: "Message 1!" });
+        expect(mockBulkSubscribeCEHandler.mock.calls[1][0]).toEqual({ message: "Message 2!" });
       },
     );
 
@@ -267,7 +267,7 @@ describe("common/server", () => {
           pubSubName,
           getTopic(bulkSubscribeCloudEventToRawPayloadTopic, protocol),
           {
-            message: "Hello, world1111!",
+            message: "Message 1!",
           },
         );
 
@@ -275,7 +275,7 @@ describe("common/server", () => {
           pubSubName,
           getTopic(bulkSubscribeCloudEventToRawPayloadTopic, protocol),
           {
-            message: "Hello, world2222!",
+            message: "Message 2!",
           },
         );
 
@@ -287,10 +287,10 @@ describe("common/server", () => {
 
         expect(mockBulkSubscribeCloudEventToRawPayloadHandler.mock.calls.length).toBe(2);
         expect(getDataFromCEObject(mockBulkSubscribeCloudEventToRawPayloadHandler.mock.calls[0][0])).toEqual({
-          message: "Hello, world1111!",
+          message: "Message 1!",
         });
         expect(getDataFromCEObject(mockBulkSubscribeCloudEventToRawPayloadHandler.mock.calls[1][0])).toEqual({
-          message: "Hello, world2222!",
+          message: "Message 2!",
         });
       },
     );
@@ -302,7 +302,7 @@ describe("common/server", () => {
           pubSubName,
           getTopic(bulkSubscribeRawPayloadToClodEventTopic, protocol),
           {
-            message: "Hello, world1111!",
+            message: "Message 1!",
           },
           { rawPayload: "true" },
         );
@@ -311,7 +311,7 @@ describe("common/server", () => {
           pubSubName,
           getTopic(bulkSubscribeRawPayloadToClodEventTopic, protocol),
           {
-            message: "Hello, world2222!",
+            message: "Message 2!",
           },
           { rawPayload: "true" },
         );

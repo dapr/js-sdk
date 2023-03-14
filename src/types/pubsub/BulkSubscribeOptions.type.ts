@@ -24,9 +24,9 @@ export type BulkSubscribeOptions = {
   // Metadata for the subscription
   metadata?: KeyValueType;
 
-  //Max number of messages to be sent in a single bulk request
+  // Max number of messages to be sent in a single bulk request
   maxMessagesCount?: number;
 
-  //Max duration to wait for messages to be sent in a single bulk request
+  // Max duration to wait for messages to be sent in a single bulk request
   maxAwaitDurationMs?: number;
 };
