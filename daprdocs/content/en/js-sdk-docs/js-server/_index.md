@@ -37,21 +37,21 @@ const serverPort = "50051"; // App Port of this Example Server
 // HTTP Example
 const server = new DaprServer({
   serverHost,
-  serverPort: serverHttpPort,
+  serverPort,
   clientOptions: {
     daprHost,
-    daprPort: daprHttpPort,
+    daprPort,
   },
 });
 
 // GRPC Example
 const server = new DaprServer({
   serverHost,
-  serverPort: serverHttpPort,
+  serverPort,
   communicationProtocol: CommunicationProtocolEnum.GRPC,
   clientOptions: {
     daprHost,
-    daprPort: daprHttpPort,
+    daprPort,
   },
 });
 ```
@@ -70,7 +70,7 @@ const server = new DaprServer({
   serverPort: appPort,
   clientOptions: {
     daprHost,
-    daprPort: daprHttpPort,
+    daprPort,
   },
 });
 // initialize subscribtions, ... before server start
@@ -112,7 +112,7 @@ const daprServer = new DaprServer({
       serverHttp: myApp
       clientOptions: {
         daprHost,
-        daprPort: daprHttpPort,
+        daprPort,
       }
     });
 
@@ -141,7 +141,7 @@ const server = new DaprServer({
   communicationProtocol: CommunicationProtocolEnum.GRPC,
   clientOptions: {
     daprHost,
-    daprPort: daprHttpPort,
+    daprPort,
   },
 });
 // initialize subscribtions, ... before server start
@@ -181,7 +181,7 @@ async function start() {
     serverPort,
     clientOptions: {
       daprHost,
-      daprPort: daprHttpPort,
+      daprPort,
     },
   });
 
@@ -237,7 +237,7 @@ async function start() {
     serverPort,
     clientOptions: {
       daprHost,
-      daprPort: daprHttpPort,
+      daprPort,
     },
   });
 
@@ -318,7 +318,7 @@ async function start() {
     serverPort,
     clientOptions: {
       daprHost,
-      daprPort: daprHttpPort,
+      daprPort,
     },
   });
 
@@ -368,7 +368,7 @@ async function start() {
     serverPort,
     clientOptions: {
       daprHost,
-      daprPort: daprHttpPort,
+      daprPort,
     },
   });
 
@@ -490,7 +490,7 @@ async function start() {
     serverPort,
     clientOptions: {
       daprHost,
-      daprPort: daprHttpPort,
+      daprPort,
     },
   });
 
@@ -540,7 +540,7 @@ async function start() {
     serverPort,
     clientOptions: {
       daprHost,
-      daprPort: daprHttpPort,
+      daprPort,
     },
   });
 

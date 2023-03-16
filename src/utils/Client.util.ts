@@ -206,11 +206,18 @@ function getType(o: any) {
   return typeof o;
 }
 
+/**
+ * Prepares DaprClientOptions for use by the DaprClient/DaprServer.
+ * If the user does not provide a value for a mandatory option, the default value is used.
+ * @param clientoptions DaprClientOptions
+ * @param defaultCommunicationProtocol CommunicationProtocolEnum
+ * @returns DaprClientOptions
+ */
 export function getClientOptions(
   clientoptions: Partial<DaprClientOptions> | undefined,
-  communicationProtocol: CommunicationProtocolEnum,
+  defaultCommunicationProtocol: CommunicationProtocolEnum,
 ): DaprClientOptions {
-  const clientCommunicationProtocol = clientoptions?.communicationProtocol ?? communicationProtocol;
+  const clientCommunicationProtocol = clientoptions?.communicationProtocol ?? defaultCommunicationProtocol;
   return {
     daprHost: clientoptions?.daprHost ?? Settings.getDefaultHost(),
     daprPort: clientoptions?.daprPort ?? Settings.getDefaultAppPort(clientCommunicationProtocol),
