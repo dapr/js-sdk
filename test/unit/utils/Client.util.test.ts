@@ -25,7 +25,7 @@ import { PubSubBulkPublishEntry } from "../../../src/types/pubsub/PubSubBulkPubl
 import { PubSubBulkPublishApiResponse } from "../../../src/types/pubsub/PubSubBulkPublishApiResponse.type";
 
 describe("Client.util", () => {
-  describe("getGRPCMetadata", () => {
+  describe("addMetadataToMap", () => {
     it("should add values to Map", () => {
       const m = new Map<string, string>([]);
       const metadata = {
@@ -53,7 +53,7 @@ describe("Client.util", () => {
     });
   });
 
-  describe("getHTTPMetadataQueryParam", () => {
+  describe("createHTTPMetadataQueryParam", () => {
     it("converts a KeyValueType to a HTTP query parameters", () => {
       const metadata = {
         key1: "value1",

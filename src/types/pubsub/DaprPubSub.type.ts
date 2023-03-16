@@ -13,6 +13,7 @@ limitations under the License.
 
 // https://github.com/dapr/dapr/blob/master/pkg/apis/subscriptions/v2alpha1/types.go#L36
 import { KeyValueType } from "../KeyValue.type";
+import { BulkSubscribeConfig } from "./BulkSubscribeConfig.type";
 import { DaprPubSubRouteType } from "./DaprPubSubRouteType.type";
 
 /**
@@ -36,4 +37,7 @@ export type DaprPubSubType = {
 
   // The path to send unprocessable events to
   deadLetterTopic?: string;
+
+  // The settings for bulk subscribe
+  bulkSubscribe?: BulkSubscribeConfig;
 };

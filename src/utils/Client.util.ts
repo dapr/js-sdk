@@ -24,6 +24,7 @@ import { PubSubBulkPublishEntry } from "../types/pubsub/PubSubBulkPublishEntry.t
 import { PubSubBulkPublishResponse } from "../types/pubsub/PubSubBulkPublishResponse.type";
 import { PubSubBulkPublishMessage } from "../types/pubsub/PubSubBulkPublishMessage.type";
 import { PubSubBulkPublishApiResponse } from "../types/pubsub/PubSubBulkPublishApiResponse.type";
+
 /**
  * Adds metadata to a map.
  * @param map Input map

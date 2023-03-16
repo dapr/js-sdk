@@ -22,20 +22,38 @@ import { StateQueryResponseType } from "../../../types/state/StateQueryResponse.
 import { StateGetBulkOptions } from "../../../types/state/StateGetBulkOptions.type";
 import { createHTTPMetadataQueryParam } from "../../../utils/Client.util";
 import { Settings } from "../../../utils/Settings.util";
+import { Logger } from "../../../logger/Logger";
+import { StateSaveResponseType } from "../../../types/state/StateSaveResponseType";
+import { StateSaveOptions } from "../../../types/state/StateSaveOptions.type";
 
 // https://docs.dapr.io/reference/api/state_api/
 export default class HTTPClientState implements IClientState {
   client: HTTPClient;
+  private readonly logger: Logger;
 
   constructor(client: HTTPClient) {
     this.client = client;
+    this.logger = new Logger("HTTPClient", "State", client.options.logger);
   }
 
-  async save(storeName: string, stateObjects: KeyValuePairType[]): Promise<void> {
-    await this.client.execute(`/state/${storeName}`, {
-      method: "POST",
-      body: stateObjects,
-    });
+  async save(
+    storeName: string,
+    stateObjects: KeyValuePairType[],
+    options: StateSaveOptions = {},
+  ): Promise<StateSaveResponseType> {
+    const queryParams = createHTTPMetadataQueryParam(options.metadata);
+
+    try {
+      await this.client.execute(`/state/${storeName}?${queryParams}`, {
+        method: "POST",
+        body: stateObjects,
+      });
+    } catch (e: any) {
+      this.logger.error(`Error saving state to store ${storeName}, error: ${e}`);
+      return { error: e };
+    }
+
+    return {};
   }
 
   async get(storeName: string, key: string): Promise<KeyValueType | string> {
@@ -43,7 +61,7 @@ export default class HTTPClientState implements IClientState {
     return result as KeyValueType;
   }
 
-  async getBulk(storeName: string, keys: string[], options: StateGetBulkOptions): Promise<KeyValueType[]> {
+  async getBulk(storeName: string, keys: string[], options: StateGetBulkOptions = {}): Promise<KeyValueType[]> {
     const queryParams = createHTTPMetadataQueryParam(options.metadata);
 
     const result = await this.client.execute(`/state/${storeName}/bulk?${queryParams}`, {

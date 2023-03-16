@@ -407,6 +407,51 @@ async function start() {
 }
 ```
 
+#### Bulk Subscribe to messages
+
+Bulk Subscription is supported and is available through following API:
+
+- Bulk subscription through the `subscribeBulk` method: `maxMessagesCount` and `maxAwaitDurationMs` are optional; and if not provided, default values for related components will be used.
+
+While listening for messages, the application receives messages from Dapr in bulk. However, like regular subscribe, the callback function receives a single message at a time, and the user can choose to return a `DaprPubSubStatusEnum` value to acknowledge successfully, retry, or drop the message. The default behavior is to return a success response.
+
+Please refer [this document](https://v1-10.docs.dapr.io/developing-applications/building-blocks/pubsub/pubsub-bulk/) for more details.
+
+```typescript
+import { DaprServer } from "@dapr/dapr";
+
+const pubSubName = "orderPubSub";
+const topic = "topicbulk";
+
+const DAPR_HOST = process.env.DAPR_HOST || "127.0.0.1";
+const DAPR_HTTP_PORT = process.env.DAPR_HTTP_PORT || "3502";
+const SERVER_HOST = process.env.SERVER_HOST || "127.0.0.1";
+const SERVER_PORT = process.env.APP_PORT || 5001;
+
+async function start() {
+  const server = new DaprServer(SERVER_HOST, SERVER_PORT, DAPR_HOST, DAPR_HTTP_PORT);
+
+  // Publish multiple messages to a topic with default config.
+  await client.pubsub.subscribeBulk(pubSubName, topic, (data) =>
+    console.log("Subscriber received: " + JSON.stringify(data)),
+  );
+
+  // Publish multiple messages to a topic with specific maxMessagesCount and maxAwaitDurationMs.
+  await client.pubsub.subscribeBulk(
+    pubSubName,
+    topic,
+    (data) => {
+      console.log("Subscriber received: " + JSON.stringify(data));
+      return DaprPubSubStatusEnum.SUCCESS; // If App doesn't return anything, the default is SUCCESS. App can also return RETRY or DROP based on the incoming message.
+    },
+    {
+      maxMessagesCount: 100,
+      maxAwaitDurationMs: 40,
+    },
+  );
+}
+```
+
 #### Dead Letter Topics
 
 Dapr supports [dead letter topic](https://docs.dapr.io/developing-applications/building-blocks/pubsub/pubsub-deadletter/). This means that when a message fails to be processed, it gets sent to a dead letter queue. E.g., when a message fails to be handled on `/my-queue` it will be sent to `/my-queue-failed`.
