@@ -113,20 +113,20 @@ describe("common/server", () => {
 
   beforeAll(async () => {
     httpServer = new DaprServer({
-      serverHost: serverHost,
+      serverHost,
       serverPort: serverHttpPort,
       communicationProtocol: CommunicationProtocolEnum.HTTP,
       clientOptions: {
-        daprHost: daprHost,
+        daprHost,
         daprPort: daprHttpPort,
       },
     });
     grpcServer = new DaprServer({
-      serverHost: serverHost,
+      serverHost,
       serverPort: serverGrpcPort,
       communicationProtocol: CommunicationProtocolEnum.GRPC,
       clientOptions: {
-        daprHost: daprHost,
+        daprHost,
         daprPort: daprGrpcPort,
       },
     });
@@ -475,11 +475,11 @@ describe("common/server", () => {
 
       try {
         let anotherServer = new DaprServer({
-          serverHost: serverHost,
+          serverHost,
           serverPort: customPort,
           communicationProtocol: commProtocol,
           clientOptions: {
-            daprHost: daprHost,
+            daprHost,
             daprPort: port,
           },
         });

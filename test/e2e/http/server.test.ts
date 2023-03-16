@@ -33,12 +33,12 @@ describe("http/server", () => {
   // we put a timeout of 10s since it takes around 4s for Dapr to boot up
   beforeAll(async () => {
     server = new DaprServer({
-      serverHost: serverHost,
-      serverPort: serverPort,
+      serverHost,
+      serverPort,
       communicationProtocol: CommunicationProtocolEnum.HTTP,
       clientOptions: {
-        daprHost: daprHost,
-        daprPort: daprPort,
+        daprHost,
+        daprPort,
         maxBodySizeMb: 20, // we set sending larger than receiving to test the error handling
       },
       maxBodySizeMb: 10,
@@ -68,13 +68,13 @@ describe("http/server", () => {
       });
 
       const myAppDaprServer = new DaprServer({
-        serverHost: serverHost,
+        serverHost,
         serverPort: "50002",
         communicationProtocol: CommunicationProtocolEnum.HTTP,
         serverHttp: myApp,
         clientOptions: {
-          daprHost: daprHost,
-          daprPort: daprPort,
+          daprHost,
+          daprPort,
         },
       });
 

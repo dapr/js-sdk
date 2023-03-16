@@ -59,6 +59,7 @@ import { Logger } from "../../logger/Logger";
 import GRPCClientProxy from "./GRPCClient/proxy";
 import * as NodeJSUtils from "../../utils/NodeJS.util";
 import { SDK_PACKAGE_NAME } from "../../version";
+import { getClientOptions } from "../../utils/Client.util";
 
 export default class DaprClient {
   readonly options: DaprClientOptions;
@@ -79,16 +80,7 @@ export default class DaprClient {
   private readonly logger: Logger;
 
   constructor(options: Partial<DaprClientOptions> = {}) {
-    const communicationProtocol = options.communicationProtocol ?? Settings.getDefaultCommunicationProtocol();
-    this.options = {
-      daprHost: options.daprHost ?? Settings.getDefaultHost(),
-      daprPort: options.daprPort ?? Settings.getDefaultPort(communicationProtocol),
-      communicationProtocol: communicationProtocol,
-      isKeepAlive: options.isKeepAlive,
-      logger: options.logger,
-      actor: options.actor,
-      daprApiToken: options.daprApiToken,
-    };
+    this.options = getClientOptions(options, Settings.getDefaultCommunicationProtocol());
     this.logger = new Logger("DaprClient", "DaprClient", this.options.logger);
 
     // Validation on port
@@ -103,7 +95,7 @@ export default class DaprClient {
     }
 
     // Builder
-    switch (communicationProtocol) {
+    switch (options.communicationProtocol) {
       case CommunicationProtocolEnum.GRPC: {
         const client = new GRPCClient(this.options);
         this.daprClient = client;

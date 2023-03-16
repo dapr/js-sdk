@@ -28,12 +28,12 @@ describe("grpc/server", () => {
   // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
     server = new DaprServer({
-      serverHost: serverHost,
-      serverPort: serverPort,
+      serverHost,
+      serverPort,
       communicationProtocol: CommunicationProtocolEnum.GRPC,
       clientOptions: {
-        daprHost: daprHost,
-        daprPort: daprPort,
+        daprHost,
+        daprPort,
         maxBodySizeMb: 20, // we set sending larger than receiving to test the error handling
       },
       maxBodySizeMb: 10,

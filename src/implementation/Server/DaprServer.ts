@@ -32,7 +32,7 @@ import HTTPServerActor from "./HTTPServer/actor";
 import { Settings } from "../../utils/Settings.util";
 import { DaprServerOptions } from "../../types/DaprServerOptions";
 import DaprClient from "../Client/DaprClient";
-import { DaprClientOptions } from "../../types/DaprClientOptions";
+import { getClientOptions } from "../../utils/Client.util";
 
 export default class DaprServer {
   // App details
@@ -47,7 +47,7 @@ export default class DaprServer {
 
   constructor(serverOptions: Partial<DaprServerOptions> = {}) {
     const communicationProtocol = serverOptions.communicationProtocol ?? Settings.getDefaultCommunicationProtocol();
-    const clientOptions = this.getClientOptions(serverOptions.clientOptions, communicationProtocol);
+    const clientOptions = getClientOptions(serverOptions.clientOptions, communicationProtocol);
     this.serverOptions = {
       serverHost: serverOptions.serverHost ?? Settings.getDefaultHost(),
       serverPort: serverOptions.serverPort ?? Settings.getDefaultAppPort(communicationProtocol),
@@ -97,23 +97,6 @@ export default class DaprServer {
         break;
       }
     }
-  }
-
-  private getClientOptions(
-    clientoptions: Partial<DaprClientOptions> | undefined,
-    communicationProtocol: CommunicationProtocolEnum,
-  ): DaprClientOptions {
-    const clientCommunicationProtocol = clientoptions?.communicationProtocol ?? communicationProtocol;
-    return {
-      daprHost: clientoptions?.daprHost ?? Settings.getDefaultHost(),
-      daprPort: clientoptions?.daprPort ?? Settings.getDefaultAppPort(clientCommunicationProtocol),
-      communicationProtocol: clientCommunicationProtocol,
-      isKeepAlive: clientoptions?.isKeepAlive,
-      logger: clientoptions?.logger,
-      actor: clientoptions?.actor,
-      daprApiToken: clientoptions?.daprApiToken,
-      maxBodySizeMb: clientoptions?.maxBodySizeMb,
-    };
   }
 
   async start(): Promise<void> {

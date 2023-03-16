@@ -95,16 +95,10 @@ const clientOptions = {
   },
 };
 
-const serverOptions = {
-  serverHost: serverHost,
-  serverPort: serverPort,
-  clientOptions: clientOptions,
-};
-
 // Use the options when creating DaprServer and DaprClient.
 
 // Note, DaprServer creates a DaprClient internally, which needs to be configured with clientOptions.
-const server = new DaprServer(serverOptions);
+const server = new DaprServer({ serverHost, serverPort, clientOptions });
 
 const client = new DaprClient(clientOptions);
 ```
@@ -123,11 +117,11 @@ const serverHost = "127.0.0.1";
 const serverPort = "50001";
 
 const server = new DaprServer({
-  serverHost: serverHost,
-  serverPort: serverPort,
+  serverHost,
+  serverPort,
   clientOptions: {
-    daprHost: daprHost,
-    daprPort: daprPort,
+    daprHost,
+    daprPort,
   },
 });
 

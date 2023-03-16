@@ -28,7 +28,7 @@ export type DaprServerOptions = {
   serverPort: string;
 
   /**
-   * The protocol to be used for communication with dapr sidecar.
+   * The protocol to be used for communication from dapr sidecar to App.
    * Default is HTTP.
    */
   communicationProtocol: CommunicationProtocolEnum;
@@ -45,7 +45,7 @@ export type DaprServerOptions = {
   serverHttp?: express.Express;
 
   /**
-   * The options of the Dapr client.
+   * Options to instantiate DaprClient.
    */
   clientOptions?: Partial<DaprClientOptions>;
 

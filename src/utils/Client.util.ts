@@ -24,6 +24,9 @@ import { PubSubBulkPublishEntry } from "../types/pubsub/PubSubBulkPublishEntry.t
 import { PubSubBulkPublishResponse } from "../types/pubsub/PubSubBulkPublishResponse.type";
 import { PubSubBulkPublishMessage } from "../types/pubsub/PubSubBulkPublishMessage.type";
 import { PubSubBulkPublishApiResponse } from "../types/pubsub/PubSubBulkPublishApiResponse.type";
+import { DaprClientOptions } from "../types/DaprClientOptions";
+import CommunicationProtocolEnum from "../enum/CommunicationProtocol.enum";
+import { Settings } from "./Settings.util";
 
 /**
  * Adds metadata to a map.
@@ -201,4 +204,21 @@ function getType(o: any) {
   }
 
   return typeof o;
+}
+
+export function getClientOptions(
+  clientoptions: Partial<DaprClientOptions> | undefined,
+  communicationProtocol: CommunicationProtocolEnum,
+): DaprClientOptions {
+  const clientCommunicationProtocol = clientoptions?.communicationProtocol ?? communicationProtocol;
+  return {
+    daprHost: clientoptions?.daprHost ?? Settings.getDefaultHost(),
+    daprPort: clientoptions?.daprPort ?? Settings.getDefaultAppPort(clientCommunicationProtocol),
+    communicationProtocol: clientCommunicationProtocol,
+    isKeepAlive: clientoptions?.isKeepAlive,
+    logger: clientoptions?.logger,
+    actor: clientoptions?.actor,
+    daprApiToken: clientoptions?.daprApiToken,
+    maxBodySizeMb: clientoptions?.maxBodySizeMb,
+  };
 }

@@ -37,11 +37,11 @@ import { CommunicationProtocolEnum, DaprServer, LogLevel } from "@dapr/dapr";
 
 // create a server instance with log level set to error.
 const server = new DaprServer({
-  serverHost: serverHost,
-  serverPort: serverPort,
+  serverHost,
+  serverPort,
   clientOptions: {
-    daprHost: daprHost,
-    daprPort: daprPort,
+    daprHost,
+    daprPort,
     logger: { level: LogLevel.Error },
   },
 });

@@ -65,8 +65,8 @@ describe("http/actors", () => {
     // this means that we won't re-use connections here which is necessary for the tests
     // since it will keep handles open else it has to be initialized before the server starts!
     server = new DaprServer({
-      serverHost: serverHost,
-      serverPort: serverPort,
+      serverHost,
+      serverPort,
       communicationProtocol: CommunicationProtocolEnum.HTTP,
       clientOptions: daprClientOptions,
     });
