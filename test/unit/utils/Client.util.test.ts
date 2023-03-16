@@ -19,10 +19,12 @@ import {
   getContentType,
   getBulkPublishEntries,
   getBulkPublishResponse,
+  getClientOptions,
 } from "../../../src/utils/Client.util";
 import { Map } from "google-protobuf";
 import { PubSubBulkPublishEntry } from "../../../src/types/pubsub/PubSubBulkPublishEntry.type";
 import { PubSubBulkPublishApiResponse } from "../../../src/types/pubsub/PubSubBulkPublishApiResponse.type";
+import { CommunicationProtocolEnum, DaprClientOptions, LogLevel } from "../../../src";
 
 describe("Client.util", () => {
   describe("addMetadataToMap", () => {
@@ -299,6 +301,63 @@ describe("Client.util", () => {
       expect(response.failedMessages.length).toEqual(1);
       expect(response.failedMessages[0].message).toEqual(entries[0]);
       expect(response.failedMessages[0].error).toEqual(new Error(apiResponse.failedEntries[0].error));
+    });
+  });
+
+  describe("getClientOptions", () => {
+    it("returns correct Dapr Client Options for provided options", () => {
+      const inOptions: DaprClientOptions = {
+        daprHost: "localhost",
+        daprPort: "50001",
+        communicationProtocol: CommunicationProtocolEnum.GRPC,
+        isKeepAlive: true,
+        logger: { level: LogLevel.Error },
+        maxBodySizeMb: 10,
+      };
+      const options = getClientOptions(inOptions, CommunicationProtocolEnum.HTTP);
+      expect(options).toEqual(inOptions);
+    });
+
+    it("returns correct Dapr Client Options when host not provided", () => {
+      const inOptions: Partial<DaprClientOptions> = {
+        daprPort: "50001",
+        communicationProtocol: CommunicationProtocolEnum.GRPC,
+      };
+      const options = getClientOptions(inOptions, CommunicationProtocolEnum.HTTP);
+      const expectedOptions: Partial<DaprClientOptions> = inOptions;
+      expectedOptions.daprHost = "127.0.0.1";
+      expect(options).toEqual(expectedOptions);
+    });
+
+    it("returns correct Dapr Client Options when host and port not provided", () => {
+      const inOptions: Partial<DaprClientOptions> = {
+        communicationProtocol: CommunicationProtocolEnum.GRPC,
+      };
+      const options = getClientOptions(inOptions, CommunicationProtocolEnum.HTTP);
+      const expectedOptions: Partial<DaprClientOptions> = inOptions;
+      expectedOptions.daprHost = "127.0.0.1";
+      expectedOptions.daprPort = "50000";
+      expect(options).toEqual(expectedOptions);
+    });
+
+    it("returns correct Dapr Client Options when undefined options provided", () => {
+      const options = getClientOptions(undefined, CommunicationProtocolEnum.GRPC);
+      const expectedOptions: Partial<DaprClientOptions> = {
+        daprHost: "127.0.0.1",
+        daprPort: "50000",
+        communicationProtocol: CommunicationProtocolEnum.GRPC,
+      };
+      expect(options).toEqual(expectedOptions);
+    });
+
+    it("returns correct Dapr Client Options when undefined options provided and default HTTP communication", () => {
+      const options = getClientOptions(undefined, CommunicationProtocolEnum.HTTP);
+      const expectedOptions: Partial<DaprClientOptions> = {
+        daprHost: "127.0.0.1",
+        daprPort: "3000",
+        communicationProtocol: CommunicationProtocolEnum.HTTP,
+      };
+      expect(options).toEqual(expectedOptions);
     });
   });
 });

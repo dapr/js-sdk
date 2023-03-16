@@ -159,6 +159,47 @@ npm run start:dapr-grpc
 
 > ℹ️ **Note:** The `app-port` is required here, as this is where our server will need to bind to. Dapr will check for the application to bind to this port, before finishing start-up.
 
+## Communication Protocol for DaprClient
+
+Starting Dapr js-sdk v3.0.0, you may feel why different CommunicationProtocol in DaprClient and DaprServer.
+Basically, we want to provide flexibility to chose different communication protocol while packets flow `from Dapr Sidecar to App` OR `from App to Dapr Sidecar`.
+If you want to use only single communication protocol for both way communication, just provide Communication protocol in DaprServer options, something like this:
+
+```
+const server = new DaprServer({
+  serverHost,
+  serverPort,
+  communicationProtocol: CommunicationProtocolEnum.GRPC,
+  clientOptions: {
+    daprHost,
+    daprPort,
+  },
+});
+```
+
+Please note that , just like mentioned above, if you don't provide any CommunicationProtocol in DaprServer options, HTTP will be used.
+
+Also, let's say that you want to use different communication protocol for dapr to app v/s app to dapr, then, you can specify something like this:
+
+```
+const server = new DaprServer({
+  serverHost,
+  serverPort,
+  communicationProtocol: CommunicationProtocolEnum.GRPC,
+  clientOptions: {
+    daprHost,
+    daprPort,
+    communicationProtocol: CommunicationProtocolEnum.HTTP,
+  },
+});
+```
+
+In short, preference is in this order for Dapr Client Communication Protocol:
+
+1. If Client options provide communication protocol, that is used.
+2. Else if, Server options provide communication protocol, that is used
+3. Else, HTTP is used.
+
 ## Building blocks
 
 The JavaScript Server SDK allows you to interface with all of the [Dapr building blocks]({{< ref building-blocks >}}) focusing on Sidecar to App features.
