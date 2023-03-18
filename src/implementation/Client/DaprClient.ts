@@ -80,7 +80,7 @@ export default class DaprClient {
   private readonly logger: Logger;
 
   constructor(options: Partial<DaprClientOptions> = {}) {
-    this.options = getClientOptions(options, Settings.getDefaultCommunicationProtocol());
+    this.options = getClientOptions(options, Settings.getDefaultCommunicationProtocol(), undefined);
     this.logger = new Logger("DaprClient", "DaprClient", this.options.logger);
 
     // Validation on port

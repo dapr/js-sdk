@@ -314,7 +314,7 @@ describe("Client.util", () => {
         logger: { level: LogLevel.Error },
         maxBodySizeMb: 10,
       };
-      const options = getClientOptions(inOptions, CommunicationProtocolEnum.HTTP);
+      const options = getClientOptions(inOptions, CommunicationProtocolEnum.HTTP, undefined);
       expect(options).toEqual(inOptions);
     });
 
@@ -323,9 +323,10 @@ describe("Client.util", () => {
         daprPort: "50001",
         communicationProtocol: CommunicationProtocolEnum.GRPC,
       };
-      const options = getClientOptions(inOptions, CommunicationProtocolEnum.HTTP);
+      const options = getClientOptions(inOptions, CommunicationProtocolEnum.HTTP, { level: LogLevel.Error });
       const expectedOptions: Partial<DaprClientOptions> = inOptions;
       expectedOptions.daprHost = "127.0.0.1";
+      expectedOptions.logger = { level: LogLevel.Error };
       expect(options).toEqual(expectedOptions);
     });
 
@@ -333,28 +334,28 @@ describe("Client.util", () => {
       const inOptions: Partial<DaprClientOptions> = {
         communicationProtocol: CommunicationProtocolEnum.GRPC,
       };
-      const options = getClientOptions(inOptions, CommunicationProtocolEnum.HTTP);
+      const options = getClientOptions(inOptions, CommunicationProtocolEnum.HTTP, undefined);
       const expectedOptions: Partial<DaprClientOptions> = inOptions;
       expectedOptions.daprHost = "127.0.0.1";
-      expectedOptions.daprPort = "50000";
+      expectedOptions.daprPort = "50001";
       expect(options).toEqual(expectedOptions);
     });
 
     it("returns correct Dapr Client Options when undefined options provided", () => {
-      const options = getClientOptions(undefined, CommunicationProtocolEnum.GRPC);
+      const options = getClientOptions(undefined, CommunicationProtocolEnum.GRPC, undefined);
       const expectedOptions: Partial<DaprClientOptions> = {
         daprHost: "127.0.0.1",
-        daprPort: "50000",
+        daprPort: "50001",
         communicationProtocol: CommunicationProtocolEnum.GRPC,
       };
       expect(options).toEqual(expectedOptions);
     });
 
     it("returns correct Dapr Client Options when undefined options provided and default HTTP communication", () => {
-      const options = getClientOptions(undefined, CommunicationProtocolEnum.HTTP);
+      const options = getClientOptions(undefined, CommunicationProtocolEnum.HTTP, undefined);
       const expectedOptions: Partial<DaprClientOptions> = {
         daprHost: "127.0.0.1",
-        daprPort: "3000",
+        daprPort: "3500",
         communicationProtocol: CommunicationProtocolEnum.HTTP,
       };
       expect(options).toEqual(expectedOptions);

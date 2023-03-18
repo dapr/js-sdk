@@ -27,6 +27,7 @@ import { PubSubBulkPublishApiResponse } from "../types/pubsub/PubSubBulkPublishA
 import { DaprClientOptions } from "../types/DaprClientOptions";
 import CommunicationProtocolEnum from "../enum/CommunicationProtocol.enum";
 import { Settings } from "./Settings.util";
+import { LoggerOptions } from "../types/logger/LoggerOptions";
 
 /**
  * Adds metadata to a map.
@@ -216,14 +217,15 @@ function getType(o: any) {
 export function getClientOptions(
   clientoptions: Partial<DaprClientOptions> | undefined,
   defaultCommunicationProtocol: CommunicationProtocolEnum,
+  defaultLoggerOptions: LoggerOptions | undefined,
 ): DaprClientOptions {
   const clientCommunicationProtocol = clientoptions?.communicationProtocol ?? defaultCommunicationProtocol;
   return {
     daprHost: clientoptions?.daprHost ?? Settings.getDefaultHost(),
-    daprPort: clientoptions?.daprPort ?? Settings.getDefaultAppPort(clientCommunicationProtocol),
+    daprPort: clientoptions?.daprPort ?? Settings.getDefaultPort(clientCommunicationProtocol),
     communicationProtocol: clientCommunicationProtocol,
     isKeepAlive: clientoptions?.isKeepAlive,
-    logger: clientoptions?.logger,
+    logger: clientoptions?.logger ?? defaultLoggerOptions,
     actor: clientoptions?.actor,
     daprApiToken: clientoptions?.daprApiToken,
     maxBodySizeMb: clientoptions?.maxBodySizeMb,

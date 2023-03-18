@@ -47,7 +47,7 @@ export default class DaprServer {
 
   constructor(serverOptions: Partial<DaprServerOptions> = {}) {
     const communicationProtocol = serverOptions.communicationProtocol ?? Settings.getDefaultCommunicationProtocol();
-    const clientOptions = getClientOptions(serverOptions.clientOptions, communicationProtocol);
+    const clientOptions = getClientOptions(serverOptions.clientOptions, communicationProtocol, serverOptions?.logger);
     this.serverOptions = {
       serverHost: serverOptions.serverHost ?? Settings.getDefaultHost(),
       serverPort: serverOptions.serverPort ?? Settings.getDefaultAppPort(communicationProtocol),
