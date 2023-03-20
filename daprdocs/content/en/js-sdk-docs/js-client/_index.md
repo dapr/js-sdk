@@ -312,6 +312,10 @@ async function start() {
   // Publish message to topic as application/json
   await client.pubsub.publish(pubSubName, topic, { hello: "world" });
 
+  // Publish a JSON message as plain text
+  const options = { contentType: "text/plain" };
+  await client.pubsub.publish(pubSubName, topic, { hello: "world" }, options);
+
   // Publish message to topic as application/cloudevents+json
   // You can also use the cloudevent SDK to create cloud events https://github.com/cloudevents/sdk-javascript
   const cloudEvent = {
@@ -322,11 +326,7 @@ async function start() {
   };
   await client.pubsub.publish(pubSubName, topic, cloudEvent);
 
-  // Publish the cloudevent as application/json
-  const options = { contentType: "application/json" };
-  await client.pubsub.publish(pubSubName, topic, cloudEvent, options);
-
-  // Publish the cloudevent as raw payload
+  // Publish a cloudevent as raw payload
   const options = { metadata: { rawPayload: true } };
   await client.pubsub.publish(pubSubName, topic, "hello, world!", options);
 

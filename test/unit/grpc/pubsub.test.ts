@@ -67,7 +67,12 @@ describe("grpc/pubsub", () => {
     it("should use the content-type when provided", async () => {
       const requests: PublishEventRequest[] = [];
       const grpcClientPubsub = new GRPCClientPubSub(getMockClient(requests));
-      await grpcClientPubsub.publish("my-pubsub", "my-topic", { key: "value" }, { contentType: "text/plain", metadata: { mKey: "mValue" } });
+      await grpcClientPubsub.publish(
+        "my-pubsub",
+        "my-topic",
+        { key: "value" },
+        { contentType: "text/plain", metadata: { mKey: "mValue" } },
+      );
 
       // Check the request
       expect(requests.length).toBe(1);
