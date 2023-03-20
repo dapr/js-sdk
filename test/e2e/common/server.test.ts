@@ -112,8 +112,24 @@ describe("common/server", () => {
   };
 
   beforeAll(async () => {
-    httpServer = new DaprServer(serverHost, serverHttpPort, daprHost, daprHttpPort, CommunicationProtocolEnum.HTTP);
-    grpcServer = new DaprServer(serverHost, serverGrpcPort, daprHost, daprGrpcPort, CommunicationProtocolEnum.GRPC);
+    httpServer = new DaprServer({
+      serverHost,
+      serverPort: serverHttpPort,
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
+      clientOptions: {
+        daprHost,
+        daprPort: daprHttpPort,
+      },
+    });
+    grpcServer = new DaprServer({
+      serverHost,
+      serverPort: serverGrpcPort,
+      communicationProtocol: CommunicationProtocolEnum.GRPC,
+      clientOptions: {
+        daprHost,
+        daprPort: daprGrpcPort,
+      },
+    });
 
     await setupPubSubSubscriptions();
 
@@ -138,7 +154,7 @@ describe("common/server", () => {
 
   describe("pubsub", () => {
     runIt(
-      "should by default mark messagess as processed successfully (SUCCESS) and the same message should not be received anymore",
+      "should mark messages as processed successfully (SUCCESS) by-default, and the same message should not be received anymore",
       async (server: DaprServer, protocol: string) => {
         const res = await server.client.pubsub.publish(pubSubName, getTopic(topicWithStatusCb, protocol), "SUCCESS");
         expect(res.error).toBeUndefined();
@@ -154,7 +170,7 @@ describe("common/server", () => {
     );
 
     runIt(
-      "should mark messagess as retried (RETRY) and the same message should be received again until we send SUCCESS",
+      "should mark messages as retried (RETRY), and the same message should be received again until we send SUCCESS",
       async (server: DaprServer, protocol: string) => {
         const res = await server.client.pubsub.publish(
           pubSubName,
@@ -173,7 +189,7 @@ describe("common/server", () => {
     );
 
     runIt(
-      "should mark messagess as dropped (DROP) and the message should be deadlettered",
+      "should mark messages as dropped (DROP), and the message should be deadlettered",
       async (server: DaprServer, protocol: string) => {
         const res = await server.client.pubsub.publish(pubSubName, getTopic(topicWithStatusCb, protocol), "DROP");
         expect(res.error).toBeUndefined();
@@ -213,7 +229,7 @@ describe("common/server", () => {
           {
             message: "Message 1!",
           },
-          { rawPayload: "true" },
+          { metadata: { rawPayload: "true" } },
         );
 
         const res2 = await server.client.pubsub.publish(
@@ -222,7 +238,7 @@ describe("common/server", () => {
           {
             message: "Message 2!",
           },
-          { rawPayload: "true" },
+          { metadata: { rawPayload: "true" } },
         );
 
         expect(res1.error).toBeUndefined();
@@ -304,7 +320,7 @@ describe("common/server", () => {
           {
             message: "Message 1!",
           },
-          { rawPayload: "true" },
+          { metadata: { rawPayload: "true" } },
         );
 
         const res2 = await server.client.pubsub.publish(
@@ -313,7 +329,7 @@ describe("common/server", () => {
           {
             message: "Message 2!",
           },
-          { rawPayload: "true" },
+          { metadata: { rawPayload: "true" } },
         );
 
         expect(res1.error).toBeUndefined();
@@ -339,7 +355,7 @@ describe("common/server", () => {
       expect(mockSubscribeHandler.mock.calls[0][0]).toEqual({ message: "Hello, world!" });
     });
 
-    runIt("should be able to send and receive cloud events", async (server: DaprServer, protocol: string) => {
+    runIt("should be able to send and receive cloudevents", async (server: DaprServer, protocol: string) => {
       const ce = {
         specversion: "1.0",
         type: "com.github.pull.create",
@@ -357,6 +373,28 @@ describe("common/server", () => {
 
       expect(mockSubscribeHandler.mock.calls.length).toBe(1);
       expect(mockSubscribeHandler.mock.calls[0][0]).toEqual("Hello, world!");
+    });
+
+    runIt("should be able to send cloudevents as JSON and receive it", async (server: DaprServer, protocol: string) => {
+      const ce = {
+        specversion: "1.0",
+        type: "com.github.pull.create",
+        source: "https://github.com/cloudevents/spec/pull",
+        id: "A234-1234-1234",
+        data: "Hello, world!",
+        datacontenttype: "text/plain",
+      };
+
+      const options = { contentType: "application/json" };
+      const res = await server.client.pubsub.publish(pubSubName, getTopic(topicDefault, protocol), ce, options);
+      expect(res.error).toBeUndefined();
+
+      // Delay a bit for event to arrive
+      await new Promise((resolve, _reject) => setTimeout(resolve, 500));
+      expect(mockSubscribeHandler.mock.calls.length).toBe(1);
+      // The cloudevent should contain an inner cloudevent since the content type was application/json
+      const innerCe: any = mockSubscribeHandler.mock.calls[0][0];
+      expect(innerCe["data"]).toEqual("Hello, world!");
     });
 
     runIt(
@@ -402,7 +440,7 @@ describe("common/server", () => {
           pubSubName,
           getTopic(topicRawPayload, protocol),
           "Hello, world!",
-          { rawPayload: "true" },
+          { metadata: { rawPayload: "true" } },
         );
         expect(res.error).toBeUndefined();
 
@@ -421,7 +459,7 @@ describe("common/server", () => {
           pubSubName,
           getTopic(topicRawPayload, protocol),
           { message: "Hello, world!" },
-          { rawPayload: "true" },
+          { metadata: { rawPayload: "true" } },
         );
         expect(res.error).toBeUndefined();
 
@@ -458,7 +496,16 @@ describe("common/server", () => {
       let exceptionThrown = false;
 
       try {
-        let anotherServer = new DaprServer(serverHost, customPort, daprHost, port, commProtocol);
+        let anotherServer = new DaprServer({
+          serverHost,
+          serverPort: customPort,
+          communicationProtocol: commProtocol,
+          clientOptions: {
+            daprHost,
+            daprPort: port,
+          },
+        });
+
         await anotherServer.pubsub.subscribe(pubSubName, anotherTopic, anotherMockHandler);
         await anotherServer.pubsub.subscribe(pubSubName, anotherTopic, anotherMockHandler, "/another-route");
         anotherServer = undefined as any; // clean it up
