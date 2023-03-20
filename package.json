@@ -1,6 +1,6 @@
 {
   "name": "@dapr/dapr",
-  "version": "2.5.0",
+  "version": "3.0.0",
   "description": "The official Dapr (https://dapr.io) SDK for Node.js",
   "types": "./build/index.d.ts",
   "scripts": {
