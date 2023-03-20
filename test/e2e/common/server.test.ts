@@ -112,8 +112,24 @@ describe("common/server", () => {
   };
 
   beforeAll(async () => {
-    httpServer = new DaprServer(serverHost, serverHttpPort, daprHost, daprHttpPort, CommunicationProtocolEnum.HTTP);
-    grpcServer = new DaprServer(serverHost, serverGrpcPort, daprHost, daprGrpcPort, CommunicationProtocolEnum.GRPC);
+    httpServer = new DaprServer({
+      serverHost,
+      serverPort: serverHttpPort,
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
+      clientOptions: {
+        daprHost,
+        daprPort: daprHttpPort,
+      },
+    });
+    grpcServer = new DaprServer({
+      serverHost,
+      serverPort: serverGrpcPort,
+      communicationProtocol: CommunicationProtocolEnum.GRPC,
+      clientOptions: {
+        daprHost,
+        daprPort: daprGrpcPort,
+      },
+    });
 
     await setupPubSubSubscriptions();
 
@@ -458,7 +474,16 @@ describe("common/server", () => {
       let exceptionThrown = false;
 
       try {
-        let anotherServer = new DaprServer(serverHost, customPort, daprHost, port, commProtocol);
+        let anotherServer = new DaprServer({
+          serverHost,
+          serverPort: customPort,
+          communicationProtocol: commProtocol,
+          clientOptions: {
+            daprHost,
+            daprPort: port,
+          },
+        });
+
         await anotherServer.pubsub.subscribe(pubSubName, anotherTopic, anotherMockHandler);
         await anotherServer.pubsub.subscribe(pubSubName, anotherTopic, anotherMockHandler, "/another-route");
         anotherServer = undefined as any; // clean it up

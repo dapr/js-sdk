@@ -24,6 +24,10 @@ import { PubSubBulkPublishEntry } from "../types/pubsub/PubSubBulkPublishEntry.t
 import { PubSubBulkPublishResponse } from "../types/pubsub/PubSubBulkPublishResponse.type";
 import { PubSubBulkPublishMessage } from "../types/pubsub/PubSubBulkPublishMessage.type";
 import { PubSubBulkPublishApiResponse } from "../types/pubsub/PubSubBulkPublishApiResponse.type";
+import { DaprClientOptions } from "../types/DaprClientOptions";
+import CommunicationProtocolEnum from "../enum/CommunicationProtocol.enum";
+import { Settings } from "./Settings.util";
+import { LoggerOptions } from "../types/logger/LoggerOptions";
 
 /**
  * Adds metadata to a map.
@@ -201,4 +205,29 @@ function getType(o: any) {
   }
 
   return typeof o;
+}
+
+/**
+ * Prepares DaprClientOptions for use by the DaprClient/DaprServer.
+ * If the user does not provide a value for a mandatory option, the default value is used.
+ * @param clientoptions DaprClientOptions
+ * @param defaultCommunicationProtocol CommunicationProtocolEnum
+ * @returns DaprClientOptions
+ */
+export function getClientOptions(
+  clientoptions: Partial<DaprClientOptions> | undefined,
+  defaultCommunicationProtocol: CommunicationProtocolEnum,
+  defaultLoggerOptions: LoggerOptions | undefined,
+): DaprClientOptions {
+  const clientCommunicationProtocol = clientoptions?.communicationProtocol ?? defaultCommunicationProtocol;
+  return {
+    daprHost: clientoptions?.daprHost ?? Settings.getDefaultHost(),
+    daprPort: clientoptions?.daprPort ?? Settings.getDefaultPort(clientCommunicationProtocol),
+    communicationProtocol: clientCommunicationProtocol,
+    isKeepAlive: clientoptions?.isKeepAlive,
+    logger: clientoptions?.logger ?? defaultLoggerOptions,
+    actor: clientoptions?.actor,
+    daprApiToken: clientoptions?.daprApiToken,
+    maxBodySizeMb: clientoptions?.maxBodySizeMb,
+  };
 }

@@ -35,10 +35,26 @@ const serverHost = "127.0.0.1"; // App Host of this Example Server
 const serverPort = "50051"; // App Port of this Example Server
 
 // HTTP Example
-const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
+const server = new DaprServer({
+  serverHost,
+  serverPort,
+  communicationProtocol: CommunicationProtocolEnum.HTTP, // DaprClient to use same communication protocol as DaprServer, in case DaprClient protocol not mentioned explicitly
+  clientOptions: {
+    daprHost,
+    daprPort,
+  },
+});
 
 // GRPC Example
-const server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+const server = new DaprServer({
+  serverHost,
+  serverPort,
+  communicationProtocol: CommunicationProtocolEnum.GRPC,
+  clientOptions: {
+    daprHost,
+    daprPort,
+  },
+});
 ```
 
 ## Running
@@ -50,7 +66,14 @@ To run the examples, you can use two different protocols to interact with the Da
 ```typescript
 import { DaprServer } from "@dapr/dapr";
 
-const server = new DaprServer(appHost, appPort, daprHost, daprPort);
+const server = new DaprServer({
+  serverHost: appHost,
+  serverPort: appPort,
+  clientOptions: {
+    daprHost,
+    daprPort,
+  },
+});
 // initialize subscribtions, ... before server start
 // the dapr sidecar relies on these
 await server.start();
@@ -84,17 +107,15 @@ myApp.get("/my-custom-endpoint", (req, res) => {
   res.send({ msg: "My own express app!" });
 });
 
-const daprServer = new DaprServer(
-  "127.0.0.1", // App Host
-  "50002", // App Port
-  daprHost,
-  daprPort,
-  CommunicationProtocolEnum.HTTP,
-  {},
-  {
-    serverHttp: myApp,
-  },
-);
+const daprServer = new DaprServer({
+      serverHost: "127.0.0.1", // App Host
+      serverPort: "50002", // App Port
+      serverHttp: myApp
+      clientOptions: {
+        daprHost,
+        daprPort,
+      }
+    });
 
 // Initialize subscriptions before the server starts, the Dapr sidecar uses it.
 // This will also initialize the app server itself (removing the need for `app.listen` to be called).
@@ -115,7 +136,15 @@ Since HTTP is the default, you will have to adapt the communication protocol to 
 ```typescript
 import { DaprServer, CommunicationProtocol } from "@dapr/dapr";
 
-const server = new DaprServer(appHost, appPort, daprHost, daprPort, CommunicationProtocol.GRPC);
+const server = new DaprServer({
+  serverHost: appHost,
+  serverPort: appPort,
+  communicationProtocol: CommunicationProtocolEnum.GRPC,
+  clientOptions: {
+    daprHost,
+    daprPort,
+  },
+});
 // initialize subscribtions, ... before server start
 // the dapr sidecar relies on these
 await server.start();
@@ -148,7 +177,14 @@ const serverHost = "127.0.0.1"; // App Host of this Example Server
 const serverPort = "50051"; // App Port of this Example Server "
 
 async function start() {
-  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
+  const server = new DaprServer({
+    serverHost,
+    serverPort,
+    clientOptions: {
+      daprHost,
+      daprPort,
+    },
+  });
 
   const callbackFunction = (data: DaprInvokerCallbackContent) => {
     console.log("Received body: ", data.body);
@@ -197,7 +233,14 @@ const serverHost = "127.0.0.1"; // App Host of this Example Server
 const serverPort = "50051"; // App Port of this Example Server "
 
 async function start() {
-  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
+  const server = new DaprServer({
+    serverHost,
+    serverPort,
+    clientOptions: {
+      daprHost,
+      daprPort,
+    },
+  });
 
   const pubSubName = "my-pubsub-name";
   const topic = "topic-a";
@@ -271,7 +314,14 @@ const serverHost = "127.0.0.1"; // App Host of this Example Server
 const serverPort = "50051"; // App Port of this Example Server "
 
 async function start() {
-  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
+  const server = new DaprServer({
+    serverHost,
+    serverPort,
+    clientOptions: {
+      daprHost,
+      daprPort,
+    },
+  });
 
   const pubSubName = "my-pubsub-name";
   const topic = "topic-a";
@@ -314,7 +364,14 @@ const serverHost = "127.0.0.1"; // App Host of this Example Server
 const serverPort = "50051"; // App Port of this Example Server "
 
 async function start() {
-  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
+  const server = new DaprServer({
+    serverHost,
+    serverPort,
+    clientOptions: {
+      daprHost,
+      daprPort,
+    },
+  });
 
   const pubSubName = "my-pubsub-name";
   const topic = "topic-a";
@@ -367,13 +424,20 @@ import { DaprServer } from "@dapr/dapr";
 const pubSubName = "orderPubSub";
 const topic = "topicbulk";
 
-const DAPR_HOST = process.env.DAPR_HOST || "127.0.0.1";
-const DAPR_HTTP_PORT = process.env.DAPR_HTTP_PORT || "3502";
-const SERVER_HOST = process.env.SERVER_HOST || "127.0.0.1";
-const SERVER_PORT = process.env.APP_PORT || 5001;
+const daprHost = process.env.DAPR_HOST || "127.0.0.1";
+const daprHttpPort = process.env.DAPR_HTTP_PORT || "3502";
+const serverHost = process.env.SERVER_HOST || "127.0.0.1";
+const serverPort = process.env.APP_PORT || 5001;
 
 async function start() {
-  const server = new DaprServer(SERVER_HOST, SERVER_PORT, DAPR_HOST, DAPR_HTTP_PORT);
+  const server = new DaprServer({
+    serverHost,
+    serverPort,
+    clientOptions: {
+      daprHost,
+      daprPort: daprHttpPort,
+    },
+  });
 
   // Publish multiple messages to a topic with default config.
   await client.pubsub.subscribeBulk(pubSubName, topic, (data) =>
@@ -422,7 +486,14 @@ const serverHost = "127.0.0.1"; // App Host of this Example Server
 const serverPort = "50051"; // App Port of this Example Server "
 
 async function start() {
-  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
+  const server = new DaprServer({
+    serverHost,
+    serverPort,
+    clientOptions: {
+      daprHost,
+      daprPort,
+    },
+  });
 
   const pubSubName = "my-pubsub-name";
 
@@ -465,7 +536,14 @@ const serverHost = "127.0.0.1";
 const serverPort = "5051";
 
 async function start() {
-  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
+  const server = new DaprServer({
+    serverHost,
+    serverPort,
+    clientOptions: {
+      daprHost,
+      daprPort,
+    },
+  });
 
   const bindingName = "my-binding-name";
 
