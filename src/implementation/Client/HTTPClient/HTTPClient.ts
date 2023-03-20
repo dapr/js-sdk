@@ -146,6 +146,8 @@ export default class HTTPClient implements IClient {
     const agent = urlFull.startsWith("https") ? HTTPClient.httpsAgent : HTTPClient.httpAgent;
     clientOptions.agent = agent;
 
+    this.logger.debug("Body content: ", clientOptions.body?.toString?.());
+
     this.logger.debug(
       `Fetching ${clientOptions.method} ${urlFull} with (headers: ${JSON.stringify(
         clientOptions.headers,
