@@ -67,19 +67,19 @@ describe("grpc/pubsub", () => {
     it("should use the content-type when provided", async () => {
       const requests: PublishEventRequest[] = [];
       const grpcClientPubsub = new GRPCClientPubSub(getMockClient(requests));
-      await grpcClientPubsub.publish(
-        "my-pubsub",
-        "my-topic",
-        { key: "value" },
-        { contentType: "text/plain", metadata: { mKey: "mValue" } },
-      );
+
+      const inData = { key: "value" };
+      await grpcClientPubsub.publish("my-pubsub", "my-topic", inData, {
+        contentType: "text/plain",
+        metadata: { mKey: "mValue" },
+      });
 
       // Check the request
       expect(requests.length).toBe(1);
       const pubsub = requests[0];
       expect(pubsub.getPubsubName()).toBe("my-pubsub");
       expect(pubsub.getTopic()).toBe("my-topic");
-      expect(pubsub.getData()).toStrictEqual(Buffer.from(JSON.stringify({ key: "value" })));
+      expect(pubsub.getData()).toStrictEqual(Buffer.from(inData.toString()));
       expect(pubsub.getDataContentType()).toBe("text/plain");
       expect(pubsub.getMetadataMap().getLength()).toBe(1);
       expect(pubsub.getMetadataMap().get("mKey")).toBe("mValue");
