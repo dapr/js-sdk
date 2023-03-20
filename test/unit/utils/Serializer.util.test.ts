@@ -79,4 +79,11 @@ describe("serializer", () => {
 
     expect(payloadLength).toEqual(dataLength);
   });
+
+  runIt("should serialize an Object as text/plain if specified", () => {
+    const data = { Hello: "World" };
+    const { serializedData, contentType } = SerializerUtil.serializeGrpc(data, "text/plain");
+    expect(Buffer.compare(serializedData, Buffer.from(data.toString()))).toEqual(0);
+    expect(contentType).toEqual("text/plain");
+  });
 });

@@ -304,12 +304,17 @@ async function start() {
   const topic = "topic-a";
 
   // Publish message to topic as text/plain
+  // Note, the content type is inferred from the message type unless specified explicitly
   const response = await client.pubsub.publish(pubSubName, topic, "hello, world!");
   // If publish fails, response contains the error
   console.log(response);
 
   // Publish message to topic as application/json
   await client.pubsub.publish(pubSubName, topic, { hello: "world" });
+
+  // Publish a JSON message as plain text
+  const options = { contentType: "text/plain" };
+  await client.pubsub.publish(pubSubName, topic, { hello: "world" }, options);
 
   // Publish message to topic as application/cloudevents+json
   // You can also use the cloudevent SDK to create cloud events https://github.com/cloudevents/sdk-javascript
@@ -320,6 +325,10 @@ async function start() {
     id: "1234",
   };
   await client.pubsub.publish(pubSubName, topic, cloudEvent);
+
+  // Publish a cloudevent as raw payload
+  const options = { metadata: { rawPayload: true } };
+  await client.pubsub.publish(pubSubName, topic, "hello, world!", options);
 
   // Publish multiple messages to a topic as text/plain
   await client.pubsub.publishBulk(pubSubName, topic, ["message 1", "message 2", "message 3"]);

@@ -132,13 +132,11 @@ export default class HTTPClient implements IClient {
 
     // Set Body and Content-Type Header
     if (params?.body) {
-      const { serializedData, contentType } = SerializerUtil.serializeHttp(params?.body);
+      // If content-type is already present, use that to serialize the data.
+      const headerContentType = params?.headers?.["Content-Type"] ?? undefined;
+      const { serializedData, contentType } = SerializerUtil.serializeHttp(params?.body, headerContentType);
 
-      // Don't overwrite it
-      if (!params?.headers?.["Content-Type"]) {
-        clientOptions.headers["Content-Type"] = contentType;
-      }
-
+      clientOptions.headers["Content-Type"] = contentType;
       clientOptions.body = serializedData;
     }
 
