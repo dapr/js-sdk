@@ -38,13 +38,13 @@ async function start() {
   });
 
   // Publish multiple messages to a topic with default config.
-  await client.pubsub.subscribeBulk("my-pubsub-component", "my-topic", async (data: Record<string, any>) => {
+  await server.pubsub.subscribeBulk("my-pubsub-component", "my-topic", async (data: Record<string, any>) => {
     // The library parses JSON when possible.
     console.log(`[Dapr-JS][Example] Received on subscription: ${JSON.stringify(data)}`);
   });
 
   // Publish multiple messages to a topic with specific maxMessagesCount and maxAwaitDurationMs.
-  await client.pubsub.subscribeBulk(
+  await server.pubsub.subscribeBulk(
     "my-pubsub-component",
     "my-topic",
     async (data: Record<string, any>) => {
