@@ -58,7 +58,6 @@ import { Settings } from "../../utils/Settings.util";
 import { Logger } from "../../logger/Logger";
 import GRPCClientProxy from "./GRPCClient/proxy";
 import * as NodeJSUtils from "../../utils/NodeJS.util";
-import { SDK_PACKAGE_NAME } from "../../version";
 
 export default class DaprClient {
   readonly options: DaprClientOptions;
