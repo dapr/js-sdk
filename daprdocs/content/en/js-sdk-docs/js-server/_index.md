@@ -569,7 +569,7 @@ start().catch((e) => {
 #### Getting a configuration value
 
 ```typescript
-import { DaprServer } from "dapr-client";
+import { DaprServer } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1";
 const daprPort = "3500";
@@ -594,7 +594,7 @@ start().catch((e) => {
 #### Subscribing to Key Changes
 
 ```typescript
-import { DaprServer } from "dapr-client";
+import { DaprServer } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1";
 const daprPort = "3500";

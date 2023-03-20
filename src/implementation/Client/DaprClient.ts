@@ -58,7 +58,6 @@ import { Settings } from "../../utils/Settings.util";
 import { Logger } from "../../logger/Logger";
 import GRPCClientProxy from "./GRPCClient/proxy";
 import * as NodeJSUtils from "../../utils/NodeJS.util";
-import { SDK_PACKAGE_NAME } from "../../version";
 import { getClientOptions } from "../../utils/Client.util";
 
 export default class DaprClient {
@@ -86,12 +85,6 @@ export default class DaprClient {
     // Validation on port
     if (this.options.daprPort && !/^[0-9]+$/.test(this.options.daprPort)) {
       throw new Error("DAPR_INCORRECT_SIDECAR_PORT");
-    }
-
-    if (String(SDK_PACKAGE_NAME) === "dapr-client") {
-      this.logger.warn(
-        "dapr-client is deprecated. Please use @dapr/dapr instead. For more information, see https://github.com/dapr/js-sdk/issues/259",
-      );
     }
 
     // Builder
