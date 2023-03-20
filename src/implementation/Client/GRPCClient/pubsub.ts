@@ -49,16 +49,9 @@ export default class GRPCClientPubSub implements IClientPubSub {
     msgService.setTopic(topic);
 
     if (data) {
-      const serialized = SerializerUtil.serializeGrpc(data);
+      const serialized = SerializerUtil.serializeGrpc(data, options.contentType);
       msgService.setData(serialized.serializedData);
-
-      // Set content type if provided.
-      // Otherwise, use the one inferred by the serializer.
-      if (options.contentType) {
-        msgService.setDataContentType(options.contentType);
-      } else {
-        msgService.setDataContentType(serialized.contentType);
-      }
+      msgService.setDataContentType(serialized.contentType);
     }
 
     addMetadataToMap(msgService.getMetadataMap(), options.metadata);

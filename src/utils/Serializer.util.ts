@@ -14,10 +14,17 @@ limitations under the License.
 import { getContentType } from "./Client.util";
 import { BodyInit } from "node-fetch";
 
-export function serializeGrpc(data: any): { serializedData: Buffer; contentType: string } {
+/**
+ * Serialize data for gRPC requests.
+ * If no content type is provided, it will be inferred from the data.
+ * @param data data to serialize
+ * @param inContentType content type of the data
+ * @returns serialized data and content type
+ */
+export function serializeGrpc(data: any, inContentType?: string): { serializedData: Buffer; contentType: string } {
   let serializedData: Buffer = data;
 
-  const contentType = getContentType(data);
+  const contentType = inContentType ?? getContentType(data);
 
   switch (contentType) {
     case "application/json":
@@ -36,14 +43,24 @@ export function serializeGrpc(data: any): { serializedData: Buffer; contentType:
   return { serializedData, contentType };
 }
 
-export function serializeHttp(data: any): {
+/**
+ * Serialize data for HTTP requests.
+ * If no content type is provided, it will be inferred from the data.
+ * @param data data to serialize
+ * @param inContentType content type of the data
+ * @returns serialized data and content type
+ */
+export function serializeHttp(
+  data: any,
+  inContentType?: string,
+): {
   // https://developer.mozilla.org/en-US/docs/Web/API/fetch#body
   serializedData: BodyInit;
   contentType: string;
 } {
   let serializedData: BodyInit;
 
-  const contentType = getContentType(data);
+  const contentType = inContentType ?? getContentType(data);
 
   switch (contentType) {
     case "application/json":
