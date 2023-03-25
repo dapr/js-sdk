@@ -467,7 +467,8 @@ describe("common/client", () => {
 
     it("should return an empty object when result is empty", async () => {
       const result = await httpClient.state.query(stateStoreMongoDbName, {
-        filter: { EQ: { state: "statenotfound" } }, sort: [
+        filter: { EQ: { state: "statenotfound" } },
+        sort: [
           {
             key: "state",
             order: "DESC",
@@ -479,8 +480,5 @@ describe("common/client", () => {
       });
       expect(result).toEqual({ results: [] });
     });
-
-
-
   });
 });

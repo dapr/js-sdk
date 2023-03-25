@@ -104,7 +104,7 @@ export default class HTTPClientState implements IClientState {
     });
 
     if (result === "") {
-      return { results: [] };
+      return { results: [] } as StateQueryResponseType;
     }
 
     return result as StateQueryResponseType;
