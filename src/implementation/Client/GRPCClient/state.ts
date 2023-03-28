@@ -248,6 +248,13 @@ export default class GRPCClientState implements IClientState {
         if (err) {
           return reject(err);
         }
+        const resultsList = res.getResultsList();
+        if (resultsList.length === 0) {
+          return resolve({
+            results: [],
+            token: res.getToken(),
+          } as StateQueryResponseType);
+        }
 
         // https://docs.dapr.io/reference/api/state_api/#response-body
         // map the res from gRPC

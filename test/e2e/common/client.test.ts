@@ -464,5 +464,21 @@ describe("common/client", () => {
         await httpClient.state.delete(stateStoreMongoDbName, `key-${i}`);
       }
     });
+
+    it("should return an empty object when result is empty", async () => {
+      const result = await httpClient.state.query(stateStoreMongoDbName, {
+        filter: { EQ: { state: "statenotfound" } },
+        sort: [
+          {
+            key: "state",
+            order: "DESC",
+          },
+        ],
+        page: {
+          limit: 10,
+        },
+      });
+      expect(result).toEqual({ results: [] });
+    });
   });
 });
