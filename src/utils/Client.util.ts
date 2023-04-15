@@ -28,6 +28,10 @@ import { DaprClientOptions } from "../types/DaprClientOptions";
 import CommunicationProtocolEnum from "../enum/CommunicationProtocol.enum";
 import { Settings } from "./Settings.util";
 import { LoggerOptions } from "../types/logger/LoggerOptions";
+import { EStateConsistency } from "../enum/StateConsistency.enum";
+import { EStateConcurrency } from "../enum/StateConcurrency.enum";
+import { URLSearchParams } from "url";
+import { IStateOptions } from "../types/state/StateOptions.type";
 
 /**
  * Adds metadata to a map.
@@ -61,6 +65,56 @@ export function createHTTPMetadataQueryParam(metadata: KeyValueType = {}): strin
   // strip the first "&" if it exists
   queryParam = queryParam.substring(1);
   return queryParam;
+}
+
+/**
+ * Converts a set of optional parameters into a query string
+ * @param params
+ */
+export function createHTTPStateBehavioralQueryParam(params: Partial<IStateOptions> = {}): string {
+  const optParamsBuilder = new URLSearchParams();
+
+  if (params?.consistency) {
+    const consistency = matchStateConsistency(params?.consistency);
+    if (consistency !== undefined) optParamsBuilder.set("consistency", consistency);
+  }
+
+  if (params?.concurrency) {
+    const concurrency = matchStateConcurrency(params?.concurrency);
+    if (concurrency !== undefined) optParamsBuilder.set("concurrency", concurrency);
+  }
+
+  return optParamsBuilder.toString();
+}
+
+/**
+ * Return the string representation of a valid consistency configuration
+ * @param c
+ */
+export function matchStateConsistency(c: EStateConsistency): "eventual" | "strong" | undefined {
+  switch (c) {
+    case EStateConsistency.CONSISTENCY_EVENTUAL:
+      return "eventual";
+    case EStateConsistency.CONSISTENCY_STRONG:
+      return "strong";
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * Return the string representation of a valid concurrency configuration
+ * @param c
+ */
+export function matchStateConcurrency(c: EStateConcurrency): "first-write" | "last-write" | undefined {
+  switch (c) {
+    case EStateConcurrency.CONCURRENCY_FIRST_WRITE:
+      return "first-write";
+    case EStateConcurrency.CONCURRENCY_LAST_WRITE:
+      return "last-write";
+    default:
+      return undefined;
+  }
 }
 
 /**

@@ -1,5 +1,5 @@
 /*
-Copyright 2022 The Dapr Authors
+Copyright 2023 The Dapr Authors
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -11,13 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { KeyValueType } from "./KeyValue.type";
-import { IStateOptions } from "./state/StateOptions.type";
+import { IRequestMetadata } from "../RequestMetadata.type";
+import { IStateOptions } from "./StateOptions.type";
+import { KeyValuePairType } from "../KeyValuePair.type";
 
-export type KeyValuePairType = {
-  key: string;
-  value: any;
-  etag?: string;
-  metadata?: KeyValueType;
-  options?: IStateOptions;
+export type StateDeleteOptions = IStateOptions & {
+  /**
+   * Metadata to be passed to the operation.
+   */
+  metadata: IRequestMetadata;
+  /**
+   * Optional Etag for Optimistic Concurrency Control
+   */
+  etag: KeyValuePairType["etag"];
 };

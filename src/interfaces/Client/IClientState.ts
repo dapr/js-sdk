@@ -20,12 +20,14 @@ import { StateQueryResponseType } from "../../types/state/StateQueryResponse.typ
 import { StateGetBulkOptions } from "../../types/state/StateGetBulkOptions.type";
 import { StateSaveResponseType } from "../../types/state/StateSaveResponseType";
 import { StateSaveOptions } from "../../types/state/StateSaveOptions.type";
+import { StateDeleteOptions } from "../../types/state/StateDeleteOptions.type";
+import { StateGetOptions } from "../../types/state/StateGetOptions.type";
 
 export default interface IClientState {
   save(storeName: string, stateObjects: KeyValuePairType[], options?: StateSaveOptions): Promise<StateSaveResponseType>;
-  get(storeName: string, key: string): Promise<KeyValueType | string>;
+  get(storeName: string, key: string, options?: Partial<StateGetOptions>): Promise<KeyValueType | string>;
   getBulk(storeName: string, keys: string[], options?: StateGetBulkOptions): Promise<KeyValueType[]>;
-  delete(storeName: string, key: string): Promise<void>;
+  delete(storeName: string, key: string, options?: Partial<StateDeleteOptions>): Promise<StateSaveResponseType>;
   transaction(storeName: string, operations?: OperationType[], metadata?: IRequestMetadata | null): Promise<void>;
   query(storeName: string, query: StateQueryType): Promise<StateQueryResponseType>;
 }
