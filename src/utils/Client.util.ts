@@ -28,8 +28,8 @@ import { DaprClientOptions } from "../types/DaprClientOptions";
 import CommunicationProtocolEnum from "../enum/CommunicationProtocol.enum";
 import { Settings } from "./Settings.util";
 import { LoggerOptions } from "../types/logger/LoggerOptions";
-import { EStateConsistency } from "../enum/StateConsistency.enum";
-import { EStateConcurrency } from "../enum/StateConcurrency.enum";
+import { StateConsistencyEnum } from "../enum/StateConsistency.enum";
+import { StateConcurrencyEnum } from "../enum/StateConcurrency.enum";
 import { URLSearchParams } from "url";
 import { IStateOptions } from "../types/state/StateOptions.type";
 
@@ -91,11 +91,11 @@ export function createHTTPStateBehavioralQueryParam(params: Partial<IStateOption
  * Return the string representation of a valid consistency configuration
  * @param c
  */
-export function getStateConsistencyValue(c: EStateConsistency): "eventual" | "strong" | undefined {
+export function getStateConsistencyValue(c: StateConsistencyEnum): "eventual" | "strong" | undefined {
   switch (c) {
-    case EStateConsistency.CONSISTENCY_EVENTUAL:
+    case StateConsistencyEnum.CONSISTENCY_EVENTUAL:
       return "eventual";
-    case EStateConsistency.CONSISTENCY_STRONG:
+    case StateConsistencyEnum.CONSISTENCY_STRONG:
       return "strong";
     default:
       return undefined;
@@ -106,11 +106,11 @@ export function getStateConsistencyValue(c: EStateConsistency): "eventual" | "st
  * Return the string representation of a valid concurrency configuration
  * @param c
  */
-export function getStateConcurrencyValue(c: EStateConcurrency): "first-write" | "last-write" | undefined {
+export function getStateConcurrencyValue(c: StateConcurrencyEnum): "first-write" | "last-write" | undefined {
   switch (c) {
-    case EStateConcurrency.CONCURRENCY_FIRST_WRITE:
+    case StateConcurrencyEnum.CONCURRENCY_FIRST_WRITE:
       return "first-write";
-    case EStateConcurrency.CONCURRENCY_LAST_WRITE:
+    case StateConcurrencyEnum.CONCURRENCY_LAST_WRITE:
       return "last-write";
     default:
       return undefined;

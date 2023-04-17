@@ -291,11 +291,11 @@ export default class GRPCClientState implements IClientState {
 
     const stateOptions = new StateOptions();
     if (opt?.consistency) {
-      stateOptions.setConsistency(opt.consistency);
+      stateOptions.setConsistency(opt.consistency as any);
     }
 
     if (opt?.concurrency) {
-      stateOptions.setConcurrency(opt.concurrency);
+      stateOptions.setConcurrency(opt.concurrency as any);
     }
 
     return stateOptions;
