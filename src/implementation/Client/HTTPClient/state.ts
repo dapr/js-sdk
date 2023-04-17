@@ -70,7 +70,7 @@ export default class HTTPClientState implements IClientState {
       queryParams = queryParams.substring(1);
     }
 
-    const result = await this.client.execute(`/state/${storeName}/${key}`);
+    const result = await this.client.execute(`/state/${storeName}/${key}?${queryParams}`);
 
     return result as KeyValueType;
   }
