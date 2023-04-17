@@ -75,12 +75,12 @@ export function createHTTPStateBehavioralQueryParam(params: Partial<IStateOption
   const optParamsBuilder = new URLSearchParams();
 
   if (params?.consistency) {
-    const consistency = matchStateConsistency(params?.consistency);
+    const consistency = getStateConsistencyValue(params?.consistency);
     if (consistency !== undefined) optParamsBuilder.set("consistency", consistency);
   }
 
   if (params?.concurrency) {
-    const concurrency = matchStateConcurrency(params?.concurrency);
+    const concurrency = getStateConcurrencyValue(params?.concurrency);
     if (concurrency !== undefined) optParamsBuilder.set("concurrency", concurrency);
   }
 
@@ -91,7 +91,7 @@ export function createHTTPStateBehavioralQueryParam(params: Partial<IStateOption
  * Return the string representation of a valid consistency configuration
  * @param c
  */
-export function matchStateConsistency(c: EStateConsistency): "eventual" | "strong" | undefined {
+export function getStateConsistencyValue(c: EStateConsistency): "eventual" | "strong" | undefined {
   switch (c) {
     case EStateConsistency.CONSISTENCY_EVENTUAL:
       return "eventual";
@@ -106,7 +106,7 @@ export function matchStateConsistency(c: EStateConsistency): "eventual" | "stron
  * Return the string representation of a valid concurrency configuration
  * @param c
  */
-export function matchStateConcurrency(c: EStateConcurrency): "first-write" | "last-write" | undefined {
+export function getStateConcurrencyValue(c: EStateConcurrency): "first-write" | "last-write" | undefined {
   switch (c) {
     case EStateConcurrency.CONCURRENCY_FIRST_WRITE:
       return "first-write";
