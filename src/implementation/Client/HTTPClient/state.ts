@@ -64,10 +64,11 @@ export default class HTTPClientState implements IClientState {
 
     // Manage non-metadata query parameters
     const optParams = createHTTPStateBehavioralQueryParam(options);
-
     let queryParams = `${metadataParams}${optParams}`;
     // If metadataParam is empty
-    if (queryParams.startsWith("&")) queryParams = queryParams.substring(1);
+    if (queryParams.startsWith("&")) {
+      queryParams = queryParams.substring(1);
+    }
 
     const result = await this.client.execute(`/state/${storeName}/${key}`);
 
@@ -93,14 +94,17 @@ export default class HTTPClientState implements IClientState {
 
     // Managed headers
     const headers: THTTPExecuteParams["headers"] = {};
-    if (options?.etag) headers["If-Match"] = options.etag;
+    if (options?.etag) {
+      headers["If-Match"] = options.etag;
+    }
 
     // Manage non-metadata query parameters
     const optParams = createHTTPStateBehavioralQueryParam(options);
-
     let queryParams = `${metadataParams}${optParams}`;
     // If metadataParam is empty
-    if (queryParams.startsWith("&")) queryParams = queryParams.substring(1);
+    if (queryParams.startsWith("&")) {
+      queryParams = queryParams.substring(1);
+    }
 
     try {
       await this.client.execute(`/state/${storeName}/${key}?${queryParams}`, {
@@ -111,6 +115,7 @@ export default class HTTPClientState implements IClientState {
       this.logger.error(`Error deleting state from store ${storeName}, error: ${e}`);
       return { error: e };
     }
+
     return {};
   }
 

@@ -40,6 +40,7 @@ import { StateSaveResponseType } from "../../../types/state/StateSaveResponseTyp
 import { StateSaveOptions } from "../../../types/state/StateSaveOptions.type";
 import { StateDeleteOptions } from "../../../types/state/StateDeleteOptions.type";
 import { StateGetOptions } from "../../../types/state/StateGetOptions.type";
+import { IStateOptions } from "../../../types/state/StateOptions.type";
 
 // https://docs.dapr.io/reference/api/state_api/
 export default class GRPCClientState implements IClientState {
@@ -72,13 +73,7 @@ export default class GRPCClientState implements IClientState {
         si.setEtag(etag);
       }
 
-      if (stateObject?.options) {
-        const opt = stateObject.options;
-        const stateOptions = new StateOptions();
-        if (opt?.consistency) stateOptions.setConsistency(opt.consistency as any);
-        if (opt?.concurrency) stateOptions.setConcurrency(opt.concurrency as any);
-        si.setOptions(stateOptions);
-      }
+      si.setOptions(this._configureStateOptions(stateObject?.options));
 
       // Merge metadata from stateObject and options.
       // Note, metadata from options will override metadata from stateObject.
@@ -111,7 +106,9 @@ export default class GRPCClientState implements IClientState {
     msgService.setStoreName(storeName);
     msgService.setKey(key);
 
-    if (options?.consistency) msgService.setConsistency(options.consistency as any);
+    if (options?.consistency) {
+      msgService.setConsistency(options.consistency as any);
+    }
 
     const client = await this.client.getClient();
 
@@ -185,10 +182,7 @@ export default class GRPCClientState implements IClientState {
       msgService.setEtag(etag);
     }
 
-    const stateOptions = new StateOptions();
-    if (options?.consistency) stateOptions.setConsistency(options.consistency as any);
-    if (options?.concurrency) stateOptions.setConcurrency(options.concurrency as any);
-    msgService.setOptions(stateOptions);
+    msgService.setOptions(this._configureStateOptions(options));
 
     const client = await this.client.getClient();
 
@@ -223,13 +217,7 @@ export default class GRPCClientState implements IClientState {
         si.setEtag(etag);
       }
 
-      if (o.request.options) {
-        const so = new StateOptions();
-        so.setConsistency(o.request.options.consistency as any);
-        so.setConcurrency(o.request.options.concurrency as any);
-
-        si.setOptions(so);
-      }
+      si.setOptions(this._configureStateOptions(o.request?.options));
 
       const transactionItem = new TransactionalStateOperation();
       transactionItem.setOperationtype(o.operation);
@@ -294,5 +282,22 @@ export default class GRPCClientState implements IClientState {
         return resolve(resMapped);
       });
     });
+  }
+
+  _configureStateOptions(opt?: Partial<IStateOptions>): StateOptions | undefined {
+    if (opt === undefined) {
+      return undefined;
+    }
+
+    const stateOptions = new StateOptions();
+    if (opt?.consistency) {
+      stateOptions.setConsistency(opt.consistency);
+    }
+
+    if (opt?.concurrency) {
+      stateOptions.setConcurrency(opt.concurrency);
+    }
+
+    return stateOptions;
   }
 }

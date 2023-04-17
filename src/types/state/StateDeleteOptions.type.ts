@@ -20,6 +20,7 @@ export type StateDeleteOptions = IStateOptions & {
    * Metadata to be passed to the operation.
    */
   metadata: IRequestMetadata;
+
   /**
    * Optional Etag for Optimistic Concurrency Control
    */
