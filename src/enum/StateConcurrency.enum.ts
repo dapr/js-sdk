@@ -17,4 +17,4 @@ export enum StateConcurrencyEnum {
   CONCURRENCY_LAST_WRITE = 2,
 }
 
-export default StateConcurrencyEnum
+export default StateConcurrencyEnum;
