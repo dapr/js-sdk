@@ -64,7 +64,9 @@ export default class HTTPClientState implements IClientState {
 
     // Manage non-metadata query parameters
     const optParams = createHTTPStateBehavioralQueryParam(options);
+
     let queryParams = `${metadataParams}${optParams}`;
+
     // If metadataParam is empty
     if (queryParams.startsWith("&")) {
       queryParams = queryParams.substring(1);
@@ -100,7 +102,9 @@ export default class HTTPClientState implements IClientState {
 
     // Manage non-metadata query parameters
     const optParams = createHTTPStateBehavioralQueryParam(options);
+
     let queryParams = `${metadataParams}${optParams}`;
+
     // If metadataParam is empty
     if (queryParams.startsWith("&")) {
       queryParams = queryParams.substring(1);

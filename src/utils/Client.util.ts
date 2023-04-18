@@ -76,12 +76,16 @@ export function createHTTPStateBehavioralQueryParam(params: Partial<IStateOption
 
   if (params?.consistency) {
     const consistency = getStateConsistencyValue(params?.consistency);
-    if (consistency !== undefined) optParamsBuilder.set("consistency", consistency);
+    if (consistency !== undefined) {
+      optParamsBuilder.set("consistency", consistency);
+    }
   }
 
   if (params?.concurrency) {
     const concurrency = getStateConcurrencyValue(params?.concurrency);
-    if (concurrency !== undefined) optParamsBuilder.set("concurrency", concurrency);
+    if (concurrency !== undefined) {
+      optParamsBuilder.set("concurrency", concurrency);
+    }
   }
 
   return optParamsBuilder.toString();
