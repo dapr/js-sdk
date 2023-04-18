@@ -68,34 +68,44 @@ export function createHTTPMetadataQueryParam(metadata: KeyValueType = {}): strin
 }
 
 /**
- * Converts a set of optional parameters into a query string
- * @param params
+ * Converts one or multiple sets of data to a querystring
+ * Each set of data contains a set of KeyValue Pair
+ * An optional "metadata" type can be added in each set, in which case
+ * the QS key of each data in the set will be prefixed with "metadata.".
+ *
+ * Note, the returned value does not contain the "?" prefix.
+ *
+ * @param params one of multiple set of data
+ * @returns HTTP query parameter string
  */
-export function createHTTPStateBehavioralQueryParam(params: Partial<IStateOptions> = {}): string {
-  const optParamsBuilder = new URLSearchParams();
+export function createHTTPQueryParam(...params: { data?: KeyValueType; type?: "metadata" }[]): string {
+  const queryBuilder = new URLSearchParams();
 
-  if (params?.consistency) {
-    const consistency = getStateConsistencyValue(params?.consistency);
-    if (consistency !== undefined) {
-      optParamsBuilder.set("consistency", consistency);
+  for (const group of params) {
+    if (!group?.data) {
+      continue;
+    }
+
+    for (const [key, value] of Object.entries(group.data)) {
+      let propName = key;
+      if (group?.type === "metadata") {
+        propName = `metadata.${propName}`;
+      }
+
+      if (value !== undefined) {
+        queryBuilder.set(propName, value);
+      }
     }
   }
 
-  if (params?.concurrency) {
-    const concurrency = getStateConcurrencyValue(params?.concurrency);
-    if (concurrency !== undefined) {
-      optParamsBuilder.set("concurrency", concurrency);
-    }
-  }
-
-  return optParamsBuilder.toString();
+  return queryBuilder.toString();
 }
 
 /**
  * Return the string representation of a valid consistency configuration
  * @param c
  */
-export function getStateConsistencyValue(c: StateConsistencyEnum): "eventual" | "strong" | undefined {
+export function getStateConsistencyValue(c?: StateConsistencyEnum): "eventual" | "strong" | undefined {
   switch (c) {
     case StateConsistencyEnum.CONSISTENCY_EVENTUAL:
       return "eventual";
@@ -110,7 +120,7 @@ export function getStateConsistencyValue(c: StateConsistencyEnum): "eventual" | 
  * Return the string representation of a valid concurrency configuration
  * @param c
  */
-export function getStateConcurrencyValue(c: StateConcurrencyEnum): "first-write" | "last-write" | undefined {
+export function getStateConcurrencyValue(c?: StateConcurrencyEnum): "first-write" | "last-write" | undefined {
   switch (c) {
     case StateConcurrencyEnum.CONCURRENCY_FIRST_WRITE:
       return "first-write";

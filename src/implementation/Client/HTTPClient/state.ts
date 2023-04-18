@@ -20,7 +20,7 @@ import { KeyValueType } from "../../../types/KeyValue.type";
 import { StateQueryType } from "../../../types/state/StateQuery.type";
 import { StateQueryResponseType } from "../../../types/state/StateQueryResponse.type";
 import { StateGetBulkOptions } from "../../../types/state/StateGetBulkOptions.type";
-import { createHTTPMetadataQueryParam, createHTTPStateBehavioralQueryParam } from "../../../utils/Client.util";
+import { createHTTPQueryParam, getStateConcurrencyValue, getStateConsistencyValue } from "../../../utils/Client.util";
 import { Settings } from "../../../utils/Settings.util";
 import { Logger } from "../../../logger/Logger";
 import { StateSaveResponseType } from "../../../types/state/StateSaveResponseType";
@@ -44,7 +44,15 @@ export default class HTTPClientState implements IClientState {
     stateObjects: KeyValuePairType[],
     options: StateSaveOptions = {},
   ): Promise<StateSaveResponseType> {
-    const queryParams = createHTTPMetadataQueryParam(options.metadata);
+    const queryParams = createHTTPQueryParam({ data: options?.metadata, type: "metadata" });
+
+    for (const so of stateObjects) {
+      const behavior = {
+        consistency: getStateConsistencyValue(so?.options?.consistency),
+        concurrency: getStateConcurrencyValue(so?.options?.concurrency),
+      };
+      so.options = Object.assign({}, so.options, behavior);
+    }
 
     try {
       await this.client.execute(`/state/${storeName}?${queryParams}`, {
@@ -60,17 +68,11 @@ export default class HTTPClientState implements IClientState {
   }
 
   async get(storeName: string, key: string, options?: Partial<StateGetOptions>): Promise<KeyValueType | string> {
-    const metadataParams = createHTTPMetadataQueryParam(options?.metadata);
+    const behavior = {
+      consistency: getStateConsistencyValue(options?.consistency),
+    };
 
-    // Manage non-metadata query parameters
-    const optParams = createHTTPStateBehavioralQueryParam(options);
-
-    let queryParams = `${metadataParams}${optParams}`;
-
-    // If metadataParam is empty
-    if (queryParams.startsWith("&")) {
-      queryParams = queryParams.substring(1);
-    }
+    const queryParams = createHTTPQueryParam({ data: options?.metadata, type: "metadata" }, { data: behavior });
 
     const result = await this.client.execute(`/state/${storeName}/${key}?${queryParams}`);
 
@@ -78,7 +80,7 @@ export default class HTTPClientState implements IClientState {
   }
 
   async getBulk(storeName: string, keys: string[], options?: StateGetBulkOptions): Promise<KeyValueType[]> {
-    const queryParams = createHTTPMetadataQueryParam(options?.metadata);
+    const queryParams = createHTTPQueryParam({ data: options?.metadata, type: "metadata" });
 
     const result = await this.client.execute(`/state/${storeName}/bulk?${queryParams}`, {
       method: "POST",
@@ -92,22 +94,17 @@ export default class HTTPClientState implements IClientState {
   }
 
   async delete(storeName: string, key: string, options?: Partial<StateDeleteOptions>): Promise<StateSaveResponseType> {
-    const metadataParams = createHTTPMetadataQueryParam(options?.metadata);
+    const behavior = {
+      concurrency: getStateConcurrencyValue(options?.concurrency),
+      consistency: getStateConsistencyValue(options?.consistency),
+    };
+
+    const queryParams = createHTTPQueryParam({ data: options?.metadata, type: "metadata" }, { data: behavior });
 
     // Managed headers
     const headers: THTTPExecuteParams["headers"] = {};
     if (options?.etag) {
       headers["If-Match"] = options.etag;
-    }
-
-    // Manage non-metadata query parameters
-    const optParams = createHTTPStateBehavioralQueryParam(options);
-
-    let queryParams = `${metadataParams}${optParams}`;
-
-    // If metadataParam is empty
-    if (queryParams.startsWith("&")) {
-      queryParams = queryParams.substring(1);
     }
 
     try {
@@ -128,6 +125,14 @@ export default class HTTPClientState implements IClientState {
     operations: OperationType[] = [],
     metadata: IRequestMetadata | null = null,
   ): Promise<void> {
+    for (const op of operations) {
+      const behavior = {
+        consistency: getStateConsistencyValue(op?.request?.options?.consistency),
+        concurrency: getStateConcurrencyValue(op?.request.options?.concurrency),
+      };
+      op.request.options = Object.assign({}, op.request.options, behavior);
+    }
+
     await this.client.execute(`/state/${storeName}/transaction`, {
       method: "POST",
       body: {
