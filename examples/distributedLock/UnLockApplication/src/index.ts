@@ -29,10 +29,10 @@ async function start() {
   const lockOwner = "owner2";
   const expiryInSeconds = 25;
 
-  // Trying to acquire the lock which is being used by the other process(TryLockApplication)
+  // Trying to acquire the lock which is being used by the other process(LockApplication)
   console.log(`Acquiring lock on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
-  let tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
-  console.log("Acquired Lock? " + tryLockResponse.success);
+  let lockResponse = await client.lock.lock(storeName, resourceId, lockOwner, expiryInSeconds);
+  console.log("Acquired Lock? " + lockResponse.success);
   console.log("Lock cannot be acquired as it belongs to the other process");
 
   console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
@@ -45,8 +45,8 @@ async function start() {
 
   // Trying to acquire the lock after the other process lock is expired
   console.log(`Acquiring lock on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
-  tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
-  console.log("Acquired lock after the lock from the other process expired? " + tryLockResponse.success);
+  lockResponse = await client.lock.lock(storeName, resourceId, lockOwner, expiryInSeconds);
+  console.log("Acquired lock after the lock from the other process expired? " + lockResponse.success);
 
   console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
   unLockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);

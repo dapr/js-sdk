@@ -30,8 +30,8 @@ async function start() {
   let expiryInSeconds = 1000;
 
   console.log(`Acquiring lock on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
-  const tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
-  console.log(tryLockResponse);
+  const lockResponse = await client.lock.lock(storeName, resourceId, lockOwner, expiryInSeconds);
+  console.log(lockResponse);
 
   console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
   const unlockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
@@ -44,8 +44,8 @@ async function start() {
 
   expiryInSeconds = 25;
   console.log(`Acquiring lock on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
-  const tryLockResponse1 = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
-  console.log("Acquired Lock? " + tryLockResponse1.success);
+  const lockResponse1 = await client.lock.lock(storeName, resourceId, lockOwner, expiryInSeconds);
+  console.log("Acquired Lock? " + lockResponse1.success);
 
   await new Promise((resolve) => setTimeout(resolve, 20000));
 }
