@@ -31,8 +31,6 @@ import { LoggerOptions } from "../types/logger/LoggerOptions";
 import { StateConsistencyEnum } from "../enum/StateConsistency.enum";
 import { StateConcurrencyEnum } from "../enum/StateConcurrency.enum";
 import { URLSearchParams } from "url";
-import { IStateOptions } from "../types/state/StateOptions.type";
-
 /**
  * Adds metadata to a map.
  * @param map Input map
