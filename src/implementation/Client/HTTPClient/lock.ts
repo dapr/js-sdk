@@ -57,15 +57,15 @@ export default class HTTPClientLock implements IClientLock {
     };
   }
 
-  _statusToLockStatus(status: string): LockStatus {
+  _statusToLockStatus(status: number): LockStatus {
     switch (status) {
-      case "0":
+      case 0:
         return LockStatus.Success;
-      case "1":
+      case 1:
         return LockStatus.LockDoesNotExist;
-      case "2":
+      case 2:
         return LockStatus.LockBelongsToOthers;
-      case "3":
+      case 3:
       default:
         return LockStatus.InternalError;
     }
