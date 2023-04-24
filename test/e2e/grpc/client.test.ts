@@ -14,13 +14,11 @@ limitations under the License.
 import * as grpc from "@grpc/grpc-js";
 import { CommunicationProtocolEnum, DaprClient, LogLevel } from "../../../src";
 import { SubscribeConfigurationResponse } from "../../../src/types/configuration/SubscribeConfigurationResponse";
-import { LockStatus } from "../../../src/types/lock/UnlockResponse";
 import * as DockerUtils from "../../utils/DockerUtil";
 import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runtime/v1/dapr_grpc_pb";
 import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 import { InterceptingListener } from "@grpc/grpc-js/build/src/call-stream";
 import { NextCall } from "@grpc/grpc-js/build/src/client-interceptors";
-import { randomUUID } from "crypto";
 
 const daprHost = "localhost";
 const daprPort = "50000"; // Dapr Sidecar Port of this Example Server
