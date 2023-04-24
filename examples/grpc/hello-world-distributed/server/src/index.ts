@@ -19,7 +19,15 @@ const serverHost = "127.0.0.1"; // App Host of this Example Server
 const serverPort = "50051"; // App Port of this Example Server
 
 async function start() {
-  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+  const server = new DaprServer({
+    serverHost,
+    serverPort,
+    communicationProtocol: CommunicationProtocolEnum.GRPC,
+    clientOptions: {
+      daprHost,
+      daprPort,
+    },
+  });
   await server.start();
 
   await server.invoker.listen(

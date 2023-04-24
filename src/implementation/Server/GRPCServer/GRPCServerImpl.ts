@@ -20,6 +20,7 @@ import { HTTPExtension, InvokeRequest, InvokeResponse } from "../../../proto/dap
 import {
   BindingEventRequest,
   BindingEventResponse,
+  BulkSubscribeConfig,
   ListInputBindingsResponse,
   ListTopicSubscriptionsResponse,
   TopicEventRequest,
@@ -27,6 +28,10 @@ import {
   TopicRoutes,
   TopicRule,
   TopicSubscription,
+  TopicEventBulkRequest,
+  TopicEventBulkResponse,
+  TopicEventBulkResponseEntry,
+  TopicEventCERequest,
 } from "../../../proto/dapr/proto/runtime/v1/appcallback_pb";
 import * as HttpVerbUtil from "../../../utils/HttpVerb.util";
 import { TypeDaprBindingCallback } from "../../../types/DaprBindingCallback.type";
@@ -39,6 +44,9 @@ import { PubSubSubscriptionsType } from "../../../types/pubsub/PubSubSubscriptio
 import { DaprPubSubType } from "../../../types/pubsub/DaprPubSub.type";
 import { PubSubSubscriptionTopicRoutesType } from "../../../types/pubsub/PubSubSubscriptionTopicRoutes.type";
 import { DaprInvokerCallbackFunction } from "../../../types/DaprInvokerCallback.type";
+import { PubSubSubscriptionTopicRouteType } from "../../../types/pubsub/PubSubSubscriptionTopicRoute.type";
+import DaprPubSubStatusEnum from "../../../enum/DaprPubSubStatus.enum";
+import { deserializeGrpc } from "../../../utils/Deserializer.util";
 
 // https://github.com/badsyntax/grpc-js-typescript/issues/1#issuecomment-705419742
 // @ts-ignore
@@ -246,6 +254,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         metadata: metadata,
         route: this.generateDaprSubscriptionRoute(pubsubName, topic),
         deadLetterTopic: options.deadLetterTopic,
+        bulkSubscribe: options.bulkSubscribe,
       };
     } else if (typeof options.route === "string") {
       return {
@@ -254,6 +263,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         metadata: metadata,
         route: this.generateDaprSubscriptionRoute(pubsubName, topic, options.route),
         deadLetterTopic: options.deadLetterTopic,
+        bulkSubscribe: options.bulkSubscribe,
       };
     } else {
       return {
@@ -268,6 +278,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
           })),
         },
         deadLetterTopic: options.deadLetterTopic,
+        bulkSubscribe: options.bulkSubscribe,
       };
     }
   }
@@ -417,13 +428,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
       return;
     }
 
-    const data = Buffer.from(req.getData()).toString();
-    let dataParsed: any;
-    try {
-      dataParsed = JSON.parse(data);
-    } catch (_) {
-      dataParsed = data;
-    }
+    const data = deserializeGrpc(req.getDataContentType(), req.getData());
 
     const res = new TopicEventResponse();
 
@@ -436,17 +441,137 @@ export default class GRPCServerImpl implements IAppCallbackServer {
       }
     }
 
-    try {
-      const eventHandlers = this.pubSubSubscriptions[pubsubName][topic].routes[route].eventHandlers;
-      await Promise.all(eventHandlers.map((cb) => cb(dataParsed, headers)));
-      res.setStatus(TopicEventResponse.TopicEventResponseStatus.SUCCESS);
-    } catch (e) {
-      // @todo: for now we drop, maybe we should allow retrying as well more easily?
-      this.logger.error(`Error handling topic event: ${e}`);
-      res.setStatus(TopicEventResponse.TopicEventResponseStatus.DROP);
+    // Process the callbacks
+    // we handle priority of status on `RETRY` > `DROP` > `SUCCESS` and default to `SUCCESS`
+    const routeObj = this.pubSubSubscriptions[pubsubName][topic].routes[route];
+    const status = await this.processPubSubCallbacks(routeObj, data, headers);
+
+    switch (status) {
+      case DaprPubSubStatusEnum.RETRY:
+        res.setStatus(TopicEventResponse.TopicEventResponseStatus.RETRY);
+        break;
+      case DaprPubSubStatusEnum.DROP:
+        res.setStatus(TopicEventResponse.TopicEventResponseStatus.DROP);
+        break;
+      case DaprPubSubStatusEnum.SUCCESS:
+      default:
+        res.setStatus(TopicEventResponse.TopicEventResponseStatus.SUCCESS);
+        break;
     }
 
     return callback(null, res);
+  }
+
+  async onBulkTopicEventAlpha1(
+    call: grpc.ServerUnaryCall<TopicEventBulkRequest, TopicEventBulkResponse>,
+    callback: grpc.sendUnaryData<TopicEventBulkResponse>,
+  ): Promise<void> {
+    const req = call.request;
+    const pubsubName = req.getPubsubName();
+    const topic = req.getTopic();
+
+    // Route is unique to pubsub and topic and has format pubsub--topic--route so we strip it since else we can't find the route
+    const route = this.generatePubSubSubscriptionTopicRouteName(req.getPath().replace(`${pubsubName}--${topic}--`, ""));
+
+    if (
+      !this.pubSubSubscriptions[pubsubName] ||
+      !this.pubSubSubscriptions[pubsubName][topic] ||
+      !this.pubSubSubscriptions[pubsubName][topic].routes[route]
+    ) {
+      this.logger.warn(
+        `The topic '${topic}' is not being subscribed to on PubSub '${pubsubName}' for route '${route}'.`,
+      );
+      return;
+    }
+
+    const resArr: TopicEventBulkResponseEntry[] = [];
+    const entries = req.getEntriesList();
+
+    for (const ind in entries) {
+      const event = entries[ind];
+      let data: any;
+      if (event.hasBytes()) {
+        data = deserializeGrpc(event.getContentType(), event.getBytes());
+      } else if (event.hasCloudEvent()) {
+        const cloudEvent = event.getCloudEvent();
+        if (cloudEvent instanceof TopicEventCERequest) {
+          data = deserializeGrpc(cloudEvent.getDataContentType(), cloudEvent.getData());
+        }
+      }
+
+      const res = new TopicEventBulkResponseEntry();
+
+      // Get the headers
+      const headers: { [key: string]: string } = {};
+
+      for (const [key, value] of Object.entries(call.metadata.toHttp2Headers())) {
+        if (value) {
+          headers[key] = value.toString();
+        }
+      }
+
+      // Process the callbacks
+      // we handle priority of status on `RETRY` > `DROP` > `SUCCESS` and default to `SUCCESS`
+      const routeObj = this.pubSubSubscriptions[pubsubName][topic].routes[route];
+      const status = await this.processPubSubCallbacks(routeObj, data, headers);
+
+      switch (status) {
+        case DaprPubSubStatusEnum.RETRY:
+          res.setStatus(TopicEventResponse.TopicEventResponseStatus.RETRY);
+          break;
+        case DaprPubSubStatusEnum.DROP:
+          res.setStatus(TopicEventResponse.TopicEventResponseStatus.DROP);
+          break;
+        case DaprPubSubStatusEnum.SUCCESS:
+        default:
+          res.setStatus(TopicEventResponse.TopicEventResponseStatus.SUCCESS);
+          break;
+      }
+
+      res.setEntryId(event.getEntryId());
+      resArr.push(res);
+    }
+
+    const totalRes = new TopicEventBulkResponse();
+    totalRes.setStatusesList(resArr);
+
+    return callback(null, totalRes);
+  }
+
+  async processPubSubCallbacks(
+    routeObj: PubSubSubscriptionTopicRouteType,
+    data: any,
+    headers: { [key: string]: string },
+  ): Promise<DaprPubSubStatusEnum> {
+    const eventHandlers = routeObj.eventHandlers;
+    const statuses = [];
+
+    // Process the callbacks (default: SUCCESS)
+    for (const cb of eventHandlers) {
+      let status = DaprPubSubStatusEnum.SUCCESS;
+
+      try {
+        status = await cb(data, headers);
+      } catch (e) {
+        // We catch and log an error, but we don't do anything with it as the statuses should define that
+        this.logger.error(`[route-${routeObj.path}] Message processing failed, ${e}`);
+      }
+
+      statuses.push(status ?? DaprPubSubStatusEnum.SUCCESS);
+    }
+
+    // Look at the statuses and return the highest priority
+    // we handle priority of status on `RETRY` > `DROP` > `SUCCESS`
+    if (statuses.includes(DaprPubSubStatusEnum.RETRY)) {
+      this.logger.debug(`[route-${routeObj.path}] Retrying message`);
+      return DaprPubSubStatusEnum.RETRY;
+    } else if (statuses.includes(DaprPubSubStatusEnum.DROP)) {
+      this.logger.debug(`[route-${routeObj.path}] Dropping message`);
+      return DaprPubSubStatusEnum.DROP;
+    } else {
+      this.logger.debug(`[route-${routeObj.path}] Acknowledging message`);
+      return DaprPubSubStatusEnum.SUCCESS;
+    }
   }
 
   // Dapr will call this on startup to see which topics it is subscribed to
@@ -469,6 +594,21 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
         if (daprConfig?.deadLetterTopic) {
           topicSubscription.setDeadLetterTopic(daprConfig.deadLetterTopic);
+        }
+
+        if (daprConfig?.bulkSubscribe) {
+          const bulkSubscribe = new BulkSubscribeConfig();
+          bulkSubscribe.setEnabled(daprConfig.bulkSubscribe.enabled);
+
+          if (daprConfig?.bulkSubscribe?.maxMessagesCount) {
+            bulkSubscribe.setMaxMessagesCount(daprConfig.bulkSubscribe.maxMessagesCount);
+          }
+
+          if (daprConfig?.bulkSubscribe?.maxAwaitDurationMs) {
+            bulkSubscribe.setMaxAwaitDurationMs(daprConfig.bulkSubscribe.maxAwaitDurationMs);
+          }
+
+          topicSubscription.setBulkSubscribe(bulkSubscribe);
         }
 
         if (daprConfig?.metadata) {

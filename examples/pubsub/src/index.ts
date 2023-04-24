@@ -20,15 +20,43 @@ const serverPort = "50051"; // App Port of this Example Server
 
 async function start() {
   // Note that the DAPR_HTTP_PORT and DAPR_GRPC_PORT environment variables are set by DAPR itself. https://docs.dapr.io/reference/environment/
-  const server = new DaprServer(serverHost, serverPort, daprHost, process.env.DAPR_HTTP_PORT);
+  const server = new DaprServer({
+    serverHost,
+    serverPort,
+    clientOptions: {
+      daprHost,
+      daprPort: process.env.DAPR_HTTP_PORT,
+    },
+  });
 
-  const client = new DaprClient(daprHost, process.env.DAPR_HTTP_PORT);
+  const client = new DaprClient({ daprHost, daprPort: process.env.DAPR_HTTP_PORT });
 
   // Initialize the subscription. Note that this must be done BEFORE calling .start()
   await server.pubsub.subscribe("my-pubsub-component", "my-topic", async (data: Record<string, any>) => {
     // The library parses JSON when possible.
     console.log(`[Dapr-JS][Example] Received on subscription: ${JSON.stringify(data)}`);
   });
+
+  // Publish multiple messages to a topic with default config.
+  await server.pubsub.subscribeBulk("my-pubsub-component", "my-topic", async (data: Record<string, any>) => {
+    // The library parses JSON when possible.
+    console.log(`[Dapr-JS][Example] Received on subscription: ${JSON.stringify(data)}`);
+  });
+
+  // Publish multiple messages to a topic with specific maxMessagesCount and maxAwaitDurationMs.
+  await server.pubsub.subscribeBulk(
+    "my-pubsub-component",
+    "my-topic",
+    async (data: Record<string, any>) => {
+      // The library parses JSON when possible.
+      console.log(`[Dapr-JS][Example] Received on subscription: ${JSON.stringify(data)}`);
+    },
+    {
+      maxMessagesCount: 100,
+      maxAwaitDurationMs: 40,
+    },
+  );
+
   await server.start();
 
   // Wait for 1 second to allow the server to start.

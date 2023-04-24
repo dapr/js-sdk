@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import SubscribedMessageHttpResponse from "../../../enum/SubscribedMessageHttpResponse.enum";
 import { Logger } from "../../../logger/Logger";
 import { LoggerOptions } from "../../../types/logger/LoggerOptions";
 import { DaprPubSubType } from "../../../types/pubsub/DaprPubSub.type";
@@ -20,6 +19,11 @@ import { PubSubSubscriptionOptionsType } from "../../../types/pubsub/PubSubSubsc
 import { PubSubSubscriptionTopicRoutesType } from "../../../types/pubsub/PubSubSubscriptionTopicRoutes.type";
 import { IServerType } from "./HTTPServer";
 import { TypeDaprPubSubCallback } from "../../../types/DaprPubSubCallback.type";
+import { BulkSubscribeResponseEntry } from "../../../types/pubsub/BulkSubscribeResponseEntry.type";
+import { BulkSubscribeResponse } from "../../../types/pubsub/BulkSubscribeResponse.type";
+import DaprPubSubStatusEnum from "../../../enum/DaprPubSubStatus.enum";
+import { IncomingHttpHeaders } from "http";
+import { PubSubSubscriptionTopicRouteType } from "../../../types/pubsub/PubSubSubscriptionTopicRoute.type";
 
 export default class HTTPServerImpl {
   private readonly PUBSUB_DEFAULT_ROUTE_NAME = "default";
@@ -120,22 +124,19 @@ export default class HTTPServerImpl {
 
       // Add a server POST handler
       this.server.post(`/${routeObj.path}`, async (req, res) => {
-        const headers = req.headers;
-
-        const data = this.extractDataFromSubscribeRequest(req);
-
-        // Process the callback
-        try {
-          const eventHandlers = routeObj.eventHandlers;
-          await Promise.all(eventHandlers.map((cb) => cb(data, headers)));
-        } catch (e) {
-          this.logger.error(`[route-${routeObj.path}] Message processing failed, dropping: ${e}`);
-          return res.send({ status: SubscribedMessageHttpResponse.DROP });
+        const bulkSubEnabled = this.pubSubSubscriptions[pubsubName][topic].dapr.bulkSubscribe?.enabled;
+        if (bulkSubEnabled) {
+          const result = await this.processBulkSubscribeMessage(routeObj, req);
+          return res.send(result);
         }
 
-        // Let Dapr know that the message was processed correctly
-        this.logger.debug(`[route-${routeObj.path}] Acknowledging message`);
-        return res.send({ status: SubscribedMessageHttpResponse.SUCCESS });
+        const headers = req.headers;
+        const data = this.extractDataFromSubscribeRequest(req);
+
+        // Process the callbacks
+        // we handle priority of status on `RETRY` > `DROP` > `SUCCESS` and default to `SUCCESS`
+        const status = await this.processPubSubCallbacks(routeObj, data, headers);
+        return res.send({ status });
       });
     }
 
@@ -144,6 +145,90 @@ export default class HTTPServerImpl {
         this.pubSubSubscriptions[pubsubName][topic].routes,
       ).join(", ")}`,
     );
+  }
+
+  async processBulkSubscribeMessage(
+    routeObj: PubSubSubscriptionTopicRouteType,
+    req: any,
+  ): Promise<BulkSubscribeResponse> {
+    const resArr: Array<BulkSubscribeResponseEntry> = [];
+    // @ts-ignore
+    const entries = req?.body?.entries;
+    for (const ind in entries) {
+      const entry = entries[ind];
+      let data: any;
+
+      if (entry.contentType == "application/octet-stream") {
+        const dataB64 = entry.event;
+        data = Buffer.from(dataB64, "base64").toString();
+        let parsedData: any;
+        try {
+          // This can be JSON, so try to parse it.
+          parsedData = JSON.parse(data);
+          data = parsedData;
+        } catch (_e) {
+          // If it's not JSON, use the string as-is.
+          // Skip and continue with the same data
+        }
+      } else if (entry.contentType == "application/cloudevents+json") {
+        data = entry.event.data;
+      }
+
+      const headers = entry.metadata;
+      // Process the callbacks
+      // we handle priority of status on `RETRY` > `DROP` > `SUCCESS` and default to `SUCCESS`
+      const status = await this.processPubSubCallbacks(routeObj, data, headers);
+      const entryRes: BulkSubscribeResponseEntry = {
+        status: status,
+        entryId: entry.entryId,
+      };
+
+      resArr.push(entryRes);
+    }
+
+    this.logger.debug(`[route-${routeObj.path}] Ack'ing the bulk message`);
+
+    const bulkResult: BulkSubscribeResponse = {
+      statuses: resArr,
+    };
+
+    return bulkResult;
+  }
+
+  async processPubSubCallbacks(
+    routeObj: PubSubSubscriptionTopicRouteType,
+    data: any,
+    headers: IncomingHttpHeaders,
+  ): Promise<DaprPubSubStatusEnum> {
+    const eventHandlers = routeObj.eventHandlers;
+    const statuses = [];
+
+    // Process the callbacks (default: SUCCESS)
+    for (const cb of eventHandlers) {
+      let status = DaprPubSubStatusEnum.SUCCESS;
+
+      try {
+        status = await cb(data, headers);
+      } catch (e) {
+        // We catch and log an error, but we don't do anything with it as the statuses should define that
+        this.logger.error(`[route-${routeObj.path}] Message processing failed, ${e}`);
+      }
+
+      statuses.push(status ?? DaprPubSubStatusEnum.SUCCESS);
+    }
+
+    // Look at the statuses and return the highest priority
+    // we handle priority of status on `RETRY` > `DROP` > `SUCCESS`
+    if (statuses.includes(DaprPubSubStatusEnum.RETRY)) {
+      this.logger.debug(`[route-${routeObj.path}] Retrying message`);
+      return DaprPubSubStatusEnum.RETRY;
+    } else if (statuses.includes(DaprPubSubStatusEnum.DROP)) {
+      this.logger.debug(`[route-${routeObj.path}] Dropping message`);
+      return DaprPubSubStatusEnum.DROP;
+    } else {
+      this.logger.debug(`[route-${routeObj.path}] Acknowledging message`);
+      return DaprPubSubStatusEnum.SUCCESS;
+    }
   }
 
   registerPubSubSubscriptionEventHandler(
@@ -269,6 +354,7 @@ export default class HTTPServerImpl {
         metadata: metadata,
         route: this.generateDaprSubscriptionRoute(pubsubName, topic),
         deadLetterTopic: options.deadLetterTopic,
+        bulkSubscribe: options.bulkSubscribe,
       };
     } else if (typeof options.route === "string") {
       return {
@@ -277,6 +363,7 @@ export default class HTTPServerImpl {
         metadata: metadata,
         route: this.generateDaprSubscriptionRoute(pubsubName, topic, options.route),
         deadLetterTopic: options.deadLetterTopic,
+        bulkSubscribe: options.bulkSubscribe,
       };
     } else {
       return {
@@ -291,6 +378,7 @@ export default class HTTPServerImpl {
           })),
         },
         deadLetterTopic: options.deadLetterTopic,
+        bulkSubscribe: options.bulkSubscribe,
       };
     }
   }

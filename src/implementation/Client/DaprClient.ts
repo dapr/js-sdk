@@ -58,14 +58,10 @@ import { Settings } from "../../utils/Settings.util";
 import { Logger } from "../../logger/Logger";
 import GRPCClientProxy from "./GRPCClient/proxy";
 import * as NodeJSUtils from "../../utils/NodeJS.util";
-import { SDK_PACKAGE_NAME } from "../../version";
+import { getClientOptions } from "../../utils/Client.util";
 
 export default class DaprClient {
-  readonly daprHost: string;
-  readonly daprPort: string;
   readonly options: DaprClientOptions;
-  readonly communicationProtocol: CommunicationProtocolEnum;
-
   readonly daprClient: IClient;
   readonly pubsub: IClientPubSub;
   readonly state: IClientState;
@@ -82,33 +78,19 @@ export default class DaprClient {
 
   private readonly logger: Logger;
 
-  constructor(
-    daprHost?: string,
-    daprPort?: string,
-    communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP,
-    options: DaprClientOptions = {},
-  ) {
-    this.daprHost = daprHost ?? Settings.getDefaultHost();
-    this.daprPort = daprPort ?? Settings.getDefaultPort(communicationProtocol);
-    this.communicationProtocol = communicationProtocol;
-    this.options = options;
+  constructor(options: Partial<DaprClientOptions> = {}) {
+    this.options = getClientOptions(options, Settings.getDefaultCommunicationProtocol(), undefined);
     this.logger = new Logger("DaprClient", "DaprClient", this.options.logger);
 
     // Validation on port
-    if (!/^[0-9]+$/.test(this.daprPort)) {
+    if (this.options.daprPort && !/^[0-9]+$/.test(this.options.daprPort)) {
       throw new Error("DAPR_INCORRECT_SIDECAR_PORT");
     }
 
-    if (String(SDK_PACKAGE_NAME) === "dapr-client") {
-      this.logger.warn(
-        "dapr-client is deprecated. Please use @dapr/dapr instead. For more information, see https://github.com/dapr/js-sdk/issues/259",
-      );
-    }
-
     // Builder
-    switch (communicationProtocol) {
+    switch (options.communicationProtocol) {
       case CommunicationProtocolEnum.GRPC: {
-        const client = new GRPCClient(this.daprHost, this.daprPort, this.options);
+        const client = new GRPCClient(this.options);
         this.daprClient = client;
 
         this.state = new GRPCClientState(client);
@@ -127,7 +109,7 @@ export default class DaprClient {
       }
       case CommunicationProtocolEnum.HTTP:
       default: {
-        const client = new HTTPClient(this.daprHost, this.daprPort, this.options);
+        const client = new HTTPClient(this.options);
         this.daprClient = client;
 
         this.state = new HTTPClientState(client);
@@ -148,12 +130,7 @@ export default class DaprClient {
   }
 
   static create(client: IClient): DaprClient {
-    return new DaprClient(
-      client.getClientHost(),
-      client.getClientPort(),
-      client.getClientCommunicationProtocol(),
-      client.getOptions(),
-    );
+    return new DaprClient(client.options);
   }
 
   static async awaitSidecarStarted(fnIsSidecarStarted: () => Promise<boolean>, logger: Logger): Promise<void> {
@@ -192,26 +169,6 @@ export default class DaprClient {
 
   async start(): Promise<void> {
     await this.daprClient.start();
-  }
-
-  getDaprClient(): IClient {
-    return this.daprClient;
-  }
-
-  getDaprHost(): string {
-    return this.daprHost;
-  }
-
-  getDaprPort(): string {
-    return this.daprPort;
-  }
-
-  getOptions(): DaprClientOptions {
-    return this.options;
-  }
-
-  getCommunicationProtocol(): CommunicationProtocolEnum {
-    return this.communicationProtocol;
   }
 
   getIsInitialized(): boolean {

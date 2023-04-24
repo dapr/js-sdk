@@ -37,6 +37,9 @@ const sidecarPort = "50000";
 const serverStartWaitTimeMs = 5 * 1000;
 
 const daprClientOptions: DaprClientOptions = {
+  daprHost: sidecarHost,
+  daprPort: sidecarPort,
+  communicationProtocol: CommunicationProtocolEnum.HTTP,
   isKeepAlive: false,
   actor: {
     actorIdleTimeout: "1h",
@@ -61,16 +64,14 @@ describe("http/actors", () => {
     // Start server and client with keepAlive on the client set to false.
     // this means that we won't re-use connections here which is necessary for the tests
     // since it will keep handles open else it has to be initialized before the server starts!
-    server = new DaprServer(
+    server = new DaprServer({
       serverHost,
       serverPort,
-      sidecarHost,
-      sidecarPort,
-      CommunicationProtocolEnum.HTTP,
-      daprClientOptions,
-    );
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
+      clientOptions: daprClientOptions,
+    });
 
-    client = new DaprClient(sidecarHost, sidecarPort, CommunicationProtocolEnum.HTTP, daprClientOptions);
+    client = new DaprClient(daprClientOptions);
 
     // This will initialize the actor routes.
     // Actors themselves can be initialized later

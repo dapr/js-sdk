@@ -20,6 +20,9 @@ export class Settings {
   private static readonly defaultHttpPort: string = "3500";
   private static readonly defaultGrpcAppPort: string = "50000";
   private static readonly defaultGrpcPort: string = "50001";
+  private static readonly defaultCommunicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP;
+  private static readonly defaultKeepAlive: boolean = true;
+  private static readonly defaultStateGetBulkParallelism: number = 10;
 
   private static readonly daprSidecarPollingDelayMs: number = 500;
   private static readonly daprSidecarStartupTimeoutMs: number = 10 * 1000;
@@ -30,6 +33,14 @@ export class Settings {
 
   static getDaprSidecarStartupTimeoutMs(): number {
     return Settings.daprSidecarStartupTimeoutMs;
+  }
+
+  static getDefaultCommunicationProtocol(): CommunicationProtocolEnum {
+    return Settings.defaultCommunicationProtocol;
+  }
+
+  static getDefaultKeepAlive(): boolean {
+    return Settings.defaultKeepAlive;
   }
 
   static getAppId(): string {
@@ -46,6 +57,10 @@ export class Settings {
 
   static getDefaultGrpcPort(): string {
     return process.env.DAPR_GRPC_PORT ?? Settings.defaultGrpcPort;
+  }
+
+  static getDefaultStateGetBulkParallelism(): number {
+    return Settings.defaultStateGetBulkParallelism;
   }
 
   /**

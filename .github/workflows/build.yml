@@ -66,7 +66,9 @@ jobs:
 
       - name: "[dapr-client] Configure to publish to dapr-client for deprecation notice reasons"
         if: env.DEPLOY_PACKAGE == 'true'
-        run: sed -i s#"@dapr/dapr"#"dapr-client"# package.json
+        run: |
+          sed -i s#"@dapr/dapr"#"dapr-client"# package.json
+          echo "This has been deprecated and will not be updated anymore, please use https://www.npmjs.com/package/@dapr/dapr" > README.md
 
       - name: "[dapr-client] Build Package"
         if: env.DEPLOY_PACKAGE == 'true'

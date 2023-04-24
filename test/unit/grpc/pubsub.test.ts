@@ -22,7 +22,7 @@ describe("grpc/pubsub", () => {
         callback(null, {});
       };
       const mockClient = {
-        getOptions: () => {
+        options: () => {
           return { logger: undefined };
         },
         getClient: () => {
@@ -35,7 +35,7 @@ describe("grpc/pubsub", () => {
     it("should create the correct pubsub request", async () => {
       const requests: PublishEventRequest[] = [];
       const grpcClientPubsub = new GRPCClientPubSub(getMockClient(requests));
-      await grpcClientPubsub.publish("my-pubsub", "my-topic", { key: "value" }, { mKey: "mValue" });
+      await grpcClientPubsub.publish("my-pubsub", "my-topic", { key: "value" }, { metadata: { mKey: "mValue" } });
 
       // Check the request
       expect(requests.length).toBe(1);
@@ -51,7 +51,7 @@ describe("grpc/pubsub", () => {
     it("should skip data and content-type when data is not present", async () => {
       const requests: PublishEventRequest[] = [];
       const grpcClientPubsub = new GRPCClientPubSub(getMockClient(requests));
-      await grpcClientPubsub.publish("my-pubsub", "my-topic", "", { mKey: "mValue" });
+      await grpcClientPubsub.publish("my-pubsub", "my-topic", "", { metadata: { mKey: "mValue" } });
 
       // Check the request
       expect(requests.length).toBe(1);
@@ -60,6 +60,27 @@ describe("grpc/pubsub", () => {
       expect(pubsub.getTopic()).toBe("my-topic");
       expect(pubsub.getData()).toStrictEqual("");
       expect(pubsub.getDataContentType()).toBe("");
+      expect(pubsub.getMetadataMap().getLength()).toBe(1);
+      expect(pubsub.getMetadataMap().get("mKey")).toBe("mValue");
+    });
+
+    it("should use the content-type when provided", async () => {
+      const requests: PublishEventRequest[] = [];
+      const grpcClientPubsub = new GRPCClientPubSub(getMockClient(requests));
+
+      const inData = { key: "value" };
+      await grpcClientPubsub.publish("my-pubsub", "my-topic", inData, {
+        contentType: "text/plain",
+        metadata: { mKey: "mValue" },
+      });
+
+      // Check the request
+      expect(requests.length).toBe(1);
+      const pubsub = requests[0];
+      expect(pubsub.getPubsubName()).toBe("my-pubsub");
+      expect(pubsub.getTopic()).toBe("my-topic");
+      expect(pubsub.getData()).toStrictEqual(Buffer.from(inData.toString()));
+      expect(pubsub.getDataContentType()).toBe("text/plain");
       expect(pubsub.getMetadataMap().getLength()).toBe(1);
       expect(pubsub.getMetadataMap().get("mKey")).toBe("mValue");
     });

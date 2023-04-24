@@ -18,11 +18,11 @@ const daprHost = "127.0.0.1";
 const daprPortDefault = "3500";
 
 async function start() {
-  const client = new DaprClient(
+  const client = new DaprClient({
     daprHost,
-    process.env.DAPR_GRPC_PORT ?? daprPortDefault,
-    CommunicationProtocolEnum.GRPC,
-  );
+    daprPort: process.env.DAPR_GRPC_PORT ?? daprPortDefault,
+    communicationProtocol: CommunicationProtocolEnum.GRPC,
+  });
 
   const storeName = "redislock";
   const resourceId = "resourceId";

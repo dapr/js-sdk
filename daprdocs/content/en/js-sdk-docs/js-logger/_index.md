@@ -20,7 +20,10 @@ There are five levels of logging in **descending order of importance** - `error`
 import { CommunicationProtocolEnum, DaprClient, LogLevel } from "@dapr/dapr";
 
 // create a client instance with log level set to verbose.
-const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.HTTP, {
+const client = new DaprClient({
+  daprHost,
+  daprPort,
+  communicationProtocol: CommunicationProtocolEnum.HTTP,
   logger: { level: LogLevel.Verbose },
 });
 ```
@@ -33,8 +36,14 @@ const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.HTTP
 import { CommunicationProtocolEnum, DaprServer, LogLevel } from "@dapr/dapr";
 
 // create a server instance with log level set to error.
-const server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.HTTP, {
-  logger: { level: LogLevel.Error },
+const server = new DaprServer({
+  serverHost,
+  serverPort,
+  clientOptions: {
+    daprHost,
+    daprPort,
+    logger: { level: LogLevel.Error },
+  },
 });
 ```
 
@@ -88,7 +97,10 @@ import { WinstonLoggerService } from "./WinstonLoggerService";
 const winstonLoggerService = new WinstonLoggerService();
 
 // create a client instance with log level set to verbose and logger service as winston.
-const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.HTTP, {
+const client = new DaprClient({
+  daprHost,
+  daprPort,
+  communicationProtocol: CommunicationProtocolEnum.HTTP,
   logger: { level: LogLevel.Verbose, service: winstonLoggerService },
 });
 ```

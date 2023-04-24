@@ -44,11 +44,11 @@ export default class HTTPServerActor implements IServerActor {
   // }
 
   async registerActor<T extends AbstractActor>(cls: Class<T>): Promise<void> {
-    ActorRuntime.getInstance(this.client.getDaprClient()).registerActor(cls);
+    ActorRuntime.getInstance(this.client.daprClient).registerActor(cls);
   }
 
   async getRegisteredActors(): Promise<string[]> {
-    return await ActorRuntime.getInstance(this.client.getDaprClient()).getRegisteredActorTypes();
+    return await ActorRuntime.getInstance(this.client.daprClient).getRegisteredActorTypes();
   }
 
   /**
@@ -80,7 +80,7 @@ export default class HTTPServerActor implements IServerActor {
   }
 
   private async handlerConfig(_req: IRequest, res: IResponse): Promise<IResponse> {
-    const actorRuntime = ActorRuntime.getInstance(this.client.getDaprClient());
+    const actorRuntime = ActorRuntime.getInstance(this.client.daprClient);
     return res.send(
       getRegisteredActorResponse(actorRuntime.getRegisteredActorTypes(), actorRuntime.getActorRuntimeOptions()),
     );
@@ -88,7 +88,7 @@ export default class HTTPServerActor implements IServerActor {
 
   private async handlerDeactivate(req: IRequest, res: IResponse): Promise<IResponse> {
     const { actorTypeName, actorId } = req.params;
-    const result = await ActorRuntime.getInstance(this.client.getDaprClient()).deactivate(actorTypeName, actorId);
+    const result = await ActorRuntime.getInstance(this.client.daprClient).deactivate(actorTypeName, actorId);
     res.statusCode = HttpStatusCode.OK;
     return this.handleResult(res, result);
   }
@@ -101,7 +101,7 @@ export default class HTTPServerActor implements IServerActor {
 
     const dataSerialized = this.serializer.serialize(body);
     try {
-      const result = await ActorRuntime.getInstance(this.client.getDaprClient()).invoke(
+      const result = await ActorRuntime.getInstance(this.client.daprClient).invoke(
         actorTypeName,
         actorId,
         methodName,
@@ -122,7 +122,7 @@ export default class HTTPServerActor implements IServerActor {
     const body = req.body;
 
     const dataSerialized = this.serializer.serialize(body);
-    const result = await ActorRuntime.getInstance(this.client.getDaprClient()).fireTimer(
+    const result = await ActorRuntime.getInstance(this.client.daprClient).fireTimer(
       actorTypeName,
       actorId,
       timerName,
@@ -136,7 +136,7 @@ export default class HTTPServerActor implements IServerActor {
     const body = req.body;
 
     const dataSerialized = this.serializer.serialize(body);
-    const result = await ActorRuntime.getInstance(this.client.getDaprClient()).fireReminder(
+    const result = await ActorRuntime.getInstance(this.client.daprClient).fireReminder(
       actorTypeName,
       actorId,
       reminderName,

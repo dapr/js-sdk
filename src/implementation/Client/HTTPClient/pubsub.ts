@@ -25,6 +25,7 @@ import { PubSubBulkPublishResponse } from "../../../types/pubsub/PubSubBulkPubli
 import { PubSubBulkPublishMessage } from "../../../types/pubsub/PubSubBulkPublishMessage.type";
 import { PubSubBulkPublishEntry } from "../../../types/pubsub/PubSubBulkPublishEntry.type";
 import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
+import { PubSubPublishOptions } from "../../../types/pubsub/PubSubPublishOptions.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPClientPubSub implements IClientPubSub {
@@ -33,21 +34,29 @@ export default class HTTPClientPubSub implements IClientPubSub {
 
   constructor(client: HTTPClient) {
     this.client = client;
-    this.logger = new Logger("HTTPClient", "PubSub", client.getOptions().logger);
+    this.logger = new Logger("HTTPClient", "PubSub", client.options.logger);
   }
 
   async publish(
     pubSubName: string,
     topic: string,
     data: object | string,
-    metadata?: KeyValueType,
+    options: PubSubPublishOptions = {},
   ): Promise<PubSubPublishResponseType> {
-    const queryParams = createHTTPMetadataQueryParam(metadata);
+    const queryParams = createHTTPMetadataQueryParam(options.metadata);
+
+    // Set content type if provided.
+    // If not, HTTPClient will infer it from the data.
+    const headers: KeyValueType = {};
+    if (options.contentType) {
+      headers["Content-Type"] = options.contentType;
+    }
 
     try {
       await this.client.execute(`/publish/${pubSubName}/${topic}?${queryParams}`, {
         method: "POST",
         body: data,
+        headers,
       });
     } catch (e: any) {
       this.logger.error(`publish failed: ${e}`);
@@ -72,7 +81,7 @@ export default class HTTPClientPubSub implements IClientPubSub {
     };
 
     const entries = getBulkPublishEntries(messages);
-    params.body = JSON.stringify(entries);
+    params.body = entries;
 
     try {
       await this.client.executeWithApiVersion(

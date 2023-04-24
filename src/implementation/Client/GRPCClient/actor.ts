@@ -30,10 +30,10 @@ export default class GRPCClientActor implements IClientActorBuilder {
   create<T>(actorTypeClass: Class<T>): T {
     const builder = new ActorProxyBuilder<T>(
       actorTypeClass,
-      this.client.getClientHost(),
-      this.client.getClientPort(),
-      this.client.getClientCommunicationProtocol(),
-      this.client.getOptions(),
+      this.client.options.daprHost,
+      this.client.options.daprPort,
+      this.client.options.communicationProtocol,
+      this.client.options,
     );
     const actor = builder.build(ActorId.createRandomId());
     return actor;
