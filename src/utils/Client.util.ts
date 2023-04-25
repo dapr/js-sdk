@@ -28,7 +28,9 @@ import { DaprClientOptions } from "../types/DaprClientOptions";
 import CommunicationProtocolEnum from "../enum/CommunicationProtocol.enum";
 import { Settings } from "./Settings.util";
 import { LoggerOptions } from "../types/logger/LoggerOptions";
-
+import { StateConsistencyEnum } from "../enum/StateConsistency.enum";
+import { StateConcurrencyEnum } from "../enum/StateConcurrency.enum";
+import { URLSearchParams } from "url";
 /**
  * Adds metadata to a map.
  * @param map Input map
@@ -61,6 +63,70 @@ export function createHTTPMetadataQueryParam(metadata: KeyValueType = {}): strin
   // strip the first "&" if it exists
   queryParam = queryParam.substring(1);
   return queryParam;
+}
+
+/**
+ * Converts one or multiple sets of data to a querystring
+ * Each set of data contains a set of KeyValue Pair
+ * An optional "metadata" type can be added in each set, in which case
+ * the QS key of each data in the set will be prefixed with "metadata.".
+ *
+ * Note, the returned value does not contain the "?" prefix.
+ *
+ * @param params one of multiple set of data
+ * @returns HTTP query parameter string
+ */
+export function createHTTPQueryParam(...params: { data?: KeyValueType; type?: "metadata" }[]): string {
+  const queryBuilder = new URLSearchParams();
+
+  for (const group of params) {
+    if (!group?.data) {
+      continue;
+    }
+
+    for (const [key, value] of Object.entries(group.data)) {
+      let propName = key;
+      if (group?.type === "metadata") {
+        propName = `metadata.${propName}`;
+      }
+
+      if (value !== undefined) {
+        queryBuilder.set(propName, value);
+      }
+    }
+  }
+
+  return queryBuilder.toString();
+}
+
+/**
+ * Return the string representation of a valid consistency configuration
+ * @param c
+ */
+export function getStateConsistencyValue(c?: StateConsistencyEnum): "eventual" | "strong" | undefined {
+  switch (c) {
+    case StateConsistencyEnum.CONSISTENCY_EVENTUAL:
+      return "eventual";
+    case StateConsistencyEnum.CONSISTENCY_STRONG:
+      return "strong";
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * Return the string representation of a valid concurrency configuration
+ * @param c
+ */
+export function getStateConcurrencyValue(c?: StateConcurrencyEnum): "first-write" | "last-write" | undefined {
+  switch (c) {
+    case StateConcurrencyEnum.CONCURRENCY_FIRST_WRITE:
+      return "first-write";
+    case StateConcurrencyEnum.CONCURRENCY_LAST_WRITE:
+      return "last-write";
+    default:
+      return undefined;
+  }
 }
 
 /**

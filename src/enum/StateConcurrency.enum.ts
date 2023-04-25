@@ -11,8 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-export enum EStateConcurrency {
+export enum StateConcurrencyEnum {
   CONCURRENCY_UNSPECIFIED = 0,
   CONCURRENCY_FIRST_WRITE = 1,
   CONCURRENCY_LAST_WRITE = 2,
 }
+
+export default StateConcurrencyEnum;

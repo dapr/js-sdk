@@ -1,5 +1,5 @@
 /*
-Copyright 2022 The Dapr Authors
+Copyright 2023 The Dapr Authors
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -11,10 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { StateConsistencyEnum } from "../../enum/StateConsistency.enum";
-import { StateConcurrencyEnum } from "../../enum/StateConcurrency.enum";
+import { IRequestMetadata } from "../RequestMetadata.type";
+import { IStateOptions } from "./StateOptions.type";
 
-export type IStateOptions = {
-  concurrency: StateConcurrencyEnum;
-  consistency: StateConsistencyEnum;
+export type StateGetOptions = Pick<IStateOptions, "consistency"> & {
+  /**
+   * Metadata to be passed to the operation.
+   */
+  metadata: IRequestMetadata;
 };
