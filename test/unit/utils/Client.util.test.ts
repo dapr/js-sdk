@@ -20,6 +20,7 @@ import {
   getBulkPublishEntries,
   getBulkPublishResponse,
   getClientOptions,
+  createHTTPQueryParam,
 } from "../../../src/utils/Client.util";
 import { Map } from "google-protobuf";
 import { PubSubBulkPublishEntry } from "../../../src/types/pubsub/PubSubBulkPublishEntry.type";
@@ -89,6 +90,62 @@ describe("Client.util", () => {
       const queryParam = createHTTPMetadataQueryParam(metadata);
       expect(queryParam).toEqual(
         "metadata.key%26with%3Dspecial!ch%23r%23cters=value1%26value2&metadata.key00=value3%20value4",
+      );
+    });
+  });
+
+  describe("createHTTPQueryParam", () => {
+    it("converts a KeyValueType to a HTTP query parameters", () => {
+      const metadata = {
+        key1: "value1",
+        key2: "value2",
+      };
+      const queryParam = createHTTPQueryParam({ data: metadata, type: "metadata" });
+      expect(queryParam).toEqual("metadata.key1=value1&metadata.key2=value2");
+    });
+
+    it("converts a KeyValueType to a HTTP query parameters with empty metadata", () => {
+      const metadata = {};
+      const queryParam = createHTTPQueryParam({ data: metadata, type: "metadata" });
+      expect(queryParam).toEqual("");
+    });
+
+    it("converts a KeyValueType to a HTTP query parameters with no metadata", () => {
+      const queryParam = createHTTPQueryParam();
+      expect(queryParam).toEqual("");
+    });
+
+    it("encodes the query parameters", () => {
+      const metadata = {
+        "key&with=special!ch#r#cters": "value1&value2",
+        key00: "value3 value4",
+      };
+      const queryParam = createHTTPQueryParam({ data: metadata, type: "metadata" });
+      expect(queryParam).toEqual(
+        "metadata.key%26with%3Dspecial%21ch%23r%23cters=value1%26value2&metadata.key00=value3+value4",
+      );
+    });
+
+    it("supports setting non-metadata query parameters", () => {
+      const data = {
+        key1: "value1",
+        key2: "value2",
+      };
+      const queryParam = createHTTPQueryParam({ data });
+      expect(queryParam).toEqual("key1=value1&key2=value2");
+    });
+    it("mix of data and metadata", () => {
+      const data = {
+        key1: "value1",
+        key2: "value2",
+      };
+      const metadata = {
+        "key&with=special!ch#r#cters": "value1&value2",
+        key00: "value3 value4",
+      };
+      const queryParam = createHTTPQueryParam({ data: metadata, type: "metadata" }, { data });
+      expect(queryParam).toEqual(
+        "metadata.key%26with%3Dspecial%21ch%23r%23cters=value1%26value2&metadata.key00=value3+value4&key1=value1&key2=value2",
       );
     });
   });

@@ -38,6 +38,9 @@ import { Settings } from "../../../utils/Settings.util";
 import { addMetadataToMap } from "../../../utils/Client.util";
 import { StateSaveResponseType } from "../../../types/state/StateSaveResponseType";
 import { StateSaveOptions } from "../../../types/state/StateSaveOptions.type";
+import { StateDeleteOptions } from "../../../types/state/StateDeleteOptions.type";
+import { StateGetOptions } from "../../../types/state/StateGetOptions.type";
+import { IStateOptions } from "../../../types/state/StateOptions.type";
 
 // https://docs.dapr.io/reference/api/state_api/
 export default class GRPCClientState implements IClientState {
@@ -63,6 +66,15 @@ export default class GRPCClientState implements IClientState {
           "utf-8",
         ),
       );
+
+      if (stateObject?.etag) {
+        const etag = new Etag();
+        etag.setValue(stateObject.etag);
+        si.setEtag(etag);
+      }
+
+      si.setOptions(this._configureStateOptions(stateObject?.options));
+
       // Merge metadata from stateObject and options.
       // Note, metadata from options will override metadata from stateObject.
       // See https://github.com/dapr/dapr/blob/029ec8cb7a1c88ec5d222bc2b0d1d53541217f19/pkg/http/api.go#L1525-L1532
@@ -89,13 +101,14 @@ export default class GRPCClientState implements IClientState {
     });
   }
 
-  async get(storeName: string, key: string): Promise<KeyValueType | string> {
+  async get(storeName: string, key: string, options?: Partial<StateGetOptions>): Promise<KeyValueType | string> {
     const msgService = new GetStateRequest();
     msgService.setStoreName(storeName);
     msgService.setKey(key);
 
-    // @todo: https://docs.dapr.io/reference/api/state_api/#optional-behaviors
-    // msgService.setConsistency()
+    if (options?.consistency) {
+      msgService.setConsistency(options.consistency as any);
+    }
 
     const client = await this.client.getClient();
 
@@ -158,14 +171,18 @@ export default class GRPCClientState implements IClientState {
     });
   }
 
-  async delete(storeName: string, key: string): Promise<void> {
+  async delete(storeName: string, key: string, options?: StateDeleteOptions): Promise<StateSaveResponseType> {
     const msgService = new DeleteStateRequest();
     msgService.setStoreName(storeName);
     msgService.setKey(key);
 
-    // @todo: implement below
-    // msgService.setEtag();
-    // msgService.setOptions();
+    if (options?.etag) {
+      const etag = new Etag();
+      etag.setValue(options.etag);
+      msgService.setEtag(etag);
+    }
+
+    msgService.setOptions(this._configureStateOptions(options));
 
     const client = await this.client.getClient();
 
@@ -176,7 +193,7 @@ export default class GRPCClientState implements IClientState {
         }
 
         // https://docs.dapr.io/reference/api/state_api/#http-response-3
-        return resolve();
+        return resolve({});
       });
     });
   }
@@ -200,13 +217,7 @@ export default class GRPCClientState implements IClientState {
         si.setEtag(etag);
       }
 
-      if (o.request.options) {
-        const so = new StateOptions();
-        so.setConsistency(o.request.options.consistency as any);
-        so.setConcurrency(o.request.options.concurrency as any);
-
-        si.setOptions(so);
-      }
+      si.setOptions(this._configureStateOptions(o.request?.options));
 
       const transactionItem = new TransactionalStateOperation();
       transactionItem.setOperationtype(o.operation);
@@ -271,5 +282,22 @@ export default class GRPCClientState implements IClientState {
         return resolve(resMapped);
       });
     });
+  }
+
+  _configureStateOptions(opt?: Partial<IStateOptions>): StateOptions | undefined {
+    if (opt === undefined) {
+      return undefined;
+    }
+
+    const stateOptions = new StateOptions();
+    if (opt?.consistency) {
+      stateOptions.setConsistency(opt.consistency as any);
+    }
+
+    if (opt?.concurrency) {
+      stateOptions.setConcurrency(opt.concurrency as any);
+    }
+
+    return stateOptions;
   }
 }

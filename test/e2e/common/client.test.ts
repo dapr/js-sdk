@@ -11,8 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { CommunicationProtocolEnum, DaprClient, LogLevel } from "../../../src";
-import { expect, describe, it } from "@jest/globals";
+import {
+  CommunicationProtocolEnum,
+  DaprClient,
+  LogLevel,
+  StateConcurrencyEnum,
+  StateConsistencyEnum,
+} from "../../../src";
+import { describe, expect, it } from "@jest/globals";
 import { sleep } from "../../../src/utils/NodeJS.util";
 
 const daprHost = "127.0.0.1";
@@ -184,8 +190,8 @@ describe("common/client", () => {
           value: "value-1",
           etag: "1234",
           options: {
-            concurrency: "first-write",
-            consistency: "strong",
+            concurrency: StateConcurrencyEnum.CONCURRENCY_FIRST_WRITE,
+            consistency: StateConsistencyEnum.CONSISTENCY_STRONG,
           },
           metadata: {
             hello: "world",
