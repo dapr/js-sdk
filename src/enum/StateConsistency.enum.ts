@@ -11,8 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-export enum EStateConsistency {
+export enum StateConsistencyEnum {
   CONSISTENCY_UNSPECIFIED = 0,
   CONSISTENCY_EVENTUAL = 1,
   CONSISTENCY_STRONG = 2,
 }
+export default StateConsistencyEnum;

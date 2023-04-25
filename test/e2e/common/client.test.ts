@@ -12,8 +12,7 @@ limitations under the License.
 */
 
 import { randomUUID } from "crypto";
-import { CommunicationProtocolEnum, DaprClient, LogLevel } from "../../../src";
-import { LockStatus } from "../../../src/types/lock/UnlockResponse";
+import { CommunicationProtocolEnum, DaprClient, LogLevel, StateConcurrencyEnum, StateConsistencyEnum } from "../../../src";
 import { sleep } from "../../../src/utils/NodeJS.util";
 
 const daprHost = "127.0.0.1";
@@ -253,8 +252,8 @@ describe("common/client", () => {
           value: "value-1",
           etag: "1234",
           options: {
-            concurrency: "first-write",
-            consistency: "strong",
+            concurrency: StateConcurrencyEnum.CONCURRENCY_FIRST_WRITE,
+            consistency: StateConsistencyEnum.CONSISTENCY_STRONG,
           },
           metadata: {
             hello: "world",

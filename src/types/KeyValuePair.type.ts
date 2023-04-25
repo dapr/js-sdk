@@ -12,11 +12,12 @@ limitations under the License.
 */
 
 import { KeyValueType } from "./KeyValue.type";
+import { IStateOptions } from "./state/StateOptions.type";
 
 export type KeyValuePairType = {
   key: string;
   value: any;
   etag?: string;
   metadata?: KeyValueType;
-  options?: object;
+  options?: IStateOptions;
 };
