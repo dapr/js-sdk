@@ -15,11 +15,7 @@ import HTTPClient from "./HTTPClient";
 import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 import { Logger } from "../../../logger/Logger";
 import { KeyValueType } from "../../../types/KeyValue.type";
-import {
-  createHTTPMetadataQueryParam,
-  getBulkPublishEntries,
-  getBulkPublishResponse,
-} from "../../../utils/Client.util";
+import { createHTTPQueryParam, getBulkPublishEntries, getBulkPublishResponse } from "../../../utils/Client.util";
 import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type";
 import { PubSubBulkPublishResponse } from "../../../types/pubsub/PubSubBulkPublishResponse.type";
 import { PubSubBulkPublishMessage } from "../../../types/pubsub/PubSubBulkPublishMessage.type";
@@ -43,7 +39,7 @@ export default class HTTPClientPubSub implements IClientPubSub {
     data: object | string,
     options: PubSubPublishOptions = {},
   ): Promise<PubSubPublishResponseType> {
-    const queryParams = createHTTPMetadataQueryParam(options.metadata);
+    const queryParams = createHTTPQueryParam({ data: options.metadata, type: "metadata" });
 
     // Set content type if provided.
     // If not, HTTPClient will infer it from the data.
@@ -72,7 +68,7 @@ export default class HTTPClientPubSub implements IClientPubSub {
     messages: PubSubBulkPublishMessage[],
     metadata?: KeyValueType | undefined,
   ): Promise<PubSubBulkPublishResponse> {
-    const queryParams = createHTTPMetadataQueryParam(metadata);
+    const queryParams = createHTTPQueryParam({ data: metadata, type: "metadata" });
     const params: THTTPExecuteParams = {
       method: "POST",
       headers: {
