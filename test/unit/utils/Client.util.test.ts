@@ -14,7 +14,6 @@ limitations under the License.
 import { ConfigurationItem } from "../../../src/proto/dapr/proto/common/v1/common_pb";
 import {
   addMetadataToMap,
-  createHTTPMetadataQueryParam,
   createConfigurationType,
   getContentType,
   getBulkPublishEntries,
@@ -55,45 +54,6 @@ describe("Client.util", () => {
       expect(m.entries()).toEqual(new Map<string, string>([]).entries());
     });
   });
-
-  describe("createHTTPMetadataQueryParam", () => {
-    it("converts a KeyValueType to a HTTP query parameters", () => {
-      const metadata = {
-        key1: "value1",
-        key2: "value2",
-      };
-      const queryParam = createHTTPMetadataQueryParam(metadata);
-      expect(queryParam).toEqual("metadata.key1=value1&metadata.key2=value2");
-    });
-
-    it("converts a KeyValueType to a HTTP query parameters with empty metadata", () => {
-      const metadata = {};
-      const queryParam = createHTTPMetadataQueryParam(metadata);
-      expect(queryParam).toEqual("");
-    });
-
-    it("converts a KeyValueType to a HTTP query parameters with no metadata", () => {
-      const queryParam = createHTTPMetadataQueryParam();
-      expect(queryParam).toEqual("");
-    });
-
-    it("converts a KeyValueType to a HTTP query parameters with undefined metadata", () => {
-      const queryParam = createHTTPMetadataQueryParam(undefined);
-      expect(queryParam).toEqual("");
-    });
-
-    it("encodes the query parameters", () => {
-      const metadata = {
-        "key&with=special!ch#r#cters": "value1&value2",
-        key00: "value3 value4",
-      };
-      const queryParam = createHTTPMetadataQueryParam(metadata);
-      expect(queryParam).toEqual(
-        "metadata.key%26with%3Dspecial!ch%23r%23cters=value1%26value2&metadata.key00=value3%20value4",
-      );
-    });
-  });
-
   describe("createHTTPQueryParam", () => {
     it("converts a KeyValueType to a HTTP query parameters", () => {
       const metadata = {

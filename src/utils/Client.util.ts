@@ -43,29 +43,6 @@ export function addMetadataToMap(map: Map<string, string>, metadata: KeyValueTyp
 }
 
 /**
- * Converts a KeyValueType to a HTTP query parameters.
- * The query parameters are separated by "&", and the key value pair is separated by "=".
- * Each metadata key is prefixed with "metadata.".
- *
- * Example, if the metadata is { "key1": "value1", "key2": "value2" }, the query parameter will be:
- * "metadata.key1=value1&metadata.key2=value2"
- *
- * Note, the returned value does not contain the "?" prefix.
- *
- * @param metadata key value pair of metadata
- * @returns HTTP query parameter string
- */
-export function createHTTPMetadataQueryParam(metadata: KeyValueType = {}): string {
-  let queryParam = "";
-  for (const [key, value] of Object.entries(metadata)) {
-    queryParam += "&" + "metadata." + encodeURIComponent(key) + "=" + encodeURIComponent(value);
-  }
-  // strip the first "&" if it exists
-  queryParam = queryParam.substring(1);
-  return queryParam;
-}
-
-/**
  * Converts one or multiple sets of data to a querystring
  * Each set of data contains a set of KeyValue Pair
  * An optional "metadata" type can be added in each set, in which case
