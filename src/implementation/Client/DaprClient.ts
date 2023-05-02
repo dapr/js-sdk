@@ -22,6 +22,7 @@ import IClientSidecar from "../../interfaces/Client/IClientSidecar";
 import IClientConfiguration from "../../interfaces/Client/IClientConfiguration";
 import IClientProxy from "../../interfaces/Client/IClientProxy";
 import IClientLock from "../../interfaces/Client/IClientLock";
+import IClientWorkflow from "../../interfaces/Client/IClientWorkflow";
 import IClientActorBuilder from "../../interfaces/Client/IClientActorBuilder";
 import IClient from "../../interfaces/Client/IClient";
 
@@ -35,6 +36,7 @@ import GRPCClientMetadata from "./GRPCClient/metadata";
 import GRPCClientSidecar from "./GRPCClient/sidecar";
 import GRPCClientConfiguration from "./GRPCClient/configuration";
 import GRPCClientLock from "./GRPCClient/lock";
+import GRPCClientWorkflow from "./GRPCClient/workflow";
 import GRPCClientActor from "./GRPCClient/actor";
 import GRPCClient from "./GRPCClient/GRPCClient";
 
@@ -49,6 +51,7 @@ import HTTPClientSidecar from "./HTTPClient/sidecar";
 import HTTPClientConfiguration from "./HTTPClient/configuration";
 import HTTPClientProxy from "./HTTPClient/proxy";
 import HTTPClientLock from "./HTTPClient/lock";
+import HTTPClientWorkflow from "./HTTPClient/workflow";
 import HTTPClientActor from "./HTTPClient/actor";
 import HTTPClient from "./HTTPClient/HTTPClient";
 
@@ -60,21 +63,23 @@ import GRPCClientProxy from "./GRPCClient/proxy";
 import * as NodeJSUtils from "../../utils/NodeJS.util";
 import { getClientOptions } from "../../utils/Client.util";
 
+
 export default class DaprClient {
   readonly options: DaprClientOptions;
   readonly daprClient: IClient;
-  readonly pubsub: IClientPubSub;
-  readonly state: IClientState;
-  readonly binding: IClientBinding;
-  readonly invoker: IClientInvoker;
-  readonly secret: IClientSecret;
-  readonly health: IClientHealth;
-  readonly metadata: IClientMetadata;
-  readonly sidecar: IClientSidecar;
-  readonly configuration: IClientConfiguration;
-  readonly proxy: IClientProxy;
-  readonly lock: IClientLock;
   readonly actor: IClientActorBuilder;
+  readonly binding: IClientBinding;
+  readonly configuration: IClientConfiguration;
+  readonly health: IClientHealth;
+  readonly invoker: IClientInvoker;
+  readonly lock: IClientLock;
+  readonly metadata: IClientMetadata;
+  readonly proxy: IClientProxy;
+  readonly pubsub: IClientPubSub;
+  readonly secret: IClientSecret;
+  readonly sidecar: IClientSidecar;
+  readonly state: IClientState;
+  readonly workflow: IClientWorkflow;
 
   private readonly logger: Logger;
 
@@ -105,6 +110,7 @@ export default class DaprClient {
         this.configuration = new GRPCClientConfiguration(client);
         this.lock = new GRPCClientLock(client);
         this.actor = new GRPCClientActor(client); // we use a abstractor here since we interface through a builder with the Actor Runtime
+        this.workflow = new GRPCClientWorkflow(client);
         break;
       }
       case CommunicationProtocolEnum.HTTP:
@@ -124,6 +130,7 @@ export default class DaprClient {
         this.proxy = new HTTPClientProxy(client);
         this.lock = new HTTPClientLock(client);
         this.actor = new HTTPClientActor(client); // we use a abstractor here since we interface through a builder with the Actor Runtime
+        this.workflow = new HTTPClientWorkflow(client);
         break;
       }
     }
