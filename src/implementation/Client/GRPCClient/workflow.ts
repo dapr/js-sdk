@@ -13,6 +13,7 @@ limitations under the License.
 
 import GRPCClient from "./GRPCClient";
 import IClientWorkflow from "../../../interfaces/Client/IClientWorkflow";
+import { WorkflowGetResponseType } from "../../../types/workflow/WorkflowGetResponseType";
 
 export default class GRPCClientWorkflow implements IClientWorkflow {
     client: GRPCClient;
@@ -20,7 +21,7 @@ export default class GRPCClientWorkflow implements IClientWorkflow {
     constructor(client: GRPCClient) {
         this.client = client;
     }
-    get(instanceId: string, workflowComponent?: string | undefined): Promise<any> {
+    get(instanceId: string, workflowComponent?: string | undefined): Promise<WorkflowGetResponseType> {
         throw new Error("Method not implemented.");
     }
     start(workflowName: string, input?: any, instanceId?: string | undefined, workflowComponent?: string | undefined): Promise<string> {

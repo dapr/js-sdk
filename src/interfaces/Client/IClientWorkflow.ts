@@ -11,13 +11,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { WorkflowGetResponseType } from "../../types/workflow/WorkflowGetResponseType";
+
 export default interface IClientWorkflow {
     /**
      * Get information about a workflow instance.
      * @param instanceId The unique identifier for the workflow instance.
      * @param workflowComponent The name of the workflow component to interface with, if not provided the default "dapr" will be used.
      */
-    get(instanceId: string, workflowComponent?: string): Promise<any>;
+    get(instanceId: string, workflowComponent?: string): Promise<WorkflowGetResponseType>;
 
     /**
      * Starts a new workflow instance.
