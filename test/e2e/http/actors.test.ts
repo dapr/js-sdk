@@ -29,6 +29,8 @@ import DemoActorTimerImpl from "../../actor/DemoActorTimerImpl";
 import DemoActorTimerInterface from "../../actor/DemoActorTimerInterface";
 import DemoActorTimerTtlImpl from "../../actor/DemoActorTimerTtlImpl";
 import DemoActorReminderTtlImpl from "../../actor/DemoActorReminderTtlImpl";
+import DemoActorDeleteStateImpl from "../../actor/DemoActorDeleteStateImpl";
+import DemoActorDeleteStateInterface from "../../actor/DemoActorDeleteStateInterface";
 
 const serverHost = "127.0.0.1";
 const serverPort = "50001";
@@ -84,6 +86,7 @@ describe("http/actors", () => {
     await server.actor.registerActor(DemoActorActivateImpl);
     await server.actor.registerActor(DemoActorTimerTtlImpl);
     await server.actor.registerActor(DemoActorReminderTtlImpl);
+    await server.actor.registerActor(DemoActorDeleteStateImpl);
 
     // Start server
     await server.start(); // Start the general server, this can take a while
@@ -152,6 +155,20 @@ describe("http/actors", () => {
     });
   });
 
+  describe("deleteActorState", () => {
+    it("should be able to delete actor state", async () => {
+      const builder = new ActorProxyBuilder<DemoActorDeleteStateInterface>(DemoActorDeleteStateImpl, client);
+      const actor = builder.build(ActorId.createRandomId());
+      await actor.init();
+      const res = await actor.getState();
+      expect(res).toEqual(`Hello World!`);
+
+      await actor.deleteState("data");
+
+      const deletedRes = await actor.getState();
+      expect(deletedRes).toEqual(``);
+    });
+  });
   describe("invoke", () => {
     it("should register actors correctly", async () => {
       const actors = await server.actor.getRegisteredActors();
