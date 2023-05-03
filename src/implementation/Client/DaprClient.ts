@@ -63,7 +63,6 @@ import GRPCClientProxy from "./GRPCClient/proxy";
 import * as NodeJSUtils from "../../utils/NodeJS.util";
 import { getClientOptions } from "../../utils/Client.util";
 
-
 export default class DaprClient {
   readonly options: DaprClientOptions;
   readonly daprClient: IClient;

@@ -18,18 +18,18 @@ import { WorkflowInfoType } from "./WorkflowInfoType";
  * WorkflowGetResponseType defines the response from a get request for a workflow.
  */
 export type WorkflowGetResponseType = {
-    /**
-     * workflowInfo contains information about the workflow instance.
-     */
-    workflowInfo: WorkflowInfoType;
+  /**
+   * workflowInfo contains information about the workflow instance.
+   */
+  workflowInfo: WorkflowInfoType;
 
-    /**
-     * startTime is the time the workflow instance was started.
-     */
-    startTime: string;
+  /**
+   * startTime is the time the workflow instance was started.
+   */
+  startTime: string;
 
-    /**
-     * metadata contains the metadata associated with the workflow instance.
-     */
-    metadata: KeyValueType;
+  /**
+   * metadata contains the metadata associated with the workflow instance.
+   */
+  metadata: KeyValueType;
 };

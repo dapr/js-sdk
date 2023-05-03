@@ -15,8 +15,8 @@ limitations under the License.
  * WorkflowInfoType contains information about a workflow instance.
  */
 export type WorkflowInfoType = {
-    /**
-     * instanceId is the unique identifier for the workflow instance.
-     */
-    instanceId: string;
-}
+  /**
+   * instanceId is the unique identifier for the workflow instance.
+   */
+  instanceId: string;
+};

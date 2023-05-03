@@ -16,30 +16,35 @@ import IClientWorkflow from "../../../interfaces/Client/IClientWorkflow";
 import { WorkflowGetResponseType } from "../../../types/workflow/WorkflowGetResponseType";
 
 export default class GRPCClientWorkflow implements IClientWorkflow {
-    client: GRPCClient;
+  client: GRPCClient;
 
-    constructor(client: GRPCClient) {
-        this.client = client;
-    }
-    get(instanceId: string, workflowComponent?: string | undefined): Promise<WorkflowGetResponseType> {
-        throw new Error("Method not implemented.");
-    }
-    start(workflowName: string, input?: any, instanceId?: string | undefined, workflowComponent?: string | undefined): Promise<string> {
-        throw new Error("Method not implemented.");
-    }
-    terminate(instanceId: string, workflowComponent?: string | undefined): Promise<any> {
-        throw new Error("Method not implemented.");
-    }
-    pause(instanceId: string, workflowComponent?: string | undefined): Promise<any> {
-        throw new Error("Method not implemented.");
-    }
-    resume(instanceId: string, workflowComponent?: string | undefined): Promise<any> {
-        throw new Error("Method not implemented.");
-    }
-    purge(instanceId: string, workflowComponent?: string | undefined): Promise<any> {
-        throw new Error("Method not implemented.");
-    }
-    raise(instanceId: string, eventName: string, input?: any, workflowComponent?: string | undefined): Promise<any> {
-        throw new Error("Method not implemented.");
-    }
+  constructor(client: GRPCClient) {
+    this.client = client;
+  }
+  get(instanceId: string, workflowComponent?: string | undefined): Promise<WorkflowGetResponseType> {
+    throw new Error("Method not implemented.");
+  }
+  start(
+    workflowName: string,
+    input?: any,
+    instanceId?: string | undefined,
+    workflowComponent?: string | undefined,
+  ): Promise<string> {
+    throw new Error("Method not implemented.");
+  }
+  terminate(instanceId: string, workflowComponent?: string | undefined): Promise<any> {
+    throw new Error("Method not implemented.");
+  }
+  pause(instanceId: string, workflowComponent?: string | undefined): Promise<any> {
+    throw new Error("Method not implemented.");
+  }
+  resume(instanceId: string, workflowComponent?: string | undefined): Promise<any> {
+    throw new Error("Method not implemented.");
+  }
+  purge(instanceId: string, workflowComponent?: string | undefined): Promise<any> {
+    throw new Error("Method not implemented.");
+  }
+  raise(instanceId: string, eventName: string, input?: any, workflowComponent?: string | undefined): Promise<any> {
+    throw new Error("Method not implemented.");
+  }
 }
