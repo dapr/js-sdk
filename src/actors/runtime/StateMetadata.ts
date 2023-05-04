@@ -21,7 +21,6 @@ export default class StateMetadata<T> {
     this.value = value;
     this.changeKind = changeKind;
     this.ttl = ttl;
-
   }
 
   getValue(): T {

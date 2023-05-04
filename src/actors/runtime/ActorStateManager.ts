@@ -102,7 +102,7 @@ export default class ActorStateManager<T> {
 
   // SEE: https://github.com/dapr/python-sdk/blob/0f0b6f6a1cf45d2ac0c519b48fc868898d81124e/dapr/actor/runtime/state_manager.py#L236
   async setState(stateName: string, value: T): Promise<void> {
-    return await this.setStateWithTTL(stateName, value, -1)
+    return await this.setStateWithTTL(stateName, value, -1);
   }
 
   async removeState(stateName: string): Promise<void> {
@@ -312,5 +312,4 @@ export default class ActorStateManager<T> {
       stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.ADD, ttl));
     }
   }
-
 }
