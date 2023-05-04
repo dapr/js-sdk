@@ -102,38 +102,7 @@ export default class ActorStateManager<T> {
 
   // SEE: https://github.com/dapr/python-sdk/blob/0f0b6f6a1cf45d2ac0c519b48fc868898d81124e/dapr/actor/runtime/state_manager.py#L236
   async setState(stateName: string, value: T): Promise<void> {
-    const stateChangeTracker = this.getContextualStateTracker();
-
-    if (stateChangeTracker.has(stateName)) {
-      const stateMetadata = stateChangeTracker.get(stateName);
-
-      if (!stateMetadata) {
-        return;
-      }
-
-      stateMetadata.setValue(value);
-
-      if (
-        stateMetadata.getChangeKind() === StateChangeKind.NONE ||
-        stateMetadata.getChangeKind() === StateChangeKind.REMOVE
-      ) {
-        stateMetadata.setChangeKind(StateChangeKind.UPDATE);
-      }
-
-      stateChangeTracker.set(stateName, stateMetadata);
-
-      return;
-    }
-
-    const didExist = await this.actor
-      .getStateProvider()
-      .containsState(this.actor.getActorType(), this.actor.getActorId(), stateName);
-
-    if (didExist) {
-      stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.UPDATE));
-    } else {
-      stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.ADD));
-    }
+    return await setStateWithTTL(name, val, -1)
   }
 
   async removeState(stateName: string): Promise<void> {
@@ -307,4 +276,41 @@ export default class ActorStateManager<T> {
       stateChangeTracker.delete(stateName);
     }
   }
+
+  async setStateWithTTL(stateName: string, value: T, ttl: number): Promise<void> {
+    const stateChangeTracker = this.getContextualStateTracker();
+
+    if (stateChangeTracker.has(stateName)) {
+      const stateMetadata = stateChangeTracker.get(stateName);
+
+      if (!stateMetadata) {
+        return;
+      }
+
+      stateMetadata.setValue(value);
+      stateMetadata.setTTL(ttl);
+
+      if (
+        stateMetadata.getChangeKind() === StateChangeKind.NONE ||
+        stateMetadata.getChangeKind() === StateChangeKind.REMOVE
+      ) {
+        stateMetadata.setChangeKind(StateChangeKind.UPDATE);
+      }
+
+      stateChangeTracker.set(stateName, stateMetadata);
+
+      return;
+    }
+
+    const didExist = await this.actor
+      .getStateProvider()
+      .containsState(this.actor.getActorType(), this.actor.getActorId(), stateName);
+
+    if (didExist) {
+      stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.UPDATE, ttl));
+    } else {
+      stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.ADD, ttl));
+    }
+  }
+
 }
