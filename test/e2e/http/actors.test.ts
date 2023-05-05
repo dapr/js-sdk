@@ -165,7 +165,7 @@ describe("http/actors", () => {
       expect(res).toEqual(true);
 
       await actor.deleteState("data");
-      
+
       const deletedRes = await actor.tryGetState();
       console.log(deletedRes);
       expect(deletedRes).toEqual(false);
