@@ -29,6 +29,8 @@ import DemoActorTimerImpl from "../../actor/DemoActorTimerImpl";
 import DemoActorTimerInterface from "../../actor/DemoActorTimerInterface";
 import DemoActorTimerTtlImpl from "../../actor/DemoActorTimerTtlImpl";
 import DemoActorReminderTtlImpl from "../../actor/DemoActorReminderTtlImpl";
+import DemoActorTTLStateInterface from "../../actor/DemoActorTTLStateInterface";
+import DemoActorTTLStateImpl from "../../actor/DemoActorTTLStateImpl";
 
 const serverHost = "127.0.0.1";
 const serverPort = "50001";
@@ -359,6 +361,26 @@ describe("http/actors", () => {
       // Make sure the counter didn't change
       const res2 = await actor.getCounter();
       expect(res2).toEqual(123);
+    });
+  });
+
+  describe("setStateWithTTL", () => {
+    it("should be able to set actor state with TTL", async () => {
+      const builder = new ActorProxyBuilder<DemoActorTTLStateInterface>(DemoActorTTLStateImpl, client);
+      const actor = builder.build(ActorId.createRandomId());
+      await actor.init();
+
+      const data = { name: "John", age: 30 };
+      const ttl = 5000; // 5 seconds
+      await actor.setStateWithTTL("data", data, ttl);
+
+      const res = await actor.getState();
+      expect(res).toEqual(data);
+
+      await new Promise((resolve) => setTimeout(resolve, 6000)); // wait for TTL to expire
+
+      const expiredRes = await actor.getState();
+      expect(expiredRes).toEqual(null);
     });
   });
 });
