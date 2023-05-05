@@ -109,7 +109,7 @@ describe("http/actors", () => {
 
       const config = JSON.parse(await res.text());
 
-      expect(config.entities.length).toBe(8);
+      expect(config.entities.length).toBe(9);
       expect(config.actorIdleTimeout).toBe("1h");
       expect(config.actorScanInterval).toBe("30s");
       expect(config.drainOngoingCallTimeout).toBe("1m");
@@ -160,20 +160,22 @@ describe("http/actors", () => {
       const builder = new ActorProxyBuilder<DemoActorDeleteStateInterface>(DemoActorDeleteStateImpl, client);
       const actor = builder.build(ActorId.createRandomId());
       await actor.init();
-      const res = await actor.getState();
-      expect(res).toEqual(`Hello World!`);
+
+      const res = await actor.tryGetState();
+      expect(res).toEqual(true);
 
       await actor.deleteState("data");
-
-      const deletedRes = await actor.getState();
-      expect(deletedRes).toEqual(``);
+      
+      const deletedRes = await actor.tryGetState();
+      console.log(deletedRes);
+      expect(deletedRes).toEqual(false);
     });
   });
   describe("invoke", () => {
     it("should register actors correctly", async () => {
       const actors = await server.actor.getRegisteredActors();
 
-      expect(actors.length).toEqual(8);
+      expect(actors.length).toEqual(9);
 
       expect(actors).toContain(DemoActorCounterImpl.name);
       expect(actors).toContain(DemoActorSayImpl.name);

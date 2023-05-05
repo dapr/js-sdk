@@ -13,6 +13,6 @@ limitations under the License.
 
 export default interface DemoActorCounterInterface {
   init(): Promise<string>;
-  getState<T>(): Promise<T | null>;
+  tryGetState(): Promise<boolean | null>;
   deleteState(key: string): Promise<void>;
 }

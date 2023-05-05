@@ -21,8 +21,9 @@ export default class DemoActorDeleteStateImpl extends AbstractActor implements D
     return "state initialized";
   }
 
-  async getState<T>(): Promise<T | null> {
-    return await this.getStateManager<T>().getState("data");
+  async tryGetState(): Promise<boolean | null> {
+    const [hasValue, _] = await this.getStateManager().tryGetState("data");
+    return hasValue;
   }
 
   async deleteState(key: string): Promise<void> {
