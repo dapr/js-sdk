@@ -76,7 +76,7 @@ export default class StateProvider {
           operation = "upsert";
           break;
         case StateChangeKind.REMOVE:
-          operation = "remove";
+          operation = "delete";
           break;
         case StateChangeKind.UPDATE:
           // dapr doesn't know add, we use upsert

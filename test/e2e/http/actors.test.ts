@@ -1,5 +1,5 @@
 /*
-Copyright 2022 The Dapr Authors
+Copyright 2023 The Dapr Authors
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -31,6 +31,8 @@ import DemoActorTimerTtlImpl from "../../actor/DemoActorTimerTtlImpl";
 import DemoActorReminderTtlImpl from "../../actor/DemoActorReminderTtlImpl";
 import DemoActorTTLStateInterface from "../../actor/DemoActorTTLStateInterface";
 import DemoActorTTLStateImpl from "../../actor/DemoActorTTLStateImpl";
+import DemoActorDeleteStateImpl from "../../actor/DemoActorDeleteStateImpl";
+import DemoActorDeleteStateInterface from "../../actor/DemoActorDeleteStateInterface";
 
 const serverHost = "127.0.0.1";
 const serverPort = "50001";
@@ -86,6 +88,7 @@ describe("http/actors", () => {
     await server.actor.registerActor(DemoActorActivateImpl);
     await server.actor.registerActor(DemoActorTimerTtlImpl);
     await server.actor.registerActor(DemoActorReminderTtlImpl);
+    await server.actor.registerActor(DemoActorDeleteStateImpl);
 
     // Start server
     await server.start(); // Start the general server, this can take a while
@@ -108,7 +111,7 @@ describe("http/actors", () => {
 
       const config = JSON.parse(await res.text());
 
-      expect(config.entities.length).toBe(8);
+      expect(config.entities.length).toBe(9);
       expect(config.actorIdleTimeout).toBe("1h");
       expect(config.actorScanInterval).toBe("30s");
       expect(config.drainOngoingCallTimeout).toBe("1m");
@@ -154,11 +157,27 @@ describe("http/actors", () => {
     });
   });
 
+  describe("deleteActorState", () => {
+    it("should be able to delete actor state", async () => {
+      const builder = new ActorProxyBuilder<DemoActorDeleteStateInterface>(DemoActorDeleteStateImpl, client);
+      const actor = builder.build(ActorId.createRandomId());
+      await actor.init();
+
+      const res = await actor.tryGetState();
+      expect(res).toEqual(true);
+
+      await actor.deleteState("data");
+
+      const deletedRes = await actor.tryGetState();
+      console.log(deletedRes);
+      expect(deletedRes).toEqual(false);
+    });
+  });
   describe("invoke", () => {
     it("should register actors correctly", async () => {
       const actors = await server.actor.getRegisteredActors();
 
-      expect(actors.length).toEqual(8);
+      expect(actors.length).toEqual(9);
 
       expect(actors).toContain(DemoActorCounterImpl.name);
       expect(actors).toContain(DemoActorSayImpl.name);
