@@ -30,7 +30,7 @@ export default class DemoActorTTLStateImpl extends AbstractActor implements Demo
     await this.getStateManager().saveState();
   }
 
-  async setStateWithTTL<T>(key: string, value: T, ttl: number): Promise<void> {
+  async setStateWithTTL(key: string, value: T, ttl: number): Promise<void> {
     await this.getStateManager<T>().setStateWithTTL(key, value, ttl);
     await this.getStateManager().saveState();
   }
