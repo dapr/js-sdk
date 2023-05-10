@@ -89,6 +89,7 @@ describe("http/actors", () => {
     await server.actor.registerActor(DemoActorTimerTtlImpl);
     await server.actor.registerActor(DemoActorReminderTtlImpl);
     await server.actor.registerActor(DemoActorDeleteStateImpl);
+    await server.actor.registerActor(DemoActorTTLStateImpl);
 
     // Start server
     await server.start(); // Start the general server, this can take a while
@@ -111,7 +112,7 @@ describe("http/actors", () => {
 
       const config = JSON.parse(await res.text());
 
-      expect(config.entities.length).toBe(9);
+      expect(config.entities.length).toBe(10);
       expect(config.actorIdleTimeout).toBe("1h");
       expect(config.actorScanInterval).toBe("30s");
       expect(config.drainOngoingCallTimeout).toBe("1m");
@@ -177,7 +178,7 @@ describe("http/actors", () => {
     it("should register actors correctly", async () => {
       const actors = await server.actor.getRegisteredActors();
 
-      expect(actors.length).toEqual(9);
+      expect(actors.length).toEqual(10);
 
       expect(actors).toContain(DemoActorCounterImpl.name);
       expect(actors).toContain(DemoActorSayImpl.name);
@@ -186,6 +187,8 @@ describe("http/actors", () => {
       expect(actors).toContain(DemoActorActivateImpl.name);
       expect(actors).toContain(DemoActorTimerTtlImpl.name);
       expect(actors).toContain(DemoActorReminderTtlImpl.name);
+      expect(actors).toContain(DemoActorDeleteStateImpl.name);
+      expect(actors).toContain(DemoActorTTLStateImpl.name);
     });
 
     it("should be able to invoke an actor through a text message", async () => {
@@ -387,16 +390,19 @@ describe("http/actors", () => {
     it("should be able to set actor state with TTL", async () => {
       const builder = new ActorProxyBuilder<DemoActorTTLStateInterface>(DemoActorTTLStateImpl, client);
       const actor = builder.build(ActorId.createRandomId());
+
+      // Activate our actor
+      // this will initialize the reminder to be called
       await actor.init();
 
       const data = { name: "John", age: 30 };
-      const ttl = 5000; // 5 seconds
+      const ttl = 2000; // 2 seconds
       await actor.setStateWithTTL("data", data, ttl);
 
       const res = await actor.getState();
       expect(res).toEqual(data);
 
-      await new Promise((resolve) => setTimeout(resolve, 6000)); // wait for TTL to expire
+      await new Promise((resolve) => setTimeout(resolve, 3000)); // wait for TTL to expire
 
       const expiredRes = await actor.getState();
       expect(expiredRes).toEqual(null);
