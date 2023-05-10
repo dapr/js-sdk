@@ -101,7 +101,7 @@ export default class ActorStateManager<T> {
   }
 
   /**
-   * Sets the state of the actor with the given name to the given value, without an expiration time.
+   * Sets the state of the actor with the given name to the given value.
    *
    * Note: It is recommended that you use setStateWithTTL() instead, unless you have specifically
    * created some kind of Actor State clean up outside of Dapr or you don't have an issue with the
@@ -113,6 +113,50 @@ export default class ActorStateManager<T> {
    */
   async setState(stateName: string, value: T): Promise<void> {
     return await this.setStateWithTTL(stateName, value, -1);
+  }
+
+  /**
+   * Sets the state of the actor with the given name to the given value, with the given expiration time.
+   *
+   * @param stateName The name of the state to set.
+   * @param value The value to set the state to.
+   * @param ttl The time-to-live (in seconds) for the state, after which it will expire and be removed.
+   * @returns A Promise that resolves when the state is successfully set.
+   */
+  async setStateWithTTL(stateName: string, value: T, ttl: number): Promise<void> {
+    const stateChangeTracker = this.getContextualStateTracker();
+
+    if (stateChangeTracker.has(stateName)) {
+      const stateMetadata = stateChangeTracker.get(stateName);
+
+      if (!stateMetadata) {
+        return;
+      }
+
+      stateMetadata.setValue(value);
+      stateMetadata.setTTL(ttl);
+
+      if (
+        stateMetadata.getChangeKind() === StateChangeKind.NONE ||
+        stateMetadata.getChangeKind() === StateChangeKind.REMOVE
+      ) {
+        stateMetadata.setChangeKind(StateChangeKind.UPDATE);
+      }
+
+      stateChangeTracker.set(stateName, stateMetadata);
+
+      return;
+    }
+
+    const didExist = await this.actor
+      .getStateProvider()
+      .containsState(this.actor.getActorType(), this.actor.getActorId(), stateName);
+
+    if (didExist) {
+      stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.UPDATE, ttl));
+    } else {
+      stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.ADD, ttl));
+    }
   }
 
   async removeState(stateName: string): Promise<void> {
@@ -268,7 +312,8 @@ export default class ActorStateManager<T> {
         return;
       }
 
-      stateChanges.push(new ActorStateChange(stateName, stateMetadata.getValue(), stateMetadata.getChangeKind()));
+      stateChanges.push(new ActorStateChange(
+        stateName, stateMetadata.getValue(), stateMetadata.getChangeKind(), stateMetadata.getTTL()));
 
       if (stateMetadata.getChangeKind() === StateChangeKind.REMOVE) {
         statesToRemove.push(stateName);
@@ -284,50 +329,6 @@ export default class ActorStateManager<T> {
 
     for (const stateName of statesToRemove) {
       stateChangeTracker.delete(stateName);
-    }
-  }
-
-  /**
-   * Sets the state of the actor with the given name to the given value, with the given expiration time.
-   *
-   * @param stateName The name of the state to set.
-   * @param value The value to set the state to.
-   * @param ttl The time-to-live for the state, after which it will expire and be removed.
-   * @returns A Promise that resolves when the state is successfully set.
-   */
-  async setStateWithTTL(stateName: string, value: T, ttl: number): Promise<void> {
-    const stateChangeTracker = this.getContextualStateTracker();
-
-    if (stateChangeTracker.has(stateName)) {
-      const stateMetadata = stateChangeTracker.get(stateName);
-
-      if (!stateMetadata) {
-        return;
-      }
-
-      stateMetadata.setValue(value);
-      stateMetadata.setTTL(ttl);
-
-      if (
-        stateMetadata.getChangeKind() === StateChangeKind.NONE ||
-        stateMetadata.getChangeKind() === StateChangeKind.REMOVE
-      ) {
-        stateMetadata.setChangeKind(StateChangeKind.UPDATE);
-      }
-
-      stateChangeTracker.set(stateName, stateMetadata);
-
-      return;
-    }
-
-    const didExist = await this.actor
-      .getStateProvider()
-      .containsState(this.actor.getActorType(), this.actor.getActorId(), stateName);
-
-    if (didExist) {
-      stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.UPDATE, ttl));
-    } else {
-      stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.ADD, ttl));
     }
   }
 }

@@ -17,11 +17,13 @@ export default class ActorStateChange<T> {
   private readonly stateName: string;
   private readonly value: T;
   private readonly changeKind: StateChangeKind;
+  private readonly ttlInSeconds?: number;
 
-  constructor(stateName: string, value: T, changeKind: StateChangeKind) {
+  constructor(stateName: string, value: T, changeKind: StateChangeKind, ttlInSeconds?: number) {
     this.stateName = stateName;
     this.value = value;
     this.changeKind = changeKind;
+    this.ttlInSeconds = ttlInSeconds;
   }
 
   getStateName(): string {
@@ -34,5 +36,9 @@ export default class ActorStateChange<T> {
 
   getChangeKind(): StateChangeKind {
     return this.changeKind;
+  }
+
+  getTTLInSeconds(): number | undefined {
+    return this.ttlInSeconds;
   }
 }

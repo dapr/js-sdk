@@ -64,39 +64,38 @@ export default class StateProvider {
    * @param stateChanges
    */
   async saveState(actorType: string, actorId: ActorId, stateChanges: ActorStateChange<any>[]): Promise<void> {
-    const jsonOutput: OperationType[] = [];
+    const operations: OperationType[] = [];
 
     for (const state of stateChanges) {
-      let operation;
+      let operationType: string;
 
       switch (state.getChangeKind()) {
         case StateChangeKind.ADD:
           // dapr doesn't know add, we use upsert
           // https://github.com/dapr/dapr/blob/master/pkg/actors/transactional_state_request.go
-          operation = "upsert";
+          operationType = "upsert";
           break;
         case StateChangeKind.REMOVE:
-          operation = "delete";
+          operationType = "delete";
           break;
         case StateChangeKind.UPDATE:
           // dapr doesn't know add, we use upsert
           // https://github.com/dapr/dapr/blob/master/pkg/actors/transactional_state_request.go
-          operation = "upsert";
+          operationType = "upsert";
           break;
         default:
           // skip
           continue;
       }
 
-      jsonOutput.push({
-        operation,
-        request: {
-          key: state.getStateName(),
-          value: state.getValue() as string,
-        },
+      operations.push({
+        operation: operationType,
+        key: state.getStateName(),
+        value: state.getValue() as string,
+        ttlInSeconds: state.getTTLInSeconds(),
       });
     }
 
-    await this.actorClient.actor.stateTransaction(actorType, actorId, jsonOutput);
+    await this.actorClient.actor.stateTransaction(actorType, actorId, operations);
   }
 }

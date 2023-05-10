@@ -16,12 +16,12 @@ import StateChangeKind from "./StateChangeKind";
 export default class StateMetadata<T> {
   private value: T;
   private changeKind: StateChangeKind;
-  private ttl?: number;
+  private ttlInSeconds?: number;
 
-  constructor(value: T, changeKind: StateChangeKind, ttl?: number) {
+  constructor(value: T, changeKind: StateChangeKind, ttlInSeconds?: number) {
     this.value = value;
     this.changeKind = changeKind;
-    this.ttl = ttl;
+    this.ttlInSeconds = ttlInSeconds;
   }
 
   getValue(): T {
@@ -41,10 +41,10 @@ export default class StateMetadata<T> {
   }
 
   getTTL(): number | undefined {
-    return this.ttl;
+    return this.ttlInSeconds;
   }
 
-  setTTL(ttl: number): void {
-    this.ttl = ttl;
+  setTTL(ttlInSeconds: number): void {
+    this.ttlInSeconds = ttlInSeconds;
   }
 }

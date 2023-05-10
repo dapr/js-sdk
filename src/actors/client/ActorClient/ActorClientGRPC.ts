@@ -78,11 +78,11 @@ export default class ActorClientGRPC implements IClientActor {
 
     for (const o of operations) {
       const transactionItem = new TransactionalActorStateOperation();
-      transactionItem.setKey(o.request.key);
+      transactionItem.setKey(o.key);
       transactionItem.setOperationtype(o.operation);
 
       const msgSerialized = new Any();
-      msgSerialized.setValue(Buffer.from(`${o.request.value}`, "utf-8"));
+      msgSerialized.setValue(Buffer.from(`${o.value}`, "utf-8"));
       transactionItem.setValue(msgSerialized);
 
       transactionItems.push(transactionItem);
