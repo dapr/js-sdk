@@ -890,7 +890,7 @@ proto.dapr.proto.common.v1.StreamPayload.deserializeBinaryFromReader = function(
       msg.setData(value);
       break;
     case 2:
-      var value = /** @type {number} */ (reader.readUint32());
+      var value = /** @type {number} */ (reader.readUint64());
       msg.setSeq(value);
       break;
     default:
@@ -931,7 +931,7 @@ proto.dapr.proto.common.v1.StreamPayload.serializeBinaryToWriter = function(mess
   }
   f = message.getSeq();
   if (f !== 0) {
-    writer.writeUint32(
+    writer.writeUint64(
       2,
       f
     );
@@ -982,7 +982,7 @@ proto.dapr.proto.common.v1.StreamPayload.prototype.setData = function(value) {
 
 
 /**
- * optional uint32 seq = 2;
+ * optional uint64 seq = 2;
  * @return {number}
  */
 proto.dapr.proto.common.v1.StreamPayload.prototype.getSeq = function() {

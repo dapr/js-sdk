@@ -13,7 +13,7 @@ limitations under the License.
 
 import HTTPClient from "./HTTPClient";
 import { KeyValuePairType } from "../../../types/KeyValuePair.type";
-import { OperationType } from "../../../types/Operation.type";
+import { StateTransactionOperationType } from "../../../types/state/StateTransactionOperation.type";
 import { IRequestMetadata } from "../../../types/RequestMetadata.type";
 import IClientState from "../../../interfaces/Client/IClientState";
 import { KeyValueType } from "../../../types/KeyValue.type";
@@ -122,7 +122,7 @@ export default class HTTPClientState implements IClientState {
 
   async transaction(
     storeName: string,
-    operations: OperationType[] = [],
+    operations: StateTransactionOperationType[] = [],
     metadata: IRequestMetadata | null = null,
   ): Promise<void> {
     for (const op of operations) {

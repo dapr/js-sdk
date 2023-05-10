@@ -12,15 +12,18 @@ limitations under the License.
 */
 
 import HTTPClient from "../../../implementation/Client/HTTPClient/HTTPClient";
-import { OperationType } from "../../../types/Operation.type";
 import { ActorReminderType } from "../../../types/ActorReminder.type";
 import { ActorTimerType } from "../../../types/ActorTimer.type";
 import IClientActor from "../../../interfaces/Client/IClientActor";
 import { KeyValueType } from "../../../types/KeyValue.type";
 import ActorId from "../../ActorId";
+import { IRequest } from "../../../types/Request.type";
+import { ActorStateTransactionType } from "../../../types/actors/ActorStateTransaction.type";
 
 // https://docs.dapr.io/reference/api/actors_api/
 export default class ActorClientHTTP implements IClientActor {
+  private static readonly metadataKeyTTLInSeconds = "ttlInSeconds";
+
   client: HTTPClient;
 
   constructor(client: HTTPClient) {
@@ -36,13 +39,31 @@ export default class ActorClientHTTP implements IClientActor {
     return result as object;
   }
 
-  async stateTransaction(actorType: string, actorId: ActorId, operations: OperationType[]): Promise<void> {
+  async stateTransaction(actorType: string, actorId: ActorId, operations: ActorStateTransactionType[]): Promise<void> {
+    const body: { operation: string; request: IRequest }[] = [];
+
+    for (const o of operations) {
+      const metadata: KeyValueType = {};
+      if (o.ttlInSeconds) {
+        metadata[ActorClientHTTP.metadataKeyTTLInSeconds] = o.ttlInSeconds;
+      }
+
+      body.push({
+        operation: o.operation,
+        request: {
+          key: o.key,
+          value: o.value,
+          metadata,
+        },
+      });
+    }
+
     await this.client.execute(`/actors/${actorType}/${actorId.getId()}/state`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: operations,
+      body,
     });
   }
 

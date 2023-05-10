@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { OperationType } from "../../types/Operation.type";
+import { ActorStateTransactionType } from "../../types/actors/ActorStateTransaction.type";
 import ActorId from "../ActorId";
 import ActorClient from "../client/ActorClient/ActorClient";
 import ActorStateChange from "./ActorStateChange";
@@ -64,7 +64,7 @@ export default class StateProvider {
    * @param stateChanges
    */
   async saveState(actorType: string, actorId: ActorId, stateChanges: ActorStateChange<any>[]): Promise<void> {
-    const operations: OperationType[] = [];
+    const operations: ActorStateTransactionType[] = [];
 
     for (const state of stateChanges) {
       let operationType: string;

@@ -312,8 +312,14 @@ export default class ActorStateManager<T> {
         return;
       }
 
-      stateChanges.push(new ActorStateChange(
-        stateName, stateMetadata.getValue(), stateMetadata.getChangeKind(), stateMetadata.getTTL()));
+      stateChanges.push(
+        new ActorStateChange(
+          stateName,
+          stateMetadata.getValue(),
+          stateMetadata.getChangeKind(),
+          stateMetadata.getTTL(),
+        ),
+      );
 
       if (stateMetadata.getChangeKind() === StateChangeKind.REMOVE) {
         statesToRemove.push(stateName);

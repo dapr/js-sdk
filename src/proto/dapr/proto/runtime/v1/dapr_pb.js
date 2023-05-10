@@ -19,6 +19,8 @@ var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js'
 goog.object.extend(proto, google_protobuf_any_pb);
 var google_protobuf_empty_pb = require('google-protobuf/google/protobuf/empty_pb.js');
 goog.object.extend(proto, google_protobuf_empty_pb);
+var google_protobuf_timestamp_pb = require('google-protobuf/google/protobuf/timestamp_pb.js');
+goog.object.extend(proto, google_protobuf_timestamp_pb);
 var dapr_proto_common_v1_common_pb = require('../../../../dapr/proto/common/v1/common_pb.js');
 goog.object.extend(proto, dapr_proto_common_v1_common_pb);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.ActiveActorsCount', null, global);
@@ -27,8 +29,14 @@ goog.exportSymbol('proto.dapr.proto.runtime.v1.BulkPublishRequestEntry', null, g
 goog.exportSymbol('proto.dapr.proto.runtime.v1.BulkPublishResponse', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.BulkPublishResponseFailedEntry', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.BulkStateItem', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.DecryptRequest', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.DecryptRequestOptions', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.DecryptResponse', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.DeleteBulkStateRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.DeleteStateRequest', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.EncryptRequest', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.EncryptRequestOptions', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.EncryptResponse', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.ExecuteActorStateTransactionRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.ExecuteStateTransactionRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.GetActorStateRequest', null, global);
@@ -51,25 +59,44 @@ goog.exportSymbol('proto.dapr.proto.runtime.v1.InvokeActorResponse', null, globa
 goog.exportSymbol('proto.dapr.proto.runtime.v1.InvokeBindingRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.InvokeBindingResponse', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.InvokeServiceRequest', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.PauseWorkflowRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.PublishEventRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.PubsubSubscription', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.PubsubSubscriptionRule', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.PubsubSubscriptionRules', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.PurgeWorkflowRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.QueryStateItem', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.QueryStateRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.QueryStateResponse', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.RegisterActorReminderRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.RegisterActorTimerRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.RegisteredComponents', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.RenameActorReminderRequest', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ResumeWorkflowRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.SaveStateRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.SecretResponse', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.SetMetadataRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.StartWorkflowRequest', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.StartWorkflowResponse', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.SubscribeConfigurationRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.SubscribeConfigurationResponse', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.SubtleDecryptRequest', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.SubtleDecryptResponse', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.SubtleEncryptRequest', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.SubtleEncryptResponse', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.SubtleGetKeyRequest', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.SubtleGetKeyRequest.KeyFormat', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.SubtleGetKeyResponse', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.SubtleSignRequest', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.SubtleSignResponse', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.SubtleVerifyRequest', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.SubtleVerifyResponse', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.TerminateWorkflowRequest', null, global);
-goog.exportSymbol('proto.dapr.proto.runtime.v1.TerminateWorkflowResponse', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.TransactionalActorStateOperation', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.TransactionalStateOperation', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.TryLockRequest', null, global);
@@ -81,7 +108,6 @@ goog.exportSymbol('proto.dapr.proto.runtime.v1.UnregisterActorReminderRequest', 
 goog.exportSymbol('proto.dapr.proto.runtime.v1.UnregisterActorTimerRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.UnsubscribeConfigurationRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.UnsubscribeConfigurationResponse', null, global);
-goog.exportSymbol('proto.dapr.proto.runtime.v1.WorkflowReference', null, global);
 /**
  * Generated by JsPbCodeGenerator.
  * @param {Array=} opt_data Optional initial data array, typically from a
@@ -1226,16 +1252,415 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.dapr.proto.runtime.v1.WorkflowReference = function(opt_data) {
+proto.dapr.proto.runtime.v1.SubtleGetKeyRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.dapr.proto.runtime.v1.WorkflowReference, jspb.Message);
+goog.inherits(proto.dapr.proto.runtime.v1.SubtleGetKeyRequest, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   /**
    * @public
    * @override
    */
-  proto.dapr.proto.runtime.v1.WorkflowReference.displayName = 'proto.dapr.proto.runtime.v1.WorkflowReference';
+  proto.dapr.proto.runtime.v1.SubtleGetKeyRequest.displayName = 'proto.dapr.proto.runtime.v1.SubtleGetKeyRequest';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.SubtleGetKeyResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.SubtleGetKeyResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.SubtleGetKeyResponse.displayName = 'proto.dapr.proto.runtime.v1.SubtleGetKeyResponse';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.SubtleEncryptRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.SubtleEncryptRequest.displayName = 'proto.dapr.proto.runtime.v1.SubtleEncryptRequest';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.SubtleEncryptResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.SubtleEncryptResponse.displayName = 'proto.dapr.proto.runtime.v1.SubtleEncryptResponse';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.SubtleDecryptRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.SubtleDecryptRequest.displayName = 'proto.dapr.proto.runtime.v1.SubtleDecryptRequest';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.SubtleDecryptResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.SubtleDecryptResponse.displayName = 'proto.dapr.proto.runtime.v1.SubtleDecryptResponse';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.displayName = 'proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse.displayName = 'proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.displayName = 'proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse.displayName = 'proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.SubtleSignRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.SubtleSignRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.SubtleSignRequest.displayName = 'proto.dapr.proto.runtime.v1.SubtleSignRequest';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.SubtleSignResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.SubtleSignResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.SubtleSignResponse.displayName = 'proto.dapr.proto.runtime.v1.SubtleSignResponse';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.SubtleVerifyRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.SubtleVerifyRequest.displayName = 'proto.dapr.proto.runtime.v1.SubtleVerifyRequest';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.SubtleVerifyResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.SubtleVerifyResponse.displayName = 'proto.dapr.proto.runtime.v1.SubtleVerifyResponse';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.EncryptRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.EncryptRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.EncryptRequest.displayName = 'proto.dapr.proto.runtime.v1.EncryptRequest';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.EncryptRequestOptions = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.EncryptRequestOptions, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.EncryptRequestOptions.displayName = 'proto.dapr.proto.runtime.v1.EncryptRequestOptions';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.EncryptResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.EncryptResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.EncryptResponse.displayName = 'proto.dapr.proto.runtime.v1.EncryptResponse';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.DecryptRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.DecryptRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.DecryptRequest.displayName = 'proto.dapr.proto.runtime.v1.DecryptRequest';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.DecryptRequestOptions = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.DecryptRequestOptions, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.DecryptRequestOptions.displayName = 'proto.dapr.proto.runtime.v1.DecryptRequestOptions';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.DecryptResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.DecryptResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.DecryptResponse.displayName = 'proto.dapr.proto.runtime.v1.DecryptResponse';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -1310,6 +1735,27 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
+proto.dapr.proto.runtime.v1.StartWorkflowResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.StartWorkflowResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.StartWorkflowResponse.displayName = 'proto.dapr.proto.runtime.v1.StartWorkflowResponse';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.dapr.proto.runtime.v1.TerminateWorkflowRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
@@ -1331,16 +1777,79 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.dapr.proto.runtime.v1.TerminateWorkflowResponse = function(opt_data) {
+proto.dapr.proto.runtime.v1.PauseWorkflowRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.dapr.proto.runtime.v1.TerminateWorkflowResponse, jspb.Message);
+goog.inherits(proto.dapr.proto.runtime.v1.PauseWorkflowRequest, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   /**
    * @public
    * @override
    */
-  proto.dapr.proto.runtime.v1.TerminateWorkflowResponse.displayName = 'proto.dapr.proto.runtime.v1.TerminateWorkflowResponse';
+  proto.dapr.proto.runtime.v1.PauseWorkflowRequest.displayName = 'proto.dapr.proto.runtime.v1.PauseWorkflowRequest';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.ResumeWorkflowRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.ResumeWorkflowRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.ResumeWorkflowRequest.displayName = 'proto.dapr.proto.runtime.v1.ResumeWorkflowRequest';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest.displayName = 'proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.PurgeWorkflowRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.PurgeWorkflowRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.PurgeWorkflowRequest.displayName = 'proto.dapr.proto.runtime.v1.PurgeWorkflowRequest';
 }
 
 
@@ -8570,7 +9079,8 @@ proto.dapr.proto.runtime.v1.TransactionalActorStateOperation.toObject = function
   var f, obj = {
     operationtype: jspb.Message.getFieldWithDefault(msg, 1, ""),
     key: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    value: (f = msg.getValue()) && google_protobuf_any_pb.Any.toObject(includeInstance, f)
+    value: (f = msg.getValue()) && google_protobuf_any_pb.Any.toObject(includeInstance, f),
+    metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -8619,6 +9129,12 @@ proto.dapr.proto.runtime.v1.TransactionalActorStateOperation.deserializeBinaryFr
       var value = new google_protobuf_any_pb.Any;
       reader.readMessage(value,google_protobuf_any_pb.Any.deserializeBinaryFromReader);
       msg.setValue(value);
+      break;
+    case 4:
+      var value = msg.getMetadataMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "", "");
+         });
       break;
     default:
       reader.skipField();
@@ -8670,6 +9186,10 @@ proto.dapr.proto.runtime.v1.TransactionalActorStateOperation.serializeBinaryToWr
       f,
       google_protobuf_any_pb.Any.serializeBinaryToWriter
     );
+  }
+  f = message.getMetadataMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(4, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
 };
 
@@ -8745,6 +9265,28 @@ proto.dapr.proto.runtime.v1.TransactionalActorStateOperation.prototype.clearValu
 proto.dapr.proto.runtime.v1.TransactionalActorStateOperation.prototype.hasValue = function() {
   return jspb.Message.getField(this, 3) != null;
 };
+
+
+/**
+ * map<string, string> metadata = 4;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.dapr.proto.runtime.v1.TransactionalActorStateOperation.prototype.getMetadataMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 4, opt_noLazyCreate,
+      null));
+};
+
+
+/**
+ * Clears values from the map. The map will be non-null.
+ * @return {!proto.dapr.proto.runtime.v1.TransactionalActorStateOperation} returns this
+ */
+proto.dapr.proto.runtime.v1.TransactionalActorStateOperation.prototype.clearMetadataMap = function() {
+  this.getMetadataMap().clear();
+  return this;};
 
 
 
@@ -11756,7 +12298,7 @@ proto.dapr.proto.runtime.v1.TryLockRequest.toObject = function(includeInstance, 
     storeName: jspb.Message.getFieldWithDefault(msg, 1, ""),
     resourceId: jspb.Message.getFieldWithDefault(msg, 2, ""),
     lockOwner: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    expiryinseconds: jspb.Message.getFieldWithDefault(msg, 4, 0)
+    expiryInSeconds: jspb.Message.getFieldWithDefault(msg, 4, 0)
   };
 
   if (includeInstance) {
@@ -11807,7 +12349,7 @@ proto.dapr.proto.runtime.v1.TryLockRequest.deserializeBinaryFromReader = functio
       break;
     case 4:
       var value = /** @type {number} */ (reader.readInt32());
-      msg.setExpiryinseconds(value);
+      msg.setExpiryInSeconds(value);
       break;
     default:
       reader.skipField();
@@ -11859,7 +12401,7 @@ proto.dapr.proto.runtime.v1.TryLockRequest.serializeBinaryToWriter = function(me
       f
     );
   }
-  f = message.getExpiryinseconds();
+  f = message.getExpiryInSeconds();
   if (f !== 0) {
     writer.writeInt32(
       4,
@@ -11924,10 +12466,10 @@ proto.dapr.proto.runtime.v1.TryLockRequest.prototype.setLockOwner = function(val
 
 
 /**
- * optional int32 expiryInSeconds = 4;
+ * optional int32 expiry_in_seconds = 4;
  * @return {number}
  */
-proto.dapr.proto.runtime.v1.TryLockRequest.prototype.getExpiryinseconds = function() {
+proto.dapr.proto.runtime.v1.TryLockRequest.prototype.getExpiryInSeconds = function() {
   return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
 };
 
@@ -11936,7 +12478,7 @@ proto.dapr.proto.runtime.v1.TryLockRequest.prototype.getExpiryinseconds = functi
  * @param {number} value
  * @return {!proto.dapr.proto.runtime.v1.TryLockRequest} returns this
  */
-proto.dapr.proto.runtime.v1.TryLockRequest.prototype.setExpiryinseconds = function(value) {
+proto.dapr.proto.runtime.v1.TryLockRequest.prototype.setExpiryInSeconds = function(value) {
   return jspb.Message.setProto3IntField(this, 4, value);
 };
 
@@ -12417,8 +12959,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.dapr.proto.runtime.v1.WorkflowReference.prototype.toObject = function(opt_includeInstance) {
-  return proto.dapr.proto.runtime.v1.WorkflowReference.toObject(opt_includeInstance, this);
+proto.dapr.proto.runtime.v1.SubtleGetKeyRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.SubtleGetKeyRequest.toObject(opt_includeInstance, this);
 };
 
 
@@ -12427,13 +12969,15 @@ proto.dapr.proto.runtime.v1.WorkflowReference.prototype.toObject = function(opt_
  * @param {boolean|undefined} includeInstance Deprecated. Whether to include
  *     the JSPB instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.dapr.proto.runtime.v1.WorkflowReference} msg The msg instance to transform.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleGetKeyRequest} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.dapr.proto.runtime.v1.WorkflowReference.toObject = function(includeInstance, msg) {
+proto.dapr.proto.runtime.v1.SubtleGetKeyRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    instanceId: jspb.Message.getFieldWithDefault(msg, 1, "")
+    componentName: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    name: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    format: jspb.Message.getFieldWithDefault(msg, 3, 0)
   };
 
   if (includeInstance) {
@@ -12447,23 +12991,23 @@ proto.dapr.proto.runtime.v1.WorkflowReference.toObject = function(includeInstanc
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.dapr.proto.runtime.v1.WorkflowReference}
+ * @return {!proto.dapr.proto.runtime.v1.SubtleGetKeyRequest}
  */
-proto.dapr.proto.runtime.v1.WorkflowReference.deserializeBinary = function(bytes) {
+proto.dapr.proto.runtime.v1.SubtleGetKeyRequest.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.dapr.proto.runtime.v1.WorkflowReference;
-  return proto.dapr.proto.runtime.v1.WorkflowReference.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.dapr.proto.runtime.v1.SubtleGetKeyRequest;
+  return proto.dapr.proto.runtime.v1.SubtleGetKeyRequest.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.dapr.proto.runtime.v1.WorkflowReference} msg The message object to deserialize into.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleGetKeyRequest} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.dapr.proto.runtime.v1.WorkflowReference}
+ * @return {!proto.dapr.proto.runtime.v1.SubtleGetKeyRequest}
  */
-proto.dapr.proto.runtime.v1.WorkflowReference.deserializeBinaryFromReader = function(msg, reader) {
+proto.dapr.proto.runtime.v1.SubtleGetKeyRequest.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -12472,7 +13016,15 @@ proto.dapr.proto.runtime.v1.WorkflowReference.deserializeBinaryFromReader = func
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setInstanceId(value);
+      msg.setComponentName(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setName(value);
+      break;
+    case 3:
+      var value = /** @type {!proto.dapr.proto.runtime.v1.SubtleGetKeyRequest.KeyFormat} */ (reader.readEnum());
+      msg.setFormat(value);
       break;
     default:
       reader.skipField();
@@ -12487,9 +13039,9 @@ proto.dapr.proto.runtime.v1.WorkflowReference.deserializeBinaryFromReader = func
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.dapr.proto.runtime.v1.WorkflowReference.prototype.serializeBinary = function() {
+proto.dapr.proto.runtime.v1.SubtleGetKeyRequest.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.dapr.proto.runtime.v1.WorkflowReference.serializeBinaryToWriter(this, writer);
+  proto.dapr.proto.runtime.v1.SubtleGetKeyRequest.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -12497,15 +13049,1329 @@ proto.dapr.proto.runtime.v1.WorkflowReference.prototype.serializeBinary = functi
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.dapr.proto.runtime.v1.WorkflowReference} message
+ * @param {!proto.dapr.proto.runtime.v1.SubtleGetKeyRequest} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.dapr.proto.runtime.v1.WorkflowReference.serializeBinaryToWriter = function(message, writer) {
+proto.dapr.proto.runtime.v1.SubtleGetKeyRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getInstanceId();
+  f = message.getComponentName();
   if (f.length > 0) {
     writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getName();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getFormat();
+  if (f !== 0.0) {
+    writer.writeEnum(
+      3,
+      f
+    );
+  }
+};
+
+
+/**
+ * @enum {number}
+ */
+proto.dapr.proto.runtime.v1.SubtleGetKeyRequest.KeyFormat = {
+  PEM: 0,
+  JSON: 1
+};
+
+/**
+ * optional string component_name = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleGetKeyRequest.prototype.getComponentName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleGetKeyRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleGetKeyRequest.prototype.setComponentName = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string name = 2;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleGetKeyRequest.prototype.getName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleGetKeyRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleGetKeyRequest.prototype.setName = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional KeyFormat format = 3;
+ * @return {!proto.dapr.proto.runtime.v1.SubtleGetKeyRequest.KeyFormat}
+ */
+proto.dapr.proto.runtime.v1.SubtleGetKeyRequest.prototype.getFormat = function() {
+  return /** @type {!proto.dapr.proto.runtime.v1.SubtleGetKeyRequest.KeyFormat} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
+};
+
+
+/**
+ * @param {!proto.dapr.proto.runtime.v1.SubtleGetKeyRequest.KeyFormat} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleGetKeyRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleGetKeyRequest.prototype.setFormat = function(value) {
+  return jspb.Message.setProto3EnumField(this, 3, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.SubtleGetKeyResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.SubtleGetKeyResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.SubtleGetKeyResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleGetKeyResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    publicKey: jspb.Message.getFieldWithDefault(msg, 2, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleGetKeyResponse}
+ */
+proto.dapr.proto.runtime.v1.SubtleGetKeyResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.SubtleGetKeyResponse;
+  return proto.dapr.proto.runtime.v1.SubtleGetKeyResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleGetKeyResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleGetKeyResponse}
+ */
+proto.dapr.proto.runtime.v1.SubtleGetKeyResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setName(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setPublicKey(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleGetKeyResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.SubtleGetKeyResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleGetKeyResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleGetKeyResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getName();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getPublicKey();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string name = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleGetKeyResponse.prototype.getName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleGetKeyResponse} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleGetKeyResponse.prototype.setName = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string public_key = 2;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleGetKeyResponse.prototype.getPublicKey = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleGetKeyResponse} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleGetKeyResponse.prototype.setPublicKey = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.SubtleEncryptRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.SubtleEncryptRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    componentName: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    plaintext: msg.getPlaintext_asB64(),
+    algorithm: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    keyName: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    nonce: msg.getNonce_asB64(),
+    associatedData: msg.getAssociatedData_asB64()
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleEncryptRequest}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.SubtleEncryptRequest;
+  return proto.dapr.proto.runtime.v1.SubtleEncryptRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleEncryptRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleEncryptRequest}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setComponentName(value);
+      break;
+    case 2:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setPlaintext(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAlgorithm(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setKeyName(value);
+      break;
+    case 5:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setNonce(value);
+      break;
+    case 6:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setAssociatedData(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.SubtleEncryptRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleEncryptRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getComponentName();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getPlaintext_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      2,
+      f
+    );
+  }
+  f = message.getAlgorithm();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getKeyName();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
+  f = message.getNonce_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      5,
+      f
+    );
+  }
+  f = message.getAssociatedData_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      6,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string component_name = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.prototype.getComponentName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleEncryptRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.prototype.setComponentName = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional bytes plaintext = 2;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.prototype.getPlaintext = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * optional bytes plaintext = 2;
+ * This is a type-conversion wrapper around `getPlaintext()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.prototype.getPlaintext_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getPlaintext()));
+};
+
+
+/**
+ * optional bytes plaintext = 2;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getPlaintext()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.prototype.getPlaintext_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getPlaintext()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleEncryptRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.prototype.setPlaintext = function(value) {
+  return jspb.Message.setProto3BytesField(this, 2, value);
+};
+
+
+/**
+ * optional string algorithm = 3;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.prototype.getAlgorithm = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleEncryptRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.prototype.setAlgorithm = function(value) {
+  return jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional string key_name = 4;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.prototype.getKeyName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleEncryptRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.prototype.setKeyName = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+/**
+ * optional bytes nonce = 5;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.prototype.getNonce = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+};
+
+
+/**
+ * optional bytes nonce = 5;
+ * This is a type-conversion wrapper around `getNonce()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.prototype.getNonce_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getNonce()));
+};
+
+
+/**
+ * optional bytes nonce = 5;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getNonce()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.prototype.getNonce_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getNonce()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleEncryptRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.prototype.setNonce = function(value) {
+  return jspb.Message.setProto3BytesField(this, 5, value);
+};
+
+
+/**
+ * optional bytes associated_data = 6;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.prototype.getAssociatedData = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
+};
+
+
+/**
+ * optional bytes associated_data = 6;
+ * This is a type-conversion wrapper around `getAssociatedData()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.prototype.getAssociatedData_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getAssociatedData()));
+};
+
+
+/**
+ * optional bytes associated_data = 6;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getAssociatedData()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.prototype.getAssociatedData_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getAssociatedData()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleEncryptRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptRequest.prototype.setAssociatedData = function(value) {
+  return jspb.Message.setProto3BytesField(this, 6, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.SubtleEncryptResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.SubtleEncryptResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    ciphertext: msg.getCiphertext_asB64(),
+    tag: msg.getTag_asB64()
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleEncryptResponse}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.SubtleEncryptResponse;
+  return proto.dapr.proto.runtime.v1.SubtleEncryptResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleEncryptResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleEncryptResponse}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setCiphertext(value);
+      break;
+    case 2:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setTag(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.SubtleEncryptResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleEncryptResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getCiphertext_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      1,
+      f
+    );
+  }
+  f = message.getTag_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional bytes ciphertext = 1;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptResponse.prototype.getCiphertext = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * optional bytes ciphertext = 1;
+ * This is a type-conversion wrapper around `getCiphertext()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptResponse.prototype.getCiphertext_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getCiphertext()));
+};
+
+
+/**
+ * optional bytes ciphertext = 1;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getCiphertext()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptResponse.prototype.getCiphertext_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getCiphertext()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleEncryptResponse} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptResponse.prototype.setCiphertext = function(value) {
+  return jspb.Message.setProto3BytesField(this, 1, value);
+};
+
+
+/**
+ * optional bytes tag = 2;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptResponse.prototype.getTag = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * optional bytes tag = 2;
+ * This is a type-conversion wrapper around `getTag()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptResponse.prototype.getTag_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getTag()));
+};
+
+
+/**
+ * optional bytes tag = 2;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getTag()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptResponse.prototype.getTag_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getTag()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleEncryptResponse} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleEncryptResponse.prototype.setTag = function(value) {
+  return jspb.Message.setProto3BytesField(this, 2, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.SubtleDecryptRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.SubtleDecryptRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    componentName: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    ciphertext: msg.getCiphertext_asB64(),
+    algorithm: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    keyName: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    nonce: msg.getNonce_asB64(),
+    tag: msg.getTag_asB64(),
+    associatedData: msg.getAssociatedData_asB64()
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleDecryptRequest}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.SubtleDecryptRequest;
+  return proto.dapr.proto.runtime.v1.SubtleDecryptRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleDecryptRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleDecryptRequest}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setComponentName(value);
+      break;
+    case 2:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setCiphertext(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAlgorithm(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setKeyName(value);
+      break;
+    case 5:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setNonce(value);
+      break;
+    case 6:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setTag(value);
+      break;
+    case 7:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setAssociatedData(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.SubtleDecryptRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleDecryptRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getComponentName();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getCiphertext_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      2,
+      f
+    );
+  }
+  f = message.getAlgorithm();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getKeyName();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
+  f = message.getNonce_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      5,
+      f
+    );
+  }
+  f = message.getTag_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      6,
+      f
+    );
+  }
+  f = message.getAssociatedData_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      7,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string component_name = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.getComponentName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleDecryptRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.setComponentName = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional bytes ciphertext = 2;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.getCiphertext = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * optional bytes ciphertext = 2;
+ * This is a type-conversion wrapper around `getCiphertext()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.getCiphertext_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getCiphertext()));
+};
+
+
+/**
+ * optional bytes ciphertext = 2;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getCiphertext()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.getCiphertext_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getCiphertext()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleDecryptRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.setCiphertext = function(value) {
+  return jspb.Message.setProto3BytesField(this, 2, value);
+};
+
+
+/**
+ * optional string algorithm = 3;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.getAlgorithm = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleDecryptRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.setAlgorithm = function(value) {
+  return jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional string key_name = 4;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.getKeyName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleDecryptRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.setKeyName = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+/**
+ * optional bytes nonce = 5;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.getNonce = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+};
+
+
+/**
+ * optional bytes nonce = 5;
+ * This is a type-conversion wrapper around `getNonce()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.getNonce_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getNonce()));
+};
+
+
+/**
+ * optional bytes nonce = 5;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getNonce()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.getNonce_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getNonce()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleDecryptRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.setNonce = function(value) {
+  return jspb.Message.setProto3BytesField(this, 5, value);
+};
+
+
+/**
+ * optional bytes tag = 6;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.getTag = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
+};
+
+
+/**
+ * optional bytes tag = 6;
+ * This is a type-conversion wrapper around `getTag()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.getTag_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getTag()));
+};
+
+
+/**
+ * optional bytes tag = 6;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getTag()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.getTag_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getTag()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleDecryptRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.setTag = function(value) {
+  return jspb.Message.setProto3BytesField(this, 6, value);
+};
+
+
+/**
+ * optional bytes associated_data = 7;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.getAssociatedData = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 7, ""));
+};
+
+
+/**
+ * optional bytes associated_data = 7;
+ * This is a type-conversion wrapper around `getAssociatedData()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.getAssociatedData_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getAssociatedData()));
+};
+
+
+/**
+ * optional bytes associated_data = 7;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getAssociatedData()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.getAssociatedData_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getAssociatedData()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleDecryptRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptRequest.prototype.setAssociatedData = function(value) {
+  return jspb.Message.setProto3BytesField(this, 7, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.SubtleDecryptResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.SubtleDecryptResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    plaintext: msg.getPlaintext_asB64()
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleDecryptResponse}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.SubtleDecryptResponse;
+  return proto.dapr.proto.runtime.v1.SubtleDecryptResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleDecryptResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleDecryptResponse}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setPlaintext(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.SubtleDecryptResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleDecryptResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getPlaintext_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
       1,
       f
     );
@@ -12514,20 +14380,3136 @@ proto.dapr.proto.runtime.v1.WorkflowReference.serializeBinaryToWriter = function
 
 
 /**
- * optional string instance_id = 1;
+ * optional bytes plaintext = 1;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptResponse.prototype.getPlaintext = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * optional bytes plaintext = 1;
+ * This is a type-conversion wrapper around `getPlaintext()`
  * @return {string}
  */
-proto.dapr.proto.runtime.v1.WorkflowReference.prototype.getInstanceId = function() {
+proto.dapr.proto.runtime.v1.SubtleDecryptResponse.prototype.getPlaintext_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getPlaintext()));
+};
+
+
+/**
+ * optional bytes plaintext = 1;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getPlaintext()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptResponse.prototype.getPlaintext_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getPlaintext()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleDecryptResponse} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleDecryptResponse.prototype.setPlaintext = function(value) {
+  return jspb.Message.setProto3BytesField(this, 1, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    componentName: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    plaintextKey: msg.getPlaintextKey_asB64(),
+    algorithm: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    keyName: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    nonce: msg.getNonce_asB64(),
+    associatedData: msg.getAssociatedData_asB64()
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest;
+  return proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setComponentName(value);
+      break;
+    case 2:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setPlaintextKey(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAlgorithm(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setKeyName(value);
+      break;
+    case 5:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setNonce(value);
+      break;
+    case 6:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setAssociatedData(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getComponentName();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getPlaintextKey_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      2,
+      f
+    );
+  }
+  f = message.getAlgorithm();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getKeyName();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
+  f = message.getNonce_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      5,
+      f
+    );
+  }
+  f = message.getAssociatedData_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      6,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string component_name = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.prototype.getComponentName = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
 
 /**
  * @param {string} value
- * @return {!proto.dapr.proto.runtime.v1.WorkflowReference} returns this
+ * @return {!proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest} returns this
  */
-proto.dapr.proto.runtime.v1.WorkflowReference.prototype.setInstanceId = function(value) {
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.prototype.setComponentName = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional bytes plaintext_key = 2;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.prototype.getPlaintextKey = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * optional bytes plaintext_key = 2;
+ * This is a type-conversion wrapper around `getPlaintextKey()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.prototype.getPlaintextKey_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getPlaintextKey()));
+};
+
+
+/**
+ * optional bytes plaintext_key = 2;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getPlaintextKey()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.prototype.getPlaintextKey_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getPlaintextKey()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.prototype.setPlaintextKey = function(value) {
+  return jspb.Message.setProto3BytesField(this, 2, value);
+};
+
+
+/**
+ * optional string algorithm = 3;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.prototype.getAlgorithm = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.prototype.setAlgorithm = function(value) {
+  return jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional string key_name = 4;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.prototype.getKeyName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.prototype.setKeyName = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+/**
+ * optional bytes nonce = 5;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.prototype.getNonce = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+};
+
+
+/**
+ * optional bytes nonce = 5;
+ * This is a type-conversion wrapper around `getNonce()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.prototype.getNonce_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getNonce()));
+};
+
+
+/**
+ * optional bytes nonce = 5;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getNonce()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.prototype.getNonce_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getNonce()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.prototype.setNonce = function(value) {
+  return jspb.Message.setProto3BytesField(this, 5, value);
+};
+
+
+/**
+ * optional bytes associated_data = 6;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.prototype.getAssociatedData = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
+};
+
+
+/**
+ * optional bytes associated_data = 6;
+ * This is a type-conversion wrapper around `getAssociatedData()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.prototype.getAssociatedData_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getAssociatedData()));
+};
+
+
+/**
+ * optional bytes associated_data = 6;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getAssociatedData()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.prototype.getAssociatedData_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getAssociatedData()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyRequest.prototype.setAssociatedData = function(value) {
+  return jspb.Message.setProto3BytesField(this, 6, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    wrappedKey: msg.getWrappedKey_asB64(),
+    tag: msg.getTag_asB64()
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse;
+  return proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setWrappedKey(value);
+      break;
+    case 2:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setTag(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getWrappedKey_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      1,
+      f
+    );
+  }
+  f = message.getTag_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional bytes wrapped_key = 1;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse.prototype.getWrappedKey = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * optional bytes wrapped_key = 1;
+ * This is a type-conversion wrapper around `getWrappedKey()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse.prototype.getWrappedKey_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getWrappedKey()));
+};
+
+
+/**
+ * optional bytes wrapped_key = 1;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getWrappedKey()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse.prototype.getWrappedKey_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getWrappedKey()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse.prototype.setWrappedKey = function(value) {
+  return jspb.Message.setProto3BytesField(this, 1, value);
+};
+
+
+/**
+ * optional bytes tag = 2;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse.prototype.getTag = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * optional bytes tag = 2;
+ * This is a type-conversion wrapper around `getTag()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse.prototype.getTag_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getTag()));
+};
+
+
+/**
+ * optional bytes tag = 2;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getTag()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse.prototype.getTag_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getTag()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleWrapKeyResponse.prototype.setTag = function(value) {
+  return jspb.Message.setProto3BytesField(this, 2, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    componentName: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    wrappedKey: msg.getWrappedKey_asB64(),
+    algorithm: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    keyName: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    nonce: msg.getNonce_asB64(),
+    tag: msg.getTag_asB64(),
+    associatedData: msg.getAssociatedData_asB64()
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest;
+  return proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setComponentName(value);
+      break;
+    case 2:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setWrappedKey(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAlgorithm(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setKeyName(value);
+      break;
+    case 5:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setNonce(value);
+      break;
+    case 6:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setTag(value);
+      break;
+    case 7:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setAssociatedData(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getComponentName();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getWrappedKey_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      2,
+      f
+    );
+  }
+  f = message.getAlgorithm();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getKeyName();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
+  f = message.getNonce_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      5,
+      f
+    );
+  }
+  f = message.getTag_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      6,
+      f
+    );
+  }
+  f = message.getAssociatedData_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      7,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string component_name = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.getComponentName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.setComponentName = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional bytes wrapped_key = 2;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.getWrappedKey = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * optional bytes wrapped_key = 2;
+ * This is a type-conversion wrapper around `getWrappedKey()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.getWrappedKey_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getWrappedKey()));
+};
+
+
+/**
+ * optional bytes wrapped_key = 2;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getWrappedKey()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.getWrappedKey_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getWrappedKey()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.setWrappedKey = function(value) {
+  return jspb.Message.setProto3BytesField(this, 2, value);
+};
+
+
+/**
+ * optional string algorithm = 3;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.getAlgorithm = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.setAlgorithm = function(value) {
+  return jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional string key_name = 4;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.getKeyName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.setKeyName = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+/**
+ * optional bytes nonce = 5;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.getNonce = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+};
+
+
+/**
+ * optional bytes nonce = 5;
+ * This is a type-conversion wrapper around `getNonce()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.getNonce_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getNonce()));
+};
+
+
+/**
+ * optional bytes nonce = 5;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getNonce()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.getNonce_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getNonce()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.setNonce = function(value) {
+  return jspb.Message.setProto3BytesField(this, 5, value);
+};
+
+
+/**
+ * optional bytes tag = 6;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.getTag = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
+};
+
+
+/**
+ * optional bytes tag = 6;
+ * This is a type-conversion wrapper around `getTag()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.getTag_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getTag()));
+};
+
+
+/**
+ * optional bytes tag = 6;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getTag()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.getTag_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getTag()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.setTag = function(value) {
+  return jspb.Message.setProto3BytesField(this, 6, value);
+};
+
+
+/**
+ * optional bytes associated_data = 7;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.getAssociatedData = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 7, ""));
+};
+
+
+/**
+ * optional bytes associated_data = 7;
+ * This is a type-conversion wrapper around `getAssociatedData()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.getAssociatedData_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getAssociatedData()));
+};
+
+
+/**
+ * optional bytes associated_data = 7;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getAssociatedData()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.getAssociatedData_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getAssociatedData()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyRequest.prototype.setAssociatedData = function(value) {
+  return jspb.Message.setProto3BytesField(this, 7, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    plaintextKey: msg.getPlaintextKey_asB64()
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse;
+  return proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setPlaintextKey(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getPlaintextKey_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional bytes plaintext_key = 1;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse.prototype.getPlaintextKey = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * optional bytes plaintext_key = 1;
+ * This is a type-conversion wrapper around `getPlaintextKey()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse.prototype.getPlaintextKey_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getPlaintextKey()));
+};
+
+
+/**
+ * optional bytes plaintext_key = 1;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getPlaintextKey()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse.prototype.getPlaintextKey_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getPlaintextKey()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleUnwrapKeyResponse.prototype.setPlaintextKey = function(value) {
+  return jspb.Message.setProto3BytesField(this, 1, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.SubtleSignRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.SubtleSignRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.SubtleSignRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleSignRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    componentName: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    digest: msg.getDigest_asB64(),
+    algorithm: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    keyName: jspb.Message.getFieldWithDefault(msg, 4, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleSignRequest}
+ */
+proto.dapr.proto.runtime.v1.SubtleSignRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.SubtleSignRequest;
+  return proto.dapr.proto.runtime.v1.SubtleSignRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleSignRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleSignRequest}
+ */
+proto.dapr.proto.runtime.v1.SubtleSignRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setComponentName(value);
+      break;
+    case 2:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setDigest(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAlgorithm(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setKeyName(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleSignRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.SubtleSignRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleSignRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleSignRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getComponentName();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getDigest_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      2,
+      f
+    );
+  }
+  f = message.getAlgorithm();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getKeyName();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string component_name = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleSignRequest.prototype.getComponentName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleSignRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleSignRequest.prototype.setComponentName = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional bytes digest = 2;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleSignRequest.prototype.getDigest = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * optional bytes digest = 2;
+ * This is a type-conversion wrapper around `getDigest()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleSignRequest.prototype.getDigest_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getDigest()));
+};
+
+
+/**
+ * optional bytes digest = 2;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getDigest()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleSignRequest.prototype.getDigest_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getDigest()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleSignRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleSignRequest.prototype.setDigest = function(value) {
+  return jspb.Message.setProto3BytesField(this, 2, value);
+};
+
+
+/**
+ * optional string algorithm = 3;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleSignRequest.prototype.getAlgorithm = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleSignRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleSignRequest.prototype.setAlgorithm = function(value) {
+  return jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional string key_name = 4;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleSignRequest.prototype.getKeyName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleSignRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleSignRequest.prototype.setKeyName = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.SubtleSignResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.SubtleSignResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.SubtleSignResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleSignResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    signature: msg.getSignature_asB64()
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleSignResponse}
+ */
+proto.dapr.proto.runtime.v1.SubtleSignResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.SubtleSignResponse;
+  return proto.dapr.proto.runtime.v1.SubtleSignResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleSignResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleSignResponse}
+ */
+proto.dapr.proto.runtime.v1.SubtleSignResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setSignature(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleSignResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.SubtleSignResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleSignResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleSignResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getSignature_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional bytes signature = 1;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleSignResponse.prototype.getSignature = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * optional bytes signature = 1;
+ * This is a type-conversion wrapper around `getSignature()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleSignResponse.prototype.getSignature_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getSignature()));
+};
+
+
+/**
+ * optional bytes signature = 1;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getSignature()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleSignResponse.prototype.getSignature_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getSignature()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleSignResponse} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleSignResponse.prototype.setSignature = function(value) {
+  return jspb.Message.setProto3BytesField(this, 1, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.SubtleVerifyRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.SubtleVerifyRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    componentName: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    digest: msg.getDigest_asB64(),
+    algorithm: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    keyName: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    signature: msg.getSignature_asB64()
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleVerifyRequest}
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.SubtleVerifyRequest;
+  return proto.dapr.proto.runtime.v1.SubtleVerifyRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleVerifyRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleVerifyRequest}
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setComponentName(value);
+      break;
+    case 2:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setDigest(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAlgorithm(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setKeyName(value);
+      break;
+    case 5:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setSignature(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.SubtleVerifyRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleVerifyRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getComponentName();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getDigest_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      2,
+      f
+    );
+  }
+  f = message.getAlgorithm();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getKeyName();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
+  f = message.getSignature_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      5,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string component_name = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyRequest.prototype.getComponentName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleVerifyRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyRequest.prototype.setComponentName = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional bytes digest = 2;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyRequest.prototype.getDigest = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * optional bytes digest = 2;
+ * This is a type-conversion wrapper around `getDigest()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyRequest.prototype.getDigest_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getDigest()));
+};
+
+
+/**
+ * optional bytes digest = 2;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getDigest()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyRequest.prototype.getDigest_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getDigest()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleVerifyRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyRequest.prototype.setDigest = function(value) {
+  return jspb.Message.setProto3BytesField(this, 2, value);
+};
+
+
+/**
+ * optional string algorithm = 3;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyRequest.prototype.getAlgorithm = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleVerifyRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyRequest.prototype.setAlgorithm = function(value) {
+  return jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional string key_name = 4;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyRequest.prototype.getKeyName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleVerifyRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyRequest.prototype.setKeyName = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+/**
+ * optional bytes signature = 5;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyRequest.prototype.getSignature = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+};
+
+
+/**
+ * optional bytes signature = 5;
+ * This is a type-conversion wrapper around `getSignature()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyRequest.prototype.getSignature_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getSignature()));
+};
+
+
+/**
+ * optional bytes signature = 5;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getSignature()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyRequest.prototype.getSignature_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getSignature()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleVerifyRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyRequest.prototype.setSignature = function(value) {
+  return jspb.Message.setProto3BytesField(this, 5, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.SubtleVerifyResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.SubtleVerifyResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    valid: jspb.Message.getBooleanFieldWithDefault(msg, 1, false)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleVerifyResponse}
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.SubtleVerifyResponse;
+  return proto.dapr.proto.runtime.v1.SubtleVerifyResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleVerifyResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.SubtleVerifyResponse}
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setValid(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.SubtleVerifyResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.SubtleVerifyResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getValid();
+  if (f) {
+    writer.writeBool(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional bool valid = 1;
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyResponse.prototype.getValid = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 1, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.dapr.proto.runtime.v1.SubtleVerifyResponse} returns this
+ */
+proto.dapr.proto.runtime.v1.SubtleVerifyResponse.prototype.setValid = function(value) {
+  return jspb.Message.setProto3BooleanField(this, 1, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.EncryptRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.EncryptRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.EncryptRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.EncryptRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    options: (f = msg.getOptions()) && proto.dapr.proto.runtime.v1.EncryptRequestOptions.toObject(includeInstance, f),
+    payload: (f = msg.getPayload()) && dapr_proto_common_v1_common_pb.StreamPayload.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.EncryptRequest}
+ */
+proto.dapr.proto.runtime.v1.EncryptRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.EncryptRequest;
+  return proto.dapr.proto.runtime.v1.EncryptRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.EncryptRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.EncryptRequest}
+ */
+proto.dapr.proto.runtime.v1.EncryptRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.dapr.proto.runtime.v1.EncryptRequestOptions;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.EncryptRequestOptions.deserializeBinaryFromReader);
+      msg.setOptions(value);
+      break;
+    case 2:
+      var value = new dapr_proto_common_v1_common_pb.StreamPayload;
+      reader.readMessage(value,dapr_proto_common_v1_common_pb.StreamPayload.deserializeBinaryFromReader);
+      msg.setPayload(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.EncryptRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.EncryptRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.EncryptRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.EncryptRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getOptions();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.dapr.proto.runtime.v1.EncryptRequestOptions.serializeBinaryToWriter
+    );
+  }
+  f = message.getPayload();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      dapr_proto_common_v1_common_pb.StreamPayload.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional EncryptRequestOptions options = 1;
+ * @return {?proto.dapr.proto.runtime.v1.EncryptRequestOptions}
+ */
+proto.dapr.proto.runtime.v1.EncryptRequest.prototype.getOptions = function() {
+  return /** @type{?proto.dapr.proto.runtime.v1.EncryptRequestOptions} */ (
+    jspb.Message.getWrapperField(this, proto.dapr.proto.runtime.v1.EncryptRequestOptions, 1));
+};
+
+
+/**
+ * @param {?proto.dapr.proto.runtime.v1.EncryptRequestOptions|undefined} value
+ * @return {!proto.dapr.proto.runtime.v1.EncryptRequest} returns this
+*/
+proto.dapr.proto.runtime.v1.EncryptRequest.prototype.setOptions = function(value) {
+  return jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.EncryptRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.EncryptRequest.prototype.clearOptions = function() {
+  return this.setOptions(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.EncryptRequest.prototype.hasOptions = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional dapr.proto.common.v1.StreamPayload payload = 2;
+ * @return {?proto.dapr.proto.common.v1.StreamPayload}
+ */
+proto.dapr.proto.runtime.v1.EncryptRequest.prototype.getPayload = function() {
+  return /** @type{?proto.dapr.proto.common.v1.StreamPayload} */ (
+    jspb.Message.getWrapperField(this, dapr_proto_common_v1_common_pb.StreamPayload, 2));
+};
+
+
+/**
+ * @param {?proto.dapr.proto.common.v1.StreamPayload|undefined} value
+ * @return {!proto.dapr.proto.runtime.v1.EncryptRequest} returns this
+*/
+proto.dapr.proto.runtime.v1.EncryptRequest.prototype.setPayload = function(value) {
+  return jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.EncryptRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.EncryptRequest.prototype.clearPayload = function() {
+  return this.setPayload(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.EncryptRequest.prototype.hasPayload = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.EncryptRequestOptions.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.EncryptRequestOptions.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.EncryptRequestOptions} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.EncryptRequestOptions.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    componentName: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    keyName: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    keyWrapAlgorithm: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    dataEncryptionCipher: jspb.Message.getFieldWithDefault(msg, 10, ""),
+    omitDecryptionKeyName: jspb.Message.getBooleanFieldWithDefault(msg, 11, false),
+    decryptionKeyName: jspb.Message.getFieldWithDefault(msg, 12, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.EncryptRequestOptions}
+ */
+proto.dapr.proto.runtime.v1.EncryptRequestOptions.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.EncryptRequestOptions;
+  return proto.dapr.proto.runtime.v1.EncryptRequestOptions.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.EncryptRequestOptions} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.EncryptRequestOptions}
+ */
+proto.dapr.proto.runtime.v1.EncryptRequestOptions.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setComponentName(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setKeyName(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setKeyWrapAlgorithm(value);
+      break;
+    case 10:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDataEncryptionCipher(value);
+      break;
+    case 11:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setOmitDecryptionKeyName(value);
+      break;
+    case 12:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDecryptionKeyName(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.EncryptRequestOptions.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.EncryptRequestOptions.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.EncryptRequestOptions} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.EncryptRequestOptions.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getComponentName();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getKeyName();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getKeyWrapAlgorithm();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getDataEncryptionCipher();
+  if (f.length > 0) {
+    writer.writeString(
+      10,
+      f
+    );
+  }
+  f = message.getOmitDecryptionKeyName();
+  if (f) {
+    writer.writeBool(
+      11,
+      f
+    );
+  }
+  f = message.getDecryptionKeyName();
+  if (f.length > 0) {
+    writer.writeString(
+      12,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string component_name = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.EncryptRequestOptions.prototype.getComponentName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.EncryptRequestOptions} returns this
+ */
+proto.dapr.proto.runtime.v1.EncryptRequestOptions.prototype.setComponentName = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string key_name = 2;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.EncryptRequestOptions.prototype.getKeyName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.EncryptRequestOptions} returns this
+ */
+proto.dapr.proto.runtime.v1.EncryptRequestOptions.prototype.setKeyName = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string key_wrap_algorithm = 3;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.EncryptRequestOptions.prototype.getKeyWrapAlgorithm = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.EncryptRequestOptions} returns this
+ */
+proto.dapr.proto.runtime.v1.EncryptRequestOptions.prototype.setKeyWrapAlgorithm = function(value) {
+  return jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional string data_encryption_cipher = 10;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.EncryptRequestOptions.prototype.getDataEncryptionCipher = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 10, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.EncryptRequestOptions} returns this
+ */
+proto.dapr.proto.runtime.v1.EncryptRequestOptions.prototype.setDataEncryptionCipher = function(value) {
+  return jspb.Message.setProto3StringField(this, 10, value);
+};
+
+
+/**
+ * optional bool omit_decryption_key_name = 11;
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.EncryptRequestOptions.prototype.getOmitDecryptionKeyName = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 11, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.dapr.proto.runtime.v1.EncryptRequestOptions} returns this
+ */
+proto.dapr.proto.runtime.v1.EncryptRequestOptions.prototype.setOmitDecryptionKeyName = function(value) {
+  return jspb.Message.setProto3BooleanField(this, 11, value);
+};
+
+
+/**
+ * optional string decryption_key_name = 12;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.EncryptRequestOptions.prototype.getDecryptionKeyName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 12, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.EncryptRequestOptions} returns this
+ */
+proto.dapr.proto.runtime.v1.EncryptRequestOptions.prototype.setDecryptionKeyName = function(value) {
+  return jspb.Message.setProto3StringField(this, 12, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.EncryptResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.EncryptResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.EncryptResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.EncryptResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    payload: (f = msg.getPayload()) && dapr_proto_common_v1_common_pb.StreamPayload.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.EncryptResponse}
+ */
+proto.dapr.proto.runtime.v1.EncryptResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.EncryptResponse;
+  return proto.dapr.proto.runtime.v1.EncryptResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.EncryptResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.EncryptResponse}
+ */
+proto.dapr.proto.runtime.v1.EncryptResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new dapr_proto_common_v1_common_pb.StreamPayload;
+      reader.readMessage(value,dapr_proto_common_v1_common_pb.StreamPayload.deserializeBinaryFromReader);
+      msg.setPayload(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.EncryptResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.EncryptResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.EncryptResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.EncryptResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getPayload();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      dapr_proto_common_v1_common_pb.StreamPayload.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional dapr.proto.common.v1.StreamPayload payload = 1;
+ * @return {?proto.dapr.proto.common.v1.StreamPayload}
+ */
+proto.dapr.proto.runtime.v1.EncryptResponse.prototype.getPayload = function() {
+  return /** @type{?proto.dapr.proto.common.v1.StreamPayload} */ (
+    jspb.Message.getWrapperField(this, dapr_proto_common_v1_common_pb.StreamPayload, 1));
+};
+
+
+/**
+ * @param {?proto.dapr.proto.common.v1.StreamPayload|undefined} value
+ * @return {!proto.dapr.proto.runtime.v1.EncryptResponse} returns this
+*/
+proto.dapr.proto.runtime.v1.EncryptResponse.prototype.setPayload = function(value) {
+  return jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.EncryptResponse} returns this
+ */
+proto.dapr.proto.runtime.v1.EncryptResponse.prototype.clearPayload = function() {
+  return this.setPayload(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.EncryptResponse.prototype.hasPayload = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.DecryptRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.DecryptRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.DecryptRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.DecryptRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    options: (f = msg.getOptions()) && proto.dapr.proto.runtime.v1.DecryptRequestOptions.toObject(includeInstance, f),
+    payload: (f = msg.getPayload()) && dapr_proto_common_v1_common_pb.StreamPayload.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.DecryptRequest}
+ */
+proto.dapr.proto.runtime.v1.DecryptRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.DecryptRequest;
+  return proto.dapr.proto.runtime.v1.DecryptRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.DecryptRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.DecryptRequest}
+ */
+proto.dapr.proto.runtime.v1.DecryptRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.dapr.proto.runtime.v1.DecryptRequestOptions;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.DecryptRequestOptions.deserializeBinaryFromReader);
+      msg.setOptions(value);
+      break;
+    case 2:
+      var value = new dapr_proto_common_v1_common_pb.StreamPayload;
+      reader.readMessage(value,dapr_proto_common_v1_common_pb.StreamPayload.deserializeBinaryFromReader);
+      msg.setPayload(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.DecryptRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.DecryptRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.DecryptRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.DecryptRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getOptions();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.dapr.proto.runtime.v1.DecryptRequestOptions.serializeBinaryToWriter
+    );
+  }
+  f = message.getPayload();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      dapr_proto_common_v1_common_pb.StreamPayload.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional DecryptRequestOptions options = 1;
+ * @return {?proto.dapr.proto.runtime.v1.DecryptRequestOptions}
+ */
+proto.dapr.proto.runtime.v1.DecryptRequest.prototype.getOptions = function() {
+  return /** @type{?proto.dapr.proto.runtime.v1.DecryptRequestOptions} */ (
+    jspb.Message.getWrapperField(this, proto.dapr.proto.runtime.v1.DecryptRequestOptions, 1));
+};
+
+
+/**
+ * @param {?proto.dapr.proto.runtime.v1.DecryptRequestOptions|undefined} value
+ * @return {!proto.dapr.proto.runtime.v1.DecryptRequest} returns this
+*/
+proto.dapr.proto.runtime.v1.DecryptRequest.prototype.setOptions = function(value) {
+  return jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.DecryptRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.DecryptRequest.prototype.clearOptions = function() {
+  return this.setOptions(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.DecryptRequest.prototype.hasOptions = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional dapr.proto.common.v1.StreamPayload payload = 2;
+ * @return {?proto.dapr.proto.common.v1.StreamPayload}
+ */
+proto.dapr.proto.runtime.v1.DecryptRequest.prototype.getPayload = function() {
+  return /** @type{?proto.dapr.proto.common.v1.StreamPayload} */ (
+    jspb.Message.getWrapperField(this, dapr_proto_common_v1_common_pb.StreamPayload, 2));
+};
+
+
+/**
+ * @param {?proto.dapr.proto.common.v1.StreamPayload|undefined} value
+ * @return {!proto.dapr.proto.runtime.v1.DecryptRequest} returns this
+*/
+proto.dapr.proto.runtime.v1.DecryptRequest.prototype.setPayload = function(value) {
+  return jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.DecryptRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.DecryptRequest.prototype.clearPayload = function() {
+  return this.setPayload(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.DecryptRequest.prototype.hasPayload = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.DecryptRequestOptions.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.DecryptRequestOptions.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.DecryptRequestOptions} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.DecryptRequestOptions.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    componentName: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    keyName: jspb.Message.getFieldWithDefault(msg, 12, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.DecryptRequestOptions}
+ */
+proto.dapr.proto.runtime.v1.DecryptRequestOptions.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.DecryptRequestOptions;
+  return proto.dapr.proto.runtime.v1.DecryptRequestOptions.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.DecryptRequestOptions} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.DecryptRequestOptions}
+ */
+proto.dapr.proto.runtime.v1.DecryptRequestOptions.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setComponentName(value);
+      break;
+    case 12:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setKeyName(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.DecryptRequestOptions.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.DecryptRequestOptions.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.DecryptRequestOptions} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.DecryptRequestOptions.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getComponentName();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getKeyName();
+  if (f.length > 0) {
+    writer.writeString(
+      12,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string component_name = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.DecryptRequestOptions.prototype.getComponentName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.DecryptRequestOptions} returns this
+ */
+proto.dapr.proto.runtime.v1.DecryptRequestOptions.prototype.setComponentName = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string key_name = 12;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.DecryptRequestOptions.prototype.getKeyName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 12, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.DecryptRequestOptions} returns this
+ */
+proto.dapr.proto.runtime.v1.DecryptRequestOptions.prototype.setKeyName = function(value) {
+  return jspb.Message.setProto3StringField(this, 12, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.DecryptResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.DecryptResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.DecryptResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.DecryptResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    payload: (f = msg.getPayload()) && dapr_proto_common_v1_common_pb.StreamPayload.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.DecryptResponse}
+ */
+proto.dapr.proto.runtime.v1.DecryptResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.DecryptResponse;
+  return proto.dapr.proto.runtime.v1.DecryptResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.DecryptResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.DecryptResponse}
+ */
+proto.dapr.proto.runtime.v1.DecryptResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new dapr_proto_common_v1_common_pb.StreamPayload;
+      reader.readMessage(value,dapr_proto_common_v1_common_pb.StreamPayload.deserializeBinaryFromReader);
+      msg.setPayload(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.DecryptResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.DecryptResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.DecryptResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.DecryptResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getPayload();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      dapr_proto_common_v1_common_pb.StreamPayload.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional dapr.proto.common.v1.StreamPayload payload = 1;
+ * @return {?proto.dapr.proto.common.v1.StreamPayload}
+ */
+proto.dapr.proto.runtime.v1.DecryptResponse.prototype.getPayload = function() {
+  return /** @type{?proto.dapr.proto.common.v1.StreamPayload} */ (
+    jspb.Message.getWrapperField(this, dapr_proto_common_v1_common_pb.StreamPayload, 1));
+};
+
+
+/**
+ * @param {?proto.dapr.proto.common.v1.StreamPayload|undefined} value
+ * @return {!proto.dapr.proto.runtime.v1.DecryptResponse} returns this
+*/
+proto.dapr.proto.runtime.v1.DecryptResponse.prototype.setPayload = function(value) {
+  return jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.DecryptResponse} returns this
+ */
+proto.dapr.proto.runtime.v1.DecryptResponse.prototype.clearPayload = function() {
+  return this.setPayload(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.DecryptResponse.prototype.hasPayload = function() {
+  return jspb.Message.getField(this, 1) != null;
 };
 
 
@@ -12564,8 +17546,7 @@ proto.dapr.proto.runtime.v1.GetWorkflowRequest.prototype.toObject = function(opt
 proto.dapr.proto.runtime.v1.GetWorkflowRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     instanceId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    workflowType: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    workflowComponent: jspb.Message.getFieldWithDefault(msg, 3, "")
+    workflowComponent: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -12608,10 +17589,6 @@ proto.dapr.proto.runtime.v1.GetWorkflowRequest.deserializeBinaryFromReader = fun
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
-      msg.setWorkflowType(value);
-      break;
-    case 3:
-      var value = /** @type {string} */ (reader.readString());
       msg.setWorkflowComponent(value);
       break;
     default:
@@ -12650,17 +17627,10 @@ proto.dapr.proto.runtime.v1.GetWorkflowRequest.serializeBinaryToWriter = functio
       f
     );
   }
-  f = message.getWorkflowType();
-  if (f.length > 0) {
-    writer.writeString(
-      2,
-      f
-    );
-  }
   f = message.getWorkflowComponent();
   if (f.length > 0) {
     writer.writeString(
-      3,
+      2,
       f
     );
   }
@@ -12686,10 +17656,10 @@ proto.dapr.proto.runtime.v1.GetWorkflowRequest.prototype.setInstanceId = functio
 
 
 /**
- * optional string workflow_type = 2;
+ * optional string workflow_component = 2;
  * @return {string}
  */
-proto.dapr.proto.runtime.v1.GetWorkflowRequest.prototype.getWorkflowType = function() {
+proto.dapr.proto.runtime.v1.GetWorkflowRequest.prototype.getWorkflowComponent = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
@@ -12698,26 +17668,8 @@ proto.dapr.proto.runtime.v1.GetWorkflowRequest.prototype.getWorkflowType = funct
  * @param {string} value
  * @return {!proto.dapr.proto.runtime.v1.GetWorkflowRequest} returns this
  */
-proto.dapr.proto.runtime.v1.GetWorkflowRequest.prototype.setWorkflowType = function(value) {
-  return jspb.Message.setProto3StringField(this, 2, value);
-};
-
-
-/**
- * optional string workflow_component = 3;
- * @return {string}
- */
-proto.dapr.proto.runtime.v1.GetWorkflowRequest.prototype.getWorkflowComponent = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
-};
-
-
-/**
- * @param {string} value
- * @return {!proto.dapr.proto.runtime.v1.GetWorkflowRequest} returns this
- */
 proto.dapr.proto.runtime.v1.GetWorkflowRequest.prototype.setWorkflowComponent = function(value) {
-  return jspb.Message.setProto3StringField(this, 3, value);
+  return jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
@@ -12754,8 +17706,11 @@ proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.toObject = function(op
 proto.dapr.proto.runtime.v1.GetWorkflowResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
     instanceId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    startTime: jspb.Message.getFieldWithDefault(msg, 2, 0),
-    metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : []
+    workflowName: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    createdAt: (f = msg.getCreatedAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
+    lastUpdatedAt: (f = msg.getLastUpdatedAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
+    runtimeStatus: jspb.Message.getFieldWithDefault(msg, 5, ""),
+    propertiesMap: (f = msg.getPropertiesMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -12797,11 +17752,25 @@ proto.dapr.proto.runtime.v1.GetWorkflowResponse.deserializeBinaryFromReader = fu
       msg.setInstanceId(value);
       break;
     case 2:
-      var value = /** @type {number} */ (reader.readInt64());
-      msg.setStartTime(value);
+      var value = /** @type {string} */ (reader.readString());
+      msg.setWorkflowName(value);
       break;
     case 3:
-      var value = msg.getMetadataMap();
+      var value = new google_protobuf_timestamp_pb.Timestamp;
+      reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
+      msg.setCreatedAt(value);
+      break;
+    case 4:
+      var value = new google_protobuf_timestamp_pb.Timestamp;
+      reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
+      msg.setLastUpdatedAt(value);
+      break;
+    case 5:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setRuntimeStatus(value);
+      break;
+    case 6:
+      var value = msg.getPropertiesMap();
       reader.readMessage(value, function(message, reader) {
         jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "", "");
          });
@@ -12842,16 +17811,39 @@ proto.dapr.proto.runtime.v1.GetWorkflowResponse.serializeBinaryToWriter = functi
       f
     );
   }
-  f = message.getStartTime();
-  if (f !== 0) {
-    writer.writeInt64(
+  f = message.getWorkflowName();
+  if (f.length > 0) {
+    writer.writeString(
       2,
       f
     );
   }
-  f = message.getMetadataMap(true);
+  f = message.getCreatedAt();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
+    );
+  }
+  f = message.getLastUpdatedAt();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
+    );
+  }
+  f = message.getRuntimeStatus();
+  if (f.length > 0) {
+    writer.writeString(
+      5,
+      f
+    );
+  }
+  f = message.getPropertiesMap(true);
   if (f && f.getLength() > 0) {
-    f.serializeBinary(3, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+    f.serializeBinary(6, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
 };
 
@@ -12875,32 +17867,124 @@ proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.setInstanceId = functi
 
 
 /**
- * optional int64 start_time = 2;
- * @return {number}
+ * optional string workflow_name = 2;
+ * @return {string}
  */
-proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.getStartTime = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
+proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.getWorkflowName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
 
 /**
- * @param {number} value
+ * @param {string} value
  * @return {!proto.dapr.proto.runtime.v1.GetWorkflowResponse} returns this
  */
-proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.setStartTime = function(value) {
-  return jspb.Message.setProto3IntField(this, 2, value);
+proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.setWorkflowName = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
 /**
- * map<string, string> metadata = 3;
+ * optional google.protobuf.Timestamp created_at = 3;
+ * @return {?proto.google.protobuf.Timestamp}
+ */
+proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.getCreatedAt = function() {
+  return /** @type{?proto.google.protobuf.Timestamp} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 3));
+};
+
+
+/**
+ * @param {?proto.google.protobuf.Timestamp|undefined} value
+ * @return {!proto.dapr.proto.runtime.v1.GetWorkflowResponse} returns this
+*/
+proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.setCreatedAt = function(value) {
+  return jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.GetWorkflowResponse} returns this
+ */
+proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.clearCreatedAt = function() {
+  return this.setCreatedAt(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.hasCreatedAt = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional google.protobuf.Timestamp last_updated_at = 4;
+ * @return {?proto.google.protobuf.Timestamp}
+ */
+proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.getLastUpdatedAt = function() {
+  return /** @type{?proto.google.protobuf.Timestamp} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 4));
+};
+
+
+/**
+ * @param {?proto.google.protobuf.Timestamp|undefined} value
+ * @return {!proto.dapr.proto.runtime.v1.GetWorkflowResponse} returns this
+*/
+proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.setLastUpdatedAt = function(value) {
+  return jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.GetWorkflowResponse} returns this
+ */
+proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.clearLastUpdatedAt = function() {
+  return this.setLastUpdatedAt(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.hasLastUpdatedAt = function() {
+  return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional string runtime_status = 5;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.getRuntimeStatus = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.GetWorkflowResponse} returns this
+ */
+proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.setRuntimeStatus = function(value) {
+  return jspb.Message.setProto3StringField(this, 5, value);
+};
+
+
+/**
+ * map<string, string> properties = 6;
  * @param {boolean=} opt_noLazyCreate Do not create the map if
  * empty, instead returning `undefined`
  * @return {!jspb.Map<string,string>}
  */
-proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.getMetadataMap = function(opt_noLazyCreate) {
+proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.getPropertiesMap = function(opt_noLazyCreate) {
   return /** @type {!jspb.Map<string,string>} */ (
-      jspb.Message.getMapField(this, 3, opt_noLazyCreate,
+      jspb.Message.getMapField(this, 6, opt_noLazyCreate,
       null));
 };
 
@@ -12909,8 +17993,8 @@ proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.getMetadataMap = funct
  * Clears values from the map. The map will be non-null.
  * @return {!proto.dapr.proto.runtime.v1.GetWorkflowResponse} returns this
  */
-proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.clearMetadataMap = function() {
-  this.getMetadataMap().clear();
+proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.clearPropertiesMap = function() {
+  this.getPropertiesMap().clear();
   return this;};
 
 
@@ -13207,6 +18291,136 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     http://goto/soy-param-migration
  * @return {!Object}
  */
+proto.dapr.proto.runtime.v1.StartWorkflowResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.StartWorkflowResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.StartWorkflowResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.StartWorkflowResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    instanceId: jspb.Message.getFieldWithDefault(msg, 1, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.StartWorkflowResponse}
+ */
+proto.dapr.proto.runtime.v1.StartWorkflowResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.StartWorkflowResponse;
+  return proto.dapr.proto.runtime.v1.StartWorkflowResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.StartWorkflowResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.StartWorkflowResponse}
+ */
+proto.dapr.proto.runtime.v1.StartWorkflowResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setInstanceId(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.StartWorkflowResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.StartWorkflowResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.StartWorkflowResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.StartWorkflowResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getInstanceId();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string instance_id = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.StartWorkflowResponse.prototype.getInstanceId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.StartWorkflowResponse} returns this
+ */
+proto.dapr.proto.runtime.v1.StartWorkflowResponse.prototype.setInstanceId = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
 proto.dapr.proto.runtime.v1.TerminateWorkflowRequest.prototype.toObject = function(opt_includeInstance) {
   return proto.dapr.proto.runtime.v1.TerminateWorkflowRequest.toObject(opt_includeInstance, this);
 };
@@ -13367,8 +18581,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.dapr.proto.runtime.v1.TerminateWorkflowResponse.prototype.toObject = function(opt_includeInstance) {
-  return proto.dapr.proto.runtime.v1.TerminateWorkflowResponse.toObject(opt_includeInstance, this);
+proto.dapr.proto.runtime.v1.PauseWorkflowRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.PauseWorkflowRequest.toObject(opt_includeInstance, this);
 };
 
 
@@ -13377,13 +18591,14 @@ proto.dapr.proto.runtime.v1.TerminateWorkflowResponse.prototype.toObject = funct
  * @param {boolean|undefined} includeInstance Deprecated. Whether to include
  *     the JSPB instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.dapr.proto.runtime.v1.TerminateWorkflowResponse} msg The msg instance to transform.
+ * @param {!proto.dapr.proto.runtime.v1.PauseWorkflowRequest} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.dapr.proto.runtime.v1.TerminateWorkflowResponse.toObject = function(includeInstance, msg) {
+proto.dapr.proto.runtime.v1.PauseWorkflowRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-
+    instanceId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    workflowComponent: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -13397,29 +18612,37 @@ proto.dapr.proto.runtime.v1.TerminateWorkflowResponse.toObject = function(includ
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.dapr.proto.runtime.v1.TerminateWorkflowResponse}
+ * @return {!proto.dapr.proto.runtime.v1.PauseWorkflowRequest}
  */
-proto.dapr.proto.runtime.v1.TerminateWorkflowResponse.deserializeBinary = function(bytes) {
+proto.dapr.proto.runtime.v1.PauseWorkflowRequest.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.dapr.proto.runtime.v1.TerminateWorkflowResponse;
-  return proto.dapr.proto.runtime.v1.TerminateWorkflowResponse.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.dapr.proto.runtime.v1.PauseWorkflowRequest;
+  return proto.dapr.proto.runtime.v1.PauseWorkflowRequest.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.dapr.proto.runtime.v1.TerminateWorkflowResponse} msg The message object to deserialize into.
+ * @param {!proto.dapr.proto.runtime.v1.PauseWorkflowRequest} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.dapr.proto.runtime.v1.TerminateWorkflowResponse}
+ * @return {!proto.dapr.proto.runtime.v1.PauseWorkflowRequest}
  */
-proto.dapr.proto.runtime.v1.TerminateWorkflowResponse.deserializeBinaryFromReader = function(msg, reader) {
+proto.dapr.proto.runtime.v1.PauseWorkflowRequest.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setInstanceId(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setWorkflowComponent(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -13433,9 +18656,9 @@ proto.dapr.proto.runtime.v1.TerminateWorkflowResponse.deserializeBinaryFromReade
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.dapr.proto.runtime.v1.TerminateWorkflowResponse.prototype.serializeBinary = function() {
+proto.dapr.proto.runtime.v1.PauseWorkflowRequest.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.dapr.proto.runtime.v1.TerminateWorkflowResponse.serializeBinaryToWriter(this, writer);
+  proto.dapr.proto.runtime.v1.PauseWorkflowRequest.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -13443,12 +18666,626 @@ proto.dapr.proto.runtime.v1.TerminateWorkflowResponse.prototype.serializeBinary 
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.dapr.proto.runtime.v1.TerminateWorkflowResponse} message
+ * @param {!proto.dapr.proto.runtime.v1.PauseWorkflowRequest} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.dapr.proto.runtime.v1.TerminateWorkflowResponse.serializeBinaryToWriter = function(message, writer) {
+proto.dapr.proto.runtime.v1.PauseWorkflowRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
+  f = message.getInstanceId();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getWorkflowComponent();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string instance_id = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.PauseWorkflowRequest.prototype.getInstanceId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.PauseWorkflowRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.PauseWorkflowRequest.prototype.setInstanceId = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string workflow_component = 2;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.PauseWorkflowRequest.prototype.getWorkflowComponent = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.PauseWorkflowRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.PauseWorkflowRequest.prototype.setWorkflowComponent = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.ResumeWorkflowRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.ResumeWorkflowRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.ResumeWorkflowRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ResumeWorkflowRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    instanceId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    workflowComponent: jspb.Message.getFieldWithDefault(msg, 2, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.ResumeWorkflowRequest}
+ */
+proto.dapr.proto.runtime.v1.ResumeWorkflowRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.ResumeWorkflowRequest;
+  return proto.dapr.proto.runtime.v1.ResumeWorkflowRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.ResumeWorkflowRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.ResumeWorkflowRequest}
+ */
+proto.dapr.proto.runtime.v1.ResumeWorkflowRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setInstanceId(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setWorkflowComponent(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.ResumeWorkflowRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.ResumeWorkflowRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.ResumeWorkflowRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ResumeWorkflowRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getInstanceId();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getWorkflowComponent();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string instance_id = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ResumeWorkflowRequest.prototype.getInstanceId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ResumeWorkflowRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.ResumeWorkflowRequest.prototype.setInstanceId = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string workflow_component = 2;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ResumeWorkflowRequest.prototype.getWorkflowComponent = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ResumeWorkflowRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.ResumeWorkflowRequest.prototype.setWorkflowComponent = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    instanceId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    workflowComponent: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    eventName: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    eventData: msg.getEventData_asB64()
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest}
+ */
+proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest;
+  return proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest}
+ */
+proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setInstanceId(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setWorkflowComponent(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setEventName(value);
+      break;
+    case 4:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setEventData(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getInstanceId();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getWorkflowComponent();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getEventName();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getEventData_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      4,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string instance_id = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest.prototype.getInstanceId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest.prototype.setInstanceId = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string workflow_component = 2;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest.prototype.getWorkflowComponent = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest.prototype.setWorkflowComponent = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string event_name = 3;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest.prototype.getEventName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest.prototype.setEventName = function(value) {
+  return jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional bytes event_data = 4;
+ * @return {!(string|Uint8Array)}
+ */
+proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest.prototype.getEventData = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * optional bytes event_data = 4;
+ * This is a type-conversion wrapper around `getEventData()`
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest.prototype.getEventData_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getEventData()));
+};
+
+
+/**
+ * optional bytes event_data = 4;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getEventData()`
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest.prototype.getEventData_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getEventData()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.RaiseEventWorkflowRequest.prototype.setEventData = function(value) {
+  return jspb.Message.setProto3BytesField(this, 4, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.PurgeWorkflowRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.PurgeWorkflowRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.PurgeWorkflowRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.PurgeWorkflowRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    instanceId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    workflowComponent: jspb.Message.getFieldWithDefault(msg, 2, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.PurgeWorkflowRequest}
+ */
+proto.dapr.proto.runtime.v1.PurgeWorkflowRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.PurgeWorkflowRequest;
+  return proto.dapr.proto.runtime.v1.PurgeWorkflowRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.PurgeWorkflowRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.PurgeWorkflowRequest}
+ */
+proto.dapr.proto.runtime.v1.PurgeWorkflowRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setInstanceId(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setWorkflowComponent(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.PurgeWorkflowRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.PurgeWorkflowRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.PurgeWorkflowRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.PurgeWorkflowRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getInstanceId();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getWorkflowComponent();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string instance_id = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.PurgeWorkflowRequest.prototype.getInstanceId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.PurgeWorkflowRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.PurgeWorkflowRequest.prototype.setInstanceId = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string workflow_component = 2;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.PurgeWorkflowRequest.prototype.getWorkflowComponent = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.PurgeWorkflowRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.PurgeWorkflowRequest.prototype.setWorkflowComponent = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
 };
 
 

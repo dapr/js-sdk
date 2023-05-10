@@ -15,11 +15,11 @@ import ActorId from "../../actors/ActorId";
 import { ActorReminderType } from "../../types/ActorReminder.type";
 import { ActorTimerType } from "../../types/ActorTimer.type";
 import { KeyValueType } from "../../types/KeyValue.type";
-import { OperationType } from "../../types/Operation.type";
+import { ActorStateTransactionType } from "../../types/actors/ActorStateTransaction.type";
 
 export default interface IClientActor {
   invoke(actorType: string, actorId: ActorId, methodName: string, body?: any): Promise<object>;
-  stateTransaction(actorType: string, actorId: ActorId, operations: OperationType[]): Promise<void>;
+  stateTransaction(actorType: string, actorId: ActorId, operations: ActorStateTransactionType[]): Promise<void>;
   stateGet(actorType: string, actorId: ActorId, key: string): Promise<KeyValueType | string>;
   registerActorReminder(actorType: string, actorId: ActorId, name: string, reminder: ActorReminderType): Promise<void>;
   unregisterActorReminder(actorType: string, actorId: ActorId, name: string): Promise<void>;

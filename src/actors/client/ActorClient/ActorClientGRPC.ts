@@ -27,15 +27,17 @@ import {
   UnregisterActorTimerRequest,
 } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import GRPCClient from "../../../implementation/Client/GRPCClient/GRPCClient";
-import { OperationType } from "../../../types/Operation.type";
 import { ActorReminderType } from "../../../types/ActorReminder.type";
 import { ActorTimerType } from "../../../types/ActorTimer.type";
 import IClientActor from "../../../interfaces/Client/IClientActor";
 import { KeyValueType } from "../../../types/KeyValue.type";
 import ActorId from "../../ActorId";
+import { ActorStateTransactionType } from "../../../types/actors/ActorStateTransaction.type";
 
 // https://docs.dapr.io/reference/api/actors_api/
 export default class ActorClientGRPC implements IClientActor {
+  private static readonly metadataKeyTTLInSeconds = "ttlInSeconds";
+
   client: GRPCClient;
 
   constructor(client: GRPCClient) {
@@ -73,7 +75,7 @@ export default class ActorClientGRPC implements IClientActor {
     });
   }
 
-  async stateTransaction(actorType: string, actorId: ActorId, operations: OperationType[]): Promise<void> {
+  async stateTransaction(actorType: string, actorId: ActorId, operations: ActorStateTransactionType[]): Promise<void> {
     const transactionItems: TransactionalActorStateOperation[] = [];
 
     for (const o of operations) {
@@ -84,6 +86,10 @@ export default class ActorClientGRPC implements IClientActor {
       const msgSerialized = new Any();
       msgSerialized.setValue(Buffer.from(`${o.value}`, "utf-8"));
       transactionItem.setValue(msgSerialized);
+
+      if (o.ttlInSeconds) {
+        transactionItem.getMetadataMap().set(ActorClientGRPC.metadataKeyTTLInSeconds, `${o.ttlInSeconds}`);
+      }
 
       transactionItems.push(transactionItem);
     }
