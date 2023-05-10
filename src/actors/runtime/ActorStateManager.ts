@@ -100,7 +100,17 @@ export default class ActorStateManager<T> {
     return [hasValue, value];
   }
 
-  // SEE: https://github.com/dapr/python-sdk/blob/0f0b6f6a1cf45d2ac0c519b48fc868898d81124e/dapr/actor/runtime/state_manager.py#L236
+  /**
+   * Sets the state of the actor with the given name to the given value, without an expiration time.
+   *
+   * Note: It is recommended that you use setStateWithTTL() instead, unless you have specifically
+   * created some kind of Actor State clean up outside of Dapr or you don't have an issue with the
+   * Actor State store keeping state indefinitely.
+   *
+   * @param stateName The name of the state to set.
+   * @param value The value to set the state to.
+   * @returns A Promise that resolves when the state is successfully set.
+   */
   async setState(stateName: string, value: T): Promise<void> {
     return await this.setStateWithTTL(stateName, value, -1);
   }
@@ -277,6 +287,14 @@ export default class ActorStateManager<T> {
     }
   }
 
+  /**
+   * Sets the state of the actor with the given name to the given value, with the given expiration time.
+   *
+   * @param stateName The name of the state to set.
+   * @param value The value to set the state to.
+   * @param ttl The time-to-live (in seconds) for the state, after which it will expire and be removed.
+   * @returns A Promise that resolves when the state is successfully set.
+   */
   async setStateWithTTL(stateName: string, value: T, ttl: number): Promise<void> {
     const stateChangeTracker = this.getContextualStateTracker();
 
