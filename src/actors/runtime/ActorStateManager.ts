@@ -292,7 +292,7 @@ export default class ActorStateManager<T> {
    *
    * @param stateName The name of the state to set.
    * @param value The value to set the state to.
-   * @param ttl The time-to-live (in seconds) for the state, after which it will expire and be removed.
+   * @param ttl The time-to-live for the state, after which it will expire and be removed.
    * @returns A Promise that resolves when the state is successfully set.
    */
   async setStateWithTTL(stateName: string, value: T, ttl: number): Promise<void> {
