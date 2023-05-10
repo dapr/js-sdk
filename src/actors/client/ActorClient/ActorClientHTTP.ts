@@ -19,6 +19,7 @@ import { KeyValueType } from "../../../types/KeyValue.type";
 import ActorId from "../../ActorId";
 import { IRequest } from "../../../types/Request.type";
 import { ActorStateTransactionType } from "../../../types/actors/ActorStateTransaction.type";
+import { StateTransactionOperationType } from "../../../types/state/StateTransactionOperation.type";
 
 // https://docs.dapr.io/reference/api/actors_api/
 export default class ActorClientHTTP implements IClientActor {
@@ -40,12 +41,12 @@ export default class ActorClientHTTP implements IClientActor {
   }
 
   async stateTransaction(actorType: string, actorId: ActorId, operations: ActorStateTransactionType[]): Promise<void> {
-    const body: { operation: string; request: IRequest }[] = [];
+    const body: StateTransactionOperationType[] = [];
 
     for (const o of operations) {
       const metadata: KeyValueType = {};
       if (o.ttlInSeconds) {
-        metadata[ActorClientHTTP.metadataKeyTTLInSeconds] = o.ttlInSeconds;
+        metadata[ActorClientHTTP.metadataKeyTTLInSeconds] = `${o.ttlInSeconds}`;
       }
 
       body.push({

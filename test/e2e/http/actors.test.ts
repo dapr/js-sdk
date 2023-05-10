@@ -396,13 +396,13 @@ describe("http/actors", () => {
       await actor.init();
 
       const data = { name: "John", age: 30 };
-      const ttl = 2000; // 2 seconds
-      await actor.setStateWithTTL("data", data, ttl);
+      const ttlInSeconds = 2;
+      await actor.setStateWithTTL("data", data, ttlInSeconds);
 
       const res = await actor.getState();
       expect(res).toEqual(data);
 
-      await new Promise((resolve) => setTimeout(resolve, 3000)); // wait for TTL to expire
+      await new Promise((resolve) => setTimeout(resolve, 4000)); // wait for TTL to expire
 
       const expiredRes = await actor.getState();
       expect(expiredRes).toEqual(null);
