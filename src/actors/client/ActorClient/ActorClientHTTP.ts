@@ -17,7 +17,6 @@ import { ActorTimerType } from "../../../types/ActorTimer.type";
 import IClientActor from "../../../interfaces/Client/IClientActor";
 import { KeyValueType } from "../../../types/KeyValue.type";
 import ActorId from "../../ActorId";
-import { IRequest } from "../../../types/Request.type";
 import { ActorStateTransactionType } from "../../../types/actors/ActorStateTransaction.type";
 import { StateTransactionOperationType } from "../../../types/state/StateTransactionOperation.type";
 
