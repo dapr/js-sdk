@@ -39,6 +39,7 @@ export default class StateMetadata<T> {
   setChangeKind(changeKind: StateChangeKind): void {
     this.changeKind = changeKind;
   }
+
   getTTL(): number | undefined {
     return this.ttl;
   }
