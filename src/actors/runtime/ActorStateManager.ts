@@ -112,7 +112,38 @@ export default class ActorStateManager<T> {
    * @returns A Promise that resolves when the state is successfully set.
    */
   async setState(stateName: string, value: T): Promise<void> {
-    return await this.setStateWithTTL(stateName, value, -1);
+    const stateChangeTracker = this.getContextualStateTracker();
+
+    if (stateChangeTracker.has(stateName)) {
+      const stateMetadata = stateChangeTracker.get(stateName);
+
+      if (!stateMetadata) {
+        return;
+      }
+
+      stateMetadata.setValue(value);
+
+      if (
+        stateMetadata.getChangeKind() === StateChangeKind.NONE ||
+        stateMetadata.getChangeKind() === StateChangeKind.REMOVE
+      ) {
+        stateMetadata.setChangeKind(StateChangeKind.UPDATE);
+      }
+
+      stateChangeTracker.set(stateName, stateMetadata);
+
+      return;
+    }
+
+    const didExist = await this.actor
+      .getStateProvider()
+      .containsState(this.actor.getActorType(), this.actor.getActorId(), stateName);
+
+    if (didExist) {
+      stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.UPDATE));
+    } else {
+      stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.ADD));
+    }
   }
 
   /**
