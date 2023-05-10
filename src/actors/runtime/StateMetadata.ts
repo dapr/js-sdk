@@ -17,6 +17,7 @@ export default class StateMetadata<T> {
   private value: T;
   private changeKind: StateChangeKind;
   private ttl?: number;
+
   constructor(value: T, changeKind: StateChangeKind, ttl?: number) {
     this.value = value;
     this.changeKind = changeKind;
