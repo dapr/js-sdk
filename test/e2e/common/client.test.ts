@@ -12,7 +12,13 @@ limitations under the License.
 */
 
 import { randomUUID } from "crypto";
-import { CommunicationProtocolEnum, DaprClient, LogLevel, StateConcurrencyEnum, StateConsistencyEnum } from "../../../src";
+import {
+  CommunicationProtocolEnum,
+  DaprClient,
+  LogLevel,
+  StateConcurrencyEnum,
+  StateConsistencyEnum,
+} from "../../../src";
 import { sleep } from "../../../src/utils/NodeJS.util";
 
 const daprHost = "127.0.0.1";
