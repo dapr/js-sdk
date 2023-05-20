@@ -57,7 +57,7 @@ describe("http/client", () => {
     it("should be able to get the capabilities of components via metadata call", async () => {
       const res = await client.metadata.get();
       const redisStateComponent = res.components.filter((component) => component.name == "state-redis");
-      const expectedRedisStateCapabilities = ["ETAG", "TRANSACTIONAL", "QUERY_API", "ACTOR"];
+      const expectedRedisStateCapabilities = ["ETAG", "TRANSACTIONAL", "ACTOR"];
       expect(res.id.length).toBeGreaterThan(0);
       expect(res.components.length).toBeGreaterThan(0);
       expect(redisStateComponent.length).toEqual(1);

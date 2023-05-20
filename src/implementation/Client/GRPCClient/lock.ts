@@ -39,7 +39,7 @@ export default class GRPCClientLock implements IClientLock {
       .setStoreName(storeName)
       .setResourceId(resourceId)
       .setLockOwner(lockOwner)
-      .setExpiryinseconds(expiryInSeconds);
+      .setExpiryInSeconds(expiryInSeconds);
 
     const client = await this.client.getClient();
     return new Promise((resolve, reject) => {
