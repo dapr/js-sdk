@@ -81,12 +81,17 @@ export default class ActorStateManager<T> {
     if (stateChangeTracker.has(stateName)) {
       const stateMetadata = stateChangeTracker.get(stateName);
 
-      if (stateMetadata?.getChangeKind() === StateChangeKind.REMOVE) {
-        return [false, null];
-      }
+      // if TTL is set, stateChangeTracker cannot be used to determine if state exists
+      // TODO: what happens if the TTL exists but the state has not been flushed yet?
+      // Then the state provider will not have the state, but the stateChangeTracker will.
+      if (stateMetadata?.getTTL() === undefined) {
+        if (stateMetadata?.getChangeKind() === StateChangeKind.REMOVE) {
+          return [false, null];
+        }
 
-      const val = stateMetadata?.getValue();
-      return [true, val !== undefined ? val : null];
+        const val = stateMetadata?.getValue();
+        return [true, val !== undefined ? val : null];
+      }
     }
 
     const [hasValue, value] = await this.actor
@@ -112,6 +117,7 @@ export default class ActorStateManager<T> {
    * @returns A Promise that resolves when the state is successfully set.
    */
   async setState(stateName: string, value: T): Promise<void> {
+    // TODO: add params and log when TTL is not present
     const stateChangeTracker = this.getContextualStateTracker();
 
     if (stateChangeTracker.has(stateName)) {
@@ -233,7 +239,11 @@ export default class ActorStateManager<T> {
 
     if (stateChangeTracker.has(stateName)) {
       const stateMetadata = stateChangeTracker.get(stateName);
-      return stateMetadata?.getChangeKind() !== StateChangeKind.REMOVE;
+
+      // If any TTL is set, then stateChangeTracker cannot be used to determine if state exists.
+      if (stateMetadata?.getTTL() === undefined) {
+        return stateMetadata?.getChangeKind() !== StateChangeKind.REMOVE;
+      }
     }
 
     const doesContainState = await this.actor
