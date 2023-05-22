@@ -4,7 +4,7 @@ This example demonstrates 2 features (Try Lock & Unlock) from the [Distributed l
 
 It demonstrates the **Distributed Lock** API's following methods:
 
-- `TryLock`
+- `Lock`
 - `Unlock`
 
 > **Note:** Make sure to use the latest proto bindings by running scripts/fetch-proto.sh file.
@@ -17,12 +17,12 @@ It demonstrates the **Distributed Lock** API's following methods:
 
 ## Overview
 
-The TryLock and Unlock calls are implemented under the client.lock attribute.
+The Lock and Unlock calls are implemented under the client.lock attribute.
 
-#### TryLock Example
+#### Lock Example
 
 ```typescript
-const tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
+const lockResponse = await client.lock.lock(storeName, resourceId, lockOwner, expiryInSeconds);
 ```
 
 #### Unlock Example
@@ -33,14 +33,14 @@ const unlockResponse = await client.lock.unlock(storeName, resourceId, lockOwner
 
 ### Start the Lock application.
 
-Execute the example under the folder `examples/distributedLock/TryLockApplication`
+Execute the example under the folder `examples/distributedLock/LockApplication`
 
 ```bash
-cd examples/distributedLock/TryLockApplication
+cd examples/distributedLock/LockApplication
 npm install
 ```
 
-To run the `TryLock`, execute the following command:
+To run the `Lock`, execute the following command:
 
 ```bash
 dapr run --app-id lock --app-protocol grpc --components-path ./components npm run start
@@ -61,7 +61,7 @@ You should see the following output from the application:
 
 ### Start the Unlock Example.
 
-Run `UnlockApplication` after `TryLockApplication` is ran.
+Run `UnlockApplication` after `LockApplication` is ran.
 
 Navigate to examples/distributedLock/UnlockApplication.
 
