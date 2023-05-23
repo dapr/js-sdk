@@ -104,7 +104,7 @@ export default class DaprClient {
         this.proxy = new GRPCClientProxy(client);
         this.configuration = new GRPCClientConfiguration(client);
         this.lock = new GRPCClientLock(client);
-        this.actor = new GRPCClientActor(client); // we use a abstractor here since we interface through a builder with the Actor Runtime
+        this.actor = new GRPCClientActor(client); // we use an abstractor here since we interface through a builder with the Actor Runtime
         break;
       }
       case CommunicationProtocolEnum.HTTP:
@@ -123,7 +123,7 @@ export default class DaprClient {
         this.configuration = new HTTPClientConfiguration(client);
         this.proxy = new HTTPClientProxy(client);
         this.lock = new HTTPClientLock(client);
-        this.actor = new HTTPClientActor(client); // we use a abstractor here since we interface through a builder with the Actor Runtime
+        this.actor = new HTTPClientActor(client); // we use an abstractor here since we interface through a builder with the Actor Runtime
         break;
       }
     }

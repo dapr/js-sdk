@@ -282,3 +282,137 @@ export namespace ListSubscriptionsRequest {
         namespace: string,
     }
 }
+
+export class GetHTTPEndpointRequest extends jspb.Message { 
+    getName(): string;
+    setName(value: string): GetHTTPEndpointRequest;
+    getNamespace(): string;
+    setNamespace(value: string): GetHTTPEndpointRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetHTTPEndpointRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: GetHTTPEndpointRequest): GetHTTPEndpointRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetHTTPEndpointRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetHTTPEndpointRequest;
+    static deserializeBinaryFromReader(message: GetHTTPEndpointRequest, reader: jspb.BinaryReader): GetHTTPEndpointRequest;
+}
+
+export namespace GetHTTPEndpointRequest {
+    export type AsObject = {
+        name: string,
+        namespace: string,
+    }
+}
+
+export class GetHTTPEndpointResponse extends jspb.Message { 
+    getHttpEndpoint(): Uint8Array | string;
+    getHttpEndpoint_asU8(): Uint8Array;
+    getHttpEndpoint_asB64(): string;
+    setHttpEndpoint(value: Uint8Array | string): GetHTTPEndpointResponse;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetHTTPEndpointResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: GetHTTPEndpointResponse): GetHTTPEndpointResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetHTTPEndpointResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetHTTPEndpointResponse;
+    static deserializeBinaryFromReader(message: GetHTTPEndpointResponse, reader: jspb.BinaryReader): GetHTTPEndpointResponse;
+}
+
+export namespace GetHTTPEndpointResponse {
+    export type AsObject = {
+        httpEndpoint: Uint8Array | string,
+    }
+}
+
+export class ListHTTPEndpointsResponse extends jspb.Message { 
+    clearHttpEndpointsList(): void;
+    getHttpEndpointsList(): Array<Uint8Array | string>;
+    getHttpEndpointsList_asU8(): Array<Uint8Array>;
+    getHttpEndpointsList_asB64(): Array<string>;
+    setHttpEndpointsList(value: Array<Uint8Array | string>): ListHTTPEndpointsResponse;
+    addHttpEndpoints(value: Uint8Array | string, index?: number): Uint8Array | string;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ListHTTPEndpointsResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: ListHTTPEndpointsResponse): ListHTTPEndpointsResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ListHTTPEndpointsResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ListHTTPEndpointsResponse;
+    static deserializeBinaryFromReader(message: ListHTTPEndpointsResponse, reader: jspb.BinaryReader): ListHTTPEndpointsResponse;
+}
+
+export namespace ListHTTPEndpointsResponse {
+    export type AsObject = {
+        httpEndpointsList: Array<Uint8Array | string>,
+    }
+}
+
+export class ListHTTPEndpointsRequest extends jspb.Message { 
+    getNamespace(): string;
+    setNamespace(value: string): ListHTTPEndpointsRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ListHTTPEndpointsRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: ListHTTPEndpointsRequest): ListHTTPEndpointsRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ListHTTPEndpointsRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ListHTTPEndpointsRequest;
+    static deserializeBinaryFromReader(message: ListHTTPEndpointsRequest, reader: jspb.BinaryReader): ListHTTPEndpointsRequest;
+}
+
+export namespace ListHTTPEndpointsRequest {
+    export type AsObject = {
+        namespace: string,
+    }
+}
+
+export class HTTPEndpointUpdateRequest extends jspb.Message { 
+    getNamespace(): string;
+    setNamespace(value: string): HTTPEndpointUpdateRequest;
+    getPodName(): string;
+    setPodName(value: string): HTTPEndpointUpdateRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): HTTPEndpointUpdateRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: HTTPEndpointUpdateRequest): HTTPEndpointUpdateRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: HTTPEndpointUpdateRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): HTTPEndpointUpdateRequest;
+    static deserializeBinaryFromReader(message: HTTPEndpointUpdateRequest, reader: jspb.BinaryReader): HTTPEndpointUpdateRequest;
+}
+
+export namespace HTTPEndpointUpdateRequest {
+    export type AsObject = {
+        namespace: string,
+        podName: string,
+    }
+}
+
+export class HTTPEndpointUpdateEvent extends jspb.Message { 
+    getHttpEndpoints(): Uint8Array | string;
+    getHttpEndpoints_asU8(): Uint8Array;
+    getHttpEndpoints_asB64(): string;
+    setHttpEndpoints(value: Uint8Array | string): HTTPEndpointUpdateEvent;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): HTTPEndpointUpdateEvent.AsObject;
+    static toObject(includeInstance: boolean, msg: HTTPEndpointUpdateEvent): HTTPEndpointUpdateEvent.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: HTTPEndpointUpdateEvent, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): HTTPEndpointUpdateEvent;
+    static deserializeBinaryFromReader(message: HTTPEndpointUpdateEvent, reader: jspb.BinaryReader): HTTPEndpointUpdateEvent;
+}
+
+export namespace HTTPEndpointUpdateEvent {
+    export type AsObject = {
+        httpEndpoints: Uint8Array | string,
+    }
+}
