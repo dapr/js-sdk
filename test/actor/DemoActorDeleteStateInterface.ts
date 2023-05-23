@@ -11,6 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-export type TryLockResponse = {
-  success: boolean;
-};
+export default interface DemoActorCounterInterface {
+  init(): Promise<string>;
+  tryGetState(): Promise<boolean | null>;
+  deleteState(key: string): Promise<void>;
+}

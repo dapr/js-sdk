@@ -12,9 +12,10 @@ limitations under the License.
 */
 
 import HTTPClient from "./HTTPClient";
-import { TryLockResponse as TryLockResponseResult } from "../../../types/lock/TryLockResponse";
-import { UnlockResponse as UnLockResponseResult } from "../../../types/lock/UnlockResponse";
+import { LockResponse } from "../../../types/lock/LockResponse";
+import { UnlockResponse, LockStatus } from "../../../types/lock/UnlockResponse";
 import IClientLock from "../../../interfaces/Client/IClientLock";
+import { KeyValueType } from "../../../types/KeyValue.type";
 
 export default class HTTPClientLock implements IClientLock {
   client: HTTPClient;
@@ -22,15 +23,51 @@ export default class HTTPClientLock implements IClientLock {
   constructor(client: HTTPClient) {
     this.client = client;
   }
-  tryLock(
-    _storeName: string,
-    _resourceId: string,
-    _lockOwner: string,
-    _expiryInSeconds: number,
-  ): Promise<TryLockResponseResult> {
-    throw new Error("HTTP is currently not supported.");
+
+  async lock(storeName: string, resourceId: string, lockOwner: string, expiryInSeconds: number): Promise<LockResponse> {
+    const data = {
+      resourceId,
+      lockOwner,
+      expiryInSeconds,
+    };
+
+    const result = await this.client.executeWithApiVersion("v1.0-alpha1", `/lock/${storeName}`, {
+      method: "POST",
+      body: data,
+    });
+
+    return {
+      success: (result as KeyValueType)["success"],
+    };
   }
-  unlock(_storeName: string, _resourceId: string, _lockOwner: string): Promise<UnLockResponseResult> {
-    throw new Error("HTTP is currently not supported.");
+
+  async unlock(storeName: string, resourceId: string, lockOwner: string): Promise<UnlockResponse> {
+    const data = {
+      resourceId,
+      lockOwner,
+    };
+
+    const result = await this.client.executeWithApiVersion("v1.0-alpha1", `/unlock/${storeName}`, {
+      method: "POST",
+      body: data,
+    });
+
+    return {
+      status: this._statusToLockStatus((result as KeyValueType)["status"]),
+    };
+  }
+
+  _statusToLockStatus(status: number): LockStatus {
+    switch (status) {
+      case 0:
+        return LockStatus.Success;
+      case 1:
+        return LockStatus.LockDoesNotExist;
+      case 2:
+        return LockStatus.LockBelongsToOthers;
+      case 3:
+      default:
+        return LockStatus.InternalError;
+    }
   }
 }
