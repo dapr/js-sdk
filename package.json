@@ -29,7 +29,7 @@
     "test:unit:utils": "NODE_ENV=test npm run test:unit 'test/unit/utils/.*\\.test\\.ts'",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "prebuild": "./scripts/prebuild.sh",
-    "build-ci": "./scripts/build.sh",
+    "build-ci": "npm run prebuild && ./scripts/build.sh",
     "build": "npm install && npm run lint && npm run pretty && npm run build-ci",
     "start:dev": "npm run build && nodemon --ext \".ts,.js\" --watch \"./src\" --exec \"npm run build\"",
     "pretty": "prettier --list-different \"**/*.{ts,tsx,js,jsx,json,md}\"",
