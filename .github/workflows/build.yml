@@ -119,11 +119,13 @@ jobs:
 
       - name: Configure version
         run: |
-          # Version should be in the format of <version>-dev.<timestamp>
-          # e.g. 1.0.0-dev.20220101.000000
+          # Version should be in the format of <version>-<timestamp>-<commit-hash>
+          # e.g. 1.0.0-20220101000000-abcdef
           VERSION=$(npm version | grep '@dapr/dapr' | awk -F':' '{print $2}' | tr -d "[:space:],'")
-          TIMESTAMP=$(date -u +"%Y%m%d.%H%M%S")
-          sed -i s#"\"version\": \"$VERSION\""#"\"version\": \"$VERSION-dev.$TIMESTAMP\""# package.json
+          TIMESTAMP=$(date -u +"%Y%m%d%H%M%S")
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+
+          sed -i s#"\"version\": \"$VERSION\""#"\"version\": \"$VERSION-$TIMESTAMP-$COMMIT_HASH\""# package.json
 
       - name: Install dependencies
         run: npm install
