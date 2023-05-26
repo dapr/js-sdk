@@ -25,6 +25,12 @@ Instantly get started by installing the Dapr JS SDK and reading the [getting sta
 npm install --save @dapr/dapr
 ```
 
+You can also use the development version of the SDK which is built from the `main` branch. Make sure to remove the `@dapr/dapr` package first. This package is not meant for production use, and should only be used for development purposes.
+
+```
+npm install --save @dapr/dapr-dev
+```
+
 ## Documentation
 
 Visit [https://docs.dapr.io/developing-applications/sdks/js/](https://docs.dapr.io/developing-applications/sdks/js/) to view the full documentation.

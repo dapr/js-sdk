@@ -26,23 +26,25 @@ on:
   # Manual trigger
   workflow_dispatch: {}
 
+env:
+  NODE_VER: 16.14.0
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: production
-    env:
-      NODE_VER: 16.14.0
+    strategy:
+      fail-fast: false
+      matrix:
+        node_version: [16.14.0]
     steps:
       - uses: actions/checkout@v3
 
-      # Setup .npmrc file to publish to npm
-      - name: Configure .npmrc for NPM publish to @dapr
+      - name: Setup Node ${{ matrix.node_version }}
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ env.NODE_VER }}
-          registry-url: "https://registry.npmjs.org"
+          node-version: ${{ matrix.node_version }}
 
-      - name: Build Package
+      - name: Build package (install dependencies, lint, prettier, build)
         run: npm run build
 
       # @TODO: add a depend on the test-e2e pipeline?
@@ -53,30 +55,85 @@ jobs:
       - name: Upload test coverage
         uses: codecov/codecov-action@v1
 
-      - name: Is Release?
-        if: startswith(github.ref, 'refs/tags/v')
-        run: echo "DEPLOY_PACKAGE=true" >> $GITHUB_ENV
+  publish:
+    needs: build
+    if: startswith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v3
 
-      # note: package.json gets updated here for the new package name
+      - name: Setup Node ${{ env.NODE_VER }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VER }}
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build package
+        run: npm run build-ci
+
       - name: Publish to npm (@dapr/dapr)
-        if: env.DEPLOY_PACKAGE == 'true'
         run: npm publish build/ --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      # dapr-client is deprecated, but we still want to publish it for a while.
       - name: "[dapr-client] Configure to publish to dapr-client for deprecation notice reasons"
-        if: env.DEPLOY_PACKAGE == 'true'
         run: |
           sed -i s#"@dapr/dapr"#"dapr-client"# package.json
           echo "This has been deprecated and will not be updated anymore, please use https://www.npmjs.com/package/@dapr/dapr" > README.md
 
-      - name: "[dapr-client] Build Package"
-        if: env.DEPLOY_PACKAGE == 'true'
-        run: npm run build
+      - name: "[dapr-client] Install dependencies"
+        run: npm install
 
-      # note: package.json gets updated here for the new package name
+      - name: "[dapr-client] Build Package"
+        run: npm run build-ci
+
       - name: "[dapr-client] Publish to npm (dapr-client)"
-        if: env.DEPLOY_PACKAGE == 'true'
+        run: npm publish build/ --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-dev:
+    needs: build
+    if: startsWith(github.ref, 'refs/heads/main')
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node ${{ env.NODE_VER }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VER }}
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Configure package name
+        run: |
+          sed -i s#"@dapr/dapr"#"@dapr/dapr-dev"# package.json
+          cat <(echo "WARNING: This is a development version of the SDK. It is not recommended to use this version in production.\n") README.md > README.md.tmp
+          mv README.md.tmp README.md
+
+      - name: Configure version
+        run: |
+          # Version should be in the format of <version>-<timestamp>-<commit-hash>
+          # e.g. 1.0.0-20220101000000-abcdef
+          VERSION=$(npm version | grep '@dapr/dapr' | awk -F':' '{print $2}' | tr -d "[:space:],'")
+          TIMESTAMP=$(date -u +"%Y%m%d%H%M%S")
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+
+          sed -i s#"\"version\": \"$VERSION\""#"\"version\": \"$VERSION-$TIMESTAMP-$COMMIT_HASH\""# package.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build package
+        run: npm run build-ci
+
+      - name: Publish to npm (@dapr/dapr-dev)
         run: npm publish build/ --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

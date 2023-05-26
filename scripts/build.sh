@@ -21,9 +21,6 @@ echo "Executing in $(pwd)"
 echo "Description: Build the package in build/"
 echo "====================================================="
 
-echo "Installing Dependencies"
-npm install > /dev/null
-
 # Prepare build
 echo "Preparing Build"
 rm -rf build/
@@ -35,10 +32,6 @@ mkdir build/
 # ./build-grpc.sh
 
 # Build Package
-echo "Running eslint"
-npm run lint
-echo "Running prettier"
-npm run pretty
 echo "Building Library"
 npx tsc --outDir ./build/
 
