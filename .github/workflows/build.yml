@@ -41,7 +41,7 @@ jobs:
         with:
           node-version: ${{ matrix.node_version }}
 
-      - name: Build package (lint, prettier, build)
+      - name: Build package (install dependencies, lint, prettier, build)
         run: npm run build
 
       # @TODO: add a depend on the test-e2e pipeline?

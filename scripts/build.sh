@@ -21,9 +21,6 @@ echo "Executing in $(pwd)"
 echo "Description: Build the package in build/"
 echo "====================================================="
 
-echo "Installing Dependencies"
-npm install > /dev/null
-
 # Prepare build
 echo "Preparing Build"
 rm -rf build/
