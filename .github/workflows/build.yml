@@ -26,13 +26,16 @@ on:
   # Manual trigger
   workflow_dispatch: {}
 
+env:
+  NODE_VER: 16.14.0
+
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        node_version: [16.14.0]
+        node_version: ["${{ env.NODE_VER }}"]
     steps:
       - uses: actions/checkout@v3
 
@@ -57,8 +60,6 @@ jobs:
     if: startswith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     environment: production
-    env:
-      NODE_VER: 16.14.0
     steps:
       - uses: actions/checkout@v3
 
@@ -101,8 +102,6 @@ jobs:
     if: startsWith(github.ref, 'refs/heads/main')
     runs-on: ubuntu-latest
     environment: development
-    env:
-      NODE_VER: 16.14.0
     steps:
       - uses: actions/checkout@v3
 
