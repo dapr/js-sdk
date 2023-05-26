@@ -68,6 +68,9 @@ jobs:
           node-version: ${{ env.NODE_VER }}
           registry-url: "https://registry.npmjs.org"
 
+      - name: Install dependencies
+        run: npm install
+
       - name: Build package
         run: npm run build-ci
 
@@ -82,10 +85,54 @@ jobs:
           sed -i s#"@dapr/dapr"#"dapr-client"# package.json
           echo "This has been deprecated and will not be updated anymore, please use https://www.npmjs.com/package/@dapr/dapr" > README.md
 
+      - name: "[dapr-client] Install dependencies"
+        run: npm install
+
       - name: "[dapr-client] Build Package"
-        run: npm run build
+        run: npm run build-ci
 
       - name: "[dapr-client] Publish to npm (dapr-client)"
+        run: npm publish build/ --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-dev:
+    needs: build
+    if: startsWith(github.ref, 'refs/heads/main')
+    runs-on: ubuntu-latest
+    environment: development
+    env:
+      NODE_VER: 16.14.0
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node ${{ env.NODE_VER }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VER }}
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Configure package name
+        run: |
+          sed -i s#"@dapr/dapr"#"@dapr/dapr-dev"# package.json
+          cat <(echo "WARNING: This is a development version of the SDK. It is not recommended to use this version in production.\n") README.md > README.md.tmp
+          mv README.md.tmp README.md
+
+      - name: Configure version
+        run: |
+          # Version should be in the format of <version>-dev.<timestamp>
+          # e.g. 1.0.0-dev.20220101.000000
+          VERSION=$(npm version | grep '@dapr/dapr' | awk -F':' '{print $2}' | tr -d "[:space:],'")
+          TIMESTAMP=$(date -u +"%Y%m%d.%H%M%S")
+          sed -i s#"\"version\": \"$VERSION\""#"\"version\": \"$VERSION-dev.$TIMESTAMP\""# package.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build package
+        run: npm run build-ci
+
+      - name: Publish to npm (@dapr/dapr-dev)
         run: npm publish build/ --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
