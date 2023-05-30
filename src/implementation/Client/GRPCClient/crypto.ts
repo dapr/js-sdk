@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { Duplex, Readable } from "node:stream";
+import { Duplex } from "node:stream";
 
 import GRPCClient from "./GRPCClient";
 import { type DecryptRequest, type EncryptRequest } from "../../../types/crypto/Requests";
@@ -31,12 +31,12 @@ export default class GRPCClientCrypto implements IClientCrypto {
     this.client = client;
   }
 
-  async encrypt(opts: EncryptRequest): Promise<Duplex>;
-  async encrypt(inData: Buffer | ArrayBuffer | ArrayBufferView | string, opts: EncryptRequest): Promise<Buffer>;
+  encrypt(opts: EncryptRequest): Promise<Duplex>;
+  encrypt(inData: Buffer | ArrayBuffer | ArrayBufferView | string, opts: EncryptRequest): Promise<Buffer>;
   async encrypt(
     arg0: Buffer | ArrayBuffer | ArrayBufferView | string | EncryptRequest,
     opts?: EncryptRequest,
-  ): Promise<Readable | Buffer> {
+  ): Promise<Duplex | Buffer> {
     // Handle overloading
     // If we have a single argument, assume the user wants to use the Duplex stream-based approach
     let inData: ArrayBufferLike | undefined;
@@ -67,6 +67,8 @@ export default class GRPCClientCrypto implements IClientCrypto {
 
     // Create a duplex stream that will send data to the server and read from it
     const duplexStream = new DaprChunkedStream(grpcStream, pbEncryptRequest, (req) => {
+      // Disable the @typescript-eslint/no-non-null-assertion linter in this block because opts here is guaranteed to be non-nil (see the check above), but TS doesn't seem to believe that
+      /* eslint-disable @typescript-eslint/no-non-null-assertion */
       const reqOptions = new pbEncryptRequestOptions();
       reqOptions.setComponentName(opts!.componentName);
       reqOptions.setKeyName(opts!.keyName);
@@ -81,14 +83,15 @@ export default class GRPCClientCrypto implements IClientCrypto {
         reqOptions.setOmitDecryptionKeyName(opts!.omitDecryptionKeyName);
       }
       req.setOptions(reqOptions);
+      /* eslint-enable @typescript-eslint/no-non-null-assertion */
     });
 
     // Process the data
     return this.processStream(duplexStream, inData);
   }
 
-  async decrypt(opts: DecryptRequest): Promise<Duplex>;
-  async decrypt(inData: Buffer | ArrayBuffer | ArrayBufferView, opts: DecryptRequest): Promise<Buffer>;
+  decrypt(opts: DecryptRequest): Promise<Duplex>;
+  decrypt(inData: Buffer | ArrayBuffer | ArrayBufferView, opts: DecryptRequest): Promise<Buffer>;
   async decrypt(
     arg0: Buffer | ArrayBuffer | ArrayBufferView | DecryptRequest,
     opts?: DecryptRequest,
@@ -114,12 +117,15 @@ export default class GRPCClientCrypto implements IClientCrypto {
 
     // Create a duplex stream that will send data to the server and read from it
     const duplexStream = new DaprChunkedStream(grpcStream, pbDecryptRequest, (req) => {
+      // Disable the @typescript-eslint/no-non-null-assertion linter in this block because opts here is guaranteed to be non-nil (see the check above), but TS doesn't seem to believe that
+      /* eslint-disable @typescript-eslint/no-non-null-assertion */
       const reqOptions = new pbDecryptRequestOptions();
       reqOptions.setComponentName(opts!.componentName);
       if (opts!.keyName) {
         reqOptions.setKeyName(opts!.keyName);
       }
       req.setOptions(reqOptions);
+      /* eslint-enable @typescript-eslint/no-non-null-assertion */
     });
 
     // Process the data
@@ -157,7 +163,7 @@ export default class GRPCClientCrypto implements IClientCrypto {
         } else if (chunk instanceof ArrayBuffer) {
           chunk = Buffer.from(chunk);
         }
-        Buffer.concat([data, chunk as Buffer]);
+        data = Buffer.concat([data, chunk as Buffer]);
       });
       duplexStream.on("end", () => {
         resolve(data);

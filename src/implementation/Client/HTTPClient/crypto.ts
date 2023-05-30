@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { Readable } from "node:stream";
+import { Duplex } from "node:stream";
 
 import HTTPClient from "./HTTPClient";
 import { type DecryptRequest, type EncryptRequest } from "../../../types/crypto/Requests";
@@ -24,11 +24,21 @@ export default class GRPCClientCrypto implements IClientCrypto {
     this.client = client;
   }
 
-  async encrypt(_inStream: Readable, _opts: EncryptRequest): Promise<Readable> {
+  encrypt(opts: EncryptRequest): Promise<Duplex>;
+  encrypt(inData: Buffer | ArrayBuffer | ArrayBufferView | string, opts: EncryptRequest): Promise<Buffer>;
+  encrypt(
+    _arg0: Buffer | ArrayBuffer | ArrayBufferView | string | EncryptRequest,
+    _opts?: EncryptRequest,
+  ): Promise<Duplex | Buffer> {
     throw new Error("`crypto.encrypt` is not available using the HTTP APIs");
   }
 
-  async decrypt(_inStream: Readable, _opts: DecryptRequest): Promise<Readable> {
+  decrypt(opts: DecryptRequest): Promise<Duplex>;
+  decrypt(inData: Buffer | ArrayBuffer | ArrayBufferView, opts: DecryptRequest): Promise<Buffer>;
+  decrypt(
+    _arg0: Buffer | ArrayBuffer | ArrayBufferView | DecryptRequest,
+    _opts?: DecryptRequest,
+  ): Promise<Duplex | Buffer> {
     throw new Error("`crypto.decrypt` is not available using the HTTP APIs");
   }
 }

@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { Duplex, Readable } from "node:stream";
+import { Duplex } from "node:stream";
 
 import { type DecryptRequest, type EncryptRequest } from "../../types/crypto/Requests";
 

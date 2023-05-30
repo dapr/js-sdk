@@ -31,7 +31,8 @@ async function start() {
   console.log("Encrypting plaintext.txt to ciphertext.out");
 
   await pipeline(
-    await client.crypto.encrypt(createReadStream("plaintext.txt"), {
+    createReadStream("plaintext.txt"),
+    await client.crypto.encrypt({
       componentName: "crypto-local",
       keyName: "symmetric256",
       keyWrapAlgorithm: "A256KW",
@@ -43,7 +44,8 @@ async function start() {
   console.log("== Decrypting message");
   console.log("Encrypting ciphertext.out to plaintext.out");
   await pipeline(
-    await client.crypto.decrypt(createReadStream("ciphertext.out"), {
+    createReadStream("ciphertext.out"),
+    await client.crypto.decrypt({
       componentName: "crypto-local",
     }),
     createWriteStream("plaintext.out"),

@@ -28,7 +28,7 @@ export class DaprChunkedStream<T extends messageWithPayload, U extends messageWi
   private grpcStream: ClientDuplexStream<T, U>;
   private reqFactory: { new (): T };
   private setReqOptionsFn: (req: T) => void;
-  private writeSeq: number = 0;
+  private writeSeq = 0;
 
   constructor(grpcStream: ClientDuplexStream<T, U>, reqFactory: { new (): T }, setReqOptionsFn: (req: T) => void) {
     super({
