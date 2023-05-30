@@ -56,7 +56,7 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
     const client = await this.client.getClient();
 
     return new Promise((resolve, reject) => {
-      client.getConfigurationAlpha1(msg, metadata, (err, res: GetConfigurationResponse) => {
+      client.getConfiguration(msg, metadata, (err, res: GetConfigurationResponse) => {
         if (err) {
           return reject(err);
         }
@@ -122,7 +122,7 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
     // and will stay open as long as the client is open
     // we will thus create a set with our listeners so we don't
     // break on multi listeners
-    const stream = client.subscribeConfigurationAlpha1(msg, metadata);
+    const stream = client.subscribeConfiguration(msg, metadata);
     let streamId: string;
 
     stream.on("data", async (data: SubscribeConfigurationResponse) => {
@@ -149,7 +149,7 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
           req.setStoreName(storeName);
           req.setId(streamId);
 
-          client.unsubscribeConfigurationAlpha1(req, (err, res: UnsubscribeConfigurationResponse) => {
+          client.unsubscribeConfiguration(req, (err, res: UnsubscribeConfigurationResponse) => {
             if (err || !res.getOk()) {
               return reject(res.getMessage());
             }
