@@ -26,11 +26,11 @@ interface messageWithPayload {
  */
 export class DaprChunkedStream<T extends messageWithPayload, U extends messageWithPayload> extends Duplex {
   private grpcStream: ClientDuplexStream<T, U>;
-  private reqFactory: { new (): T }
-  private setReqOptionsFn: (req: T) => void
+  private reqFactory: { new (): T };
+  private setReqOptionsFn: (req: T) => void;
   private writeSeq: number = 0;
 
-  constructor(grpcStream: ClientDuplexStream<T, U>,  reqFactory: { new (): T }, setReqOptionsFn: (req: T) => void) {
+  constructor(grpcStream: ClientDuplexStream<T, U>, reqFactory: { new (): T }, setReqOptionsFn: (req: T) => void) {
     super({
       objectMode: false,
       emitClose: true,
@@ -41,7 +41,7 @@ export class DaprChunkedStream<T extends messageWithPayload, U extends messageWi
     this.setReqOptionsFn = setReqOptionsFn;
 
     // Start processing data coming from the server
-    this.readGrpcStream()
+    this.readGrpcStream();
   }
 
   _read(): void {
@@ -52,44 +52,44 @@ export class DaprChunkedStream<T extends messageWithPayload, U extends messageWi
   _write(chunk: Buffer | string, encoding: BufferEncoding, callback: (error?: Error | null) => void): void {
     if (!chunk?.length) {
       // Nothing to process if there's no data
-      callback()
-      return
+      callback();
+      return;
     }
 
     // Ensure chunk is a Buffer
-    if (typeof chunk == 'string') {
-      chunk = Buffer.from(chunk, encoding)
+    if (typeof chunk == "string") {
+      chunk = Buffer.from(chunk, encoding);
     }
 
     // Read data from the input stream, in chunks of up to 2KB
     // Send the data until we reach the end of the input stream
-    for(let n = 0; n < chunk.length; n += 2<<10) {
-        const req = new this.reqFactory();
+    for (let n = 0; n < chunk.length; n += 2 << 10) {
+      const req = new this.reqFactory();
 
-        // If this is the first chunk, add the options
-        if (this.writeSeq == 0) {
-          this.setReqOptionsFn(req);
-        }
-
-        // Add the payload
-        const reqPayload = new StreamPayload();
-        // From the Node.js docs: "Specifying end greater than buf.length will return the same result as that of end equal to buf.length."
-        reqPayload.setData(chunk.subarray(n, n+(2<<10)));
-        reqPayload.setSeq(this.writeSeq);
-        req.setPayload(reqPayload);
-        this.writeSeq++;
-
-        // Send the chunk
-        this.grpcStream.write(req);
+      // If this is the first chunk, add the options
+      if (this.writeSeq == 0) {
+        this.setReqOptionsFn(req);
       }
 
-      callback()
+      // Add the payload
+      const reqPayload = new StreamPayload();
+      // From the Node.js docs: "Specifying end greater than buf.length will return the same result as that of end equal to buf.length."
+      reqPayload.setData(chunk.subarray(n, n + (2 << 10)));
+      reqPayload.setSeq(this.writeSeq);
+      req.setPayload(reqPayload);
+      this.writeSeq++;
+
+      // Send the chunk
+      this.grpcStream.write(req);
+    }
+
+    callback();
   }
 
   _final(callback: (error?: Error | null | undefined) => void): void {
-      // When the write part of the stream is done, signal that no more data will be sent to the server
-      this.grpcStream.end();
-      callback();
+    // When the write part of the stream is done, signal that no more data will be sent to the server
+    this.grpcStream.end();
+    callback();
   }
 
   private readGrpcStream() {

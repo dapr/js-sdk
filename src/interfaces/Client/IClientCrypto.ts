@@ -16,8 +16,8 @@ import { Duplex, Readable } from "node:stream";
 import { type DecryptRequest, type EncryptRequest } from "../../types/crypto/Requests";
 
 export default interface IClientCrypto {
-  encrypt(opts: EncryptRequest): Promise<Duplex>
-  encrypt(inData: Buffer | ArrayBuffer | ArrayBufferView | string, opts: EncryptRequest): Promise<Buffer>
+  encrypt(opts: EncryptRequest): Promise<Duplex>;
+  encrypt(inData: Buffer | ArrayBuffer | ArrayBufferView | string, opts: EncryptRequest): Promise<Buffer>;
 
   decrypt(opts: DecryptRequest): Promise<Duplex>;
   decrypt(inData: Buffer | ArrayBuffer | ArrayBufferView, opts: DecryptRequest): Promise<Buffer>;

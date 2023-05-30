@@ -31,22 +31,25 @@ export default class GRPCClientCrypto implements IClientCrypto {
     this.client = client;
   }
 
-  async encrypt(opts: EncryptRequest): Promise<Duplex>
-  async encrypt(inData: Buffer | ArrayBuffer | ArrayBufferView | string, opts: EncryptRequest): Promise<Buffer>
-  async encrypt(arg0: Buffer | ArrayBuffer | ArrayBufferView | string | EncryptRequest, opts?: EncryptRequest): Promise<Readable|Buffer> {
+  async encrypt(opts: EncryptRequest): Promise<Duplex>;
+  async encrypt(inData: Buffer | ArrayBuffer | ArrayBufferView | string, opts: EncryptRequest): Promise<Buffer>;
+  async encrypt(
+    arg0: Buffer | ArrayBuffer | ArrayBufferView | string | EncryptRequest,
+    opts?: EncryptRequest,
+  ): Promise<Readable | Buffer> {
     // Handle overloading
     // If we have a single argument, assume the user wants to use the Duplex stream-based approach
-    let inData: ArrayBufferLike|undefined
+    let inData: ArrayBufferLike | undefined;
     if (opts === undefined) {
-      opts = arg0 as EncryptRequest
+      opts = arg0 as EncryptRequest;
     } else {
       // Throws if arg0 is not a supported type
-      inData = this.toArrayBuffer(arg0)
+      inData = this.toArrayBuffer(arg0);
     }
 
     // Ensure required options are present
     if (!opts) {
-      throw new Error(`Parameter 'opts' must be defined`)
+      throw new Error(`Parameter 'opts' must be defined`);
     }
     if (!opts.componentName) {
       throw new Error(`Option 'componentName' is required`);
@@ -81,32 +84,35 @@ export default class GRPCClientCrypto implements IClientCrypto {
     });
 
     // Process the data
-    return this.processStream(duplexStream, inData)
+    return this.processStream(duplexStream, inData);
   }
 
   async decrypt(opts: DecryptRequest): Promise<Duplex>;
   async decrypt(inData: Buffer | ArrayBuffer | ArrayBufferView, opts: DecryptRequest): Promise<Buffer>;
-  async decrypt(arg0: Buffer | ArrayBuffer | ArrayBufferView | DecryptRequest, opts?: DecryptRequest): Promise<Duplex|Buffer> {
-     // Handle overloading
+  async decrypt(
+    arg0: Buffer | ArrayBuffer | ArrayBufferView | DecryptRequest,
+    opts?: DecryptRequest,
+  ): Promise<Duplex | Buffer> {
+    // Handle overloading
     // If we have a single argument, assume the user wants to use the Duplex stream-based approach
-    let inData: ArrayBufferLike|undefined
+    let inData: ArrayBufferLike | undefined;
     if (opts === undefined) {
-      opts = arg0 as EncryptRequest
+      opts = arg0 as EncryptRequest;
     } else {
       // Throws if arg0 is not a supported type
-      inData = this.toArrayBuffer(arg0)
+      inData = this.toArrayBuffer(arg0);
     }
 
     // Ensure required options are present
     if (!opts) {
-      throw new Error(`Parameter 'opts' must be defined`)
+      throw new Error(`Parameter 'opts' must be defined`);
     }
 
     // Create the gRPC stream
     const client = await this.client.getClient();
     const grpcStream = client.decryptAlpha1();
 
-     // Create a duplex stream that will send data to the server and read from it
+    // Create a duplex stream that will send data to the server and read from it
     const duplexStream = new DaprChunkedStream(grpcStream, pbDecryptRequest, (req) => {
       const reqOptions = new pbDecryptRequestOptions();
       reqOptions.setComponentName(opts!.componentName);
@@ -117,48 +123,50 @@ export default class GRPCClientCrypto implements IClientCrypto {
     });
 
     // Process the data
-    return this.processStream(duplexStream, inData)
+    return this.processStream(duplexStream, inData);
   }
 
   private toArrayBuffer(inData: Buffer | ArrayBuffer | ArrayBufferView | string | any): ArrayBufferLike {
-    if (typeof inData == 'string') {
-      return Buffer.from(inData, 'utf8')
-    } else if (typeof inData == 'object' && ArrayBuffer.isView(inData)) {
-      return inData.buffer
-    } else if (typeof inData == 'object' && (Buffer.isBuffer(inData) || inData instanceof ArrayBuffer)) {
-      return inData
+    if (typeof inData == "string") {
+      return Buffer.from(inData, "utf8");
+    } else if (typeof inData == "object" && ArrayBuffer.isView(inData)) {
+      return inData.buffer;
+    } else if (typeof inData == "object" && (Buffer.isBuffer(inData) || inData instanceof ArrayBuffer)) {
+      return inData;
     } else {
-      throw new Error(`Invalid value for the inData parameter: must be a Buffer, an ArrayBuffer, an ArrayBufferView, or a string`)
+      throw new Error(
+        `Invalid value for the inData parameter: must be a Buffer, an ArrayBuffer, an ArrayBufferView, or a string`,
+      );
     }
   }
 
-  private processStream(duplexStream: DaprChunkedStream<any, any>, inData?: ArrayBufferLike): Promise<Duplex|Buffer> {
-     // If the caller did not pass data (as a Buffer etc), return the duplex stream and stop here
-     if (!inData) {
-      return Promise.resolve(duplexStream)
+  private processStream(duplexStream: DaprChunkedStream<any, any>, inData?: ArrayBufferLike): Promise<Duplex | Buffer> {
+    // If the caller did not pass data (as a Buffer etc), return the duplex stream and stop here
+    if (!inData) {
+      return Promise.resolve(duplexStream);
     }
 
     // Send the data to the stream and wait for the response
     return new Promise((resolve, reject) => {
-      let data = Buffer.alloc(0)
+      let data = Buffer.alloc(0);
 
       // Add event listeners
-      duplexStream.on('data', (chunk: Buffer | ArrayBufferView |ArrayBuffer) => {
+      duplexStream.on("data", (chunk: Buffer | ArrayBufferView | ArrayBuffer) => {
         if (ArrayBuffer.isView(chunk)) {
-          chunk = Buffer.from(chunk.buffer)
+          chunk = Buffer.from(chunk.buffer);
         } else if (chunk instanceof ArrayBuffer) {
-          chunk = Buffer.from(chunk)
+          chunk = Buffer.from(chunk);
         }
         Buffer.concat([data, chunk as Buffer]);
-      })
+      });
       duplexStream.on("end", () => {
-        resolve(data)
+        resolve(data);
       });
       duplexStream.on("error", (err: Error) => {
-        reject(err)
+        reject(err);
       });
 
-      duplexStream.write(inData)
-    })
+      duplexStream.write(inData);
+    });
   }
 }
