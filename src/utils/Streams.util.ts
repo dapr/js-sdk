@@ -11,30 +11,89 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { Readable } from "node:stream";
-import { ClientReadableStream } from "@grpc/grpc-js";
+import { Duplex } from "node:stream";
+import { ClientDuplexStream } from "@grpc/grpc-js";
 
 import { StreamPayload } from "../proto/dapr/proto/common/v1/common_pb";
 
 interface messageWithPayload {
   getPayload(): StreamPayload | undefined;
+  setPayload(value?: StreamPayload): unknown;
 }
 
 /**
  * DaprChunkedStream is a Readable stream that processes data sent from Dapr over a gRPC stream, chunked.
  */
-export class DaprChunkedStream extends Readable {
-  private grpcStream: ClientReadableStream<messageWithPayload>;
+export class DaprChunkedStream<T extends messageWithPayload, U extends messageWithPayload> extends Duplex {
+  private grpcStream: ClientDuplexStream<T, U>;
+  private reqFactory: { new (): T }
+  private setReqOptionsFn: (req: T) => void
+  private writeSeq: number = 0;
 
-  constructor(grpcStream: ClientReadableStream<messageWithPayload>) {
+  constructor(grpcStream: ClientDuplexStream<T, U>,  reqFactory: { new (): T }, setReqOptionsFn: (req: T) => void) {
     super({
       objectMode: false,
       emitClose: true,
     });
 
     this.grpcStream = grpcStream;
+    this.reqFactory = reqFactory;
+    this.setReqOptionsFn = setReqOptionsFn;
 
-    let seq = 0;
+    // Start processing data coming from the server
+    this.readGrpcStream()
+  }
+
+  _read(): void {
+    // Nop - we use push() to push data to readers.
+    // However, we still need to implement this method, even if as a stub.
+  }
+
+  _write(chunk: Buffer | string, encoding: BufferEncoding, callback: (error?: Error | null) => void): void {
+    if (!chunk?.length) {
+      // Nothing to process if there's no data
+      callback()
+      return
+    }
+
+    // Ensure chunk is a Buffer
+    if (typeof chunk == 'string') {
+      chunk = Buffer.from(chunk, encoding)
+    }
+
+    // Read data from the input stream, in chunks of up to 2KB
+    // Send the data until we reach the end of the input stream
+    for(let n = 0; n < chunk.length; n += 2<<10) {
+        const req = new this.reqFactory();
+
+        // If this is the first chunk, add the options
+        if (this.writeSeq == 0) {
+          this.setReqOptionsFn(req);
+        }
+
+        // Add the payload
+        const reqPayload = new StreamPayload();
+        // From the Node.js docs: "Specifying end greater than buf.length will return the same result as that of end equal to buf.length."
+        reqPayload.setData(chunk.subarray(n, n+(2<<10)));
+        reqPayload.setSeq(this.writeSeq);
+        req.setPayload(reqPayload);
+        this.writeSeq++;
+
+        // Send the chunk
+        this.grpcStream.write(req);
+      }
+
+      callback()
+  }
+
+  _final(callback: (error?: Error | null | undefined) => void): void {
+      // When the write part of the stream is done, signal that no more data will be sent to the server
+      this.grpcStream.end();
+      callback();
+  }
+
+  private readGrpcStream() {
+    let readSeq = 0;
     this.grpcStream.on("data", (chunk: messageWithPayload) => {
       const payload = chunk.getPayload();
       if (!payload) {
@@ -42,11 +101,11 @@ export class DaprChunkedStream extends Readable {
       }
 
       // Check sequence
-      if (payload.getSeq() != seq) {
-        this.closeWithError(new Error(`Invalid payload sequence: got ${payload.getSeq()} but expected ${seq}`));
+      if (payload.getSeq() != readSeq) {
+        this.closeWithError(new Error(`Invalid payload sequence: got ${payload.getSeq()} but expected ${readSeq}`));
         return;
       }
-      seq++;
+      readSeq++;
 
       // Push the data into the internal buffer
       const data = payload.getData_asU8();
@@ -68,10 +127,5 @@ export class DaprChunkedStream extends Readable {
   private closeWithError(err: Error) {
     this.grpcStream.cancel();
     this.destroy(err);
-  }
-
-  _read() {
-    // Nop - we use push() to push data to readers.
-    // However, we still need to implement this method, even if as a stub.
   }
 }

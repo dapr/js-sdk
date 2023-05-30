@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { Readable, Writable } from "node:stream";
+import { Duplex, Readable } from "node:stream";
 
 import GRPCClient from "./GRPCClient";
 import { type DecryptRequest, type EncryptRequest } from "../../../types/crypto/Requests";
@@ -22,7 +22,6 @@ import {
   DecryptRequestOptions as pbDecryptRequestOptions,
   DecryptRequest as pbDecryptRequest,
 } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
-import { StreamPayload as pbStreamPayload } from "../../../proto/dapr/proto/common/v1/common_pb";
 import { DaprChunkedStream } from "../../../utils/Streams.util";
 
 export default class GRPCClientCrypto implements IClientCrypto {
@@ -32,8 +31,23 @@ export default class GRPCClientCrypto implements IClientCrypto {
     this.client = client;
   }
 
-  async encrypt(inStream: Readable, opts: EncryptRequest): Promise<Readable> {
+  async encrypt(opts: EncryptRequest): Promise<Duplex>
+  async encrypt(inData: Buffer | ArrayBuffer | ArrayBufferView | string, opts: EncryptRequest): Promise<Buffer>
+  async encrypt(arg0: Buffer | ArrayBuffer | ArrayBufferView | string | EncryptRequest, opts?: EncryptRequest): Promise<Readable|Buffer> {
+    // Handle overloading
+    // If we have a single argument, assume the user wants to use the Duplex stream-based approach
+    let inData: ArrayBufferLike|undefined
+    if (opts === undefined) {
+      opts = arg0 as EncryptRequest
+    } else {
+      // Throws if arg0 is not a supported type
+      inData = this.toArrayBuffer(arg0)
+    }
+
     // Ensure required options are present
+    if (!opts) {
+      throw new Error(`Parameter 'opts' must be defined`)
+    }
     if (!opts.componentName) {
       throw new Error(`Option 'componentName' is required`);
     }
@@ -48,96 +62,103 @@ export default class GRPCClientCrypto implements IClientCrypto {
     const client = await this.client.getClient();
     const grpcStream = client.encryptAlpha1();
 
-    // Create a stream that will read the data from the server
-    const outStream = new DaprChunkedStream(grpcStream);
-
-    // Process the stream
-    this.processStream(inStream, outStream, grpcStream, pbEncryptRequest, (req) => {
+    // Create a duplex stream that will send data to the server and read from it
+    const duplexStream = new DaprChunkedStream(grpcStream, pbEncryptRequest, (req) => {
       const reqOptions = new pbEncryptRequestOptions();
-      reqOptions.setComponentName(opts.componentName);
-      reqOptions.setKeyName(opts.keyName);
-      reqOptions.setKeyWrapAlgorithm(opts.keyWrapAlgorithm);
-      if (opts.dataEncryptionCipher) {
-        reqOptions.setDataEncryptionCipher(opts.dataEncryptionCipher);
+      reqOptions.setComponentName(opts!.componentName);
+      reqOptions.setKeyName(opts!.keyName);
+      reqOptions.setKeyWrapAlgorithm(opts!.keyWrapAlgorithm);
+      if (opts!.dataEncryptionCipher) {
+        reqOptions.setDataEncryptionCipher(opts!.dataEncryptionCipher);
       }
-      if (opts.decryptionKeyName) {
-        reqOptions.setDecryptionKeyName(opts.decryptionKeyName);
+      if (opts!.decryptionKeyName) {
+        reqOptions.setDecryptionKeyName(opts!.decryptionKeyName);
       }
-      if (opts.omitDecryptionKeyName) {
-        reqOptions.setOmitDecryptionKeyName(opts.omitDecryptionKeyName);
+      if (opts!.omitDecryptionKeyName) {
+        reqOptions.setOmitDecryptionKeyName(opts!.omitDecryptionKeyName);
       }
       req.setOptions(reqOptions);
     });
 
-    return outStream;
+    // Process the data
+    return this.processStream(duplexStream, inData)
   }
 
-  async decrypt(inStream: Readable, opts: DecryptRequest): Promise<Readable> {
+  async decrypt(opts: DecryptRequest): Promise<Duplex>;
+  async decrypt(inData: Buffer | ArrayBuffer | ArrayBufferView, opts: DecryptRequest): Promise<Buffer>;
+  async decrypt(arg0: Buffer | ArrayBuffer | ArrayBufferView | DecryptRequest, opts?: DecryptRequest): Promise<Duplex|Buffer> {
+     // Handle overloading
+    // If we have a single argument, assume the user wants to use the Duplex stream-based approach
+    let inData: ArrayBufferLike|undefined
+    if (opts === undefined) {
+      opts = arg0 as EncryptRequest
+    } else {
+      // Throws if arg0 is not a supported type
+      inData = this.toArrayBuffer(arg0)
+    }
+
     // Ensure required options are present
-    if (!opts.componentName) {
-      throw new Error(`Option 'componentName' is required`);
+    if (!opts) {
+      throw new Error(`Parameter 'opts' must be defined`)
     }
 
     // Create the gRPC stream
     const client = await this.client.getClient();
     const grpcStream = client.decryptAlpha1();
 
-    // Create a stream that will read the data from the server
-    const outStream = new DaprChunkedStream(grpcStream);
-
-    // Process the stream
-    this.processStream(inStream, outStream, grpcStream, pbDecryptRequest, (req) => {
+     // Create a duplex stream that will send data to the server and read from it
+    const duplexStream = new DaprChunkedStream(grpcStream, pbDecryptRequest, (req) => {
       const reqOptions = new pbDecryptRequestOptions();
-      reqOptions.setComponentName(opts.componentName);
-      if (opts.keyName) {
-        reqOptions.setKeyName(opts.keyName);
+      reqOptions.setComponentName(opts!.componentName);
+      if (opts!.keyName) {
+        reqOptions.setKeyName(opts!.keyName);
       }
       req.setOptions(reqOptions);
     });
 
-    return outStream;
+    // Process the data
+    return this.processStream(duplexStream, inData)
   }
 
-  private processStream<T extends pbEncryptRequest | pbDecryptRequest>(
-    inStream: Readable,
-    outStream: Readable,
-    grpcStream: Writable,
-    reqFactory: { new (): T },
-    setReqOptionsFn: (req: T) => void,
-  ) {
-    // Read data from the input stream, in chunks of up to 2KB
-    // Send the data until we reach the end of the input stream
-    let seq = 0;
-    inStream.on("readable", function () {
-      let chunk: Buffer;
-      while ((chunk = inStream.read(2 << 10)) !== null) {
-        const req = new reqFactory();
+  private toArrayBuffer(inData: Buffer | ArrayBuffer | ArrayBufferView | string | any): ArrayBufferLike {
+    if (typeof inData == 'string') {
+      return Buffer.from(inData, 'utf8')
+    } else if (typeof inData == 'object' && ArrayBuffer.isView(inData)) {
+      return inData.buffer
+    } else if (typeof inData == 'object' && (Buffer.isBuffer(inData) || inData instanceof ArrayBuffer)) {
+      return inData
+    } else {
+      throw new Error(`Invalid value for the inData parameter: must be a Buffer, an ArrayBuffer, an ArrayBufferView, or a string`)
+    }
+  }
 
-        // If this is the first chunk, add the options
-        if (seq == 0) {
-          setReqOptionsFn(req);
+  private processStream(duplexStream: DaprChunkedStream<any, any>, inData?: ArrayBufferLike): Promise<Duplex|Buffer> {
+     // If the caller did not pass data (as a Buffer etc), return the duplex stream and stop here
+     if (!inData) {
+      return Promise.resolve(duplexStream)
+    }
+
+    // Send the data to the stream and wait for the response
+    return new Promise((resolve, reject) => {
+      let data = Buffer.alloc(0)
+
+      // Add event listeners
+      duplexStream.on('data', (chunk: Buffer | ArrayBufferView |ArrayBuffer) => {
+        if (ArrayBuffer.isView(chunk)) {
+          chunk = Buffer.from(chunk.buffer)
+        } else if (chunk instanceof ArrayBuffer) {
+          chunk = Buffer.from(chunk)
         }
+        Buffer.concat([data, chunk as Buffer]);
+      })
+      duplexStream.on("end", () => {
+        resolve(data)
+      });
+      duplexStream.on("error", (err: Error) => {
+        reject(err)
+      });
 
-        // Add the payload
-        const reqPayload = new pbStreamPayload();
-        reqPayload.setData(chunk);
-        reqPayload.setSeq(seq);
-        req.setPayload(reqPayload);
-        seq++;
-
-        // Send the chunk
-        grpcStream.write(req);
-      }
-    });
-
-    inStream.on("end", function () {
-      // When the input stream is done, signal that no more data will be sent to the server
-      grpcStream.end();
-    });
-
-    inStream.on("error", function (err) {
-      // If there's an error reading from the input stream, abort the gRPC strema
-      outStream.destroy(err);
-    });
+      duplexStream.write(inData)
+    })
   }
 }
