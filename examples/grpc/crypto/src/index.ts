@@ -12,6 +12,7 @@ limitations under the License.
 */
 
 import { createReadStream, createWriteStream } from "node:fs";
+import { readFile, writeFile } from "node:fs/promises";
 import { pipeline } from "node:stream/promises";
 
 import { DaprClient, CommunicationProtocolEnum } from "@dapr/dapr";
@@ -26,8 +27,16 @@ async function start() {
     communicationProtocol: CommunicationProtocolEnum.GRPC,
   });
 
+  // Encrypt and decrypt a message using streams
+  await encryptDecryptStream(client);
+
+  // Encrypt and decrypt a message from a buffer
+  await encryptDecryptBuffer(client);
+}
+
+async function encryptDecryptStream(client: DaprClient) {
   // First, encrypt the message
-  console.log("== Encrypting message");
+  console.log("== Encrypting message using streams");
   console.log("Encrypting plaintext.txt to ciphertext.out");
 
   await pipeline(
@@ -41,7 +50,7 @@ async function start() {
   );
 
   // Decrypt the message
-  console.log("== Decrypting message");
+  console.log("== Decrypting message using streams");
   console.log("Encrypting ciphertext.out to plaintext.out");
   await pipeline(
     createReadStream("ciphertext.out"),
@@ -50,6 +59,33 @@ async function start() {
     }),
     createWriteStream("plaintext.out"),
   );
+}
+
+async function encryptDecryptBuffer(client: DaprClient) {
+  // Read "plaintext.txt" so we have some content
+  const plaintext = await readFile("plaintext.txt");
+
+  // First, encrypt the message
+  console.log("== Encrypting message using buffers");
+
+  const ciphertext = await client.crypto.encrypt(plaintext, {
+    componentName: "crypto-local",
+    keyName: "symmetric256",
+    keyWrapAlgorithm: "A256KW",
+  });
+
+  await writeFile("test.out", ciphertext)
+
+  // Decrypt the message
+  console.log("== Decrypting message using buffers");
+  const decrypted = await client.crypto.decrypt(ciphertext, {
+    componentName: "crypto-local",
+  });
+
+  // The contents should be equal
+  if (plaintext.compare(decrypted) !== 0) {
+    throw new Error("Decrypted message does not match original message");
+  }
 }
 
 start().catch((e) => {

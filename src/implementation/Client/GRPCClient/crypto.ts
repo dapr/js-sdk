@@ -39,7 +39,7 @@ export default class GRPCClientCrypto implements IClientCrypto {
   ): Promise<Duplex | Buffer> {
     // Handle overloading
     // If we have a single argument, assume the user wants to use the Duplex stream-based approach
-    let inData: ArrayBufferLike | undefined;
+    let inData: Buffer | undefined;
     if (opts === undefined) {
       opts = arg0 as EncryptRequest;
     } else {
@@ -98,7 +98,7 @@ export default class GRPCClientCrypto implements IClientCrypto {
   ): Promise<Duplex | Buffer> {
     // Handle overloading
     // If we have a single argument, assume the user wants to use the Duplex stream-based approach
-    let inData: ArrayBufferLike | undefined;
+    let inData: Buffer | undefined;
     if (opts === undefined) {
       opts = arg0 as EncryptRequest;
     } else {
@@ -132,12 +132,14 @@ export default class GRPCClientCrypto implements IClientCrypto {
     return this.processStream(duplexStream, inData);
   }
 
-  private toArrayBuffer(inData: Buffer | ArrayBuffer | ArrayBufferView | string | any): ArrayBufferLike {
+  private toArrayBuffer(inData: Buffer | ArrayBuffer | ArrayBufferView | string | any): Buffer {
     if (typeof inData == "string") {
       return Buffer.from(inData, "utf8");
     } else if (typeof inData == "object" && ArrayBuffer.isView(inData)) {
-      return inData.buffer;
-    } else if (typeof inData == "object" && (Buffer.isBuffer(inData) || inData instanceof ArrayBuffer)) {
+      return Buffer.from(inData.buffer, inData.byteOffset);
+    } else if (typeof inData == "object" && inData instanceof ArrayBuffer) {
+      return Buffer.from(inData);
+    } else if (typeof inData == "object" && Buffer.isBuffer(inData)) {
       return inData;
     } else {
       throw new Error(
@@ -146,7 +148,7 @@ export default class GRPCClientCrypto implements IClientCrypto {
     }
   }
 
-  private processStream(duplexStream: DaprChunkedStream<any, any>, inData?: ArrayBufferLike): Promise<Duplex | Buffer> {
+  private processStream(duplexStream: DaprChunkedStream<any, any>, inData?: Buffer): Promise<Duplex | Buffer> {
     // If the caller did not pass data (as a Buffer etc), return the duplex stream and stop here
     if (!inData) {
       return Promise.resolve(duplexStream);
@@ -159,11 +161,14 @@ export default class GRPCClientCrypto implements IClientCrypto {
       // Add event listeners
       duplexStream.on("data", (chunk: Buffer | ArrayBufferView | ArrayBuffer) => {
         if (ArrayBuffer.isView(chunk)) {
-          chunk = Buffer.from(chunk.buffer);
+          chunk = Buffer.from(chunk.buffer, chunk.byteOffset);
         } else if (chunk instanceof ArrayBuffer) {
           chunk = Buffer.from(chunk);
         }
-        data = Buffer.concat([data, chunk as Buffer]);
+
+        if (chunk.byteLength > 0) {
+          data = Buffer.concat([data, chunk as Buffer]);
+        }
       });
       duplexStream.on("end", () => {
         resolve(data);
@@ -173,6 +178,7 @@ export default class GRPCClientCrypto implements IClientCrypto {
       });
 
       duplexStream.write(inData);
+      duplexStream.end();
     });
   }
 }
