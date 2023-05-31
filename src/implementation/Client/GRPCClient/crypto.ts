@@ -135,12 +135,12 @@ export default class GRPCClientCrypto implements IClientCrypto {
   private toArrayBuffer(inData: Buffer | ArrayBuffer | ArrayBufferView | string | any): Buffer {
     if (typeof inData == "string") {
       return Buffer.from(inData, "utf8");
+    } else if (typeof inData == "object" && Buffer.isBuffer(inData)) {
+      return inData;
     } else if (typeof inData == "object" && ArrayBuffer.isView(inData)) {
       return Buffer.from(inData.buffer, inData.byteOffset);
     } else if (typeof inData == "object" && inData instanceof ArrayBuffer) {
       return Buffer.from(inData);
-    } else if (typeof inData == "object" && Buffer.isBuffer(inData)) {
-      return inData;
     } else {
       throw new Error(
         `Invalid value for the inData parameter: must be a Buffer, an ArrayBuffer, an ArrayBufferView, or a string`,
@@ -159,15 +159,9 @@ export default class GRPCClientCrypto implements IClientCrypto {
       let data = Buffer.alloc(0);
 
       // Add event listeners
-      duplexStream.on("data", (chunk: Buffer | ArrayBufferView | ArrayBuffer) => {
-        if (ArrayBuffer.isView(chunk)) {
-          chunk = Buffer.from(chunk.buffer, chunk.byteOffset);
-        } else if (chunk instanceof ArrayBuffer) {
-          chunk = Buffer.from(chunk);
-        }
-
-        if (chunk.byteLength > 0) {
-          data = Buffer.concat([data, chunk as Buffer]);
+      duplexStream.on("data", (chunk: Buffer) => {
+        if (chunk.length > 0) {
+          data = Buffer.concat([data, chunk]);
         }
       });
       duplexStream.on("end", () => {

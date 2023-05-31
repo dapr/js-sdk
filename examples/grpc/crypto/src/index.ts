@@ -74,7 +74,7 @@ async function encryptDecryptBuffer(client: DaprClient) {
     keyWrapAlgorithm: "A256KW",
   });
 
-  await writeFile("test.out", ciphertext)
+  await writeFile("test.out", ciphertext);
 
   // Decrypt the message
   console.log("== Decrypting message using buffers");
