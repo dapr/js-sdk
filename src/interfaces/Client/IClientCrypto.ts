@@ -11,9 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { Duplex } from "node:stream";
+import { Duplex } from "stream";
 
-import { type DecryptRequest, type EncryptRequest } from "../../types/crypto/Requests";
+import { DecryptRequest, EncryptRequest } from "../../types/crypto/Requests";
 
 export default interface IClientCrypto {
   encrypt(opts: EncryptRequest): Promise<Duplex>;
