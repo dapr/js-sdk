@@ -18,6 +18,7 @@ var grpc = require('@grpc/grpc-js');
 var dapr_proto_runtime_v1_dapr_pb = require('../../../../dapr/proto/runtime/v1/dapr_pb.js');
 var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js');
 var google_protobuf_empty_pb = require('google-protobuf/google/protobuf/empty_pb.js');
+var google_protobuf_timestamp_pb = require('google-protobuf/google/protobuf/timestamp_pb.js');
 var dapr_proto_common_v1_common_pb = require('../../../../dapr/proto/common/v1/common_pb.js');
 
 function serialize_dapr_proto_common_v1_InvokeResponse(arg) {
@@ -53,6 +54,28 @@ function deserialize_dapr_proto_runtime_v1_BulkPublishResponse(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.BulkPublishResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_DecryptRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.DecryptRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.DecryptRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_DecryptRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.DecryptRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_DecryptResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.DecryptResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.DecryptResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_DecryptResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.DecryptResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_DeleteBulkStateRequest(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.DeleteBulkStateRequest)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.DeleteBulkStateRequest');
@@ -73,6 +96,28 @@ function serialize_dapr_proto_runtime_v1_DeleteStateRequest(arg) {
 
 function deserialize_dapr_proto_runtime_v1_DeleteStateRequest(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.DeleteStateRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_EncryptRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.EncryptRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.EncryptRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_EncryptRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.EncryptRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_EncryptResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.EncryptResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.EncryptResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_EncryptResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.EncryptResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_dapr_proto_runtime_v1_ExecuteActorStateTransactionRequest(arg) {
@@ -317,6 +362,17 @@ function deserialize_dapr_proto_runtime_v1_InvokeServiceRequest(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.InvokeServiceRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_PauseWorkflowRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.PauseWorkflowRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.PauseWorkflowRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_PauseWorkflowRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.PauseWorkflowRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_PublishEventRequest(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.PublishEventRequest)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.PublishEventRequest');
@@ -326,6 +382,17 @@ function serialize_dapr_proto_runtime_v1_PublishEventRequest(arg) {
 
 function deserialize_dapr_proto_runtime_v1_PublishEventRequest(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.PublishEventRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_PurgeWorkflowRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.PurgeWorkflowRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.PurgeWorkflowRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_PurgeWorkflowRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.PurgeWorkflowRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_dapr_proto_runtime_v1_QueryStateRequest(arg) {
@@ -348,6 +415,17 @@ function serialize_dapr_proto_runtime_v1_QueryStateResponse(arg) {
 
 function deserialize_dapr_proto_runtime_v1_QueryStateResponse(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.QueryStateResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_RaiseEventWorkflowRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.RaiseEventWorkflowRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.RaiseEventWorkflowRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_RaiseEventWorkflowRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.RaiseEventWorkflowRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_dapr_proto_runtime_v1_RegisterActorReminderRequest(arg) {
@@ -383,6 +461,17 @@ function deserialize_dapr_proto_runtime_v1_RenameActorReminderRequest(buffer_arg
   return dapr_proto_runtime_v1_dapr_pb.RenameActorReminderRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_ResumeWorkflowRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.ResumeWorkflowRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.ResumeWorkflowRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_ResumeWorkflowRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.ResumeWorkflowRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_SaveStateRequest(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SaveStateRequest)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.SaveStateRequest');
@@ -416,6 +505,17 @@ function deserialize_dapr_proto_runtime_v1_StartWorkflowRequest(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.StartWorkflowRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_StartWorkflowResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.StartWorkflowResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.StartWorkflowResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_StartWorkflowResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.StartWorkflowResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_SubscribeConfigurationRequest(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationRequest)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.SubscribeConfigurationRequest');
@@ -438,6 +538,160 @@ function deserialize_dapr_proto_runtime_v1_SubscribeConfigurationResponse(buffer
   return dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_SubtleDecryptRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SubtleDecryptRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.SubtleDecryptRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_SubtleDecryptRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.SubtleDecryptRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_SubtleDecryptResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SubtleDecryptResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.SubtleDecryptResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_SubtleDecryptResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.SubtleDecryptResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_SubtleEncryptRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SubtleEncryptRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.SubtleEncryptRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_SubtleEncryptRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.SubtleEncryptRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_SubtleEncryptResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SubtleEncryptResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.SubtleEncryptResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_SubtleEncryptResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.SubtleEncryptResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_SubtleGetKeyRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SubtleGetKeyRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.SubtleGetKeyRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_SubtleGetKeyRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.SubtleGetKeyRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_SubtleGetKeyResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SubtleGetKeyResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.SubtleGetKeyResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_SubtleGetKeyResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.SubtleGetKeyResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_SubtleSignRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SubtleSignRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.SubtleSignRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_SubtleSignRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.SubtleSignRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_SubtleSignResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SubtleSignResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.SubtleSignResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_SubtleSignResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.SubtleSignResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_SubtleUnwrapKeyRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SubtleUnwrapKeyRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.SubtleUnwrapKeyRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_SubtleUnwrapKeyRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.SubtleUnwrapKeyRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_SubtleUnwrapKeyResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SubtleUnwrapKeyResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.SubtleUnwrapKeyResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_SubtleUnwrapKeyResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.SubtleUnwrapKeyResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_SubtleVerifyRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SubtleVerifyRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.SubtleVerifyRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_SubtleVerifyRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.SubtleVerifyRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_SubtleVerifyResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SubtleVerifyResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.SubtleVerifyResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_SubtleVerifyResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.SubtleVerifyResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_SubtleWrapKeyRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SubtleWrapKeyRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.SubtleWrapKeyRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_SubtleWrapKeyRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.SubtleWrapKeyRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_SubtleWrapKeyResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SubtleWrapKeyResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.SubtleWrapKeyResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_SubtleWrapKeyResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.SubtleWrapKeyResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_TerminateWorkflowRequest(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.TerminateWorkflowRequest)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.TerminateWorkflowRequest');
@@ -447,17 +701,6 @@ function serialize_dapr_proto_runtime_v1_TerminateWorkflowRequest(arg) {
 
 function deserialize_dapr_proto_runtime_v1_TerminateWorkflowRequest(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.TerminateWorkflowRequest.deserializeBinary(new Uint8Array(buffer_arg));
-}
-
-function serialize_dapr_proto_runtime_v1_TerminateWorkflowResponse(arg) {
-  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.TerminateWorkflowResponse)) {
-    throw new Error('Expected argument of type dapr.proto.runtime.v1.TerminateWorkflowResponse');
-  }
-  return Buffer.from(arg.serializeBinary());
-}
-
-function deserialize_dapr_proto_runtime_v1_TerminateWorkflowResponse(buffer_arg) {
-  return dapr_proto_runtime_v1_dapr_pb.TerminateWorkflowResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_dapr_proto_runtime_v1_TryLockRequest(arg) {
@@ -546,17 +789,6 @@ function serialize_dapr_proto_runtime_v1_UnsubscribeConfigurationResponse(arg) {
 
 function deserialize_dapr_proto_runtime_v1_UnsubscribeConfigurationResponse(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse.deserializeBinary(new Uint8Array(buffer_arg));
-}
-
-function serialize_dapr_proto_runtime_v1_WorkflowReference(arg) {
-  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.WorkflowReference)) {
-    throw new Error('Expected argument of type dapr.proto.runtime.v1.WorkflowReference');
-  }
-  return Buffer.from(arg.serializeBinary());
-}
-
-function deserialize_dapr_proto_runtime_v1_WorkflowReference(buffer_arg) {
-  return dapr_proto_runtime_v1_dapr_pb.WorkflowReference.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_google_protobuf_Empty(arg) {
@@ -838,6 +1070,18 @@ getConfigurationAlpha1: {
     responseSerialize: serialize_dapr_proto_runtime_v1_GetConfigurationResponse,
     responseDeserialize: deserialize_dapr_proto_runtime_v1_GetConfigurationResponse,
   },
+  // GetConfiguration gets configuration from configuration store.
+getConfiguration: {
+    path: '/dapr.proto.runtime.v1.Dapr/GetConfiguration',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.GetConfigurationRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.GetConfigurationResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_GetConfigurationRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_GetConfigurationRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_GetConfigurationResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_GetConfigurationResponse,
+  },
   // SubscribeConfiguration gets configuration from configuration store and subscribe the updates event by grpc stream
 subscribeConfigurationAlpha1: {
     path: '/dapr.proto.runtime.v1.Dapr/SubscribeConfigurationAlpha1',
@@ -850,9 +1094,33 @@ subscribeConfigurationAlpha1: {
     responseSerialize: serialize_dapr_proto_runtime_v1_SubscribeConfigurationResponse,
     responseDeserialize: deserialize_dapr_proto_runtime_v1_SubscribeConfigurationResponse,
   },
+  // SubscribeConfiguration gets configuration from configuration store and subscribe the updates event by grpc stream
+subscribeConfiguration: {
+    path: '/dapr.proto.runtime.v1.Dapr/SubscribeConfiguration',
+    requestStream: false,
+    responseStream: true,
+    requestType: dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_SubscribeConfigurationRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_SubscribeConfigurationRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_SubscribeConfigurationResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_SubscribeConfigurationResponse,
+  },
   // UnSubscribeConfiguration unsubscribe the subscription of configuration
 unsubscribeConfigurationAlpha1: {
     path: '/dapr.proto.runtime.v1.Dapr/UnsubscribeConfigurationAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_UnsubscribeConfigurationRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_UnsubscribeConfigurationRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_UnsubscribeConfigurationResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_UnsubscribeConfigurationResponse,
+  },
+  // UnSubscribeConfiguration unsubscribe the subscription of configuration
+unsubscribeConfiguration: {
+    path: '/dapr.proto.runtime.v1.Dapr/UnsubscribeConfiguration',
     requestStream: false,
     responseStream: false,
     requestType: dapr_proto_runtime_v1_dapr_pb.UnsubscribeConfigurationRequest,
@@ -886,6 +1154,30 @@ unlockAlpha1: {
     responseSerialize: serialize_dapr_proto_runtime_v1_UnlockResponse,
     responseDeserialize: deserialize_dapr_proto_runtime_v1_UnlockResponse,
   },
+  // EncryptAlpha1 encrypts a message using the Dapr encryption scheme and a key stored in the vault.
+encryptAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/EncryptAlpha1',
+    requestStream: true,
+    responseStream: true,
+    requestType: dapr_proto_runtime_v1_dapr_pb.EncryptRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.EncryptResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_EncryptRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_EncryptRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_EncryptResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_EncryptResponse,
+  },
+  // DecryptAlpha1 decrypts a message using the Dapr encryption scheme and a key stored in the vault.
+decryptAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/DecryptAlpha1',
+    requestStream: true,
+    responseStream: true,
+    requestType: dapr_proto_runtime_v1_dapr_pb.DecryptRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.DecryptResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_DecryptRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_DecryptRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_DecryptResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_DecryptResponse,
+  },
   // Gets metadata of the sidecar
 getMetadata: {
     path: '/dapr.proto.runtime.v1.Dapr/GetMetadata',
@@ -910,19 +1202,103 @@ setMetadata: {
     responseSerialize: serialize_google_protobuf_Empty,
     responseDeserialize: deserialize_google_protobuf_Empty,
   },
-  // Start Workflow
+  // SubtleGetKeyAlpha1 returns the public part of an asymmetric key stored in the vault.
+subtleGetKeyAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/SubtleGetKeyAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.SubtleGetKeyRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.SubtleGetKeyResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_SubtleGetKeyRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_SubtleGetKeyRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_SubtleGetKeyResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_SubtleGetKeyResponse,
+  },
+  // SubtleEncryptAlpha1 encrypts a small message using a key stored in the vault.
+subtleEncryptAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/SubtleEncryptAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.SubtleEncryptRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.SubtleEncryptResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_SubtleEncryptRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_SubtleEncryptRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_SubtleEncryptResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_SubtleEncryptResponse,
+  },
+  // SubtleDecryptAlpha1 decrypts a small message using a key stored in the vault.
+subtleDecryptAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/SubtleDecryptAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.SubtleDecryptRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.SubtleDecryptResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_SubtleDecryptRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_SubtleDecryptRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_SubtleDecryptResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_SubtleDecryptResponse,
+  },
+  // SubtleWrapKeyAlpha1 wraps a key using a key stored in the vault.
+subtleWrapKeyAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/SubtleWrapKeyAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.SubtleWrapKeyRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.SubtleWrapKeyResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_SubtleWrapKeyRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_SubtleWrapKeyRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_SubtleWrapKeyResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_SubtleWrapKeyResponse,
+  },
+  // SubtleUnwrapKeyAlpha1 unwraps a key using a key stored in the vault.
+subtleUnwrapKeyAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/SubtleUnwrapKeyAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.SubtleUnwrapKeyRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.SubtleUnwrapKeyResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_SubtleUnwrapKeyRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_SubtleUnwrapKeyRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_SubtleUnwrapKeyResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_SubtleUnwrapKeyResponse,
+  },
+  // SubtleSignAlpha1 signs a message using a key stored in the vault.
+subtleSignAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/SubtleSignAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.SubtleSignRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.SubtleSignResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_SubtleSignRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_SubtleSignRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_SubtleSignResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_SubtleSignResponse,
+  },
+  // SubtleVerifyAlpha1 verifies the signature of a message using a key stored in the vault.
+subtleVerifyAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/SubtleVerifyAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.SubtleVerifyRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.SubtleVerifyResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_SubtleVerifyRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_SubtleVerifyRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_SubtleVerifyResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_SubtleVerifyResponse,
+  },
+  // Starts a new instance of a workflow
 startWorkflowAlpha1: {
     path: '/dapr.proto.runtime.v1.Dapr/StartWorkflowAlpha1',
     requestStream: false,
     responseStream: false,
     requestType: dapr_proto_runtime_v1_dapr_pb.StartWorkflowRequest,
-    responseType: dapr_proto_runtime_v1_dapr_pb.WorkflowReference,
+    responseType: dapr_proto_runtime_v1_dapr_pb.StartWorkflowResponse,
     requestSerialize: serialize_dapr_proto_runtime_v1_StartWorkflowRequest,
     requestDeserialize: deserialize_dapr_proto_runtime_v1_StartWorkflowRequest,
-    responseSerialize: serialize_dapr_proto_runtime_v1_WorkflowReference,
-    responseDeserialize: deserialize_dapr_proto_runtime_v1_WorkflowReference,
+    responseSerialize: serialize_dapr_proto_runtime_v1_StartWorkflowResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_StartWorkflowResponse,
   },
-  // Get Workflow details
+  // Gets details about a started workflow instance
 getWorkflowAlpha1: {
     path: '/dapr.proto.runtime.v1.Dapr/GetWorkflowAlpha1',
     requestStream: false,
@@ -934,17 +1310,65 @@ getWorkflowAlpha1: {
     responseSerialize: serialize_dapr_proto_runtime_v1_GetWorkflowResponse,
     responseDeserialize: deserialize_dapr_proto_runtime_v1_GetWorkflowResponse,
   },
-  // Terminate Workflow
+  // Purge Workflow
+purgeWorkflowAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/PurgeWorkflowAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.PurgeWorkflowRequest,
+    responseType: google_protobuf_empty_pb.Empty,
+    requestSerialize: serialize_dapr_proto_runtime_v1_PurgeWorkflowRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_PurgeWorkflowRequest,
+    responseSerialize: serialize_google_protobuf_Empty,
+    responseDeserialize: deserialize_google_protobuf_Empty,
+  },
+  // Terminates a running workflow instance
 terminateWorkflowAlpha1: {
     path: '/dapr.proto.runtime.v1.Dapr/TerminateWorkflowAlpha1',
     requestStream: false,
     responseStream: false,
     requestType: dapr_proto_runtime_v1_dapr_pb.TerminateWorkflowRequest,
-    responseType: dapr_proto_runtime_v1_dapr_pb.TerminateWorkflowResponse,
+    responseType: google_protobuf_empty_pb.Empty,
     requestSerialize: serialize_dapr_proto_runtime_v1_TerminateWorkflowRequest,
     requestDeserialize: deserialize_dapr_proto_runtime_v1_TerminateWorkflowRequest,
-    responseSerialize: serialize_dapr_proto_runtime_v1_TerminateWorkflowResponse,
-    responseDeserialize: deserialize_dapr_proto_runtime_v1_TerminateWorkflowResponse,
+    responseSerialize: serialize_google_protobuf_Empty,
+    responseDeserialize: deserialize_google_protobuf_Empty,
+  },
+  // Pauses a running workflow instance
+pauseWorkflowAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/PauseWorkflowAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.PauseWorkflowRequest,
+    responseType: google_protobuf_empty_pb.Empty,
+    requestSerialize: serialize_dapr_proto_runtime_v1_PauseWorkflowRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_PauseWorkflowRequest,
+    responseSerialize: serialize_google_protobuf_Empty,
+    responseDeserialize: deserialize_google_protobuf_Empty,
+  },
+  // Resumes a paused workflow instance
+resumeWorkflowAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/ResumeWorkflowAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.ResumeWorkflowRequest,
+    responseType: google_protobuf_empty_pb.Empty,
+    requestSerialize: serialize_dapr_proto_runtime_v1_ResumeWorkflowRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_ResumeWorkflowRequest,
+    responseSerialize: serialize_google_protobuf_Empty,
+    responseDeserialize: deserialize_google_protobuf_Empty,
+  },
+  // Raise an event to a running workflow instance
+raiseEventWorkflowAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/RaiseEventWorkflowAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.RaiseEventWorkflowRequest,
+    responseType: google_protobuf_empty_pb.Empty,
+    requestSerialize: serialize_dapr_proto_runtime_v1_RaiseEventWorkflowRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_RaiseEventWorkflowRequest,
+    responseSerialize: serialize_google_protobuf_Empty,
+    responseDeserialize: deserialize_google_protobuf_Empty,
   },
   // Shutdown the sidecar
 shutdown: {

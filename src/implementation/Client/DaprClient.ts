@@ -97,18 +97,18 @@ export default class DaprClient {
         const client = new GRPCClient(this.options);
         this.daprClient = client;
 
-        this.state = new GRPCClientState(client);
-        this.pubsub = new GRPCClientPubSub(client);
+        this.actor = new GRPCClientActor(client); // we use an abstractor here since we interface through a builder with the Actor Runtime
         this.binding = new GRPCClientBinding(client);
-        this.invoker = new GRPCClientInvoker(client);
-        this.secret = new GRPCClientSecret(client);
-        this.health = new GRPCClientHealth(client);
-        this.metadata = new GRPCClientMetadata(client);
-        this.sidecar = new GRPCClientSidecar(client);
-        this.proxy = new GRPCClientProxy(client);
         this.configuration = new GRPCClientConfiguration(client);
+        this.health = new GRPCClientHealth(client);
+        this.invoker = new GRPCClientInvoker(client);
         this.lock = new GRPCClientLock(client);
-        this.actor = new GRPCClientActor(client); // we use a abstractor here since we interface through a builder with the Actor Runtime
+        this.metadata = new GRPCClientMetadata(client);
+        this.proxy = new GRPCClientProxy(client);
+        this.pubsub = new GRPCClientPubSub(client);
+        this.secret = new GRPCClientSecret(client);
+        this.sidecar = new GRPCClientSidecar(client);
+        this.state = new GRPCClientState(client);
         this.workflow = new GRPCClientWorkflow(client);
         break;
       }
@@ -117,18 +117,18 @@ export default class DaprClient {
         const client = new HTTPClient(this.options);
         this.daprClient = client;
 
-        this.state = new HTTPClientState(client);
-        this.pubsub = new HTTPClientPubSub(client);
+        this.actor = new HTTPClientActor(client); // we use an abstractor here since we interface through a builder with the Actor Runtime
         this.binding = new HTTPClientBinding(client);
-        this.invoker = new HTTPClientInvoker(client);
-        this.secret = new HTTPClientSecret(client);
-        this.health = new HTTPClientHealth(client);
-        this.metadata = new HTTPClientMetadata(client);
-        this.sidecar = new HTTPClientSidecar(client);
         this.configuration = new HTTPClientConfiguration(client);
-        this.proxy = new HTTPClientProxy(client);
+        this.health = new HTTPClientHealth(client);
+        this.invoker = new HTTPClientInvoker(client);
         this.lock = new HTTPClientLock(client);
-        this.actor = new HTTPClientActor(client); // we use a abstractor here since we interface through a builder with the Actor Runtime
+        this.metadata = new HTTPClientMetadata(client);
+        this.proxy = new HTTPClientProxy(client);
+        this.pubsub = new HTTPClientPubSub(client);
+        this.secret = new HTTPClientSecret(client);
+        this.sidecar = new HTTPClientSidecar(client);
+        this.state = new HTTPClientState(client);
         this.workflow = new HTTPClientWorkflow(client);
         break;
       }
