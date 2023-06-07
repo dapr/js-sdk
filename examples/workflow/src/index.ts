@@ -17,31 +17,12 @@ async function start() {
   const client = new DaprClient();
 
   // // Start a new workflow instance
-  // const instanceId = await client.workflow.start("myWorkflow", { foo: "bar" });
+  const instanceId = "1234"; // await client.workflow.start("myWorkflow", { foo: "bar" });
 
   // Get details about a workflow instance
-  const workflow = await client.workflow.get("1234");
-  console.log(workflow.createdAt.toUTCString());
-  console.log(workflow.lastUpdatedAt.toUTCString());
-  console.log(workflow.instanceID);
-  console.log(workflow.workflowName);
-  console.log(workflow.runtimeStatus);
-  console.log(workflow.properties);
-
-
-  // OUTPUT:
-  // {
-  //   WFInfo: { instance_id: '1234' },
-  //   start_time: '2023-05-03T06:02:28Z',
-  //   metadata: {
-  //     'dapr.workflow.custom_status': '',
-  //     'dapr.workflow.input': '{"Name":"Paperclips","Quantity":1,"TotalCost":99.95}',
-  //     'dapr.workflow.last_updated': '2023-05-03T06:02:42Z',
-  //     'dapr.workflow.name': 'OrderProcessingWorkflow',
-  //     'dapr.workflow.output': '{"Processed":true}',
-  //     'dapr.workflow.runtime_status': 'COMPLETED'
-  //   }
-  // }
+  const workflow = await client.workflow.get(instanceId);
+  console.log(`Workflow ${workflow.workflowName}, created at ${workflow.createdAt.toUTCString()}, has status ${workflow.runtimeStatus}`);
+  console.log(`Additional properties: ${JSON.stringify(workflow.properties)}`);
 
   // // Pause a workflow instance
   // await client.workflow.pause(instanceId);
@@ -49,8 +30,12 @@ async function start() {
   // // Resume a workflow instance
   // await client.workflow.resume(instanceId);
 
-  // // Terminate a workflow instance
-  // await client.workflow.terminate(instanceId);
+  // Terminate a workflow instance
+  await client.workflow.terminate(instanceId);
+
+  const workflow2 = await client.workflow.get(instanceId);
+  console.log(`Workflow ${workflow2.workflowName}, created at ${workflow2.createdAt.toUTCString()}, has status ${workflow2.runtimeStatus}`);
+  console.log(`Additional properties: ${JSON.stringify(workflow2.properties)}`);
 }
 
 start().catch((e) => {

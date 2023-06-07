@@ -32,7 +32,6 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     if (!instanceID || instanceID === "") {
       throw new Error("instanceID is required");
     }
-
     workflowComponent = workflowComponent ?? HTTPClientWorkflow.DEFAULT_WORKFLOW_COMPONENT;
 
     try {
@@ -51,8 +50,8 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
       const response: WorkflowGetResponseType = {
         instanceID: resultJson["instanceID"],
         workflowName: resultJson["workflowName"],
-        createdAt: new Date(resultJson["createdAt"] ?? 0),
-        lastUpdatedAt: new Date(resultJson["lastUpdatedAt"] ?? 0),
+        createdAt: resultJson["createdAt"] ? new Date(resultJson["createdAt"]) : new Date(),
+        lastUpdatedAt: resultJson["lastUpdatedAt"] ? new Date(resultJson["lastUpdatedAt"]) : new Date(),
         runtimeStatus: resultJson["runtimeStatus"],
         properties: resultJson["properties"],
       };
@@ -72,19 +71,46 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
   ): Promise<string> {
     throw new Error("Method not implemented.");
   }
-  terminate(instanceId: string, workflowComponent?: string | undefined): Promise<any> {
-    throw new Error("Method not implemented.");
+
+  async terminate(instanceId: string, workflowComponent?: string | undefined): Promise<void> {
+    await this._invokeMethod(instanceId, "terminate", workflowComponent);
   }
-  pause(instanceId: string, workflowComponent?: string | undefined): Promise<any> {
-    throw new Error("Method not implemented.");
+
+  async pause(instanceId: string, workflowComponent?: string | undefined): Promise<void> {
+    await this._invokeMethod(instanceId, "pause", workflowComponent);
   }
-  resume(instanceId: string, workflowComponent?: string | undefined): Promise<any> {
-    throw new Error("Method not implemented.");
+
+  async resume(instanceId: string, workflowComponent?: string | undefined): Promise<void> {
+    await this._invokeMethod(instanceId, "resume", workflowComponent);
   }
-  purge(instanceId: string, workflowComponent?: string | undefined): Promise<any> {
-    throw new Error("Method not implemented.");
+
+  async purge(instanceId: string, workflowComponent?: string | undefined): Promise<void> {
+    await this._invokeMethod(instanceId, "purge", workflowComponent);
   }
+
   raise(instanceId: string, eventName: string, input?: any, workflowComponent?: string | undefined): Promise<any> {
     throw new Error("Method not implemented.");
+  }
+
+  async _invokeMethod(instanceId: string, method: string, workflowComponent?: string | undefined): Promise<any> {
+    if (!instanceId || instanceId === "") {
+      throw new Error("instanceID is required");
+    }
+    if (!method || method === "") {
+      throw new Error("method is required");
+    }
+
+    workflowComponent = workflowComponent ?? HTTPClientWorkflow.DEFAULT_WORKFLOW_COMPONENT;
+
+    try {
+      await this.client.executeWithApiVersion(
+        "v1.0-alpha1",
+        `/workflows/${workflowComponent}/${instanceId}/${method}`,
+        { method: "POST" },
+      );
+    } catch (e: any) {
+      this.logger.error(`Error terminating workflow instance: ${e.message}`);
+      throw e;
+    }
   }
 }

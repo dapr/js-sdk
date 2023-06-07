@@ -35,28 +35,28 @@ export default interface IClientWorkflow {
    * @param instanceId The unique identifier for the workflow instance.
    * @param workflowComponent The name of the workflow component to interface with, if not provided the default "dapr" will be used.
    */
-  terminate(instanceId: string, workflowComponent?: string): Promise<any>;
+  terminate(instanceId: string, workflowComponent?: string): Promise<void>;
 
   /**
    * Pauses a workflow instance.
    * @param instanceId The unique identifier for the workflow instance.
    * @param workflowComponent The name of the workflow component to interface with, if not provided the default "dapr" will be used.
    */
-  pause(instanceId: string, workflowComponent?: string): Promise<any>;
+  pause(instanceId: string, workflowComponent?: string): Promise<void>;
 
   /**
    * Resumes a workflow instance.
    * @param instanceId The unique identifier for the workflow instance.
    * @param workflowComponent The name of the workflow component to interface with, if not provided the default "dapr" will be used.
    */
-  resume(instanceId: string, workflowComponent?: string): Promise<any>;
+  resume(instanceId: string, workflowComponent?: string): Promise<void>;
 
   /**
    * Purge a workflow instance.
    * @param instanceId The unique identifier for the workflow instance.
    * @param workflowComponent The name of the workflow component to interface with, if not provided the default "dapr" will be used.
    */
-  purge(instanceId: string, workflowComponent?: string): Promise<any>;
+  purge(instanceId: string, workflowComponent?: string): Promise<void>;
 
   /**
    * Raise an event to a workflow instance.
