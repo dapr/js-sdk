@@ -17,7 +17,7 @@ import { GetConfigurationResponse as GetConfigurationResponseResult } from "../.
 import HTTPClient from "./HTTPClient";
 import { SubscribeConfigurationCallback } from "../../../types/configuration/SubscribeConfigurationCallback";
 import { SubscribeConfigurationStream } from "../../../types/configuration/SubscribeConfigurationStream";
-import { HttpNotSupportedError } from "../../../types/errors/custom-errors";
+import { HttpNotSupportedError } from "../../../errors/HttpNotSupportedError";
 
 export default class HTTPClientConfiguration implements IClientConfiguration {
   client: HTTPClient;

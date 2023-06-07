@@ -15,7 +15,7 @@ import GRPCServer from "./GRPCServer";
 import IServerActor from "../../../interfaces/Server/IServerActor";
 import AbstractActor from "../../../actors/runtime/AbstractActor";
 import Class from "../../../types/Class";
-import { GrpcNotSupportedError } from "../../../types/errors/custom-errors";
+import { GrpcNotSupportedError } from "../../../errors/GrpcNotupportedError";
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class GRPCServerActor implements IServerActor {

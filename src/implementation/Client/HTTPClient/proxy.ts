@@ -15,7 +15,7 @@ import * as grpc from "@grpc/grpc-js";
 import Class from "../../../types/Class";
 import IClientProxy from "../../../interfaces/Client/IClientProxy";
 import HTTPClient from "./HTTPClient";
-import { HttpNotSupportedError } from "../../../types/errors/custom-errors";
+import { HttpNotSupportedError } from "../../../errors/HttpNotSupportedError";
 
 export default class HTTPClientProxy implements IClientProxy {
   client: HTTPClient;
