@@ -19,6 +19,7 @@ import { KeyValueType } from "../../../types/KeyValue.type";
 import { WorkflowStartOptions } from "../../../types/workflow/WorkflowStartOptions.type";
 import { randomUUID } from "crypto";
 import { createHTTPQueryParam } from "../../../utils/Client.util";
+import { WorkflowRaiseOptions } from "../../../types/workflow/WorkflowRaiseOptions.type";
 
 export default class HTTPClientWorkflow implements IClientWorkflow {
   private readonly client: HTTPClient;
@@ -107,6 +108,45 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     }
   };
 
+  async raise(
+    instanceId: string,
+    eventName: string,
+    eventData?: any,
+    workflowComponent?: string | undefined,
+    options: WorkflowRaiseOptions = {},
+  ): Promise<void> {
+    if (!instanceId || instanceId === "") {
+      throw new Error("instanceID is required");
+    }
+    if (!eventName || eventName === "") {
+      throw new Error("eventName is required");
+    }
+    workflowComponent = workflowComponent ?? HTTPClientWorkflow.DEFAULT_WORKFLOW_COMPONENT;
+
+    // Set content type if provided.
+    // If not, HTTPClient will infer it from the data.
+    const headers: KeyValueType = {};
+    if (options.eventContentType) {
+      headers["Content-Type"] = options.eventContentType;
+    }
+
+    try {
+      await this.client.executeWithApiVersion(
+        "v1.0-alpha1",
+        `/workflows/${workflowComponent}/${instanceId}/raiseEvent/${eventName}`,
+        {
+          method: "POST",
+          body: eventData,
+          headers
+        },
+      );
+    } catch (e: any) {
+      this.logger.error(`Error raising event on workflow instance: ${e.message}`);
+      throw e;
+    }
+
+  }
+
   async terminate(instanceId: string, workflowComponent?: string | undefined): Promise<void> {
     await this._invokeMethod(instanceId, "terminate", workflowComponent);
   }
@@ -121,10 +161,6 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
 
   async purge(instanceId: string, workflowComponent?: string | undefined): Promise<void> {
     await this._invokeMethod(instanceId, "purge", workflowComponent);
-  }
-
-  raise(instanceId: string, eventName: string, input?: any, workflowComponent?: string | undefined): Promise<any> {
-    throw new Error("Method not implemented.");
   }
 
   async _invokeMethod(instanceId: string, method: string, workflowComponent?: string | undefined): Promise<any> {
@@ -144,7 +180,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
         { method: "POST" },
       );
     } catch (e: any) {
-      this.logger.error(`Error terminating workflow instance: ${e.message}`);
+      this.logger.error(`Error invoking ${method} on workflow instance: ${e.message}`);
       throw e;
     }
   }

@@ -11,19 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { KeyValueType } from "../KeyValue.type";
-
-export type WorkflowStartOptions = {
+export type WorkflowRaiseOptions = {
 
     /**
-     * The content type of the message.
+     * The content type of the event.
      * This is optional and will be inferred from the payload if not provided.
      */
-    contentType?: string;
-
-    /**
-     * Options to be passed to the workflow.
-     * Only applicable for gRPC.
-     */
-    workflowOptions?: KeyValueType;
+    eventContentType?: string;
 };

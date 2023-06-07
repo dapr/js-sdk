@@ -62,8 +62,8 @@ export default interface IClientWorkflow {
    * Raise an event to a workflow instance.
    * @param instanceId The unique identifier for the workflow instance.
    * @param eventName The name of the event to raise.
-   * @param input The input to pass to the workflow, should be JSON serializable.
+   * @param eventData The data associated with the event, should be JSON serializable.
    * @param workflowComponent The name of the workflow component to interface with, if not provided the default "dapr" will be used.
    */
-  raise(instanceId: string, eventName: string, input?: any, workflowComponent?: string): Promise<any>;
+  raise(instanceId: string, eventName: string, eventData?: any, workflowComponent?: string): Promise<void>;
 }
