@@ -11,27 +11,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { DaprClient } from "@dapr/dapr";
+import { DaprClient, LogLevel } from "@dapr/dapr";
 
 async function start() {
-  const client = new DaprClient();
+  const client = new DaprClient({ logger: { level: LogLevel.Debug } });
 
   // // Start a new workflow instance
-  const instanceId = "1234"; // await client.workflow.start("myWorkflow", { foo: "bar" });
+  const instanceId = await client.workflow.start("myWorkflow", { foo: "bar" });
 
   // Get details about a workflow instance
   const workflow = await client.workflow.get(instanceId);
   console.log(`Workflow ${workflow.workflowName}, created at ${workflow.createdAt.toUTCString()}, has status ${workflow.runtimeStatus}`);
   console.log(`Additional properties: ${JSON.stringify(workflow.properties)}`);
 
-  // // Pause a workflow instance
-  // await client.workflow.pause(instanceId);
+  // Pause a workflow instance
+  await client.workflow.pause(instanceId);
 
-  // // Resume a workflow instance
-  // await client.workflow.resume(instanceId);
+  // Resume a workflow instance
+  await client.workflow.resume(instanceId);
 
   // Terminate a workflow instance
   await client.workflow.terminate(instanceId);
+
+  // Purge a workflow instance
+  await client.workflow.purge(instanceId);
 
   const workflow2 = await client.workflow.get(instanceId);
   console.log(`Workflow ${workflow2.workflowName}, created at ${workflow2.createdAt.toUTCString()}, has status ${workflow2.runtimeStatus}`);

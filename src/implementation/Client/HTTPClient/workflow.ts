@@ -16,6 +16,9 @@ import IClientWorkflow from "../../../interfaces/Client/IClientWorkflow";
 import { WorkflowGetResponseType } from "../../../types/workflow/WorkflowGetResponse.type";
 import { Logger } from "../../../logger/Logger";
 import { KeyValueType } from "../../../types/KeyValue.type";
+import { WorkflowStartOptions } from "../../../types/workflow/WorkflowStartOptions.type";
+import { randomUUID } from "crypto";
+import { createHTTPQueryParam } from "../../../utils/Client.util";
 
 export default class HTTPClientWorkflow implements IClientWorkflow {
   private readonly client: HTTPClient;
@@ -63,14 +66,46 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     }
   }
 
-  start(
+  async start(
     workflowName: string,
     input?: any,
     instanceId?: string | undefined,
     workflowComponent?: string | undefined,
+    options: WorkflowStartOptions = {},
   ): Promise<string> {
-    throw new Error("Method not implemented.");
-  }
+    if (!workflowName || workflowName === "") {
+      throw new Error("workflowName is required");
+    }
+    if (!instanceId || instanceId === "") {
+      instanceId = randomUUID();
+    }
+    workflowComponent = workflowComponent ?? HTTPClientWorkflow.DEFAULT_WORKFLOW_COMPONENT;
+
+    const queryParams = createHTTPQueryParam({ data: { "instanceID": instanceId } });
+
+    // Set content type if provided.
+    // If not, HTTPClient will infer it from the data.
+    const headers: KeyValueType = {};
+    if (options.contentType) {
+      headers["Content-Type"] = options.contentType;
+    }
+
+    try {
+      await this.client.executeWithApiVersion(
+        "v1.0-alpha1",
+        `/workflows/${workflowComponent}/${workflowName}/start?${queryParams}`,
+        {
+          method: "POST",
+          body: input,
+          headers
+        });
+
+      return instanceId;
+    } catch (e: any) {
+      this.logger.error(`Error starting workflow instance: ${e.message}`);
+      throw e;
+    }
+  };
 
   async terminate(instanceId: string, workflowComponent?: string | undefined): Promise<void> {
     await this._invokeMethod(instanceId, "terminate", workflowComponent);
