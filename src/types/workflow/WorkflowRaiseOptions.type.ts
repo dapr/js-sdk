@@ -12,10 +12,9 @@ limitations under the License.
 */
 
 export type WorkflowRaiseOptions = {
-
-    /**
-     * The content type of the event.
-     * This is optional and will be inferred from the payload if not provided.
-     */
-    eventContentType?: string;
+  /**
+   * The content type of the event.
+   * This is optional and will be inferred from the payload if not provided.
+   */
+  eventContentType?: string;
 };

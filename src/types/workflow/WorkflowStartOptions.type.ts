@@ -14,16 +14,15 @@ limitations under the License.
 import { KeyValueType } from "../KeyValue.type";
 
 export type WorkflowStartOptions = {
+  /**
+   * The content type of the message.
+   * This is optional and will be inferred from the payload if not provided.
+   */
+  contentType?: string;
 
-    /**
-     * The content type of the message.
-     * This is optional and will be inferred from the payload if not provided.
-     */
-    contentType?: string;
-
-    /**
-     * Options to be passed to the workflow.
-     * Only applicable for gRPC.
-     */
-    workflowOptions?: KeyValueType;
+  /**
+   * Options to be passed to the workflow.
+   * Only applicable for gRPC.
+   */
+  workflowOptions?: KeyValueType;
 };

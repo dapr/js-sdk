@@ -15,7 +15,11 @@ import { DaprClient } from "@dapr/dapr";
 
 async function printWorkflowStatus(client: DaprClient, instanceId: string) {
   const workflow = await client.workflow.get(instanceId);
-  console.log(`Workflow ${workflow.workflowName}, created at ${workflow.createdAt.toUTCString()}, has status ${workflow.runtimeStatus}`);
+  console.log(
+    `Workflow ${workflow.workflowName}, created at ${workflow.createdAt.toUTCString()}, has status ${
+      workflow.runtimeStatus
+    }`,
+  );
   console.log(`Additional properties: ${JSON.stringify(workflow.properties)}`);
   console.log("--------------------------------------------------\n\n");
 }
@@ -24,7 +28,11 @@ async function start() {
   const client = new DaprClient();
 
   // Start a new workflow instance
-  const instanceId = await client.workflow.start("OrderProcessingWorkflow", { "Name": "Paperclips", "TotalCost": 99.95, "Quantity": 4 });
+  const instanceId = await client.workflow.start("OrderProcessingWorkflow", {
+    Name: "Paperclips",
+    TotalCost: 99.95,
+    Quantity: 4,
+  });
   console.log(`Started workflow instance ${instanceId}`);
   await printWorkflowStatus(client, instanceId);
 
@@ -44,7 +52,7 @@ async function start() {
   // await printWorkflowStatus(client, instanceId);
 
   // Wait for the workflow to complete, 30 seconds!
-  await new Promise(resolve => setTimeout(resolve, 30000));
+  await new Promise((resolve) => setTimeout(resolve, 30000));
   await printWorkflowStatus(client, instanceId);
 
   // Purge a workflow instance

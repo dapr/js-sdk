@@ -82,7 +82,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     }
     workflowComponent = workflowComponent ?? HTTPClientWorkflow.DEFAULT_WORKFLOW_COMPONENT;
 
-    const queryParams = createHTTPQueryParam({ data: { "instanceID": instanceId } });
+    const queryParams = createHTTPQueryParam({ data: { instanceID: instanceId } });
 
     // Set content type if provided.
     // If not, HTTPClient will infer it from the data.
@@ -98,15 +98,16 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
         {
           method: "POST",
           body: input,
-          headers
-        });
+          headers,
+        },
+      );
 
       return instanceId;
     } catch (e: any) {
       this.logger.error(`Error starting workflow instance: ${e.message}`);
       throw e;
     }
-  };
+  }
 
   async raise(
     instanceId: string,
@@ -137,14 +138,13 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
         {
           method: "POST",
           body: eventData,
-          headers
+          headers,
         },
       );
     } catch (e: any) {
       this.logger.error(`Error raising event on workflow instance: ${e.message}`);
       throw e;
     }
-
   }
 
   async terminate(instanceId: string, workflowComponent?: string | undefined): Promise<void> {

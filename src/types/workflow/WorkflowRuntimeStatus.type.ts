@@ -15,11 +15,11 @@ limitations under the License.
  * WorkflowRuntimeStatus is the status of a workflow instance.
  */
 export enum WorkflowRuntimeStatus {
-    Unknown = "Unknown",
-    Running = "Running",
-    Completed = "Completed",
-    Failed = "Failed",
-    Terminated = "Terminated",
-    Pending = "Pending",
-    Suspended = "Suspended"
+  Unknown = "Unknown",
+  Running = "Running",
+  Completed = "Completed",
+  Failed = "Failed",
+  Terminated = "Terminated",
+  Pending = "Pending",
+  Suspended = "Suspended",
 }
