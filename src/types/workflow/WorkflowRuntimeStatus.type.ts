@@ -12,11 +12,14 @@ limitations under the License.
 */
 
 /**
- * WorkflowInfoType contains information about a workflow instance.
+ * WorkflowRuntimeStatus is the status of a workflow instance.
  */
-export type WorkflowInfoType = {
-  /**
-   * instanceId is the unique identifier for the workflow instance.
-   */
-  instanceId: string;
-};
+export enum WorkflowRuntimeStatus {
+    Unknown = "Unknown",
+    Running = "Running",
+    Completed = "Completed",
+    Failed = "Failed",
+    Terminated = "Terminated",
+    Pending = "Pending",
+    Suspended = "Suspended"
+}

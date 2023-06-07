@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { WorkflowGetResponseType } from "../../types/workflow/WorkflowGetResponseType";
+import { WorkflowGetResponseType } from "../../types/workflow/WorkflowGetResponse.type";
 
 export default interface IClientWorkflow {
   /**

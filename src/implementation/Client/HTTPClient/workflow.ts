@@ -13,8 +13,9 @@ limitations under the License.
 
 import HTTPClient from "./HTTPClient";
 import IClientWorkflow from "../../../interfaces/Client/IClientWorkflow";
-import { WorkflowGetResponseType } from "../../../types/workflow/WorkflowGetResponseType";
+import { WorkflowGetResponseType } from "../../../types/workflow/WorkflowGetResponse.type";
 import { Logger } from "../../../logger/Logger";
+import { KeyValueType } from "../../../types/KeyValue.type";
 
 export default class HTTPClientWorkflow implements IClientWorkflow {
   private readonly client: HTTPClient;
@@ -26,20 +27,37 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     this.client = client;
     this.logger = new Logger("HTTPClient", "Workflow", client.options.logger);
   }
-  async get(instanceId: string, workflowComponent?: string): Promise<WorkflowGetResponseType> {
-    // if (!instanceId) {
-    //   throw new Error("instanceId is required");
-    // }
+
+  async get(instanceID: string, workflowComponent?: string): Promise<WorkflowGetResponseType> {
+    if (!instanceID || instanceID === "") {
+      throw new Error("instanceID is required");
+    }
+
     workflowComponent = workflowComponent ?? HTTPClientWorkflow.DEFAULT_WORKFLOW_COMPONENT;
 
     try {
       const result = await this.client.executeWithApiVersion(
         "v1.0-alpha1",
-        `/workflows/${workflowComponent}/instances/${instanceId}`,
+        `/workflows/${workflowComponent}/${instanceID}`,
         { method: "GET" },
       );
 
-      return result as WorkflowGetResponseType;
+      if (typeof result === "string") {
+        throw new Error(`Error getting workflow instance: ${result}`);
+      }
+
+      const resultJson = result as KeyValueType;
+
+      const response: WorkflowGetResponseType = {
+        instanceID: resultJson["instanceID"],
+        workflowName: resultJson["workflowName"],
+        createdAt: new Date(resultJson["createdAt"] ?? 0),
+        lastUpdatedAt: new Date(resultJson["lastUpdatedAt"] ?? 0),
+        runtimeStatus: resultJson["runtimeStatus"],
+        properties: resultJson["properties"],
+      };
+
+      return response;
     } catch (e: any) {
       this.logger.error(`Error getting workflow instance: ${e.message}`);
       throw e;

@@ -12,24 +12,40 @@ limitations under the License.
 */
 
 import { KeyValueType } from "../KeyValue.type";
-import { WorkflowInfoType } from "./WorkflowInfoType";
+import { WorkflowRuntimeStatus } from "./WorkflowRuntimeStatus.type";
 
 /**
  * WorkflowGetResponseType defines the response from a get request for a workflow.
  */
 export type WorkflowGetResponseType = {
   /**
-   * workflowInfo contains information about the workflow instance.
+   * instanceID is the unique identifier for the workflow instance.
    */
-  workflowInfo: WorkflowInfoType;
+  instanceID: string;
 
   /**
-   * startTime is the time the workflow instance was started.
+   * workflowName is the name of the workflow.
+   * This is the name of the workflow as defined in the workflow definition.
    */
-  startTime: string;
+  workflowName: string;
 
   /**
-   * metadata contains the metadata associated with the workflow instance.
+   * createdAt is the time the workflow instance was created.
    */
-  metadata: KeyValueType;
+  createdAt: Date;
+
+  /**
+   * lastUpdatedAt is the time the workflow instance was last updated.
+   */
+  lastUpdatedAt: Date;
+
+  /**
+   * runtimeStatus is the current status of the workflow instance.
+   */
+  runtimeStatus: WorkflowRuntimeStatus;
+
+  /**
+   * properties is a collection of key/value pairs that are associated with the workflow instance.
+   */
+  properties: KeyValueType;
 };

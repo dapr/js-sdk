@@ -13,7 +13,7 @@ limitations under the License.
 
 import GRPCClient from "./GRPCClient";
 import IClientWorkflow from "../../../interfaces/Client/IClientWorkflow";
-import { WorkflowGetResponseType } from "../../../types/workflow/WorkflowGetResponseType";
+import { WorkflowGetResponseType } from "../../../types/workflow/WorkflowGetResponse.type";
 
 export default class GRPCClientWorkflow implements IClientWorkflow {
   client: GRPCClient;

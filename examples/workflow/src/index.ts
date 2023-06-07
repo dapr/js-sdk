@@ -21,7 +21,13 @@ async function start() {
 
   // Get details about a workflow instance
   const workflow = await client.workflow.get("1234");
-  console.log(workflow);
+  console.log(workflow.createdAt.toUTCString());
+  console.log(workflow.lastUpdatedAt.toUTCString());
+  console.log(workflow.instanceID);
+  console.log(workflow.workflowName);
+  console.log(workflow.runtimeStatus);
+  console.log(workflow.properties);
+
 
   // OUTPUT:
   // {
