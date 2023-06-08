@@ -160,13 +160,15 @@ export default class GRPCClientCrypto implements IClientCrypto {
 
       // Add event listeners
       duplexStream.on("data", (chunk: Buffer) => {
-        if (chunk.length > 0) {
+        if (chunk?.length > 0) {
           data = Buffer.concat([data, chunk]);
         }
       });
+
       duplexStream.on("end", () => {
         resolve(data);
       });
+
       duplexStream.on("error", (err: Error) => {
         reject(err);
       });
