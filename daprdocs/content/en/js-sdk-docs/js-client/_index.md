@@ -500,6 +500,56 @@ start().catch((e) => {
 
 > For a full guide on distributed locks visit [How-To: Use Distributed Locks]({{< ref howto-use-distributed-lock.md >}}).
 
+### Workflow API
+
+#### Workflow management
+
+```typescript
+import { DaprClient } from "@dapr/dapr";
+
+async function start() {
+  const client = new DaprClient();
+
+  // Start a new workflow instance
+  const instanceId = await client.workflow.start("OrderProcessingWorkflow", {
+    Name: "Paperclips",
+    TotalCost: 99.95,
+    Quantity: 4,
+  });
+  console.log(`Started workflow instance ${instanceId}`);
+
+  // Get a workflow instance
+  const workflow = await client.workflow.get(instanceId);
+  console.log(
+    `Workflow ${workflow.workflowName}, created at ${workflow.createdAt.toUTCString()}, has status ${
+      workflow.runtimeStatus
+    }`,
+  );
+  console.log(`Additional properties: ${JSON.stringify(workflow.properties)}`);
+
+  // Pause a workflow instance
+  await client.workflow.pause(instanceId);
+  console.log(`Paused workflow instance ${instanceId}`);
+
+  // Resume a workflow instance
+  await client.workflow.resume(instanceId);
+  console.log(`Resumed workflow instance ${instanceId}`);
+
+  // Terminate a workflow instance
+  await client.workflow.terminate(instanceId);
+  console.log(`Terminated workflow instance ${instanceId}`);
+
+  // Purge a workflow instance
+  await client.workflow.purge(instanceId);
+  console.log(`Purged workflow instance ${instanceId}`);
+}
+
+start().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
+```
+
 ## Related links
 
 - [JavaScript SDK examples](https://github.com/dapr/js-sdk/tree/master/examples)
