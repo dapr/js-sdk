@@ -33,9 +33,10 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
   }
 
   async get(instanceID: string, workflowComponent?: string): Promise<WorkflowGetResponseType> {
-    if (!instanceID || instanceID === "") {
+    if (!instanceID) {
       throw new Error("instanceID is required");
     }
+
     workflowComponent = workflowComponent ?? HTTPClientWorkflow.DEFAULT_WORKFLOW_COMPONENT;
 
     try {
@@ -74,12 +75,14 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     workflowComponent?: string | undefined,
     options: WorkflowStartOptions = {},
   ): Promise<string> {
-    if (!workflowName || workflowName === "") {
+    if (!workflowName) {
       throw new Error("workflowName is required");
     }
-    if (!instanceId || instanceId === "") {
+
+    if (!instanceId) {
       instanceId = randomUUID();
     }
+
     workflowComponent = workflowComponent ?? HTTPClientWorkflow.DEFAULT_WORKFLOW_COMPONENT;
 
     const queryParams = createHTTPQueryParam({ data: { instanceID: instanceId } });
@@ -116,12 +119,14 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     workflowComponent?: string | undefined,
     options: WorkflowRaiseOptions = {},
   ): Promise<void> {
-    if (!instanceId || instanceId === "") {
+    if (!instanceId) {
       throw new Error("instanceID is required");
     }
-    if (!eventName || eventName === "") {
+
+    if (!eventName) {
       throw new Error("eventName is required");
     }
+
     workflowComponent = workflowComponent ?? HTTPClientWorkflow.DEFAULT_WORKFLOW_COMPONENT;
 
     // Set content type if provided.
@@ -164,10 +169,11 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
   }
 
   async _invokeMethod(instanceId: string, method: string, workflowComponent?: string | undefined): Promise<any> {
-    if (!instanceId || instanceId === "") {
+    if (!instanceId) {
       throw new Error("instanceID is required");
     }
-    if (!method || method === "") {
+
+    if (!method) {
       throw new Error("method is required");
     }
 

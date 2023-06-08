@@ -21,9 +21,11 @@ export default class GRPCClientWorkflow implements IClientWorkflow {
   constructor(client: GRPCClient) {
     this.client = client;
   }
+
   get(_instanceId: string, _workflowComponent?: string | undefined): Promise<WorkflowGetResponseType> {
     throw new Error("Method not implemented.");
   }
+
   start(
     _workflowName: string,
     _input?: any,
@@ -32,18 +34,23 @@ export default class GRPCClientWorkflow implements IClientWorkflow {
   ): Promise<string> {
     throw new Error("Method not implemented.");
   }
+
   terminate(_instanceId: string, _workflowComponent?: string | undefined): Promise<any> {
     throw new Error("Method not implemented.");
   }
+
   pause(_instanceId: string, _workflowComponent?: string | undefined): Promise<any> {
     throw new Error("Method not implemented.");
   }
+
   resume(_instanceId: string, _workflowComponent?: string | undefined): Promise<any> {
     throw new Error("Method not implemented.");
   }
+
   purge(_instanceId: string, _workflowComponent?: string | undefined): Promise<any> {
     throw new Error("Method not implemented.");
   }
+
   raise(_instanceId: string, _eventName: string, _input?: any, _workflowComponent?: string | undefined): Promise<any> {
     throw new Error("Method not implemented.");
   }
