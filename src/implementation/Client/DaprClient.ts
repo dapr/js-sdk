@@ -11,49 +11,52 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import IClientBinding from "../../interfaces/Client/IClientBinding";
-import IClientPubSub from "../../interfaces/Client/IClientPubSub";
-import IClientState from "../../interfaces/Client/IClientState";
-import IClientInvoker from "../../interfaces/Client/IClientInvoker";
-import IClientSecret from "../../interfaces/Client/IClientSecret";
-import IClientHealth from "../../interfaces/Client/IClientHealth";
-import IClientMetadata from "../../interfaces/Client/IClientMetadata";
-import IClientSidecar from "../../interfaces/Client/IClientSidecar";
-import IClientConfiguration from "../../interfaces/Client/IClientConfiguration";
-import IClientProxy from "../../interfaces/Client/IClientProxy";
-import IClientLock from "../../interfaces/Client/IClientLock";
-import IClientWorkflow from "../../interfaces/Client/IClientWorkflow";
-import IClientActorBuilder from "../../interfaces/Client/IClientActorBuilder";
 import IClient from "../../interfaces/Client/IClient";
+import IClientActorBuilder from "../../interfaces/Client/IClientActorBuilder";
+import IClientBinding from "../../interfaces/Client/IClientBinding";
+import IClientConfiguration from "../../interfaces/Client/IClientConfiguration";
+import IClientCrypto from "../../interfaces/Client/IClientCrypto";
+import IClientHealth from "../../interfaces/Client/IClientHealth";
+import IClientInvoker from "../../interfaces/Client/IClientInvoker";
+import IClientLock from "../../interfaces/Client/IClientLock";
+import IClientMetadata from "../../interfaces/Client/IClientMetadata";
+import IClientProxy from "../../interfaces/Client/IClientProxy";
+import IClientPubSub from "../../interfaces/Client/IClientPubSub";
+import IClientSecret from "../../interfaces/Client/IClientSecret";
+import IClientSidecar from "../../interfaces/Client/IClientSidecar";
+import IClientState from "../../interfaces/Client/IClientState";
+import IClientWorkflow from "../../interfaces/Client/IClientWorkflow";
 
-import GRPCClientBinding from "./GRPCClient/binding";
-import GRPCClientPubSub from "./GRPCClient/pubsub";
-import GRPCClientState from "./GRPCClient/state";
-import GRPCClientInvoker from "./GRPCClient/invoker";
-import GRPCClientSecret from "./GRPCClient/secret";
-import GRPCClientHealth from "./GRPCClient/health";
-import GRPCClientMetadata from "./GRPCClient/metadata";
-import GRPCClientSidecar from "./GRPCClient/sidecar";
-import GRPCClientConfiguration from "./GRPCClient/configuration";
-import GRPCClientLock from "./GRPCClient/lock";
-import GRPCClientWorkflow from "./GRPCClient/workflow";
-import GRPCClientActor from "./GRPCClient/actor";
 import GRPCClient from "./GRPCClient/GRPCClient";
+import GRPCClientActor from "./GRPCClient/actor";
+import GRPCClientBinding from "./GRPCClient/binding";
+import GRPCClientConfiguration from "./GRPCClient/configuration";
+import GRPCClientCrypto from "./GRPCClient/crypto";
+import GRPCClientHealth from "./GRPCClient/health";
+import GRPCClientInvoker from "./GRPCClient/invoker";
+import GRPCClientLock from "./GRPCClient/lock";
+import GRPCClientMetadata from "./GRPCClient/metadata";
+import GRPCClientPubSub from "./GRPCClient/pubsub";
+import GRPCClientSecret from "./GRPCClient/secret";
+import GRPCClientSidecar from "./GRPCClient/sidecar";
+import GRPCClientState from "./GRPCClient/state";
+import GRPCClientWorkflow from "./GRPCClient/workflow";
 
-import HTTPClientBinding from "./HTTPClient/binding";
-import HTTPClientPubSub from "./HTTPClient/pubsub";
-import HTTPClientState from "./HTTPClient/state";
-import HTTPClientInvoker from "./HTTPClient/invoker";
-import HTTPClientSecret from "./HTTPClient/secret";
-import HTTPClientHealth from "./HTTPClient/health";
-import HTTPClientMetadata from "./HTTPClient/metadata";
-import HTTPClientSidecar from "./HTTPClient/sidecar";
-import HTTPClientConfiguration from "./HTTPClient/configuration";
-import HTTPClientProxy from "./HTTPClient/proxy";
-import HTTPClientLock from "./HTTPClient/lock";
-import HTTPClientWorkflow from "./HTTPClient/workflow";
-import HTTPClientActor from "./HTTPClient/actor";
 import HTTPClient from "./HTTPClient/HTTPClient";
+import HTTPClientActor from "./HTTPClient/actor";
+import HTTPClientBinding from "./HTTPClient/binding";
+import HTTPClientConfiguration from "./HTTPClient/configuration";
+import HTTPClientCrypto from "./HTTPClient/crypto";
+import HTTPClientHealth from "./HTTPClient/health";
+import HTTPClientInvoker from "./HTTPClient/invoker";
+import HTTPClientLock from "./HTTPClient/lock";
+import HTTPClientMetadata from "./HTTPClient/metadata";
+import HTTPClientProxy from "./HTTPClient/proxy";
+import HTTPClientPubSub from "./HTTPClient/pubsub";
+import HTTPClientSecret from "./HTTPClient/secret";
+import HTTPClientSidecar from "./HTTPClient/sidecar";
+import HTTPClientState from "./HTTPClient/state";
+import HTTPClientWorkflow from "./HTTPClient/workflow";
 
 import CommunicationProtocolEnum from "../../enum/CommunicationProtocol.enum";
 import { DaprClientOptions } from "../../types/DaprClientOptions";
@@ -69,6 +72,7 @@ export default class DaprClient {
   readonly actor: IClientActorBuilder;
   readonly binding: IClientBinding;
   readonly configuration: IClientConfiguration;
+  readonly crypto: IClientCrypto;
   readonly health: IClientHealth;
   readonly invoker: IClientInvoker;
   readonly lock: IClientLock;
@@ -97,18 +101,19 @@ export default class DaprClient {
         const client = new GRPCClient(this.options);
         this.daprClient = client;
 
-        this.actor = new GRPCClientActor(client); // we use an abstractor here since we interface through a builder with the Actor Runtime
-        this.binding = new GRPCClientBinding(client);
-        this.configuration = new GRPCClientConfiguration(client);
-        this.health = new GRPCClientHealth(client);
-        this.invoker = new GRPCClientInvoker(client);
-        this.lock = new GRPCClientLock(client);
-        this.metadata = new GRPCClientMetadata(client);
-        this.proxy = new GRPCClientProxy(client);
-        this.pubsub = new GRPCClientPubSub(client);
-        this.secret = new GRPCClientSecret(client);
-        this.sidecar = new GRPCClientSidecar(client);
         this.state = new GRPCClientState(client);
+        this.pubsub = new GRPCClientPubSub(client);
+        this.binding = new GRPCClientBinding(client);
+        this.invoker = new GRPCClientInvoker(client);
+        this.secret = new GRPCClientSecret(client);
+        this.health = new GRPCClientHealth(client);
+        this.metadata = new GRPCClientMetadata(client);
+        this.sidecar = new GRPCClientSidecar(client);
+        this.proxy = new GRPCClientProxy(client);
+        this.configuration = new GRPCClientConfiguration(client);
+        this.lock = new GRPCClientLock(client);
+        this.crypto = new GRPCClientCrypto(client);
+        this.actor = new GRPCClientActor(client); // we use an abstractor here since we interface through a builder with the Actor Runtime
         this.workflow = new GRPCClientWorkflow(client);
         break;
       }
@@ -120,6 +125,7 @@ export default class DaprClient {
         this.actor = new HTTPClientActor(client); // we use an abstractor here since we interface through a builder with the Actor Runtime
         this.binding = new HTTPClientBinding(client);
         this.configuration = new HTTPClientConfiguration(client);
+        this.crypto = new HTTPClientCrypto(client);
         this.health = new HTTPClientHealth(client);
         this.invoker = new HTTPClientInvoker(client);
         this.lock = new HTTPClientLock(client);
