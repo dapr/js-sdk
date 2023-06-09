@@ -14,7 +14,7 @@ The Dapr Client allows you to communicate with the Dapr Sidecar and get access t
 
 - [Dapr CLI]({{< ref install-dapr-cli.md >}}) installed
 - Initialized [Dapr environment]({{< ref install-dapr-selfhost.md >}})
-- [Latest LTS version of Node or greater](https://nodejs.org/en/)
+- [Latest LTS version of Node.js or greater](https://nodejs.org/en/)
 
 ## Installing and importing Dapr's JS SDK
 
@@ -450,6 +450,96 @@ start().catch((e) => {
   process.exit(1);
 });
 ```
+
+### Cryptography API
+
+> Support for the cryptography API is only available on the gRPC client in the JavaScript SDK.
+
+```typescript
+import { createReadStream, createWriteStream } from "node:fs";
+import { readFile, writeFile } from "node:fs/promises";
+import { pipeline } from "node:stream/promises";
+
+import { DaprClient, CommunicationProtocolEnum } from "@dapr/dapr";
+
+const daprHost = "127.0.0.1";
+const daprPort = "50050"; // Dapr Sidecar Port of this example server
+
+async function start() {
+  const client = new DaprClient({
+    daprHost,
+    daprPort,
+    communicationProtocol: CommunicationProtocolEnum.GRPC,
+  });
+
+  // Encrypt and decrypt a message using streams
+  await encryptDecryptStream(client);
+
+  // Encrypt and decrypt a message from a buffer
+  await encryptDecryptBuffer(client);
+}
+
+async function encryptDecryptStream(client: DaprClient) {
+  // First, encrypt the message
+  console.log("== Encrypting message using streams");
+  console.log("Encrypting plaintext.txt to ciphertext.out");
+
+  await pipeline(
+    createReadStream("plaintext.txt"),
+    await client.crypto.encrypt({
+      componentName: "crypto-local",
+      keyName: "symmetric256",
+      keyWrapAlgorithm: "A256KW",
+    }),
+    createWriteStream("ciphertext.out"),
+  );
+
+  // Decrypt the message
+  console.log("== Decrypting message using streams");
+  console.log("Encrypting ciphertext.out to plaintext.out");
+  await pipeline(
+    createReadStream("ciphertext.out"),
+    await client.crypto.decrypt({
+      componentName: "crypto-local",
+    }),
+    createWriteStream("plaintext.out"),
+  );
+}
+
+async function encryptDecryptBuffer(client: DaprClient) {
+  // Read "plaintext.txt" so we have some content
+  const plaintext = await readFile("plaintext.txt");
+
+  // First, encrypt the message
+  console.log("== Encrypting message using buffers");
+
+  const ciphertext = await client.crypto.encrypt(plaintext, {
+    componentName: "crypto-local",
+    keyName: "my-rsa-key",
+    keyWrapAlgorithm: "RSA",
+  });
+
+  await writeFile("test.out", ciphertext);
+
+  // Decrypt the message
+  console.log("== Decrypting message using buffers");
+  const decrypted = await client.crypto.decrypt(ciphertext, {
+    componentName: "crypto-local",
+  });
+
+  // The contents should be equal
+  if (plaintext.compare(decrypted) !== 0) {
+    throw new Error("Decrypted message does not match original message");
+  }
+}
+
+start().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
+```
+
+> For a full guide on cryptography visit [How-To: Cryptography]({{< ref howto-cryptography.md >}}).
 
 ### Distributed Lock API
 

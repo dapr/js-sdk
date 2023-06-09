@@ -11,7 +11,7 @@ A client library for building Dapr apps in JavaScript and TypeScript. This clien
 
 ## Installation
 
-To get started with the Javascript SDK, install the Dapr JavaScript SDK package from [NPM](https://www.npmjs.com/package/@dapr/dapr):
+To get started with the JavaScript SDK, install the Dapr JavaScript SDK package from [NPM](https://www.npmjs.com/package/@dapr/dapr):
 
 ```bash
 npm install --save @dapr/dapr
@@ -19,7 +19,7 @@ npm install --save @dapr/dapr
 
 ## Structure
 
-The Dapr Javascript SDK contains two major components:
+The Dapr JavaScript SDK contains two major components:
 
 - **DaprServer**: to manage all Dapr sidecar to application communication.
 - **DaprClient**: to manage all application to Dapr sidecar communication.
