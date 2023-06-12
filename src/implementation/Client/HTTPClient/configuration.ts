@@ -27,7 +27,7 @@ export default class HTTPClientConfiguration implements IClientConfiguration {
   }
 
   async subscribe(_storeName: string, _cb: SubscribeConfigurationCallback): Promise<SubscribeConfigurationStream> {
-    throw new HttpNotSupportedError()
+    throw new HttpNotSupportedError();
   }
 
   async subscribeWithKeys(
@@ -35,7 +35,7 @@ export default class HTTPClientConfiguration implements IClientConfiguration {
     _keys: string[],
     _cb: SubscribeConfigurationCallback,
   ): Promise<SubscribeConfigurationStream> {
-    throw new HttpNotSupportedError()
+    throw new HttpNotSupportedError();
   }
 
   async subscribeWithMetadata(
@@ -44,10 +44,10 @@ export default class HTTPClientConfiguration implements IClientConfiguration {
     _metadata: KeyValueType,
     _cb: SubscribeConfigurationCallback,
   ): Promise<SubscribeConfigurationStream> {
-    throw new HttpNotSupportedError()
+    throw new HttpNotSupportedError();
   }
 
   async get(_storeName: string, _keys: string[], _metadata?: KeyValueType): Promise<GetConfigurationResponseResult> {
-    throw new HttpNotSupportedError()
+    throw new HttpNotSupportedError();
   }
 }

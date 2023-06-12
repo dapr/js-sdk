@@ -15,7 +15,7 @@ import GRPCServer from "./GRPCServer";
 import IServerActor from "../../../interfaces/Server/IServerActor";
 import AbstractActor from "../../../actors/runtime/AbstractActor";
 import Class from "../../../types/Class";
-import { GrpcNotSupportedError } from "../../../errors/GrpcNotupportedError";
+import { GrpcNotSupportedError } from "../../../errors/GrpcNotSupportedError";
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class GRPCServerActor implements IServerActor {
@@ -26,18 +26,18 @@ export default class GRPCServerActor implements IServerActor {
   }
 
   deactivateActor(_actorType: string, _actorId: string): Promise<void> {
-    throw new GrpcNotSupportedError()
+    throw new GrpcNotSupportedError();
   }
 
   init(): Promise<void> {
-    throw new GrpcNotSupportedError()
+    throw new GrpcNotSupportedError();
   }
 
   getRegisteredActors(): Promise<string[]> {
-    throw new GrpcNotSupportedError()
+    throw new GrpcNotSupportedError();
   }
 
   registerActor<T extends AbstractActor>(_cls: Class<T>): Promise<void> {
-    throw new GrpcNotSupportedError()
+    throw new GrpcNotSupportedError();
   }
 }

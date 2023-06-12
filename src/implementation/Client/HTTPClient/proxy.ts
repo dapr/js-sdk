@@ -25,6 +25,6 @@ export default class HTTPClientProxy implements IClientProxy {
   }
 
   async create<T>(_cls: Class<T>, _clientOptions?: Partial<grpc.ClientOptions> | undefined): Promise<T> {
-    throw new HttpNotSupportedError()
+    throw new HttpNotSupportedError();
   }
 }
