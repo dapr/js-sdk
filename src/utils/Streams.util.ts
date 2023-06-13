@@ -29,6 +29,7 @@ export class DaprChunkedStream<T extends messageWithPayload, U extends messageWi
   private reqFactory: { new (): T };
   private setReqOptionsFn: (req: T) => void;
   private writeSeq = 0;
+  private readSeq = 0;
 
   constructor(grpcStream: ClientDuplexStream<T, U>, reqFactory: { new (): T }, setReqOptionsFn: (req: T) => void) {
     super({
@@ -39,14 +40,16 @@ export class DaprChunkedStream<T extends messageWithPayload, U extends messageWi
     this.grpcStream = grpcStream;
     this.reqFactory = reqFactory;
     this.setReqOptionsFn = setReqOptionsFn;
-
-    // Start processing data coming from the server
-    this.readGrpcStream();
   }
 
   _read(): void {
-    // Nop - we use push() to push data to readers.
-    // However, we still need to implement this method, even if as a stub.
+    // Attach the handlers if they haven't been attached already
+    if (this.grpcStream.listenerCount("data") == 0) {
+      this.readGrpcStream();
+    } else if (this.grpcStream.isPaused()) {
+      // Resume the stream if it's paused
+      this.grpcStream.resume();
+    }
   }
 
   _write(chunk: Buffer | string, encoding: BufferEncoding, callback: (error?: Error | null) => void): void {
@@ -94,6 +97,7 @@ export class DaprChunkedStream<T extends messageWithPayload, U extends messageWi
 
   private readGrpcStream() {
     let readSeq = 0;
+
     this.grpcStream.on("data", (chunk: messageWithPayload) => {
       const payload = chunk.getPayload();
       if (!payload) {
@@ -110,15 +114,16 @@ export class DaprChunkedStream<T extends messageWithPayload, U extends messageWi
       // Push the data into the internal buffer
       const data = payload.getData_asU8();
       if (!this.push(data)) {
-        // If push() returns false, then return an error
-        this.closeWithError(new Error("Received an error while pushing data to the callers"));
-        return;
+        // If push() returns false, we need to pause reading the stream
+        this.grpcStream.pause();
       }
     });
+
     this.grpcStream.on("end", () => {
       // Push a null value to signal EOF
       this.push(null);
     });
+
     this.grpcStream.on("error", (err) => {
       this.closeWithError(err);
     });
