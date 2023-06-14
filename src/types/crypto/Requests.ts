@@ -17,7 +17,7 @@ export type EncryptRequest = {
   /** Name (or name/version) of the key. Required. */
   keyName: string;
   /** Key wrapping algorithm to use. Required.  */
-  keyWrapAlgorithm: "A256KW" | "A128CBC" | "A192CBC" | "A256CBC" | "RSA-OAEP-256";
+  keyWrapAlgorithm: "A256KW" | "A128CBC" | "A192CBC" | "A256CBC" | "RSA-OAEP-256" | "AES" | "RSA";
   /** DataEncryptionCipher to use to encrypt data (optional). Default is "aes-gcm". */
   dataEncryptionCipher?: "aes-gcm" | "chacha20-poly1305";
   /** If true, the encrypted document does not contain a key reference. In that case, calls to the Decrypt method must provide a key reference (name or name/version). */

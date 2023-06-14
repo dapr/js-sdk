@@ -12,6 +12,7 @@ limitations under the License.
 */
 
 import { join } from "node:path";
+import { createReadStream } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { Readable } from "node:stream";
 import * as grpc from "@grpc/grpc-js";
@@ -178,12 +179,18 @@ describe("grpc/client", () => {
   });
 
   describe("crypto", () => {
+    // Set timeout to 10s for these tests
+    jest.setTimeout(10000);
+
     let plaintextFile: Buffer;
+
+    const testFileSmall = join(__dirname, "../../", "fixtures/plaintext.txt");
+    const testFileLarge = join(__dirname, "../../", "fixtures/sterlinglanier-lanier-LnKEVHbrg0k-unsplash.jpg");
 
     it("read test file", async () => {
       // Read the test file in memory
       // This is in its own test case because we can't have async code in a describe() block
-      plaintextFile = await readFile(join(__dirname, "../../", "fixtures/plaintext.txt"));
+      plaintextFile = await readFile(testFileSmall);
     });
 
     it("should be able to encrypt and decrypt a stream", async () => {
@@ -212,6 +219,47 @@ describe("grpc/client", () => {
 
       // dec should be the same as the plaintext file
       expect(dec).toEqual(plaintextFile);
+    });
+
+    it("should be able to handle backpressure", async () => {
+      const enc = await client.crypto.encrypt({
+        componentName: "crypto-local",
+        keyName: "symmetric256",
+        keyWrapAlgorithm: "AES",
+      });
+
+      // Encrypt a large file
+      const encStream = createReadStream(testFileLarge).pipe(enc);
+
+      // Sleep for 1.5s before starting to process the stream (which happens when a handler is attached to the "data" event)
+      // This makes sure the backpressure is handled before we start reading
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      const readN = await new Promise((resolve) => {
+        let readN = 0;
+        let readCount = 0;
+
+        encStream.on("data", (chunk: Buffer) => {
+          // After the 2nd and 4th chunks, pause reading for 1.5s
+          // This is enough to cause backpressure
+          if (readCount == 1 || readCount == 3) {
+            encStream.pause();
+            setTimeout(() => {
+              encStream.resume();
+            }, 1500);
+          }
+
+          readCount++;
+          readN += chunk.length;
+        });
+
+        encStream.on("end", () => {
+          resolve(readN);
+        });
+      });
+
+      // This is the size of the encrypted file
+      expect(readN).toBe(1273620);
     });
 
     // Used to encrypt data, accepting the various types that client.crypto.encrypt accepts
