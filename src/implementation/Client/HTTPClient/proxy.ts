@@ -15,6 +15,7 @@ import * as grpc from "@grpc/grpc-js";
 import Class from "../../../types/Class";
 import IClientProxy from "../../../interfaces/Client/IClientProxy";
 import HTTPClient from "./HTTPClient";
+import { HTTPNotSupportedError } from "../../../errors/HTTPNotSupportedError";
 
 export default class HTTPClientProxy implements IClientProxy {
   client: HTTPClient;
@@ -24,6 +25,6 @@ export default class HTTPClientProxy implements IClientProxy {
   }
 
   async create<T>(_cls: Class<T>, _clientOptions?: Partial<grpc.ClientOptions> | undefined): Promise<T> {
-    throw new Error("HTTP is currently not supported.");
+    throw new HTTPNotSupportedError();
   }
 }
