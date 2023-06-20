@@ -5,7 +5,6 @@
 /* eslint-disable */
 
 import * as jspb from "google-protobuf";
-import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
 
 export class PlacementOrder extends jspb.Message { 
 
@@ -124,61 +123,5 @@ export namespace Host {
         load: number,
         entitiesList: Array<string>,
         id: string,
-    }
-}
-
-export class HostInfo extends jspb.Message { 
-    getName(): string;
-    setName(value: string): HostInfo;
-    getAppId(): string;
-    setAppId(value: string): HostInfo;
-    clearEntitiesList(): void;
-    getEntitiesList(): Array<string>;
-    setEntitiesList(value: Array<string>): HostInfo;
-    addEntities(value: string, index?: number): string;
-    getUpdatedAt(): number;
-    setUpdatedAt(value: number): HostInfo;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): HostInfo.AsObject;
-    static toObject(includeInstance: boolean, msg: HostInfo): HostInfo.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: HostInfo, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): HostInfo;
-    static deserializeBinaryFromReader(message: HostInfo, reader: jspb.BinaryReader): HostInfo;
-}
-
-export namespace HostInfo {
-    export type AsObject = {
-        name: string,
-        appId: string,
-        entitiesList: Array<string>,
-        updatedAt: number,
-    }
-}
-
-export class GetPlacementTablesResponse extends jspb.Message { 
-
-    getHostMapMap(): jspb.Map<string, HostInfo>;
-    clearHostMapMap(): void;
-    getTableVersion(): number;
-    setTableVersion(value: number): GetPlacementTablesResponse;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): GetPlacementTablesResponse.AsObject;
-    static toObject(includeInstance: boolean, msg: GetPlacementTablesResponse): GetPlacementTablesResponse.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: GetPlacementTablesResponse, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): GetPlacementTablesResponse;
-    static deserializeBinaryFromReader(message: GetPlacementTablesResponse, reader: jspb.BinaryReader): GetPlacementTablesResponse;
-}
-
-export namespace GetPlacementTablesResponse {
-    export type AsObject = {
-
-        hostMapMap: Array<[string, HostInfo.AsObject]>,
-        tableVersion: number,
     }
 }
