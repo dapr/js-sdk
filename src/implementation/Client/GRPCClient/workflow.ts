@@ -14,6 +14,7 @@ limitations under the License.
 import GRPCClient from "./GRPCClient";
 import IClientWorkflow from "../../../interfaces/Client/IClientWorkflow";
 import { WorkflowGetResponseType } from "../../../types/workflow/WorkflowGetResponse.type";
+import { GRPCNotSupportedError } from "../../../errors/GRPCNotSupportedError";
 
 export default class GRPCClientWorkflow implements IClientWorkflow {
   client: GRPCClient;
@@ -23,7 +24,7 @@ export default class GRPCClientWorkflow implements IClientWorkflow {
   }
 
   get(_instanceId: string, _workflowComponent?: string | undefined): Promise<WorkflowGetResponseType> {
-    throw new Error("Method not implemented.");
+    throw new GRPCNotSupportedError();
   }
 
   start(
@@ -32,26 +33,26 @@ export default class GRPCClientWorkflow implements IClientWorkflow {
     _instanceId?: string | undefined,
     _workflowComponent?: string | undefined,
   ): Promise<string> {
-    throw new Error("Method not implemented.");
+    throw new GRPCNotSupportedError();
   }
 
   terminate(_instanceId: string, _workflowComponent?: string | undefined): Promise<any> {
-    throw new Error("Method not implemented.");
+    throw new GRPCNotSupportedError();
   }
 
   pause(_instanceId: string, _workflowComponent?: string | undefined): Promise<any> {
-    throw new Error("Method not implemented.");
+    throw new GRPCNotSupportedError();
   }
 
   resume(_instanceId: string, _workflowComponent?: string | undefined): Promise<any> {
-    throw new Error("Method not implemented.");
+    throw new GRPCNotSupportedError();
   }
 
   purge(_instanceId: string, _workflowComponent?: string | undefined): Promise<any> {
-    throw new Error("Method not implemented.");
+    throw new GRPCNotSupportedError();
   }
 
   raise(_instanceId: string, _eventName: string, _input?: any, _workflowComponent?: string | undefined): Promise<any> {
-    throw new Error("Method not implemented.");
+    throw new GRPCNotSupportedError();
   }
 }

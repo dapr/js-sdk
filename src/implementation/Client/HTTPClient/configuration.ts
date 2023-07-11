@@ -17,6 +17,7 @@ import { GetConfigurationResponse as GetConfigurationResponseResult } from "../.
 import HTTPClient from "./HTTPClient";
 import { SubscribeConfigurationCallback } from "../../../types/configuration/SubscribeConfigurationCallback";
 import { SubscribeConfigurationStream } from "../../../types/configuration/SubscribeConfigurationStream";
+import { HTTPNotSupportedError } from "../../../errors/HTTPNotSupportedError";
 
 export default class HTTPClientConfiguration implements IClientConfiguration {
   client: HTTPClient;
@@ -26,7 +27,7 @@ export default class HTTPClientConfiguration implements IClientConfiguration {
   }
 
   async subscribe(_storeName: string, _cb: SubscribeConfigurationCallback): Promise<SubscribeConfigurationStream> {
-    throw new Error("HTTP is currently not supported.");
+    throw new HTTPNotSupportedError();
   }
 
   async subscribeWithKeys(
@@ -34,7 +35,7 @@ export default class HTTPClientConfiguration implements IClientConfiguration {
     _keys: string[],
     _cb: SubscribeConfigurationCallback,
   ): Promise<SubscribeConfigurationStream> {
-    throw new Error("HTTP is currently not supported.");
+    throw new HTTPNotSupportedError();
   }
 
   async subscribeWithMetadata(
@@ -43,10 +44,10 @@ export default class HTTPClientConfiguration implements IClientConfiguration {
     _metadata: KeyValueType,
     _cb: SubscribeConfigurationCallback,
   ): Promise<SubscribeConfigurationStream> {
-    throw new Error("HTTP is currently not supported.");
+    throw new HTTPNotSupportedError();
   }
 
   async get(_storeName: string, _keys: string[], _metadata?: KeyValueType): Promise<GetConfigurationResponseResult> {
-    throw new Error("HTTP is currently not supported.");
+    throw new HTTPNotSupportedError();
   }
 }

@@ -20,6 +20,7 @@ import { WorkflowStartOptions } from "../../../types/workflow/WorkflowStartOptio
 import { randomUUID } from "crypto";
 import { createHTTPQueryParam } from "../../../utils/Client.util";
 import { WorkflowRaiseOptions } from "../../../types/workflow/WorkflowRaiseOptions.type";
+import { PropertyRequiredError } from "../../../errors/PropertyRequiredError";
 
 export default class HTTPClientWorkflow implements IClientWorkflow {
   private readonly client: HTTPClient;
@@ -34,7 +35,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
 
   async get(instanceID: string, workflowComponent?: string): Promise<WorkflowGetResponseType> {
     if (!instanceID) {
-      throw new Error("instanceID is required");
+      throw new PropertyRequiredError("instanceID");
     }
 
     workflowComponent = workflowComponent ?? HTTPClientWorkflow.DEFAULT_WORKFLOW_COMPONENT;
@@ -76,7 +77,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     options: WorkflowStartOptions = {},
   ): Promise<string> {
     if (!workflowName) {
-      throw new Error("workflowName is required");
+      throw new PropertyRequiredError("workflowName");
     }
 
     if (!instanceId) {
@@ -120,11 +121,11 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     options: WorkflowRaiseOptions = {},
   ): Promise<void> {
     if (!instanceId) {
-      throw new Error("instanceID is required");
+      throw new PropertyRequiredError("instanceID");
     }
 
     if (!eventName) {
-      throw new Error("eventName is required");
+      throw new PropertyRequiredError("eventName");
     }
 
     workflowComponent = workflowComponent ?? HTTPClientWorkflow.DEFAULT_WORKFLOW_COMPONENT;
@@ -170,11 +171,11 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
 
   async _invokeMethod(instanceId: string, method: string, workflowComponent?: string | undefined): Promise<any> {
     if (!instanceId) {
-      throw new Error("instanceID is required");
+      throw new PropertyRequiredError("instanceID");
     }
 
     if (!method) {
-      throw new Error("method is required");
+      throw new PropertyRequiredError("method");
     }
 
     workflowComponent = workflowComponent ?? HTTPClientWorkflow.DEFAULT_WORKFLOW_COMPONENT;
