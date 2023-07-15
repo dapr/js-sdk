@@ -5,6 +5,11 @@ linkTitle: "JavaScript"
 weight: 1000
 description: JavaScript SDK packages for developing Dapr applications
 no_list: true
+cascade:
+  github_repo: https://github.com/dapr/js-sdk
+  github_subdir: daprdocs/content/en/js-sdk-docs
+  path_base_for_github_subdir: content/en/developing-applications/sdks/js/
+  github_branch: main
 ---
 
 A client library for building Dapr apps in JavaScript and TypeScript. This client abstracts the public Dapr APIs like service to service invocation, state management, pub/sub, secrets, and much more, and provides a simple, intuitive API for building applications.
