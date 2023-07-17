@@ -11,12 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import packageJSon from "./../../../package.json";
-import packageLockJSon from "./../../../package-lock.json";
+import packageJson from "../../../package.json";
+import packageLockJson from "../../../package-lock.json";
 describe("versions", () => {
   it("should have the same JS-SDK version in package.json and package-lock.json", () => {
-    const sdkVersionInPackageJSon = packageJSon.version;
-    const sdkVersionInPackageLockJSon = packageLockJSon.version;
+    const sdkVersionInPackageJSon = packageJson.version;
+    const sdkVersionInPackageLockJSon = packageLockJson.version;
     expect(sdkVersionInPackageJSon).toEqual(sdkVersionInPackageLockJSon);
   });
 });
