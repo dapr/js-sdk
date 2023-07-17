@@ -14,9 +14,9 @@ limitations under the License.
 import packageJSon from "./../../../package.json";
 import packageLockJSon from "./../../../package-lock.json";
 describe("versions", () => {
-    it("should have the same JS-SDK version in package.json and package-lock.json", () => {
-        const sdkVersionInPackageJSon = packageJSon.version;
-        const sdkVersionInPackageLockJSon = packageLockJSon.version;
-        expect(sdkVersionInPackageJSon).toEqual(sdkVersionInPackageLockJSon);
-    });
+  it("should have the same JS-SDK version in package.json and package-lock.json", () => {
+    const sdkVersionInPackageJSon = packageJSon.version;
+    const sdkVersionInPackageLockJSon = packageLockJSon.version;
+    expect(sdkVersionInPackageJSon).toEqual(sdkVersionInPackageLockJSon);
+  });
 });
