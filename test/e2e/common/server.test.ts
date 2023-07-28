@@ -38,6 +38,9 @@ const topicWithDeadletterInOptionsDefault = "test-topic-8";
 const topicWithDeadletterAndErrorCb = "test-topic-9";
 const topicWithStatusCb = "test-topic-status-callback";
 const topicWithBulk = "test-topic-bulk";
+const topicWildcardPlus = "myhome/groundfloor/+/temperature";
+const topicWildcardHash = "myhome/groundfloor/#";
+const topicWildcardLeadingDollar = "$SYS/broker/clients/connected";
 const deadLetterTopic = "deadletter-topic";
 const routeSimple = "simple-route";
 const routeWithLeadingSlash = "/leading-slash-route";
@@ -692,6 +695,52 @@ describe("common/server", () => {
         });
       },
     );
+
+    runIt(
+      "should allow us to subscribe to wildcard topics with a + (e.g., /app/+/event)",
+      async (server: DaprServer, protocol: string) => {
+        console.log(getTopic(topicWildcardPlus, protocol));
+        const res = await server.client.pubsub.publish(pubSubName, getTopic(topicWildcardPlus, protocol), {
+          message: "Hello, world!",
+        });
+
+        // Delay a bit for event to arrive
+        await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+
+        expect(mockSubscribeHandler.mock.calls.length).toBe(1);
+        expect(mockSubscribeHandler.mock.calls[0][0]).toEqual({ message: "Hello, world!" });
+      },
+    );
+
+    runIt(
+      "should allow us to subscribe to wildcard topics with a # (e.g., /app/#)",
+      async (server: DaprServer, protocol: string) => {
+        const res = await server.client.pubsub.publish(pubSubName, getTopic(topicWildcardHash, protocol), {
+          message: "Hello, world!",
+        });
+
+        // Delay a bit for event to arrive
+        await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+
+        expect(mockSubscribeHandler.mock.calls.length).toBe(1);
+        expect(mockSubscribeHandler.mock.calls[0][0]).toEqual({ message: "Hello, world!" });
+      },
+    );
+
+    runIt(
+      "should allow us to subscribe to wildcard topics with a $ (e.g., $SYS/broker/clients/connected)",
+      async (server: DaprServer, protocol: string) => {
+        const res = await server.client.pubsub.publish(pubSubName, getTopic(topicWildcardLeadingDollar, protocol), {
+          message: "Hello, world!",
+        });
+
+        // Delay a bit for event to arrive
+        await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+
+        expect(mockSubscribeHandler.mock.calls.length).toBe(1);
+        expect(mockSubscribeHandler.mock.calls[0][0]).toEqual({ message: "Hello, world!" });
+      },
+    );
   });
 
   const setupPubSubSubscriptions = async () => {
@@ -796,6 +845,25 @@ describe("common/server", () => {
       routeSimple,
     );
 
+    // Wildcard Routes
+    await httpServer.pubsub.subscribe(pubSubName, getTopic(topicWildcardPlus, protocolHttp), mockSubscribeHandler);
+    await grpcServer.pubsub.subscribe(pubSubName, getTopic(topicWildcardPlus, protocolGrpc), mockSubscribeHandler);
+    await httpServer.pubsub.subscribe(pubSubName, getTopic(topicWildcardHash, protocolHttp), mockSubscribeHandler);
+    await grpcServer.pubsub.subscribe(pubSubName, getTopic(topicWildcardHash, protocolGrpc), mockSubscribeHandler);
+
+    await httpServer.pubsub.subscribe(
+      pubSubName,
+      getTopic(topicWildcardLeadingDollar, protocolHttp),
+      mockSubscribeHandler,
+    );
+
+    await grpcServer.pubsub.subscribe(
+      pubSubName,
+      getTopic(topicWildcardLeadingDollar, protocolGrpc),
+      mockSubscribeHandler,
+    );
+
+    // Leading Slash Routes
     await httpServer.pubsub.subscribe(
       pubSubName,
       getTopic(topicLeadingSlashRoute, protocolHttp),
