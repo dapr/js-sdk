@@ -699,8 +699,7 @@ describe("common/server", () => {
     runIt(
       "should allow us to subscribe to wildcard topics with a + (e.g., /app/+/event)",
       async (server: DaprServer, protocol: string) => {
-        console.log(getTopic(topicWildcardPlus, protocol));
-        const res = await server.client.pubsub.publish(pubSubName, getTopic(topicWildcardPlus, protocol), {
+        await server.client.pubsub.publish(pubSubName, getTopic(topicWildcardPlus, protocol), {
           message: "Hello, world!",
         });
 
@@ -715,7 +714,7 @@ describe("common/server", () => {
     runIt(
       "should allow us to subscribe to wildcard topics with a # (e.g., /app/#)",
       async (server: DaprServer, protocol: string) => {
-        const res = await server.client.pubsub.publish(pubSubName, getTopic(topicWildcardHash, protocol), {
+        await server.client.pubsub.publish(pubSubName, getTopic(topicWildcardHash, protocol), {
           message: "Hello, world!",
         });
 
@@ -730,7 +729,7 @@ describe("common/server", () => {
     runIt(
       "should allow us to subscribe to wildcard topics with a $ (e.g., $SYS/broker/clients/connected)",
       async (server: DaprServer, protocol: string) => {
-        const res = await server.client.pubsub.publish(pubSubName, getTopic(topicWildcardLeadingDollar, protocol), {
+        await server.client.pubsub.publish(pubSubName, getTopic(topicWildcardLeadingDollar, protocol), {
           message: "Hello, world!",
         });
 
