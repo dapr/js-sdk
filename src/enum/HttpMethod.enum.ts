@@ -16,6 +16,7 @@ export enum HttpMethod {
   DELETE = "delete",
   POST = "post",
   PUT = "put",
+  PATCH = "patch",
 }
 
 export default HttpMethod;
