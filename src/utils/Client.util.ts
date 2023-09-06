@@ -274,3 +274,68 @@ export function getClientOptions(
     maxBodySizeMb: clientoptions?.maxBodySizeMb,
   };
 }
+
+/**
+ * Scheme, fqdn and port
+ */
+type EndpointTuple = [string, string, number];
+
+/**
+ * Parses an endpoint to scheme, fqdn and port
+ * @param address Endpoint address
+ * @returns EndpointTuple (scheme, fqdn, port)
+ */
+export function parseEndpoint(address: string): EndpointTuple {
+  let scheme: string = "http";
+  let fqdn: string = "localhost";
+  let port: number = 80;
+  let addr: string = address;
+
+  const addrList = address.split("://");
+
+  if (addrList.length === 2) {
+    // A scheme was explicitly specified
+    scheme = addrList[0];
+    if (scheme === "https") {
+      port = 443;
+    }
+    addr = addrList[1];
+  }
+
+  const addrParts = addr.split(":");
+  if (addrParts.length === 2) {
+    // A port was explicitly specified
+    if (addrParts[0].length > 0) {
+      fqdn = addrParts[0];
+    }
+    // Account for Endpoints of the type http://localhost:3500/v1.0/invoke
+    const portParts = addrParts[1].split("/");
+    port = parseInt(portParts[0], 10);
+  } else if (addrParts.length === 1) {
+    // No port was specified
+    // Account for Endpoints of the type :3500/v1.0/invoke
+    const fqdnParts = addrParts[0].split("/");
+    fqdn = fqdnParts[0];
+  } else {
+    // IPv6 address
+    const ipv6Parts = addr.split("]:");
+    if (ipv6Parts.length === 2) {
+      // A port was explicitly specified
+      fqdn = ipv6Parts[0].replace("[", "");
+      const portParts = ipv6Parts[1].split("/");
+      port = parseInt(portParts[0], 10);
+    } else if (ipv6Parts.length === 1) {
+      // No port was specified
+      const fqdnParts = ipv6Parts[0].split("/");
+      fqdn = fqdnParts[0].replace("[", "").replace("]", "");
+    } else {
+      throw new Error(`Invalid address: ${address}`);
+    }
+  }
+
+  if (isNaN(port)) {
+    throw new Error(`Invalid port: ${port}`);
+  }
+
+  return [scheme, fqdn, port];
+}
