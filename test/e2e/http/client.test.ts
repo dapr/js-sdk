@@ -12,6 +12,7 @@ limitations under the License.
 */
 
 import { CommunicationProtocolEnum, DaprClient } from "../../../src";
+import {Settings} from "../../../src/utils/Settings.util";
 
 const daprHost = "127.0.0.1";
 const daprPort = "50000"; // Dapr Sidecar Port of this Example Server
@@ -91,6 +92,82 @@ describe("http/client", () => {
     it("should be able to correctly fetch the secrets in bulk", async () => {
       const res = await client.secret.getBulk("secret-envvars");
       expect(Object.keys(res).length).toBeGreaterThan(1);
+    });
+  });
+
+
+});
+
+describe("http/client with environment variables", () => {
+  let client: DaprClient;
+
+  // We need to start listening on some endpoints already
+  // this because Dapr is not dynamic and registers endpoints on boot
+  // we put a timeout of 10s since it takes around 4s for Dapr to boot up
+
+
+  afterAll(async () => {
+    await client.stop();
+  });
+
+  describe("environment variables", () => {
+    it("should give preference to host and port in constructor arguments over environment variables ", async () => {
+      process.env.DAPR_HTTP_ENDPOINT = "https://domain.com";
+      client = new DaprClient({
+        daprHost,
+        daprPort,
+        communicationProtocol: CommunicationProtocolEnum.HTTP,
+        isKeepAlive: false,
+      });
+
+      expect(client.options.daprHost).toEqual(daprHost)
+      expect(client.options.daprPort).toEqual(daprPort)
+    });
+
+    it("should give preference to port with no host in constructor arguments over environment variables ", async () => {
+      process.env.DAPR_HTTP_ENDPOINT = "https://domain.com";
+      client = new DaprClient({
+        daprPort: daprPort,
+        communicationProtocol: CommunicationProtocolEnum.HTTP,
+        isKeepAlive: false,
+      });
+
+      expect(client.options.daprHost).toEqual(Settings.getDefaultHost())
+      expect(client.options.daprPort).toEqual(daprPort)
+    });
+
+    it("should give preference to host with no port in constructor arguments over environment variables ", async () => {
+      process.env.DAPR_HTTP_ENDPOINT = "https://domain.com";
+      client = new DaprClient({
+        daprHost: daprHost,
+        communicationProtocol: CommunicationProtocolEnum.HTTP,
+        isKeepAlive: false,
+      });
+
+      expect(client.options.daprHost).toEqual(daprHost)
+      expect(client.options.daprPort).toEqual(Settings.getDefaultPort(CommunicationProtocolEnum.HTTP))
+    });
+
+    it("should use environment variable endpoint ", async () => {
+      process.env.DAPR_HTTP_ENDPOINT = "https://domain.com";
+      client = new DaprClient({
+        communicationProtocol: CommunicationProtocolEnum.HTTP,
+        isKeepAlive: false,
+      });
+
+      expect(client.options.daprHost).toEqual("https://domain.com")
+      expect(client.options.daprPort).toEqual("443")
+    });
+
+    it("should use default host and port when no other parameters provided", async () => {
+      process.env.DAPR_HTTP_ENDPOINT = "";
+      client = new DaprClient({
+        communicationProtocol: CommunicationProtocolEnum.HTTP,
+        isKeepAlive: false,
+      });
+
+      expect(client.options.daprHost).toEqual(Settings.getDefaultHost())
+      expect(client.options.daprPort).toEqual(Settings.getDefaultPort(CommunicationProtocolEnum.HTTP))
     });
   });
 });
