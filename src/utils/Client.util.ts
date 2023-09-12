@@ -263,9 +263,30 @@ export function getClientOptions(
   defaultLoggerOptions: LoggerOptions | undefined,
 ): DaprClientOptions {
   const clientCommunicationProtocol = clientoptions?.communicationProtocol ?? defaultCommunicationProtocol;
+
+  // We decide the host/port and everything here
+  let host: string
+  let port: string
+  let daprEndpoint = "";
+  if (clientCommunicationProtocol == CommunicationProtocolEnum.HTTP){
+    daprEndpoint = Settings.getDefaultHttpEndpoint();
+  }
+
+  if (clientoptions?.daprHost || clientoptions?.daprPort){
+    host = clientoptions?.daprHost ?? Settings.getDefaultHost(),
+    port = clientoptions?.daprPort ?? Settings.getDefaultPort(clientCommunicationProtocol)
+  } else if (daprEndpoint != "") {
+    const [scheme, fqdn, p] =  parseEndpoint(daprEndpoint);
+    host = `${scheme}://${fqdn}`
+    port = p.toString()
+  } else {
+    host = Settings.getDefaultHost(),
+    port = Settings.getDefaultPort(clientCommunicationProtocol)
+  }
+
   return {
-    daprHost: clientoptions?.daprHost ?? Settings.getDefaultHost(),
-    daprPort: clientoptions?.daprPort ?? Settings.getDefaultPort(clientCommunicationProtocol),
+    daprHost: host,
+    daprPort: port,
     communicationProtocol: clientCommunicationProtocol,
     isKeepAlive: clientoptions?.isKeepAlive,
     logger: clientoptions?.logger ?? defaultLoggerOptions,
@@ -286,10 +307,10 @@ type EndpointTuple = [string, string, number];
  * @returns EndpointTuple (scheme, fqdn, port)
  */
 export function parseEndpoint(address: string): EndpointTuple {
-  let scheme: string = "http";
-  let fqdn: string = "localhost";
-  let port: number = 80;
-  let addr: string = address;
+  let scheme = "http";
+  let fqdn = "localhost";
+  let port = 80;
+  let addr = address;
 
   const addrList = address.split("://");
 
