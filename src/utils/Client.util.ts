@@ -273,15 +273,15 @@ export function getClientOptions(
   }
 
   if (clientoptions?.daprHost || clientoptions?.daprPort){
-    host = clientoptions?.daprHost ?? Settings.getDefaultHost(),
-    port = clientoptions?.daprPort ?? Settings.getDefaultPort(clientCommunicationProtocol)
+    host = clientoptions?.daprHost ?? Settings.getDefaultHost();
+    port = clientoptions?.daprPort ?? Settings.getDefaultPort(clientCommunicationProtocol);
   } else if (daprEndpoint != "") {
     const [scheme, fqdn, p] =  parseEndpoint(daprEndpoint);
-    host = `${scheme}://${fqdn}`
+    host = `${scheme}://${fqdn}`;
     port = p.toString()
   } else {
-    host = Settings.getDefaultHost(),
-    port = Settings.getDefaultPort(clientCommunicationProtocol)
+    host = Settings.getDefaultHost();
+    port = Settings.getDefaultPort(clientCommunicationProtocol);
   }
 
   return {
