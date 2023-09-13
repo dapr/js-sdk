@@ -265,20 +265,20 @@ export function getClientOptions(
   const clientCommunicationProtocol = clientoptions?.communicationProtocol ?? defaultCommunicationProtocol;
 
   // We decide the host/port and everything here
-  let host: string
-  let port: string
+  let host: string;
+  let port: string;
   let daprEndpoint = "";
-  if (clientCommunicationProtocol == CommunicationProtocolEnum.HTTP){
+  if (clientCommunicationProtocol == CommunicationProtocolEnum.HTTP) {
     daprEndpoint = Settings.getDefaultHttpEndpoint();
   }
 
-  if (clientoptions?.daprHost || clientoptions?.daprPort){
+  if (clientoptions?.daprHost || clientoptions?.daprPort) {
     host = clientoptions?.daprHost ?? Settings.getDefaultHost();
     port = clientoptions?.daprPort ?? Settings.getDefaultPort(clientCommunicationProtocol);
   } else if (daprEndpoint != "") {
-    const [scheme, fqdn, p] =  parseEndpoint(daprEndpoint);
+    const [scheme, fqdn, p] = parseEndpoint(daprEndpoint);
     host = `${scheme}://${fqdn}`;
-    port = p.toString()
+    port = p.toString();
   } else {
     host = Settings.getDefaultHost();
     port = Settings.getDefaultPort(clientCommunicationProtocol);

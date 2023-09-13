@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import { CommunicationProtocolEnum, DaprClient } from "../../../src";
-import {Settings} from "../../../src/utils/Settings.util";
+import { Settings } from "../../../src/utils/Settings.util";
 
 const daprHost = "127.0.0.1";
 const daprPort = "50000"; // Dapr Sidecar Port of this Example Server
@@ -94,8 +94,6 @@ describe("http/client", () => {
       expect(Object.keys(res).length).toBeGreaterThan(1);
     });
   });
-
-
 });
 
 describe("http/client with environment variables", () => {
@@ -104,7 +102,6 @@ describe("http/client with environment variables", () => {
   // We need to start listening on some endpoints already
   // this because Dapr is not dynamic and registers endpoints on boot
   // we put a timeout of 10s since it takes around 4s for Dapr to boot up
-
 
   afterAll(async () => {
     await client.stop();
@@ -120,8 +117,8 @@ describe("http/client with environment variables", () => {
         isKeepAlive: false,
       });
 
-      expect(client.options.daprHost).toEqual(daprHost)
-      expect(client.options.daprPort).toEqual(daprPort)
+      expect(client.options.daprHost).toEqual(daprHost);
+      expect(client.options.daprPort).toEqual(daprPort);
     });
 
     it("should give preference to port with no host in constructor arguments over environment variables ", async () => {
@@ -132,8 +129,8 @@ describe("http/client with environment variables", () => {
         isKeepAlive: false,
       });
 
-      expect(client.options.daprHost).toEqual(Settings.getDefaultHost())
-      expect(client.options.daprPort).toEqual(daprPort)
+      expect(client.options.daprHost).toEqual(Settings.getDefaultHost());
+      expect(client.options.daprPort).toEqual(daprPort);
     });
 
     it("should give preference to host with no port in constructor arguments over environment variables ", async () => {
@@ -144,8 +141,8 @@ describe("http/client with environment variables", () => {
         isKeepAlive: false,
       });
 
-      expect(client.options.daprHost).toEqual(daprHost)
-      expect(client.options.daprPort).toEqual(Settings.getDefaultPort(CommunicationProtocolEnum.HTTP))
+      expect(client.options.daprHost).toEqual(daprHost);
+      expect(client.options.daprPort).toEqual(Settings.getDefaultPort(CommunicationProtocolEnum.HTTP));
     });
 
     it("should use environment variable endpoint ", async () => {
@@ -155,8 +152,8 @@ describe("http/client with environment variables", () => {
         isKeepAlive: false,
       });
 
-      expect(client.options.daprHost).toEqual("https://domain.com")
-      expect(client.options.daprPort).toEqual("443")
+      expect(client.options.daprHost).toEqual("https://domain.com");
+      expect(client.options.daprPort).toEqual("443");
     });
 
     it("should use default host and port when no other parameters provided", async () => {
@@ -166,8 +163,8 @@ describe("http/client with environment variables", () => {
         isKeepAlive: false,
       });
 
-      expect(client.options.daprHost).toEqual(Settings.getDefaultHost())
-      expect(client.options.daprPort).toEqual(Settings.getDefaultPort(CommunicationProtocolEnum.HTTP))
+      expect(client.options.daprHost).toEqual(Settings.getDefaultHost());
+      expect(client.options.daprPort).toEqual(Settings.getDefaultPort(CommunicationProtocolEnum.HTTP));
     });
   });
 });
