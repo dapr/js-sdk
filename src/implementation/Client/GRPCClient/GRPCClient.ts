@@ -100,21 +100,11 @@ export default class GRPCClient implements IClient {
     const deadline = Date.now() + Settings.getDaprSidecarStartupTimeoutMs();
 
     try {
-      await promisify(this.client.waitForReady)(deadline);
+      await promisify(this.client.waitForReady).bind(this.client)(deadline);
     } catch (err) {
       this.logger.error(`Error waiting for client to be ready: ${err}`);
-      throw err;
+      throw undefined;
     }
-    /* return new Promise((resolve, reject) => {
-      this.client.waitForReady(deadline, (err?) => {
-        if (err) {
-          this.logger.error(`Error waiting for client to be ready: ${err}`);
-          return reject();
-        }
-
-        return resolve();
-      });
-    });*/
   }
 
   async _startAwaitSidecarStarted(): Promise<void> {

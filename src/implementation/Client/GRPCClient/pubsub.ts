@@ -62,24 +62,14 @@ export default class GRPCClientPubSub implements IClientPubSub {
     const client = await this.client.getClient();
 
     try {
-      await promisify(client.publishEvent)(msgService);
+      const publishEvent = promisify(client.publishEvent).bind(client);
+      await publishEvent(msgService);
     } catch (err) {
       this.logger.error(`publish failed: ${err}`);
       throw { error: err };
     }
 
     return {};
-
-    /*return new Promise((resolve, reject) => {
-      client.publishEvent(msgService, (err, _res) => {
-        if (err) {
-          this.logger.error(`publish failed: ${err}`);
-          return reject({ error: err });
-        }
-
-        return resolve({});
-      });
-    });*/
   }
 
   async publishBulk(
@@ -107,7 +97,9 @@ export default class GRPCClientPubSub implements IClientPubSub {
 
     const client = await this.client.getClient();
     try {
-      const bulkPublish = promisify<BulkPublishRequest, BulkPublishResponse>(client.bulkPublishEventAlpha1);
+      const bulkPublish = promisify<BulkPublishRequest, BulkPublishResponse>(client.bulkPublishEventAlpha1).bind(
+        client,
+      );
       const res = await bulkPublish(bulkPublishRequest);
 
       const failedEntries = res.getFailedentriesList();
@@ -127,29 +119,5 @@ export default class GRPCClientPubSub implements IClientPubSub {
     }
 
     return { failedMessages: [] };
-    /*return new Promise((resolve, _reject) => {
-      client.bulkPublishEventAlpha1(bulkPublishRequest, (err, res) => {
-        if (err) {
-          return resolve(getBulkPublishResponse({ entries: entries, error: err }));
-        }
-
-        const failedEntries = res.getFailedentriesList();
-        if (failedEntries.length > 0) {
-          return resolve(
-            getBulkPublishResponse({
-              entries: entries,
-              response: {
-                failedEntries: failedEntries.map((entry) => ({
-                  entryID: entry.getEntryId(),
-                  error: entry.getError(),
-                })),
-              },
-            }),
-          );
-        }
-
-        return resolve({ failedMessages: [] });
-      });
-    });*/
   }
 }

@@ -58,7 +58,7 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
 
     const getConfiguration = promisify<GetConfigurationRequest, grpc.Metadata, GetConfigurationResponse>(
       client.getConfiguration,
-    );
+    ).bind(client);
     const res = await getConfiguration(msg, metadata);
 
     const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(res.getItemsMap());
@@ -66,21 +66,6 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
     return {
       items: configMap,
     };
-    /*return new Promise((resolve, reject) => {
-      client.getConfiguration(msg, metadata, (err, res: GetConfigurationResponse) => {
-        if (err) {
-          return reject(err);
-        }
-
-        const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(res.getItemsMap());
-
-        const result: SubscribeConfigurationResponseResult = {
-          items: configMap,
-        };
-
-        return resolve(result);
-      });
-    });*/
   }
 
   async subscribe(storeName: string, cb: SubscribeConfigurationCallback): Promise<SubscribeConfigurationStream> {
@@ -164,7 +149,8 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
         try {
           const unsubscribe = promisify<UnsubscribeConfigurationRequest, UnsubscribeConfigurationResponse>(
             client.unsubscribeConfiguration,
-          );
+          ).bind(client);
+
           res = await unsubscribe(req);
           hasError = !res.getOk();
         } catch (e) {
@@ -180,30 +166,5 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
         stream.destroy();
       },
     };
-    /*return {
-      stop: async () => {
-        return new Promise((resolve, reject) => {
-          const req = new UnsubscribeConfigurationRequest();
-          req.setStoreName(storeName);
-          req.setId(streamId);
-
-          const unsubscribe = promisify<UnsubscribeConfigurationRequest, UnsubscribeConfigurationResponse>(
-            client.unsubscribeConfiguration,
-          );
-          const res = await unsubscribe(req);
-          client.unsubscribeConfiguration(req, (err, res: UnsubscribeConfigurationResponse) => {
-            if (err || !res.getOk()) {
-              return reject(res.getMessage());
-            }
-
-            // Clean up the node.js event emitter
-            stream.removeAllListeners();
-            stream.destroy();
-
-            return resolve();
-          });
-        });
-      },
-    };*/
   }
 }

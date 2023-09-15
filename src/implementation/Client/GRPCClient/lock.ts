@@ -43,50 +43,25 @@ export default class GRPCClientLock implements IClientLock {
       .setExpiryInSeconds(expiryInSeconds);
 
     const client = await this.client.getClient();
-    const res = await promisify<TryLockRequest, TryLockResponse>(client.tryLockAlpha1)(request);
+    const tryLock = promisify<TryLockRequest, TryLockResponse>(client.tryLockAlpha1).bind(client);
+    const res = await tryLock(request);
 
     return {
       success: res.getSuccess(),
     };
-
-    /* return new Promise((resolve, reject) => {
-      client.tryLockAlpha1(request, (err, res: TryLockResponse) => {
-        if (err) {
-          return reject(err);
-        }
-
-        const wrapped: LockResponseResult = {
-          success: res.getSuccess(),
-        };
-
-        return resolve(wrapped);
-      });
-    });*/
   }
 
   async unlock(storeName: string, resourceId: string, lockOwner: string): Promise<UnLockResponseResult> {
     const request = new UnlockRequest().setStoreName(storeName).setResourceId(resourceId).setLockOwner(lockOwner);
 
     const client = await this.client.getClient();
-    const res = await promisify<UnlockRequest, UnlockResponse>(client.unlockAlpha1)(request);
+
+    const unlock = promisify<UnlockRequest, UnlockResponse>(client.unlockAlpha1).bind(client);
+    const res = await unlock(request);
 
     return {
       status: this.getUnlockResponse(res),
     };
-
-    /*return new Promise((resolve, reject) => {
-      client.unlockAlpha1(request, (err, res: UnlockResponse) => {
-        if (err) {
-          return reject(err);
-        }
-
-        const wrapped: UnLockResponseResult = {
-          status: this.getUnlockResponse(res),
-        };
-
-        return resolve(wrapped);
-      });
-    });*/
   }
 
   getUnlockResponse(res: UnlockResponse) {

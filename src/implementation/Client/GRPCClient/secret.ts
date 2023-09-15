@@ -37,7 +37,9 @@ export default class GRPCClientSecret implements IClientSecret {
 
     const client = await this.client.getClient();
 
-    const res = await promisify<GetSecretRequest, GetSecretResponse>(client.getSecret)(msgService);
+    const getSecret = promisify<GetSecretRequest, GetSecretResponse>(client.getSecret).bind(client);
+    const res = await getSecret(msgService);
+
     // Convert [ [ 'TEST_SECRET_1', 'secret_val_1' ] ] => [ { TEST_SECRET_1: 'secret_val_1' } ]
     const items = res
       .getDataMap()
@@ -45,22 +47,6 @@ export default class GRPCClientSecret implements IClientSecret {
       .map((item) => ({ [item[0]]: item[1] }));
 
     return items[0];
-    /*return new Promise((resolve, reject) => {
-      client.getSecret(msgService, (err, res: GetSecretResponse) => {
-        if (err) {
-          return reject(err);
-        }
-
-        // Convert [ [ 'TEST_SECRET_1', 'secret_val_1' ] ] => [ { TEST_SECRET_1: 'secret_val_1' } ]
-        const items = res
-          .getDataMap()
-          .getEntryList()
-          .map((item) => ({ [item[0]]: item[1] }));
-
-        // Return first item (it's a single get)
-        return resolve(items[0]);
-      });
-    });*/
   }
 
   async getBulk(secretStoreName: string): Promise<object> {
@@ -69,23 +55,12 @@ export default class GRPCClientSecret implements IClientSecret {
 
     const client = await this.client.getClient();
 
-    const res = await promisify<GetBulkSecretRequest, GetBulkSecretResponse>(client.getBulkSecret)(msgService);
+    const getBulkSecret = promisify<GetBulkSecretRequest, GetBulkSecretResponse>(client.getBulkSecret).bind(client);
+    const res = await getBulkSecret(msgService);
 
     // https://docs.dapr.io/reference/api/secrets_api/#response-body-1
     // @ts-ignore
     // tslint:disable-next-line
     return res.getDataMap()["map_"];
-    /*return new Promise((resolve, reject) => {
-      client.getBulkSecret(msgService, (err, res: GetBulkSecretResponse) => {
-        if (err) {
-          return reject(err);
-        }
-
-        // https://docs.dapr.io/reference/api/secrets_api/#response-body-1
-        // @ts-ignore
-        // tslint:disable-next-line
-        return resolve(res.getDataMap()["map_"]);
-      });
-    });*/
   }
 }

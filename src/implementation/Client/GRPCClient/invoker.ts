@@ -61,7 +61,8 @@ export default class GRPCClientInvoker implements IClientInvoker {
 
     const client = await this.client.getClient();
 
-    const res = await promisify<InvokeServiceRequest, InvokeResponse>(client.invokeService)(msgInvokeService);
+    const invokeService = promisify<InvokeServiceRequest, InvokeResponse>(client.invokeService).bind(client);
+    const res = await invokeService(msgInvokeService);
     let resData = "";
 
     if (res.getData()) {
@@ -78,31 +79,5 @@ export default class GRPCClientInvoker implements IClientInvoker {
         }),
       );
     }
-
-    /*return new Promise((resolve, reject) => {
-      client.invokeService(msgInvokeService, (err, res: InvokeResponse) => {
-        if (err) {
-          return reject(err);
-        }
-
-        let resData = "";
-
-        if (res.getData()) {
-          resData = Buffer.from((res.getData() as Any).getValue()).toString();
-        }
-
-        try {
-          const parsedResData = JSON.parse(resData);
-          return resolve(parsedResData);
-        } catch (e) {
-          throw new Error(
-            JSON.stringify({
-              error: "COULD_NOT_PARSE_RESULT",
-              error_msg: `Could not parse the returned resultset: ${resData}`,
-            }),
-          );
-        }
-      });
-    });*/
   }
 }

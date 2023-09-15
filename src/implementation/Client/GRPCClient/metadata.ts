@@ -30,7 +30,8 @@ export default class GRPCClientMetadata implements IClientMetadata {
   async get(): Promise<GetMetadataResponseResult> {
     const client = await this.client.getClient();
 
-    const res = await promisify<Empty, GetMetadataResponse>(client.getMetadata)(new Empty());
+    const getMetadata = promisify<Empty, GetMetadataResponse>(client.getMetadata).bind(client);
+    const res = await getMetadata(new Empty());
 
     return {
       id: res.getId(),
@@ -53,37 +54,6 @@ export default class GRPCClientMetadata implements IClientMetadata {
         capabilities: c.getCapabilitiesList(),
       })),
     };
-    /*return new Promise((resolve, reject) => {
-      client.getMetadata(new Empty(), (err, res: GetMetadataResponse) => {
-        if (err) {
-          return reject(err);
-        }
-
-        const wrapped: GetMetadataResponseResult = {
-          id: res.getId(),
-          actors: res.getActiveActorsCountList().map((a) => ({
-            type: a.getType(),
-            count: a.getCount(),
-          })),
-          extended: res
-            .getExtendedMetadataMap()
-            .toObject()
-            .reduce((result: object, [key, value]) => {
-              // @ts-ignore
-              result[key] = value;
-              return result;
-            }, {}),
-          components: res.getRegisteredComponentsList().map((c) => ({
-            name: c.getName(),
-            type: c.getType(),
-            version: c.getVersion(),
-            capabilities: c.getCapabilitiesList(),
-          })),
-        };
-
-        return resolve(wrapped);
-      });
-    });*/
   }
 
   async set(key: string, value: string): Promise<boolean> {
@@ -94,20 +64,12 @@ export default class GRPCClientMetadata implements IClientMetadata {
     const client = await this.client.getClient();
 
     try {
-      await promisify<SetMetadataRequest, Empty>(client.setMetadata)(msg);
+      const setMetadata = promisify(client.setMetadata).bind(client);
+      await setMetadata(msg);
     } catch (e) {
       throw false;
     }
 
     return true;
-    /*return new Promise((resolve, reject) => {
-      client.setMetadata(msg, (err, _res: Empty) => {
-        if (err) {
-          return reject(false);
-        }
-
-        return resolve(true);
-      });
-    });*/
   }
 }

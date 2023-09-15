@@ -31,25 +31,12 @@ export default class GRPCClientHealth implements IClientHealth {
 
     let isHealthy = true;
     try {
-      await promisify(client.getMetadata)(new Empty());
+      const getMetadata = promisify(client.getMetadata).bind(client);
+      await getMetadata(new Empty());
     } catch (e) {
       isHealthy = false;
     }
 
     return isHealthy;
-
-    /*return new Promise((resolve, _reject) => {
-      try {
-        client.getMetadata(new Empty(), (err, _res: GetMetadataResponse) => {
-          if (err) {
-            return resolve(false);
-          }
-
-          return resolve(true);
-        });
-      } catch (e) {
-        return resolve(false);
-      }
-    });*/
   }
 }

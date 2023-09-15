@@ -43,26 +43,13 @@ export default class GRPCClientBinding implements IClientBinding {
 
     const client = await this.client.getClient();
 
-    const res = await promisify<InvokeBindingRequest, InvokeBindingResponse>(client.invokeBinding)(msgService);
+    const invokeBinding = promisify<InvokeBindingRequest, InvokeBindingResponse>(client.invokeBinding).bind(client);
+    const res = await invokeBinding(msgService);
 
     return {
       data: res.getData(),
       metadata: res.getMetadataMap(),
       operation,
     };
-    /*return new Promise((resolve, reject) => {
-      client.invokeBinding(msgService, (err, res: InvokeBindingResponse) => {
-        if (err) {
-          return reject(err);
-        }
-
-        // https://docs.dapr.io/reference/api/bindings_api/#payload
-        return resolve({
-          data: res.getData(),
-          metadata: res.getMetadataMap(),
-          operation,
-        });
-      });
-    });*/
   }
 }
