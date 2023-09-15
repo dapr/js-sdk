@@ -16,6 +16,7 @@ import { GetMetadataResponse, SetMetadataRequest } from "../../../proto/dapr/pro
 import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 import IClientMetadata from "../../../interfaces/Client/IClientMetadata";
 import { GetMetadataResponse as GetMetadataResponseResult } from "../../../types/metadata/GetMetadataResponse";
+import { promisify } from "util";
 
 // https://docs.dapr.io/reference/api/metadata_api
 export default class GRPCClientMetadata implements IClientMetadata {
@@ -29,7 +30,30 @@ export default class GRPCClientMetadata implements IClientMetadata {
   async get(): Promise<GetMetadataResponseResult> {
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
+    const res = await promisify<Empty, GetMetadataResponse>(client.getMetadata)(new Empty());
+
+    return {
+      id: res.getId(),
+      actors: res.getActiveActorsCountList().map((a) => ({
+        type: a.getType(),
+        count: a.getCount(),
+      })),
+      extended: res
+        .getExtendedMetadataMap()
+        .toObject()
+        .reduce((result: object, [key, value]) => {
+          // @ts-ignore
+          result[key] = value;
+          return result;
+        }, {}),
+      components: res.getRegisteredComponentsList().map((c) => ({
+        name: c.getName(),
+        type: c.getType(),
+        version: c.getVersion(),
+        capabilities: c.getCapabilitiesList(),
+      })),
+    };
+    /*return new Promise((resolve, reject) => {
       client.getMetadata(new Empty(), (err, res: GetMetadataResponse) => {
         if (err) {
           return reject(err);
@@ -59,7 +83,7 @@ export default class GRPCClientMetadata implements IClientMetadata {
 
         return resolve(wrapped);
       });
-    });
+    });*/
   }
 
   async set(key: string, value: string): Promise<boolean> {
@@ -69,7 +93,14 @@ export default class GRPCClientMetadata implements IClientMetadata {
 
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
+    try {
+      await promisify<SetMetadataRequest, Empty>(client.setMetadata)(msg);
+    } catch (e) {
+      throw false;
+    }
+
+    return true;
+    /*return new Promise((resolve, reject) => {
       client.setMetadata(msg, (err, _res: Empty) => {
         if (err) {
           return reject(false);
@@ -77,6 +108,6 @@ export default class GRPCClientMetadata implements IClientMetadata {
 
         return resolve(true);
       });
-    });
+    });*/
   }
 }

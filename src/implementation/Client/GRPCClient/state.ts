@@ -41,6 +41,7 @@ import { StateSaveOptions } from "../../../types/state/StateSaveOptions.type";
 import { StateDeleteOptions } from "../../../types/state/StateDeleteOptions.type";
 import { StateGetOptions } from "../../../types/state/StateGetOptions.type";
 import { IStateOptions } from "../../../types/state/StateOptions.type";
+import { promisify } from "util";
 
 // https://docs.dapr.io/reference/api/state_api/
 export default class GRPCClientState implements IClientState {
@@ -89,7 +90,14 @@ export default class GRPCClientState implements IClientState {
 
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
+    try {
+      await promisify(client.saveState)(msgService);
+    } catch (err) {
+      throw { error: err };
+    }
+
+    return {};
+    /*return new Promise((resolve, reject) => {
       client.saveState(msgService, (err, _res) => {
         if (err) {
           return reject({ error: err });
@@ -98,7 +106,7 @@ export default class GRPCClientState implements IClientState {
         // https://docs.dapr.io/reference/api/state_api/#response-body
         return resolve({});
       });
-    });
+    });*/
   }
 
   async get(storeName: string, key: string, options?: Partial<StateGetOptions>): Promise<KeyValueType | string> {
@@ -112,7 +120,16 @@ export default class GRPCClientState implements IClientState {
 
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
+    const res = await promisify<GetStateRequest, GetStateResponse>(client.getState)(msgService);
+    // https://docs.dapr.io/reference/api/state_api/#http-response-1
+    const resData = Buffer.from(res.getData()).toString();
+
+    try {
+      return JSON.parse(resData);
+    } catch (e) {
+      return resData;
+    }
+    /*return new Promise((resolve, reject) => {
       client.getState(msgService, (err, res: GetStateResponse) => {
         if (err) {
           return reject(err);
@@ -128,7 +145,7 @@ export default class GRPCClientState implements IClientState {
           return resolve(resData);
         }
       });
-    });
+    });*/
   }
 
   async getBulk(storeName: string, keys: string[], options: StateGetBulkOptions = {}): Promise<KeyValueType[]> {
@@ -142,7 +159,28 @@ export default class GRPCClientState implements IClientState {
     addMetadataToMap(msgService.getMetadataMap(), options.metadata);
 
     const client = await this.client.getClient();
-    return new Promise((resolve, reject) => {
+
+    const res = await promisify<GetBulkStateRequest, GetBulkStateResponse>(client.getBulkState)(msgService);
+
+    // https://docs.dapr.io/reference/api/state_api/#http-response-2
+    const items = res.getItemsList();
+
+    return items.map((i) => {
+      const resDataStr = Buffer.from(i.getData()).toString();
+      let data: string;
+      try {
+        data = JSON.parse(resDataStr);
+      } catch (e) {
+        data = resDataStr;
+      }
+      return {
+        key: i.getKey(),
+        data,
+        etag: i.getEtag(),
+      };
+    });
+
+    /*return new Promise((resolve, reject) => {
       client.getBulkState(msgService, (err, res: GetBulkStateResponse) => {
         if (err) {
           return reject(err);
@@ -168,7 +206,7 @@ export default class GRPCClientState implements IClientState {
           }),
         );
       });
-    });
+    });*/
   }
 
   async delete(storeName: string, key: string, options?: StateDeleteOptions): Promise<StateSaveResponseType> {
@@ -186,7 +224,9 @@ export default class GRPCClientState implements IClientState {
 
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
+    await promisify(client.deleteState)(msgService);
+    return {};
+    /*return new Promise((resolve, reject) => {
       client.deleteState(msgService, (err, _res) => {
         if (err) {
           return reject(err);
@@ -195,7 +235,7 @@ export default class GRPCClientState implements IClientState {
         // https://docs.dapr.io/reference/api/state_api/#http-response-3
         return resolve({});
       });
-    });
+    });*/
   }
 
   async transaction(
@@ -235,7 +275,10 @@ export default class GRPCClientState implements IClientState {
 
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
+    // https://docs.dapr.io/reference/api/state_api/#request-body-1
+    await promisify(client.executeStateTransaction)(msgService);
+
+    /*return new Promise((resolve, reject) => {
       client.executeStateTransaction(msgService, (err, _res) => {
         if (err) {
           return reject(err);
@@ -244,7 +287,7 @@ export default class GRPCClientState implements IClientState {
         // https://docs.dapr.io/reference/api/state_api/#request-body-1
         return resolve();
       });
-    });
+    });*/
   }
 
   async query(storeName: string, query: StateQueryType): Promise<StateQueryResponseType> {
@@ -254,7 +297,29 @@ export default class GRPCClientState implements IClientState {
 
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
+    const res = await promisify<QueryStateRequest, QueryStateResponse>(client.queryStateAlpha1)(msgService);
+
+    const resultsList = res.getResultsList();
+    if (resultsList.length === 0) {
+      return {
+        results: [],
+        token: res.getToken(),
+      };
+    }
+
+    // https://docs.dapr.io/reference/api/state_api/#response-body
+    // map the res from gRPC
+    return {
+      results: res.getResultsList().map((i) => ({
+        key: i.getKey(),
+        data: i.getData(),
+        etag: i.getEtag(),
+        error: i.getError(),
+      })),
+      token: res.getToken(),
+    };
+
+    /*return new Promise((resolve, reject) => {
       client.queryStateAlpha1(msgService, (err, res: QueryStateResponse) => {
         if (err) {
           return reject(err);
@@ -281,7 +346,7 @@ export default class GRPCClientState implements IClientState {
 
         return resolve(resMapped);
       });
-    });
+    });*/
   }
 
   _configureStateOptions(opt?: Partial<IStateOptions>): StateOptions | undefined {

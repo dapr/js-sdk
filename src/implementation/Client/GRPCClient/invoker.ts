@@ -21,6 +21,7 @@ import * as HttpVerbUtil from "../../../utils/HttpVerb.util";
 import IClientInvoker from "../../../interfaces/Client/IClientInvoker";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import { InvokerOptions } from "../../../types/InvokerOptions.type";
+import { promisify } from "util";
 
 // https://docs.dapr.io/reference/api/service_invocation_api/
 export default class GRPCClientInvoker implements IClientInvoker {
@@ -60,7 +61,25 @@ export default class GRPCClientInvoker implements IClientInvoker {
 
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
+    const res = await promisify<InvokeServiceRequest, InvokeResponse>(client.invokeService)(msgInvokeService);
+    let resData = "";
+
+    if (res.getData()) {
+      resData = Buffer.from((res.getData() as Any).getValue()).toString();
+    }
+
+    try {
+      return JSON.parse(resData);
+    } catch (e) {
+      throw new Error(
+        JSON.stringify({
+          error: "COULD_NOT_PARSE_RESULT",
+          error_msg: `Could not parse the returned resultset: ${resData}`,
+        }),
+      );
+    }
+
+    /*return new Promise((resolve, reject) => {
       client.invokeService(msgInvokeService, (err, res: InvokeResponse) => {
         if (err) {
           return reject(err);
@@ -84,6 +103,6 @@ export default class GRPCClientInvoker implements IClientInvoker {
           );
         }
       });
-    });
+    });*/
   }
 }

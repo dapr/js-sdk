@@ -17,6 +17,7 @@ import IClientBinding from "../../../interfaces/Client/IClientBinding";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import { addMetadataToMap } from "../../../utils/Client.util";
 import { KeyValueType } from "../../../types/KeyValue.type";
+import { promisify } from "util";
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class GRPCClientBinding implements IClientBinding {
@@ -42,7 +43,14 @@ export default class GRPCClientBinding implements IClientBinding {
 
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
+    const res = await promisify<InvokeBindingRequest, InvokeBindingResponse>(client.invokeBinding)(msgService);
+
+    return {
+      data: res.getData(),
+      metadata: res.getMetadataMap(),
+      operation,
+    };
+    /*return new Promise((resolve, reject) => {
       client.invokeBinding(msgService, (err, res: InvokeBindingResponse) => {
         if (err) {
           return reject(err);
@@ -55,6 +63,6 @@ export default class GRPCClientBinding implements IClientBinding {
           operation,
         });
       });
-    });
+    });*/
   }
 }

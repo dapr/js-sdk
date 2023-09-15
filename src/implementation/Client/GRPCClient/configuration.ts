@@ -29,6 +29,7 @@ import { SubscribeConfigurationCallback } from "../../../types/configuration/Sub
 import { SubscribeConfigurationStream } from "../../../types/configuration/SubscribeConfigurationStream";
 import { ConfigurationItem } from "../../../types/configuration/ConfigurationItem";
 import { createConfigurationType } from "../../../utils/Client.util";
+import { promisify } from "util";
 
 export default class GRPCClientConfiguration implements IClientConfiguration {
   client: GRPCClient;
@@ -55,7 +56,17 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
 
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
+    const getConfiguration = promisify<GetConfigurationRequest, grpc.Metadata, GetConfigurationResponse>(
+      client.getConfiguration,
+    );
+    const res = await getConfiguration(msg, metadata);
+
+    const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(res.getItemsMap());
+
+    return {
+      items: configMap,
+    };
+    /*return new Promise((resolve, reject) => {
       client.getConfiguration(msg, metadata, (err, res: GetConfigurationResponse) => {
         if (err) {
           return reject(err);
@@ -69,7 +80,7 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
 
         return resolve(result);
       });
-    });
+    });*/
   }
 
   async subscribe(storeName: string, cb: SubscribeConfigurationCallback): Promise<SubscribeConfigurationStream> {
@@ -144,11 +155,42 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
 
     return {
       stop: async () => {
+        const req = new UnsubscribeConfigurationRequest();
+        req.setStoreName(storeName);
+        req.setId(streamId);
+
+        let res: UnsubscribeConfigurationResponse | undefined = undefined;
+        let hasError = false;
+        try {
+          const unsubscribe = promisify<UnsubscribeConfigurationRequest, UnsubscribeConfigurationResponse>(
+            client.unsubscribeConfiguration,
+          );
+          res = await unsubscribe(req);
+          hasError = !res.getOk()
+        } catch (e) {
+          hasError = true;
+        }
+
+        if (res !== undefined && hasError) {
+          throw res.getMessage();
+        }
+
+        // Clean up the node.js event emitter
+        stream.removeAllListeners();
+        stream.destroy();
+      },
+    };
+    /*return {
+      stop: async () => {
         return new Promise((resolve, reject) => {
           const req = new UnsubscribeConfigurationRequest();
           req.setStoreName(storeName);
           req.setId(streamId);
 
+          const unsubscribe = promisify<UnsubscribeConfigurationRequest, UnsubscribeConfigurationResponse>(
+            client.unsubscribeConfiguration,
+          );
+          const res = await unsubscribe(req);
           client.unsubscribeConfiguration(req, (err, res: UnsubscribeConfigurationResponse) => {
             if (err || !res.getOk()) {
               return reject(res.getMessage());
@@ -162,6 +204,6 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
           });
         });
       },
-    };
+    };*/
   }
 }

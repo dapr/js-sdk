@@ -15,6 +15,7 @@ import GRPCClient from "./GRPCClient";
 import {
   BulkPublishRequest,
   BulkPublishRequestEntry,
+  BulkPublishResponse,
   PublishEventRequest,
 } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
@@ -26,6 +27,8 @@ import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishRe
 import { PubSubBulkPublishResponse } from "../../../types/pubsub/PubSubBulkPublishResponse.type";
 import { PubSubBulkPublishMessage } from "../../../types/pubsub/PubSubBulkPublishMessage.type";
 import { PubSubPublishOptions } from "../../../types/pubsub/PubSubPublishOptions.type";
+import { promisify } from "util";
+import { ServiceError } from "@grpc/grpc-js";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class GRPCClientPubSub implements IClientPubSub {
@@ -57,7 +60,17 @@ export default class GRPCClientPubSub implements IClientPubSub {
     addMetadataToMap(msgService.getMetadataMap(), options.metadata);
 
     const client = await this.client.getClient();
-    return new Promise((resolve, reject) => {
+
+    try {
+      await promisify(client.publishEvent)(msgService);
+    } catch (err) {
+      this.logger.error(`publish failed: ${err}`);
+      throw { error: err };
+    }
+
+    return {};
+
+    /*return new Promise((resolve, reject) => {
       client.publishEvent(msgService, (err, _res) => {
         if (err) {
           this.logger.error(`publish failed: ${err}`);
@@ -66,7 +79,7 @@ export default class GRPCClientPubSub implements IClientPubSub {
 
         return resolve({});
       });
-    });
+    });*/
   }
 
   async publishBulk(
@@ -93,7 +106,28 @@ export default class GRPCClientPubSub implements IClientPubSub {
     addMetadataToMap(bulkPublishRequest.getMetadataMap(), metadata);
 
     const client = await this.client.getClient();
-    return new Promise((resolve, _reject) => {
+    try {
+      const bulkPublish = promisify<BulkPublishRequest, BulkPublishResponse>(client.bulkPublishEventAlpha1);
+      const res = await bulkPublish(bulkPublishRequest);
+
+      const failedEntries = res.getFailedentriesList();
+      if (failedEntries.length > 0) {
+        return getBulkPublishResponse({
+          entries: entries,
+          response: {
+            failedEntries: failedEntries.map((entry) => ({
+              entryID: entry.getEntryId(),
+              error: entry.getError(),
+            })),
+          },
+        });
+      }
+    } catch (err) {
+      return getBulkPublishResponse({ entries: entries, error: err as ServiceError });
+    }
+
+    return { failedMessages: [] };
+    /*return new Promise((resolve, _reject) => {
       client.bulkPublishEventAlpha1(bulkPublishRequest, (err, res) => {
         if (err) {
           return resolve(getBulkPublishResponse({ entries: entries, error: err }));
@@ -116,6 +150,6 @@ export default class GRPCClientPubSub implements IClientPubSub {
 
         return resolve({ failedMessages: [] });
       });
-    });
+    });*/
   }
 }

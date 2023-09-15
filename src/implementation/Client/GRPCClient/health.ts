@@ -15,6 +15,7 @@ import GRPCClient from "./GRPCClient";
 import IClientHealth from "../../../interfaces/Client/IClientHealth";
 import { GetMetadataResponse } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import { Empty } from "google-protobuf/google/protobuf/empty_pb";
+import { promisify } from "util";
 
 // https://docs.dapr.io/reference/api/health_api/
 export default class GRPCClientHealth implements IClientHealth {
@@ -28,7 +29,16 @@ export default class GRPCClientHealth implements IClientHealth {
   async isHealthy(): Promise<boolean> {
     const client = await this.client.getClient();
 
-    return new Promise((resolve, _reject) => {
+    let isHealthy = true;
+    try {
+      await promisify(client.getMetadata)(new Empty());
+    } catch (e) {
+      isHealthy = false;
+    }
+
+    return isHealthy;
+
+    /*return new Promise((resolve, _reject) => {
       try {
         client.getMetadata(new Empty(), (err, _res: GetMetadataResponse) => {
           if (err) {
@@ -40,6 +50,6 @@ export default class GRPCClientHealth implements IClientHealth {
       } catch (e) {
         return resolve(false);
       }
-    });
+    });*/
   }
 }

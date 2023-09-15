@@ -19,6 +19,7 @@ import {
   GetSecretResponse,
 } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import IClientSecret from "../../../interfaces/Client/IClientSecret";
+import { promisify } from "util";
 
 // https://docs.dapr.io/reference/api/secrets_api/
 export default class GRPCClientSecret implements IClientSecret {
@@ -36,7 +37,15 @@ export default class GRPCClientSecret implements IClientSecret {
 
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
+    const res = await promisify<GetSecretRequest, GetSecretResponse>(client.getSecret)(msgService);
+    // Convert [ [ 'TEST_SECRET_1', 'secret_val_1' ] ] => [ { TEST_SECRET_1: 'secret_val_1' } ]
+    const items = res
+      .getDataMap()
+      .getEntryList()
+      .map((item) => ({ [item[0]]: item[1] }));
+
+    return items[0];
+    /*return new Promise((resolve, reject) => {
       client.getSecret(msgService, (err, res: GetSecretResponse) => {
         if (err) {
           return reject(err);
@@ -51,7 +60,7 @@ export default class GRPCClientSecret implements IClientSecret {
         // Return first item (it's a single get)
         return resolve(items[0]);
       });
-    });
+    });*/
   }
 
   async getBulk(secretStoreName: string): Promise<object> {
@@ -60,7 +69,13 @@ export default class GRPCClientSecret implements IClientSecret {
 
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
+    const res = await promisify<GetBulkSecretRequest, GetBulkSecretResponse>(client.getBulkSecret)(msgService);
+
+    // https://docs.dapr.io/reference/api/secrets_api/#response-body-1
+    // @ts-ignore
+    // tslint:disable-next-line
+    return res.getDataMap()["map_"];
+    /*return new Promise((resolve, reject) => {
       client.getBulkSecret(msgService, (err, res: GetBulkSecretResponse) => {
         if (err) {
           return reject(err);
@@ -71,6 +86,6 @@ export default class GRPCClientSecret implements IClientSecret {
         // tslint:disable-next-line
         return resolve(res.getDataMap()["map_"]);
       });
-    });
+    });*/
   }
 }

@@ -20,6 +20,7 @@ import { Logger } from "../../../logger/Logger";
 import GRPCClientSidecar from "./sidecar";
 import DaprClient from "../DaprClient";
 import { SDK_VERSION } from "../../../version";
+import { promisify } from "util";
 
 export default class GRPCClient implements IClient {
   readonly options: DaprClientOptions;
@@ -98,7 +99,13 @@ export default class GRPCClient implements IClient {
   async _startWaitForClientReady(): Promise<void> {
     const deadline = Date.now() + Settings.getDaprSidecarStartupTimeoutMs();
 
-    return new Promise((resolve, reject) => {
+    try {
+      await promisify(this.client.waitForReady)(deadline);
+    } catch (err) {
+      this.logger.error(`Error waiting for client to be ready: ${err}`);
+      throw err;
+    }
+    /* return new Promise((resolve, reject) => {
       this.client.waitForReady(deadline, (err?) => {
         if (err) {
           this.logger.error(`Error waiting for client to be ready: ${err}`);
@@ -107,7 +114,7 @@ export default class GRPCClient implements IClient {
 
         return resolve();
       });
-    });
+    });*/
   }
 
   async _startAwaitSidecarStarted(): Promise<void> {

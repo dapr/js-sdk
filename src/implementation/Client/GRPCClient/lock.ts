@@ -21,6 +21,7 @@ import {
   UnlockResponse,
 } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import IClientLock from "../../../interfaces/Client/IClientLock";
+import { promisify } from "util";
 
 export default class GRPCClientLock implements IClientLock {
   client: GRPCClient;
@@ -42,7 +43,13 @@ export default class GRPCClientLock implements IClientLock {
       .setExpiryInSeconds(expiryInSeconds);
 
     const client = await this.client.getClient();
-    return new Promise((resolve, reject) => {
+    const res = await promisify<TryLockRequest, TryLockResponse>(client.tryLockAlpha1)(request);
+
+    return {
+      success: res.getSuccess(),
+    };
+
+    /* return new Promise((resolve, reject) => {
       client.tryLockAlpha1(request, (err, res: TryLockResponse) => {
         if (err) {
           return reject(err);
@@ -54,14 +61,20 @@ export default class GRPCClientLock implements IClientLock {
 
         return resolve(wrapped);
       });
-    });
+    });*/
   }
 
   async unlock(storeName: string, resourceId: string, lockOwner: string): Promise<UnLockResponseResult> {
     const request = new UnlockRequest().setStoreName(storeName).setResourceId(resourceId).setLockOwner(lockOwner);
 
     const client = await this.client.getClient();
-    return new Promise((resolve, reject) => {
+    const res = await promisify<UnlockRequest, UnlockResponse>(client.unlockAlpha1)(request);
+
+    return {
+      status: this.getUnlockResponse(res),
+    };
+
+    /*return new Promise((resolve, reject) => {
       client.unlockAlpha1(request, (err, res: UnlockResponse) => {
         if (err) {
           return reject(err);
@@ -73,7 +86,7 @@ export default class GRPCClientLock implements IClientLock {
 
         return resolve(wrapped);
       });
-    });
+    });*/
   }
 
   getUnlockResponse(res: UnlockResponse) {
