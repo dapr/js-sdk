@@ -166,7 +166,7 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
             client.unsubscribeConfiguration,
           );
           res = await unsubscribe(req);
-          hasError = !res.getOk()
+          hasError = !res.getOk();
         } catch (e) {
           hasError = true;
         }
