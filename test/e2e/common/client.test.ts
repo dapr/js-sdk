@@ -21,7 +21,7 @@ import {
 } from "../../../src";
 import { sleep } from "../../../src/utils/NodeJS.util";
 import { LockStatus } from "../../../src/types/lock/UnlockResponse";
-import {Settings} from "../../../src/utils/Settings.util";
+import { Settings } from "../../../src/utils/Settings.util";
 
 const daprHost = "127.0.0.1";
 const daprGrpcPort = "50000";
@@ -593,7 +593,6 @@ describe("http/client with environment variables", () => {
 
     expect(client.options.daprHost).toEqual(daprHost);
     expect(client.options.daprPort).toEqual(daprGrpcPort);
-
   });
 
   it("should give preference to port with no host in constructor arguments over environment variables ", async () => {
