@@ -21,6 +21,7 @@ export class Settings {
   private static readonly defaultGrpcAppPort: string = "50000";
   private static readonly defaultGrpcPort: string = "50001";
   private static readonly defaultHttpEndpoint: string = "";
+  private static readonly defaultGrpcEndpoint: string = "";
   private static readonly defaultCommunicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP;
   private static readonly defaultKeepAlive: boolean = true;
   private static readonly defaultStateGetBulkParallelism: number = 10;
@@ -91,6 +92,14 @@ export class Settings {
       return process.env.DAPR_HTTP_ENDPOINT as string;
     } else {
       return Settings.defaultHttpEndpoint;
+    }
+  }
+
+  static getDefaultGrpcEndpoint(): string {
+    if (process.env.DAPR_GRPC_ENDPOINT && process.env.DAPR_GRPC_ENDPOINT !== "") {
+      return process.env.DAPR_GRPC_ENDPOINT as string;
+    } else {
+      return Settings.defaultGrpcEndpoint;
     }
   }
 

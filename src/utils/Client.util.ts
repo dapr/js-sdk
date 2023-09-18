@@ -264,12 +264,14 @@ export function getClientOptions(
 ): DaprClientOptions {
   const clientCommunicationProtocol = clientoptions?.communicationProtocol ?? defaultCommunicationProtocol;
 
-  // We decide the host/port and everything here
+  // We decide the host/port/endpoint here
   let host: string;
   let port: string;
   let daprEndpoint = "";
   if (clientCommunicationProtocol == CommunicationProtocolEnum.HTTP) {
     daprEndpoint = Settings.getDefaultHttpEndpoint();
+  } else if (clientCommunicationProtocol == CommunicationProtocolEnum.GRPC) {
+    daprEndpoint = Settings.getDefaultGrpcEndpoint();
   }
 
   if (clientoptions?.daprHost || clientoptions?.daprPort) {

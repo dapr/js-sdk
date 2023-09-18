@@ -65,7 +65,15 @@ export default class GRPCClient implements IClient {
       ...this.generateChannelOptions(),
     };
 
-    return new GrpcDaprClient(`${host}:${port}`, credentials, constructorOptions);
+    // The grpc client doesn't allow http:// or https:// for grpc connections
+    // so we need to remove it if it exists
+    let endpoint = `${host}:${port}`;
+    let parts = endpoint.split("://");
+    if (parts.length > 1 && parts[0].startsWith("http")) {
+      endpoint = parts[1];
+    }
+
+    return new GrpcDaprClient(endpoint, credentials, constructorOptions);
   }
 
   private generateChannelOptions(): Record<string, string | number> {
