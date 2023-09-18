@@ -60,7 +60,6 @@ export default class GRPCClient implements IClient {
   }
 
   private generateClient(host: string, port: string, credentials: grpc.ChannelCredentials): GrpcDaprClient {
-
     // The grpc client doesn't allow http:// or https:// for grpc connections
     // so we need to remove it, if it exists
     let endpoint = `${host}:${port}`;
