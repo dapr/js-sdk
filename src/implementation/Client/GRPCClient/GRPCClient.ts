@@ -60,10 +60,17 @@ export default class GRPCClient implements IClient {
   }
 
   private generateClient(host: string, port: string, credentials: grpc.ChannelCredentials): GrpcDaprClient {
-    const constructorOptions = {
-      interceptors: [this.generateInterceptors()],
-      ...this.generateChannelOptions(),
-    };
+
+    let options: Partial<grpc.ClientOptions>;
+
+    options = this.generateChannelOptions();
+
+    if (this.options.daprApiToken !== "") {
+      options = {
+        interceptors: [this.generateInterceptors()],
+        ...options,
+      };
+    }
 
     // The grpc client doesn't allow http:// or https:// for grpc connections
     // so we need to remove it if it exists
@@ -73,7 +80,7 @@ export default class GRPCClient implements IClient {
       endpoint = parts[1];
     }
 
-    return new GrpcDaprClient(endpoint, credentials, constructorOptions);
+    return new GrpcDaprClient(endpoint, credentials, options);
   }
 
   private generateChannelOptions(): Record<string, string | number> {
