@@ -52,6 +52,22 @@ export default class GRPCClient implements IClient {
     return this.clientCredentials;
   }
 
+  private generateCredentials(): grpc.ChannelCredentials {
+    if (this.options.daprHost.startsWith("https")) {
+      return grpc.ChannelCredentials.createSsl();
+    }
+    return grpc.ChannelCredentials.createInsecure();
+  }
+
+  private generateClient(host: string, port: string, credentials: grpc.ChannelCredentials): GrpcDaprClient {
+    const constructorOptions = {
+      interceptors: [this.generateInterceptors()],
+      ...this.generateChannelOptions(),
+    };
+
+    return new GrpcDaprClient(`${host}:${port}`, credentials, constructorOptions);
+  }
+
   private generateChannelOptions(): Record<string, string | number> {
     const options: Record<string, string | number> = {};
 
@@ -70,17 +86,17 @@ export default class GRPCClient implements IClient {
     return options;
   }
 
-  private generateClient(host: string, port: string, credentials: grpc.ChannelCredentials): GrpcDaprClient {
-    const options = this.generateChannelOptions();
-    const client = new GrpcDaprClient(`${host}:${port}`, credentials, options);
-
-    return client;
-  }
-
-  // @todo: look into making secure credentials
-  private generateCredentials(): grpc.ChannelCredentials {
-    const credsChannel = grpc.ChannelCredentials.createInsecure();
-    return credsChannel;
+  private generateInterceptors(): (options: any, nextCall: any) => grpc.InterceptingCall {
+    return (options: any, nextCall: any) => {
+      return new grpc.InterceptingCall(nextCall(options), {
+        start: (metadata, listener, next) => {
+          if (metadata.get("dapr-api-token").length == 0) {
+            metadata.add("dapr-api-token", this.options.daprApiToken as grpc.MetadataValue);
+          }
+          next(metadata, listener);
+        },
+      });
+    };
   }
 
   setIsInitialized(isInitialized: boolean): void {
