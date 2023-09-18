@@ -61,30 +61,20 @@ export default class GRPCClient implements IClient {
 
   private generateClient(host: string, port: string, credentials: grpc.ChannelCredentials): GrpcDaprClient {
 
-    let options: Partial<grpc.ClientOptions>;
-
-    options = this.generateChannelOptions();
-
-    if (this.options.daprApiToken !== "") {
-      options = {
-        interceptors: [this.generateInterceptors()],
-        ...options,
-      };
-    }
-
     // The grpc client doesn't allow http:// or https:// for grpc connections
-    // so we need to remove it if it exists
+    // so we need to remove it, if it exists
     let endpoint = `${host}:${port}`;
     const parts = endpoint.split("://");
     if (parts.length > 1 && parts[0].startsWith("http")) {
       endpoint = parts[1];
     }
 
-    return new GrpcDaprClient(endpoint, credentials, options);
+    return new GrpcDaprClient(endpoint, credentials, this.generateChannelOptions());
   }
 
-  private generateChannelOptions(): Record<string, string | number> {
-    const options: Record<string, string | number> = {};
+  private generateChannelOptions(): Partial<grpc.ClientOptions> {
+    // const options: Record<string, string | number> = {};
+    let options: Partial<grpc.ClientOptions> = {};
 
     // See: GRPC_ARG_MAX_SEND_MESSAGE_LENGTH, it is in bytes
     // https://grpc.github.io/grpc/core/group__grpc__arg__keys.html#ga813f94f9ac3174571dd712c96cdbbdc1
@@ -97,6 +87,14 @@ export default class GRPCClient implements IClient {
 
     // Add user agent
     options["grpc.primary_user_agent"] = "dapr-sdk-js/v" + SDK_VERSION;
+
+    // Add interceptors if we have an API token
+    if (this.options.daprApiToken !== "") {
+      options = {
+        interceptors: [this.generateInterceptors()],
+        ...options,
+      };
+    }
 
     return options;
   }
