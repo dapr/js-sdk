@@ -68,7 +68,7 @@ export default class GRPCClient implements IClient {
     // The grpc client doesn't allow http:// or https:// for grpc connections
     // so we need to remove it if it exists
     let endpoint = `${host}:${port}`;
-    let parts = endpoint.split("://");
+    const parts = endpoint.split("://");
     if (parts.length > 1 && parts[0].startsWith("http")) {
       endpoint = parts[1];
     }
