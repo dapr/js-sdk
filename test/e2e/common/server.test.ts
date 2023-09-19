@@ -697,9 +697,9 @@ describe("common/server", () => {
     );
 
     runIt(
-      "should allow us to subscribe to wildcard topics with a + (e.g., /app/+/event)",
+      "should allow us to subscribe to wildcard topics with a + (e.g., myhome/groundfloor/+/temperature) - single level wildcard",
       async (server: DaprServer, protocol: string) => {
-        await server.client.pubsub.publish(pubSubName, getTopic(topicWildcardPlus, protocol), {
+        await server.client.pubsub.publish(pubSubName, getTopic("myhome/groundfloor/test/temperature", protocol), {
           message: "Hello, world!",
         });
 
@@ -712,9 +712,9 @@ describe("common/server", () => {
     );
 
     runIt(
-      "should allow us to subscribe to wildcard topics with a # (e.g., /app/#)",
+      "should allow us to subscribe to wildcard topics with a # (e.g., myhome/groundfloor/#) - multi level wildcard",
       async (server: DaprServer, protocol: string) => {
-        await server.client.pubsub.publish(pubSubName, getTopic(topicWildcardHash, protocol), {
+        await server.client.pubsub.publish(pubSubName, getTopic("myhome/groundfloor/test1/test2", protocol), {
           message: "Hello, world!",
         });
 
@@ -727,14 +727,12 @@ describe("common/server", () => {
     );
 
     runIt(
-      "should allow us to subscribe to wildcard topics with a $ (e.g., $SYS/broker/clients/connected)",
+      "should allow us to subscribe to wildcard topics with a $ (e.g., $SYS/broker/messages/sent)",
       async (server: DaprServer, protocol: string) => {
-        await server.client.pubsub.publish(pubSubName, getTopic(topicWildcardLeadingDollar, protocol), {
-          message: "Hello, world!",
-        });
-
         // Delay a bit for event to arrive
         await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+
+        console.log(mockSubscribeHandler.mock.calls.length);
 
         expect(mockSubscribeHandler.mock.calls.length).toBe(1);
         expect(mockSubscribeHandler.mock.calls[0][0]).toEqual({ message: "Hello, world!" });

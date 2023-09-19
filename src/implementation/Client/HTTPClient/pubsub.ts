@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import crypto from "node:crypto";
 import HTTPClient from "./HTTPClient";
 import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 import { Logger } from "../../../logger/Logger";
@@ -34,14 +33,6 @@ export default class HTTPClientPubSub implements IClientPubSub {
     this.logger = new Logger("HTTPClient", "PubSub", client.options.logger);
   }
 
-  /**
-   * Encodes the topic name to be used in the URL in a safe way for HTTP Communication
-   */
-  _encodeTopic(topic: string): string {
-    return crypto.createHash("md5").update(topic).digest("hex").toString();
-    // return encodeURIComponent(topic);
-  }
-
   async publish(
     pubSubName: string,
     topic: string,
@@ -58,7 +49,7 @@ export default class HTTPClientPubSub implements IClientPubSub {
     }
 
     try {
-      await this.client.execute(`/publish/${pubSubName}/${this._encodeTopic(topic)}?${queryParams}`, {
+      await this.client.execute(`/publish/${pubSubName}/${topic}?${queryParams}`, {
         method: "POST",
         body: data,
         headers,
@@ -91,7 +82,7 @@ export default class HTTPClientPubSub implements IClientPubSub {
     try {
       await this.client.executeWithApiVersion(
         "v1.0-alpha1",
-        `/publish/bulk/${pubSubName}/${this._encodeTopic(topic)}?${queryParams}`,
+        `/publish/bulk/${pubSubName}/${topic}?${queryParams}`,
         params,
       );
     } catch (error: any) {

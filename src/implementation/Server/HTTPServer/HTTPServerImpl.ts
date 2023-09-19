@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import crypto from "node:crypto";
 import { Logger } from "../../../logger/Logger";
 import { LoggerOptions } from "../../../types/logger/LoggerOptions";
 import { DaprPubSubType } from "../../../types/pubsub/DaprPubSub.type";
@@ -311,11 +310,6 @@ export default class HTTPServerImpl {
     return routes;
   }
 
-  _encodeTopic(topic: string): string {
-    return crypto.createHash("md5").update(topic).digest("hex").toString();
-    return encodeURIComponent(topic);
-  }
-
   generateDaprSubscriptionRoute(
     pubsubName: string,
     topic: string,
@@ -357,7 +351,7 @@ export default class HTTPServerImpl {
     if (!options || !options?.route) {
       return {
         pubsubname: pubsubName,
-        topic: this._encodeTopic(topic),
+        topic: topic,
         metadata: metadata,
         route: this.generateDaprSubscriptionRoute(pubsubName, topic),
         deadLetterTopic: options.deadLetterTopic,
@@ -366,7 +360,7 @@ export default class HTTPServerImpl {
     } else if (typeof options.route === "string") {
       return {
         pubsubname: pubsubName,
-        topic: this._encodeTopic(topic),
+        topic: topic,
         metadata: metadata,
         route: this.generateDaprSubscriptionRoute(pubsubName, topic, options.route),
         deadLetterTopic: options.deadLetterTopic,
@@ -375,7 +369,7 @@ export default class HTTPServerImpl {
     } else {
       return {
         pubsubname: pubsubName,
-        topic: this._encodeTopic(topic),
+        topic: topic,
         metadata: metadata,
         routes: options.route && {
           default: this.generateDaprSubscriptionRoute(pubsubName, topic, options.route?.default),
@@ -430,7 +424,6 @@ export default class HTTPServerImpl {
 
     // Create an MD5 hash of the topic name
     // This is to ensure that we have a unique path for each topic that is url safe
-    const encodedTopic = this._encodeTopic(topic);
-    return `${pubsubName.toLowerCase()}--${encodedTopic}--${routeParsed}`;
+    return `${pubsubName.toLowerCase()}--${topic.toLowerCase()}--${routeParsed}`;
   }
 }

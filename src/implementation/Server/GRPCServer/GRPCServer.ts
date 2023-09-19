@@ -117,16 +117,7 @@ export default class GRPCServer implements IServer {
   }
 
   async stop(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.server.tryShutdown((err) => {
-        if (err) {
-          return reject(err);
-        }
-
-        this.isInitialized = false;
-        return resolve();
-      });
-    });
+    this.server.forceShutdown();
   }
 
   private async initializeBind(): Promise<void> {
