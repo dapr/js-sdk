@@ -728,7 +728,7 @@ describe("common/server", () => {
 
     runIt(
       "should allow us to subscribe to wildcard topics with a $ (e.g., $SYS/broker/messages/sent)",
-      async (server: DaprServer, protocol: string) => {
+      async (_server: DaprServer, _protocol: string) => {
         // Delay a bit for event to arrive
         await new Promise((resolve, _reject) => setTimeout(resolve, 250));
 
