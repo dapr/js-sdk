@@ -54,7 +54,13 @@ describe("common/server", () => {
   let httpServer: DaprServer;
   let grpcServer: DaprServer;
 
-  const getTopic = (topic: string, protocol: string) => topic + "-" + protocol;
+  const getTopic = (topic: string, protocol: string) => {
+    if (protocol.indexOf("/") > -1) {
+      return protocol + "/" + topic;
+    } else {
+      return protocol + "-" + topic;
+    }
+  };
   const mockSubscribeHandler = jest.fn(async (_data: object, _headers: object) => null);
   const mockBulkSubscribeRawPayloadHandler = jest.fn(async (_data: object, _headers: object) => null);
   const mockBulkSubscribeCEHandler = jest.fn(async (_data: object, _headers: object) => null);
