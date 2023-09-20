@@ -14,7 +14,7 @@ limitations under the License.
 import { GRPCClient } from "../../../src";
 
 describe("grpc", () => {
-  it("should remove http and https from endpoint", () => {
+  it("getEndpoint should remove http and https from endpoint", () => {
     const testCases = [
       { host: "http://localhost", port: "5000", expected: "localhost:5000" },
       { host: "https://localhost", port: "5000", expected: "localhost:5000" },

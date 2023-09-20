@@ -334,7 +334,7 @@ export function parseEndpoint(address: string): EndpointTuple {
     port = parseInt(portParts[0], 10);
   } else if (addrParts.length === 1) {
     // No port was specified
-    // Account for Endpoints of the type :3500/v1.0/invoke
+    // Account for Endpoints of the type localhost/v1.0/invoke
     const fqdnParts = addrParts[0].split("/");
     fqdn = fqdnParts[0];
   } else {
