@@ -303,6 +303,17 @@ type EndpointTuple = [string, string, number];
 
 /**
  * Parses an endpoint to scheme, fqdn and port
+ * Examples:
+ *  - http://localhost:3500 -> [http, localhost, 3500]
+ *  - localhost:3500 -> [http, localhost, 3500]
+ *  - :3500 -> [http, localhost, 3500]
+ *  - localhost -> [http, localhost, 80]
+ *  - https://localhost:3500 -> [https, localhost, 3500]
+ *  - [::1]:3500 -> [http, ::1, 3500]
+ *  - [::1] -> [http, ::1, 80]
+ *  - http://[2001:db8:1f70::999:de8:7648:6e8]:5000 -> [http, 2001:db8:1f70::999:de8:7648:6e8, 5000]
+ * @throws Error if the port is not a number
+ * @throws Error if the address is invalid
  * @param address Endpoint address
  * @returns EndpointTuple (scheme, fqdn, port)
  */
@@ -334,7 +345,7 @@ export function parseEndpoint(address: string): EndpointTuple {
     port = parseInt(portParts[0], 10);
   } else if (addrParts.length === 1) {
     // No port was specified
-    // Account for Endpoints of the type localhost/v1.0/invoke
+    // Account for Endpoints of the type :3500/v1.0/invoke
     const fqdnParts = addrParts[0].split("/");
     fqdn = fqdnParts[0];
   } else {
