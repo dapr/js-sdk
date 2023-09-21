@@ -11,18 +11,33 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { DaprClient } from "@dapr/dapr";
+import { CommunicationProtocolEnum, DaprClient } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1";
-const daprPortDefault = "3500";
 
 async function start() {
-  const client = new DaprClient({ daprHost, daprPort: process.env.DAPR_HTTP_PORT ?? daprPortDefault });
+  const client = new DaprClient({
+    daprHost,
+    daprPort: process.env.DAPR_GRPC_PORT,
+    communicationProtocol: CommunicationProtocolEnum.GRPC,
+  });
 
+  // Get keys from config store
   const config = await client.configuration.get("config-store", ["key1", "key2"]);
   console.log(config);
 
-  console.log(JSON.stringify(config));
+  console.log("Subscribing to config store updates...");
+
+  // Subscribes to config store changes for keys "key1" and "key2"
+  const stream = await client.configuration.subscribeWithKeys("config-store", ["key1", "key2"], async (data) => {
+    console.log("Subscribe received updates from config store: ", data);
+  });
+
+  // Wait for 60 seconds and unsubscribe.
+  await new Promise((resolve) => setTimeout(resolve, 60000));
+  stream.stop();
+
+  console.log("Unsubscribed from config store, exiting...");
 }
 
 start().catch((e) => {
