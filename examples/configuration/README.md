@@ -5,11 +5,13 @@ This example demonstrates how to use Configuration API.
 ## Prerequisites
 
 In your Config store, create keys `key1` and `key2` to see the use of `get`.
+
 ```bash
 docker exec dapr_redis redis-cli MSET key1 "foo" key2 "bar"
 ```
 
 After the program starts, you can change the values of these keys to see use of `subscribe`.
+
 ```bash
 docker exec dapr_redis redis-cli MSET key2 "bar2"
 docker exec dapr_redis redis-cli MSET key1 "foobar"

@@ -20,7 +20,7 @@ async function start() {
   const client = new DaprClient({
     daprHost,
     daprPort: process.env.DAPR_GRPC_PORT ?? daprPortDefault,
-    communicationProtocol: CommunicationProtocolEnum.GRPC
+    communicationProtocol: CommunicationProtocolEnum.GRPC,
   });
 
   // Get keys from config store
@@ -30,16 +30,15 @@ async function start() {
   console.log("Subscribing to config store updates...");
 
   // Subscribes to config store changes for keys "key1" and "key2"
-  const stream = await client.configuration.subscribeWithKeys("config-store", ["key1", "key2"],
-    async (data) => {
-      console.log("Subscribe received updates from config store: ", data);
-    })
+  const stream = await client.configuration.subscribeWithKeys("config-store", ["key1", "key2"], async (data) => {
+    console.log("Subscribe received updates from config store: ", data);
+  });
 
   // Wait for 60 seconds and unsubscribe.
-  await new Promise(resolve => setTimeout(resolve, 60000));
+  await new Promise((resolve) => setTimeout(resolve, 60000));
   stream.stop();
 
-  console.log("Unsubscribed from config store, exiting...")
+  console.log("Unsubscribed from config store, exiting...");
 }
 
 start().catch((e) => {
