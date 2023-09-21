@@ -36,16 +36,16 @@ npm run start:dapr-grpc
 ## Sample output
 
 ```
-== APP == {
-== APP ==   items: {
-== APP ==     key1: { key: 'key1', value: 'foo', version: '', metadata: {} },
-== APP ==     key2: { key: 'key2', value: 'bar2', version: '', metadata: {} }
-== APP ==   }
-== APP == }
-== APP == Subscribe received updates from config store:  {
-== APP ==   items: { key2: { key: 'key2', value: 'bar', version: '', metadata: {} } }
-== APP == }
-== APP == Subscribe received updates from config store:  {
-== APP ==   items: { key1: { key: 'key1', value: 'foobar', version: '', metadata: {} } }
-== APP == }
+{
+  items: {
+    key1: { key: 'key1', value: 'foo', version: '', metadata: {} },
+    key2: { key: 'key2', value: 'bar2', version: '', metadata: {} }
+  }
+}
+Subscribe received updates from config store:  {
+  items: { key2: { key: 'key2', value: 'bar', version: '', metadata: {} } }
+}
+Subscribe received updates from config store:  {
+  items: { key1: { key: 'key1', value: 'foobar', version: '', metadata: {} } }
+}
 ```
