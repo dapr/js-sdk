@@ -14,12 +14,11 @@ limitations under the License.
 import { CommunicationProtocolEnum, DaprClient } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1";
-const daprPortDefault = "3500";
 
 async function start() {
   const client = new DaprClient({
     daprHost,
-    daprPort: process.env.DAPR_GRPC_PORT ?? daprPortDefault,
+    daprPort: process.env.DAPR_GRPC_PORT,
     communicationProtocol: CommunicationProtocolEnum.GRPC,
   });
 

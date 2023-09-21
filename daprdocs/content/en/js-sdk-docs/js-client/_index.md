@@ -436,10 +436,13 @@ start().catch((e) => {
 import { DaprClient } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1";
-const daprAppId = "example-config";
 
 async function start() {
-  const client = new DaprClient({ daprHost, daprPort: process.env.DAPR_HTTP_PORT });
+  const client = new DaprClient({
+    daprHost,
+    daprPort: process.env.DAPR_GRPC_PORT,
+    communicationProtocol: CommunicationProtocolEnum.GRPC,
+  });
 
   const config = await client.configuration.get("config-store", ["key1", "key2"]);
   console.log(config);
@@ -449,6 +452,58 @@ start().catch((e) => {
   console.error(e);
   process.exit(1);
 });
+```
+
+Sample output:
+
+```log
+{
+   items: {
+     key1: { key: 'key1', value: 'foo', version: '', metadata: {} },
+     key2: { key: 'key2', value: 'bar2', version: '', metadata: {} }
+   }
+}
+```
+
+#### Subscribe to Configuration Updates
+
+```typescript
+import { DaprClient } from "@dapr/dapr";
+
+const daprHost = "127.0.0.1";
+
+async function start() {
+  const client = new DaprClient({
+    daprHost,
+    daprPort: process.env.DAPR_GRPC_PORT,
+    communicationProtocol: CommunicationProtocolEnum.GRPC,
+  });
+
+  // Subscribes to config store changes for keys "key1" and "key2"
+  const stream = await client.configuration.subscribeWithKeys("config-store", ["key1", "key2"], async (data) => {
+    console.log("Subscribe received updates from config store: ", data);
+  });
+
+  // Wait for 60 seconds and unsubscribe.
+  await new Promise((resolve) => setTimeout(resolve, 60000));
+  stream.stop();
+}
+
+start().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
+```
+
+Sample output:
+
+```log
+Subscribe received updates from config store:  {
+  items: { key2: { key: 'key2', value: 'bar', version: '', metadata: {} } }
+}
+Subscribe received updates from config store:  {
+  items: { key1: { key: 'key1', value: 'foobar', version: '', metadata: {} } }
+}
 ```
 
 ### Cryptography API
