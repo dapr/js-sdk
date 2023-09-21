@@ -321,7 +321,8 @@ export default class GRPCServerImpl implements IAppCallbackServer {
       routeParsed = routeParsed.replace("/", ""); // will only remove first occurence
     }
 
-    return `${pubsubName.toLowerCase()}--${topic.toLowerCase()}--${routeParsed}`;
+    const routeGenerated = `${pubsubName.toLowerCase()}--${topic.toLowerCase()}--${routeParsed}`;
+    return encodeURIComponent(routeGenerated);
   }
 
   registerInputBindingHandler(bindingName: string, cb: DaprInvokerCallbackFunction): void {
@@ -413,6 +414,11 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
     const pubsubName = req.getPubsubName();
     const topic = req.getTopic();
+
+    console.log("DEBUG - GOT ITEM FOR ", topic);
+
+    // const routeObj = this.pubSubSubscriptions[pubsubName][topic].routes[route];
+    // this.server.post(`/${routeObj.path}`, async (req, res) => {
 
     // Route is unique to pubsub and topic and has format pubsub--topic--route so we strip it since else we can't find the route
     const route = this.generatePubSubSubscriptionTopicRouteName(req.getPath().replace(`${pubsubName}--${topic}--`, ""));

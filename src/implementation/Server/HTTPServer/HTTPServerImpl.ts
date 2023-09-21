@@ -422,8 +422,7 @@ export default class HTTPServerImpl {
       routeParsed = routeParsed.replace("/", ""); // will only remove first occurence
     }
 
-    // Create an MD5 hash of the topic name
-    // This is to ensure that we have a unique path for each topic that is url safe
-    return `${pubsubName.toLowerCase()}--${topic.toLowerCase()}--${routeParsed}`;
+    const routeGenerated = `${pubsubName.toLowerCase()}--${topic}--${routeParsed}`;
+    return encodeURIComponent(routeGenerated);
   }
 }
