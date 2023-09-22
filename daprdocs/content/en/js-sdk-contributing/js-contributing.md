@@ -104,7 +104,7 @@ concise and if you need more space, you can use the commit body. Try to make sur
 subject is clear and precise enough that users will know what change by just looking at the changelog.
 
 ## Github Dapr Bot Commands
-Checkout the [daprbot documentation](https://docs.dapr.io/contributing/daprbot/) for Github commands you can run in this repo. For example, you can run the `/assign` (as a comment on an issue) to assign issues to a user or group of users
+Checkout the [daprbot documentation](https://docs.dapr.io/contributing/daprbot/) for Github commands you can run in this repo for common tasks. For example, you can run the `/assign` (as a comment on an issue) to assign issues to a user or group of users
 
 ## Coding Rules
 
