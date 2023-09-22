@@ -103,6 +103,9 @@ Try to keep the first commit line short. This is harder to do using this commit 
 concise and if you need more space, you can use the commit body. Try to make sure that the commit
 subject is clear and precise enough that users will know what change by just looking at the changelog.
 
+## Github Dapr Bot Commands
+Checkout the [daprbot documentation](https://docs.dapr.io/contributing/daprbot/) for Github commands you can run in this repo. For example, you can run the `/assign` (as a comment on an issue) to assign issues to a user or group of users
+
 ## Coding Rules
 
 To ensure consistency throughout the source code, keep these rules in mind as you are working:
@@ -124,3 +127,4 @@ The `daprdocs` directory contains the markdown files that are rendered into the 
 
 - All rules in the [docs guide]({{< ref contributing-docs.md >}}) should be followed in addition to these.
 - All files and directories should be prefixed with `js-` to ensure all file/directory names are globally unique across all Dapr documentation.
+
