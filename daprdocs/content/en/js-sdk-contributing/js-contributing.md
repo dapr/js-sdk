@@ -127,3 +127,4 @@ The `daprdocs` directory contains the markdown files that are rendered into the 
 
 - All rules in the [docs guide]({{< ref contributing-docs.md >}}) should be followed in addition to these.
 - All files and directories should be prefixed with `js-` to ensure all file/directory names are globally unique across all Dapr documentation.
+
