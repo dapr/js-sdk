@@ -274,7 +274,7 @@ export function getClientOptions(
 
   let host = Settings.getDefaultHost();
   let port = Settings.getDefaultPort(clientCommunicationProtocol);
-  
+
   if (clientoptions?.daprHost || clientoptions?.daprPort) {
     host = clientoptions?.daprHost ?? host;
     port = clientoptions?.daprPort ?? port;

@@ -60,7 +60,11 @@ export class GRPCClientProxy<T> {
       this.grpcClientOptions.interceptors = [];
     }
 
-    this.grpcClientOptions.interceptors = [...this.generateInterceptors(), ...this.grpcClientOptions.interceptors];
+    this.grpcClientOptions.interceptors = [
+      ...this.generateInterceptors(),
+      ...(this.grpcClient.grpcClientOptions.interceptors ?? []),
+      ...this.grpcClientOptions.interceptors,
+    ];
 
     const clientCustom = new this.clsProxy(
       `${this.grpcClient.options.daprHost}:${this.grpcClient.options.daprPort}`,
