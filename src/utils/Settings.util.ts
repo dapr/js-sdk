@@ -88,19 +88,11 @@ export class Settings {
   }
 
   static getDefaultHttpEndpoint(): string {
-    if (process.env.DAPR_HTTP_ENDPOINT && process.env.DAPR_HTTP_ENDPOINT !== "") {
-      return process.env.DAPR_HTTP_ENDPOINT as string;
-    } else {
-      return Settings.defaultHttpEndpoint;
-    }
+    return process.env.DAPR_HTTP_ENDPOINT || Settings.defaultHttpEndpoint;
   }
 
   static getDefaultGrpcEndpoint(): string {
-    if (process.env.DAPR_GRPC_ENDPOINT && process.env.DAPR_GRPC_ENDPOINT !== "") {
-      return process.env.DAPR_GRPC_ENDPOINT as string;
-    } else {
-      return Settings.defaultGrpcEndpoint;
-    }
+    return process.env.DAPR_GRPC_ENDPOINT || Settings.defaultGrpcEndpoint;
   }
 
   /**

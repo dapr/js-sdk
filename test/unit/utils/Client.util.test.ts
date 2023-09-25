@@ -26,7 +26,6 @@ import { Map } from "google-protobuf";
 import { PubSubBulkPublishEntry } from "../../../src/types/pubsub/PubSubBulkPublishEntry.type";
 import { PubSubBulkPublishApiResponse } from "../../../src/types/pubsub/PubSubBulkPublishApiResponse.type";
 import { CommunicationProtocolEnum, DaprClientOptions, LogLevel } from "../../../src";
-// import { parseEndpoint } from './path/to/your/parseEndpointFunction'; // Update the import path
 
 describe("Client.util", () => {
   describe("addMetadataToMap", () => {
