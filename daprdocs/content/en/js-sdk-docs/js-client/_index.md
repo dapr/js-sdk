@@ -78,6 +78,7 @@ npm run start:dapr-grpc
 ```
 
 ### Environment Variables
+
 You can use the `DAPR_HTTP_ENDPOINT` and `DAPR_GRPC_ENDPOINT` environment variables to set the Dapr Sidecar's HTTP and gRPC endpoints respectively. When these variables are set, the `daprHost` and `daprPort` don't have to be passed to the constructor, the client will parse them automatically out of the provided endpoints.
 
 ```typescript

@@ -30,7 +30,7 @@ import { Settings } from "./Settings.util";
 import { LoggerOptions } from "../types/logger/LoggerOptions";
 import { StateConsistencyEnum } from "../enum/StateConsistency.enum";
 import { StateConcurrencyEnum } from "../enum/StateConcurrency.enum";
-import { URLSearchParams } from "url";
+import { URL, URLSearchParams } from "url";
 /**
  * Adds metadata to a map.
  * @param map Input map
@@ -253,16 +253,17 @@ function getType(o: any) {
 /**
  * Prepares DaprClientOptions for use by the DaprClient/DaprServer.
  * If the user does not provide a value for a mandatory option, the default value is used.
- * @param clientoptions DaprClientOptions
+ * @param clientOptions DaprClientOptions
  * @param defaultCommunicationProtocol CommunicationProtocolEnum
+ * @param defaultLoggerOptions
  * @returns DaprClientOptions
  */
 export function getClientOptions(
-  clientoptions: Partial<DaprClientOptions> | undefined,
+  clientOptions: Partial<DaprClientOptions> | undefined,
   defaultCommunicationProtocol: CommunicationProtocolEnum,
   defaultLoggerOptions: LoggerOptions | undefined,
 ): DaprClientOptions {
-  const clientCommunicationProtocol = clientoptions?.communicationProtocol ?? defaultCommunicationProtocol;
+  const clientCommunicationProtocol = clientOptions?.communicationProtocol ?? defaultCommunicationProtocol;
 
   // We decide the host/port/endpoint here
   let daprEndpoint = "";
@@ -275,31 +276,31 @@ export function getClientOptions(
   let host = Settings.getDefaultHost();
   let port = Settings.getDefaultPort(clientCommunicationProtocol);
 
-  if (clientoptions?.daprHost || clientoptions?.daprPort) {
-    host = clientoptions?.daprHost ?? host;
-    port = clientoptions?.daprPort ?? port;
+  if (clientOptions?.daprHost || clientOptions?.daprPort) {
+    host = clientOptions?.daprHost ?? host;
+    port = clientOptions?.daprPort ?? port;
   } else if (daprEndpoint != "") {
     const [scheme, fqdn, p] = parseEndpoint(daprEndpoint);
     host = `${scheme}://${fqdn}`;
-    port = p.toString();
+    port = p;
   }
 
   return {
     daprHost: host,
     daprPort: port,
     communicationProtocol: clientCommunicationProtocol,
-    isKeepAlive: clientoptions?.isKeepAlive,
-    logger: clientoptions?.logger ?? defaultLoggerOptions,
-    actor: clientoptions?.actor,
-    daprApiToken: clientoptions?.daprApiToken,
-    maxBodySizeMb: clientoptions?.maxBodySizeMb,
+    isKeepAlive: clientOptions?.isKeepAlive,
+    logger: clientOptions?.logger ?? defaultLoggerOptions,
+    actor: clientOptions?.actor,
+    daprApiToken: clientOptions?.daprApiToken,
+    maxBodySizeMb: clientOptions?.maxBodySizeMb,
   };
 }
 
 /**
  * Scheme, fqdn and port
  */
-type EndpointTuple = [string, string, number];
+type EndpointTuple = [string, string, string];
 
 /**
  * Parses an endpoint to scheme, fqdn and port
@@ -311,62 +312,31 @@ type EndpointTuple = [string, string, number];
  *  - https://localhost:3500 -> [https, localhost, 3500]
  *  - [::1]:3500 -> [http, ::1, 3500]
  *  - [::1] -> [http, ::1, 80]
- *  - http://[2001:db8:1f70::999:de8:7648:6e8]:5000 -> [http, 2001:db8:1f70::999:de8:7648:6e8, 5000]
- * @throws Error if the port is not a number
+ *  - http://[2001:db8:1f70:0:999:de8:7648:6e8]:5000 -> [http, 2001:db8:1f70:0:999:de8:7648:6e8, 5000]
  * @throws Error if the address is invalid
  * @param address Endpoint address
  * @returns EndpointTuple (scheme, fqdn, port)
  */
 export function parseEndpoint(address: string): EndpointTuple {
-  let scheme = "http";
-  let fqdn = "localhost";
-  let port = 80;
-  let addr = address;
-
-  const addrList = address.split("://");
-
-  if (addrList.length === 2) {
-    // A scheme was explicitly specified
-    scheme = addrList[0];
-    if (scheme === "https") {
-      port = 443;
-    }
-    addr = addrList[1];
+  // Prefix with a scheme and host when they're not present,
+  // because the URL library won't parse it otherwise
+  if (address.startsWith(":")) {
+    address = "http://localhost" + address;
+  }
+  if (!address.includes("://")) {
+    address = "http://" + address;
   }
 
-  const addrParts = addr.split(":");
-  if (addrParts.length === 2) {
-    // A port was explicitly specified
-    if (addrParts[0].length > 0) {
-      fqdn = addrParts[0];
-    }
-    // Account for Endpoints of the type http://localhost:3500/v1.0/invoke
-    const portParts = addrParts[1].split("/");
-    port = parseInt(portParts[0], 10);
-  } else if (addrParts.length === 1) {
-    // No port was specified
-    // Account for Endpoints of the type :3500/v1.0/invoke
-    const fqdnParts = addrParts[0].split("/");
-    fqdn = fqdnParts[0];
-  } else {
-    // IPv6 address
-    const ipv6Parts = addr.split("]:");
-    if (ipv6Parts.length === 2) {
-      // A port was explicitly specified
-      fqdn = ipv6Parts[0].replace("[", "");
-      const portParts = ipv6Parts[1].split("/");
-      port = parseInt(portParts[0], 10);
-    } else if (ipv6Parts.length === 1) {
-      // No port was specified
-      const fqdnParts = ipv6Parts[0].split("/");
-      fqdn = fqdnParts[0].replace("[", "").replace("]", "");
-    } else {
-      throw new Error(`Invalid address: ${address}`);
-    }
-  }
+  let scheme, fqdn, port: string;
 
-  if (isNaN(port)) {
-    throw new Error(`Invalid port: ${port}`);
+  try {
+    const myURL = new URL(address);
+    scheme = myURL.protocol.replace(":", "");
+    fqdn = myURL.hostname.replace("[", "");
+    fqdn = fqdn.replace("]", "");
+    port = myURL.port || (myURL.protocol == "https:" ? "443" : "80");
+  } catch (error) {
+    throw new Error(`Invalid address: ${address}`);
   }
 
   return [scheme, fqdn, port];

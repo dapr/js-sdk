@@ -62,7 +62,7 @@ export class GRPCClientProxy<T> {
 
     this.grpcClientOptions.interceptors = [
       ...this.generateInterceptors(),
-      ...(this.grpcClient.grpcClientOptions.interceptors ?? []),
+      ...(this.grpcClient.getGrpcClientOptions().interceptors ?? []),
       ...this.grpcClientOptions.interceptors,
     ];
 
