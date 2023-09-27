@@ -24,9 +24,10 @@ import { BulkSubscribeResponse } from "../../../types/pubsub/BulkSubscribeRespon
 import DaprPubSubStatusEnum from "../../../enum/DaprPubSubStatus.enum";
 import { IncomingHttpHeaders } from "http";
 import { PubSubSubscriptionTopicRouteType } from "../../../types/pubsub/PubSubSubscriptionTopicRoute.type";
+import { getPubSubRoute } from "../../../utils/PubSub.util";
+import { Settings } from "../../../utils/Settings.util";
 
 export default class HTTPServerImpl {
-  private readonly PUBSUB_DEFAULT_ROUTE_NAME = "default";
   private readonly PUBSUB_DEFAULT_ROUTE_NAME_DEADLETTER = "deadletter";
   private readonly server: IServerType;
   private readonly logger: Logger;
@@ -237,12 +238,12 @@ export default class HTTPServerImpl {
     route: string | undefined,
     cb: TypeDaprPubSubCallback,
   ): void {
-    route = this.generatePubSubSubscriptionTopicRouteName(route);
-    this.pubSubSubscriptions[pubsubName][topic].routes[route ?? this.PUBSUB_DEFAULT_ROUTE_NAME].eventHandlers.push(cb);
+    const routeName = this.generatePubSubSubscriptionTopicRouteName(route);
+    this.pubSubSubscriptions[pubsubName][topic].routes[routeName].eventHandlers.push(cb);
   }
 
-  generatePubSubSubscriptionTopicRouteName(route = "default") {
-    return (route || this.PUBSUB_DEFAULT_ROUTE_NAME).replace("/", "");
+  generatePubSubSubscriptionTopicRouteName(route?: string): string {
+    return (route || Settings.getDefaultPubSubRouteName()).replace("/", "");
   }
 
   generatePubSubSubscriptionTopicRoutes(
@@ -260,7 +261,7 @@ export default class HTTPServerImpl {
 
         routes[routeName] = {
           eventHandlers: [],
-          path: this.generatePubsubPath(pubsubName, topic, routeName),
+          path: getPubSubRoute(pubsubName, topic, routeName),
         };
       }
 
@@ -272,7 +273,7 @@ export default class HTTPServerImpl {
 
             routes[routeName] = {
               eventHandlers: [],
-              path: this.generatePubsubPath(pubsubName, topic, routeName),
+              path: getPubSubRoute(pubsubName, topic, routeName),
             };
           }
         }
@@ -284,7 +285,7 @@ export default class HTTPServerImpl {
 
       routes[routeName] = {
         eventHandlers: [],
-        path: this.generatePubsubPath(pubsubName, topic, routeName),
+        path: getPubSubRoute(pubsubName, topic, routeName),
       };
     }
 
@@ -297,7 +298,7 @@ export default class HTTPServerImpl {
       // Initialize the route
       routes[routeName] = {
         eventHandlers: [],
-        path: this.generatePubsubPath(pubsubName, topic, routeName),
+        path: getPubSubRoute(pubsubName, topic, routeName),
       };
 
       // Add a callback if we have one provided
@@ -309,12 +310,8 @@ export default class HTTPServerImpl {
     return routes;
   }
 
-  generateDaprSubscriptionRoute(
-    pubsubName: string,
-    topic: string,
-    route: string = this.PUBSUB_DEFAULT_ROUTE_NAME,
-  ): string {
-    return `/${this.generatePubsubPath(pubsubName, topic, route)}`;
+  generateDaprSubscriptionRoute(pubsubName: string, topic: string, route?: string): string {
+    return `/${getPubSubRoute(pubsubName, topic, route)}`;
   }
 
   /**
@@ -393,34 +390,5 @@ export default class HTTPServerImpl {
     }
 
     return dapr;
-  }
-
-  /**
-   * We generate a event handler key based on the path or the route
-   * If the route is just a string, that is the path
-   * Else the path is configured through a rule of DaprPubSubRuleType
-   *
-   * @param pubsubName
-   * @param topic
-   * @param route
-   * @returns
-   */
-  generatePubsubPath(pubsubName: string, topic: string, route: string): string {
-    let routeParsed = "";
-
-    // First parse the route based on if it was a Rule or a String
-    if (!route) {
-      routeParsed = this.PUBSUB_DEFAULT_ROUTE_NAME;
-    } else {
-      routeParsed = route;
-    }
-
-    // Then, process it
-    // Remove leading slashes
-    if (routeParsed.startsWith("/")) {
-      routeParsed = routeParsed.replace("/", ""); // will only remove first occurence
-    }
-
-    return `${pubsubName.toLowerCase()}--${topic.toLowerCase()}--${routeParsed}`;
   }
 }

@@ -47,11 +47,12 @@ import { DaprInvokerCallbackFunction } from "../../../types/DaprInvokerCallback.
 import { PubSubSubscriptionTopicRouteType } from "../../../types/pubsub/PubSubSubscriptionTopicRoute.type";
 import DaprPubSubStatusEnum from "../../../enum/DaprPubSubStatus.enum";
 import { deserializeGrpc } from "../../../utils/Deserializer.util";
+import { Settings } from "../../../utils/Settings.util";
+import { getPubSubRoute } from "../../../utils/PubSub.util";
 
 // https://github.com/badsyntax/grpc-js-typescript/issues/1#issuecomment-705419742
 // @ts-ignore
 export default class GRPCServerImpl implements IAppCallbackServer {
-  private readonly PUBSUB_DEFAULT_ROUTE_NAME = "default";
   private readonly PUBSUB_DEFAULT_ROUTE_NAME_DEADLETTER = "deadletter";
   private readonly logger: Logger;
   private readonly server: IServerType;
@@ -137,12 +138,12 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     route: string | undefined,
     cb: TypeDaprPubSubCallback,
   ): void {
-    route = this.generatePubSubSubscriptionTopicRouteName(route);
-    this.pubSubSubscriptions[pubsubName][topic].routes[route ?? this.PUBSUB_DEFAULT_ROUTE_NAME].eventHandlers.push(cb);
+    const routeName = this.generatePubSubSubscriptionTopicRouteName(route);
+    this.pubSubSubscriptions[pubsubName][topic].routes[routeName].eventHandlers.push(cb);
   }
 
-  generatePubSubSubscriptionTopicRouteName(route = "default") {
-    return (route || this.PUBSUB_DEFAULT_ROUTE_NAME).replace("/", "");
+  generatePubSubSubscriptionTopicRouteName(route?: string): string {
+    return (route || Settings.getDefaultPubSubRouteName()).replace("/", "");
   }
 
   generatePubSubSubscriptionTopicRoutes(
@@ -160,7 +161,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
         routes[routeName] = {
           eventHandlers: [],
-          path: this.generatePubsubPath(pubsubName, topic, routeName),
+          path: getPubSubRoute(pubsubName, topic, routeName),
         };
       }
 
@@ -172,7 +173,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
             routes[routeName] = {
               eventHandlers: [],
-              path: this.generatePubsubPath(pubsubName, topic, routeName),
+              path: getPubSubRoute(pubsubName, topic, routeName),
             };
           }
         }
@@ -184,7 +185,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
       routes[routeName] = {
         eventHandlers: [],
-        path: this.generatePubsubPath(pubsubName, topic, routeName),
+        path: getPubSubRoute(pubsubName, topic, routeName),
       };
     }
 
@@ -197,7 +198,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
       // Initialize the route
       routes[routeName] = {
         eventHandlers: [],
-        path: this.generatePubsubPath(pubsubName, topic, routeName),
+        path: getPubSubRoute(pubsubName, topic, routeName),
       };
 
       // Add a callback if we have one provided
@@ -209,12 +210,8 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     return routes;
   }
 
-  generateDaprSubscriptionRoute(
-    pubsubName: string,
-    topic: string,
-    route: string = this.PUBSUB_DEFAULT_ROUTE_NAME,
-  ): string {
-    return `/${this.generatePubsubPath(pubsubName, topic, route)}`;
+  generateDaprSubscriptionRoute(pubsubName: string, topic: string, route?: string): string {
+    return `/${getPubSubRoute(pubsubName, topic, route)}`;
   }
 
   /**
@@ -293,35 +290,6 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     }
 
     return dapr;
-  }
-
-  /**
-   * We generate a event handler key based on the path or the route
-   * If the route is just a string, that is the path
-   * Else the path is configured through a rule of DaprPubSubRuleType
-   *
-   * @param pubsubName
-   * @param topic
-   * @param route
-   * @returns
-   */
-  generatePubsubPath(pubsubName: string, topic: string, route: string): string {
-    let routeParsed = "";
-
-    // First parse the route based on if it was a Rule or a String
-    if (!route) {
-      routeParsed = this.PUBSUB_DEFAULT_ROUTE_NAME;
-    } else {
-      routeParsed = route;
-    }
-
-    // Then, process it
-    // Remove leading slashes
-    if (routeParsed.startsWith("/")) {
-      routeParsed = routeParsed.replace("/", ""); // will only remove first occurence
-    }
-
-    return `${pubsubName.toLowerCase()}--${topic.toLowerCase()}--${routeParsed}`;
   }
 
   registerInputBindingHandler(bindingName: string, cb: DaprInvokerCallbackFunction): void {
@@ -636,7 +604,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
           topicSubscription.setRoutes(routes);
         } else {
           const routes = new TopicRoutes();
-          routes.setDefault(daprConfig?.route || this.PUBSUB_DEFAULT_ROUTE_NAME);
+          routes.setDefault(daprConfig?.route || Settings.getDefaultPubSubRouteName());
           topicSubscription.setRoutes(routes);
         }
 
