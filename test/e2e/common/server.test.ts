@@ -23,7 +23,7 @@ const customPort = "50002";
 
 const protocolHttp = "http";
 const protocolGrpc = "grpc";
-const pubSubName = "pubsub-redis";
+const pubSubName = "pubsub-mqtt"; // MQTT is required by the tests with wilcard routes
 const topicDefault = "test-topic";
 const topicRawPayload = "test-topic-raw";
 const topicOptionsWithCallback = "test-topic-options-callback";
@@ -38,6 +38,8 @@ const topicWithDeadletterInOptionsDefault = "test-topic-8";
 const topicWithDeadletterAndErrorCb = "test-topic-9";
 const topicWithStatusCb = "test-topic-status-callback";
 const topicWithBulk = "test-topic-bulk";
+const topicWildcardPlus = "myhome/groundfloor/+/temperature";
+const topicWildcardHash = "myhome/groundfloor/#";
 const deadLetterTopic = "deadletter-topic";
 const routeSimple = "simple-route";
 const routeWithLeadingSlash = "/leading-slash-route";
@@ -51,7 +53,7 @@ describe("common/server", () => {
   let httpServer: DaprServer;
   let grpcServer: DaprServer;
 
-  const getTopic = (topic: string, protocol: string) => topic + "-" + protocol;
+  const getTopic = (topic: string, protocol: string) => protocol + "-" + topic;
   const mockSubscribeHandler = jest.fn(async (_data: object, _headers: object) => null);
   const mockBulkSubscribeRawPayloadHandler = jest.fn(async (_data: object, _headers: object) => null);
   const mockBulkSubscribeCEHandler = jest.fn(async (_data: object, _headers: object) => null);
@@ -677,6 +679,23 @@ describe("common/server", () => {
     );
 
     runIt(
+      "should be able to subscribe to wildcard topics with a # (e.g., myhome/groundfloor/#) - multi level wildcard",
+      async (server: DaprServer, protocol: string) => {
+
+        const topic = topicWildcardHash.replace("#", "foo/bar");
+        await server.client.pubsub.publish(pubSubName, getTopic(topic, protocol), {
+          message: "Hello, world!",
+        });
+
+        // Delay a bit for event to arrive
+        await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+
+        expect(mockSubscribeHandler.mock.calls.length).toBe(1);
+        expect(mockSubscribeHandler.mock.calls[0][0]).toEqual({ message: "Hello, world!" });
+      },
+    );
+
+    runIt(
       "should be able to send and receive plain events with bulk publish",
       async (server: DaprServer, protocol: string) => {
         const messages = ["message1", "message2", "message3"];
@@ -823,6 +842,11 @@ describe("common/server", () => {
       mockSubscribeHandler,
       sampleRoutes,
     );
+
+    await httpServer.pubsub.subscribe(pubSubName, getTopic(topicWildcardPlus, protocolHttp), mockSubscribeHandler);
+    await grpcServer.pubsub.subscribe(pubSubName, getTopic(topicWildcardPlus, protocolGrpc), mockSubscribeHandler);
+    await httpServer.pubsub.subscribe(pubSubName, getTopic(topicWildcardHash, protocolHttp), mockSubscribeHandler);
+    await grpcServer.pubsub.subscribe(pubSubName, getTopic(topicWildcardHash, protocolGrpc), mockSubscribeHandler);
 
     await httpServer.pubsub.subscribe(pubSubName, getTopic(topicWithBulk, protocolHttp), mockSubscribeHandler);
     await grpcServer.pubsub.subscribe(pubSubName, getTopic(topicWithBulk, protocolGrpc), mockSubscribeHandler);

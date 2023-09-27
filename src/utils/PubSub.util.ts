@@ -33,5 +33,5 @@ export function getPubSubRoute(pubsubName: string, topic: string, routeFromSubcr
   }
 
   const route = `${pubsubName.toLowerCase()}--${topic.toLowerCase()}--${routeParsed}`;
-  return encodeURIComponent(route);
+  return route;
 }

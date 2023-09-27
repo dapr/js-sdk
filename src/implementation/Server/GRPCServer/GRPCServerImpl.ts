@@ -49,6 +49,7 @@ import DaprPubSubStatusEnum from "../../../enum/DaprPubSubStatus.enum";
 import { deserializeGrpc } from "../../../utils/Deserializer.util";
 import { Settings } from "../../../utils/Settings.util";
 import { getPubSubRoute } from "../../../utils/PubSub.util";
+import { PubSubSubscriptionType } from "../../../types/pubsub/PubSubSubscription.type";
 
 // https://github.com/badsyntax/grpc-js-typescript/issues/1#issuecomment-705419742
 // @ts-ignore
@@ -373,6 +374,34 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     return callback(null, res);
   }
 
+  /**
+   * containsTopic returns true if the topic is contained in the pubsub subscription.
+   * Note that the pubsub might be subscribed to wildcard topics with identifiers like `#` or `+`.
+   * @param pubSubSubscriptions subscriptions for a pubsub
+   * @param topicName topic name
+   */
+  private getMatchingTopic(pubSubSubscriptions: PubSubSubscriptionType, topicName: string): string {
+    // If the topic is directly subscribed to, return it.
+    if (pubSubSubscriptions[topicName]) {
+      return topicName;
+    }
+
+    // Else find if the topic is subscribed to with a wildcard.
+    // We iterate over the topics and check if the topic matches the wildcard.
+    // For #, example topic is `a/b/c` and subscription topic is `a/#`.
+    // For +, example topic is `a/b/c` and subscription topic is `a/+/c`.
+    for (const topic of Object.keys(pubSubSubscriptions)) {
+      if (topic.includes("#") || topic.includes("+")) {
+        const topicRegex = new RegExp(topic.replace(/[#]/g, ".*").replace(/[+]/g, "[^/]*"));
+        if (topicRegex.test(topicName)) {
+          return topic;
+        }
+      }
+    }
+
+    return "";
+  }
+
   async onTopicEvent(
     call: grpc.ServerUnaryCall<TopicEventRequest, TopicEventResponse>,
     callback: grpc.sendUnaryData<TopicEventResponse>,
@@ -380,15 +409,20 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     const req = call.request;
 
     const pubsubName = req.getPubsubName();
-    const topic = req.getTopic();
+    if (!this.pubSubSubscriptions[pubsubName]) {
+      this.logger.warn(`The PubSub '${pubsubName}' has not being subscribed to.`);
+      return;
+    }
+
+    const pubSubSubscriptionObj = this.pubSubSubscriptions[pubsubName];
+    const topic = this.getMatchingTopic(pubSubSubscriptionObj, req.getTopic());
 
     // Route is unique to pubsub and topic and has format pubsub--topic--route so we strip it since else we can't find the route
     const route = this.generatePubSubSubscriptionTopicRouteName(req.getPath().replace(`${pubsubName}--${topic}--`, ""));
 
     if (
-      !this.pubSubSubscriptions[pubsubName] ||
-      !this.pubSubSubscriptions[pubsubName][topic] ||
-      !this.pubSubSubscriptions[pubsubName][topic].routes[route]
+      !topic ||
+      !pubSubSubscriptionObj[topic].routes[route]
     ) {
       this.logger.warn(
         `The topic '${topic}' is not being subscribed to on PubSub '${pubsubName}' for route '${route}'.`,
