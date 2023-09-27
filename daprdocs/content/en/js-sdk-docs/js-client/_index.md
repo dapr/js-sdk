@@ -85,7 +85,7 @@ You can use the `DAPR_HTTP_ENDPOINT` and `DAPR_GRPC_ENDPOINT` environment variab
 import { DaprClient, CommunicationProtocol } from "@dapr/dapr";
 
 // Using HTTP, when DAPR_HTTP_ENDPOINT is set
-const client = new DaprClient({ daprHost, daprPort });
+const client = new DaprClient();
 
 // Using gRPC, when DAPR_GRPC_ENDPOINT is set
 const client = new DaprClient({ communicationProtocol: CommunicationProtocol.GRPC });
