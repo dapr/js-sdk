@@ -28,15 +28,18 @@ export default class GRPCClient implements IClient {
   private readonly client: GrpcDaprClient;
   private readonly clientCredentials: grpc.ChannelCredentials;
   private readonly logger: Logger;
+  private readonly grpcClientOptions: Partial<grpc.ClientOptions>;
 
   constructor(options: DaprClientOptions) {
     this.options = options;
     this.clientCredentials = this.generateCredentials();
+    this.grpcClientOptions = this.generateChannelOptions();
+
     this.logger = new Logger("GRPCClient", "GRPCClient", options.logger);
     this.isInitialized = false;
 
     this.logger.info(`Opening connection to ${this.options.daprHost}:${this.options.daprPort}`);
-    this.client = this.generateClient(this.options.daprHost, this.options.daprPort, this.clientCredentials);
+    this.client = this.generateClient(this.options.daprHost, this.options.daprPort);
   }
 
   async getClient(requiresInitialization = true): Promise<GrpcDaprClient> {
@@ -52,8 +55,20 @@ export default class GRPCClient implements IClient {
     return this.clientCredentials;
   }
 
-  private generateChannelOptions(): Record<string, string | number> {
-    const options: Record<string, string | number> = {};
+  getGrpcClientOptions(): grpc.ClientOptions {
+    return this.grpcClientOptions;
+  }
+
+  private generateCredentials(): grpc.ChannelCredentials {
+    if (this.options.daprHost.startsWith("https")) {
+      return grpc.ChannelCredentials.createSsl();
+    }
+    return grpc.ChannelCredentials.createInsecure();
+  }
+
+  private generateChannelOptions(): Partial<grpc.ClientOptions> {
+    // const options: Record<string, string | number> = {};
+    let options: Partial<grpc.ClientOptions> = {};
 
     // See: GRPC_ARG_MAX_SEND_MESSAGE_LENGTH, it is in bytes
     // https://grpc.github.io/grpc/core/group__grpc__arg__keys.html#ga813f94f9ac3174571dd712c96cdbbdc1
@@ -67,20 +82,48 @@ export default class GRPCClient implements IClient {
     // Add user agent
     options["grpc.primary_user_agent"] = "dapr-sdk-js/v" + SDK_VERSION;
 
+    // Add interceptors if we have an API token
+    if (this.options.daprApiToken !== "") {
+      options = {
+        interceptors: [this.generateInterceptors()],
+        ...options,
+      };
+    }
+
     return options;
   }
 
-  private generateClient(host: string, port: string, credentials: grpc.ChannelCredentials): GrpcDaprClient {
-    const options = this.generateChannelOptions();
-    const client = new GrpcDaprClient(`${host}:${port}`, credentials, options);
-
-    return client;
+  private generateClient(host: string, port: string): GrpcDaprClient {
+    return new GrpcDaprClient(
+      GRPCClient.getEndpoint(host, port),
+      this.getClientCredentials(),
+      this.getGrpcClientOptions(),
+    );
   }
 
-  // @todo: look into making secure credentials
-  private generateCredentials(): grpc.ChannelCredentials {
-    const credsChannel = grpc.ChannelCredentials.createInsecure();
-    return credsChannel;
+  // The grpc client doesn't allow http:// or https:// for grpc connections,
+  // so we need to remove it, if it exists
+  static getEndpoint(host: string, port: string): string {
+    let endpoint = `${host}:${port}`;
+    const parts = endpoint.split("://");
+    if (parts.length > 1 && parts[0].startsWith("http")) {
+      endpoint = parts[1];
+    }
+
+    return endpoint;
+  }
+
+  private generateInterceptors(): (options: any, nextCall: any) => grpc.InterceptingCall {
+    return (options: any, nextCall: any) => {
+      return new grpc.InterceptingCall(nextCall(options), {
+        start: (metadata, listener, next) => {
+          if (metadata.get("dapr-api-token").length == 0) {
+            metadata.add("dapr-api-token", this.options.daprApiToken as grpc.MetadataValue);
+          }
+          next(metadata, listener);
+        },
+      });
+    };
   }
 
   setIsInitialized(isInitialized: boolean): void {

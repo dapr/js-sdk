@@ -21,6 +21,7 @@ import {
 } from "../../../src";
 import { sleep } from "../../../src/utils/NodeJS.util";
 import { LockStatus } from "../../../src/types/lock/UnlockResponse";
+import { Settings } from "../../../src/utils/Settings.util";
 
 const daprHost = "127.0.0.1";
 const daprGrpcPort = "50000";
@@ -555,5 +556,130 @@ describe("common/client", () => {
       });
       expect(result).toEqual({ results: [] });
     });
+  });
+});
+
+describe("http/client with environment variables", () => {
+  let client: DaprClient;
+
+  // We need to start listening on some endpoints already
+  // this because Dapr is not dynamic and registers endpoints on boot
+  // we put a timeout of 10s since it takes around 4s for Dapr to boot up
+
+  afterAll(async () => {
+    await client.stop();
+  });
+
+  it("should give preference to host and port in constructor arguments over endpoint environment variables ", async () => {
+    process.env.DAPR_HTTP_ENDPOINT = "https://httpdomain.com";
+    process.env.DAPR_GRPC_ENDPOINT = "https://grpcdomain.com";
+
+    client = new DaprClient({
+      daprHost,
+      daprPort: daprHttpPort,
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
+      isKeepAlive: false,
+    });
+
+    expect(client.options.daprHost).toEqual(daprHost);
+    expect(client.options.daprPort).toEqual(daprHttpPort);
+
+    client = new DaprClient({
+      daprHost,
+      daprPort: daprGrpcPort,
+      communicationProtocol: CommunicationProtocolEnum.GRPC,
+      isKeepAlive: false,
+    });
+
+    expect(client.options.daprHost).toEqual(daprHost);
+    expect(client.options.daprPort).toEqual(daprGrpcPort);
+  });
+
+  it("should give preference to port with no host in constructor arguments over environment variables ", async () => {
+    process.env.DAPR_HTTP_ENDPOINT = "https://httpdomain.com";
+    process.env.DAPR_GRPC_ENDPOINT = "https://grpcdomain.com";
+
+    client = new DaprClient({
+      daprPort: daprHttpPort,
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
+      isKeepAlive: false,
+    });
+
+    expect(client.options.daprHost).toEqual(Settings.getDefaultHost());
+    expect(client.options.daprPort).toEqual(daprHttpPort);
+
+    client = new DaprClient({
+      daprPort: daprGrpcPort,
+      communicationProtocol: CommunicationProtocolEnum.GRPC,
+      isKeepAlive: false,
+    });
+
+    expect(client.options.daprHost).toEqual(Settings.getDefaultHost());
+    expect(client.options.daprPort).toEqual(daprGrpcPort);
+  });
+
+  it("should give preference to host with no port in constructor arguments over environment variables ", async () => {
+    process.env.DAPR_HTTP_ENDPOINT = "https://httpdomain.com";
+    process.env.DAPR_GRPC_ENDPOINT = "https://grpcdomain.com";
+
+    client = new DaprClient({
+      daprHost: daprHost,
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
+      isKeepAlive: false,
+    });
+
+    expect(client.options.daprHost).toEqual(daprHost);
+    expect(client.options.daprPort).toEqual(Settings.getDefaultPort(CommunicationProtocolEnum.HTTP));
+
+    client = new DaprClient({
+      daprHost: daprHost,
+      communicationProtocol: CommunicationProtocolEnum.GRPC,
+      isKeepAlive: false,
+    });
+
+    expect(client.options.daprHost).toEqual(daprHost);
+    expect(client.options.daprPort).toEqual(Settings.getDefaultPort(CommunicationProtocolEnum.GRPC));
+  });
+
+  it("should use environment variable endpoint for HTTP", async () => {
+    process.env.DAPR_HTTP_ENDPOINT = "https://httpdomain.com";
+    client = new DaprClient({
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
+      isKeepAlive: false,
+    });
+
+    expect(client.options.daprHost).toEqual("https://httpdomain.com");
+    expect(client.options.daprPort).toEqual("443");
+  });
+
+  it("should use environment variable endpoint for GRPC", async () => {
+    process.env.DAPR_GRPC_ENDPOINT = "https://grpcdomain.com";
+    client = new DaprClient({
+      communicationProtocol: CommunicationProtocolEnum.GRPC,
+      isKeepAlive: false,
+    });
+
+    expect(client.options.daprHost).toEqual("https://grpcdomain.com");
+    expect(client.options.daprPort).toEqual("443");
+  });
+
+  it("should use default host and port when no other parameters provided", async () => {
+    process.env.DAPR_HTTP_ENDPOINT = "";
+    process.env.DAPR_GRPC_ENDPOINT = "";
+    client = new DaprClient({
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
+      isKeepAlive: false,
+    });
+
+    expect(client.options.daprHost).toEqual(Settings.getDefaultHost());
+    expect(client.options.daprPort).toEqual(Settings.getDefaultPort(CommunicationProtocolEnum.HTTP));
+
+    client = new DaprClient({
+      communicationProtocol: CommunicationProtocolEnum.GRPC,
+      isKeepAlive: false,
+    });
+
+    expect(client.options.daprHost).toEqual(Settings.getDefaultHost());
+    expect(client.options.daprPort).toEqual(Settings.getDefaultPort(CommunicationProtocolEnum.GRPC));
   });
 });
