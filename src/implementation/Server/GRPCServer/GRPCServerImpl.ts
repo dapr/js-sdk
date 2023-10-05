@@ -202,6 +202,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
   ): Promise<void> {
     const req = call.request;
     const pubsub = req.getPubsubName();
+
     if (!this.subscriptionManager.isPubSubRegistered(pubsub)) {
       this.logger.warn(`PubSub '${pubsub}' has not been registered, ignoring event.`);
       return;
@@ -376,11 +377,10 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     callback: grpc.sendUnaryData<ListTopicSubscriptionsResponse>,
   ): Promise<void> {
     const res = new ListTopicSubscriptionsResponse();
-
     const subscriptions = [];
 
-    for (const pubsub of Object.keys(this.subscriptionManager.getRegisteredPubSubs())) {
-      for (const topic of Object.keys(this.subscriptionManager.getRegisteredTopics(pubsub))) {
+    for (const pubsub of this.subscriptionManager.getRegisteredPubSubs()) {
+      for (const topic of this.subscriptionManager.getRegisteredTopics(pubsub)) {
         const topicSubscription = new TopicSubscription();
         topicSubscription.setPubsubName(pubsub);
         topicSubscription.setTopic(topic);

@@ -200,11 +200,11 @@ export class SubscriptionManager {
     // We iterate over the topics and check if the topic matches the wildcard.
     // For #, example topic is `a/b/c` and subscription topic is `a/#`.
     // For +, example topic is `a/b/c` and subscription topic is `a/+/c`.
-    for (const topic of Object.keys(pubSubSubscriptions)) {
-      if (topic.includes("#") || topic.includes("+")) {
-        const topicRegex = new RegExp(topic.replace(/[#]/g, ".*").replace(/[+]/g, "[^/]*"));
+    for (const subscribedTopic of Object.keys(pubSubSubscriptions)) {
+      if (subscribedTopic.includes("#") || subscribedTopic.includes("+")) {
+        const topicRegex = new RegExp(subscribedTopic.replace(/[#]/g, ".*").replace(/[+]/g, "[^/]*"));
         if (topicRegex.test(topic)) {
-          return topic;
+          return subscribedTopic;
         }
       }
     }

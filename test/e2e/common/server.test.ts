@@ -38,8 +38,8 @@ const topicWithDeadletterInOptionsDefault = "test-topic-8";
 const topicWithDeadletterAndErrorCb = "test-topic-9";
 const topicWithStatusCb = "test-topic-status-callback";
 const topicWithBulk = "test-topic-bulk";
-const topicWildcardPlus = "myhome/groundfloor/+/temperature";
 const topicWildcardHash = "myhome/groundfloor/#";
+const topicWildcardPlus = "myhome/firstfloor/+/temperature";
 const deadLetterTopic = "deadletter-topic";
 const routeSimple = "simple-route";
 const routeWithLeadingSlash = "/leading-slash-route";
@@ -209,7 +209,7 @@ describe("common/server", () => {
       expect(res.error).toBeUndefined();
 
       // Delay a bit for event to arrive
-      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+      await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
 
       expect(mockSubscribeHandler.mock.calls.length).toBe(1);
       expect(mockSubscribeHandler.mock.calls[0][0]).toEqual("Hello, world!");
@@ -351,7 +351,7 @@ describe("common/server", () => {
       expect(res.error).toBeUndefined();
 
       // Delay a bit for event to arrive
-      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+      await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
 
       expect(mockSubscribeHandler.mock.calls.length).toBe(1);
       expect(mockSubscribeHandler.mock.calls[0][0]).toEqual({ message: "Hello, world!" });
@@ -410,7 +410,7 @@ describe("common/server", () => {
         expect(res.error).toBeUndefined();
 
         // Delay a bit for event to arrive
-        await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+        await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
 
         expect(mockSubscribeHandler.mock.calls.length).toBe(1);
         const rawData: any = mockSubscribeHandler.mock.calls[0][0];
@@ -427,7 +427,7 @@ describe("common/server", () => {
         expect(res.error).toBeUndefined();
 
         // Delay a bit for event to arrive
-        await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+        await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
 
         expect(mockSubscribeHandler.mock.calls.length).toBe(1);
         const rawData: any = mockSubscribeHandler.mock.calls[0][0];
@@ -447,7 +447,7 @@ describe("common/server", () => {
         expect(res.error).toBeUndefined();
 
         // Delay a bit for event to arrive
-        await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+        await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
 
         expect(mockSubscribeHandler.mock.calls.length).toBe(1);
         expect(mockSubscribeHandler.mock.calls[0][0]).toEqual("Hello, world!");
@@ -466,7 +466,7 @@ describe("common/server", () => {
         expect(res.error).toBeUndefined();
 
         // Delay a bit for event to arrive
-        await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+        await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
 
         expect(mockSubscribeHandler.mock.calls.length).toBe(1);
         expect(mockSubscribeHandler.mock.calls[0][0]).toEqual({ message: "Hello, world!" });
@@ -482,7 +482,7 @@ describe("common/server", () => {
         expect(res.error).toBeUndefined();
 
         // Delay a bit for event to arrive
-        await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+        await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
 
         expect(mockSubscribeHandler.mock.calls.length).toBe(1);
         expect(mockSubscribeHandler.mock.calls[0][0]).toEqual({ message: "Hello, world!" });
@@ -670,7 +670,7 @@ describe("common/server", () => {
         expect(res.error).toBeUndefined();
 
         // Delay a bit for event to arrive
-        await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+        await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
 
         expect(mockSubscribeErrorHandler).toHaveBeenCalledTimes(1);
         expect(mockSubscribeErrorHandler.mock.calls[0][0]).toEqual({ message: "Hello, world!" });
@@ -687,7 +687,23 @@ describe("common/server", () => {
         });
 
         // Delay a bit for event to arrive
-        await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+        await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
+
+        expect(mockSubscribeHandler.mock.calls.length).toBe(1);
+        expect(mockSubscribeHandler.mock.calls[0][0]).toEqual({ message: "Hello, world!" });
+      },
+    );
+
+    runIt(
+      "should be able to subscribe to wildcard topics with a + (e.g., myhome/firstfloor/+/temperature) - multi level wildcard",
+      async (server: DaprServer, protocol: string) => {
+        const topic = topicWildcardPlus.replace("+", "foo");
+        await server.client.pubsub.publish(pubSubName, getTopic(topic, protocol), {
+          message: "Hello, world!",
+        });
+
+        // Delay a bit for event to arrive
+        await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
 
         expect(mockSubscribeHandler.mock.calls.length).toBe(1);
         expect(mockSubscribeHandler.mock.calls[0][0]).toEqual({ message: "Hello, world!" });
@@ -701,7 +717,7 @@ describe("common/server", () => {
         await server.client.pubsub.publishBulk(pubSubName, getTopic(topicWithBulk, protocol), messages);
 
         // Delay a bit for events to arrive
-        await new Promise((resolve) => setTimeout(resolve, 250));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         expect(mockSubscribeHandler.mock.calls.length).toBe(3);
         // Check that the messages are present
@@ -842,10 +858,10 @@ describe("common/server", () => {
       sampleRoutes,
     );
 
-    await httpServer.pubsub.subscribe(pubSubName, getTopic(topicWildcardPlus, protocolHttp), mockSubscribeHandler);
-    await grpcServer.pubsub.subscribe(pubSubName, getTopic(topicWildcardPlus, protocolGrpc), mockSubscribeHandler);
     await httpServer.pubsub.subscribe(pubSubName, getTopic(topicWildcardHash, protocolHttp), mockSubscribeHandler);
     await grpcServer.pubsub.subscribe(pubSubName, getTopic(topicWildcardHash, protocolGrpc), mockSubscribeHandler);
+    await httpServer.pubsub.subscribe(pubSubName, getTopic(topicWildcardPlus, protocolHttp), mockSubscribeHandler);
+    await grpcServer.pubsub.subscribe(pubSubName, getTopic(topicWildcardPlus, protocolGrpc), mockSubscribeHandler);
 
     await httpServer.pubsub.subscribe(pubSubName, getTopic(topicWithBulk, protocolHttp), mockSubscribeHandler);
     await grpcServer.pubsub.subscribe(pubSubName, getTopic(topicWithBulk, protocolGrpc), mockSubscribeHandler);
@@ -906,7 +922,7 @@ describe("common/server", () => {
     });
 
     // Configure subscriptions for Status Message testing
-    // to test, we use the message as the status (SUCCESS, RETRY, DROP, Other)
+    // to test, we use the message as the status(SUCCESS, RETRY, DROP, Other)
     // SUCCESS: Message is processed correctly
     // RETRY: Message is retried and will thus call the callback again
     // DROP: Message is dropped and will thus call the deadletter callback
