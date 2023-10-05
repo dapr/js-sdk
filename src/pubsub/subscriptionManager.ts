@@ -81,7 +81,7 @@ export class SubscriptionManager {
     if (this.isTopicRegistered(pubsub, topic)) {
       throw new Error(
         `The topic '${topic}' is already subscribed to PubSub '${pubsub}',` +
-        ` there can be only one topic registered.`,
+          ` there can be only one topic registered.`,
       );
     }
 
@@ -119,7 +119,7 @@ export class SubscriptionManager {
     if (!subscription.routes[routeName]) {
       throw new Error(
         `The route '${routeName}' is not registered for topic '${topic}' and PubSub '${pubsub}',` +
-        ` cannot add event handler.`,
+          ` cannot add event handler.`,
       );
     }
     subscription.routes[routeName].eventHandlers.push(handler);
@@ -166,7 +166,9 @@ export class SubscriptionManager {
   private getRouteFromPath(pubsub: string, topic: string, path: string): string {
     // Path is of format: {pubsub}--{topic}--{route}
     // It should also not contain any slashes for compatibility with HTTP paths.
-    return path.replace(`${pubsub.toLowerCase()}--${this.sanitizeHttpPath(topic).toLowerCase()}--`, "").replace("/", "");
+    return path
+      .replace(`${pubsub.toLowerCase()}--${this.sanitizeHttpPath(topic).toLowerCase()}--`, "")
+      .replace("/", "");
   }
 
   /**
