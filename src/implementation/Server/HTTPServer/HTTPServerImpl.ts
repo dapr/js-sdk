@@ -13,10 +13,7 @@ limitations under the License.
 
 import { Logger } from "../../../logger/Logger";
 import { LoggerOptions } from "../../../types/logger/LoggerOptions";
-import { DaprPubSubType } from "../../../types/pubsub/DaprPubSub.type";
-import { PubSubSubscriptionsType } from "../../../types/pubsub/PubSubSubscriptions.type";
 import { PubSubSubscriptionOptionsType } from "../../../types/pubsub/PubSubSubscriptionOptions.type";
-import { PubSubSubscriptionTopicRoutesType } from "../../../types/pubsub/PubSubSubscriptionTopicRoutes.type";
 import { IServerType } from "./HTTPServer";
 import { TypeDaprPubSubCallback } from "../../../types/DaprPubSubCallback.type";
 import { BulkSubscribeResponseEntry } from "../../../types/pubsub/BulkSubscribeResponseEntry.type";
@@ -24,21 +21,19 @@ import { BulkSubscribeResponse } from "../../../types/pubsub/BulkSubscribeRespon
 import DaprPubSubStatusEnum from "../../../enum/DaprPubSubStatus.enum";
 import { IncomingHttpHeaders } from "http";
 import { PubSubSubscriptionTopicRouteType } from "../../../types/pubsub/PubSubSubscriptionTopicRoute.type";
-import { Settings } from "../../../utils/Settings.util";
+import { SubscriptionManager } from "../../../pubsub/subscriptionManager";
+import { PubSubSubscriptionsType } from "../../../types/pubsub/PubSubSubscriptions.type";
+import { DaprPubSubType } from "../../../types/pubsub/DaprPubSub.type";
 
 export default class HTTPServerImpl {
-  private readonly PUBSUB_DEFAULT_ROUTE_NAME_DEADLETTER = "deadletter";
   private readonly server: IServerType;
   private readonly logger: Logger;
-
-  // Contains all our event handlers and routes
-  pubSubSubscriptions: PubSubSubscriptionsType;
+  private readonly subscriptionManager: SubscriptionManager;
 
   constructor(server: IServerType, loggerOptions?: LoggerOptions) {
     this.server = server;
     this.logger = new Logger("HTTPServer", "HTTPServerImpl", loggerOptions);
-
-    this.pubSubSubscriptions = {};
+    this.subscriptionManager = new SubscriptionManager();
   }
 
   /**
@@ -95,36 +90,16 @@ export default class HTTPServerImpl {
    * @param options
    */
   registerPubsubSubscription(pubsubName: string, topic: string, options: PubSubSubscriptionOptionsType = {}): void {
-    if (
-      this.pubSubSubscriptions[pubsubName] &&
-      this.pubSubSubscriptions[pubsubName][topic] &&
-      this.pubSubSubscriptions[pubsubName][topic]
-    ) {
-      throw new Error(
-        `The topic '${topic}' is already being subscribed to on PubSub '${pubsubName}', there can only be one topic registered.`,
-      );
-    }
-
-    // Create pubsub subscription it if it doesn't exist
-    if (!this.pubSubSubscriptions[pubsubName]) {
-      this.pubSubSubscriptions[pubsubName] = {};
-    }
-
-    // Add the routes and dapr representation to the topic
-    if (!this.pubSubSubscriptions[pubsubName][topic]) {
-      this.pubSubSubscriptions[pubsubName][topic] = {
-        routes: this.generatePubSubSubscriptionTopicRoutes(pubsubName, topic, options),
-        dapr: this.generateDaprPubSubSubscription(pubsubName, topic, options),
-      };
-    }
+    this.subscriptionManager.registerSubscription(pubsubName, topic, options);
+    const subscription = this.subscriptionManager.getSubscription(pubsubName, topic);
 
     // Listen to the created endpoints on the HTTP Server
-    for (const route of Object.keys(this.pubSubSubscriptions[pubsubName][topic].routes)) {
-      const routeObj = this.pubSubSubscriptions[pubsubName][topic].routes[route];
+    for (const route of Object.keys(subscription.routes)) {
+      const routeObj = subscription.routes[route];
 
       // Add a server POST handler
       this.server.post(`/${routeObj.path}`, async (req, res) => {
-        const bulkSubEnabled = this.pubSubSubscriptions[pubsubName][topic].dapr.bulkSubscribe?.enabled;
+        const bulkSubEnabled = subscription.dapr.bulkSubscribe?.enabled;
         if (bulkSubEnabled) {
           const result = await this.processBulkSubscribeMessage(routeObj, req);
           return res.send(result);
@@ -141,9 +116,7 @@ export default class HTTPServerImpl {
     }
 
     this.logger.info(
-      `[Topic = ${topic}] Registered Subscription with routes: ${Object.keys(
-        this.pubSubSubscriptions[pubsubName][topic].routes,
-      ).join(", ")}`,
+      `[Topic = ${topic}] Registered Subscription with routes: ${Object.keys(subscription.routes).join(", ")}`,
     );
   }
 
@@ -237,157 +210,22 @@ export default class HTTPServerImpl {
     route: string | undefined,
     cb: TypeDaprPubSubCallback,
   ): void {
-    const routeName = this.generatePubSubSubscriptionTopicRouteName(route);
-    this.pubSubSubscriptions[pubsubName][topic].routes[routeName].eventHandlers.push(cb);
-  }
-
-  generatePubSubSubscriptionTopicRouteName(route?: string): string {
-    return (route || Settings.getDefaultPubSubRouteName()).replace("/", "");
-  }
-
-  generatePubSubSubscriptionTopicRoutes(
-    _pubsubName: string,
-    _topic: string,
-    _options: PubSubSubscriptionOptionsType = {},
-  ): PubSubSubscriptionTopicRoutesType {
-    const routes: PubSubSubscriptionTopicRoutesType = {};
-
-    // // options.route == DaprPubSubRouteType
-    // if (typeof options.route === "object") {
-    //   // Add default
-    //   if (options.route.default) {
-    //     const routeName = this.generatePubSubSubscriptionTopicRouteName(options.route.default);
-
-    //     routes[routeName] = {
-    //       eventHandlers: [],
-    //       path: getPubSubRoute(pubsubName, topic, routeName),
-    //     };
-    //   }
-
-    //   // Add rules
-    //   if (options.route.rules) {
-    //     for (const rule of options.route.rules) {
-    //       if (!routes[rule.path]) {
-    //         const routeName = this.generatePubSubSubscriptionTopicRouteName(rule.path);
-
-    //         routes[routeName] = {
-    //           eventHandlers: [],
-    //           path: getPubSubRoute(pubsubName, topic, routeName),
-    //         };
-    //       }
-    //     }
-    //   }
-    // }
-    // // options.route == String | undefined
-    // else {
-    //   const routeName = this.generatePubSubSubscriptionTopicRouteName(options?.route);
-
-    //   routes[routeName] = {
-    //     eventHandlers: [],
-    //     path: getPubSubRoute(pubsubName, topic, routeName),
-    //   };
-    // }
-
-    // // Deadletter Support
-    // if (options.deadLetterTopic || options.deadLetterCallback) {
-    //   const routeName = this.generatePubSubSubscriptionTopicRouteName(
-    //     options?.deadLetterTopic ?? this.PUBSUB_DEFAULT_ROUTE_NAME_DEADLETTER,
-    //   );
-
-    //   // Initialize the route
-    //   routes[routeName] = {
-    //     eventHandlers: [],
-    //     path: getPubSubRoute(pubsubName, topic, routeName),
-    //   };
-
-    //   // Add a callback if we have one provided
-    //   if (options.deadLetterCallback) {
-    //     routes[routeName].eventHandlers.push(options.deadLetterCallback);
-    //   }
-    // }
-
-    return routes;
-  }
-
-  generateDaprSubscriptionRoute(_pubsubName: string, _topic: string, _route?: string): string {
-    return ``; // `/${getPubSubRoute(pubsubName, topic, route)}`;
-  }
-
-  /**
-   * Generate a subscription object that will be used in the /dapr/subscribe endpoint
-   * this will let dapr know that we have subscriptions and how they map to routes / deadletter
-   *
-   * Important: we internally translate the provided /example to -> /<pubsubname>-<topic>-example
-   *            or if empty to /<pubsubname>-<topic>-default
-   *            this is to ensure that HTTP Server endpoints are unique
-   *
-   * @param pubsubName
-   * @param topic
-   * @param options
-   * @returns
-   */
-  generateDaprPubSubSubscription(
-    pubsubName: string,
-    topic: string,
-    options: PubSubSubscriptionOptionsType = {},
-  ): DaprPubSubType {
-    // Process metadata
-    let metadata: { [key: string]: any } | undefined;
-
-    if (options.metadata) {
-      metadata = {};
-
-      for (const [key, value] of Object.entries(options.metadata)) {
-        metadata[key] = JSON.stringify(value);
-      }
-    }
-
-    // Process the route
-    if (!options || !options?.route) {
-      return {
-        pubsubname: pubsubName,
-        topic: topic,
-        metadata: metadata,
-        route: this.generateDaprSubscriptionRoute(pubsubName, topic),
-        deadLetterTopic: options.deadLetterTopic,
-        bulkSubscribe: options.bulkSubscribe,
-      };
-    } else if (typeof options.route === "string") {
-      return {
-        pubsubname: pubsubName,
-        topic: topic,
-        metadata: metadata,
-        route: this.generateDaprSubscriptionRoute(pubsubName, topic, options.route),
-        deadLetterTopic: options.deadLetterTopic,
-        bulkSubscribe: options.bulkSubscribe,
-      };
-    } else {
-      return {
-        pubsubname: pubsubName,
-        topic: topic,
-        metadata: metadata,
-        routes: options.route && {
-          default: this.generateDaprSubscriptionRoute(pubsubName, topic, options.route?.default),
-          rules: options.route?.rules?.map((rule) => ({
-            match: rule.match,
-            path: this.generateDaprSubscriptionRoute(pubsubName, topic, rule.path),
-          })),
-        },
-        deadLetterTopic: options.deadLetterTopic,
-        bulkSubscribe: options.bulkSubscribe,
-      };
-    }
+    this.subscriptionManager.addEventHandlerToSubscription(pubsubName, topic, cb, route);
   }
 
   generateDaprPubSubSubscriptionList(): DaprPubSubType[] {
     const dapr = [];
 
-    for (const pubsub of Object.keys(this.pubSubSubscriptions)) {
-      for (const topic of Object.keys(this.pubSubSubscriptions[pubsub])) {
-        dapr.push(this.pubSubSubscriptions[pubsub][topic].dapr);
+    for (const pubsub of Object.keys(this.getSubscriptions())) {
+      for (const topic of Object.keys(this.getSubscriptions()[pubsub])) {
+        dapr.push(this.getSubscriptions()[pubsub][topic].dapr);
       }
     }
 
     return dapr;
+  }
+
+  getSubscriptions(): PubSubSubscriptionsType {
+    return this.subscriptionManager.getSubscriptions();
   }
 }

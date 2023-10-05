@@ -214,7 +214,7 @@ export class SubscriptionManager {
     route?: string,
     defaultRoute: string = Settings.getDefaultPubSubRouteName(),
   ): string {
-    return (route ?? defaultRoute).replace("/", "");
+    return (route || defaultRoute).replace("/", "");
   }
 
   /**
@@ -325,10 +325,10 @@ export class SubscriptionManager {
     // options.route is typeof DaprPubSubRouteType
     if (typeof options.route === "object") {
       const routes = {
-        default: this.generatePubSubPath(pubsub, topic, options.route.default),
+        default: `/${this.generatePubSubPath(pubsub, topic, options.route.default)}`,
         rules: options.route.rules?.map((rule) => ({
           match: rule.match,
-          path: this.generatePubSubPath(pubsub, topic, rule.path),
+          path: `/${this.generatePubSubPath(pubsub, topic, rule.path)}`,
         })),
       };
       return {
@@ -346,7 +346,7 @@ export class SubscriptionManager {
         pubsubname: pubsub,
         topic: topic,
         metadata: metadata,
-        route: this.generatePubSubPath(pubsub, topic, options.route),
+        route: `/${this.generatePubSubPath(pubsub, topic, options.route)}`,
         deadLetterTopic: options.deadLetterTopic,
         bulkSubscribe: options.bulkSubscribe,
       };

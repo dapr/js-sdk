@@ -65,10 +65,6 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     this.handlersBindings = {};
   }
 
-  createPubSubSubscriptionHandlerKey(pubSubName: string, topicName: string): string {
-    return `${pubSubName.toLowerCase()}|${topicName.toLowerCase()}`;
-  }
-
   createInputBindingHandlerKey(bindingName: string): string {
     return `${bindingName.toLowerCase()}`;
   }
@@ -113,10 +109,6 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     cb: TypeDaprPubSubCallback,
   ): void {
     this.subscriptionManager.addEventHandlerToSubscription(pubsubName, topic, cb, route);
-  }
-
-  generatePubSubSubscriptionTopicRouteName(route?: string): string {
-    return (route || Settings.getDefaultPubSubRouteName()).replace("/", "");
   }
 
   registerInputBindingHandler(bindingName: string, cb: DaprInvokerCallbackFunction): void {
@@ -358,7 +350,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
         status = await cb(data, headers);
       } catch (e) {
         // We catch and log an error, but we don't do anything with it as the statuses should define that
-        this.logger.error(`[route-${routeObj.path}] Message processing failed, ${e}`);
+        this.logger.error(`[route - ${routeObj.path}]Message processing failed, ${e}`);
       }
 
       statuses.push(status ?? DaprPubSubStatusEnum.SUCCESS);
@@ -367,13 +359,13 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     // Look at the statuses and return the highest priority
     // we handle priority of status on `RETRY` > `DROP` > `SUCCESS`
     if (statuses.includes(DaprPubSubStatusEnum.RETRY)) {
-      this.logger.debug(`[route-${routeObj.path}] Retrying message`);
+      this.logger.debug(`[route - ${routeObj.path}]Retrying message`);
       return DaprPubSubStatusEnum.RETRY;
     } else if (statuses.includes(DaprPubSubStatusEnum.DROP)) {
-      this.logger.debug(`[route-${routeObj.path}] Dropping message`);
+      this.logger.debug(`[route - ${routeObj.path}]Dropping message`);
       return DaprPubSubStatusEnum.DROP;
     } else {
-      this.logger.debug(`[route-${routeObj.path}] Acknowledging message`);
+      this.logger.debug(`[route - ${routeObj.path}]Acknowledging message`);
       return DaprPubSubStatusEnum.SUCCESS;
     }
   }
