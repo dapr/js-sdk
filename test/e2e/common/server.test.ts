@@ -151,7 +151,7 @@ describe("common/server", () => {
   // Helper function to run the test for both HTTP and gRPC.
   const runIt = async (name: string, fn: (server: DaprServer, protocol: string) => void) => {
     it(protocolHttp + "/" + name, async () => fn(httpServer, protocolHttp));
-    // it(protocolGrpc + "/" + name, async () => fn(grpcServer, protocolGrpc));
+    it(protocolGrpc + "/" + name, async () => fn(grpcServer, protocolGrpc));
   };
 
   describe("pubsub", () => {
@@ -162,7 +162,7 @@ describe("common/server", () => {
         expect(res.error).toBeUndefined();
 
         // Delay a bit for event to arrive
-        await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+        await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
 
         expect(mockSubscribeStatusHandler.mock.calls.length).toBe(1);
         expect(mockSubscribeStatusHandler.mock.calls[0][1]).toEqual("SUCCESS");
@@ -197,7 +197,7 @@ describe("common/server", () => {
         expect(res.error).toBeUndefined();
 
         // Delay a bit for event to arrive
-        await new Promise((resolve, _reject) => setTimeout(resolve, 250));
+        await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
 
         expect(mockSubscribeStatusHandler.mock.calls.length).toBe(1);
         expect(mockSubscribeStatusHandler.mock.calls[0][1]).toEqual("DROP");
@@ -912,12 +912,12 @@ describe("common/server", () => {
     // DROP: Message is dropped and will thus call the deadletter callback
     await httpServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicWithStatusCb, protocolHttp), {
       deadLetterCallback: mockSubscribeDeadletterHandler,
-      callback: (_data, _headers) => mockSubscribeStatusHandler("http", _data, _headers),
+      callback: (_data, _headers) => mockSubscribeStatusHandler(protocolHttp, _data, _headers),
     });
 
     await grpcServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicWithStatusCb, protocolGrpc), {
       deadLetterCallback: mockSubscribeDeadletterHandler,
-      callback: (_data, _headers) => mockSubscribeStatusHandler("grpc", _data, _headers),
+      callback: (_data, _headers) => mockSubscribeStatusHandler(protocolGrpc, _data, _headers),
     });
   };
 });
