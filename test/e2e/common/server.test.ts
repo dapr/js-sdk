@@ -681,7 +681,6 @@ describe("common/server", () => {
     runIt(
       "should be able to subscribe to wildcard topics with a # (e.g., myhome/groundfloor/#) - multi level wildcard",
       async (server: DaprServer, protocol: string) => {
-
         const topic = topicWildcardHash.replace("#", "foo/bar");
         await server.client.pubsub.publish(pubSubName, getTopic(topic, protocol), {
           message: "Hello, world!",

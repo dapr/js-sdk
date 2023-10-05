@@ -45,8 +45,8 @@ import { PubSubSubscriptionTopicRouteType } from "../../../types/pubsub/PubSubSu
 import DaprPubSubStatusEnum from "../../../enum/DaprPubSubStatus.enum";
 import { deserializeGrpc } from "../../../utils/Deserializer.util";
 import { Settings } from "../../../utils/Settings.util";
-import { PubSubSubscriptionType } from "../../../types/pubsub/PubSubSubscription.type";
 import { SubscriptionManager } from "../../../pubsub/subscriptionManager";
+import { PubSubSubscriptionsType } from "../../../types/pubsub/PubSubSubscriptions.type";
 
 // https://github.com/badsyntax/grpc-js-typescript/issues/1#issuecomment-705419742
 // @ts-ignore
@@ -122,6 +122,10 @@ export default class GRPCServerImpl implements IAppCallbackServer {
   registerInputBindingHandler(bindingName: string, cb: DaprInvokerCallbackFunction): void {
     const handlerKey = this.createInputBindingHandlerKey(bindingName);
     this.handlersBindings[handlerKey] = cb;
+  }
+
+  getSubscriptions(): PubSubSubscriptionsType {
+    return this.subscriptionManager.getSubscriptions();
   }
 
   // '(call: ServerUnaryCall<InvokeRequest, InvokeResponse>, callback: sendUnaryData<InvokeResponse>) => Promise<...>'
@@ -200,34 +204,6 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     return callback(null, res);
   }
 
-  /**
-   * containsTopic returns true if the topic is contained in the pubsub subscription.
-   * Note that the pubsub might be subscribed to wildcard topics with identifiers like `#` or `+`.
-   * @param pubSubSubscriptions subscriptions for a pubsub
-   * @param topicName topic name
-   */
-  private getMatchingTopic(pubSubSubscriptions: PubSubSubscriptionType, topicName: string): string {
-    // If the topic is directly subscribed to, return it.
-    if (pubSubSubscriptions[topicName]) {
-      return topicName;
-    }
-
-    // Else find if the topic is subscribed to with a wildcard.
-    // We iterate over the topics and check if the topic matches the wildcard.
-    // For #, example topic is `a/b/c` and subscription topic is `a/#`.
-    // For +, example topic is `a/b/c` and subscription topic is `a/+/c`.
-    for (const topic of Object.keys(pubSubSubscriptions)) {
-      if (topic.includes("#") || topic.includes("+")) {
-        const topicRegex = new RegExp(topic.replace(/[#]/g, ".*").replace(/[+]/g, "[^/]*"));
-        if (topicRegex.test(topicName)) {
-          return topic;
-        }
-      }
-    }
-
-    return "";
-  }
-
   async onTopicEvent(
     call: grpc.ServerUnaryCall<TopicEventRequest, TopicEventResponse>,
     callback: grpc.sendUnaryData<TopicEventResponse>,
@@ -247,7 +223,9 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
     const subscription = this.subscriptionManager.getSubscription(pubsub, topic);
     if (!subscription.routes[route]) {
-      this.logger.warn(`Route '${route}' has not been subscribed to topic '${topic}' on pubsub '${pubsub}', ignoring event.`);
+      this.logger.warn(
+        `Route '${route}' has not been subscribed to topic '${topic}' on pubsub '${pubsub}', ignoring event.`,
+      );
       return;
     }
 
@@ -304,7 +282,9 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
     const subscription = this.subscriptionManager.getSubscription(pubsub, topic);
     if (!subscription.routes[route]) {
-      this.logger.warn(`Route '${route}' has not been subscribed to topic '${topic}' on pubsub '${pubsub}', ignoring bulk event.`);
+      this.logger.warn(
+        `Route '${route}' has not been subscribed to topic '${topic}' on pubsub '${pubsub}', ignoring bulk event.`,
+      );
       return;
     }
 

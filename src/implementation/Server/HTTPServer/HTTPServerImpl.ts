@@ -24,7 +24,6 @@ import { BulkSubscribeResponse } from "../../../types/pubsub/BulkSubscribeRespon
 import DaprPubSubStatusEnum from "../../../enum/DaprPubSubStatus.enum";
 import { IncomingHttpHeaders } from "http";
 import { PubSubSubscriptionTopicRouteType } from "../../../types/pubsub/PubSubSubscriptionTopicRoute.type";
-import { getPubSubRoute } from "../../../utils/PubSub.util";
 import { Settings } from "../../../utils/Settings.util";
 
 export default class HTTPServerImpl {
@@ -247,71 +246,71 @@ export default class HTTPServerImpl {
   }
 
   generatePubSubSubscriptionTopicRoutes(
-    pubsubName: string,
-    topic: string,
-    options: PubSubSubscriptionOptionsType = {},
+    _pubsubName: string,
+    _topic: string,
+    _options: PubSubSubscriptionOptionsType = {},
   ): PubSubSubscriptionTopicRoutesType {
     const routes: PubSubSubscriptionTopicRoutesType = {};
 
-    // options.route == DaprPubSubRouteType
-    if (typeof options.route === "object") {
-      // Add default
-      if (options.route.default) {
-        const routeName = this.generatePubSubSubscriptionTopicRouteName(options.route.default);
+    // // options.route == DaprPubSubRouteType
+    // if (typeof options.route === "object") {
+    //   // Add default
+    //   if (options.route.default) {
+    //     const routeName = this.generatePubSubSubscriptionTopicRouteName(options.route.default);
 
-        routes[routeName] = {
-          eventHandlers: [],
-          path: getPubSubRoute(pubsubName, topic, routeName),
-        };
-      }
+    //     routes[routeName] = {
+    //       eventHandlers: [],
+    //       path: getPubSubRoute(pubsubName, topic, routeName),
+    //     };
+    //   }
 
-      // Add rules
-      if (options.route.rules) {
-        for (const rule of options.route.rules) {
-          if (!routes[rule.path]) {
-            const routeName = this.generatePubSubSubscriptionTopicRouteName(rule.path);
+    //   // Add rules
+    //   if (options.route.rules) {
+    //     for (const rule of options.route.rules) {
+    //       if (!routes[rule.path]) {
+    //         const routeName = this.generatePubSubSubscriptionTopicRouteName(rule.path);
 
-            routes[routeName] = {
-              eventHandlers: [],
-              path: getPubSubRoute(pubsubName, topic, routeName),
-            };
-          }
-        }
-      }
-    }
-    // options.route == String | undefined
-    else {
-      const routeName = this.generatePubSubSubscriptionTopicRouteName(options?.route);
+    //         routes[routeName] = {
+    //           eventHandlers: [],
+    //           path: getPubSubRoute(pubsubName, topic, routeName),
+    //         };
+    //       }
+    //     }
+    //   }
+    // }
+    // // options.route == String | undefined
+    // else {
+    //   const routeName = this.generatePubSubSubscriptionTopicRouteName(options?.route);
 
-      routes[routeName] = {
-        eventHandlers: [],
-        path: getPubSubRoute(pubsubName, topic, routeName),
-      };
-    }
+    //   routes[routeName] = {
+    //     eventHandlers: [],
+    //     path: getPubSubRoute(pubsubName, topic, routeName),
+    //   };
+    // }
 
-    // Deadletter Support
-    if (options.deadLetterTopic || options.deadLetterCallback) {
-      const routeName = this.generatePubSubSubscriptionTopicRouteName(
-        options?.deadLetterTopic ?? this.PUBSUB_DEFAULT_ROUTE_NAME_DEADLETTER,
-      );
+    // // Deadletter Support
+    // if (options.deadLetterTopic || options.deadLetterCallback) {
+    //   const routeName = this.generatePubSubSubscriptionTopicRouteName(
+    //     options?.deadLetterTopic ?? this.PUBSUB_DEFAULT_ROUTE_NAME_DEADLETTER,
+    //   );
 
-      // Initialize the route
-      routes[routeName] = {
-        eventHandlers: [],
-        path: getPubSubRoute(pubsubName, topic, routeName),
-      };
+    //   // Initialize the route
+    //   routes[routeName] = {
+    //     eventHandlers: [],
+    //     path: getPubSubRoute(pubsubName, topic, routeName),
+    //   };
 
-      // Add a callback if we have one provided
-      if (options.deadLetterCallback) {
-        routes[routeName].eventHandlers.push(options.deadLetterCallback);
-      }
-    }
+    //   // Add a callback if we have one provided
+    //   if (options.deadLetterCallback) {
+    //     routes[routeName].eventHandlers.push(options.deadLetterCallback);
+    //   }
+    // }
 
     return routes;
   }
 
-  generateDaprSubscriptionRoute(pubsubName: string, topic: string, route?: string): string {
-    return `/${getPubSubRoute(pubsubName, topic, route)}`;
+  generateDaprSubscriptionRoute(_pubsubName: string, _topic: string, _route?: string): string {
+    return ``; // `/${getPubSubRoute(pubsubName, topic, route)}`;
   }
 
   /**
