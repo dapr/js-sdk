@@ -11,9 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { Logger } from "../logger/Logger";
 import { TypeDaprPubSubCallback } from "../types/DaprPubSubCallback.type";
-import { LoggerOptions } from "../types/logger/LoggerOptions";
+import { KeyValueType } from "../types/KeyValue.type";
+import { DaprPubSubType } from "../types/pubsub/DaprPubSub.type";
 import { PubSubSubscriptionOptionsType } from "../types/pubsub/PubSubSubscriptionOptions.type";
 import { PubSubSubscriptionTopicType } from "../types/pubsub/PubSubSubscriptionTopic.type";
 import { PubSubSubscriptionTopicRoutesType } from "../types/pubsub/PubSubSubscriptionTopicRoutes.type";
@@ -24,12 +24,7 @@ import { Settings } from "../utils/Settings.util";
  * SubscriptionManager manages server-side storage and lookup of subscriptions.
  */
 export class SubscriptionManager {
-    private readonly logger: Logger;
     private readonly subscriptions: PubSubSubscriptionsType = {};
-
-    constructor(loggerOptions?: LoggerOptions) {
-        this.logger = new Logger("PubSub", "SubscriptionManager", loggerOptions)
-    }
 
     /**
      * Check if pubsub is registered.
@@ -124,21 +119,26 @@ export class SubscriptionManager {
     }
 
     /**
-     * Get route details to callback when a topic event is received.
+     * Lookup the topic and route for a given pubsub, topic (with wilcard support) and path.
+     * If not found, topic is empty.
      * @param pubsub name of the pubsub component
      * @param topic name of the topic
      * @param path path from the event
+     * @returns the topic and route
      */
-    public getRouteForTopicEvents(pubsub: string, topic: string, path: string): string {
+    public lookupTopicWilcard(pubsub: string, topic: string, path: string): [string, string] {
         if (!this.isPubSubRegistered(pubsub)) {
-            this.logger.warn(`PubSub '${pubsub}' has not been subscribed to, ignoring event`);
-            return "";
+            return ["", ""];
         }
 
         const matchingTopic = this.getMatchingTopic(pubsub, topic);
-        const route = this.getRouteFromPath(pubsub, matchingTopic, path);
+        if (matchingTopic == "") {
+            return ["", ""];
+        }
 
-        return "";
+        const route = this.getSanitizedRouteWithDefault(this.getRouteFromPath(pubsub, matchingTopic, path));
+
+        return [matchingTopic, route]
     }
 
     /**
@@ -155,7 +155,8 @@ export class SubscriptionManager {
     }
 
     /**
-     * getMatchingTopic returns true if the topic is registered to the pubsub.
+     * getMatchingTopic returns the topic that matches the provided topic.
+     * If no topic matches, an empty string is returned.
      * Note that the pubsub might be subscribed to wildcard topics with identifiers like `#` or `+`.
      * @param pubsub name of the pubsub component
      * @param topic name of the topic
@@ -269,5 +270,57 @@ export class SubscriptionManager {
         }
 
         return routes;
+    }
+
+    /**
+     * Generate the subscription object queried by the Dapr sidecar on startup.
+     * This is used to inform the Dapr sidecar of the subscriptions and how to route events.
+     * 
+     * Important: we internally translate the provided /example to -> /<pubsubname>-<topic>-example
+     *            or if empty to /<pubsubname>-<topic>-default
+     *            this is to ensure that HTTP Server endpoints are unique.
+     * @param pubsub name of the pubsub component
+     * @param topic name of the topic   
+     * @param options subscription options
+     */
+    private generateDaprSubscription(pubsub: string, topic: string, options: PubSubSubscriptionOptionsType = {}): DaprPubSubType {
+        // Construct the metadata object
+        let metadata: KeyValueType | undefined;
+        if (options.metadata) {
+            metadata = {};
+            for (const [key, value] of Object.entries(options.metadata)) {
+                metadata[key] = JSON.stringify(value);
+            }
+        }
+
+        // options.route is typeof DaprPubSubRouteType
+        if (typeof options.route === "object") {
+            const routes = {
+                default: this.generatePubSubPath(pubsub, topic, options.route.default),
+                rules: options.route.rules?.map((rule) => ({
+                    match: rule.match,
+                    path: this.generatePubSubPath(pubsub, topic, rule.path),
+                })),
+            }
+            return {
+                pubsubname: pubsub,
+                topic: topic,
+                metadata: metadata,
+                routes: routes,
+                deadLetterTopic: options.deadLetterTopic,
+                bulkSubscribe: options.bulkSubscribe,
+            };
+        }
+        // options.route is typeof string or undefined
+        else {
+            return {
+                pubsubname: pubsub,
+                topic: topic,
+                metadata: metadata,
+                route: this.generatePubSubPath(pubsub, topic, options.route),
+                deadLetterTopic: options.deadLetterTopic,
+                bulkSubscribe: options.bulkSubscribe,
+            };
+        }
     }
 }

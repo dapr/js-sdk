@@ -40,7 +40,6 @@ import { Logger } from "../../../logger/Logger";
 import { LoggerOptions } from "../../../types/logger/LoggerOptions";
 import { PubSubSubscriptionOptionsType } from "../../../types/pubsub/PubSubSubscriptionOptions.type";
 import { IServerType } from "./GRPCServer";
-import { DaprPubSubType } from "../../../types/pubsub/DaprPubSub.type";
 import { DaprInvokerCallbackFunction } from "../../../types/DaprInvokerCallback.type";
 import { PubSubSubscriptionTopicRouteType } from "../../../types/pubsub/PubSubSubscriptionTopicRoute.type";
 import DaprPubSubStatusEnum from "../../../enum/DaprPubSubStatus.enum";
@@ -52,7 +51,6 @@ import { SubscriptionManager } from "../../../pubsub/subscriptionManager";
 // https://github.com/badsyntax/grpc-js-typescript/issues/1#issuecomment-705419742
 // @ts-ignore
 export default class GRPCServerImpl implements IAppCallbackServer {
-  private readonly PUBSUB_DEFAULT_ROUTE_NAME_DEADLETTER = "deadletter";
   private readonly logger: Logger;
   private readonly subscriptionManager: SubscriptionManager;
 
@@ -119,72 +117,6 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
   generatePubSubSubscriptionTopicRouteName(route?: string): string {
     return (route || Settings.getDefaultPubSubRouteName()).replace("/", "");
-  }
-
-  /**
-   * Generate a subscription object that will be used in the /dapr/subscribe endpoint
-   * this will let dapr know that we have subscriptions and how they map to routes / deadletter
-   *
-   * Important: we internally translate the provided /example to -> /<pubsubname>-<topic>-example
-   *            or if empty to /<pubsubname>-<topic>-default
-   *            this is to ensure that HTTP Server endpoints are unique
-   *
-   * @param pubsubName
-   * @param topic
-   * @param options
-   * @returns
-   */
-  generateDaprPubSubSubscription(
-    pubsubName: string,
-    topic: string,
-    options: PubSubSubscriptionOptionsType = {},
-  ): DaprPubSubType {
-    // Process metadata
-    let metadata: { [key: string]: any } | undefined;
-
-    if (options.metadata) {
-      metadata = {};
-
-      for (const [key, value] of Object.entries(options.metadata)) {
-        metadata[key] = JSON.stringify(value);
-      }
-    }
-
-    // Process the route
-    if (!options || !options?.route) {
-      return {
-        pubsubname: pubsubName,
-        topic: topic,
-        metadata: metadata,
-        route: this.generateDaprSubscriptionRoute(pubsubName, topic),
-        deadLetterTopic: options.deadLetterTopic,
-        bulkSubscribe: options.bulkSubscribe,
-      };
-    } else if (typeof options.route === "string") {
-      return {
-        pubsubname: pubsubName,
-        topic: topic,
-        metadata: metadata,
-        route: this.generateDaprSubscriptionRoute(pubsubName, topic, options.route),
-        deadLetterTopic: options.deadLetterTopic,
-        bulkSubscribe: options.bulkSubscribe,
-      };
-    } else {
-      return {
-        pubsubname: pubsubName,
-        topic: topic,
-        metadata: metadata,
-        routes: options.route && {
-          default: this.generateDaprSubscriptionRoute(pubsubName, topic, options.route?.default),
-          rules: options.route?.rules?.map((rule) => ({
-            match: rule.match,
-            path: this.generateDaprSubscriptionRoute(pubsubName, topic, rule.path),
-          })),
-        },
-        deadLetterTopic: options.deadLetterTopic,
-        bulkSubscribe: options.bulkSubscribe,
-      };
-    }
   }
 
   registerInputBindingHandler(bindingName: string, cb: DaprInvokerCallbackFunction): void {
@@ -301,26 +233,21 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     callback: grpc.sendUnaryData<TopicEventResponse>,
   ): Promise<void> {
     const req = call.request;
-
-    const pubsubName = req.getPubsubName();
-    if (!this.pubSubSubscriptions[pubsubName]) {
-      this.logger.warn(`The PubSub '${pubsubName}' has not being subscribed to.`);
+    const pubsub = req.getPubsubName();
+    if (!this.subscriptionManager.isPubSubRegistered(pubsub)) {
+      this.logger.warn(`PubSub '${pubsub}' has not been registered, ignoring event.`);
       return;
     }
 
-    const pubSubSubscriptionObj = this.pubSubSubscriptions[pubsubName];
-    const topic = this.getMatchingTopic(pubSubSubscriptionObj, req.getTopic());
+    const [topic, route] = this.subscriptionManager.lookupTopicWilcard(pubsub, req.getTopic(), req.getPath());
+    if (topic == "") {
+      this.logger.warn(`Topic '${topic}' has not been subscribed to pubsub '${pubsub}', ignoring event.`);
+      return;
+    }
 
-    // Route is unique to pubsub and topic and has format pubsub--topic--route so we strip it since else we can't find the route
-    const route = this.generatePubSubSubscriptionTopicRouteName(req.getPath().replace(`${pubsubName}--${topic}--`, ""));
-
-    if (
-      !topic ||
-      !pubSubSubscriptionObj[topic].routes[route]
-    ) {
-      this.logger.warn(
-        `The topic '${topic}' is not being subscribed to on PubSub '${pubsubName}' for route '${route}'.`,
-      );
+    const subscription = this.subscriptionManager.getSubscription(pubsub, topic);
+    if (!subscription.routes[route]) {
+      this.logger.warn(`Route '${route}' has not been subscribed to topic '${topic}' on pubsub '${pubsub}', ignoring event.`);
       return;
     }
 
@@ -339,7 +266,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
     // Process the callbacks
     // we handle priority of status on `RETRY` > `DROP` > `SUCCESS` and default to `SUCCESS`
-    const routeObj = this.pubSubSubscriptions[pubsubName][topic].routes[route];
+    const routeObj = subscription.routes[route];
     const status = await this.processPubSubCallbacks(routeObj, data, headers);
 
     switch (status) {
@@ -363,20 +290,21 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     callback: grpc.sendUnaryData<TopicEventBulkResponse>,
   ): Promise<void> {
     const req = call.request;
-    const pubsubName = req.getPubsubName();
-    const topic = req.getTopic();
+    const pubsub = req.getPubsubName();
+    if (!this.subscriptionManager.isPubSubRegistered(pubsub)) {
+      this.logger.warn(`PubSub '${pubsub}' has not been registered, ignoring bulk event.`);
+      return;
+    }
 
-    // Route is unique to pubsub and topic and has format pubsub--topic--route so we strip it since else we can't find the route
-    const route = this.generatePubSubSubscriptionTopicRouteName(req.getPath().replace(`${pubsubName}--${topic}--`, ""));
+    const [topic, route] = this.subscriptionManager.lookupTopicWilcard(pubsub, req.getTopic(), req.getPath());
+    if (topic == "") {
+      this.logger.warn(`Topic '${topic}' has not been subscribed to pubsub '${pubsub}', ignoring bulk event.`);
+      return;
+    }
 
-    if (
-      !this.pubSubSubscriptions[pubsubName] ||
-      !this.pubSubSubscriptions[pubsubName][topic] ||
-      !this.pubSubSubscriptions[pubsubName][topic].routes[route]
-    ) {
-      this.logger.warn(
-        `The topic '${topic}' is not being subscribed to on PubSub '${pubsubName}' for route '${route}'.`,
-      );
+    const subscription = this.subscriptionManager.getSubscription(pubsub, topic);
+    if (!subscription.routes[route]) {
+      this.logger.warn(`Route '${route}' has not been subscribed to topic '${topic}' on pubsub '${pubsub}', ignoring bulk event.`);
       return;
     }
 
@@ -408,7 +336,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
       // Process the callbacks
       // we handle priority of status on `RETRY` > `DROP` > `SUCCESS` and default to `SUCCESS`
-      const routeObj = this.pubSubSubscriptions[pubsubName][topic].routes[route];
+      const routeObj = subscription.routes[route];
       const status = await this.processPubSubCallbacks(routeObj, data, headers);
 
       switch (status) {
