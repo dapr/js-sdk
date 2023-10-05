@@ -26,6 +26,7 @@ export class Settings {
   private static readonly defaultKeepAlive: boolean = true;
   private static readonly defaultStateGetBulkParallelism: number = 10;
   private static readonly defaultPubSubRouteName = "default";
+  private static readonly defaultPubSubDeadLetterRouteName = "deadletter";
 
   private static readonly daprSidecarPollingDelayMs: number = 500;
   private static readonly daprSidecarStartupTimeoutMs: number = 10 * 1000;
@@ -112,5 +113,9 @@ export class Settings {
 
   static getDefaultPubSubRouteName(): string {
     return Settings.defaultPubSubRouteName;
+  }
+
+  static getDefaultPubSubDeadLetterRouteName(): string {
+    return Settings.defaultPubSubDeadLetterRouteName;
   }
 }

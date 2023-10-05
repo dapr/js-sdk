@@ -152,3 +152,5 @@ src/version.ts
 # JetBrains
 /.idea
 
+# PNPM
+pnpm-lock.yaml
