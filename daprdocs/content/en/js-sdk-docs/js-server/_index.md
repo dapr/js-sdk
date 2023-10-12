@@ -410,7 +410,7 @@ async function start() {
 
 #### Susbcribe with Wildcards
 
-The popular wildcards `*` and `+` are supported and can be subscribed to as follows:
+The popular wildcards `*` and `+` are supported (make sure to validate if the [pubsub component supports it](https://docs.dapr.io/reference/components-reference/supported-pubsub/)) and can be subscribed to as follows:
 
 ```typescript
 import { DaprServer } from "@dapr/dapr";
