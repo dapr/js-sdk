@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import express from "express";
-import HTTPServerImpl from "../../../src/implementation/Server/HTTPServer/HTTPServerImpl";
+import HTTPServerImpl from "../../../../src/implementation/Server/HTTPServer/HTTPServerImpl";
 
 describe("HttpServerImpl", () => {
   const server = new HTTPServerImpl(express());

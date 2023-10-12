@@ -11,9 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import HTTPClient from "../../../src/implementation/Client/HTTPClient/HTTPClient";
-import { PropertyRequiredError } from "../../../src/errors/PropertyRequiredError";
-import HTTPClientWorkflow from "../../../src/implementation/Client/HTTPClient/workflow";
+import HTTPClient from "../../../../src/implementation/Client/HTTPClient/HTTPClient";
+import { PropertyRequiredError } from "../../../../src/errors/PropertyRequiredError";
+import HTTPClientWorkflow from "../../../../src/implementation/Client/HTTPClient/workflow";
 import { randomUUID } from "crypto";
 
 describe("workflow", () => {
