@@ -16,13 +16,13 @@ import GRPCServerImpl from "../../../../src/implementation/Server/GRPCServer/GRP
 describe("GRPCServerImpl", () => {
   const mockLogWarn = jest.fn();
 
-  let customLoggerService = {
+  const customLoggerService = {
     service: {
-      error: () => {},
+      error: () => jest.fn(),
       warn: mockLogWarn,
-      info: () => {},
-      verbose: () => {},
-      debug: () => {},
+      info: () => jest.fn(),
+      verbose: () => jest.fn(),
+      debug: () => jest.fn(),
     },
   };
 
