@@ -658,7 +658,7 @@ describe("common/server", () => {
 
     runIt(
       "should not allow registering a topic if it is not subscribed to",
-      async (server: DaprServer, protocol: string) => {
+      async (server: DaprServer, _protocol: string) => {
         const eh = jest.fn(async (_data: object) => null);
 
         let isThrown = false;
