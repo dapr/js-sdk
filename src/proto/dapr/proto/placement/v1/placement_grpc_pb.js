@@ -42,7 +42,8 @@ function deserialize_dapr_proto_placement_v1_PlacementOrder(buffer_arg) {
 
 // Placement service is used to report Dapr runtime host status.
 var PlacementService = exports.PlacementService = {
-  reportDaprStatus: {
+  // Reports Dapr actor status and retrieves actor placement table.
+reportDaprStatus: {
     path: '/dapr.proto.placement.v1.Placement/ReportDaprStatus',
     requestStream: true,
     responseStream: true,

@@ -42,7 +42,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
 
     try {
       const result = await this.client.executeWithApiVersion(
-        "v1.0-alpha1",
+        "v1.0-beta1",
         `/workflows/${workflowComponent}/${instanceID}`,
         { method: "GET" },
       );
@@ -97,7 +97,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
 
     try {
       await this.client.executeWithApiVersion(
-        "v1.0-alpha1",
+        "v1.0-beta1",
         `/workflows/${workflowComponent}/${workflowName}/start?${queryParams}`,
         {
           method: "POST",
@@ -139,7 +139,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
 
     try {
       await this.client.executeWithApiVersion(
-        "v1.0-alpha1",
+        "v1.0-beta1",
         `/workflows/${workflowComponent}/${instanceId}/raiseEvent/${eventName}`,
         {
           method: "POST",
@@ -182,7 +182,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
 
     try {
       await this.client.executeWithApiVersion(
-        "v1.0-alpha1",
+        "v1.0-beta1",
         `/workflows/${workflowComponent}/${instanceId}/${method}`,
         { method: "POST" },
       );
