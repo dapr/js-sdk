@@ -42,7 +42,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
 
     try {
       const result = await this.client.executeWithApiVersion(
-        "v1.0-alpha1",
+        "v1.0-beta1",
         `/workflows/${workflowComponent}/${instanceID}`,
         { method: "GET" },
       );
@@ -97,7 +97,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
 
     try {
       await this.client.executeWithApiVersion(
-        "v1.0-alpha1",
+        "v1.0-beta1",
         `/workflows/${workflowComponent}/${workflowName}/start?${queryParams}`,
         {
           method: "POST",
@@ -139,7 +139,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
 
     try {
       await this.client.executeWithApiVersion(
-        "v1.0-alpha1",
+        "v1.0-beta1",
         `/workflows/${workflowComponent}/${instanceId}/raiseEvent/${eventName}`,
         {
           method: "POST",
@@ -181,11 +181,9 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     workflowComponent = workflowComponent ?? HTTPClientWorkflow.DEFAULT_WORKFLOW_COMPONENT;
 
     try {
-      await this.client.executeWithApiVersion(
-        "v1.0-alpha1",
-        `/workflows/${workflowComponent}/${instanceId}/${method}`,
-        { method: "POST" },
-      );
+      await this.client.executeWithApiVersion("v1.0-beta1", `/workflows/${workflowComponent}/${instanceId}/${method}`, {
+        method: "POST",
+      });
     } catch (e: any) {
       this.logger.error(`Error invoking ${method} on workflow instance: ${e.message}`);
       throw e;

@@ -13,7 +13,13 @@
 
 var jspb = require('google-protobuf');
 var goog = jspb;
-var global = (function() { return this || window || global || self || Function('return this')(); }).call(null);
+var global =
+    (typeof globalThis !== 'undefined' && globalThis) ||
+    (typeof window !== 'undefined' && window) ||
+    (typeof global !== 'undefined' && global) ||
+    (typeof self !== 'undefined' && self) ||
+    (function () { return this; }).call(null) ||
+    Function('return this')();
 
 var dapr_proto_common_v1_common_pb = require('../../../../dapr/proto/common/v1/common_pb.js');
 goog.object.extend(proto, dapr_proto_common_v1_common_pb);
@@ -501,7 +507,8 @@ proto.dapr.proto.internals.v1.InternalInvokeRequest.prototype.getMetadataMap = f
  */
 proto.dapr.proto.internals.v1.InternalInvokeRequest.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;};
+  return this;
+};
 
 
 /**
@@ -784,7 +791,8 @@ proto.dapr.proto.internals.v1.InternalInvokeResponse.prototype.getHeadersMap = f
  */
 proto.dapr.proto.internals.v1.InternalInvokeResponse.prototype.clearHeadersMap = function() {
   this.getHeadersMap().clear();
-  return this;};
+  return this;
+};
 
 
 /**
@@ -806,7 +814,8 @@ proto.dapr.proto.internals.v1.InternalInvokeResponse.prototype.getTrailersMap = 
  */
 proto.dapr.proto.internals.v1.InternalInvokeResponse.prototype.clearTrailersMap = function() {
   this.getTrailersMap().clear();
-  return this;};
+  return this;
+};
 
 
 /**

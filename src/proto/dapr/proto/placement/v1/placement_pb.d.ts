@@ -105,6 +105,10 @@ export class Host extends jspb.Message {
     addEntities(value: string, index?: number): string;
     getId(): string;
     setId(value: string): Host;
+    getPod(): string;
+    setPod(value: string): Host;
+    getApiLevel(): number;
+    setApiLevel(value: number): Host;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Host.AsObject;
@@ -123,5 +127,7 @@ export namespace Host {
         load: number,
         entitiesList: Array<string>,
         id: string,
+        pod: string,
+        apiLevel: number,
     }
 }
