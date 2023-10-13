@@ -15,7 +15,6 @@ import * as grpc from "@grpc/grpc-js";
 import { CommunicationProtocolEnum, DaprClient, LogLevel } from "../../../src";
 import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runtime/v1/dapr_grpc_pb";
 import { Empty } from "google-protobuf/google/protobuf/empty_pb";
-import { InterceptingListener } from "@grpc/grpc-js/build/src/call-stream";
 import { NextCall } from "@grpc/grpc-js/build/src/client-interceptors";
 
 const daprHost = "localhost";
@@ -38,8 +37,8 @@ describe("grpc/client with api token", () => {
       return new grpc.InterceptingCall(nextCall(options), {
         start: function (
           metadata: grpc.Metadata,
-          listener: InterceptingListener,
-          next: (metadata: grpc.Metadata, listener: InterceptingListener | grpc.Listener) => void,
+          listener: grpc.InterceptingListener,
+          next: (metadata: grpc.Metadata, listener: grpc.InterceptingListener | grpc.Listener) => void,
         ) {
           mockMetadataRes = metadata;
           next(metadata, listener);
