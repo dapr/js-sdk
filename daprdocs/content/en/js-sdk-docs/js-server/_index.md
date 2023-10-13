@@ -408,6 +408,45 @@ async function start() {
 }
 ```
 
+#### Susbcribe with Wildcards
+
+The popular wildcards `*` and `+` are supported (make sure to validate if the [pubsub component supports it](https://docs.dapr.io/reference/components-reference/supported-pubsub/)) and can be subscribed to as follows:
+
+```typescript
+import { DaprServer } from "@dapr/dapr";
+
+const daprHost = "127.0.0.1"; // Dapr Sidecar Host
+const daprPort = "3500"; // Dapr Sidecar Port of this Example Server
+const serverHost = "127.0.0.1"; // App Host of this Example Server
+const serverPort = "50051"; // App Port of this Example Server "
+
+async function start() {
+  const server = new DaprServer({
+    serverHost,
+    serverPort,
+    clientOptions: {
+      daprHost,
+      daprPort,
+    },
+  });
+
+  const pubSubName = "my-pubsub-name";
+
+  // * Wildcard
+  await server.pubsub.subscribe(pubSubName, "/events/*", async (data: any, headers: object) =>
+    console.log(`Received Data: ${JSON.stringify(data)}`),
+  );
+
+  // + Wildcard
+  await server.pubsub.subscribe(pubSubName, "/events/+/temperature", async (data: any, headers: object) =>
+    console.log(`Received Data: ${JSON.stringify(data)}`),
+  );
+
+  // Start the server
+  await server.start();
+}
+```
+
 #### Bulk Subscribe to messages
 
 Bulk Subscription is supported and is available through following API:

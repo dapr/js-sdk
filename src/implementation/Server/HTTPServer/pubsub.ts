@@ -129,6 +129,6 @@ export default class HTTPServerPubSub implements IServerPubSub {
   }
 
   getSubscriptions(): PubSubSubscriptionsType {
-    return this.server.getServerImpl().pubSubSubscriptions;
+    return this.server.getServerImpl().getSubscriptions();
   }
 }
