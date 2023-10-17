@@ -22,6 +22,7 @@ import DemoActorCounterImpl from "../../actor/DemoActorCounterImpl";
 import DemoActorCounterInterface from "../../actor/DemoActorCounterInterface";
 import DemoActorReminderImpl from "../../actor/DemoActorReminderImpl";
 import DemoActorReminder2Impl from "../../actor/DemoActorReminder2Impl";
+import DemoActorReminderOnceImpl from "../../actor/DemoActorReminderOnceImpl";
 import DemoActorReminderInterface from "../../actor/DemoActorReminderInterface";
 import DemoActorSayImpl from "../../actor/DemoActorSayImpl";
 import DemoActorSayInterface from "../../actor/DemoActorSayInterface";
@@ -82,6 +83,7 @@ describe("http/actors", () => {
     await server.actor.registerActor(DemoActorSayImpl);
     await server.actor.registerActor(DemoActorReminderImpl);
     await server.actor.registerActor(DemoActorReminder2Impl);
+    await server.actor.registerActor(DemoActorReminderOnceImpl);
     await server.actor.registerActor(DemoActorTimerImpl);
     await server.actor.registerActor(DemoActorActivateImpl);
     await server.actor.registerActor(DemoActorTimerTtlImpl);
@@ -379,5 +381,31 @@ describe("http/actors", () => {
       const res2 = await actor.getCounter();
       expect(res2).toEqual(123);
     });
+
+    it("should only fire once when period is not set to a reminder", async () => {
+      const builder = new ActorProxyBuilder<DemoActorReminderInterface>(DemoActorReminderOnceImpl, client);
+      const actor = builder.build(ActorId.createRandomId());
+
+      // Activate our actor
+      // this will initialize the reminder to be called
+      await actor.init();
+
+      const res0 = await actor.getCounter();
+      expect(res0).toEqual(0);
+
+      // Now we wait for dueTime (1.5s)
+      await NodeJSUtil.sleep(1500);
+
+      // After that the reminder callback will be called
+      // In our case, the callback increments the count attribute
+      const res1 = await actor.getCounter();
+      expect(res1).toEqual(100);
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Make sure the counter didn't change
+      const res2 = await actor.getCounter();
+      expect(res2).toEqual(100);
+    }, 5000);
   });
 });
