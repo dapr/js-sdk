@@ -17,6 +17,7 @@ export default class ActorId {
   private readonly id: string;
 
   constructor(id: string) {
+    if (id.match(/\//)) throw new Error("ActorId cannot contain '/'");
     this.id = id;
   }
 

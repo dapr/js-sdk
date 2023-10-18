@@ -119,6 +119,18 @@ describe("http/actors", () => {
     });
   });
 
+  describe("actorId", () => {
+    it("should be able to create an actorId", () => {
+      const actorId = ActorId.createRandomId();
+      expect(actorId.getId()).toBeDefined();
+      expect(actorId.toString()).toBeDefined();
+    });
+
+    it("should not be able to create an actorId with a slash", () => {
+      expect(() => new ActorId("test/test")).toThrowError("ActorId cannot contain '/'");
+    });
+  })
+
   describe("actorProxy", () => {
     it("should be able to create an actor object through the proxy", async () => {
       const builder = new ActorProxyBuilder<DemoActorCounterInterface>(DemoActorCounterImpl, client);
