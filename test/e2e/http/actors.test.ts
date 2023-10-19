@@ -126,6 +126,10 @@ describe("http/actors", () => {
       expect(actorId.toString()).toBeDefined();
     });
 
+    it("should not be able to create an actorId with an empty string", () => {
+      expect(() => new ActorId("")).toThrowError("ActorId cannot be empty");
+    });
+
     it("should not be able to create an actorId with a slash", () => {
       expect(() => new ActorId("test/test")).toThrowError("ActorId cannot contain '/'");
     });
