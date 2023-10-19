@@ -17,7 +17,9 @@ export default class ActorId {
   private readonly id: string;
 
   constructor(id: string) {
-    if (!id) throw new Error("ActorId cannot be empty");
+    if (!id) {
+        throw new Error("ActorId cannot be empty");
+    }
     this.id = encodeURIComponent(id);
   }
 
