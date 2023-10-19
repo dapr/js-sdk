@@ -17,9 +17,8 @@ export default class ActorId {
   private readonly id: string;
 
   constructor(id: string) {
-    if(id==='') throw new Error("ActorId cannot be empty")
-    if (id.match(/\//)) throw new Error("ActorId cannot contain '/'");
-    this.id = id;
+    if (id === "") throw new Error("ActorId cannot be empty");
+    this.id = encodeURIComponent(id);
   }
 
   static createRandomId(): ActorId {
@@ -27,10 +26,10 @@ export default class ActorId {
   }
 
   getId() {
-    return this.id;
+    return decodeURIComponent(this.id);
   }
 
   toString() {
-    return this.id;
+    return decodeURIComponent(this.id);
   }
 }

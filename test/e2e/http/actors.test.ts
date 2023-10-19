@@ -130,10 +130,12 @@ describe("http/actors", () => {
       expect(() => new ActorId("")).toThrowError("ActorId cannot be empty");
     });
 
-    it("should not be able to create an actorId with a slash", () => {
-      expect(() => new ActorId("test/test")).toThrowError("ActorId cannot contain '/'");
+    it("should be able to create an actorId with url unsafe characters like '/'", () => {
+      const actorId = new ActorId("test/actor");
+      expect(actorId.getId()).toEqual("test/actor");
+      expect(actorId.toString()).toEqual("test/actor");
     });
-  })
+  });
 
   describe("actorProxy", () => {
     it("should be able to create an actor object through the proxy", async () => {
