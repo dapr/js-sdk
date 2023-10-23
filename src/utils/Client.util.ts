@@ -31,6 +31,7 @@ import { LoggerOptions } from "../types/logger/LoggerOptions";
 import { StateConsistencyEnum } from "../enum/StateConsistency.enum";
 import { StateConcurrencyEnum } from "../enum/StateConcurrency.enum";
 import { URL, URLSearchParams } from "url";
+
 /**
  * Adds metadata to a map.
  * @param map Input map
@@ -340,4 +341,219 @@ export function parseEndpoint(address: string): EndpointTuple {
   }
 
   return [scheme, fqdn, port];
+}
+
+
+/**
+ * Examples:
+ *  - http://localhost:3500 -> [http, localhost, 3500]
+ *  - localhost:3500 -> [http, localhost, 3500]
+ *  - :3500 -> [http, localhost, 3500]
+ *  - localhost -> [http, localhost, 80]
+ *  - https://localhost:3500 -> [https, localhost, 3500]
+ *  - [::1]:3500 -> [http, ::1, 3500]
+ *  - [::1] -> [http, ::1, 80]
+ *  - http://[2001:db8:1f70:0:999:de8:7648:6e8]:5000 -> [http, 2001:db8:1f70:0:999:de8:7648:6e8, 5000]
+ */
+
+
+class URIParseConfig {
+    static readonly DEFAULT_SCHEME = "dns";
+    static readonly DEFAULT_HOSTNAME = "localhost";
+    static readonly DEFAULT_PORT = 443;
+    static readonly DEFAULT_AUTHORITY = "";
+    static readonly ACCEPTED_SCHEMES = ["dns", "unix", "unix-abstract", "vsock", "http", "https", "grpc", "grpcs"];
+}
+
+export class GrpcEndpoint {
+    private _scheme: string = "";
+    private _hostname: string = "";
+    private _port: number = 0;
+    private _tls: boolean = false;
+    private _authority: string;
+    private _url: string;
+    private _parsedUrl: URL;
+    private _endpoint: string = "";
+
+    constructor(url: string) {
+        this._authority = URIParseConfig.DEFAULT_AUTHORITY;
+        this._url = url;
+
+        this._parsedUrl = new URL(this._preprocessUri(url));
+        this.validatePathAndQuery();
+
+        this.setTls();
+        this.setHostname();
+        this.setScheme();
+        this.setPort();
+        this.setEndpoint();
+    }
+
+    private _preprocessUri(url: string): string {
+        let urlList = url.split(":");
+
+        if (urlList.length === 3 && !url.includes("://")) {
+            // A URI like dns:mydomain:5000 or vsock:mycid:5000 was used
+            url = url.replace(":", "://");
+        } else if (urlList.length >= 2 && !url.includes("://") && URIParseConfig.ACCEPTED_SCHEMES.includes(urlList[0])) {
+            // A URI like dns:mydomain was used
+            url = url.replace(":", "://");
+        } else {
+            urlList = url.split("://");
+            if (urlList.length === 1) {
+                // If a scheme was not explicitly specified in the URL
+                // we need to add a default scheme,
+                // because of how URL works in JavaScript
+
+                // We also need to check if the provided uri is not of the form :5000
+                // if it is, we need to add a default hostname, because the URL class can't parse it
+                if (url[0] === ':') {
+                  url = `${URIParseConfig.DEFAULT_SCHEME}://${URIParseConfig.DEFAULT_HOSTNAME}${url}`;
+                } else {
+                  url = `${URIParseConfig.DEFAULT_SCHEME}://${url}`;
+                }
+
+            } else {
+                // If a scheme was explicitly specified in the URL
+                // we need to make sure it is a valid scheme
+                const scheme = urlList[0];
+                if (!URIParseConfig.ACCEPTED_SCHEMES.includes(scheme)) {
+                    throw new Error(`Invalid scheme '${scheme}' in URL '${url}'`);
+                }
+
+                // We should do a special check if the scheme is dns, and it uses
+                // an authority in the format of dns:[//authority/]host[:port]
+                if (scheme.toLowerCase() === "dns") {
+                    // A URI like dns://authority/mydomain was used
+                    urlList = url.split("/");
+                    if (urlList.length < 4) {
+                        throw new Error(`Invalid dns authority '${urlList[2]}' in URL '${url}'`);
+                    }
+                    this._authority = urlList[2];
+                    url = `dns://${urlList[3]}`;
+                }
+            }
+        }
+        return url;
+    }
+
+    private validatePathAndQuery(): void {
+        if (this._parsedUrl.pathname && this._parsedUrl.pathname !== '/') {
+          throw new Error(`Paths are not supported for gRPC endpoints: '${this._parsedUrl.pathname}'`);
+        }
+
+        const params = new URLSearchParams(this._parsedUrl.search);
+        if (params.has('tls') && (this._parsedUrl.protocol === 'http:' || this._parsedUrl.protocol === 'https:')) {
+          throw new Error(`The tls query parameter is not supported for http(s) endpoints: '${this._parsedUrl.search}'`);
+        }
+
+        params.delete('tls');
+        if (Array.from(params.keys()).length > 0) {
+          throw new Error(`Query parameters are not supported for gRPC endpoints: '${this._parsedUrl.search}'`);
+        }
+      }
+
+    private setTls(): void {
+        const params = new URLSearchParams(this._parsedUrl.search);
+        const tlsStr = params.get('tls') || "";
+        this._tls = tlsStr.toLowerCase() === 'true';
+
+        if (this._parsedUrl.protocol == "https:"){
+            this._tls = true;
+        }
+    }
+
+    get tls(): boolean {
+        return this._tls;
+    }
+
+    private setHostname(): void {
+        if (!this._parsedUrl.hostname) {
+            this._hostname = URIParseConfig.DEFAULT_HOSTNAME;
+            return;
+        }
+
+
+        this._hostname = this._parsedUrl.hostname;
+    }
+
+    get hostname(): string {
+        return this._hostname;
+    }
+
+    private setScheme(): void {
+        if (!this._parsedUrl.protocol) {
+            this._scheme = URIParseConfig.DEFAULT_SCHEME;
+            return;
+        }
+
+        const scheme = this._parsedUrl.protocol.slice(0, -1); // Remove trailing ':'
+        if (scheme === 'http' || scheme === 'https') {
+            this._scheme = URIParseConfig.DEFAULT_SCHEME;
+            console.warn("http and https schemes are deprecated, use grpc or grpcs instead");
+            return;
+        }
+
+        if (!URIParseConfig.ACCEPTED_SCHEMES.includes(scheme)) {
+            throw new Error(`Invalid scheme '${scheme}' in URL '${this._url}'`);
+        }
+
+        this._scheme = scheme;
+    }
+
+    get scheme(): string {
+        return this._scheme;
+    }
+
+    private setPort(): void {
+        if (this._scheme === 'unix' || this._scheme === 'unix-abstract') {
+            this._port = 0;
+            return;
+        }
+
+        this._port = this._parsedUrl.port ? parseInt(this._parsedUrl.port) : URIParseConfig.DEFAULT_PORT;
+    }
+
+    get port(): string {
+        return this._port === 0 ? '' : this._port.toString();
+    }
+
+    get portAsInt(): number {
+        return this._port;
+    }
+
+    private setEndpoint(): void {
+        let port = this._port ? `:${this.port}` : "";
+
+        if (this._scheme === "unix") {
+            const separator = this._url.startsWith("unix://") ? "://" : ":";
+            this._endpoint = `${this._scheme}${separator}${this._hostname}`;
+            return;
+        }
+
+        if (this._scheme === "vsock") {
+            this._endpoint = `${this._scheme}:${this._hostname}:${this.port}`;
+            return;
+        }
+
+        if (this._scheme === "unix-abstract") {
+            this._endpoint = `${this._scheme}:${this._hostname}${port}`;
+            return;
+        }
+
+        if (this._scheme === "dns") {
+            const authority = this._authority ? `//${this._authority}/` : "";
+            this._endpoint = `${this._scheme}:${authority}${this._hostname}${port}`;
+            return;
+        }
+
+        this._endpoint = `${this._scheme}:${this._hostname}${port}`;
+    }
+
+
+    get endpoint(): string {
+        return this._endpoint;
+    }
+
+
 }

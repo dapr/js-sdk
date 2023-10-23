@@ -19,8 +19,7 @@ import {
   getBulkPublishEntries,
   getBulkPublishResponse,
   getClientOptions,
-  createHTTPQueryParam,
-  parseEndpoint,
+  createHTTPQueryParam, GrpcEndpoint,
 } from "../../../src/utils/Client.util";
 import { Map } from "google-protobuf";
 import { PubSubBulkPublishEntry } from "../../../src/types/pubsub/PubSubBulkPublishEntry.type";
@@ -409,383 +408,353 @@ describe("Client.util", () => {
     });
   });
 
-  describe("parseEndpoint", () => {
+  describe("parseGRPCEndpoint", () => {
     const testCases = [
-      { endpoint: ":5000", scheme: "http", host: "localhost", port: "5000" },
+      // Port only
       {
-        endpoint: ":5000/v1/dapr",
-        scheme: "http",
+        url: ":5000",
+        error: false,
+        secure: false,
+        scheme: "",
         host: "localhost",
-        port: "5000",
-      },
-
-      { endpoint: "localhost", scheme: "http", host: "localhost", port: "80" },
-      {
-        endpoint: "localhost/v1/dapr",
-        scheme: "http",
-        host: "localhost",
-        port: "80",
+        port: 5000,
+        endpoint: "dns:localhost:5000"
       },
       {
-        endpoint: "localhost:5000",
-        scheme: "http",
+        url: ":5000?tls=false",
+        error: false,
+        secure: false,
+        scheme: "",
         host: "localhost",
-        port: "5000",
+        port: 5000,
+        endpoint: "dns:localhost:5000"
       },
       {
-        endpoint: "localhost:5000/v1/dapr",
-        scheme: "http",
+        url: ":5000?tls=true",
+        error: false,
+        secure: true,
+        scheme: "",
         host: "localhost",
-        port: "5000",
+        port: 5000,
+        endpoint: "dns:localhost:5000"
       },
-
+      // Host only
       {
-        endpoint: "http://localhost",
-        scheme: "http",
-        host: "localhost",
-        port: "80",
-      },
-      {
-        endpoint: "http://localhost/v1/dapr",
-        scheme: "http",
-        host: "localhost",
-        port: "80",
-      },
-      {
-        endpoint: "http://localhost:5000",
-        scheme: "http",
-        host: "localhost",
-        port: "5000",
+        url: "myhost",
+        error: false,
+        secure: false,
+        scheme: "",
+        host: "myhost",
+        port: 443,
+        endpoint: "dns:myhost:443"
       },
       {
-        endpoint: "http://localhost:5000/v1/dapr",
-        scheme: "http",
-        host: "localhost",
-        port: "5000",
+        url: "myhost?tls=false",
+        error: false,
+        secure: false,
+        scheme: "",
+        host: "myhost",
+        port: 443,
+        endpoint: "dns:myhost:443"
       },
-
       {
-        endpoint: "https://localhost",
-        scheme: "https",
-        host: "localhost",
+        url: "myhost?tls=true",
+        error: false,
+        secure: true,
+        scheme: "",
+        host: "myhost",
+        port: 443,
+        endpoint: "dns:myhost:443"
+      },
+      // Host and port
+      {
+        url: "myhost:443",
+        error: false,
+        secure: false,
+        scheme: "",
+        host: "myhost",
+        port: 443,
+        endpoint: "dns:myhost:443"
+      },
+      {
+        url: "myhost:443?tls=false",
+        error: false,
+        secure: false,
+        scheme: "",
+        host: "myhost",
+        port: 443,
+        endpoint: "dns:myhost:443"
+      },
+      {
+        url: "myhost:443?tls=true",
+        error: false,
+        secure: true,
+        scheme: "",
+        host: "myhost",
+        port: 443,
+        endpoint: "dns:myhost:443"
+      },
+      // Scheme, host and port
+      {
+        url: "http://myhost",
+        error: false,
+        secure: false,
+        scheme: "",
+        host: "myhost",
+        port: 443,
+        endpoint: "dns:myhost:443"
+      },
+      {url: "http://myhost?tls=false", error: true},
+      {url: "http://myhost?tls=true", error: true},
+      {
+        url: "http://myhost:443",
+        error: false,
+        secure: false,
+        scheme: "",
+        host: "myhost",
+        port: 443,
+        endpoint: "dns:myhost:443"
+      },
+      {url: "http://myhost:443?tls=false", error: true},
+      {url: "http://myhost:443?tls=true", error: true},
+      {
+        url: "http://myhost:5000",
+        error: false,
+        secure: false,
+        scheme: "",
+        host: "myhost",
+        port: 5000,
+        endpoint: "dns:myhost:5000"
+      },
+      {url: "http://myhost:5000?tls=false", error: true},
+      {url: "http://myhost:5000?tls=true", error: true},
+      {
+        url: "https://myhost:443",
+        error: false,
+        secure: true,
+        scheme: "",
+        host: "myhost",
+        port: 443,
+        endpoint: "dns:myhost:443"
+      },
+      {url: "https://myhost:443?tls=false", error: true},
+      {url: "https://myhost:443?tls=true", error: true},
+      // Scheme = dns
+      {
+        url: "dns:myhost",
+        error: false,
+        secure: false,
+        scheme: "dns",
+        host: "myhost",
+        port: 443,
+        endpoint: "dns:myhost:443"
+      },
+      {
+        url: "dns:myhost?tls=false",
+        error: false,
+        secure: false,
+        scheme: "dns",
+        host: "myhost",
+        port: 443,
+        endpoint: "dns:myhost:443"
+      },
+      {
+        url: "dns:myhost?tls=true",
+        error: false,
+        secure: true,
+        scheme: "dns",
+        host: "myhost",
+        port: 443,
+        endpoint: "dns:myhost:443"
+      },
+      // Scheme = dns with authority
+      {
+        url: "dns://myauthority:53/myhost",
+        error: false,
+        secure: false,
+        scheme: "dns",
+        host: "myhost",
+        port: 443,
+        endpoint: "dns://myauthority:53/myhost:443"
+      },
+      {
+        url: "dns://myauthority:53/myhost?tls=false",
+        error: false,
+        secure: false,
+        scheme: "dns",
+        host: "myhost",
+        port: 443,
+        endpoint: "dns://myauthority:53/myhost:443"
+      },
+      {
+        url: "dns://myauthority:53/myhost?tls=true",
+        error: false,
+        secure: true,
+        scheme: "dns",
+        host: "myhost",
+        port: 443,
+        endpoint: "dns://myauthority:53/myhost:443"
+      },
+      {url: "dns://myhost", error: true},
+      // Unix sockets
+      {
+        url: "unix:my.sock",
+        error: false,
+        secure: false,
+        scheme: "unix",
+        host: "my.sock",
+        port: "",
+        endpoint: "unix:my.sock"
+      },
+      {
+        url: "unix:my.sock?tls=true",
+        error: false,
+        secure: true,
+        scheme: "unix",
+        host: "my.sock",
+        port: "",
+        endpoint: "unix:my.sock"
+      },
+      // Unix sockets with absolute path
+      {
+        url: "unix://my.sock",
+        error: false,
+        secure: false,
+        scheme: "unix",
+        host: "my.sock",
+        port: "",
+        endpoint: "unix://my.sock"
+      },
+      {
+        url: "unix://my.sock?tls=true",
+        error: false,
+        secure: true,
+        scheme: "unix",
+        host: "my.sock",
+        port: "",
+        endpoint: "unix://my.sock"
+      },
+      // Unix abstract sockets
+      {
+        url: "unix-abstract:my.sock",
+        error: false,
+        secure: false,
+        scheme: "unix",
+        host: "my.sock",
+        port: "",
+        endpoint: "unix-abstract:my.sock"
+      },
+      {
+        url: "unix-abstract:my.sock?tls=true",
+        error: false,
+        secure: true,
+        scheme: "unix",
+        host: "my.sock",
+        port: "",
+        endpoint: "unix-abstract:my.sock"
+      },
+      // Vsock
+// Vsock
+      {
+        url: "vsock:mycid",
+        error: false,
+        secure: false,
+        scheme: "vsock",
+        host: "mycid",
         port: "443",
+        endpoint: "vsock:mycid:443"
       },
       {
-        endpoint: "https://localhost/v1/dapr",
-        scheme: "https",
-        host: "localhost",
-        port: "443",
+        url: "vsock:mycid:5000",
+        error: false,
+        secure: false,
+        scheme: "vsock",
+        host: "mycid",
+        port: 5000,
+        endpoint: "vsock:mycid:5000"
       },
       {
-        endpoint: "https://localhost:5000",
-        scheme: "https",
-        host: "localhost",
-        port: "5000",
-      },
-      {
-        endpoint: "https://localhost:5000/v1/dapr",
-        scheme: "https",
-        host: "localhost",
-        port: "5000",
+        url: "vsock:mycid:5000?tls=true",
+        error: false,
+        secure: true,
+        scheme: "vsock",
+        host: "mycid",
+        port: 5000,
+        endpoint: "vsock:mycid:5000"
       },
 
-      { endpoint: "127.0.0.1", scheme: "http", host: "127.0.0.1", port: "80" },
+      // IPv6 addresses
       {
-        endpoint: "127.0.0.1/v1/dapr",
-        scheme: "http",
-        host: "127.0.0.1",
-        port: "80",
+        url: "[2001:db8:1f70:0:999:de8:7648:6e8]",
+        error: false,
+        secure: false,
+        scheme: "",
+        host: "[2001:db8:1f70:0:999:de8:7648:6e8]",
+        port: 443,
+        endpoint: "dns:[2001:db8:1f70:0:999:de8:7648:6e8]:443"
       },
       {
-        endpoint: "127.0.0.1:5000",
-        scheme: "http",
-        host: "127.0.0.1",
-        port: "5000",
+        url: "dns:[2001:db8:1f70:0:999:de8:7648:6e8]",
+        error: false,
+        secure: false,
+        scheme: "",
+        host: "[2001:db8:1f70:0:999:de8:7648:6e8]",
+        port: 443,
+        endpoint: "dns:[2001:db8:1f70:0:999:de8:7648:6e8]:443"
       },
       {
-        endpoint: "127.0.0.1:5000/v1/dapr",
-        scheme: "http",
-        host: "127.0.0.1",
-        port: "5000",
-      },
-
-      {
-        endpoint: "http://127.0.0.1",
-        scheme: "http",
-        host: "127.0.0.1",
-        port: "80",
+        url: "dns:[2001:db8:1f70:0:999:de8:7648:6e8]:5000",
+        error: false,
+        secure: false,
+        scheme: "",
+        host: "[2001:db8:1f70:0:999:de8:7648:6e8]",
+        port: 5000,
+        endpoint: "dns:[2001:db8:1f70:0:999:de8:7648:6e8]:5000"
       },
       {
-        endpoint: "http://127.0.0.1/v1/dapr",
-        scheme: "http",
-        host: "127.0.0.1",
-        port: "80",
+        url: "dns:[2001:db8:1f70:0:999:de8:7648:6e8]:5000?abc=[]",
+        error: true
       },
       {
-        endpoint: "http://127.0.0.1:5000",
-        scheme: "http",
-        host: "127.0.0.1",
-        port: "5000",
+        url: "https://[2001:db8:1f70:0:999:de8:7648:6e8]",
+        error: false,
+        secure: true,
+        scheme: "",
+        host: "[2001:db8:1f70:0:999:de8:7648:6e8]",
+        port: 443,
+        endpoint: "dns:[2001:db8:1f70:0:999:de8:7648:6e8]:443"
       },
       {
-        endpoint: "http://127.0.0.1:5000/v1/dapr",
-        scheme: "http",
-        host: "127.0.0.1",
-        port: "5000",
-      },
-
-      {
-        endpoint: "https://127.0.0.1",
-        scheme: "https",
-        host: "127.0.0.1",
-        port: "443",
-      },
-      {
-        endpoint: "https://127.0.0.1/v1/dapr",
-        scheme: "https",
-        host: "127.0.0.1",
-        port: "443",
-      },
-      {
-        endpoint: "https://127.0.0.1:5000",
-        scheme: "https",
-        host: "127.0.0.1",
-        port: "5000",
-      },
-      {
-        endpoint: "https://127.0.0.1:5000/v1/dapr",
-        scheme: "https",
-        host: "127.0.0.1",
-        port: "5000",
+        url: "https://[2001:db8:1f70:0:999:de8:7648:6e8]:5000",
+        error: false,
+        secure: true,
+        scheme: "",
+        host: "[2001:db8:1f70:0:999:de8:7648:6e8]",
+        port: 5000,
+        endpoint: "dns:[2001:db8:1f70:0:999:de8:7648:6e8]:5000"
       },
 
-      {
-        endpoint: "[2001:db8:1f70:0:999:de8:7648:6e8]",
-        scheme: "http",
-        host: "2001:db8:1f70:0:999:de8:7648:6e8",
-        port: "80",
-      },
-      {
-        endpoint: "[2001:db8:1f70:0:999:de8:7648:6e8]/v1/dapr",
-        scheme: "http",
-        host: "2001:db8:1f70:0:999:de8:7648:6e8",
-        port: "80",
-      },
-      {
-        endpoint: "[2001:db8:1f70:0:999:de8:7648:6e8]:5000",
-        scheme: "http",
-        host: "2001:db8:1f70:0:999:de8:7648:6e8",
-        port: "5000",
-      },
-      {
-        endpoint: "[2001:db8:1f70:0:999:de8:7648:6e8]:5000/v1/dapr",
-        scheme: "http",
-        host: "2001:db8:1f70:0:999:de8:7648:6e8",
-        port: "5000",
-      },
+      // Invalid addresses (with path and queries)
+      {url: "host:5000/v1/dapr", error: true},
+      {url: "host:5000/?a=1", error: true},
 
-      {
-        endpoint: "http://[2001:db8:1f70:0:999:de8:7648:6e8]",
-        scheme: "http",
-        host: "2001:db8:1f70:0:999:de8:7648:6e8",
-        port: "80",
-      },
-      {
-        endpoint: "http://[2001:db8:1f70:0:999:de8:7648:6e8]/v1/dapr",
-        scheme: "http",
-        host: "2001:db8:1f70:0:999:de8:7648:6e8",
-        port: "80",
-      },
-      {
-        endpoint: "http://[2001:db8:1f70:0:999:de8:7648:6e8]:5000",
-        scheme: "http",
-        host: "2001:db8:1f70:0:999:de8:7648:6e8",
-        port: "5000",
-      },
-      {
-        endpoint: "http://[2001:db8:1f70:0:999:de8:7648:6e8]:5000/v1/dapr",
-        scheme: "http",
-        host: "2001:db8:1f70:0:999:de8:7648:6e8",
-        port: "5000",
-      },
-
-      {
-        endpoint: "https://[2001:db8:1f70:0:999:de8:7648:6e8]",
-        scheme: "https",
-        host: "2001:db8:1f70:0:999:de8:7648:6e8",
-        port: "443",
-      },
-      {
-        endpoint: "https://[2001:db8:1f70:0:999:de8:7648:6e8]/v1/dapr",
-        scheme: "https",
-        host: "2001:db8:1f70:0:999:de8:7648:6e8",
-        port: "443",
-      },
-      {
-        endpoint: "https://[2001:db8:1f70:0:999:de8:7648:6e8]:5000",
-        scheme: "https",
-        host: "2001:db8:1f70:0:999:de8:7648:6e8",
-        port: "5000",
-      },
-      {
-        endpoint: "https://[2001:db8:1f70:0:999:de8:7648:6e8]:5000/v1/dapr",
-        scheme: "https",
-        host: "2001:db8:1f70:0:999:de8:7648:6e8",
-        port: "5000",
-      },
-
-      { endpoint: "domain.com", scheme: "http", host: "domain.com", port: "80" },
-      {
-        endpoint: "domain.com/v1/grpc",
-        scheme: "http",
-        host: "domain.com",
-        port: "80",
-      },
-      {
-        endpoint: "domain.com:5000",
-        scheme: "http",
-        host: "domain.com",
-        port: "5000",
-      },
-      {
-        endpoint: "domain.com:5000/v1/dapr",
-        scheme: "http",
-        host: "domain.com",
-        port: "5000",
-      },
-
-      {
-        endpoint: "http://domain.com",
-        scheme: "http",
-        host: "domain.com",
-        port: "80",
-      },
-      {
-        endpoint: "http://domain.com/v1/dapr",
-        scheme: "http",
-        host: "domain.com",
-        port: "80",
-      },
-      {
-        endpoint: "http://domain.com:5000",
-        scheme: "http",
-        host: "domain.com",
-        port: "5000",
-      },
-      {
-        endpoint: "http://domain.com:5000/v1/dapr",
-        scheme: "http",
-        host: "domain.com",
-        port: "5000",
-      },
-
-      {
-        endpoint: "https://domain.com",
-        scheme: "https",
-        host: "domain.com",
-        port: "443",
-      },
-      {
-        endpoint: "https://domain.com/v1/dapr",
-        scheme: "https",
-        host: "domain.com",
-        port: "443",
-      },
-      {
-        endpoint: "https://domain.com:5000",
-        scheme: "https",
-        host: "domain.com",
-        port: "5000",
-      },
-      {
-        endpoint: "https://domain.com:5000/v1/dapr",
-        scheme: "https",
-        host: "domain.com",
-        port: "5000",
-      },
-
-      {
-        endpoint: "abc.domain.com",
-        scheme: "http",
-        host: "abc.domain.com",
-        port: "80",
-      },
-      {
-        endpoint: "abc.domain.com/v1/grpc",
-        scheme: "http",
-        host: "abc.domain.com",
-        port: "80",
-      },
-      {
-        endpoint: "abc.domain.com:5000",
-        scheme: "http",
-        host: "abc.domain.com",
-        port: "5000",
-      },
-      {
-        endpoint: "abc.domain.com:5000/v1/dapr",
-        scheme: "http",
-        host: "abc.domain.com",
-        port: "5000",
-      },
-
-      {
-        endpoint: "http://abc.domain.com/v1/dapr",
-        scheme: "http",
-        host: "abc.domain.com",
-        port: "80",
-      },
-      {
-        endpoint: "http://abc.domain.com/v1/dapr",
-        scheme: "http",
-        host: "abc.domain.com",
-        port: "80",
-      },
-      {
-        endpoint: "http://abc.domain.com:5000/v1/dapr",
-        scheme: "http",
-        host: "abc.domain.com",
-        port: "5000",
-      },
-      {
-        endpoint: "http://abc.domain.com:5000/v1/dapr/v1/dapr",
-        scheme: "http",
-        host: "abc.domain.com",
-        port: "5000",
-      },
-
-      {
-        endpoint: "https://abc.domain.com/v1/dapr",
-        scheme: "https",
-        host: "abc.domain.com",
-        port: "443",
-      },
-      {
-        endpoint: "https://abc.domain.com/v1/dapr",
-        scheme: "https",
-        host: "abc.domain.com",
-        port: "443",
-      },
-      {
-        endpoint: "https://abc.domain.com:5000/v1/dapr",
-        scheme: "https",
-        host: "abc.domain.com",
-        port: "5000",
-      },
-      {
-        endpoint: "https://abc.domain.com:5000/v1/dapr/v1/dapr",
-        scheme: "https",
-        host: "abc.domain.com",
-        port: "5000",
-      },
+      // Invalid scheme
+      {url: "inv-scheme://myhost", error: true},
+      {url: "inv-scheme:myhost:5000", error: true}
     ];
 
-    testCases.forEach(({ endpoint, scheme, host, port }) => {
-      it(`should correctly parse ${endpoint}`, () => {
-        const result = parseEndpoint(endpoint);
-        expect(result[0]).toEqual(scheme);
-        expect(result[1]).toEqual(host);
-        expect(result[2]).toEqual(port);
+
+    testCases.forEach((testCase) => {
+      test(`Testing URL: ${testCase.url}`, () => {
+        if (testCase.error) {
+          expect(() => new GrpcEndpoint(testCase.url)).toThrow(Error);
+        } else {
+          const url = new GrpcEndpoint(testCase.url);
+          expect(url.endpoint).toBe(testCase.endpoint);
+          expect(url.tls).toBe(testCase.secure);
+          expect(url.hostname).toBe(testCase.host);
+          expect(url.port).toBe(String(testCase.port));
+        }
       });
     });
   });
