@@ -260,277 +260,277 @@ function getType(o: any) {
  * @returns DaprClientOptions
  */
 export function getClientOptions(
-    clientOptions: Partial<DaprClientOptions> | undefined,
-    defaultCommunicationProtocol: CommunicationProtocolEnum,
-    defaultLoggerOptions: LoggerOptions | undefined,
+  clientOptions: Partial<DaprClientOptions> | undefined,
+  defaultCommunicationProtocol: CommunicationProtocolEnum,
+  defaultLoggerOptions: LoggerOptions | undefined,
 ): DaprClientOptions {
-    const clientCommunicationProtocol = clientOptions?.communicationProtocol ?? defaultCommunicationProtocol;
+  const clientCommunicationProtocol = clientOptions?.communicationProtocol ?? defaultCommunicationProtocol;
 
-    // We decide the host/port/endpoint here
-    let host = Settings.getDefaultHost();
-    let port = Settings.getDefaultPort(clientCommunicationProtocol);
-    let uri = `${host}:${port}`;
+  // We decide the host/port/endpoint here
+  let host = Settings.getDefaultHost();
+  let port = Settings.getDefaultPort(clientCommunicationProtocol);
+  let uri = `${host}:${port}`;
 
-    let endpoint: Endpoint;
+  let endpoint: Endpoint;
 
-    if (clientOptions?.daprHost || clientOptions?.daprPort) {
-        host = clientOptions?.daprHost ?? host;
-        port = clientOptions?.daprPort ?? port;
-        uri = `${host}:${port}`;
-    } else if (clientCommunicationProtocol == CommunicationProtocolEnum.HTTP && Settings.getDefaultHttpEndpoint() != "") {
-        uri = Settings.getDefaultHttpEndpoint();
-    } else if (clientCommunicationProtocol == CommunicationProtocolEnum.GRPC && Settings.getDefaultGrpcEndpoint() != "") {
-        uri = Settings.getDefaultGrpcEndpoint();
-    }
+  if (clientOptions?.daprHost || clientOptions?.daprPort) {
+    host = clientOptions?.daprHost ?? host;
+    port = clientOptions?.daprPort ?? port;
+    uri = `${host}:${port}`;
+  } else if (clientCommunicationProtocol == CommunicationProtocolEnum.HTTP && Settings.getDefaultHttpEndpoint() != "") {
+    uri = Settings.getDefaultHttpEndpoint();
+  } else if (clientCommunicationProtocol == CommunicationProtocolEnum.GRPC && Settings.getDefaultGrpcEndpoint() != "") {
+    uri = Settings.getDefaultGrpcEndpoint();
+  }
 
+  if (clientCommunicationProtocol == CommunicationProtocolEnum.HTTP) {
+    endpoint = new HttpEndpoint(uri);
+  } else {
+    endpoint = new GrpcEndpoint(uri);
+  }
 
-    if (clientCommunicationProtocol == CommunicationProtocolEnum.HTTP) {
-        endpoint = new HttpEndpoint(uri);
-    } else {
-        endpoint = new GrpcEndpoint(uri);
-    }
-
-    return {
-        daprHost: endpoint.hostname,
-        daprPort: endpoint.port,
-        daprEndpoint: endpoint,
-        communicationProtocol: clientCommunicationProtocol,
-        isKeepAlive: clientOptions?.isKeepAlive,
-        logger: clientOptions?.logger ?? defaultLoggerOptions,
-        actor: clientOptions?.actor,
-        daprApiToken: clientOptions?.daprApiToken ?? Settings.getDefaultApiToken(),
-        maxBodySizeMb: clientOptions?.maxBodySizeMb,
-    };
+  return {
+    daprHost: endpoint.hostname,
+    daprPort: endpoint.port,
+    daprEndpoint: endpoint,
+    communicationProtocol: clientCommunicationProtocol,
+    isKeepAlive: clientOptions?.isKeepAlive,
+    logger: clientOptions?.logger ?? defaultLoggerOptions,
+    actor: clientOptions?.actor,
+    daprApiToken: clientOptions?.daprApiToken,
+    maxBodySizeMb: clientOptions?.maxBodySizeMb,
+  };
 }
 
 class URIParseConfig {
-    static readonly DEFAULT_SCHEME_GRPC = "dns";
-    static readonly DEFAULT_SCHEME_HTTP = "http";
-    static readonly DEFAULT_HOSTNAME = "localhost";
-    static readonly DEFAULT_PORT = 443;
-    static readonly DEFAULT_AUTHORITY = "";
-    static readonly ACCEPTED_SCHEMES_GRPC = ["dns", "unix", "unix-abstract", "vsock", "http", "https", "grpc", "grpcs"];
+  static readonly DEFAULT_SCHEME_GRPC = "dns";
+  static readonly DEFAULT_SCHEME_HTTP = "http";
+  static readonly DEFAULT_HOSTNAME = "localhost";
+  static readonly DEFAULT_PORT = 443;
+  static readonly DEFAULT_AUTHORITY = "";
+  static readonly ACCEPTED_SCHEMES_GRPC = ["dns", "unix", "unix-abstract", "vsock", "http", "https", "grpc", "grpcs"];
 }
 
 export abstract class Endpoint {
-    protected _scheme = "";
-    protected _hostname = "";
-    protected _port = 0;
-    protected _tls = false;
-    protected _authority = "";
-    protected _url: string;
-    protected _endpoint = "";
-    protected _parsedUrl!: URL;
+  protected _scheme = "";
+  protected _hostname = "";
+  protected _port = 0;
+  protected _tls = false;
+  protected _authority = "";
+  protected _url: string;
+  protected _endpoint = "";
+  protected _parsedUrl!: URL;
 
-    protected constructor(url: string) {
-        this._url = url;
-    }
+  protected constructor(url: string) {
+    this._url = url;
+  }
 
-    get tls(): boolean {
-        return this._tls;
-    }
+  get tls(): boolean {
+    return this._tls;
+  }
 
-    get hostname(): string {
-        return this._hostname;
-    }
+  get hostname(): string {
+    return this._hostname;
+  }
 
-    get scheme(): string {
-        return this._scheme;
-    }
+  get scheme(): string {
+    return this._scheme;
+  }
 
-    get port(): string {
-        return this._port === 0 ? '' : this._port.toString();
-    }
+  get port(): string {
+    return this._port === 0 ? "" : this._port.toString();
+  }
 
-    get endpoint(): string {
-        return this._endpoint;
-    }
+  get endpoint(): string {
+    return this._endpoint;
+  }
 }
 
-export class HttpEndpoint extends Endpoint{
-    constructor(url: string) {
-        super(url);
-        this._parsedUrl = new URL(this.preprocessUri(url));
+export class HttpEndpoint extends Endpoint {
+  constructor(url: string) {
+    super(url);
+    this._parsedUrl = new URL(this.preprocessUri(url));
 
-        try {
-            this._scheme = this._parsedUrl.protocol.replace(":", "");
-            this._hostname = this._parsedUrl.hostname.replace("[", "");
-            this._hostname = this._hostname.replace("]", "");
-            this._port = parseInt(this._parsedUrl.port) || (this._scheme == "https" ? 443 : 80);
-            this._tls = this._scheme == "https";
-            this._endpoint = this._scheme + "://" + this._hostname + ":" + this._port.toString();
-        } catch (error) {
-            throw new Error(`Invalid address: ${url}`);
-        }
+    try {
+      this._scheme = this._parsedUrl.protocol.replace(":", "");
+      this._hostname = this._parsedUrl.hostname.replace("[", "");
+      this._hostname = this._hostname.replace("]", "");
+      this._port = parseInt(this._parsedUrl.port) || (this._scheme == "https" ? 443 : 80);
+      this._tls = this._scheme == "https";
+      this._endpoint = this._scheme + "://" + this._hostname + ":" + this._port.toString();
+    } catch (error) {
+      throw new Error(`Invalid address: ${url}`);
     }
+  }
 
-    // We need to add a default scheme and hostname to the url
-    // if they are not specified so that the URL class can parse it
-    private preprocessUri(url: string) {
-        if (url.startsWith(":")) {
-            url = URIParseConfig.DEFAULT_SCHEME_HTTP + "://" + URIParseConfig.DEFAULT_HOSTNAME + url;
-        }
-        if (!url.includes("://")) {
-            url = URIParseConfig.DEFAULT_SCHEME_HTTP + "://" + url;
-        }
-        return url;
+  // We need to add a default scheme and hostname to the url
+  // if they are not specified so that the URL class can parse it
+  private preprocessUri(url: string) {
+    if (url.startsWith(":")) {
+      url = URIParseConfig.DEFAULT_SCHEME_HTTP + "://" + URIParseConfig.DEFAULT_HOSTNAME + url;
     }
+    if (!url.includes("://")) {
+      url = URIParseConfig.DEFAULT_SCHEME_HTTP + "://" + url;
+    }
+    return url;
+  }
 }
 
 export class GrpcEndpoint extends Endpoint {
+  constructor(url: string) {
+    super(url);
+    this._authority = URIParseConfig.DEFAULT_AUTHORITY;
 
-    constructor(url: string) {
-        super(url);
-        this._authority = URIParseConfig.DEFAULT_AUTHORITY;
+    this._parsedUrl = new URL(this.preprocessUri(url));
+    this.validatePathAndQuery();
 
-        this._parsedUrl = new URL(this.preprocessUri(url));
-        this.validatePathAndQuery();
+    this.setTls();
+    this.setHostname();
+    this.setScheme();
+    this.setPort();
+    this.setEndpoint();
+  }
 
-        this.setTls();
-        this.setHostname();
-        this.setScheme();
-        this.setPort();
-        this.setEndpoint();
-    }
+  private preprocessUri(url: string): string {
+    let urlList = url.split(":");
 
-    private preprocessUri(url: string): string {
-        let urlList = url.split(":");
+    if (urlList.length === 3 && !url.includes("://")) {
+      // A URI like dns:mydomain:5000 or vsock:mycid:5000 was used
+      url = url.replace(":", "://");
+    } else if (
+      urlList.length >= 2 &&
+      !url.includes("://") &&
+      URIParseConfig.ACCEPTED_SCHEMES_GRPC.includes(urlList[0])
+    ) {
+      // A URI like dns:mydomain was used
+      url = url.replace(":", "://");
+    } else {
+      urlList = url.split("://");
+      if (urlList.length === 1) {
+        // If a scheme was not explicitly specified in the URL
+        // we need to add a default scheme,
+        // because of how URL works in JavaScript
 
-        if (urlList.length === 3 && !url.includes("://")) {
-            // A URI like dns:mydomain:5000 or vsock:mycid:5000 was used
-            url = url.replace(":", "://");
-        } else if (urlList.length >= 2 && !url.includes("://") && URIParseConfig.ACCEPTED_SCHEMES_GRPC.includes(urlList[0])) {
-            // A URI like dns:mydomain was used
-            url = url.replace(":", "://");
+        // We also need to check if the provided uri is not of the form :5000
+        // if it is, we need to add a default hostname, because the URL class can't parse it
+        if (url[0] === ":") {
+          url = `${URIParseConfig.DEFAULT_SCHEME_GRPC}://${URIParseConfig.DEFAULT_HOSTNAME}${url}`;
         } else {
-            urlList = url.split("://");
-            if (urlList.length === 1) {
-                // If a scheme was not explicitly specified in the URL
-                // we need to add a default scheme,
-                // because of how URL works in JavaScript
-
-                // We also need to check if the provided uri is not of the form :5000
-                // if it is, we need to add a default hostname, because the URL class can't parse it
-                if (url[0] === ':') {
-                  url = `${URIParseConfig.DEFAULT_SCHEME_GRPC}://${URIParseConfig.DEFAULT_HOSTNAME}${url}`;
-                } else {
-                  url = `${URIParseConfig.DEFAULT_SCHEME_GRPC}://${url}`;
-                }
-
-            } else {
-                // If a scheme was explicitly specified in the URL
-                // we need to make sure it is a valid scheme
-                const scheme = urlList[0];
-                if (!URIParseConfig.ACCEPTED_SCHEMES_GRPC.includes(scheme)) {
-                    throw new Error(`Invalid scheme '${scheme}' in URL '${url}'`);
-                }
-
-                // We should do a special check if the scheme is dns, and it uses
-                // an authority in the format of dns:[//authority/]host[:port]
-                if (scheme.toLowerCase() === "dns") {
-                    // A URI like dns://authority/mydomain was used
-                    urlList = url.split("/");
-                    if (urlList.length < 4) {
-                        throw new Error(`Invalid dns authority '${urlList[2]}' in URL '${url}'`);
-                    }
-                    this._authority = urlList[2];
-                    url = `dns://${urlList[3]}`;
-                }
-            }
+          url = `${URIParseConfig.DEFAULT_SCHEME_GRPC}://${url}`;
         }
-        return url;
-    }
-
-    private validatePathAndQuery(): void {
-        if (this._parsedUrl.pathname && this._parsedUrl.pathname !== '/') {
-          throw new Error(`Paths are not supported for gRPC endpoints: '${this._parsedUrl.pathname}'`);
+      } else {
+        // If a scheme was explicitly specified in the URL
+        // we need to make sure it is a valid scheme
+        const scheme = urlList[0];
+        if (!URIParseConfig.ACCEPTED_SCHEMES_GRPC.includes(scheme)) {
+          throw new Error(`Invalid scheme '${scheme}' in URL '${url}'`);
         }
 
-        const params = new URLSearchParams(this._parsedUrl.search);
-        if (params.has('tls') && (this._parsedUrl.protocol === 'http:' || this._parsedUrl.protocol === 'https:')) {
-          throw new Error(`The tls query parameter is not supported for http(s) endpoints: '${this._parsedUrl.search}'`);
-        }
-
-        params.delete('tls');
-        if (Array.from(params.keys()).length > 0) {
-          throw new Error(`Query parameters are not supported for gRPC endpoints: '${this._parsedUrl.search}'`);
+        // We should do a special check if the scheme is dns, and it uses
+        // an authority in the format of dns:[//authority/]host[:port]
+        if (scheme.toLowerCase() === "dns") {
+          // A URI like dns://authority/mydomain was used
+          urlList = url.split("/");
+          if (urlList.length < 4) {
+            throw new Error(`Invalid dns authority '${urlList[2]}' in URL '${url}'`);
+          }
+          this._authority = urlList[2];
+          url = `dns://${urlList[3]}`;
         }
       }
+    }
+    return url;
+  }
 
-    private setTls(): void {
-        const params = new URLSearchParams(this._parsedUrl.search);
-        const tlsStr = params.get('tls') || "";
-        this._tls = tlsStr.toLowerCase() === 'true';
-
-        if (this._parsedUrl.protocol == "https:"){
-            this._tls = true;
-        }
+  private validatePathAndQuery(): void {
+    if (this._parsedUrl.pathname && this._parsedUrl.pathname !== "/") {
+      throw new Error(`Paths are not supported for gRPC endpoints: '${this._parsedUrl.pathname}'`);
     }
 
-    private setHostname(): void {
-        if (!this._parsedUrl.hostname) {
-            this._hostname = URIParseConfig.DEFAULT_HOSTNAME;
-            return;
-        }
-
-
-        this._hostname = this._parsedUrl.hostname;
+    const params = new URLSearchParams(this._parsedUrl.search);
+    if (params.has("tls") && (this._parsedUrl.protocol === "http:" || this._parsedUrl.protocol === "https:")) {
+      throw new Error(`The tls query parameter is not supported for http(s) endpoints: '${this._parsedUrl.search}'`);
     }
 
-    private setScheme(): void {
-        if (!this._parsedUrl.protocol) {
-            this._scheme = URIParseConfig.DEFAULT_SCHEME_GRPC;
-            return;
-        }
+    params.delete("tls");
+    if (Array.from(params.keys()).length > 0) {
+      throw new Error(`Query parameters are not supported for gRPC endpoints: '${this._parsedUrl.search}'`);
+    }
+  }
 
-        const scheme = this._parsedUrl.protocol.slice(0, -1); // Remove trailing ':'
-        if (scheme === 'http' || scheme === 'https') {
-            this._scheme = URIParseConfig.DEFAULT_SCHEME_GRPC;
-            console.warn("http and https schemes are deprecated, use grpc or grpcs instead");
-            return;
-        }
+  private setTls(): void {
+    const params = new URLSearchParams(this._parsedUrl.search);
+    const tlsStr = params.get("tls") || "";
+    this._tls = tlsStr.toLowerCase() === "true";
 
-        if (!URIParseConfig.ACCEPTED_SCHEMES_GRPC.includes(scheme)) {
-            throw new Error(`Invalid scheme '${scheme}' in URL '${this._url}'`);
-        }
+    if (this._parsedUrl.protocol == "https:") {
+      this._tls = true;
+    }
+  }
 
-        this._scheme = scheme;
+  private setHostname(): void {
+    if (!this._parsedUrl.hostname) {
+      this._hostname = URIParseConfig.DEFAULT_HOSTNAME;
+      return;
     }
 
-    private setPort(): void {
-        if (this._scheme === 'unix' || this._scheme === 'unix-abstract') {
-            this._port = 0;
-            return;
-        }
+    this._hostname = this._parsedUrl.hostname;
+  }
 
-        this._port = this._parsedUrl.port ? parseInt(this._parsedUrl.port) : URIParseConfig.DEFAULT_PORT;
+  private setScheme(): void {
+    if (!this._parsedUrl.protocol) {
+      this._scheme = URIParseConfig.DEFAULT_SCHEME_GRPC;
+      return;
     }
 
-    private setEndpoint(): void {
-        const port = this._port ? `:${this.port}` : "";
-
-        if (this._scheme === "unix") {
-            const separator = this._url.startsWith("unix://") ? "://" : ":";
-            this._endpoint = `${this._scheme}${separator}${this._hostname}`;
-            return;
-        }
-
-        if (this._scheme === "vsock") {
-            this._endpoint = `${this._scheme}:${this._hostname}:${this.port}`;
-            return;
-        }
-
-        if (this._scheme === "unix-abstract") {
-            this._endpoint = `${this._scheme}:${this._hostname}${port}`;
-            return;
-        }
-
-        if (this._scheme === "dns") {
-            const authority = this._authority ? `//${this._authority}/` : "";
-            this._endpoint = `${this._scheme}:${authority}${this._hostname}${port}`;
-            return;
-        }
-
-        this._endpoint = `${this._scheme}:${this._hostname}${port}`;
+    const scheme = this._parsedUrl.protocol.slice(0, -1); // Remove trailing ':'
+    if (scheme === "http" || scheme === "https") {
+      this._scheme = URIParseConfig.DEFAULT_SCHEME_GRPC;
+      console.warn("http and https schemes are deprecated, use grpc or grpcs instead");
+      return;
     }
+
+    if (!URIParseConfig.ACCEPTED_SCHEMES_GRPC.includes(scheme)) {
+      throw new Error(`Invalid scheme '${scheme}' in URL '${this._url}'`);
+    }
+
+    this._scheme = scheme;
+  }
+
+  private setPort(): void {
+    if (this._scheme === "unix" || this._scheme === "unix-abstract") {
+      this._port = 0;
+      return;
+    }
+
+    this._port = this._parsedUrl.port ? parseInt(this._parsedUrl.port) : URIParseConfig.DEFAULT_PORT;
+  }
+
+  private setEndpoint(): void {
+    const port = this._port ? `:${this.port}` : "";
+
+    if (this._scheme === "unix") {
+      const separator = this._url.startsWith("unix://") ? "://" : ":";
+      this._endpoint = `${this._scheme}${separator}${this._hostname}`;
+      return;
+    }
+
+    if (this._scheme === "vsock") {
+      this._endpoint = `${this._scheme}:${this._hostname}:${this.port}`;
+      return;
+    }
+
+    if (this._scheme === "unix-abstract") {
+      this._endpoint = `${this._scheme}:${this._hostname}${port}`;
+      return;
+    }
+
+    if (this._scheme === "dns") {
+      const authority = this._authority ? `//${this._authority}/` : "";
+      this._endpoint = `${this._scheme}:${authority}${this._hostname}${port}`;
+      return;
+    }
+
+    this._endpoint = `${this._scheme}:${this._hostname}${port}`;
+  }
 }

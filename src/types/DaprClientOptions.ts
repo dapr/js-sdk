@@ -14,7 +14,7 @@ limitations under the License.
 import CommunicationProtocolEnum from "../enum/CommunicationProtocol.enum";
 import { ActorRuntimeOptions } from "./actors/ActorRuntimeOptions";
 import { LoggerOptions } from "./logger/LoggerOptions";
-import {Endpoint} from "../utils/Client.util";
+import { Endpoint } from "../utils/Client.util";
 
 export type DaprClientOptions = {
   /**

@@ -19,7 +19,8 @@ import {
   getBulkPublishEntries,
   getBulkPublishResponse,
   getClientOptions,
-  createHTTPQueryParam, GrpcEndpoint,
+  createHTTPQueryParam,
+  GrpcEndpoint,
 } from "../../../src/utils/Client.util";
 import { Map } from "google-protobuf";
 import { PubSubBulkPublishEntry } from "../../../src/types/pubsub/PubSubBulkPublishEntry.type";
@@ -418,7 +419,7 @@ describe("Client.util", () => {
         scheme: "",
         host: "localhost",
         port: 5000,
-        endpoint: "dns:localhost:5000"
+        endpoint: "dns:localhost:5000",
       },
       {
         url: ":5000?tls=false",
@@ -427,7 +428,7 @@ describe("Client.util", () => {
         scheme: "",
         host: "localhost",
         port: 5000,
-        endpoint: "dns:localhost:5000"
+        endpoint: "dns:localhost:5000",
       },
       {
         url: ":5000?tls=true",
@@ -436,7 +437,7 @@ describe("Client.util", () => {
         scheme: "",
         host: "localhost",
         port: 5000,
-        endpoint: "dns:localhost:5000"
+        endpoint: "dns:localhost:5000",
       },
       // Host only
       {
@@ -446,7 +447,7 @@ describe("Client.util", () => {
         scheme: "",
         host: "myhost",
         port: 443,
-        endpoint: "dns:myhost:443"
+        endpoint: "dns:myhost:443",
       },
       {
         url: "myhost?tls=false",
@@ -455,7 +456,7 @@ describe("Client.util", () => {
         scheme: "",
         host: "myhost",
         port: 443,
-        endpoint: "dns:myhost:443"
+        endpoint: "dns:myhost:443",
       },
       {
         url: "myhost?tls=true",
@@ -464,7 +465,7 @@ describe("Client.util", () => {
         scheme: "",
         host: "myhost",
         port: 443,
-        endpoint: "dns:myhost:443"
+        endpoint: "dns:myhost:443",
       },
       // Host and port
       {
@@ -474,7 +475,7 @@ describe("Client.util", () => {
         scheme: "",
         host: "myhost",
         port: 443,
-        endpoint: "dns:myhost:443"
+        endpoint: "dns:myhost:443",
       },
       {
         url: "myhost:443?tls=false",
@@ -483,7 +484,7 @@ describe("Client.util", () => {
         scheme: "",
         host: "myhost",
         port: 443,
-        endpoint: "dns:myhost:443"
+        endpoint: "dns:myhost:443",
       },
       {
         url: "myhost:443?tls=true",
@@ -492,7 +493,7 @@ describe("Client.util", () => {
         scheme: "",
         host: "myhost",
         port: 443,
-        endpoint: "dns:myhost:443"
+        endpoint: "dns:myhost:443",
       },
       // Scheme, host and port
       {
@@ -502,10 +503,10 @@ describe("Client.util", () => {
         scheme: "",
         host: "myhost",
         port: 443,
-        endpoint: "dns:myhost:443"
+        endpoint: "dns:myhost:443",
       },
-      {url: "http://myhost?tls=false", error: true},
-      {url: "http://myhost?tls=true", error: true},
+      { url: "http://myhost?tls=false", error: true },
+      { url: "http://myhost?tls=true", error: true },
       {
         url: "http://myhost:443",
         error: false,
@@ -513,10 +514,10 @@ describe("Client.util", () => {
         scheme: "",
         host: "myhost",
         port: 443,
-        endpoint: "dns:myhost:443"
+        endpoint: "dns:myhost:443",
       },
-      {url: "http://myhost:443?tls=false", error: true},
-      {url: "http://myhost:443?tls=true", error: true},
+      { url: "http://myhost:443?tls=false", error: true },
+      { url: "http://myhost:443?tls=true", error: true },
       {
         url: "http://myhost:5000",
         error: false,
@@ -524,10 +525,10 @@ describe("Client.util", () => {
         scheme: "",
         host: "myhost",
         port: 5000,
-        endpoint: "dns:myhost:5000"
+        endpoint: "dns:myhost:5000",
       },
-      {url: "http://myhost:5000?tls=false", error: true},
-      {url: "http://myhost:5000?tls=true", error: true},
+      { url: "http://myhost:5000?tls=false", error: true },
+      { url: "http://myhost:5000?tls=true", error: true },
       {
         url: "https://myhost:443",
         error: false,
@@ -535,10 +536,10 @@ describe("Client.util", () => {
         scheme: "",
         host: "myhost",
         port: 443,
-        endpoint: "dns:myhost:443"
+        endpoint: "dns:myhost:443",
       },
-      {url: "https://myhost:443?tls=false", error: true},
-      {url: "https://myhost:443?tls=true", error: true},
+      { url: "https://myhost:443?tls=false", error: true },
+      { url: "https://myhost:443?tls=true", error: true },
       // Scheme = dns
       {
         url: "dns:myhost",
@@ -547,7 +548,7 @@ describe("Client.util", () => {
         scheme: "dns",
         host: "myhost",
         port: 443,
-        endpoint: "dns:myhost:443"
+        endpoint: "dns:myhost:443",
       },
       {
         url: "dns:myhost?tls=false",
@@ -556,7 +557,7 @@ describe("Client.util", () => {
         scheme: "dns",
         host: "myhost",
         port: 443,
-        endpoint: "dns:myhost:443"
+        endpoint: "dns:myhost:443",
       },
       {
         url: "dns:myhost?tls=true",
@@ -565,7 +566,7 @@ describe("Client.util", () => {
         scheme: "dns",
         host: "myhost",
         port: 443,
-        endpoint: "dns:myhost:443"
+        endpoint: "dns:myhost:443",
       },
       // Scheme = dns with authority
       {
@@ -575,7 +576,7 @@ describe("Client.util", () => {
         scheme: "dns",
         host: "myhost",
         port: 443,
-        endpoint: "dns://myauthority:53/myhost:443"
+        endpoint: "dns://myauthority:53/myhost:443",
       },
       {
         url: "dns://myauthority:53/myhost?tls=false",
@@ -584,7 +585,7 @@ describe("Client.util", () => {
         scheme: "dns",
         host: "myhost",
         port: 443,
-        endpoint: "dns://myauthority:53/myhost:443"
+        endpoint: "dns://myauthority:53/myhost:443",
       },
       {
         url: "dns://myauthority:53/myhost?tls=true",
@@ -593,9 +594,9 @@ describe("Client.util", () => {
         scheme: "dns",
         host: "myhost",
         port: 443,
-        endpoint: "dns://myauthority:53/myhost:443"
+        endpoint: "dns://myauthority:53/myhost:443",
       },
-      {url: "dns://myhost", error: true},
+      { url: "dns://myhost", error: true },
       // Unix sockets
       {
         url: "unix:my.sock",
@@ -604,7 +605,7 @@ describe("Client.util", () => {
         scheme: "unix",
         host: "my.sock",
         port: "",
-        endpoint: "unix:my.sock"
+        endpoint: "unix:my.sock",
       },
       {
         url: "unix:my.sock?tls=true",
@@ -613,7 +614,7 @@ describe("Client.util", () => {
         scheme: "unix",
         host: "my.sock",
         port: "",
-        endpoint: "unix:my.sock"
+        endpoint: "unix:my.sock",
       },
       // Unix sockets with absolute path
       {
@@ -623,7 +624,7 @@ describe("Client.util", () => {
         scheme: "unix",
         host: "my.sock",
         port: "",
-        endpoint: "unix://my.sock"
+        endpoint: "unix://my.sock",
       },
       {
         url: "unix://my.sock?tls=true",
@@ -632,7 +633,7 @@ describe("Client.util", () => {
         scheme: "unix",
         host: "my.sock",
         port: "",
-        endpoint: "unix://my.sock"
+        endpoint: "unix://my.sock",
       },
       // Unix abstract sockets
       {
@@ -642,7 +643,7 @@ describe("Client.util", () => {
         scheme: "unix",
         host: "my.sock",
         port: "",
-        endpoint: "unix-abstract:my.sock"
+        endpoint: "unix-abstract:my.sock",
       },
       {
         url: "unix-abstract:my.sock?tls=true",
@@ -651,10 +652,10 @@ describe("Client.util", () => {
         scheme: "unix",
         host: "my.sock",
         port: "",
-        endpoint: "unix-abstract:my.sock"
+        endpoint: "unix-abstract:my.sock",
       },
       // Vsock
-// Vsock
+      // Vsock
       {
         url: "vsock:mycid",
         error: false,
@@ -662,7 +663,7 @@ describe("Client.util", () => {
         scheme: "vsock",
         host: "mycid",
         port: "443",
-        endpoint: "vsock:mycid:443"
+        endpoint: "vsock:mycid:443",
       },
       {
         url: "vsock:mycid:5000",
@@ -671,7 +672,7 @@ describe("Client.util", () => {
         scheme: "vsock",
         host: "mycid",
         port: 5000,
-        endpoint: "vsock:mycid:5000"
+        endpoint: "vsock:mycid:5000",
       },
       {
         url: "vsock:mycid:5000?tls=true",
@@ -680,7 +681,7 @@ describe("Client.util", () => {
         scheme: "vsock",
         host: "mycid",
         port: 5000,
-        endpoint: "vsock:mycid:5000"
+        endpoint: "vsock:mycid:5000",
       },
 
       // IPv6 addresses
@@ -691,7 +692,7 @@ describe("Client.util", () => {
         scheme: "",
         host: "[2001:db8:1f70:0:999:de8:7648:6e8]",
         port: 443,
-        endpoint: "dns:[2001:db8:1f70:0:999:de8:7648:6e8]:443"
+        endpoint: "dns:[2001:db8:1f70:0:999:de8:7648:6e8]:443",
       },
       {
         url: "dns:[2001:db8:1f70:0:999:de8:7648:6e8]",
@@ -700,7 +701,7 @@ describe("Client.util", () => {
         scheme: "",
         host: "[2001:db8:1f70:0:999:de8:7648:6e8]",
         port: 443,
-        endpoint: "dns:[2001:db8:1f70:0:999:de8:7648:6e8]:443"
+        endpoint: "dns:[2001:db8:1f70:0:999:de8:7648:6e8]:443",
       },
       {
         url: "dns:[2001:db8:1f70:0:999:de8:7648:6e8]:5000",
@@ -709,11 +710,11 @@ describe("Client.util", () => {
         scheme: "",
         host: "[2001:db8:1f70:0:999:de8:7648:6e8]",
         port: 5000,
-        endpoint: "dns:[2001:db8:1f70:0:999:de8:7648:6e8]:5000"
+        endpoint: "dns:[2001:db8:1f70:0:999:de8:7648:6e8]:5000",
       },
       {
         url: "dns:[2001:db8:1f70:0:999:de8:7648:6e8]:5000?abc=[]",
-        error: true
+        error: true,
       },
       {
         url: "https://[2001:db8:1f70:0:999:de8:7648:6e8]",
@@ -722,7 +723,7 @@ describe("Client.util", () => {
         scheme: "",
         host: "[2001:db8:1f70:0:999:de8:7648:6e8]",
         port: 443,
-        endpoint: "dns:[2001:db8:1f70:0:999:de8:7648:6e8]:443"
+        endpoint: "dns:[2001:db8:1f70:0:999:de8:7648:6e8]:443",
       },
       {
         url: "https://[2001:db8:1f70:0:999:de8:7648:6e8]:5000",
@@ -731,18 +732,17 @@ describe("Client.util", () => {
         scheme: "",
         host: "[2001:db8:1f70:0:999:de8:7648:6e8]",
         port: 5000,
-        endpoint: "dns:[2001:db8:1f70:0:999:de8:7648:6e8]:5000"
+        endpoint: "dns:[2001:db8:1f70:0:999:de8:7648:6e8]:5000",
       },
 
       // Invalid addresses (with path and queries)
-      {url: "host:5000/v1/dapr", error: true},
-      {url: "host:5000/?a=1", error: true},
+      { url: "host:5000/v1/dapr", error: true },
+      { url: "host:5000/?a=1", error: true },
 
       // Invalid scheme
-      {url: "inv-scheme://myhost", error: true},
-      {url: "inv-scheme:myhost:5000", error: true}
+      { url: "inv-scheme://myhost", error: true },
+      { url: "inv-scheme:myhost:5000", error: true },
     ];
-
 
     testCases.forEach((testCase) => {
       test(`Testing URL: ${testCase.url}`, () => {
