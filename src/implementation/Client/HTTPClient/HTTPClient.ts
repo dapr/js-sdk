@@ -39,11 +39,7 @@ export default class HTTPClient implements IClient {
     this.options = options;
     this.logger = new Logger("HTTPClient", "HTTPClient", this.options.logger);
     this.isInitialized = false;
-
-    this.clientUrl = `${this.options.daprHost}:${this.options.daprPort}/v1.0`;
-    if (!this.clientUrl.startsWith("http://") && !this.clientUrl.startsWith("https://")) {
-      this.clientUrl = `http://${this.clientUrl}`;
-    }
+    this.clientUrl = `${this.options.daprEndpoint.endpoint}/v1.0`;
 
     if (!HTTPClient.client) {
       HTTPClient.client = fetch;
