@@ -291,6 +291,8 @@ export function getClientOptions(
     }
 
     return {
+        daprHost: endpoint.hostname,
+        daprPort: endpoint.port,
         daprEndpoint: endpoint,
         communicationProtocol: clientCommunicationProtocol,
         isKeepAlive: clientOptions?.isKeepAlive,
@@ -308,7 +310,6 @@ class URIParseConfig {
     static readonly DEFAULT_PORT = 443;
     static readonly DEFAULT_AUTHORITY = "";
     static readonly ACCEPTED_SCHEMES_GRPC = ["dns", "unix", "unix-abstract", "vsock", "http", "https", "grpc", "grpcs"];
-    static readonly ACCEPTED_SCHEMES_HTTPS = ["http", "https"];
 }
 
 export abstract class Endpoint {
@@ -346,17 +347,6 @@ export abstract class Endpoint {
     }
 }
 
-/**
- * Examples:
- *  - http://localhost:3500 -> [http, localhost, 3500]
- *  - localhost:3500 -> [http, localhost, 3500]
- *  - :3500 -> [http, localhost, 3500]
- *  - localhost -> [http, localhost, 80]
- *  - https://localhost:3500 -> [https, localhost, 3500]
- *  - [::1]:3500 -> [http, ::1, 3500]
- *  - [::1] -> [http, ::1, 80]
- *  - http://[2001:db8:1f70:0:999:de8:7648:6e8]:5000 -> [http, 2001:db8:1f70:0:999:de8:7648:6e8, 5000]
- */
 export class HttpEndpoint extends Endpoint{
     constructor(url: string) {
         super(url);
@@ -366,8 +356,8 @@ export class HttpEndpoint extends Endpoint{
             this._scheme = this._parsedUrl.protocol.replace(":", "");
             this._hostname = this._parsedUrl.hostname.replace("[", "");
             this._hostname = this._hostname.replace("]", "");
-            this._port = parseInt(this._parsedUrl.port) || (this._scheme == "https:" ? 443 : 80);
-            this._tls = this._scheme == "https:";
+            this._port = parseInt(this._parsedUrl.port) || (this._scheme == "https" ? 443 : 80);
+            this._tls = this._scheme == "https";
             this._endpoint = this._scheme + "://" + this._hostname + ":" + this._port.toString();
         } catch (error) {
             throw new Error(`Invalid address: ${url}`);
