@@ -260,126 +260,140 @@ function getType(o: any) {
  * @returns DaprClientOptions
  */
 export function getClientOptions(
-  clientOptions: Partial<DaprClientOptions> | undefined,
-  defaultCommunicationProtocol: CommunicationProtocolEnum,
-  defaultLoggerOptions: LoggerOptions | undefined,
+    clientOptions: Partial<DaprClientOptions> | undefined,
+    defaultCommunicationProtocol: CommunicationProtocolEnum,
+    defaultLoggerOptions: LoggerOptions | undefined,
 ): DaprClientOptions {
-  const clientCommunicationProtocol = clientOptions?.communicationProtocol ?? defaultCommunicationProtocol;
+    const clientCommunicationProtocol = clientOptions?.communicationProtocol ?? defaultCommunicationProtocol;
 
-  // We decide the host/port/endpoint here
-  let daprEndpoint = "";
-  if (clientCommunicationProtocol == CommunicationProtocolEnum.HTTP) {
-    daprEndpoint = Settings.getDefaultHttpEndpoint();
-  } else if (clientCommunicationProtocol == CommunicationProtocolEnum.GRPC) {
-    daprEndpoint = Settings.getDefaultGrpcEndpoint();
-  }
+    // We decide the host/port/endpoint here
+    let host = Settings.getDefaultHost();
+    let port = Settings.getDefaultPort(clientCommunicationProtocol);
+    let uri = `${host}:${port}`;
 
-  let host = Settings.getDefaultHost();
-  let port = Settings.getDefaultPort(clientCommunicationProtocol);
+    let endpoint: Endpoint;
 
-  if (clientOptions?.daprHost || clientOptions?.daprPort) {
-    host = clientOptions?.daprHost ?? host;
-    port = clientOptions?.daprPort ?? port;
-  } else if (daprEndpoint != "") {
-    const [scheme, fqdn, p] = parseEndpoint(daprEndpoint);
-    host = `${scheme}://${fqdn}`;
-    port = p;
-  }
+    if (clientOptions?.daprHost || clientOptions?.daprPort) {
+        host = clientOptions?.daprHost ?? host;
+        port = clientOptions?.daprPort ?? port;
+        uri = `${host}:${port}`;
+    } else if (clientCommunicationProtocol == CommunicationProtocolEnum.HTTP && Settings.getDefaultHttpEndpoint() != "") {
+        uri = Settings.getDefaultHttpEndpoint();
+    } else if (clientCommunicationProtocol == CommunicationProtocolEnum.GRPC && Settings.getDefaultGrpcEndpoint() != "") {
+        uri = Settings.getDefaultGrpcEndpoint();
+    }
 
-  return {
-    daprHost: host,
-    daprPort: port,
-    communicationProtocol: clientCommunicationProtocol,
-    isKeepAlive: clientOptions?.isKeepAlive,
-    logger: clientOptions?.logger ?? defaultLoggerOptions,
-    actor: clientOptions?.actor,
-    daprApiToken: clientOptions?.daprApiToken ?? Settings.getDefaultApiToken(),
-    maxBodySizeMb: clientOptions?.maxBodySizeMb,
-  };
+
+    if (clientCommunicationProtocol == CommunicationProtocolEnum.HTTP) {
+        endpoint = new HttpEndpoint(uri);
+    } else {
+        endpoint = new GrpcEndpoint(uri);
+    }
+
+    return {
+        daprEndpoint: endpoint,
+        communicationProtocol: clientCommunicationProtocol,
+        isKeepAlive: clientOptions?.isKeepAlive,
+        logger: clientOptions?.logger ?? defaultLoggerOptions,
+        actor: clientOptions?.actor,
+        daprApiToken: clientOptions?.daprApiToken ?? Settings.getDefaultApiToken(),
+        maxBodySizeMb: clientOptions?.maxBodySizeMb,
+    };
 }
-
-/**
- * Scheme, fqdn and port
- */
-type EndpointTuple = [string, string, string];
-
-/**
- * Parses an endpoint to scheme, fqdn and port
- * Examples:
- *  - http://localhost:3500 -> [http, localhost, 3500]
- *  - localhost:3500 -> [http, localhost, 3500]
- *  - :3500 -> [http, localhost, 3500]
- *  - localhost -> [http, localhost, 80]
- *  - https://localhost:3500 -> [https, localhost, 3500]
- *  - [::1]:3500 -> [http, ::1, 3500]
- *  - [::1] -> [http, ::1, 80]
- *  - http://[2001:db8:1f70:0:999:de8:7648:6e8]:5000 -> [http, 2001:db8:1f70:0:999:de8:7648:6e8, 5000]
- * @throws Error if the address is invalid
- * @param address Endpoint address
- * @returns EndpointTuple (scheme, fqdn, port)
- */
-export function parseEndpoint(address: string): EndpointTuple {
-  // Prefix with a scheme and host when they're not present,
-  // because the URL library won't parse it otherwise
-  if (address.startsWith(":")) {
-    address = "http://localhost" + address;
-  }
-  if (!address.includes("://")) {
-    address = "http://" + address;
-  }
-
-  let scheme, fqdn, port: string;
-
-  try {
-    const myURL = new URL(address);
-    scheme = myURL.protocol.replace(":", "");
-    fqdn = myURL.hostname.replace("[", "");
-    fqdn = fqdn.replace("]", "");
-    port = myURL.port || (myURL.protocol == "https:" ? "443" : "80");
-  } catch (error) {
-    throw new Error(`Invalid address: ${address}`);
-  }
-
-  return [scheme, fqdn, port];
-}
-
-
-/**
- * Examples:
- *  - http://localhost:3500 -> [http, localhost, 3500]
- *  - localhost:3500 -> [http, localhost, 3500]
- *  - :3500 -> [http, localhost, 3500]
- *  - localhost -> [http, localhost, 80]
- *  - https://localhost:3500 -> [https, localhost, 3500]
- *  - [::1]:3500 -> [http, ::1, 3500]
- *  - [::1] -> [http, ::1, 80]
- *  - http://[2001:db8:1f70:0:999:de8:7648:6e8]:5000 -> [http, 2001:db8:1f70:0:999:de8:7648:6e8, 5000]
- */
-
 
 class URIParseConfig {
-    static readonly DEFAULT_SCHEME = "dns";
+    static readonly DEFAULT_SCHEME_GRPC = "dns";
+    static readonly DEFAULT_SCHEME_HTTP = "http";
     static readonly DEFAULT_HOSTNAME = "localhost";
     static readonly DEFAULT_PORT = 443;
     static readonly DEFAULT_AUTHORITY = "";
-    static readonly ACCEPTED_SCHEMES = ["dns", "unix", "unix-abstract", "vsock", "http", "https", "grpc", "grpcs"];
+    static readonly ACCEPTED_SCHEMES_GRPC = ["dns", "unix", "unix-abstract", "vsock", "http", "https", "grpc", "grpcs"];
+    static readonly ACCEPTED_SCHEMES_HTTPS = ["http", "https"];
 }
 
-export class GrpcEndpoint {
-    private _scheme: string = "";
-    private _hostname: string = "";
-    private _port: number = 0;
-    private _tls: boolean = false;
-    private _authority: string;
-    private _url: string;
-    private _parsedUrl: URL;
-    private _endpoint: string = "";
+export abstract class Endpoint {
+    protected _scheme = "";
+    protected _hostname = "";
+    protected _port = 0;
+    protected _tls = false;
+    protected _authority = "";
+    protected _url: string;
+    protected _endpoint = "";
+    protected _parsedUrl!: URL;
+
+    protected constructor(url: string) {
+        this._url = url;
+    }
+
+    get tls(): boolean {
+        return this._tls;
+    }
+
+    get hostname(): string {
+        return this._hostname;
+    }
+
+    get scheme(): string {
+        return this._scheme;
+    }
+
+    get port(): string {
+        return this._port === 0 ? '' : this._port.toString();
+    }
+
+    get endpoint(): string {
+        return this._endpoint;
+    }
+}
+
+/**
+ * Examples:
+ *  - http://localhost:3500 -> [http, localhost, 3500]
+ *  - localhost:3500 -> [http, localhost, 3500]
+ *  - :3500 -> [http, localhost, 3500]
+ *  - localhost -> [http, localhost, 80]
+ *  - https://localhost:3500 -> [https, localhost, 3500]
+ *  - [::1]:3500 -> [http, ::1, 3500]
+ *  - [::1] -> [http, ::1, 80]
+ *  - http://[2001:db8:1f70:0:999:de8:7648:6e8]:5000 -> [http, 2001:db8:1f70:0:999:de8:7648:6e8, 5000]
+ */
+export class HttpEndpoint extends Endpoint{
+    constructor(url: string) {
+        super(url);
+        this._parsedUrl = new URL(this.preprocessUri(url));
+
+        try {
+            this._scheme = this._parsedUrl.protocol.replace(":", "");
+            this._hostname = this._parsedUrl.hostname.replace("[", "");
+            this._hostname = this._hostname.replace("]", "");
+            this._port = parseInt(this._parsedUrl.port) || (this._scheme == "https:" ? 443 : 80);
+            this._tls = this._scheme == "https:";
+            this._endpoint = this._scheme + "://" + this._hostname + ":" + this._port.toString();
+        } catch (error) {
+            throw new Error(`Invalid address: ${url}`);
+        }
+    }
+
+    // We need to add a default scheme and hostname to the url
+    // if they are not specified so that the URL class can parse it
+    private preprocessUri(url: string) {
+        if (url.startsWith(":")) {
+            url = URIParseConfig.DEFAULT_SCHEME_HTTP + "://" + URIParseConfig.DEFAULT_HOSTNAME + url;
+        }
+        if (!url.includes("://")) {
+            url = URIParseConfig.DEFAULT_SCHEME_HTTP + "://" + url;
+        }
+        return url;
+    }
+}
+
+export class GrpcEndpoint extends Endpoint {
 
     constructor(url: string) {
+        super(url);
         this._authority = URIParseConfig.DEFAULT_AUTHORITY;
-        this._url = url;
 
-        this._parsedUrl = new URL(this._preprocessUri(url));
+        this._parsedUrl = new URL(this.preprocessUri(url));
         this.validatePathAndQuery();
 
         this.setTls();
@@ -389,13 +403,13 @@ export class GrpcEndpoint {
         this.setEndpoint();
     }
 
-    private _preprocessUri(url: string): string {
+    private preprocessUri(url: string): string {
         let urlList = url.split(":");
 
         if (urlList.length === 3 && !url.includes("://")) {
             // A URI like dns:mydomain:5000 or vsock:mycid:5000 was used
             url = url.replace(":", "://");
-        } else if (urlList.length >= 2 && !url.includes("://") && URIParseConfig.ACCEPTED_SCHEMES.includes(urlList[0])) {
+        } else if (urlList.length >= 2 && !url.includes("://") && URIParseConfig.ACCEPTED_SCHEMES_GRPC.includes(urlList[0])) {
             // A URI like dns:mydomain was used
             url = url.replace(":", "://");
         } else {
@@ -408,16 +422,16 @@ export class GrpcEndpoint {
                 // We also need to check if the provided uri is not of the form :5000
                 // if it is, we need to add a default hostname, because the URL class can't parse it
                 if (url[0] === ':') {
-                  url = `${URIParseConfig.DEFAULT_SCHEME}://${URIParseConfig.DEFAULT_HOSTNAME}${url}`;
+                  url = `${URIParseConfig.DEFAULT_SCHEME_GRPC}://${URIParseConfig.DEFAULT_HOSTNAME}${url}`;
                 } else {
-                  url = `${URIParseConfig.DEFAULT_SCHEME}://${url}`;
+                  url = `${URIParseConfig.DEFAULT_SCHEME_GRPC}://${url}`;
                 }
 
             } else {
                 // If a scheme was explicitly specified in the URL
                 // we need to make sure it is a valid scheme
                 const scheme = urlList[0];
-                if (!URIParseConfig.ACCEPTED_SCHEMES.includes(scheme)) {
+                if (!URIParseConfig.ACCEPTED_SCHEMES_GRPC.includes(scheme)) {
                     throw new Error(`Invalid scheme '${scheme}' in URL '${url}'`);
                 }
 
@@ -463,10 +477,6 @@ export class GrpcEndpoint {
         }
     }
 
-    get tls(): boolean {
-        return this._tls;
-    }
-
     private setHostname(): void {
         if (!this._parsedUrl.hostname) {
             this._hostname = URIParseConfig.DEFAULT_HOSTNAME;
@@ -477,32 +487,24 @@ export class GrpcEndpoint {
         this._hostname = this._parsedUrl.hostname;
     }
 
-    get hostname(): string {
-        return this._hostname;
-    }
-
     private setScheme(): void {
         if (!this._parsedUrl.protocol) {
-            this._scheme = URIParseConfig.DEFAULT_SCHEME;
+            this._scheme = URIParseConfig.DEFAULT_SCHEME_GRPC;
             return;
         }
 
         const scheme = this._parsedUrl.protocol.slice(0, -1); // Remove trailing ':'
         if (scheme === 'http' || scheme === 'https') {
-            this._scheme = URIParseConfig.DEFAULT_SCHEME;
+            this._scheme = URIParseConfig.DEFAULT_SCHEME_GRPC;
             console.warn("http and https schemes are deprecated, use grpc or grpcs instead");
             return;
         }
 
-        if (!URIParseConfig.ACCEPTED_SCHEMES.includes(scheme)) {
+        if (!URIParseConfig.ACCEPTED_SCHEMES_GRPC.includes(scheme)) {
             throw new Error(`Invalid scheme '${scheme}' in URL '${this._url}'`);
         }
 
         this._scheme = scheme;
-    }
-
-    get scheme(): string {
-        return this._scheme;
     }
 
     private setPort(): void {
@@ -514,16 +516,8 @@ export class GrpcEndpoint {
         this._port = this._parsedUrl.port ? parseInt(this._parsedUrl.port) : URIParseConfig.DEFAULT_PORT;
     }
 
-    get port(): string {
-        return this._port === 0 ? '' : this._port.toString();
-    }
-
-    get portAsInt(): number {
-        return this._port;
-    }
-
     private setEndpoint(): void {
-        let port = this._port ? `:${this.port}` : "";
+        const port = this._port ? `:${this.port}` : "";
 
         if (this._scheme === "unix") {
             const separator = this._url.startsWith("unix://") ? "://" : ":";
@@ -549,11 +543,4 @@ export class GrpcEndpoint {
 
         this._endpoint = `${this._scheme}:${this._hostname}${port}`;
     }
-
-
-    get endpoint(): string {
-        return this._endpoint;
-    }
-
-
 }

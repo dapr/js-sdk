@@ -39,7 +39,10 @@ export default class GRPCClient implements IClient {
     this.isInitialized = false;
 
     this.logger.info(`Opening connection to ${this.options.daprHost}:${this.options.daprPort}`);
-    this.client = this.generateClient(this.options.daprHost, this.options.daprPort);
+    this.client = new GrpcDaprClient(this.options.daprEndpoint.endpoint,
+      this.getClientCredentials(),
+      this.getGrpcClientOptions(),
+    )
   }
 
   async getClient(requiresInitialization = true): Promise<GrpcDaprClient> {
@@ -60,7 +63,7 @@ export default class GRPCClient implements IClient {
   }
 
   private generateCredentials(): grpc.ChannelCredentials {
-    if (this.options.daprHost.startsWith("https")) {
+    if (this.options.daprEndpoint.tls) {
       return grpc.ChannelCredentials.createSsl();
     }
     return grpc.ChannelCredentials.createInsecure();
@@ -93,25 +96,6 @@ export default class GRPCClient implements IClient {
     return options;
   }
 
-  private generateClient(host: string, port: string): GrpcDaprClient {
-    return new GrpcDaprClient(
-      GRPCClient.getEndpoint(host, port),
-      this.getClientCredentials(),
-      this.getGrpcClientOptions(),
-    );
-  }
-
-  // The grpc client doesn't allow http:// or https:// for grpc connections,
-  // so we need to remove it, if it exists
-  static getEndpoint(host: string, port: string): string {
-    let endpoint = `${host}:${port}`;
-    const parts = endpoint.split("://");
-    if (parts.length > 1 && parts[0].startsWith("http")) {
-      endpoint = parts[1];
-    }
-
-    return endpoint;
-  }
 
   private generateInterceptors(): (options: any, nextCall: any) => grpc.InterceptingCall {
     return (options: any, nextCall: any) => {

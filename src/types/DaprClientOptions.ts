@@ -14,19 +14,25 @@ limitations under the License.
 import CommunicationProtocolEnum from "../enum/CommunicationProtocol.enum";
 import { ActorRuntimeOptions } from "./actors/ActorRuntimeOptions";
 import { LoggerOptions } from "./logger/LoggerOptions";
+import {Endpoint} from "../utils/Client.util";
 
 export type DaprClientOptions = {
   /**
    * Host location of the Dapr sidecar.
    * Default is 127.0.0.1.
    */
-  daprHost: string;
+  daprHost?: string;
 
   /**
    * Port of the Dapr sidecar.
    * Default is 3500.
    */
-  daprPort: string;
+  daprPort?: string;
+
+  /**
+   * gRPC endpoint of the Dapr sidecar.
+   */
+  daprEndpoint: Endpoint;
 
   /**
    * Protocol to use to communicate with the Dapr sidecar.
