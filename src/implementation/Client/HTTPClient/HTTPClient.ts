@@ -23,6 +23,8 @@ import { Logger } from "../../../logger/Logger";
 import HTTPClientSidecar from "./sidecar";
 import { SDK_VERSION } from "../../../version";
 import * as SerializerUtil from "../../../utils/Serializer.util";
+import CommunicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
+import {GrpcEndpoint, HttpEndpoint} from "../../../utils/Client.util";
 
 export default class HTTPClient implements IClient {
   readonly options: DaprClientOptions;
@@ -37,6 +39,15 @@ export default class HTTPClient implements IClient {
 
   constructor(options: DaprClientOptions) {
     this.options = options;
+
+
+
+    // If the instantiation was done directly, through HTTPClient(), and not through DaprClient()
+    // we need to set the endpoint object
+    if (this.options.daprEndpoint === undefined) {
+      this.options.daprEndpoint = new HttpEndpoint(`${this.options.daprHost}:${this.options.daprPort}`);
+    }
+
     this.logger = new Logger("HTTPClient", "HTTPClient", this.options.logger);
     this.isInitialized = false;
     this.clientUrl = `${this.options.daprEndpoint.endpoint}/v1.0`;

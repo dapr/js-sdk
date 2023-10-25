@@ -90,11 +90,6 @@ export default class DaprClient {
     this.options = getClientOptions(options, Settings.getDefaultCommunicationProtocol(), undefined);
     this.logger = new Logger("DaprClient", "DaprClient", this.options.logger);
 
-    // Validation on port
-    if (this.options.daprPort && !/^[0-9]+$/.test(this.options.daprPort)) {
-      throw new Error("DAPR_INCORRECT_SIDECAR_PORT");
-    }
-
     // Builder
     switch (options.communicationProtocol) {
       case CommunicationProtocolEnum.GRPC: {

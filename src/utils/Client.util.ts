@@ -277,6 +277,14 @@ export function getClientOptions(
     host = clientOptions?.daprHost ?? host;
     port = clientOptions?.daprPort ?? port;
     uri = `${host}:${port}`;
+
+    // Legacy validation on port
+    // URI validation is done later, when we instantiate the HttpEndpoint or GrpcEndpoint object
+    // but we need to keep this additional check for backward compatibility
+    // TODO: Remove this validation in the next major version
+    if (port && !/^[0-9]+$/.test(port)) {
+      throw new Error("DAPR_INCORRECT_SIDECAR_PORT");
+    }
   } else if (clientCommunicationProtocol == CommunicationProtocolEnum.HTTP && Settings.getDefaultHttpEndpoint() != "") {
     uri = Settings.getDefaultHttpEndpoint();
   } else if (clientCommunicationProtocol == CommunicationProtocolEnum.GRPC && Settings.getDefaultGrpcEndpoint() != "") {
@@ -349,9 +357,9 @@ export abstract class Endpoint {
 export class HttpEndpoint extends Endpoint {
   constructor(url: string) {
     super(url);
-    this._parsedUrl = new URL(this.preprocessUri(url));
 
     try {
+      this._parsedUrl = new URL(this.preprocessUri(url));
       this._scheme = this._parsedUrl.protocol.replace(":", "");
       this._hostname = this._parsedUrl.hostname.replace("[", "");
       this._hostname = this._hostname.replace("]", "");

@@ -32,7 +32,7 @@ export type DaprClientOptions = {
   /**
    * gRPC endpoint of the Dapr sidecar.
    */
-  daprEndpoint: Endpoint;
+  daprEndpoint?: Endpoint;
 
   /**
    * Protocol to use to communicate with the Dapr sidecar.
