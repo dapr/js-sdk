@@ -26,7 +26,6 @@ import { PubSubBulkPublishMessage } from "../types/pubsub/PubSubBulkPublishMessa
 import { PubSubBulkPublishApiResponse } from "../types/pubsub/PubSubBulkPublishApiResponse.type";
 import { DaprClientOptions } from "../types/DaprClientOptions";
 import CommunicationProtocolEnum from "../enum/CommunicationProtocol.enum";
-import { Settings } from "./Settings.util";
 import { LoggerOptions } from "../types/logger/LoggerOptions";
 import { StateConsistencyEnum } from "../enum/StateConsistency.enum";
 import { StateConcurrencyEnum } from "../enum/StateConcurrency.enum";
@@ -263,44 +262,11 @@ export function getClientOptions(
   clientOptions: Partial<DaprClientOptions> | undefined,
   defaultCommunicationProtocol: CommunicationProtocolEnum,
   defaultLoggerOptions: LoggerOptions | undefined,
-): DaprClientOptions {
+): Partial<DaprClientOptions> {
   const clientCommunicationProtocol = clientOptions?.communicationProtocol ?? defaultCommunicationProtocol;
-
-  // We decide the host/port/endpoint here
-  let host = Settings.getDefaultHost();
-  let port = Settings.getDefaultPort(clientCommunicationProtocol);
-  let uri = `${host}:${port}`;
-
-  let endpoint: Endpoint;
-
-  if (clientOptions?.daprHost || clientOptions?.daprPort) {
-    host = clientOptions?.daprHost ?? host;
-    port = clientOptions?.daprPort ?? port;
-    uri = `${host}:${port}`;
-
-    // Legacy validation on port
-    // URI validation is done later, when we instantiate the HttpEndpoint or GrpcEndpoint object
-    // but we need to keep this additional check for backward compatibility
-    // TODO: Remove this validation in the next major version
-    if (port && !/^[0-9]+$/.test(port)) {
-      throw new Error("DAPR_INCORRECT_SIDECAR_PORT");
-    }
-  } else if (clientCommunicationProtocol == CommunicationProtocolEnum.HTTP && Settings.getDefaultHttpEndpoint() != "") {
-    uri = Settings.getDefaultHttpEndpoint();
-  } else if (clientCommunicationProtocol == CommunicationProtocolEnum.GRPC && Settings.getDefaultGrpcEndpoint() != "") {
-    uri = Settings.getDefaultGrpcEndpoint();
-  }
-
-  if (clientCommunicationProtocol == CommunicationProtocolEnum.HTTP) {
-    endpoint = new HttpEndpoint(uri);
-  } else {
-    endpoint = new GrpcEndpoint(uri);
-  }
-
   return {
-    daprHost: endpoint.hostname,
-    daprPort: endpoint.port,
-    daprEndpoint: endpoint,
+    daprHost: clientOptions?.daprHost,
+    daprPort: clientOptions?.daprPort,
     communicationProtocol: clientCommunicationProtocol,
     isKeepAlive: clientOptions?.isKeepAlive,
     logger: clientOptions?.logger ?? defaultLoggerOptions,

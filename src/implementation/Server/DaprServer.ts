@@ -69,7 +69,7 @@ export default class DaprServer {
       throw new Error("DAPR_INCORRECT_SERVER_PORT");
     }
 
-    if (!/^[0-9]+$/.test(clientOptions.daprPort)) {
+    if (clientOptions?.daprPort && !/^[0-9]+$/.test(clientOptions?.daprPort)) {
       throw new Error("DAPR_INCORRECT_SIDECAR_PORT");
     }
 

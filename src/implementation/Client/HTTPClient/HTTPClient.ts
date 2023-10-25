@@ -23,8 +23,8 @@ import { Logger } from "../../../logger/Logger";
 import HTTPClientSidecar from "./sidecar";
 import { SDK_VERSION } from "../../../version";
 import * as SerializerUtil from "../../../utils/Serializer.util";
-import CommunicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
-import {GrpcEndpoint, HttpEndpoint} from "../../../utils/Client.util";
+import { HttpEndpoint } from "../../../utils/Client.util";
+import communicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
 
 export default class HTTPClient implements IClient {
   readonly options: DaprClientOptions;
@@ -36,21 +36,25 @@ export default class HTTPClient implements IClient {
 
   private static httpAgent: http.Agent;
   private static httpsAgent: https.Agent;
+  private daprEndpoint: HttpEndpoint;
 
-  constructor(options: DaprClientOptions) {
-    this.options = options;
+  constructor(options: Partial<DaprClientOptions>) {
+    this.daprEndpoint = this.generateEndpoint(options);
 
-
-
-    // If the instantiation was done directly, through HTTPClient(), and not through DaprClient()
-    // we need to set the endpoint object
-    if (this.options.daprEndpoint === undefined) {
-      this.options.daprEndpoint = new HttpEndpoint(`${this.options.daprHost}:${this.options.daprPort}`);
-    }
+    this.options = {
+      daprHost: options?.daprHost || this.daprEndpoint.hostname,
+      daprPort: options?.daprPort || this.daprEndpoint.port,
+      communicationProtocol: communicationProtocolEnum.HTTP,
+      isKeepAlive: options?.isKeepAlive,
+      logger: options?.logger,
+      actor: options?.actor,
+      daprApiToken: options?.daprApiToken,
+      maxBodySizeMb: options?.maxBodySizeMb,
+    };
 
     this.logger = new Logger("HTTPClient", "HTTPClient", this.options.logger);
     this.isInitialized = false;
-    this.clientUrl = `${this.options.daprEndpoint.endpoint}/v1.0`;
+    this.clientUrl = `${this.daprEndpoint.endpoint}/v1.0`;
 
     if (!HTTPClient.client) {
       HTTPClient.client = fetch;
@@ -68,6 +72,22 @@ export default class HTTPClient implements IClient {
     if (!HTTPClient.httpsAgent) {
       HTTPClient.httpsAgent = new https.Agent({ keepAlive: keepAlive, keepAliveMsecs: keepAliveMsecs });
     }
+  }
+
+  private generateEndpoint(options: Partial<DaprClientOptions>): HttpEndpoint {
+    let host = Settings.getDefaultHost();
+    let port = Settings.getDefaultPort(communicationProtocolEnum.HTTP);
+    let uri = `${host}:${port}`;
+
+    if (options?.daprHost || options?.daprPort) {
+      host = options?.daprHost ?? Settings.getDefaultHost();
+      port = options?.daprPort ?? Settings.getDefaultPort(communicationProtocolEnum.HTTP);
+      uri = `${host}:${port}`;
+    } else if (Settings.getDefaultGrpcEndpoint() != "") {
+      uri = Settings.getDefaultGrpcEndpoint();
+    }
+
+    return new HttpEndpoint(uri);
   }
 
   async getClient(requiresInitialization = true): Promise<typeof fetch> {

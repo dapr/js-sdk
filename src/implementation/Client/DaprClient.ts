@@ -67,7 +67,7 @@ import * as NodeJSUtils from "../../utils/NodeJS.util";
 import { getClientOptions } from "../../utils/Client.util";
 
 export default class DaprClient {
-  readonly options: DaprClientOptions;
+  readonly options: Partial<DaprClientOptions>;
   readonly daprClient: IClient;
   readonly actor: IClientActorBuilder;
   readonly binding: IClientBinding;
@@ -89,6 +89,15 @@ export default class DaprClient {
   constructor(options: Partial<DaprClientOptions> = {}) {
     this.options = getClientOptions(options, Settings.getDefaultCommunicationProtocol(), undefined);
     this.logger = new Logger("DaprClient", "DaprClient", this.options.logger);
+
+    // Legacy validation on port
+    // URI validation is done later, when we instantiate the HttpEndpoint or GrpcEndpoint
+    // object in the HttpClient or GrpcClient constructor, but we need to
+    // keep this additional check for backward compatibility
+    // TODO: Remove this validation in the next major version
+    if (this.options?.daprPort && !/^[0-9]+$/.test(this.options?.daprPort)) {
+      throw new Error("DAPR_INCORRECT_SIDECAR_PORT");
+    }
 
     // Builder
     switch (options.communicationProtocol) {

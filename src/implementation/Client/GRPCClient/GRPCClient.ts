@@ -20,8 +20,8 @@ import { Logger } from "../../../logger/Logger";
 import GRPCClientSidecar from "./sidecar";
 import DaprClient from "../DaprClient";
 import { SDK_VERSION } from "../../../version";
-import CommunicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
-import {GrpcEndpoint, HttpEndpoint} from "../../../utils/Client.util";
+import { GrpcEndpoint } from "../../../utils/Client.util";
+import communicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
 
 export default class GRPCClient implements IClient {
   readonly options: DaprClientOptions;
@@ -31,15 +31,21 @@ export default class GRPCClient implements IClient {
   private readonly clientCredentials: grpc.ChannelCredentials;
   private readonly logger: Logger;
   private readonly grpcClientOptions: Partial<grpc.ClientOptions>;
+  private daprEndpoint: GrpcEndpoint;
 
-  constructor(options: DaprClientOptions) {
-    this.options = options;
+  constructor(options: Partial<DaprClientOptions>) {
+    this.daprEndpoint = this.generateEndpoint(options);
 
-    // If the instantiation was done directly, through GRPCClient(), and not through DaprClient()
-    // we need to set the endpoint object
-    if (this.options.daprEndpoint === undefined) {
-      this.options.daprEndpoint = new GrpcEndpoint(`${this.options.daprHost}:${this.options.daprPort}`);
-    }
+    this.options = {
+      daprHost: options?.daprHost || this.daprEndpoint.hostname,
+      daprPort: options?.daprPort || this.daprEndpoint.port,
+      communicationProtocol: communicationProtocolEnum.GRPC,
+      isKeepAlive: options?.isKeepAlive,
+      logger: options?.logger,
+      actor: options?.actor,
+      daprApiToken: options?.daprApiToken,
+      maxBodySizeMb: options?.maxBodySizeMb,
+    };
 
     this.clientCredentials = this.generateCredentials();
     this.grpcClientOptions = this.generateChannelOptions();
@@ -49,7 +55,7 @@ export default class GRPCClient implements IClient {
 
     this.logger.info(`Opening connection to ${this.options.daprHost}:${this.options.daprPort}`);
     this.client = new GrpcDaprClient(
-      this.options.daprEndpoint.endpoint,
+      this.daprEndpoint.endpoint,
       this.getClientCredentials(),
       this.getGrpcClientOptions(),
     );
@@ -72,8 +78,24 @@ export default class GRPCClient implements IClient {
     return this.grpcClientOptions;
   }
 
+  private generateEndpoint(options: Partial<DaprClientOptions>): GrpcEndpoint {
+    let host = Settings.getDefaultHost();
+    let port = Settings.getDefaultPort(communicationProtocolEnum.GRPC);
+    let uri = `${host}:${port}`;
+
+    if (options?.daprHost || options?.daprPort) {
+      host = options?.daprHost ?? Settings.getDefaultHost();
+      port = options?.daprPort ?? Settings.getDefaultPort(communicationProtocolEnum.GRPC);
+      uri = `${host}:${port}`;
+    } else if (Settings.getDefaultGrpcEndpoint() != "") {
+      uri = Settings.getDefaultGrpcEndpoint();
+    }
+
+    return new GrpcEndpoint(uri);
+  }
+
   private generateCredentials(): grpc.ChannelCredentials {
-    if (this.options.daprEndpoint?.tls) {
+    if (this.daprEndpoint?.tls) {
       return grpc.ChannelCredentials.createSsl();
     }
     return grpc.ChannelCredentials.createInsecure();
