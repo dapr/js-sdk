@@ -63,7 +63,7 @@ export default class ActorClientHTTP implements IClientActor {
         "Content-Type": "application/json",
       },
       body: {
-        period: reminder.period.toString().toLocaleLowerCase().replace("pt", ""),
+        period: reminder?.period?.toString()?.toLocaleLowerCase().replace("pt", ""),
         dueTime: reminder?.dueTime?.toString()?.toLocaleLowerCase().replace("pt", ""),
         ttl: reminder?.ttl?.toString()?.toLocaleLowerCase().replace("pt", ""),
         data: reminder.data,
@@ -89,7 +89,7 @@ export default class ActorClientHTTP implements IClientActor {
         "Content-Type": "application/json",
       },
       body: {
-        period: timer.period.toString().toLocaleLowerCase().replace("pt", ""),
+        period: timer?.period?.toString()?.toLocaleLowerCase().replace("pt", ""),
         dueTime: timer?.dueTime?.toString()?.toLocaleLowerCase().replace("pt", ""),
         ttl: timer?.ttl?.toString()?.toLocaleLowerCase().replace("pt", ""),
         data: timer.data,
