@@ -83,8 +83,8 @@ export default class HTTPClient implements IClient {
       host = options?.daprHost ?? Settings.getDefaultHost();
       port = options?.daprPort ?? Settings.getDefaultPort(communicationProtocolEnum.HTTP);
       uri = `${host}:${port}`;
-    } else if (Settings.getDefaultGrpcEndpoint() != "") {
-      uri = Settings.getDefaultGrpcEndpoint();
+    } else if (Settings.getDefaultHttpEndpoint() != "") {
+      uri = Settings.getDefaultHttpEndpoint();
     }
 
     return new HttpEndpoint(uri);

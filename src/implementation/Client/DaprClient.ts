@@ -103,6 +103,8 @@ export default class DaprClient {
     switch (options.communicationProtocol) {
       case CommunicationProtocolEnum.GRPC: {
         const client = new GRPCClient(this.options);
+        this.options.daprHost = client.options.daprHost;
+        this.options.daprPort = client.options.daprPort;
         this.daprClient = client;
 
         this.state = new GRPCClientState(client);
@@ -124,6 +126,8 @@ export default class DaprClient {
       case CommunicationProtocolEnum.HTTP:
       default: {
         const client = new HTTPClient(this.options);
+        this.options.daprHost = client.options.daprHost;
+        this.options.daprPort = client.options.daprPort;
         this.daprClient = client;
 
         this.actor = new HTTPClientActor(client); // we use an abstractor here since we interface through a builder with the Actor Runtime
