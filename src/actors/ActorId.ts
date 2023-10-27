@@ -20,7 +20,7 @@ export default class ActorId {
     if (!id) {
         throw new Error("ActorId cannot be empty");
     }
-    this.id = encodeURIComponent(id);
+    this.id = id;
   }
 
   static createRandomId(): ActorId {
@@ -28,10 +28,14 @@ export default class ActorId {
   }
 
   getId() {
-    return decodeURIComponent(this.id);
+    return this.id;
+  }
+
+  getURLSafeId() {
+    return encodeURIComponent(this.id);
   }
 
   toString() {
-    return decodeURIComponent(this.id);
+    return this.id;
   }
 }

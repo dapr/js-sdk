@@ -28,7 +28,7 @@ export default class ActorClientHTTP implements IClientActor {
   }
 
   async invoke(actorType: string, actorId: ActorId, methodName: string, body?: any): Promise<object> {
-    const result = await this.client.execute(`/actors/${actorType}/${actorId.getId()}/method/${methodName}`, {
+    const result = await this.client.execute(`/actors/${actorType}/${actorId.getURLSafeId()}/method/${methodName}`, {
       method: "POST", // we always use POST calls for Invoking (ref: https://github.com/dapr/js-sdk/pull/137#discussion_r772636068)
       body,
     });
@@ -37,7 +37,7 @@ export default class ActorClientHTTP implements IClientActor {
   }
 
   async stateTransaction(actorType: string, actorId: ActorId, operations: OperationType[]): Promise<void> {
-    await this.client.execute(`/actors/${actorType}/${actorId.getId()}/state`, {
+    await this.client.execute(`/actors/${actorType}/${actorId.getURLSafeId()}/state`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -47,7 +47,7 @@ export default class ActorClientHTTP implements IClientActor {
   }
 
   async stateGet(actorType: string, actorId: ActorId, key: string): Promise<KeyValueType | string> {
-    const result = await this.client.execute(`/actors/${actorType}/${actorId.getId()}/state/${key}`);
+    const result = await this.client.execute(`/actors/${actorType}/${actorId.getURLSafeId()}/state/${key}`);
     return result as any;
   }
 
@@ -57,7 +57,7 @@ export default class ActorClientHTTP implements IClientActor {
     name: string,
     reminder: ActorReminderType,
   ): Promise<void> {
-    await this.client.execute(`/actors/${actorType}/${actorId.getId()}/reminders/${name}`, {
+    await this.client.execute(`/actors/${actorType}/${actorId.getURLSafeId()}/reminders/${name}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -72,18 +72,18 @@ export default class ActorClientHTTP implements IClientActor {
   }
 
   async reminderGet(actorType: string, actorId: ActorId, name: string): Promise<object> {
-    const result = await this.client.execute(`/actors/${actorType}/${actorId.getId()}/reminders/${name}`);
+    const result = await this.client.execute(`/actors/${actorType}/${actorId.getURLSafeId()}/reminders/${name}`);
     return result as object;
   }
 
   async unregisterActorReminder(actorType: string, actorId: ActorId, name: string): Promise<void> {
-    await this.client.execute(`/actors/${actorType}/${actorId.getId()}/reminders/${name}`, {
+    await this.client.execute(`/actors/${actorType}/${actorId.getURLSafeId()}/reminders/${name}`, {
       method: "DELETE",
     });
   }
 
   async registerActorTimer(actorType: string, actorId: ActorId, name: string, timer: ActorTimerType): Promise<void> {
-    await this.client.execute(`/actors/${actorType}/${actorId.getId()}/timers/${name}`, {
+    await this.client.execute(`/actors/${actorType}/${actorId.getURLSafeId()}/timers/${name}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -99,13 +99,13 @@ export default class ActorClientHTTP implements IClientActor {
   }
 
   async unregisterActorTimer(actorType: string, actorId: ActorId, name: string): Promise<void> {
-    await this.client.execute(`/actors/${actorType}/${actorId.getId()}/timers/${name}`, {
+    await this.client.execute(`/actors/${actorType}/${actorId.getURLSafeId()}/timers/${name}`, {
       method: "DELETE",
     });
   }
 
-  async deactivate(actorType: string, actorId: string): Promise<void> {
-    await this.client.execute(`/actors/${actorType}/${actorId}`, {
+  async deactivate(actorType: string, actorId: ActorId): Promise<void> {
+    await this.client.execute(`/actors/${actorType}/${actorId.getURLSafeId()}`, {
       method: "DELETE",
     });
   }

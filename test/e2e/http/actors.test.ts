@@ -123,6 +123,7 @@ describe("http/actors", () => {
     it("should be able to create an actorId", () => {
       const actorId = ActorId.createRandomId();
       expect(actorId.getId()).toBeDefined();
+      expect(actorId.getURLSafeId()).toBeDefined();
       expect(actorId.toString()).toBeDefined();
     });
 
@@ -132,6 +133,7 @@ describe("http/actors", () => {
 
     it("should be able to create an actorId with url unsafe characters like '/'", () => {
       const actorId = new ActorId("test/actor");
+      expect(actorId.getURLSafeId()).toEqual("test%2Factor");
       expect(actorId.getId()).toEqual("test/actor");
       expect(actorId.toString()).toEqual("test/actor");
     });
