@@ -18,7 +18,7 @@ export default class ActorId {
 
   constructor(id: string) {
     if (!id) {
-        throw new Error("ActorId cannot be empty");
+      throw new Error("ActorId cannot be empty");
     }
     this.id = id;
   }
