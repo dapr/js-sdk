@@ -359,6 +359,36 @@ describe("Client.util", () => {
       expect(options).toEqual(expectedOptions);
     });
 
+
+    it("returns correct Dapr Client Options when token provided in constructor", () => {
+      const inOptions: Partial<DaprClientOptions> = {
+        daprApiToken: "token",
+      };
+      const options = getClientOptions(inOptions, CommunicationProtocolEnum.HTTP, undefined);
+      expect(options.daprApiToken).toEqual("token");
+    });
+
+    it("returns correct Dapr Client Options when token provided in anv variable", () => {
+      const oldToken = process.env.DAPR_API_TOKEN
+      process.env.DAPR_API_TOKEN = "envtoken";
+      const options = getClientOptions(undefined, CommunicationProtocolEnum.HTTP, undefined);
+      expect(options.daprApiToken).toEqual("envtoken");
+      process.env.DAPR_API_TOKEN = oldToken;
+    });
+
+    it("returns correct Dapr Client Options when token provided both in constructor and in anv variable", () => {
+      process.env.DAPR_API_TOKEN = "envtoken";
+
+      const inOptions: Partial<DaprClientOptions> = {
+        daprApiToken: "token",
+      };
+      const options = getClientOptions(inOptions, CommunicationProtocolEnum.HTTP, undefined);
+
+      expect(options.daprApiToken).toEqual("token");
+
+      delete process.env.DAPR_API_TOKEN;
+    });
+
     it("returns correct Dapr Client Options when undefined options provided", () => {
       const options = getClientOptions(undefined, CommunicationProtocolEnum.GRPC, undefined);
       const expectedOptions: Partial<DaprClientOptions> = {
