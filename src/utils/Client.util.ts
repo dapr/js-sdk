@@ -292,7 +292,7 @@ export function getClientOptions(
     isKeepAlive: clientOptions?.isKeepAlive,
     logger: clientOptions?.logger ?? defaultLoggerOptions,
     actor: clientOptions?.actor,
-    daprApiToken: clientOptions?.daprApiToken ?? process.env.DAPR_API_TOKEN,
+    daprApiToken: clientOptions?.daprApiToken ?? Settings.getDefaultApiToken(),
     maxBodySizeMb: clientOptions?.maxBodySizeMb,
   };
 }
