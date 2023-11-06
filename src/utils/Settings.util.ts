@@ -15,6 +15,7 @@ import CommunicationProtocolEnum from "../enum/CommunicationProtocol.enum";
 
 export class Settings {
   private static readonly defaultAppId: string = "my-dapr-app";
+  private static readonly defaultApiToken = undefined;
   private static readonly defaultHost: string = "127.0.0.1";
   private static readonly defaultHttpAppPort: string = "3000";
   private static readonly defaultHttpPort: string = "3500";
@@ -49,6 +50,10 @@ export class Settings {
 
   static getAppId(): string {
     return process.env.APP_ID ?? Settings.defaultAppId;
+  }
+
+  static getDefaultApiToken() {
+    return process.env.DAPR_API_TOKEN || Settings.defaultApiToken;
   }
 
   static getDefaultHost(): string {
