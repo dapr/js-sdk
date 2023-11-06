@@ -359,7 +359,6 @@ describe("Client.util", () => {
       expect(options).toEqual(expectedOptions);
     });
 
-
     it("returns correct Dapr Client Options when token provided in constructor", () => {
       const inOptions: Partial<DaprClientOptions> = {
         daprApiToken: "token",
@@ -369,7 +368,7 @@ describe("Client.util", () => {
     });
 
     it("returns correct Dapr Client Options when token provided in env variable", () => {
-      const oldToken = process.env.DAPR_API_TOKEN
+      const oldToken = process.env.DAPR_API_TOKEN;
       process.env.DAPR_API_TOKEN = "envtoken";
       const options = getClientOptions(undefined, CommunicationProtocolEnum.HTTP, undefined);
       expect(options.daprApiToken).toEqual("envtoken");

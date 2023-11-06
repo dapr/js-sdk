@@ -80,6 +80,7 @@ npm run start:dapr-grpc
 ### Environment Variables
 
 ##### Dapr Sidecar Endpoints
+
 You can use the `DAPR_HTTP_ENDPOINT` and `DAPR_GRPC_ENDPOINT` environment variables to set the Dapr
 Sidecar's HTTP and gRPC endpoints respectively. When these variables are set, the `daprHost`
 and `daprPort` don't have to be set in the options argument of the constructor, the client will parse them automatically
@@ -99,6 +100,7 @@ If the environment variables are set, but `daprHost` and `daprPort` values are p
 constructor, the latter will take precedence over the environment variables.
 
 ##### Dapr API Token
+
 You can use the `DAPR_API_TOKEN` environment variable to set the Dapr API token. When this variable
 is set, the `daprApiToken` doesn't have to be set in the options argument of the constructor,
 the client will get it automatically.
