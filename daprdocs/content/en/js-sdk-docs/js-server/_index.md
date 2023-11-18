@@ -110,7 +110,7 @@ myApp.get("/my-custom-endpoint", (req, res) => {
 const daprServer = new DaprServer({
       serverHost: "127.0.0.1", // App Host
       serverPort: "50002", // App Port
-      serverHttp: myApp
+      serverHttp: myApp, //express server
       clientOptions: {
         daprHost,
         daprPort,
