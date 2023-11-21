@@ -112,8 +112,8 @@ const daprServer = new DaprServer({
       serverPort: "50002", // App Port
       serverHttp: myApp,
       clientOptions: {
-        daprHost,
-        daprPort,
+        daprHost
+        daprPort
       }
     });
 
