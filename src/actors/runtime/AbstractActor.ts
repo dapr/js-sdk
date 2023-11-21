@@ -115,8 +115,8 @@ export default abstract class AbstractActor {
     timerName: string,
     callback: string,
     dueTime: Temporal.Duration,
-    period: Temporal.Duration,
-    ttl?: Temporal.Duration,
+    period: Temporal.Duration | undefined,
+    ttl?: Temporal.Duration | undefined,
     state?: any,
   ) {
     // Register the timer in the sidecar
