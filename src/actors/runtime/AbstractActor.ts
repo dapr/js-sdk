@@ -96,7 +96,7 @@ export default abstract class AbstractActor {
     reminderName: string,
     dueTime: Temporal.Duration,
     period: Temporal.Duration | undefined,
-    ttl?: Temporal.Duration,
+    ttl?: Temporal.Duration | undefined,
     state?: any,
   ) {
     await this.actorClient.actor.registerActorReminder(this.actorType, this.id, reminderName, {
