@@ -95,8 +95,8 @@ export default abstract class AbstractActor {
   async registerActorReminder<_Type>(
     reminderName: string,
     dueTime: Temporal.Duration,
-    period: Temporal.Duration | undefined,
-    ttl?: Temporal.Duration | undefined,
+    period?: Temporal.Duration,
+    ttl?: Temporal.Duration,
     state?: any,
   ) {
     await this.actorClient.actor.registerActorReminder(this.actorType, this.id, reminderName, {
@@ -115,8 +115,8 @@ export default abstract class AbstractActor {
     timerName: string,
     callback: string,
     dueTime: Temporal.Duration,
-    period: Temporal.Duration | undefined,
-    ttl?: Temporal.Duration | undefined,
+    period?: Temporal.Duration,
+    ttl?: Temporal.Duration,
     state?: any,
   ) {
     // Register the timer in the sidecar
