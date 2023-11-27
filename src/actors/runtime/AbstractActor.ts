@@ -95,7 +95,7 @@ export default abstract class AbstractActor {
   async registerActorReminder<_Type>(
     reminderName: string,
     dueTime: Temporal.Duration,
-    period: Temporal.Duration,
+    period?: Temporal.Duration,
     ttl?: Temporal.Duration,
     state?: any,
   ) {
@@ -115,7 +115,7 @@ export default abstract class AbstractActor {
     timerName: string,
     callback: string,
     dueTime: Temporal.Duration,
-    period: Temporal.Duration,
+    period?: Temporal.Duration,
     ttl?: Temporal.Duration,
     state?: any,
   ) {
