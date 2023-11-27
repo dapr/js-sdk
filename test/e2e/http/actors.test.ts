@@ -179,15 +179,19 @@ describe("http/actors", () => {
     it("should register actors correctly", async () => {
       const actors = await server.actor.getRegisteredActors();
 
-      expect(actors.length).toEqual(9);
+      expect(actors.length).toEqual(11);
 
       expect(actors).toContain(DemoActorCounterImpl.name);
       expect(actors).toContain(DemoActorSayImpl.name);
       expect(actors).toContain(DemoActorReminderImpl.name);
+      expect(actors).toContain(DemoActorReminder2Impl.name);
+      expect(actors).toContain(DemoActorReminderOnceImpl.name);
       expect(actors).toContain(DemoActorTimerImpl.name);
+      expect(actors).toContain(DemoActorTimerOnceImpl.name);
       expect(actors).toContain(DemoActorActivateImpl.name);
       expect(actors).toContain(DemoActorTimerTtlImpl.name);
       expect(actors).toContain(DemoActorReminderTtlImpl.name);
+      expect(actors).toContain(DemoActorDeleteStateImpl.name);
     });
 
     it("should be able to invoke an actor through a text message", async () => {
