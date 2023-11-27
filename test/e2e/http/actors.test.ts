@@ -113,7 +113,7 @@ describe("http/actors", () => {
 
       const config = JSON.parse(await res.text());
 
-      expect(config.entities.length).toBe(9);
+      expect(config.entities.length).toBe(11);
       expect(config.actorIdleTimeout).toBe("1h");
       expect(config.actorScanInterval).toBe("30s");
       expect(config.drainOngoingCallTimeout).toBe("1m");
