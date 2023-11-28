@@ -123,6 +123,26 @@ describe("http/actors", () => {
     });
   });
 
+  describe("actorId", () => {
+    it("should be able to create an actorId", () => {
+      const actorId = ActorId.createRandomId();
+      expect(actorId.getId()).toBeDefined();
+      expect(actorId.getURLSafeId()).toBeDefined();
+      expect(actorId.toString()).toBeDefined();
+    });
+
+    it("should not be able to create an actorId with an empty string", () => {
+      expect(() => new ActorId("")).toThrowError("ActorId cannot be empty");
+    });
+
+    it("should be able to create an actorId with url unsafe characters like '/'", () => {
+      const actorId = new ActorId("test/actor");
+      expect(actorId.getURLSafeId()).toEqual("test%2Factor");
+      expect(actorId.getId()).toEqual("test/actor");
+      expect(actorId.toString()).toEqual("test/actor");
+    });
+  });
+
   describe("actorProxy", () => {
     it("should be able to create an actor object through the proxy", async () => {
       const builder = new ActorProxyBuilder<DemoActorCounterInterface>(DemoActorCounterImpl, client);
