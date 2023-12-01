@@ -30,7 +30,7 @@ async function start() {
     },
   });
 
-  const client = new DaprClient({daprHost, daprPort:process.env.DAPR_GRPC_PORT, communicationProtocol:CommunicationProtocolEnum.GRPC});
+  const client = new DaprClient(daprHost, process.env.DAPR_GRPC_PORT, CommunicationProtocolEnum.GRPC);
 
   // Initialize the subscription. Note that this must be done BEFORE calling .start()
   await server.pubsub.subscribe("my-pubsub-component", "my-topic", async (data: Record<string, any>) => {
