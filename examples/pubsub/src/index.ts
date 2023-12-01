@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { CommunicationProtocolEnum, DaprClient, DaprServer } from "@dapr/dapr";
+import { DaprClient, DaprServer } from "@dapr/dapr";
 
 // Common settings
 const serverHost = "127.0.0.1"; // App Host of this Example Server
@@ -23,14 +23,13 @@ async function start() {
   const server = new DaprServer({
     serverHost,
     serverPort,
-    communicationProtocol: CommunicationProtocolEnum.GRPC,
     clientOptions: {
       daprHost,
-      daprPort: process.env.DAPR_GRPC_PORT,
+      daprPort: process.env.DAPR_HTTP_PORT,
     },
   });
 
-  const client = new DaprClient(daprHost, process.env.DAPR_GRPC_PORT, CommunicationProtocolEnum.GRPC);
+  const client = new DaprClient({ daprHost, daprPort: process.env.DAPR_HTTP_PORT });
 
   // Initialize the subscription. Note that this must be done BEFORE calling .start()
   await server.pubsub.subscribe("my-pubsub-component", "my-topic", async (data: Record<string, any>) => {
