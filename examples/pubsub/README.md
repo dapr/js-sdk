@@ -42,7 +42,11 @@ By default, the example uses HTTP. To use gRPC instead:
     },
   });
 
-  const client = new DaprClient({daprHost, daprPort:process.env.DAPR_GRPC_PORT, communicationProtocol:CommunicationProtocolEnum.GRPC});
+  const client = new DaprClient({
+    daprHost,
+    daprPort: process.env.DAPR_GRPC_PORT,
+    communicationProtocol: CommunicationProtocolEnum.GRPC,
+  });
   ```
 
 - To run:
