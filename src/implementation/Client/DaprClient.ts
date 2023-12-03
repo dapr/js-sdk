@@ -146,19 +146,18 @@ export default class DaprClient {
         this.workflow = new HTTPClientWorkflow(client);
         break;
       }
-
     }
 
-      this.options = {
-          daprHost: options.daprHost,
-          daprPort: options.daprPort,
-          communicationProtocol: options.communicationProtocol ?? Settings.getDefaultCommunicationProtocol(),
-          isKeepAlive: options.isKeepAlive,
-          logger: options.logger,
-          actor: options.actor,
-          daprApiToken: options.daprApiToken,
-          maxBodySizeMb: options.maxBodySizeMb,
-      };
+    this.options = {
+      daprHost: options.daprHost,
+      daprPort: options.daprPort,
+      communicationProtocol: options.communicationProtocol ?? Settings.getDefaultCommunicationProtocol(),
+      isKeepAlive: options.isKeepAlive,
+      logger: options.logger,
+      actor: options.actor,
+      daprApiToken: options.daprApiToken,
+      maxBodySizeMb: options.maxBodySizeMb,
+    };
   }
 
   static create(client: IClient): DaprClient {

@@ -29,8 +29,7 @@ import CommunicationProtocolEnum from "../enum/CommunicationProtocol.enum";
 import { LoggerOptions } from "../types/logger/LoggerOptions";
 import { StateConsistencyEnum } from "../enum/StateConsistency.enum";
 import { StateConcurrencyEnum } from "../enum/StateConcurrency.enum";
-import { URL, URLSearchParams } from "url";
-import {Settings} from "./Settings.util";
+import { Settings } from "./Settings.util";
 
 /**
  * Adds metadata to a map.

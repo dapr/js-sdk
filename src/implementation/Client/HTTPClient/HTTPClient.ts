@@ -24,7 +24,7 @@ import HTTPClientSidecar from "./sidecar";
 import { SDK_VERSION } from "../../../version";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import communicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
-import {HttpEndpoint} from "../../../network/HttpEndpoint";
+import { HttpEndpoint } from "../../../network/HttpEndpoint";
 
 export default class HTTPClient implements IClient {
   readonly options: DaprClientOptions;

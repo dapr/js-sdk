@@ -20,7 +20,6 @@ import {
   getBulkPublishResponse,
   getClientOptions,
   createHTTPQueryParam,
-
 } from "../../../src/utils/Client.util";
 import { Map } from "google-protobuf";
 import { PubSubBulkPublishEntry } from "../../../src/types/pubsub/PubSubBulkPublishEntry.type";
@@ -29,7 +28,7 @@ import { CommunicationProtocolEnum, DaprClientOptions, LogLevel } from "../../..
 import { HttpEndpoint } from "../../../build/utils/Client.util";
 import { DaprClient } from "../../../src";
 import { Settings } from "../../../src/utils/Settings.util";
-import {GrpcEndpoint} from "../../../src/network/GrpcEndpoint";
+import { GrpcEndpoint } from "../../../src/network/GrpcEndpoint";
 
 describe("Client.util", () => {
   describe("addMetadataToMap", () => {

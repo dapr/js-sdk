@@ -21,7 +21,7 @@ import GRPCClientSidecar from "./sidecar";
 import DaprClient from "../DaprClient";
 import { SDK_VERSION } from "../../../version";
 import communicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
-import {GrpcEndpoint} from "../../../network/GrpcEndpoint";
+import { GrpcEndpoint } from "../../../network/GrpcEndpoint";
 
 export default class GRPCClient implements IClient {
   readonly options: DaprClientOptions;
