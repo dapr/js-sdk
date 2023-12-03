@@ -67,7 +67,7 @@ import * as NodeJSUtils from "../../utils/NodeJS.util";
 import { getClientOptions } from "../../utils/Client.util";
 
 export default class DaprClient {
-  readonly options: Partial<DaprClientOptions>;
+  readonly options: DaprClientOptions;
   readonly daprClient: IClient;
   readonly actor: IClientActorBuilder;
   readonly binding: IClientBinding;
@@ -87,24 +87,26 @@ export default class DaprClient {
   private readonly logger: Logger;
 
   constructor(options: Partial<DaprClientOptions> = {}) {
-    this.options = getClientOptions(options, Settings.getDefaultCommunicationProtocol(), undefined);
-    this.logger = new Logger("DaprClient", "DaprClient", this.options.logger);
+    options = getClientOptions(options, Settings.getDefaultCommunicationProtocol(), undefined);
+    // this.options = getClientOptions(options, Settings.getDefaultCommunicationProtocol(), undefined);
+    this.logger = new Logger("DaprClient", "DaprClient", options.logger);
 
     // Legacy validation on port
     // URI validation is done later, when we instantiate the HttpEndpoint or GrpcEndpoint
     // object in the HttpClient or GrpcClient constructor, but we need to
     // keep this additional check for backward compatibility
     // TODO: Remove this validation in the next major version
-    if (this.options?.daprPort && !/^[0-9]+$/.test(this.options?.daprPort)) {
+    if (options?.daprPort && !/^[0-9]+$/.test(options?.daprPort)) {
       throw new Error("DAPR_INCORRECT_SIDECAR_PORT");
     }
 
     // Builder
     switch (options.communicationProtocol) {
       case CommunicationProtocolEnum.GRPC: {
-        const client = new GRPCClient(this.options);
-        this.options.daprHost = client.options.daprHost;
-        this.options.daprPort = client.options.daprPort;
+        const client = new GRPCClient(options);
+        options.daprHost = client.options.daprHost;
+        options.daprPort = client.options.daprPort;
+        // this.options = options
         this.daprClient = client;
 
         this.state = new GRPCClientState(client);
@@ -125,9 +127,10 @@ export default class DaprClient {
       }
       case CommunicationProtocolEnum.HTTP:
       default: {
-        const client = new HTTPClient(this.options);
-        this.options.daprHost = client.options.daprHost;
-        this.options.daprPort = client.options.daprPort;
+        const client = new HTTPClient(options);
+        options.daprHost = client.options.daprHost;
+        options.daprPort = client.options.daprPort;
+        // this.options = options
         this.daprClient = client;
 
         this.actor = new HTTPClientActor(client); // we use an abstractor here since we interface through a builder with the Actor Runtime
@@ -146,7 +149,19 @@ export default class DaprClient {
         this.workflow = new HTTPClientWorkflow(client);
         break;
       }
+
     }
+
+      this.options = {
+          daprHost: options.daprHost,
+          daprPort: options.daprPort,
+          communicationProtocol: options.communicationProtocol ?? Settings.getDefaultCommunicationProtocol(),
+          isKeepAlive: options.isKeepAlive,
+          logger: options.logger,
+          actor: options.actor,
+          daprApiToken: options.daprApiToken,
+          maxBodySizeMb: options.maxBodySizeMb,
+      };
   }
 
   static create(client: IClient): DaprClient {
