@@ -20,8 +20,8 @@ import { Logger } from "../../../logger/Logger";
 import GRPCClientSidecar from "./sidecar";
 import DaprClient from "../DaprClient";
 import { SDK_VERSION } from "../../../version";
-import { GrpcEndpoint } from "../../../utils/Client.util";
 import communicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
+import {GrpcEndpoint} from "../../../network/GrpcEndpoint";
 
 export default class GRPCClient implements IClient {
   readonly options: DaprClientOptions;

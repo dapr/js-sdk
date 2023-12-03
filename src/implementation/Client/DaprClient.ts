@@ -88,7 +88,6 @@ export default class DaprClient {
 
   constructor(options: Partial<DaprClientOptions> = {}) {
     options = getClientOptions(options, Settings.getDefaultCommunicationProtocol(), undefined);
-    // this.options = getClientOptions(options, Settings.getDefaultCommunicationProtocol(), undefined);
     this.logger = new Logger("DaprClient", "DaprClient", options.logger);
 
     // Legacy validation on port
@@ -106,7 +105,6 @@ export default class DaprClient {
         const client = new GRPCClient(options);
         options.daprHost = client.options.daprHost;
         options.daprPort = client.options.daprPort;
-        // this.options = options
         this.daprClient = client;
 
         this.state = new GRPCClientState(client);
@@ -130,7 +128,6 @@ export default class DaprClient {
         const client = new HTTPClient(options);
         options.daprHost = client.options.daprHost;
         options.daprPort = client.options.daprPort;
-        // this.options = options
         this.daprClient = client;
 
         this.actor = new HTTPClientActor(client); // we use an abstractor here since we interface through a builder with the Actor Runtime
