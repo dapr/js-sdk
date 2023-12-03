@@ -30,6 +30,7 @@ import { LoggerOptions } from "../types/logger/LoggerOptions";
 import { StateConsistencyEnum } from "../enum/StateConsistency.enum";
 import { StateConcurrencyEnum } from "../enum/StateConcurrency.enum";
 import { URL, URLSearchParams } from "url";
+import {Settings} from "./Settings.util";
 
 /**
  * Adds metadata to a map.
@@ -271,7 +272,7 @@ export function getClientOptions(
     isKeepAlive: clientOptions?.isKeepAlive,
     logger: clientOptions?.logger ?? defaultLoggerOptions,
     actor: clientOptions?.actor,
-    daprApiToken: clientOptions?.daprApiToken,
+    daprApiToken: clientOptions?.daprApiToken ?? Settings.getDefaultApiToken(),
     maxBodySizeMb: clientOptions?.maxBodySizeMb,
   };
 }
