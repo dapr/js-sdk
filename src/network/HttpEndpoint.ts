@@ -36,10 +36,10 @@ export class HttpEndpoint extends Endpoint {
   // if they are not specified so that the URL class can parse it
   private preprocessUri(url: string) {
     if (url.startsWith(":")) {
-      url = URIParseConfig.DEFAULT_SCHEME_HTTP + "://" + URIParseConfig.DEFAULT_HOSTNAME + url;
+return URIParseConfig.DEFAULT_SCHEME_HTTP + "://" + URIParseConfig.DEFAULT_HOSTNAME + url;
     }
     if (!url.includes("://")) {
-      url = URIParseConfig.DEFAULT_SCHEME_HTTP + "://" + url;
+return URIParseConfig.DEFAULT_SCHEME_HTTP + "://" + url;
     }
     return url;
   }

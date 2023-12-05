@@ -151,7 +151,7 @@ export default class DaprClient {
     this.options = {
       daprHost: options.daprHost,
       daprPort: options.daprPort,
-      communicationProtocol: options.communicationProtocol ?? Settings.getDefaultCommunicationProtocol(),
+      communicationProtocol: this.daprClient.options.communicationProtocol,
       isKeepAlive: options.isKeepAlive,
       logger: options.logger,
       actor: options.actor,
