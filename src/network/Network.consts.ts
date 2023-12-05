@@ -11,18 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { GRPCClient } from "../../../../src";
-
-describe("grpc", () => {
-  it("getEndpoint should remove http and https from endpoint", () => {
-    const testCases = [
-      { host: "http://localhost", port: "5000", expected: "localhost:5000" },
-      { host: "https://localhost", port: "5000", expected: "localhost:5000" },
-      { host: "localhost", port: "5000", expected: "localhost:5000" },
-    ];
-
-    testCases.forEach((testCase) => {
-      expect(GRPCClient.getEndpoint(testCase.host, testCase.port)).toBe(testCase.expected);
-    });
-  });
-});
+export class URIParseConfig {
+  static readonly DEFAULT_SCHEME_GRPC = "dns";
+  static readonly DEFAULT_SCHEME_HTTP = "http";
+  static readonly DEFAULT_HOSTNAME = "localhost";
+  static readonly DEFAULT_PORT = 443;
+  static readonly DEFAULT_AUTHORITY = "";
+  static readonly ACCEPTED_SCHEMES_GRPC = ["dns", "unix", "unix-abstract", "vsock", "http", "https", "grpc", "grpcs"];
+}

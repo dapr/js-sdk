@@ -48,29 +48,36 @@ export default class DaprServer {
   constructor(serverOptions: Partial<DaprServerOptions> = {}) {
     const communicationProtocol = serverOptions.communicationProtocol ?? Settings.getDefaultCommunicationProtocol();
     const clientOptions = getClientOptions(serverOptions.clientOptions, communicationProtocol, serverOptions?.logger);
+
+    // Legacy validation on port
+    // URI validation is done later, when we instantiate the HttpEndpoint or GrpcEndpoint
+    // object in the HttpClient or GrpcClient constructor, but we need to
+    // keep this additional check for backward compatibility
+    // TODO: Remove this validation in the next major version
+    if (clientOptions?.daprPort && !/^[0-9]+$/.test(clientOptions?.daprPort)) {
+      throw new Error("DAPR_INCORRECT_SIDECAR_PORT");
+    }
+
+    this.client = new DaprClient(clientOptions);
+
     this.serverOptions = {
       serverHost: serverOptions.serverHost ?? Settings.getDefaultHost(),
       serverPort: serverOptions.serverPort ?? Settings.getDefaultAppPort(communicationProtocol),
       communicationProtocol: communicationProtocol,
       maxBodySizeMb: serverOptions.maxBodySizeMb,
       serverHttp: serverOptions.serverHttp,
-      clientOptions: clientOptions,
+      clientOptions: this.client.options,
       logger: serverOptions.logger,
     };
     // Create a client to interface with the sidecar from the server side
-    this.client = new DaprClient(clientOptions);
 
     // If DAPR_SERVER_PORT was not set, we set it
     process.env.DAPR_SERVER_PORT = this.serverOptions.serverPort;
-    process.env.DAPR_CLIENT_PORT = clientOptions.daprPort;
+    process.env.DAPR_CLIENT_PORT = this.client.options.daprPort;
 
     // Validation on port
     if (!/^[0-9]+$/.test(this.serverOptions.serverPort)) {
       throw new Error("DAPR_INCORRECT_SERVER_PORT");
-    }
-
-    if (!/^[0-9]+$/.test(clientOptions.daprPort)) {
-      throw new Error("DAPR_INCORRECT_SIDECAR_PORT");
     }
 
     // Builder

@@ -26,11 +26,11 @@ import { PubSubBulkPublishMessage } from "../types/pubsub/PubSubBulkPublishMessa
 import { PubSubBulkPublishApiResponse } from "../types/pubsub/PubSubBulkPublishApiResponse.type";
 import { DaprClientOptions } from "../types/DaprClientOptions";
 import CommunicationProtocolEnum from "../enum/CommunicationProtocol.enum";
-import { Settings } from "./Settings.util";
 import { LoggerOptions } from "../types/logger/LoggerOptions";
 import { StateConsistencyEnum } from "../enum/StateConsistency.enum";
 import { StateConcurrencyEnum } from "../enum/StateConcurrency.enum";
-import { URL, URLSearchParams } from "url";
+import { Settings } from "./Settings.util";
+
 /**
  * Adds metadata to a map.
  * @param map Input map
@@ -262,32 +262,11 @@ export function getClientOptions(
   clientOptions: Partial<DaprClientOptions> | undefined,
   defaultCommunicationProtocol: CommunicationProtocolEnum,
   defaultLoggerOptions: LoggerOptions | undefined,
-): DaprClientOptions {
+): Partial<DaprClientOptions> {
   const clientCommunicationProtocol = clientOptions?.communicationProtocol ?? defaultCommunicationProtocol;
-
-  // We decide the host/port/endpoint here
-  let daprEndpoint = "";
-  if (clientCommunicationProtocol == CommunicationProtocolEnum.HTTP) {
-    daprEndpoint = Settings.getDefaultHttpEndpoint();
-  } else if (clientCommunicationProtocol == CommunicationProtocolEnum.GRPC) {
-    daprEndpoint = Settings.getDefaultGrpcEndpoint();
-  }
-
-  let host = Settings.getDefaultHost();
-  let port = Settings.getDefaultPort(clientCommunicationProtocol);
-
-  if (clientOptions?.daprHost || clientOptions?.daprPort) {
-    host = clientOptions?.daprHost ?? host;
-    port = clientOptions?.daprPort ?? port;
-  } else if (daprEndpoint != "") {
-    const [scheme, fqdn, p] = parseEndpoint(daprEndpoint);
-    host = `${scheme}://${fqdn}`;
-    port = p;
-  }
-
   return {
-    daprHost: host,
-    daprPort: port,
+    daprHost: clientOptions?.daprHost,
+    daprPort: clientOptions?.daprPort,
     communicationProtocol: clientCommunicationProtocol,
     isKeepAlive: clientOptions?.isKeepAlive,
     logger: clientOptions?.logger ?? defaultLoggerOptions,
@@ -295,49 +274,4 @@ export function getClientOptions(
     daprApiToken: clientOptions?.daprApiToken ?? Settings.getDefaultApiToken(),
     maxBodySizeMb: clientOptions?.maxBodySizeMb,
   };
-}
-
-/**
- * Scheme, fqdn and port
- */
-type EndpointTuple = [string, string, string];
-
-/**
- * Parses an endpoint to scheme, fqdn and port
- * Examples:
- *  - http://localhost:3500 -> [http, localhost, 3500]
- *  - localhost:3500 -> [http, localhost, 3500]
- *  - :3500 -> [http, localhost, 3500]
- *  - localhost -> [http, localhost, 80]
- *  - https://localhost:3500 -> [https, localhost, 3500]
- *  - [::1]:3500 -> [http, ::1, 3500]
- *  - [::1] -> [http, ::1, 80]
- *  - http://[2001:db8:1f70:0:999:de8:7648:6e8]:5000 -> [http, 2001:db8:1f70:0:999:de8:7648:6e8, 5000]
- * @throws Error if the address is invalid
- * @param address Endpoint address
- * @returns EndpointTuple (scheme, fqdn, port)
- */
-export function parseEndpoint(address: string): EndpointTuple {
-  // Prefix with a scheme and host when they're not present,
-  // because the URL library won't parse it otherwise
-  if (address.startsWith(":")) {
-    address = "http://localhost" + address;
-  }
-  if (!address.includes("://")) {
-    address = "http://" + address;
-  }
-
-  let scheme, fqdn, port: string;
-
-  try {
-    const myURL = new URL(address);
-    scheme = myURL.protocol.replace(":", "");
-    fqdn = myURL.hostname.replace("[", "");
-    fqdn = fqdn.replace("]", "");
-    port = myURL.port || (myURL.protocol == "https:" ? "443" : "80");
-  } catch (error) {
-    throw new Error(`Invalid address: ${address}`);
-  }
-
-  return [scheme, fqdn, port];
 }

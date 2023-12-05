@@ -87,18 +87,22 @@ export default class DaprClient {
   private readonly logger: Logger;
 
   constructor(options: Partial<DaprClientOptions> = {}) {
-    this.options = getClientOptions(options, Settings.getDefaultCommunicationProtocol(), undefined);
-    this.logger = new Logger("DaprClient", "DaprClient", this.options.logger);
+    options = getClientOptions(options, Settings.getDefaultCommunicationProtocol(), undefined);
+    this.logger = new Logger("DaprClient", "DaprClient", options.logger);
 
-    // Validation on port
-    if (this.options.daprPort && !/^[0-9]+$/.test(this.options.daprPort)) {
+    // Legacy validation on port
+    // URI validation is done later, when we instantiate the HttpEndpoint or GrpcEndpoint
+    // object in the HttpClient or GrpcClient constructor, but we need to
+    // keep this additional check for backward compatibility
+    // TODO: Remove this validation in the next major version
+    if (options?.daprPort && !/^[0-9]+$/.test(options?.daprPort)) {
       throw new Error("DAPR_INCORRECT_SIDECAR_PORT");
     }
 
     // Builder
     switch (options.communicationProtocol) {
       case CommunicationProtocolEnum.GRPC: {
-        const client = new GRPCClient(this.options);
+        const client = new GRPCClient(options);
         this.daprClient = client;
 
         this.state = new GRPCClientState(client);
@@ -119,7 +123,7 @@ export default class DaprClient {
       }
       case CommunicationProtocolEnum.HTTP:
       default: {
-        const client = new HTTPClient(this.options);
+        const client = new HTTPClient(options);
         this.daprClient = client;
 
         this.actor = new HTTPClientActor(client); // we use an abstractor here since we interface through a builder with the Actor Runtime
@@ -139,6 +143,17 @@ export default class DaprClient {
         break;
       }
     }
+
+    this.options = {
+      daprHost: this.daprClient.options.daprHost,
+      daprPort: this.daprClient.options.daprPort,
+      communicationProtocol: this.daprClient.options.communicationProtocol,
+      isKeepAlive: options.isKeepAlive,
+      logger: options.logger,
+      actor: options.actor,
+      daprApiToken: options.daprApiToken,
+      maxBodySizeMb: options.maxBodySizeMb,
+    };
   }
 
   static create(client: IClient): DaprClient {

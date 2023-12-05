@@ -23,6 +23,8 @@ import { Logger } from "../../../logger/Logger";
 import HTTPClientSidecar from "./sidecar";
 import { SDK_VERSION } from "../../../version";
 import * as SerializerUtil from "../../../utils/Serializer.util";
+import communicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
+import { HttpEndpoint } from "../../../network/HttpEndpoint";
 
 export default class HTTPClient implements IClient {
   readonly options: DaprClientOptions;
@@ -34,16 +36,25 @@ export default class HTTPClient implements IClient {
 
   private static httpAgent: http.Agent;
   private static httpsAgent: https.Agent;
+  private daprEndpoint: HttpEndpoint;
 
-  constructor(options: DaprClientOptions) {
-    this.options = options;
+  constructor(options: Partial<DaprClientOptions>) {
+    this.daprEndpoint = this.generateEndpoint(options);
+
+    this.options = {
+      daprHost: this.daprEndpoint.hostname,
+      daprPort: this.daprEndpoint.port,
+      communicationProtocol: communicationProtocolEnum.HTTP,
+      isKeepAlive: options?.isKeepAlive,
+      logger: options?.logger,
+      actor: options?.actor,
+      daprApiToken: options?.daprApiToken,
+      maxBodySizeMb: options?.maxBodySizeMb,
+    };
+
     this.logger = new Logger("HTTPClient", "HTTPClient", this.options.logger);
     this.isInitialized = false;
-
-    this.clientUrl = `${this.options.daprHost}:${this.options.daprPort}/v1.0`;
-    if (!this.clientUrl.startsWith("http://") && !this.clientUrl.startsWith("https://")) {
-      this.clientUrl = `http://${this.clientUrl}`;
-    }
+    this.clientUrl = `${this.daprEndpoint.endpoint}/v1.0`;
 
     if (!HTTPClient.client) {
       HTTPClient.client = fetch;
@@ -61,6 +72,22 @@ export default class HTTPClient implements IClient {
     if (!HTTPClient.httpsAgent) {
       HTTPClient.httpsAgent = new https.Agent({ keepAlive: keepAlive, keepAliveMsecs: keepAliveMsecs });
     }
+  }
+
+  private generateEndpoint(options: Partial<DaprClientOptions>): HttpEndpoint {
+    const host = options?.daprHost ?? Settings.getDefaultHost();
+    const port = options?.daprPort ?? Settings.getDefaultHttpPort();
+    let uri = `${host}:${port}`;
+
+    if (!(options?.daprHost || options?.daprPort)) {
+      // If neither host nor port are specified, check the endpoint environment variable.
+      const endpoint = Settings.getDefaultHttpEndpoint();
+      if (endpoint != "") {
+        uri = endpoint;
+      }
+    }
+
+    return new HttpEndpoint(uri);
   }
 
   async getClient(requiresInitialization = true): Promise<typeof fetch> {

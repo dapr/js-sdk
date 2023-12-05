@@ -20,6 +20,8 @@ import { Logger } from "../../../logger/Logger";
 import GRPCClientSidecar from "./sidecar";
 import DaprClient from "../DaprClient";
 import { SDK_VERSION } from "../../../version";
+import communicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
+import { GrpcEndpoint } from "../../../network/GrpcEndpoint";
 
 export default class GRPCClient implements IClient {
   readonly options: DaprClientOptions;
@@ -29,9 +31,22 @@ export default class GRPCClient implements IClient {
   private readonly clientCredentials: grpc.ChannelCredentials;
   private readonly logger: Logger;
   private readonly grpcClientOptions: Partial<grpc.ClientOptions>;
+  private daprEndpoint: GrpcEndpoint;
 
-  constructor(options: DaprClientOptions) {
-    this.options = options;
+  constructor(options: Partial<DaprClientOptions>) {
+    this.daprEndpoint = this.generateEndpoint(options);
+
+    this.options = {
+      daprHost: this.daprEndpoint.hostname,
+      daprPort: this.daprEndpoint.port,
+      communicationProtocol: communicationProtocolEnum.GRPC,
+      isKeepAlive: options?.isKeepAlive,
+      logger: options?.logger,
+      actor: options?.actor,
+      daprApiToken: options?.daprApiToken,
+      maxBodySizeMb: options?.maxBodySizeMb,
+    };
+
     this.clientCredentials = this.generateCredentials();
     this.grpcClientOptions = this.generateChannelOptions();
 
@@ -39,7 +54,11 @@ export default class GRPCClient implements IClient {
     this.isInitialized = false;
 
     this.logger.info(`Opening connection to ${this.options.daprHost}:${this.options.daprPort}`);
-    this.client = this.generateClient(this.options.daprHost, this.options.daprPort);
+    this.client = new GrpcDaprClient(
+      this.daprEndpoint.endpoint,
+      this.getClientCredentials(),
+      this.getGrpcClientOptions(),
+    );
   }
 
   async getClient(requiresInitialization = true): Promise<GrpcDaprClient> {
@@ -59,8 +78,24 @@ export default class GRPCClient implements IClient {
     return this.grpcClientOptions;
   }
 
+  private generateEndpoint(options: Partial<DaprClientOptions>): GrpcEndpoint {
+    const host = options?.daprHost ?? Settings.getDefaultHost();
+    const port = options?.daprPort ?? Settings.getDefaultGrpcPort();
+    let uri = `${host}:${port}`;
+
+    if (!(options?.daprHost || options?.daprPort)) {
+      // If neither host nor port are specified, check the endpoint environment variable.
+      const endpoint = Settings.getDefaultGrpcEndpoint();
+      if (endpoint != "") {
+        uri = endpoint;
+      }
+    }
+
+    return new GrpcEndpoint(uri);
+  }
+
   private generateCredentials(): grpc.ChannelCredentials {
-    if (this.options.daprHost.startsWith("https")) {
+    if (this.daprEndpoint?.tls) {
       return grpc.ChannelCredentials.createSsl();
     }
     return grpc.ChannelCredentials.createInsecure();
@@ -91,26 +126,6 @@ export default class GRPCClient implements IClient {
     }
 
     return options;
-  }
-
-  private generateClient(host: string, port: string): GrpcDaprClient {
-    return new GrpcDaprClient(
-      GRPCClient.getEndpoint(host, port),
-      this.getClientCredentials(),
-      this.getGrpcClientOptions(),
-    );
-  }
-
-  // The grpc client doesn't allow http:// or https:// for grpc connections,
-  // so we need to remove it, if it exists
-  static getEndpoint(host: string, port: string): string {
-    let endpoint = `${host}:${port}`;
-    const parts = endpoint.split("://");
-    if (parts.length > 1 && parts[0].startsWith("http")) {
-      endpoint = parts[1];
-    }
-
-    return endpoint;
   }
 
   private generateInterceptors(): (options: any, nextCall: any) => grpc.InterceptingCall {
