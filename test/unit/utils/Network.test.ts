@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import { GrpcEndpoint } from "../../../src/network/GrpcEndpoint";
-import { HttpEndpoint } from "../../../build/utils/Client.util";
+import { HttpEndpoint } from "../../../src/network/HttpEndpoint";
 
 describe("Client.util", () => {
   describe("parse GRPC Endpoint", () => {
