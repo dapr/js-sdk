@@ -22,7 +22,7 @@ export class HttpEndpoint extends Endpoint {
     try {
       const parsedUrl = new URL(HttpEndpoint.preprocessUri(url));
       this._scheme = parsedUrl.protocol.replace(":", "");
-      var re = /[\]\[]/gi;
+      const re = /[\][]/gi;
       this._hostname = parsedUrl.hostname.replace(re, "");
       this._port = parseInt(parsedUrl.port) || (this._scheme == "https" ? 443 : 80);
       this._tls = this._scheme == "https";
