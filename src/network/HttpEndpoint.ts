@@ -20,7 +20,7 @@ export class HttpEndpoint extends Endpoint {
     super(url);
 
     try {
-      this._parsedUrl = new URL(this.preprocessUri(url));
+      const parsedUri = new URL(HttpEndpoint.preprocessUri(url));
       this._scheme = this._parsedUrl.protocol.replace(":", "");
       this._hostname = this._parsedUrl.hostname.replace("[", "");
       this._hostname = this._hostname.replace("]", "");
@@ -34,7 +34,7 @@ export class HttpEndpoint extends Endpoint {
 
   // We need to add a default scheme and hostname to the url
   // if they are not specified so that the URL class can parse it
-  private preprocessUri(url: string) {
+  private static preprocessUri(url: string) {
     if (url.startsWith(":")) {
 return URIParseConfig.DEFAULT_SCHEME_HTTP + "://" + URIParseConfig.DEFAULT_HOSTNAME + url;
     }

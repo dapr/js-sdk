@@ -11,17 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { URL } from "url";
 
 export abstract class Endpoint {
   protected _scheme = "";
   protected _hostname = "";
   protected _port = 0;
   protected _tls = false;
-  protected _authority = "";
   protected _url: string;
   protected _endpoint = "";
-  protected _parsedUrl!: URL;
 
   protected constructor(url: string) {
     this._url = url;
