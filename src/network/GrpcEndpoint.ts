@@ -16,17 +16,19 @@ import { URIParseConfig } from "./Network.consts";
 import { URL, URLSearchParams } from "url";
 
 export class GrpcEndpoint extends Endpoint {
+  private _authority = "";
+
   constructor(url: string) {
     super(url);
     this._authority = URIParseConfig.DEFAULT_AUTHORITY;
 
-    this._parsedUrl = new URL(this.preprocessUri(url));
-    this.validatePathAndQuery();
+    const parsedUrl = new URL(this.preprocessUri(url));
+    this.validatePathAndQuery(parsedUrl);
 
-    this.setTls();
-    this.setHostname();
-    this.setScheme();
-    this.setPort();
+    this.setTls(parsedUrl);
+    this.setHostname(parsedUrl);
+    this.setScheme(parsedUrl);
+    this.setPort(parsedUrl);
     this.setEndpoint();
   }
 
@@ -81,48 +83,48 @@ export class GrpcEndpoint extends Endpoint {
     return url;
   }
 
-  private validatePathAndQuery(): void {
-    if (this._parsedUrl.pathname && this._parsedUrl.pathname !== "/") {
-      throw new Error(`Paths are not supported for gRPC endpoints: '${this._parsedUrl.pathname}'`);
+  private validatePathAndQuery(parsedUrl: URL): void {
+    if (parsedUrl.pathname && parsedUrl.pathname !== "/") {
+      throw new Error(`Paths are not supported for gRPC endpoints: '${parsedUrl.pathname}'`);
     }
 
-    const params = new URLSearchParams(this._parsedUrl.search);
-    if (params.has("tls") && (this._parsedUrl.protocol === "http:" || this._parsedUrl.protocol === "https:")) {
-      throw new Error(`The tls query parameter is not supported for http(s) endpoints: '${this._parsedUrl.search}'`);
+    const params = new URLSearchParams(parsedUrl.search);
+    if (params.has("tls") && (parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:")) {
+      throw new Error(`The tls query parameter is not supported for http(s) endpoints: '${parsedUrl.search}'`);
     }
 
     params.delete("tls");
     if (Array.from(params.keys()).length > 0) {
-      throw new Error(`Query parameters are not supported for gRPC endpoints: '${this._parsedUrl.search}'`);
+      throw new Error(`Query parameters are not supported for gRPC endpoints: '${parsedUrl.search}'`);
     }
   }
 
-  private setTls(): void {
-    const params = new URLSearchParams(this._parsedUrl.search);
+  private setTls(parsedUrl: URL): void {
+    const params = new URLSearchParams(parsedUrl.search);
     const tlsStr = params.get("tls") || "";
     this._tls = tlsStr.toLowerCase() === "true";
 
-    if (this._parsedUrl.protocol == "https:") {
+    if (parsedUrl.protocol == "https:") {
       this._tls = true;
     }
   }
 
-  private setHostname(): void {
-    if (!this._parsedUrl.hostname) {
+  private setHostname(parsedUrl: URL): void {
+    if (!parsedUrl.hostname) {
       this._hostname = URIParseConfig.DEFAULT_HOSTNAME;
       return;
     }
 
-    this._hostname = this._parsedUrl.hostname;
+    this._hostname = parsedUrl.hostname;
   }
 
-  private setScheme(): void {
-    if (!this._parsedUrl.protocol) {
+  private setScheme(parsedUrl: URL): void {
+    if (!parsedUrl.protocol) {
       this._scheme = URIParseConfig.DEFAULT_SCHEME_GRPC;
       return;
     }
 
-    const scheme = this._parsedUrl.protocol.slice(0, -1); // Remove trailing ':'
+    const scheme = parsedUrl.protocol.slice(0, -1); // Remove trailing ':'
     if (scheme === "http" || scheme === "https") {
       this._scheme = URIParseConfig.DEFAULT_SCHEME_GRPC;
       console.warn("http and https schemes are deprecated, use grpc or grpcs instead");
@@ -136,13 +138,13 @@ export class GrpcEndpoint extends Endpoint {
     this._scheme = scheme;
   }
 
-  private setPort(): void {
+  private setPort(parsedUrl: URL): void {
     if (this._scheme === "unix" || this._scheme === "unix-abstract") {
       this._port = 0;
       return;
     }
 
-    this._port = this._parsedUrl.port ? parseInt(this._parsedUrl.port) : URIParseConfig.DEFAULT_PORT;
+    this._port = parsedUrl.port ? parseInt(parsedUrl.port) : URIParseConfig.DEFAULT_PORT;
   }
 
   private setEndpoint(): void {

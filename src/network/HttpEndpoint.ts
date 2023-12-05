@@ -20,11 +20,11 @@ export class HttpEndpoint extends Endpoint {
     super(url);
 
     try {
-      const parsedUri = new URL(HttpEndpoint.preprocessUri(url));
-      this._scheme = this._parsedUrl.protocol.replace(":", "");
-      this._hostname = this._parsedUrl.hostname.replace("[", "");
+      const parsedUrl = new URL(HttpEndpoint.preprocessUri(url));
+      this._scheme = parsedUrl.protocol.replace(":", "");
+      this._hostname = parsedUrl.hostname.replace("[", "");
       this._hostname = this._hostname.replace("]", "");
-      this._port = parseInt(this._parsedUrl.port) || (this._scheme == "https" ? 443 : 80);
+      this._port = parseInt(parsedUrl.port) || (this._scheme == "https" ? 443 : 80);
       this._tls = this._scheme == "https";
       this._endpoint = this._scheme + "://" + this._hostname + ":" + this._port.toString();
     } catch (error) {
@@ -34,12 +34,14 @@ export class HttpEndpoint extends Endpoint {
 
   // We need to add a default scheme and hostname to the url
   // if they are not specified so that the URL class can parse it
+  // Ex: 127.0.0.1 -> http://127.0.0.1
+  // Ex: :5000 -> http://127.0.0.1:5000
   private static preprocessUri(url: string) {
     if (url.startsWith(":")) {
-return URIParseConfig.DEFAULT_SCHEME_HTTP + "://" + URIParseConfig.DEFAULT_HOSTNAME + url;
+      return URIParseConfig.DEFAULT_SCHEME_HTTP + "://" + URIParseConfig.DEFAULT_HOSTNAME + url;
     }
     if (!url.includes("://")) {
-return URIParseConfig.DEFAULT_SCHEME_HTTP + "://" + url;
+      return URIParseConfig.DEFAULT_SCHEME_HTTP + "://" + url;
     }
     return url;
   }
