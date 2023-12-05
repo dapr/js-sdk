@@ -14,7 +14,6 @@ limitations under the License.
 import { Endpoint } from "./AbstractEndpoint";
 import { URL } from "url";
 import { URIParseConfig } from "./Network.consts";
-import {log} from "util";
 
 export class HttpEndpoint extends Endpoint {
   constructor(url: string) {
@@ -23,7 +22,8 @@ export class HttpEndpoint extends Endpoint {
     try {
       const parsedUrl = new URL(HttpEndpoint.preprocessUri(url));
       this._scheme = parsedUrl.protocol.replace(":", "");
-      this._hostname = parsedUrl.hostname.replace(/[\]\[]/gi, "");
+      var re = /[\]\[]/gi;
+      this._hostname = parsedUrl.hostname.replace(re, "");
       this._port = parseInt(parsedUrl.port) || (this._scheme == "https" ? 443 : 80);
       this._tls = this._scheme == "https";
       // Remove brackets if it's a IPv6 addresses
