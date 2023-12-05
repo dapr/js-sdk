@@ -420,6 +420,15 @@ describe("Client.util", () => {
         port: 5000,
         endpoint: "https://myhost:5000",
       },
+      {
+        url: "https://[2001:db8:1f70:0:999:de8:7648:6e8]:5000",
+        error: false,
+        secure: true,
+        scheme: "",
+        host: "2001:db8:1f70:0:999:de8:7648:6e8",
+        port: 5000,
+        endpoint: "https://[2001:db8:1f70:0:999:de8:7648:6e8]:5000",
+      },
     ];
 
     testCases.forEach((testCase) => {
