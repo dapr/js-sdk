@@ -13,7 +13,7 @@ limitations under the License.
 
 import { Endpoint } from "./AbstractEndpoint";
 import { URL } from "url";
-import { URIParseConfig } from "./Network.util";
+import { URIParseConfig } from "./Network.consts";
 
 export class HttpEndpoint extends Endpoint {
   constructor(url: string) {

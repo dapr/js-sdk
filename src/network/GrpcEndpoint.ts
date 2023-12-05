@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import { Endpoint } from "./AbstractEndpoint";
-import { URIParseConfig } from "./Network.util";
+import { URIParseConfig } from "./Network.consts";
 import { URL, URLSearchParams } from "url";
 
 export class GrpcEndpoint extends Endpoint {

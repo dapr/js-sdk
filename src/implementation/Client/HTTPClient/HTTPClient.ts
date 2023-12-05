@@ -42,8 +42,8 @@ export default class HTTPClient implements IClient {
     this.daprEndpoint = this.generateEndpoint(options);
 
     this.options = {
-      daprHost: options?.daprHost || this.daprEndpoint.hostname,
-      daprPort: options?.daprPort || this.daprEndpoint.port,
+      daprHost: this.daprEndpoint.hostname,
+      daprPort: this.daprEndpoint.port,
       communicationProtocol: communicationProtocolEnum.HTTP,
       isKeepAlive: options?.isKeepAlive,
       logger: options?.logger,
@@ -75,16 +75,16 @@ export default class HTTPClient implements IClient {
   }
 
   private generateEndpoint(options: Partial<DaprClientOptions>): HttpEndpoint {
-    let host = Settings.getDefaultHost();
-    let port = Settings.getDefaultPort(communicationProtocolEnum.HTTP);
+    const host = options?.daprHost ?? Settings.getDefaultHost();
+    const port = options?.daprPort ?? Settings.getDefaultHttpPort();
     let uri = `${host}:${port}`;
 
-    if (options?.daprHost || options?.daprPort) {
-      host = options?.daprHost ?? Settings.getDefaultHost();
-      port = options?.daprPort ?? Settings.getDefaultPort(communicationProtocolEnum.HTTP);
-      uri = `${host}:${port}`;
-    } else if (Settings.getDefaultHttpEndpoint() != "") {
-      uri = Settings.getDefaultHttpEndpoint();
+    if (!(options?.daprHost || options?.daprPort)) {
+      // If neither host nor port are specified, check the endpoint environment variable.
+      const endpoint = Settings.getDefaultHttpEndpoint();
+      if (endpoint != "") {
+        uri = endpoint;
+      }
     }
 
     return new HttpEndpoint(uri);

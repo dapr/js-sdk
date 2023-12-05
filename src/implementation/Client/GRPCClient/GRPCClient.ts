@@ -37,8 +37,8 @@ export default class GRPCClient implements IClient {
     this.daprEndpoint = this.generateEndpoint(options);
 
     this.options = {
-      daprHost: options?.daprHost || this.daprEndpoint.hostname,
-      daprPort: options?.daprPort || this.daprEndpoint.port,
+      daprHost: this.daprEndpoint.hostname,
+      daprPort: this.daprEndpoint.port,
       communicationProtocol: communicationProtocolEnum.GRPC,
       isKeepAlive: options?.isKeepAlive,
       logger: options?.logger,
@@ -79,13 +79,13 @@ export default class GRPCClient implements IClient {
   }
 
   private generateEndpoint(options: Partial<DaprClientOptions>): GrpcEndpoint {
-        let host = options?.daprHost ?? Settings.getDefaultHost();
-    let port = options?.daprPort ?? Settings.getDefaultGrpcPort();
+    const host = options?.daprHost ?? Settings.getDefaultHost();
+    const port = options?.daprPort ?? Settings.getDefaultGrpcPort();
     let uri = `${host}:${port}`;
 
     if (!(options?.daprHost || options?.daprPort)) {
       // If neither host nor port are specified, check the endpoint environment variable.
-      let endpoint = Settings.getDefaultGrpcEndpoint();
+      const endpoint = Settings.getDefaultGrpcEndpoint();
       if (endpoint != "") {
         uri = endpoint;
       }
