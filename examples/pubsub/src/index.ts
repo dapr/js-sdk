@@ -38,7 +38,7 @@ async function start() {
   });
 
   // Publish multiple messages to a topic with default config.
-  await server.pubsub.subscribeBulk("my-pubsub-component", "my-topic", async (data: Record<string, any>) => {
+  await server.pubsub.subscribeBulk("my-pubsub-component", "my-topic-bulk", async (data: Record<string, any>) => {
     // The library parses JSON when possible.
     console.log(`[Dapr-JS][Example] Received on subscription: ${JSON.stringify(data)}`);
   });
@@ -46,7 +46,7 @@ async function start() {
   // Publish multiple messages to a topic with specific maxMessagesCount and maxAwaitDurationMs.
   await server.pubsub.subscribeBulk(
     "my-pubsub-component",
-    "my-topic",
+    "my-topic-bulk-with-config",
     async (data: Record<string, any>) => {
       // The library parses JSON when possible.
       console.log(`[Dapr-JS][Example] Received on subscription: ${JSON.stringify(data)}`);
@@ -85,12 +85,12 @@ async function start() {
 
   console.log("[Dapr-JS][Example] Bulk publishing multiple plain messages");
   const messages = ["message 1", "message 2", "message 3"];
-  response = await client.pubsub.publishBulk("my-pubsub-component", "my-topic", messages);
+  response = await client.pubsub.publishBulk("my-pubsub-component", "my-topic-bulk", messages);
   console.log(`[Dapr-JS][Example] Bulk publish response: ${JSON.stringify(response)}`);
 
   console.log("[Dapr-JS][Example] Bulk publishing multiple JSON messages");
   const jsonMessages = [{ hello: "message 1" }, { hello: "message 2" }, { hello: "message 3" }];
-  response = await client.pubsub.publishBulk("my-pubsub-component", "my-topic", jsonMessages);
+  response = await client.pubsub.publishBulk("my-pubsub-component", "my-topic-bulk", jsonMessages);
   console.log(`[Dapr-JS][Example] Bulk publish response: ${JSON.stringify(response)}`);
 
   console.log("[Dapr-JS][Example] Bulk publishing with entryID and custom content type");
@@ -111,7 +111,7 @@ async function start() {
       event: "foo message 3",
     },
   ];
-  response = await client.pubsub.publishBulk("my-pubsub-component", "my-topic", bulkPublishMessages);
+  response = await client.pubsub.publishBulk("my-pubsub-component", "my-topic-bulk-with-config", bulkPublishMessages);
   console.log(`[Dapr-JS][Example] Bulk publish response: ${JSON.stringify(response)}`);
 }
 
