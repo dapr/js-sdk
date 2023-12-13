@@ -138,7 +138,8 @@ describe("common/server", () => {
     });
 
     await setupPubSubSubscriptions();
-    // Sleep for 2 seconds to allow all subscriptions to be registered
+    // Sleep to make the tests less flaky.
+    // TODO: https://github.com/dapr/js-sdk/issues/560
     await NodeJSUtil.sleep(2000);
 
     await httpServer.start();
