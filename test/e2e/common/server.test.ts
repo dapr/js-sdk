@@ -12,6 +12,7 @@ limitations under the License.
 */
 
 import { CommunicationProtocolEnum, DaprServer, DaprPubSubStatusEnum } from "../../../src";
+import * as NodeJSUtil from "../../../src/utils/NodeJS.util";
 
 const serverHost = "127.0.0.1";
 const serverGrpcPort = "50001";
@@ -48,6 +49,9 @@ const bulkSubscribeTopic = "bulk-subscribe-topic";
 const bulkSubscribeClodEventTopic = "bulk-subscribe-ce-topic";
 const bulkSubscribeCloudEventToRawPayloadTopic = "bulk-subscribe-ce-rp-topic";
 const bulkSubscribeRawPayloadToClodEventTopic = "bulk-subscribe-rp-ce-topic";
+
+// Set timeout to 10s for all tests
+jest.setTimeout(10000);
 
 describe("common/server", () => {
   let httpServer: DaprServer;
@@ -134,9 +138,14 @@ describe("common/server", () => {
     });
 
     await setupPubSubSubscriptions();
+    // Sleep to make the tests less flaky.
+    // TODO: https://github.com/dapr/js-sdk/issues/560
+    await NodeJSUtil.sleep(2000);
 
     await httpServer.start();
     await grpcServer.start();
+    // Sleep for 2 seconds to get servers ready
+    await NodeJSUtil.sleep(2000);
   });
 
   beforeEach(() => {
@@ -161,7 +170,7 @@ describe("common/server", () => {
         const res = await server.client.pubsub.publish(pubSubName, getTopic(topicWithStatusCb, protocol), "SUCCESS");
         expect(res.error).toBeUndefined();
         // Delay a bit for event to arrive
-        await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
+        await new Promise((resolve, _reject) => setTimeout(resolve, 2000));
         expect(mockSubscribeStatusHandler.mock.calls.length).toBe(1);
         expect(mockSubscribeStatusHandler.mock.calls[0][1]).toEqual("SUCCESS");
         expect(mockSubscribeDeadletterHandler.mock.calls.length).toBe(0);
