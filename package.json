@@ -36,7 +36,8 @@
     "build": "npm install && npm run lint && npm run pretty && ./scripts/build.sh",
     "start:dev": "npm run build && nodemon --ext \".ts,.js\" --watch \"./src\" --exec \"npm run build\"",
     "pretty": "prettier --list-different \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "pretty-fix": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
+    "pretty-fix": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "example": "ts-node --swc"
   },
   "keywords": [],
   "author": "Xavier Geerinck",
@@ -44,6 +45,7 @@
   "dependencies": {
     "@grpc/grpc-js": "^1.9.3",
     "@js-temporal/polyfill": "^0.3.0",
+    "kaibocai-durabletask-js": "^0.0.5-beta.3",
     "@types/google-protobuf": "^3.15.5",
     "@types/node-fetch": "^2.6.2",
     "body-parser": "^1.19.0",
@@ -53,6 +55,7 @@
     "node-fetch": "^2.6.7"
   },
   "devDependencies": {
+    "@swc/core": "^1.3.55",
     "@types/body-parser": "^1.19.1",
     "@types/express": "^4.17.15",
     "@types/jest": "^27.0.1",
@@ -71,7 +74,8 @@
     "prettier": "^2.4.0",
     "pretty-quick": "^3.1.3",
     "ts-jest": "^27.0.5",
-    "typescript": "^4.5.5"
+    "typescript": "^4.5.5",
+    "ts-node": "^10.9.1"
   },
   "repository": {
     "type": "git",
