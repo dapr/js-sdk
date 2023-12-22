@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { TInput, TOutput} from "../types/InputOutput.type";
+import { TInput, TOutput } from "../types/InputOutput.type";
 import { TWorkflowActivity } from "../types/Activity.type";
 import { TWorkflow } from "../types/Workflow.type";
 
