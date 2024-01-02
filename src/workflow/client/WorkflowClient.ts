@@ -104,8 +104,8 @@ export default class WorkflowClient {
    */
   public async waitForWorkflowStart(
     workflowInstanceId: string,
-    fetchPayloads: boolean,
-    timeout: number,
+    fetchPayloads?: boolean,
+    timeout?: number,
   ): Promise<WorkflowState | undefined> {
     const state = await this._innerClient.waitForOrchestrationStart(workflowInstanceId, fetchPayloads, timeout);
     if (state !== undefined) {
