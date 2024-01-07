@@ -1,5 +1,5 @@
 /*
-Copyright 2022 The Dapr Authors
+Copyright 2024 The Dapr Authors
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -15,7 +15,7 @@ import WorkflowClient from "../client/WorkflowClient";
 import WorkflowActivityContext from "../runtime/WorkflowActivityContext";
 import WorkflowContext from "../runtime/WorkflowContext";
 import WorkflowRuntime from "../runtime/WorkflowRuntime";
-import { TWorkflow } from "../types/Workflow.type";
+import { TWorkflow } from "../../types/workflow/Workflow.type";
 
 (async () => {
   const grpcEndpoint = "localhost:4001";
@@ -31,7 +31,7 @@ import { TWorkflow } from "../types/Workflow.type";
 
     const result1 = yield ctx.callActivity(hello, "Tokyo");
     cities.push(result1);
-    const result2 = yield ctx.callActivity(hello, "Seattle"); // Correct the spelling of "Seattle"
+    const result2 = yield ctx.callActivity(hello, "Seattle");
     cities.push(result2);
     const result3 = yield ctx.callActivity(hello, "London");
     cities.push(result3);

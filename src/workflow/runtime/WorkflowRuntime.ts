@@ -1,5 +1,5 @@
 /*
-Copyright 2022 The Dapr Authors
+Copyright 2024 The Dapr Authors
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -13,9 +13,9 @@ limitations under the License.
 
 import * as grpc from "@grpc/grpc-js";
 import { ActivityContext, OrchestrationContext, TaskHubGrpcWorker } from "kaibocai-durabletask-js";
-import { TWorkflow } from "../types/Workflow.type";
-import { TWorkflowActivity } from "../types/Activity.type";
-import { TInput, TOutput } from "../types/InputOutput.type";
+import { TWorkflow } from "../../types/workflow/Workflow.type";
+import { TWorkflowActivity } from "../../types/workflow/Activity.type";
+import { TInput, TOutput } from "../../types/workflow/InputOutput.type";
 import WorkflowActivityContext from "./WorkflowActivityContext";
 import WorkflowContext from "./WorkflowContext";
 import { generateInterceptors } from "../internal/ApiTokenClientInterceptor";

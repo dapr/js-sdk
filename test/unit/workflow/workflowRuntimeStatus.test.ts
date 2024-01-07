@@ -1,24 +1,65 @@
-import { OrchestrationStatus } from "kaibocai-durabletask-js/orchestration/enum/orchestration-status.enum"
-import { WorkflowRuntimeStatus, fromOrchestrationStatus, toOrchestrationStatus } from "../../../src/workflow/runtime/WorkflowRuntimeStatus"
+/*
+Copyright 2022 The Dapr Authors
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+import { OrchestrationStatus } from "kaibocai-durabletask-js/orchestration/enum/orchestration-status.enum";
+import {
+  WorkflowRuntimeStatus,
+  fromOrchestrationStatus,
+  toOrchestrationStatus,
+} from "../../../src/workflow/runtime/WorkflowRuntimeStatus";
 
 describe("Workflow Runtime Status", () => {
-    it("should convert from orchestration status to workflow runtime status", async () => {
-        expect(fromOrchestrationStatus(OrchestrationStatus.RUNNING)).toEqual(WorkflowRuntimeStatus.RUNNING);
-        expect(fromOrchestrationStatus(OrchestrationStatus.COMPLETED)).toEqual(WorkflowRuntimeStatus.COMPLETED);
-        expect(fromOrchestrationStatus(OrchestrationStatus.FAILED)).toEqual(WorkflowRuntimeStatus.FAILED);
-        expect(fromOrchestrationStatus(OrchestrationStatus.TERMINATED)).toEqual(WorkflowRuntimeStatus.TERMINATED);
-        expect(fromOrchestrationStatus(OrchestrationStatus.CONTINUED_AS_NEW)).toEqual(WorkflowRuntimeStatus.CONTINUED_AS_NEW);
-        expect(fromOrchestrationStatus(OrchestrationStatus.PENDING)).toEqual(WorkflowRuntimeStatus.PENDING);
-        expect(fromOrchestrationStatus(OrchestrationStatus.SUSPENDED)).toEqual(WorkflowRuntimeStatus.SUSPENDED);
-    })
+  const testCases = [
+    {
+      orchestrationStatus: OrchestrationStatus.RUNNING,
+      workflowRuntimeStatus: WorkflowRuntimeStatus.RUNNING,
+    },
 
-    it("should convert from workflow runtime status to orchestration status", async () => {
-        expect(toOrchestrationStatus(WorkflowRuntimeStatus.RUNNING)).toEqual(OrchestrationStatus.RUNNING);
-        expect(toOrchestrationStatus(WorkflowRuntimeStatus.COMPLETED)).toEqual(OrchestrationStatus.COMPLETED);
-        expect(toOrchestrationStatus(WorkflowRuntimeStatus.FAILED)).toEqual(OrchestrationStatus.FAILED);
-        expect(toOrchestrationStatus(WorkflowRuntimeStatus.TERMINATED)).toEqual(OrchestrationStatus.TERMINATED);
-        expect(toOrchestrationStatus(WorkflowRuntimeStatus.CONTINUED_AS_NEW)).toEqual(OrchestrationStatus.CONTINUED_AS_NEW);
-        expect(toOrchestrationStatus(WorkflowRuntimeStatus.PENDING)).toEqual(OrchestrationStatus.PENDING);
-        expect(toOrchestrationStatus(WorkflowRuntimeStatus.SUSPENDED)).toEqual(OrchestrationStatus.SUSPENDED);
-    })
-})
+    {
+      orchestrationStatus: OrchestrationStatus.COMPLETED,
+      workflowRuntimeStatus: WorkflowRuntimeStatus.COMPLETED,
+    },
+
+    {
+      orchestrationStatus: OrchestrationStatus.FAILED,
+      workflowRuntimeStatus: WorkflowRuntimeStatus.FAILED,
+    },
+
+    {
+      orchestrationStatus: OrchestrationStatus.TERMINATED,
+      workflowRuntimeStatus: WorkflowRuntimeStatus.TERMINATED,
+    },
+
+    {
+      orchestrationStatus: OrchestrationStatus.CONTINUED_AS_NEW,
+      workflowRuntimeStatus: WorkflowRuntimeStatus.CONTINUED_AS_NEW,
+    },
+
+    {
+      orchestrationStatus: OrchestrationStatus.PENDING,
+      workflowRuntimeStatus: WorkflowRuntimeStatus.PENDING,
+    },
+
+    {
+      orchestrationStatus: OrchestrationStatus.SUSPENDED,
+      workflowRuntimeStatus: WorkflowRuntimeStatus.SUSPENDED,
+    },
+  ];
+
+  testCases.forEach((testCase) => {
+    test("Should be able to convert between orchestration status to workflow runtime status", () => {
+      expect(fromOrchestrationStatus(testCase.orchestrationStatus)).toEqual(testCase.workflowRuntimeStatus);
+      expect(toOrchestrationStatus(testCase.workflowRuntimeStatus)).toEqual(testCase.orchestrationStatus);
+    });
+  });
+});

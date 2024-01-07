@@ -1,5 +1,5 @@
 /*
-Copyright 2022 The Dapr Authors
+Copyright 2024 The Dapr Authors
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -15,7 +15,7 @@ import { TaskHubGrpcClient } from "kaibocai-durabletask-js";
 import * as grpc from "@grpc/grpc-js";
 import { WorkflowState } from "./WorkflowState";
 import { generateInterceptors } from "../internal/ApiTokenClientInterceptor";
-import { TWorkflow } from "../types/Workflow.type";
+import { TWorkflow } from "../../types/workflow/Workflow.type";
 import { getFunctionName } from "../internal";
 
 export default class WorkflowClient {
@@ -27,10 +27,10 @@ export default class WorkflowClient {
    * @param {grpc.ChannelOptions | undefined} options - Additional options for configuring the gRPC channel.
    */
   constructor(hostAddress?: string, options?: grpc.ChannelOptions) {
-    this._innerClient = this._buildInnerClient(hostAddress, options);
+    this._innerClient = this.buildInnerClient(hostAddress, options);
   }
 
-  _buildInnerClient(hostAddress = "127.0.0.1:50001", options: grpc.ChannelOptions = {}): TaskHubGrpcClient {
+  private buildInnerClient(hostAddress = "127.0.0.1:50001", options: grpc.ChannelOptions = {}): TaskHubGrpcClient {
     const innerOptions = {
       ...options,
       interceptors: [generateInterceptors(), ...(options?.interceptors ?? [])],
@@ -42,6 +42,9 @@ export default class WorkflowClient {
    * Schedules a new workflow using the DurableTask client.
    *
    * @param {TWorkflow | string} workflow - The Workflow or the name of the workflow to be scheduled.
+   * @param {any} [input] - The input to be provided to the scheduled workflow.
+   * @param {string} [instanceId] - An optional unique identifier for the workflow instance.
+   * @param {Date} [startAt] - An optional date and time at which the workflow should start.
    * @return {Promise<string>} A Promise resolving to the unique ID of the scheduled workflow instance.
    */
   public async scheduleNewWorkflow(

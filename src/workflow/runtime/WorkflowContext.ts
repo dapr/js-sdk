@@ -1,5 +1,5 @@
 /*
-Copyright 2022 The Dapr Authors
+Copyright 2024 The Dapr Authors
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -15,8 +15,8 @@ import { OrchestrationContext } from "kaibocai-durabletask-js";
 import { Task } from "kaibocai-durabletask-js/task/task";
 import { TInput } from "kaibocai-durabletask-js/types/input.type";
 import { TOutput } from "kaibocai-durabletask-js/types/output.type";
-import { TWorkflowActivity } from "../types/Activity.type";
-import { TWorkflow } from "../types/Workflow.type";
+import { TWorkflowActivity } from "../../types/workflow/Activity.type";
+import { TWorkflow } from "../../types/workflow/Workflow.type";
 import { getFunctionName } from "../internal";
 import { WhenAllTask } from "kaibocai-durabletask-js/task/when-all-task";
 import { whenAll, whenAny } from "kaibocai-durabletask-js/task";

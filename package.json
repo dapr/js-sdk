@@ -20,7 +20,7 @@
     "test:e2e:common": "npm run test:e2e:common:client && npm run test:e2e:common:server",
     "test:e2e:common:client": "./scripts/test-e2e-common.sh client",
     "test:e2e:common:server": "./scripts/test-e2e-common.sh server",
-    "test:e2e:workflow": "npm run prebuild && TEST_SECRET_1=secret_val_1 TEST_SECRET_2=secret_val_2 dapr run --app-id workflow-test-suite --app-protocol grpc --dapr-grpc-port 4001 --components-path ./test/components/workflow -- jest --runInBand --detectOpenHandles --testMatch [ '**/test/e2e/workflow/workflow.test.ts' ]",
+    "test:e2e:workflow": "npm run prebuild && dapr run --app-id workflow-test-suite --app-protocol grpc --dapr-grpc-port 4001 --components-path ./test/components/workflow -- jest --runInBand --detectOpenHandles --testMatch [ '**/test/e2e/workflow/workflow.test.ts' ]",
     "test:e2e:workflow:internal": "jest test/e2e/workflow --runInBand --detectOpenHandles",
     "test:e2e:workflow:durabletask": "./scripts/test-e2e-workflow.sh",
     "test:unit": "jest --runInBand --detectOpenHandles",
