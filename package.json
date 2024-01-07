@@ -55,7 +55,7 @@
     "express": "^4.18.2",
     "google-protobuf": "^3.18.0",
     "http-terminator": "^3.2.0",
-    "kaibocai-durabletask-js": "^0.0.5-beta.3",
+    "kaibocai-durabletask-js": "^0.0.6-beta.1",
     "node-fetch": "^2.6.7"
   },
   "devDependencies": {

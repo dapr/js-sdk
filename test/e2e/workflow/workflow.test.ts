@@ -188,7 +188,6 @@ describe("Workflow", () => {
     if (state && state.createdAt !== undefined) {
       expectedCompletionSecond += delay * 1000;
     }
-    // const expectedCompletionSecond = state?.createdAt?.getTime()! + delay * 1000;
     expect(expectedCompletionSecond).toBeDefined();
     const actualCompletionSecond = state?.lastUpdatedAt?.getTime();
     expect(actualCompletionSecond).toBeDefined();
