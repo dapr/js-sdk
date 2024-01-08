@@ -16,7 +16,7 @@ import { Task, WorkflowClient, WorkflowActivityContext, WorkflowContext, Workflo
 // Wrap the entire code in an immediately-invoked async function
 (async () => {
   // Update the gRPC client and worker to use a local address and port
-  const grpcServerAddress = "localhost:4001";
+  const grpcServerAddress = "localhost:50001";
   const workflowClient: WorkflowClient = new WorkflowClient(grpcServerAddress);
   const workflowRuntime: WorkflowRuntime = new WorkflowRuntime(grpcServerAddress);
 

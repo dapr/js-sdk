@@ -4,13 +4,13 @@
   "description": "An example utilizing the Dapr JS-SDK to manage workflow",
   "private": "true",
   "scripts": {
-    "build": "rimraf ./dist && tsc",
+    "build": "npx tsc --outDir ./dist/",
     "start:activity-sequence": "npm run build && node dist/activity-sequence.js",
     "start:fanout-fanin": "npm run build && node dist/fanout-fanin.js",
     "start:human-interaction": "npm run build && node dist/human-interaction.js",
-    "start:dapr:activity-sequence": "dapr run --app-id activity-sequence-workflow --app-protocol grpc --dapr-grpc-port 4001 --components-path ./components npm run start:activity-sequence",
-    "start:dapr:fanout-fanin": "dapr run --app-id activity-sequence-workflow --app-protocol grpc --dapr-grpc-port 4001 --components-path ./components npm run start:fanout-fanin",
-    "start:dapr:human-interaction": "dapr run --app-id activity-sequence-workflow --app-protocol grpc --dapr-grpc-port 4001 --components-path ./components npm run start:human-interaction"
+    "start:dapr:activity-sequence": "dapr run --app-id activity-sequence-workflow --app-protocol grpc --dapr-grpc-port 50001 --components-path ./components npm run start:activity-sequence",
+    "start:dapr:fanout-fanin": "dapr run --app-id activity-sequence-workflow --app-protocol grpc --dapr-grpc-port 50001 --components-path ./components npm run start:fanout-fanin",
+    "start:dapr:human-interaction": "dapr run --app-id activity-sequence-workflow --app-protocol grpc --dapr-grpc-port 50001 --components-path ./components npm run start:human-interaction"
   },
   "author": "",
   "license": "ISC",
