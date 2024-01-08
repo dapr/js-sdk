@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { ActivityContext } from "kaibocai-durabletask-js";
+import { ActivityContext } from "@microsoft/durabletask-js";
 
 export default class WorkflowActivityContext {
   private readonly _innerContext: ActivityContext;

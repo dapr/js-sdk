@@ -11,16 +11,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { OrchestrationContext } from "kaibocai-durabletask-js";
-import { Task } from "kaibocai-durabletask-js/task/task";
-import { TInput } from "kaibocai-durabletask-js/types/input.type";
-import { TOutput } from "kaibocai-durabletask-js/types/output.type";
+import { OrchestrationContext } from "@microsoft/durabletask-js";
+import { Task } from "@microsoft/durabletask-js/task/task";
+import { TInput } from "@microsoft/durabletask-js/types/input.type";
+import { TOutput } from "@microsoft/durabletask-js/types/output.type";
 import { TWorkflowActivity } from "../../types/workflow/Activity.type";
 import { TWorkflow } from "../../types/workflow/Workflow.type";
 import { getFunctionName } from "../internal";
-import { WhenAllTask } from "kaibocai-durabletask-js/task/when-all-task";
-import { whenAll, whenAny } from "kaibocai-durabletask-js/task";
-import { WhenAnyTask } from "kaibocai-durabletask-js/task/when-any-task";
+import { WhenAllTask } from "@microsoft/durabletask-js/task/when-all-task";
+import { whenAll, whenAny } from "@microsoft/durabletask-js/task";
+import { WhenAnyTask } from "@microsoft/durabletask-js/task/when-any-task";
 
 export default class WorkflowContext {
   private readonly _innerContext: OrchestrationContext;

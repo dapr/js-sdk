@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { OrchestrationState } from "kaibocai-durabletask-js/orchestration/orchestration-state";
+import { OrchestrationState } from "@microsoft/durabletask-js/orchestration/orchestration-state";
 import { WorkflowFailureDetails } from "./WorkflowFailureDetails";
 import { WorkflowRuntimeStatus, fromOrchestrationStatus } from "../runtime/WorkflowRuntimeStatus";
 

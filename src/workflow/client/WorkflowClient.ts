@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { TaskHubGrpcClient } from "kaibocai-durabletask-js";
+import { TaskHubGrpcClient } from "@microsoft/durabletask-js";
 import * as grpc from "@grpc/grpc-js";
 import { WorkflowState } from "./WorkflowState";
 import { generateInterceptors } from "../internal/ApiTokenClientInterceptor";

@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { FailureDetails } from "kaibocai-durabletask-js/task/failure-details";
+import { FailureDetails } from "@microsoft/durabletask-js/task/failure-details";
 
 export class WorkflowFailureDetails {
   private readonly failureDetails: FailureDetails;

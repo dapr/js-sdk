@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import * as grpc from "@grpc/grpc-js";
-import { ActivityContext, OrchestrationContext, TaskHubGrpcWorker } from "kaibocai-durabletask-js";
+import { ActivityContext, OrchestrationContext, TaskHubGrpcWorker } from "@microsoft/durabletask-js";
 import { TWorkflow } from "../../types/workflow/Workflow.type";
 import { TWorkflowActivity } from "../../types/workflow/Activity.type";
 import { TInput, TOutput } from "../../types/workflow/InputOutput.type";

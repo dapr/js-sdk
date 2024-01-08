@@ -11,12 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { Task } from "@microsoft/durabletask-js/task/task";
-import WorkflowClient from "../client/WorkflowClient";
-import WorkflowActivityContext from "../runtime/WorkflowActivityContext";
-import WorkflowContext from "../runtime/WorkflowContext";
-import WorkflowRuntime from "../runtime/WorkflowRuntime";
-import { TWorkflow } from "../../types/workflow/Workflow.type";
+import { Task, WorkflowClient, WorkflowActivityContext, WorkflowContext, WorkflowRuntime, TWorkflow } from "@dapr/dapr";
 import * as readlineSync from "readline-sync";
 
 // Wrap the entire code in an immediately-invoked async function
