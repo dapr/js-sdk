@@ -11,13 +11,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { Task, WorkflowClient, WorkflowActivityContext, WorkflowContext, WorkflowRuntime, TWorkflow } from "@dapr/dapr";
+import {
+  Task,
+  DaprWorkflowClient,
+  WorkflowActivityContext,
+  WorkflowContext,
+  WorkflowRuntime,
+  TWorkflow,
+} from "@dapr/dapr";
 
 // Wrap the entire code in an immediately-invoked async function
 (async () => {
   // Update the gRPC client and worker to use a local address and port
   const grpcServerAddress = "localhost:50001";
-  const workflowClient: WorkflowClient = new WorkflowClient(grpcServerAddress);
+  const workflowClient: DaprWorkflowClient = new DaprWorkflowClient(grpcServerAddress);
   const workflowRuntime: WorkflowRuntime = new WorkflowRuntime(grpcServerAddress);
 
   function getRandomInt(min: number, max: number): number {

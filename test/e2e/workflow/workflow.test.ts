@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import WorkflowClient from "../../../src/workflow/client/WorkflowClient";
+import DaprWorkflowClient from "../../../src/workflow/client/WorkflowClient";
 import WorkflowContext from "../../../src/workflow/runtime/WorkflowContext";
 import WorkflowRuntime from "../../../src/workflow/runtime/WorkflowRuntime";
 import { TWorkflow } from "../../../src/types/workflow/Workflow.type";
@@ -22,12 +22,12 @@ import { Task } from "@microsoft/durabletask-js/task/task";
 
 describe("Workflow", () => {
   const grpcEndpoint = "localhost:4001";
-  let workflowClient: WorkflowClient;
+  let workflowClient: DaprWorkflowClient;
   let workflowRuntime: WorkflowRuntime;
 
   beforeEach(async () => {
     // Start a worker, which will connect to the sidecar in a background thread
-    workflowClient = new WorkflowClient(grpcEndpoint);
+    workflowClient = new DaprWorkflowClient(grpcEndpoint);
     workflowRuntime = new WorkflowRuntime(grpcEndpoint);
   });
 

@@ -49,7 +49,7 @@ export default class WorkflowRuntime {
   /**
    * Registers a Workflow implementation for handling orchestrations with a given name.
    * The name provided need not be same as workflow name.
-   * 
+   *
    * @param {string} name - The name or identifier for the registered Workflow.
    * @param {TWorkflow} workflow - The instance of the Workflow class being registered.
    */

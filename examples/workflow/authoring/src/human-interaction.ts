@@ -11,7 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { Task, WorkflowClient, WorkflowActivityContext, WorkflowContext, WorkflowRuntime, TWorkflow } from "@dapr/dapr";
+import {
+  Task,
+  DaprWorkflowClient,
+  WorkflowActivityContext,
+  WorkflowContext,
+  WorkflowRuntime,
+  TWorkflow,
+} from "@dapr/dapr";
 import * as readlineSync from "readline-sync";
 
 // Wrap the entire code in an immediately-invoked async function
@@ -33,7 +40,7 @@ import * as readlineSync from "readline-sync";
 
   // Update the gRPC client and worker to use a local address and port
   const grpcServerAddress = "localhost:50001";
-  const workflowClient: WorkflowClient = new WorkflowClient(grpcServerAddress);
+  const workflowClient: DaprWorkflowClient = new DaprWorkflowClient(grpcServerAddress);
   const workflowRuntime: WorkflowRuntime = new WorkflowRuntime(grpcServerAddress);
 
   //Activity function that sends an approval request to the manager

@@ -11,11 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { WorkflowClient, WorkflowActivityContext, WorkflowContext, WorkflowRuntime, TWorkflow } from "@dapr/dapr";
+import { DaprWorkflowClient, WorkflowActivityContext, WorkflowContext, WorkflowRuntime, TWorkflow } from "@dapr/dapr";
 
 (async () => {
   const grpcEndpoint = "localhost:50001";
-  const workflowClient = new WorkflowClient(grpcEndpoint);
+  const workflowClient = new DaprWorkflowClient(grpcEndpoint);
   const workflowRuntime = new WorkflowRuntime(grpcEndpoint);
 
   const hello = async (_: WorkflowActivityContext, name: string) => {

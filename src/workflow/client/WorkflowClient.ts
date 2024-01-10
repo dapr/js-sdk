@@ -17,8 +17,9 @@ import { WorkflowState } from "./WorkflowState";
 import { generateInterceptors } from "../internal/ApiTokenClientInterceptor";
 import { TWorkflow } from "../../types/workflow/Workflow.type";
 import { getFunctionName } from "../internal";
+import { Settings } from "../../utils/Settings.util";
 
-export default class WorkflowClient {
+export default class DaprWorkflowClient {
   private readonly _innerClient: TaskHubGrpcClient;
 
   /**
@@ -30,11 +31,14 @@ export default class WorkflowClient {
     this._innerClient = this.buildInnerClient(hostAddress, options);
   }
 
-  private buildInnerClient(hostAddress = "127.0.0.1:50001", options: grpc.ChannelOptions = {}): TaskHubGrpcClient {
+  private buildInnerClient(hostAddress?: string, options: grpc.ChannelOptions = {}): TaskHubGrpcClient {
     const innerOptions = {
       ...options,
       interceptors: [generateInterceptors(), ...(options?.interceptors ?? [])],
     };
+    if (hostAddress === undefined) {
+      hostAddress = Settings.getDefaultHost() + ":" + Settings.getDefaultGrpcPort();
+    }
     return new TaskHubGrpcClient(hostAddress, innerOptions);
   }
 
