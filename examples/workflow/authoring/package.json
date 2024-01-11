@@ -1,7 +1,7 @@
 {
   "name": "dapr-example-workflow-authoring",
   "version": "1.0.0",
-  "description": "An example utilizing the Dapr JS-SDK to manage workflow",
+  "description": "An example utilizing the Dapr JS-SDK to author workflow",
   "private": "true",
   "scripts": {
     "build": "npx tsc --outDir ./dist/",
@@ -15,6 +15,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "readline-sync": "^1.4.10",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4"
   },

@@ -17,49 +17,98 @@ import {
   fromOrchestrationStatus,
   toOrchestrationStatus,
 } from "../../../src/workflow/runtime/WorkflowRuntimeStatus";
+import { getFunctionName } from "../../../src/workflow/internal";
+import { TWorkflow } from "../../../src/types/workflow/Workflow.type";
+import WorkflowContext from "../../../src/workflow/runtime/WorkflowContext";
+import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
 
 describe("Workflow Runtime Status", () => {
-  const testCases = [
-    {
-      orchestrationStatus: OrchestrationStatus.RUNNING,
-      workflowRuntimeStatus: WorkflowRuntimeStatus.RUNNING,
-    },
+  describe("convert runtime status", () => {
+    const testCases = [
+      {
+        orchestrationStatus: OrchestrationStatus.RUNNING,
+        workflowRuntimeStatus: WorkflowRuntimeStatus.RUNNING,
+      },
 
-    {
-      orchestrationStatus: OrchestrationStatus.COMPLETED,
-      workflowRuntimeStatus: WorkflowRuntimeStatus.COMPLETED,
-    },
+      {
+        orchestrationStatus: OrchestrationStatus.COMPLETED,
+        workflowRuntimeStatus: WorkflowRuntimeStatus.COMPLETED,
+      },
 
-    {
-      orchestrationStatus: OrchestrationStatus.FAILED,
-      workflowRuntimeStatus: WorkflowRuntimeStatus.FAILED,
-    },
+      {
+        orchestrationStatus: OrchestrationStatus.FAILED,
+        workflowRuntimeStatus: WorkflowRuntimeStatus.FAILED,
+      },
 
-    {
-      orchestrationStatus: OrchestrationStatus.TERMINATED,
-      workflowRuntimeStatus: WorkflowRuntimeStatus.TERMINATED,
-    },
+      {
+        orchestrationStatus: OrchestrationStatus.TERMINATED,
+        workflowRuntimeStatus: WorkflowRuntimeStatus.TERMINATED,
+      },
 
-    {
-      orchestrationStatus: OrchestrationStatus.CONTINUED_AS_NEW,
-      workflowRuntimeStatus: WorkflowRuntimeStatus.CONTINUED_AS_NEW,
-    },
+      {
+        orchestrationStatus: OrchestrationStatus.CONTINUED_AS_NEW,
+        workflowRuntimeStatus: WorkflowRuntimeStatus.CONTINUED_AS_NEW,
+      },
 
-    {
-      orchestrationStatus: OrchestrationStatus.PENDING,
-      workflowRuntimeStatus: WorkflowRuntimeStatus.PENDING,
-    },
+      {
+        orchestrationStatus: OrchestrationStatus.PENDING,
+        workflowRuntimeStatus: WorkflowRuntimeStatus.PENDING,
+      },
 
-    {
-      orchestrationStatus: OrchestrationStatus.SUSPENDED,
-      workflowRuntimeStatus: WorkflowRuntimeStatus.SUSPENDED,
-    },
-  ];
+      {
+        orchestrationStatus: OrchestrationStatus.SUSPENDED,
+        workflowRuntimeStatus: WorkflowRuntimeStatus.SUSPENDED,
+      },
+    ];
 
-  testCases.forEach((testCase) => {
-    test("Should be able to convert between orchestration status to workflow runtime status", () => {
-      expect(fromOrchestrationStatus(testCase.orchestrationStatus)).toEqual(testCase.workflowRuntimeStatus);
-      expect(toOrchestrationStatus(testCase.workflowRuntimeStatus)).toEqual(testCase.orchestrationStatus);
+    testCases.forEach((testCase) => {
+      test("Should be able to convert between orchestration status to workflow runtime status", () => {
+        expect(fromOrchestrationStatus(testCase.orchestrationStatus)).toEqual(testCase.workflowRuntimeStatus);
+        expect(toOrchestrationStatus(testCase.workflowRuntimeStatus)).toEqual(testCase.orchestrationStatus);
+      });
+    });
+  });
+
+  describe("getFunctionName", () => {
+    it("should return the name of the function", () => {
+      const namedFunction = function exampleFunction(): number {
+        return 1;
+      };
+
+      const result = getFunctionName(namedFunction);
+
+      expect(result).toBe("exampleFunction");
+    });
+
+    it("should extract the name from the string representation of the function", () => {
+      const anonymousFunction = function (): number {
+        return 1;
+      };
+
+      const result = getFunctionName(anonymousFunction);
+
+      expect(result).not.toBeUndefined();
+      expect(typeof result).toBe("string");
+    });
+
+    it("should handle TWorkflow type", () => {
+      const emptyWorkflow: TWorkflow = async (_: WorkflowContext, __: any) => {
+        return 1;
+      };
+
+      const result = getFunctionName(emptyWorkflow);
+
+      expect(result).toBe("emptyWorkflow");
+    });
+
+    it("should handle TWorkflow type", () => {
+      const emptyWorkflowActivity = async (_: WorkflowActivityContext) => {
+        return 1;
+      };
+
+      const result = getFunctionName(emptyWorkflowActivity);
+
+      expect(result).toBe("emptyWorkflowActivity");
     });
   });
 });

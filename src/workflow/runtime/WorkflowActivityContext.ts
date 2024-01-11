@@ -13,6 +13,10 @@ limitations under the License.
 
 import { ActivityContext } from "@microsoft/durabletask-js";
 
+/**
+ * Used by activity to perform actions such as getting activity's name and
+ * its input.
+ */
 export default class WorkflowActivityContext {
   private readonly _innerContext: ActivityContext;
   constructor(innerContext: ActivityContext) {

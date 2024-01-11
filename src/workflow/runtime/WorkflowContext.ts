@@ -21,6 +21,10 @@ import { whenAll, whenAny } from "@microsoft/durabletask-js/task";
 import { WhenAnyTask } from "@microsoft/durabletask-js/task/when-any-task";
 import { TInput, TOutput } from "../../types/workflow/InputOutput.type";
 
+/**
+ * Used by workflow to perform actions such as scheduling tasks, durable timers, waiting for external events,
+ * and for getting basic information about the current workflow.
+ */
 export default class WorkflowContext {
   private readonly _innerContext: OrchestrationContext;
   constructor(innerContext: OrchestrationContext) {
@@ -74,13 +78,15 @@ export default class WorkflowContext {
   }
 
   /**
-   * schedule an activity for execution.
+   * Schedules an activity for execution within the orchestrator.
    *
-   * @param {Orchestrator} orchestrator The sub-orchestrator function to call.
-   * @param {TInput} input The JSON-serializable input value for the sub-orchestrator function.
-   * @param {string} instanceId The ID to use for the sub-orchestration instance. If not provided, a new GUID will be used.
+   * @param {TWorkflowActivity<TInput, TOutput> | string} activity - The activity function or its name to call.
+   * @param {TInput} [input] - The JSON-serializable input value for the activity function.
+   * @returns {Task<TOutput>} - A Durable Task that completes when the activity function completes.
    *
-   * @returns {Task<TOutput>} A Durable Task that completes when the sub-orchestrator function completes.
+   * @typeparam TWorkflowActivity - The type of the activity function.
+   * @typeparam TInput - The type of the input for the activity.
+   * @typeparam TOutput - The type of the output for the activity.
    */
   public callActivity(activity: TWorkflowActivity<TInput, TOutput> | string, input?: TInput): Task<TOutput> {
     if (typeof activity === "string") {

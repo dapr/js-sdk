@@ -21,7 +21,7 @@ import {
 } from "@dapr/dapr";
 
 // Wrap the entire code in an immediately-invoked async function
-(async () => {
+async function start() {
   // Update the gRPC client and worker to use a local address and port
   const grpcServerAddress = "localhost:50001";
   const workflowClient: DaprWorkflowClient = new DaprWorkflowClient(grpcServerAddress);
@@ -93,4 +93,9 @@ import {
   // stop worker and client
   await workflowRuntime.stop();
   await workflowClient.stop();
-})();
+}
+
+start().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

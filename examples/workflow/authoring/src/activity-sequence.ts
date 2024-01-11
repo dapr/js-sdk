@@ -13,7 +13,7 @@ limitations under the License.
 
 import { DaprWorkflowClient, WorkflowActivityContext, WorkflowContext, WorkflowRuntime, TWorkflow } from "@dapr/dapr";
 
-(async () => {
+async function start() {
   const grpcEndpoint = "localhost:50001";
   const workflowClient = new DaprWorkflowClient(grpcEndpoint);
   const workflowRuntime = new WorkflowRuntime(grpcEndpoint);
@@ -60,4 +60,9 @@ import { DaprWorkflowClient, WorkflowActivityContext, WorkflowContext, WorkflowR
 
   await workflowRuntime.stop();
   await workflowClient.stop();
-})();
+}
+
+start().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

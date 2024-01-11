@@ -11,5 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/**
+ * The type of the input for the workflow activity
+ */
 export type TInput = any;
+
+/**
+ * The type of the output for the workflow and workflow activity
+ */
 export type TOutput = any;

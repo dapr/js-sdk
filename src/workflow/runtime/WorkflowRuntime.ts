@@ -18,16 +18,23 @@ import { TWorkflowActivity } from "../../types/workflow/Activity.type";
 import { TInput, TOutput } from "../../types/workflow/InputOutput.type";
 import WorkflowActivityContext from "./WorkflowActivityContext";
 import WorkflowContext from "./WorkflowContext";
-import { generateInterceptors } from "../internal/ApiTokenClientInterceptor";
+import { generateApiTokenClientInterceptors } from "../internal/index";
 import { getFunctionName } from "../internal";
+import { Settings } from "../../utils/Settings.util";
 
+/**
+ * Contains methods to register workflows and activities.
+ */
 export default class WorkflowRuntime {
   private worker: TaskHubGrpcWorker;
   constructor(hostAddress?: string, options?: grpc.ChannelOptions) {
     const innerOptions = {
       ...options,
-      interceptors: [generateInterceptors(), ...(options?.interceptors ?? [])],
+      interceptors: [generateApiTokenClientInterceptors(), ...(options?.interceptors ?? [])],
     };
+    if (hostAddress === undefined) {
+      hostAddress = Settings.getDefaultHost() + ":" + Settings.getDefaultGrpcPort();
+    }
     this.worker = new TaskHubGrpcWorker(hostAddress, innerOptions);
   }
 

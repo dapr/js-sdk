@@ -14,11 +14,17 @@ limitations under the License.
 import { TaskHubGrpcClient } from "@microsoft/durabletask-js";
 import * as grpc from "@grpc/grpc-js";
 import { WorkflowState } from "./WorkflowState";
-import { generateInterceptors } from "../internal/ApiTokenClientInterceptor";
+import { generateApiTokenClientInterceptors } from "../internal/index";
 import { TWorkflow } from "../../types/workflow/Workflow.type";
 import { getFunctionName } from "../internal";
 import { Settings } from "../../utils/Settings.util";
 
+/**
+ * Class that defines client operations for managing workflow instances.
+ *
+ * Instances of this class can be used to start, query, raise events to, and terminate workflow instances. In most
+ * cases, methods on this class accept an instance ID as a parameter, which identifies the workflow instance.
+ */
 export default class DaprWorkflowClient {
   private readonly _innerClient: TaskHubGrpcClient;
 
@@ -34,7 +40,7 @@ export default class DaprWorkflowClient {
   private buildInnerClient(hostAddress?: string, options: grpc.ChannelOptions = {}): TaskHubGrpcClient {
     const innerOptions = {
       ...options,
-      interceptors: [generateInterceptors(), ...(options?.interceptors ?? [])],
+      interceptors: [generateApiTokenClientInterceptors(), ...(options?.interceptors ?? [])],
     };
     if (hostAddress === undefined) {
       hostAddress = Settings.getDefaultHost() + ":" + Settings.getDefaultGrpcPort();
@@ -105,16 +111,20 @@ export default class DaprWorkflowClient {
    * @param {string} workflowInstanceId - The unique identifier of the workflow instance to wait for.
    * @param {boolean} fetchPayloads - Indicates whether to fetch the workflow instance's
    *                                  inputs, outputs (true) or omit them (false).
-   * @param {number} timeout - The amount of time, in seconds, to wait for the workflow instance to start.
+   * @param {number} timeoutInSeconds - The amount of time, in seconds, to wait for the workflow instance to start.
    * @returns {Promise<WorkflowState | undefined>} A Promise that resolves to the workflow instance metadata
    *                                               or undefined if no such instance is found.
    */
   public async waitForWorkflowStart(
     workflowInstanceId: string,
-    fetchPayloads?: boolean,
-    timeout?: number,
+    fetchPayloads = true,
+    timeoutInSeconds = 60,
   ): Promise<WorkflowState | undefined> {
-    const state = await this._innerClient.waitForOrchestrationStart(workflowInstanceId, fetchPayloads, timeout);
+    const state = await this._innerClient.waitForOrchestrationStart(
+      workflowInstanceId,
+      fetchPayloads,
+      timeoutInSeconds,
+    );
     if (state !== undefined) {
       return new WorkflowState(state);
     }
@@ -133,16 +143,20 @@ export default class DaprWorkflowClient {
    * @param {string} workflowInstanceId - The unique identifier of the workflow instance to wait for.
    * @param {boolean} fetchPayloads - Indicates whether to fetch the workflow instance's
    *                                  inputs, outputs (true) or omit them (false).
-   * @param {number} timeout - The amount of time, in seconds, to wait for the workflow instance to start.
+   * @param {number} timeoutInSeconds - The amount of time, in seconds, to wait for the workflow instance to start.
    * @returns {Promise<WorkflowState | undefined>} A Promise that resolves to the workflow instance metadata
    *                                               or undefined if no such instance is found.
    */
   public async waitForWorkflowCompletion(
     workflowInstanceId: string,
     fetchPayloads = true,
-    timeout: number,
+    timeoutInSeconds = 60,
   ): Promise<WorkflowState | undefined> {
-    const state = await this._innerClient.waitForOrchestrationCompletion(workflowInstanceId, fetchPayloads, timeout);
+    const state = await this._innerClient.waitForOrchestrationCompletion(
+      workflowInstanceId,
+      fetchPayloads,
+      timeoutInSeconds,
+    );
     if (state != undefined) {
       return new WorkflowState(state);
     }

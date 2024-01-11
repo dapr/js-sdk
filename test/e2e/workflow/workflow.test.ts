@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import DaprWorkflowClient from "../../../src/workflow/client/WorkflowClient";
+import DaprWorkflowClient from "../../../src/workflow/client/DaprWorkflowClient";
 import WorkflowContext from "../../../src/workflow/runtime/WorkflowContext";
 import WorkflowRuntime from "../../../src/workflow/runtime/WorkflowRuntime";
 import { TWorkflow } from "../../../src/types/workflow/Workflow.type";

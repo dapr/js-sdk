@@ -22,7 +22,7 @@ import {
 import * as readlineSync from "readline-sync";
 
 // Wrap the entire code in an immediately-invoked async function
-(async () => {
+async function start() {
   class Order {
     cost: number;
     product: string;
@@ -104,12 +104,8 @@ import * as readlineSync from "readline-sync";
     const id = await workflowClient.scheduleNewWorkflow(purchaseOrderWorkflow, order);
     console.log(`Orchestration scheduled with ID: ${id}`);
 
-    if (readlineSync.keyInYN("Press [Y] to approve the order... Y/yes, N/no")) {
-      const approvalEvent = { approver: approver };
-      await workflowClient.raiseEvent(id, "approval_received", approvalEvent);
-    } else {
-      return "Order rejected";
-    }
+    //prompt for approval asynchronously
+    promptForApproval(approver, workflowClient, id);
 
     // Wait for orchestration completion
     const state = await workflowClient.waitForWorkflowCompletion(id, undefined, timeout + 2);
@@ -122,4 +118,18 @@ import * as readlineSync from "readline-sync";
   // stop worker and client
   await workflowRuntime.stop();
   await workflowClient.stop();
-})();
+}
+
+async function promptForApproval(approver: string, workflowClient: DaprWorkflowClient, id: string) {
+  if (readlineSync.keyInYN("Press [Y] to approve the order... Y/yes, N/no")) {
+    const approvalEvent = { approver: approver };
+    await workflowClient.raiseEvent(id, "approval_received", approvalEvent);
+  } else {
+    return "Order rejected";
+  }
+}
+
+start().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

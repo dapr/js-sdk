@@ -13,6 +13,13 @@ limitations under the License.
 
 import { FailureDetails } from "@microsoft/durabletask-js/task/failure-details";
 
+/**
+ * Class that represents the details of a task failure.
+ *
+ * In most cases, failures are caused by unhandled exceptions in activity or workflow code, in which case instances
+ * of this class will expose the details of the exception. However, it's also possible that other types of errors could
+ * result in task failures, in which case there may not be any exception-specific information.
+ */
 export class WorkflowFailureDetails {
   private readonly failureDetails: FailureDetails;
 

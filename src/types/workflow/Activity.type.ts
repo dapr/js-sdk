@@ -13,4 +13,7 @@ limitations under the License.
 
 import WorkflowActivityContext from "../../workflow/runtime/WorkflowActivityContext";
 
+/**
+ * The type of the activity function.
+ */
 export type TWorkflowActivity<TInput, TOutput> = (context: WorkflowActivityContext, input: TInput) => TOutput;
