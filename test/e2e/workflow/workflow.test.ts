@@ -175,7 +175,9 @@ describe("Workflow", () => {
   it("should be able to run an single timer", async () => {
     const delay = 3;
     const singleTimerWorkflow: TWorkflow = async function* (ctx: WorkflowContext, _: number): any {
-      yield ctx.createTimer(delay);
+      // seems there is a issue from durabletask-sidecar. 
+      // TODO: Once transfer to durabletask-go, reset the timer
+      yield ctx.createTimer(delay + 1);
     };
 
     workflowRuntime.registerWorkflow(singleTimerWorkflow);
