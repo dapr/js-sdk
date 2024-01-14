@@ -15,7 +15,7 @@ import { TInput, TOutput } from "../../types/workflow/InputOutput.type";
 import { TWorkflowActivity } from "../../types/workflow/Activity.type";
 import { TWorkflow } from "../../types/workflow/Workflow.type";
 import * as grpc from "@grpc/grpc-js";
-import { Settings } from "../../utils/Settings.util";
+import { WorkflowClientOptions } from "../../types/workflow/WorkflowClientOption";
 
 /**
  * Gets the name of a function from its definition or string representation.
@@ -39,12 +39,14 @@ export function getFunctionName(fn: TWorkflow | TWorkflowActivity<TInput, TOutpu
  * @param nextCall - The next call function in the interceptor chain.
  * @returns A gRPC InterceptingCall instance with added functionality to include a Dapr API token in the metadata.
  */
-export function generateApiTokenClientInterceptors(): (options: any, nextCall: any) => grpc.InterceptingCall {
+export function generateApiTokenClientInterceptors(
+  workflowOptions: Partial<WorkflowClientOptions>,
+): (options: any, nextCall: any) => grpc.InterceptingCall {
   return (options: any, nextCall: any) => {
     return new grpc.InterceptingCall(nextCall(options), {
       start: (metadata, listener, next) => {
         if (metadata.get("dapr-api-token").length == 0) {
-          metadata.add("dapr-api-token", Settings.getDefaultApiToken() as grpc.MetadataValue);
+          metadata.add("dapr-api-token", workflowOptions.daprApiToken as grpc.MetadataValue);
         }
         next(metadata, listener);
       },

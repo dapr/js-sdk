@@ -20,15 +20,23 @@ import { WorkflowRuntimeStatus } from "../../../src/workflow/runtime/WorkflowRun
 import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
 import { Task } from "@microsoft/durabletask-js/task/task";
 
+const clientHost = "localhost";
+const clientPort = "4001";
+
 describe("Workflow", () => {
-  const grpcEndpoint = "localhost:4001";
   let workflowClient: DaprWorkflowClient;
   let workflowRuntime: WorkflowRuntime;
 
   beforeEach(async () => {
     // Start a worker, which will connect to the sidecar in a background thread
-    workflowClient = new DaprWorkflowClient(grpcEndpoint);
-    workflowRuntime = new WorkflowRuntime(grpcEndpoint);
+    workflowClient = new DaprWorkflowClient({
+      clientHost,
+      clientPort,
+    });
+    workflowRuntime = new WorkflowRuntime({
+      clientHost,
+      clientPort,
+    });
   });
 
   afterEach(async () => {
@@ -175,7 +183,7 @@ describe("Workflow", () => {
   it("should be able to run an single timer", async () => {
     const delay = 3;
     const singleTimerWorkflow: TWorkflow = async function* (ctx: WorkflowContext, _: number): any {
-      // seems there is a issue from durabletask-sidecar. 
+      // seems there is a issue from durabletask-sidecar.
       // TODO: Once transfer to durabletask-go, reset the timer
       yield ctx.createTimer(delay + 1);
     };

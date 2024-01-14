@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import * as grpc from "@grpc/grpc-js";
 import { ActivityContext, OrchestrationContext, TaskHubGrpcWorker } from "@microsoft/durabletask-js";
 import { TWorkflow } from "../../types/workflow/Workflow.type";
 import { TWorkflowActivity } from "../../types/workflow/Activity.type";
@@ -21,21 +20,45 @@ import WorkflowContext from "./WorkflowContext";
 import { generateApiTokenClientInterceptors } from "../internal/index";
 import { getFunctionName } from "../internal";
 import { Settings } from "../../utils/Settings.util";
+import { WorkflowClientOptions } from "../../types/workflow/WorkflowClientOption";
 
 /**
  * Contains methods to register workflows and activities.
  */
 export default class WorkflowRuntime {
   private worker: TaskHubGrpcWorker;
-  constructor(hostAddress?: string, options?: grpc.ChannelOptions) {
-    const innerOptions = {
-      ...options,
-      interceptors: [generateApiTokenClientInterceptors(), ...(options?.interceptors ?? [])],
-    };
-    if (hostAddress === undefined) {
-      hostAddress = Settings.getDefaultHost() + ":" + Settings.getDefaultGrpcPort();
+
+  /**
+   * Initializes a new instance of the WorkflowRuntime.
+   * @param {WorkflowClientOptions | undefined} options - Additional options for configuring WorkflowRuntime.
+   */
+  constructor(options: Partial<WorkflowClientOptions> = {}) {
+    const hostAddress = this.generateHostAddress(options);
+    options.daprApiToken = this.generateDaprApiToken(options);
+    this.worker = this.buildInnerWorker(hostAddress, options);
+  }
+
+  private generateHostAddress(options: Partial<WorkflowClientOptions>): string {
+    const host = options?.clientHost ?? Settings.getDefaultHost();
+    const port = options?.clientPort ?? Settings.getDefaultGrpcPort();
+    const hostAddress = `${host}:${port}`;
+    return hostAddress;
+  }
+
+  private generateDaprApiToken(options: Partial<WorkflowClientOptions>): string | undefined {
+    const daprApiToken = options?.daprApiToken ?? Settings.getDefaultApiToken();
+    return daprApiToken;
+  }
+
+  private buildInnerWorker(hostAddress: string, options: Partial<WorkflowClientOptions>): TaskHubGrpcWorker {
+    let innerOptions = options?.grpcOptions;
+    if (options.daprApiToken !== undefined && options.daprApiToken !== "") {
+      innerOptions = {
+        ...innerOptions,
+        interceptors: [generateApiTokenClientInterceptors(options), ...(innerOptions?.interceptors ?? [])],
+      };
     }
-    this.worker = new TaskHubGrpcWorker(hostAddress, innerOptions);
+    return new TaskHubGrpcWorker(hostAddress, innerOptions);
   }
 
   /**
