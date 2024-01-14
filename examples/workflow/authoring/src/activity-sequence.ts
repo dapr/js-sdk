@@ -14,9 +14,17 @@ limitations under the License.
 import { DaprWorkflowClient, WorkflowActivityContext, WorkflowContext, WorkflowRuntime, TWorkflow } from "@dapr/dapr";
 
 async function start() {
-  const grpcEndpoint = "localhost:50001";
-  const workflowClient = new DaprWorkflowClient(grpcEndpoint);
-  const workflowRuntime = new WorkflowRuntime(grpcEndpoint);
+  // Update the gRPC client and worker to use a local address and port
+  const clientHost = "localhost";
+  const clientPort = "50001"
+  const workflowClient = new DaprWorkflowClient({
+    clientHost,
+    clientPort,
+  });
+  const workflowRuntime = new WorkflowRuntime({
+    clientHost,
+    clientPort,
+  });
 
   const hello = async (_: WorkflowActivityContext, name: string) => {
     return `Hello ${name}!`;

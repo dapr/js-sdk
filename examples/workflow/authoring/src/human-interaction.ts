@@ -39,9 +39,16 @@ async function start() {
   }
 
   // Update the gRPC client and worker to use a local address and port
-  const grpcServerAddress = "localhost:50001";
-  const workflowClient: DaprWorkflowClient = new DaprWorkflowClient(grpcServerAddress);
-  const workflowRuntime: WorkflowRuntime = new WorkflowRuntime(grpcServerAddress);
+  const clientHost = "localhost";
+  const clientPort = "50001"
+  const workflowClient = new DaprWorkflowClient({
+    clientHost,
+    clientPort,
+  });
+  const workflowRuntime = new WorkflowRuntime({
+    clientHost,
+    clientPort,
+  });
 
   //Activity function that sends an approval request to the manager
   const sendApprovalRequest = async (_: WorkflowActivityContext, order: Order) => {
