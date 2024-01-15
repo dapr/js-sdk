@@ -16,6 +16,8 @@ import { TWorkflowActivity } from "../../types/workflow/Activity.type";
 import { TWorkflow } from "../../types/workflow/Workflow.type";
 import * as grpc from "@grpc/grpc-js";
 import { WorkflowClientOptions } from "../../types/workflow/WorkflowClientOption";
+import { Settings } from "../../utils/Settings.util";
+import { GrpcEndpoint } from "../../network/GrpcEndpoint";
 
 /**
  * Gets the name of a function from its definition or string representation.
@@ -29,6 +31,30 @@ import { WorkflowClientOptions } from "../../types/workflow/WorkflowClientOption
  */
 export function getFunctionName(fn: TWorkflow | TWorkflowActivity<TInput, TOutput>): string {
   return fn.name || fn.toString().match(/function\s*([^(]*)\(/)![1];
+}
+
+/**
+ * Generates a Dapr gRPC endpoint based on the provided options or defaults.
+ *
+ * @param options - An object containing optional settings for the WorkflowClient.
+ * @returns A GrpcEndpoint representing the Dapr gRPC endpoint.
+ */
+export function generateEndpoint(options: Partial<WorkflowClientOptions>): GrpcEndpoint {
+  const host = options?.daprHost ?? Settings.getDefaultHost();
+  const port = options?.daprPort ?? Settings.getDefaultGrpcPort();
+  const uri = `${host}:${port}`;
+  return new GrpcEndpoint(uri);
+}
+
+/**
+ * Gets the Dapr API token based on the provided options or defaults.
+ *
+ * @param options - An object containing optional settings for the WorkflowClient.
+ * @returns A string representing the Dapr API token, or undefined if not set.
+ */
+export function getDaprApiToken(options: Partial<WorkflowClientOptions>): string | undefined {
+  const daprApiToken = options?.daprApiToken ?? Settings.getDefaultApiToken();
+  return daprApiToken;
 }
 
 /**

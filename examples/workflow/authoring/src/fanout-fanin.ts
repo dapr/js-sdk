@@ -100,6 +100,9 @@ async function start() {
   // stop worker and client
   await workflowRuntime.stop();
   await workflowClient.stop();
+
+  // stop the dapr side car
+  process.exit(0);
 }
 
 start().catch((e) => {

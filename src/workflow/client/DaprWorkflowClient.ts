@@ -13,12 +13,10 @@ limitations under the License.
 
 import { TaskHubGrpcClient } from "@microsoft/durabletask-js";
 import { WorkflowState } from "./WorkflowState";
-import { generateApiTokenClientInterceptors } from "../internal/index";
+import { generateApiTokenClientInterceptors, generateEndpoint, getDaprApiToken } from "../internal/index";
 import { TWorkflow } from "../../types/workflow/Workflow.type";
 import { getFunctionName } from "../internal";
-import { Settings } from "../../utils/Settings.util";
 import { WorkflowClientOptions } from "../../types/workflow/WorkflowClientOption";
-import { GrpcEndpoint } from "../../network/GrpcEndpoint";
 
 /**
  * Class that defines client operations for managing workflow instances.
@@ -34,21 +32,9 @@ export default class DaprWorkflowClient {
    * @param {WorkflowClientOptions | undefined} options - Additional options for configuring DaprWorkflowClient.
    */
   constructor(options: Partial<WorkflowClientOptions> = {}) {
-    const grpcEndpoint = this.generateEndpoint(options);
-    options.daprApiToken = this.getDaprApiToken(options);
+    const grpcEndpoint = generateEndpoint(options);
+    options.daprApiToken = getDaprApiToken(options);
     this._innerClient = this.buildInnerClient(grpcEndpoint.endpoint, options);
-  }
-
-  private generateEndpoint(options: Partial<WorkflowClientOptions>): GrpcEndpoint {
-    const host = options?.daprHost ?? Settings.getDefaultHost();
-    const port = options?.daprPort ?? Settings.getDefaultGrpcPort();
-    const uri = `${host}:${port}`;
-    return new GrpcEndpoint(uri);
-  }
-
-  private getDaprApiToken(options: Partial<WorkflowClientOptions>): string | undefined {
-    const daprApiToken = options?.daprApiToken ?? Settings.getDefaultApiToken();
-    return daprApiToken;
   }
 
   private buildInnerClient(hostAddress: string, options: Partial<WorkflowClientOptions>): TaskHubGrpcClient {
