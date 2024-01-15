@@ -30,12 +30,12 @@ describe("Workflow", () => {
   beforeEach(async () => {
     // Start a worker, which will connect to the sidecar in a background thread
     workflowClient = new DaprWorkflowClient({
-      clientHost,
-      clientPort,
+      daprHost: clientHost,
+      daprPort: clientPort,
     });
     workflowRuntime = new WorkflowRuntime({
-      clientHost,
-      clientPort,
+      daprHost: clientHost,
+      daprPort: clientPort,
     });
   });
 

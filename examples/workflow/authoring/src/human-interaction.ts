@@ -39,18 +39,18 @@ async function start() {
   }
 
   // Update the gRPC client and worker to use a local address and port
-  const clientHost = "localhost";
-  const clientPort = "50001"
+  const daprHost = "localhost";
+  const daprPort = "50001";
   const workflowClient = new DaprWorkflowClient({
-    clientHost,
-    clientPort,
+    daprHost,
+    daprPort,
   });
   const workflowRuntime = new WorkflowRuntime({
-    clientHost,
-    clientPort,
+    daprHost,
+    daprPort,
   });
 
-  //Activity function that sends an approval request to the manager
+  // Activity function that sends an approval request to the manager
   const sendApprovalRequest = async (_: WorkflowActivityContext, order: Order) => {
     // Simulate some work that takes an amount of time
     await sleep(3000);
@@ -111,7 +111,7 @@ async function start() {
     const id = await workflowClient.scheduleNewWorkflow(purchaseOrderWorkflow, order);
     console.log(`Orchestration scheduled with ID: ${id}`);
 
-    //prompt for approval asynchronously
+    // prompt for approval asynchronously
     promptForApproval(approver, workflowClient, id);
 
     // Wait for orchestration completion

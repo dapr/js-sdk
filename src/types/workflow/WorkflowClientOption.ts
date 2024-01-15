@@ -19,13 +19,13 @@ export type WorkflowClientOptions = {
    * Host location of the Dapr sidecar.
    * Default is 127.0.0.1.
    */
-  clientHost: string;
+  daprHost: string;
 
   /**
-   * Port of the Dapr sidecar.
-   * Default is 4001.
+   * Port of the Dapr sidecar running a gRPC server.
+   * Default is 50001.
    */
-  clientPort: string;
+  daprPort: string;
 
   /**
    * Options related to logging.

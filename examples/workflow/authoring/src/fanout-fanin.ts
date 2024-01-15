@@ -23,15 +23,15 @@ import {
 // Wrap the entire code in an immediately-invoked async function
 async function start() {
   // Update the gRPC client and worker to use a local address and port
-  const clientHost = "localhost";
-  const clientPort = "50001"
+  const daprHost = "localhost";
+  const daprPort = "50001";
   const workflowClient = new DaprWorkflowClient({
-    clientHost,
-    clientPort,
+    daprHost,
+    daprPort,
   });
   const workflowRuntime = new WorkflowRuntime({
-    clientHost,
-    clientPort,
+    daprHost,
+    daprPort,
   });
 
   function getRandomInt(min: number, max: number): number {

@@ -18,6 +18,7 @@ import { TWorkflow } from "../../types/workflow/Workflow.type";
 import { getFunctionName } from "../internal";
 import { Settings } from "../../utils/Settings.util";
 import { WorkflowClientOptions } from "../../types/workflow/WorkflowClientOption";
+import { GrpcEndpoint } from "../../network/GrpcEndpoint";
 
 /**
  * Class that defines client operations for managing workflow instances.
@@ -33,19 +34,19 @@ export default class DaprWorkflowClient {
    * @param {WorkflowClientOptions | undefined} options - Additional options for configuring DaprWorkflowClient.
    */
   constructor(options: Partial<WorkflowClientOptions> = {}) {
-    const hostAddress = this.generateHostAddress(options);
-    options.daprApiToken = this.generateDaprApiToken(options);
-    this._innerClient = this.buildInnerClient(hostAddress, options);
+    const grpcEndpoint = this.generateEndpoint(options);
+    options.daprApiToken = this.getDaprApiToken(options);
+    this._innerClient = this.buildInnerClient(grpcEndpoint.endpoint, options);
   }
 
-  private generateHostAddress(options: Partial<WorkflowClientOptions>): string {
-    const host = options?.clientHost ?? Settings.getDefaultHost();
-    const port = options?.clientPort ?? Settings.getDefaultGrpcPort();
-    const hostAddress = `${host}:${port}`;
-    return hostAddress;
+  private generateEndpoint(options: Partial<WorkflowClientOptions>): GrpcEndpoint {
+    const host = options?.daprHost ?? Settings.getDefaultHost();
+    const port = options?.daprPort ?? Settings.getDefaultGrpcPort();
+    const uri = `${host}:${port}`;
+    return new GrpcEndpoint(uri);
   }
 
-  private generateDaprApiToken(options: Partial<WorkflowClientOptions>): string | undefined {
+  private getDaprApiToken(options: Partial<WorkflowClientOptions>): string | undefined {
     const daprApiToken = options?.daprApiToken ?? Settings.getDefaultApiToken();
     return daprApiToken;
   }
