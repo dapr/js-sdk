@@ -30,7 +30,15 @@ import { GrpcEndpoint } from "../../network/GrpcEndpoint";
  * @typeparam TOutput - The type of the output for the workflow activity.
  */
 export function getFunctionName(fn: TWorkflow | TWorkflowActivity<TInput, TOutput>): string {
-  return fn.name || fn.toString().match(/function\s*([^(]*)\(/)![1];
+  if (fn.name) {
+    return fn.name;
+  } else {
+    const match = fn.toString().match(/function\s*([^(]*)\(/);
+    if (match === null) {
+      throw new Error("Unable to determine function name, try to sepecify the workflow/activity name explicitly.");
+    }
+    return match[1];
+  }
 }
 
 /**
