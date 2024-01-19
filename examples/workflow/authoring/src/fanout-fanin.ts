@@ -58,6 +58,8 @@ async function start() {
     await sleep(sleepTime);
 
     // Return a result for the given work item, which is also a random number in this case
+    // For more information about random numbers in workflow please check
+    // https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-code-constraints?tabs=csharp#random-numbers
     return Math.floor(Math.random() * 11);
   }
 

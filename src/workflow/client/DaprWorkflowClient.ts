@@ -143,7 +143,7 @@ export default class DaprWorkflowClient {
    * @param {string} workflowInstanceId - The unique identifier of the workflow instance to wait for.
    * @param {boolean} fetchPayloads - Indicates whether to fetch the workflow instance's
    *                                  inputs, outputs (true) or omit them (false).
-   * @param {number} timeoutInSeconds - The amount of time, in seconds, to wait for the workflow instance to start.
+   * @param {number} timeoutInSeconds - The amount of time, in seconds, to wait for the workflow instance to complete. Defaults to 60 seconds.
    * @returns {Promise<WorkflowState | undefined>} A Promise that resolves to the workflow instance metadata
    *                                               or undefined if no such instance is found.
    */
