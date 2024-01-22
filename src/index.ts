@@ -40,6 +40,20 @@ import StateConcurrencyEnum from "./enum/StateConcurrency.enum";
 import StateConsistencyEnum from "./enum/StateConsistency.enum";
 import { StateGetBulkOptions } from "./types/state/StateGetBulkOptions.type";
 
+import DaprWorkflowClient from "./workflow/client/DaprWorkflowClient";
+import WorkflowActivityContext from "./workflow/runtime/WorkflowActivityContext";
+import WorkflowContext from "./workflow/runtime/WorkflowContext";
+import WorkflowRuntime from "./workflow/runtime/WorkflowRuntime";
+import { TWorkflow } from "./types/workflow/Workflow.type";
+import { Task } from "@microsoft/durabletask-js/task/task";
+import { WorkflowFailureDetails } from "./workflow/client/WorkflowFailureDetails";
+import { WorkflowState } from "./workflow/client/WorkflowState";
+import {
+  WorkflowRuntimeStatus,
+  fromOrchestrationStatus,
+  toOrchestrationStatus,
+} from "./workflow/runtime/WorkflowRuntimeStatus";
+
 export {
   DaprClient,
   DaprServer,
@@ -65,4 +79,15 @@ export {
   StateConsistencyEnum,
   PubSubBulkPublishResponse,
   StateGetBulkOptions,
+  DaprWorkflowClient,
+  WorkflowActivityContext,
+  WorkflowContext,
+  WorkflowRuntime,
+  TWorkflow,
+  Task,
+  WorkflowFailureDetails,
+  WorkflowState,
+  WorkflowRuntimeStatus,
+  fromOrchestrationStatus,
+  toOrchestrationStatus,
 };

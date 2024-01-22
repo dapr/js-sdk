@@ -1,5 +1,5 @@
 {
-  "name": "dapr-example-workflow",
+  "name": "dapr-example-workflow-management",
   "version": "1.0.0",
   "description": "An example utilizing the Dapr JS-SDK to manage workflow",
   "main": "dist/index.js",
@@ -17,7 +17,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "@dapr/dapr": "file:../../build",
+    "@dapr/dapr": "file:../../../build",
     "@types/node": "^18.16.3"
   }
 }
