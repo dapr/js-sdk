@@ -28,7 +28,7 @@ import { SubscribeConfigurationResponse as SubscribeConfigurationResponseResult 
 import { SubscribeConfigurationCallback } from "../../../types/configuration/SubscribeConfigurationCallback";
 import { SubscribeConfigurationStream } from "../../../types/configuration/SubscribeConfigurationStream";
 import { ConfigurationItem } from "../../../types/configuration/ConfigurationItem";
-import { createConfigurationType } from "../../../utils/Client.util";
+import { addMetadataToMap, createConfigurationType } from "../../../utils/Client.util";
 
 export default class GRPCClientConfiguration implements IClientConfiguration {
   client: GRPCClient;
@@ -51,6 +51,7 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
       for (const [key, value] of Object.entries(metadataObj)) {
         metadata.add(key, value);
       }
+      addMetadataToMap(msg.getMetadataMap(), metadataObj);
     }
 
     const client = await this.client.getClient();
@@ -114,6 +115,7 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
       for (const [key, value] of Object.entries(metadataObj)) {
         metadata.add(key, value);
       }
+      addMetadataToMap(msg.getMetadataMap(), metadataObj);
     }
 
     const client = await this.client.getClient();
