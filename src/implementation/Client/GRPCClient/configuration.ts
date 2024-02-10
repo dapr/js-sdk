@@ -12,7 +12,6 @@ limitations under the License.
 */
 
 import GRPCClient from "./GRPCClient";
-import * as grpc from "@grpc/grpc-js";
 import {
   GetConfigurationRequest,
   GetConfigurationResponse,
@@ -38,26 +37,18 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
   }
 
   async get(storeName: string, keys: string[], metadataObj?: KeyValueType): Promise<GetConfigurationResponseResult> {
-    const metadata = new grpc.Metadata();
-
     const msg = new GetConfigurationRequest();
     msg.setStoreName(storeName);
 
     if (keys && keys.length > 0) {
       msg.setKeysList(keys.filter((i) => i !== ""));
     }
-
-    if (metadataObj) {
-      for (const [key, value] of Object.entries(metadataObj)) {
-        metadata.add(key, value);
-      }
-      addMetadataToMap(msg.getMetadataMap(), metadataObj);
-    }
+    addMetadataToMap(msg.getMetadataMap(), metadataObj);
 
     const client = await this.client.getClient();
 
     return new Promise((resolve, reject) => {
-      client.getConfiguration(msg, metadata, (err, res: GetConfigurationResponse) => {
+      client.getConfiguration(msg, (err, res: GetConfigurationResponse) => {
         if (err) {
           return reject(err);
         }
@@ -100,8 +91,6 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
     keys?: string[],
     metadataObj?: KeyValueType,
   ): Promise<SubscribeConfigurationStream> {
-    const metadata = new grpc.Metadata();
-
     const msg = new SubscribeConfigurationRequest();
     msg.setStoreName(storeName);
 
@@ -110,13 +99,7 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
     } else {
       msg.setKeysList([]);
     }
-
-    if (metadataObj) {
-      for (const [key, value] of Object.entries(metadataObj)) {
-        metadata.add(key, value);
-      }
-      addMetadataToMap(msg.getMetadataMap(), metadataObj);
-    }
+    addMetadataToMap(msg.getMetadataMap(), metadataObj);
 
     const client = await this.client.getClient();
 
@@ -124,7 +107,7 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
     // and will stay open as long as the client is open
     // we will thus create a set with our listeners so we don't
     // break on multi listeners
-    const stream = client.subscribeConfiguration(msg, metadata);
+    const stream = client.subscribeConfiguration(msg);
     let streamId: string;
 
     stream.on("data", async (data: SubscribeConfigurationResponse) => {
