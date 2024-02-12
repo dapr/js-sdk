@@ -363,14 +363,11 @@ describe("grpc/client", () => {
     });
 
     it("should be able to get the configuration items with metadata", async () => {
-      await client.configuration.get("config-redis", ["myconfigkey1"], {
+      const conf = await client.configuration.get("config-redis", ["myconfigkey1"], {
         hello: "world",
       });
 
-      // Disabled for now as I am unsure if Dapr returns the metadata items
-      // Java SDK: https://github.com/dapr/java-sdk/blob/06d92dafca62a6b48e74ccf939feeac7189e360f/sdk/src/test/java/io/dapr/client/DaprPreviewClientGrpcTest.java#L119
-      // ^ shows that it is not being tested, it tries but doesn't assert
-      // expect(conf.items.filter(i => i.key == "myconfigkey1")[0].metadata).toHaveProperty("hello");
+      expect(conf.items["myconfigkey1"].metadata).toHaveProperty("hello");
     });
 
     it("should be able to subscribe to configuration item changes on all keys", async () => {
