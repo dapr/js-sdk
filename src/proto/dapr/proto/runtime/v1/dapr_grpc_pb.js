@@ -230,6 +230,17 @@ function deserialize_dapr_proto_runtime_v1_GetConfigurationResponse(buffer_arg) 
   return dapr_proto_runtime_v1_dapr_pb.GetConfigurationResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_GetMetadataRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.GetMetadataRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.GetMetadataRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_GetMetadataRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.GetMetadataRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_GetMetadataResponse(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.GetMetadataResponse)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.GetMetadataResponse');
@@ -450,17 +461,6 @@ function deserialize_dapr_proto_runtime_v1_RegisterActorTimerRequest(buffer_arg)
   return dapr_proto_runtime_v1_dapr_pb.RegisterActorTimerRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
-function serialize_dapr_proto_runtime_v1_RenameActorReminderRequest(arg) {
-  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.RenameActorReminderRequest)) {
-    throw new Error('Expected argument of type dapr.proto.runtime.v1.RenameActorReminderRequest');
-  }
-  return Buffer.from(arg.serializeBinary());
-}
-
-function deserialize_dapr_proto_runtime_v1_RenameActorReminderRequest(buffer_arg) {
-  return dapr_proto_runtime_v1_dapr_pb.RenameActorReminderRequest.deserializeBinary(new Uint8Array(buffer_arg));
-}
-
 function serialize_dapr_proto_runtime_v1_ResumeWorkflowRequest(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.ResumeWorkflowRequest)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.ResumeWorkflowRequest');
@@ -492,6 +492,17 @@ function serialize_dapr_proto_runtime_v1_SetMetadataRequest(arg) {
 
 function deserialize_dapr_proto_runtime_v1_SetMetadataRequest(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.SetMetadataRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_ShutdownRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.ShutdownRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.ShutdownRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_ShutdownRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.ShutdownRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_dapr_proto_runtime_v1_StartWorkflowRequest(arg) {
@@ -1010,18 +1021,6 @@ unregisterActorReminder: {
     responseSerialize: serialize_google_protobuf_Empty,
     responseDeserialize: deserialize_google_protobuf_Empty,
   },
-  // Rename an actor reminder.
-renameActorReminder: {
-    path: '/dapr.proto.runtime.v1.Dapr/RenameActorReminder',
-    requestStream: false,
-    responseStream: false,
-    requestType: dapr_proto_runtime_v1_dapr_pb.RenameActorReminderRequest,
-    responseType: google_protobuf_empty_pb.Empty,
-    requestSerialize: serialize_dapr_proto_runtime_v1_RenameActorReminderRequest,
-    requestDeserialize: deserialize_dapr_proto_runtime_v1_RenameActorReminderRequest,
-    responseSerialize: serialize_google_protobuf_Empty,
-    responseDeserialize: deserialize_google_protobuf_Empty,
-  },
   // Gets the state for a specific actor.
 getActorState: {
     path: '/dapr.proto.runtime.v1.Dapr/GetActorState',
@@ -1183,10 +1182,10 @@ getMetadata: {
     path: '/dapr.proto.runtime.v1.Dapr/GetMetadata',
     requestStream: false,
     responseStream: false,
-    requestType: google_protobuf_empty_pb.Empty,
+    requestType: dapr_proto_runtime_v1_dapr_pb.GetMetadataRequest,
     responseType: dapr_proto_runtime_v1_dapr_pb.GetMetadataResponse,
-    requestSerialize: serialize_google_protobuf_Empty,
-    requestDeserialize: deserialize_google_protobuf_Empty,
+    requestSerialize: serialize_dapr_proto_runtime_v1_GetMetadataRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_GetMetadataRequest,
     responseSerialize: serialize_dapr_proto_runtime_v1_GetMetadataResponse,
     responseDeserialize: deserialize_dapr_proto_runtime_v1_GetMetadataResponse,
   },
@@ -1459,10 +1458,10 @@ shutdown: {
     path: '/dapr.proto.runtime.v1.Dapr/Shutdown',
     requestStream: false,
     responseStream: false,
-    requestType: google_protobuf_empty_pb.Empty,
+    requestType: dapr_proto_runtime_v1_dapr_pb.ShutdownRequest,
     responseType: google_protobuf_empty_pb.Empty,
-    requestSerialize: serialize_google_protobuf_Empty,
-    requestDeserialize: deserialize_google_protobuf_Empty,
+    requestSerialize: serialize_dapr_proto_runtime_v1_ShutdownRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_ShutdownRequest,
     responseSerialize: serialize_google_protobuf_Empty,
     responseDeserialize: deserialize_google_protobuf_Empty,
   },

@@ -13,13 +13,7 @@
 
 var jspb = require('google-protobuf');
 var goog = jspb;
-var global =
-    (typeof globalThis !== 'undefined' && globalThis) ||
-    (typeof window !== 'undefined' && window) ||
-    (typeof global !== 'undefined' && global) ||
-    (typeof self !== 'undefined' && self) ||
-    (function () { return this; }).call(null) ||
-    Function('return this')();
+var global = (function() { return this || window || global || self || Function('return this')(); }).call(null);
 
 goog.exportSymbol('proto.dapr.proto.placement.v1.Host', null, global);
 goog.exportSymbol('proto.dapr.proto.placement.v1.PlacementOrder', null, global);
@@ -323,7 +317,9 @@ proto.dapr.proto.placement.v1.PlacementTables.prototype.toObject = function(opt_
 proto.dapr.proto.placement.v1.PlacementTables.toObject = function(includeInstance, msg) {
   var f, obj = {
     entriesMap: (f = msg.getEntriesMap()) ? f.toObject(includeInstance, proto.dapr.proto.placement.v1.PlacementTable.toObject) : [],
-    version: jspb.Message.getFieldWithDefault(msg, 2, "")
+    version: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    apiLevel: jspb.Message.getFieldWithDefault(msg, 3, 0),
+    replicationFactor: jspb.Message.getFieldWithDefault(msg, 4, 0)
   };
 
   if (includeInstance) {
@@ -370,6 +366,14 @@ proto.dapr.proto.placement.v1.PlacementTables.deserializeBinaryFromReader = func
       var value = /** @type {string} */ (reader.readString());
       msg.setVersion(value);
       break;
+    case 3:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setApiLevel(value);
+      break;
+    case 4:
+      var value = /** @type {number} */ (reader.readInt64());
+      msg.setReplicationFactor(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -410,6 +414,20 @@ proto.dapr.proto.placement.v1.PlacementTables.serializeBinaryToWriter = function
       f
     );
   }
+  f = message.getApiLevel();
+  if (f !== 0) {
+    writer.writeUint32(
+      3,
+      f
+    );
+  }
+  f = message.getReplicationFactor();
+  if (f !== 0) {
+    writer.writeInt64(
+      4,
+      f
+    );
+  }
 };
 
 
@@ -432,8 +450,7 @@ proto.dapr.proto.placement.v1.PlacementTables.prototype.getEntriesMap = function
  */
 proto.dapr.proto.placement.v1.PlacementTables.prototype.clearEntriesMap = function() {
   this.getEntriesMap().clear();
-  return this;
-};
+  return this;};
 
 
 /**
@@ -451,6 +468,42 @@ proto.dapr.proto.placement.v1.PlacementTables.prototype.getVersion = function() 
  */
 proto.dapr.proto.placement.v1.PlacementTables.prototype.setVersion = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional uint32 api_level = 3;
+ * @return {number}
+ */
+proto.dapr.proto.placement.v1.PlacementTables.prototype.getApiLevel = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.dapr.proto.placement.v1.PlacementTables} returns this
+ */
+proto.dapr.proto.placement.v1.PlacementTables.prototype.setApiLevel = function(value) {
+  return jspb.Message.setProto3IntField(this, 3, value);
+};
+
+
+/**
+ * optional int64 replication_factor = 4;
+ * @return {number}
+ */
+proto.dapr.proto.placement.v1.PlacementTables.prototype.getReplicationFactor = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.dapr.proto.placement.v1.PlacementTables} returns this
+ */
+proto.dapr.proto.placement.v1.PlacementTables.prototype.setReplicationFactor = function(value) {
+  return jspb.Message.setProto3IntField(this, 4, value);
 };
 
 
@@ -628,8 +681,7 @@ proto.dapr.proto.placement.v1.PlacementTable.prototype.getHostsMap = function(op
  */
 proto.dapr.proto.placement.v1.PlacementTable.prototype.clearHostsMap = function() {
   this.getHostsMap().clear();
-  return this;
-};
+  return this;};
 
 
 /**
@@ -688,8 +740,7 @@ proto.dapr.proto.placement.v1.PlacementTable.prototype.getLoadMapMap = function(
  */
 proto.dapr.proto.placement.v1.PlacementTable.prototype.clearLoadMapMap = function() {
   this.getLoadMapMap().clear();
-  return this;
-};
+  return this;};
 
 
 /**

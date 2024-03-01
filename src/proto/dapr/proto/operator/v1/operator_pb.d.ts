@@ -58,6 +58,8 @@ export class ComponentUpdateEvent extends jspb.Message {
     getComponent_asU8(): Uint8Array;
     getComponent_asB64(): string;
     setComponent(value: Uint8Array | string): ComponentUpdateEvent;
+    getType(): ResourceEventType;
+    setType(value: ResourceEventType): ComponentUpdateEvent;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ComponentUpdateEvent.AsObject;
@@ -72,6 +74,7 @@ export class ComponentUpdateEvent extends jspb.Message {
 export namespace ComponentUpdateEvent {
     export type AsObject = {
         component: Uint8Array | string,
+        type: ResourceEventType,
     }
 }
 
@@ -415,4 +418,11 @@ export namespace HTTPEndpointUpdateEvent {
     export type AsObject = {
         httpEndpoints: Uint8Array | string,
     }
+}
+
+export enum ResourceEventType {
+    UNKNOWN = 0,
+    CREATED = 1,
+    UPDATED = 2,
+    DELETED = 3,
 }

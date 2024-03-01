@@ -13,13 +13,7 @@
 
 var jspb = require('google-protobuf');
 var goog = jspb;
-var global =
-    (typeof globalThis !== 'undefined' && globalThis) ||
-    (typeof window !== 'undefined' && window) ||
-    (typeof global !== 'undefined' && global) ||
-    (typeof self !== 'undefined' && self) ||
-    (function () { return this; }).call(null) ||
-    Function('return this')();
+var global = (function() { return this || window || global || self || Function('return this')(); }).call(null);
 
 var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js');
 goog.object.extend(proto, google_protobuf_any_pb);
@@ -1284,8 +1278,7 @@ proto.dapr.proto.common.v1.StateItem.prototype.getMetadataMap = function(opt_noL
  */
 proto.dapr.proto.common.v1.StateItem.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 /**
@@ -1823,8 +1816,7 @@ proto.dapr.proto.common.v1.ConfigurationItem.prototype.getMetadataMap = function
  */
 proto.dapr.proto.common.v1.ConfigurationItem.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 goog.object.extend(exports, proto.dapr.proto.common.v1);
