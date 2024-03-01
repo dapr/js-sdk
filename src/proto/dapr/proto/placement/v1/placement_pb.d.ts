@@ -38,6 +38,10 @@ export class PlacementTables extends jspb.Message {
     clearEntriesMap(): void;
     getVersion(): string;
     setVersion(value: string): PlacementTables;
+    getApiLevel(): number;
+    setApiLevel(value: number): PlacementTables;
+    getReplicationFactor(): number;
+    setReplicationFactor(value: number): PlacementTables;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): PlacementTables.AsObject;
@@ -54,6 +58,8 @@ export namespace PlacementTables {
 
         entriesMap: Array<[string, PlacementTable.AsObject]>,
         version: string,
+        apiLevel: number,
+        replicationFactor: number,
     }
 }
 
