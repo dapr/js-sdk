@@ -20,8 +20,8 @@ import { CommunicationProtocolEnum, DaprClient, LogLevel } from "../../../src";
 import { SubscribeConfigurationResponse } from "../../../src/types/configuration/SubscribeConfigurationResponse";
 import * as DockerUtils from "../../utils/DockerUtil";
 import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runtime/v1/dapr_grpc_pb";
-import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 import { NextCall } from "@grpc/grpc-js/build/src/client-interceptors";
+import { GetMetadataRequest } from "../../../src/proto/dapr/proto/runtime/v1/dapr_pb";
 
 const daprHost = "localhost";
 const daprPort = "50000"; // Dapr Sidecar Port of this Example Server
@@ -76,7 +76,7 @@ describe("grpc/client", () => {
         interceptors: [mockInterceptor],
       });
 
-      await new Promise((resolve) => clientProxy.getMetadata(new Empty(), resolve));
+      await new Promise((resolve) => clientProxy.getMetadata(new GetMetadataRequest(), resolve));
 
       expect(mockInterceptor.mock.calls.length).toBe(1);
       expect(mockMetadataRes.get("dapr-app-id")[0]).toBe("test-suite");
@@ -104,7 +104,7 @@ describe("grpc/client", () => {
         interceptors: [mockInterceptor],
       });
 
-      await new Promise((resolve) => clientProxy.getMetadata(new Empty(), resolve));
+      await new Promise((resolve) => clientProxy.getMetadata(new GetMetadataRequest(), resolve));
 
       expect(mockInterceptor.mock.calls.length).toBe(1);
       expect(mockMetadataRes.get("dapr-app-id")[0]).toBe(process.env.APP_ID);
@@ -362,13 +362,13 @@ describe("grpc/client", () => {
       expect(config.items["myconfigkey3"].value == "key3_initialvalue");
     });
 
-    it("should be able to get the configuration items with metadata", async () => {
-      const conf = await client.configuration.get("config-redis", ["myconfigkey1"], {
-        hello: "world",
-      });
-
-      expect(conf.items["myconfigkey1"].metadata).toHaveProperty("hello");
-    });
+    // todo: enable this once we have a component to test this with.
+    // Redis does not support metadata, PG and Azure App Config do.
+    // it("should be able to get the configuration items with metadata", async () => {
+    //   const conf = await client.configuration.get("config-redis", ["myconfigkey1"], {
+    //     hello: "world",
+    //   });
+    // });
 
     it("should be able to subscribe to configuration item changes on all keys", async () => {
       const m = jest.fn(async (_res: SubscribeConfigurationResponse) => {

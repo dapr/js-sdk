@@ -13,7 +13,7 @@ limitations under the License.
 
 import GRPCClient from "./GRPCClient";
 import IClientSidecar from "../../../interfaces/Client/IClientSidecar";
-import { GetMetadataResponse } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import { GetMetadataRequest, GetMetadataResponse, ShutdownRequest } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 
 // https://docs.dapr.io/reference/api/secrets_api/
@@ -28,7 +28,7 @@ export default class GRPCClientSidecar implements IClientSidecar {
     const client = await this.client.getClient();
 
     return new Promise((resolve, reject) => {
-      client.shutdown(new Empty(), (err, _res: Empty) => {
+      client.shutdown(new ShutdownRequest(), (err, _res: Empty) => {
         if (err) {
           return reject(err);
         }
@@ -43,7 +43,7 @@ export default class GRPCClientSidecar implements IClientSidecar {
 
     return new Promise((resolve, _reject) => {
       try {
-        callClient.getMetadata(new Empty(), (err, _res: GetMetadataResponse) => {
+        callClient.getMetadata(new GetMetadataRequest(), (err, _res: GetMetadataResponse) => {
           if (err) {
             return resolve(false);
           }
