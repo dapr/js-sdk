@@ -14,7 +14,6 @@ limitations under the License.
 import * as grpc from "@grpc/grpc-js";
 import { CommunicationProtocolEnum, DaprClient, LogLevel } from "../../../src";
 import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runtime/v1/dapr_grpc_pb";
-import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 import { NextCall } from "@grpc/grpc-js/build/src/client-interceptors";
 import { GetMetadataRequest } from "../../../src/proto/dapr/proto/runtime/v1/dapr_pb";
 
