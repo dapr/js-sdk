@@ -29,7 +29,7 @@ export default class GRPCClient implements IClient {
   private isInitialized: boolean;
   private readonly client: GrpcDaprClient;
   private readonly clientCredentials: grpc.ChannelCredentials;
-  public readonly logger: Logger;
+  private readonly logger: Logger;
   private readonly grpcClientOptions: Partial<grpc.ClientOptions>;
   private daprEndpoint: GrpcEndpoint;
 
