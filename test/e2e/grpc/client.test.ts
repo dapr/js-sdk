@@ -362,7 +362,7 @@ describe("grpc/client", () => {
       expect(config.items["myconfigkey3"].value == "key3_initialvalue");
     });
 
-    // todo: enable this once we have a component to test this with. 
+    // todo: enable this once we have a component to test this with.
     // Redis does not support metadata, PG and Azure App Config do.
     // it("should be able to get the configuration items with metadata", async () => {
     //   const conf = await client.configuration.get("config-redis", ["myconfigkey1"], {
