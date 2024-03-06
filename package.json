@@ -1,6 +1,6 @@
 {
   "name": "@dapr/dapr",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "description": "The official Dapr (https://dapr.io) SDK for Node.js",
   "types": "./build/index.d.ts",
   "scripts": {
@@ -8,7 +8,7 @@
     "test:load": "jest --runInBand --detectOpenHandles",
     "test:load:http": "TEST_SECRET_1=secret_val_1 TEST_SECRET_2=secret_val_2 dapr run --app-id test-suite --app-protocol http --app-port 50001 --dapr-http-port 50000 --components-path ./test/components -- npm run test:load 'test/load'",
     "test:e2e": "jest --runInBand --detectOpenHandles",
-    "test:e2e:all": "npm run test:e2e:http; npm run test:e2e:grpc; npm run test:e2e:common; npm run test:e2e:workflow",
+    "test:e2e:all": "npm run test:e2e:http && npm run test:e2e:grpc && npm run test:e2e:common && npm run test:e2e:workflow",
     "test:e2e:grpc": "npm run test:e2e:grpc:client && npm run test:e2e:grpc:server && npm run test:e2e:grpc:clientWithApiToken",
     "test:e2e:grpc:client": "npm run prebuild && TEST_SECRET_1=secret_val_1 TEST_SECRET_2=secret_val_2 dapr run --app-id test-suite --app-protocol grpc --app-port 50001 --dapr-grpc-port 50000 --components-path ./test/components -- jest --runInBand --detectOpenHandles --testMatch [ '**/test/e2e/grpc/*client.test.ts' ]",
     "test:e2e:grpc:clientWithApiToken": "npm run prebuild && TEST_SECRET_1=secret_val_1 TEST_SECRET_2=secret_val_2 DAPR_API_TOKEN=test dapr run --app-id test-suite --app-protocol grpc --app-port 50001 --dapr-grpc-port 50000 --components-path ./test/components -- jest --runInBand --detectOpenHandles --testMatch [ '**/test/e2e/grpc/clientWithApiToken.test.ts' ]",
