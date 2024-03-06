@@ -12,7 +12,11 @@ limitations under the License.
 */
 
 import GRPCClient from "./GRPCClient";
-import { GetMetadataRequest, GetMetadataResponse, SetMetadataRequest } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import {
+  GetMetadataRequest,
+  GetMetadataResponse,
+  SetMetadataRequest,
+} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 import IClientMetadata from "../../../interfaces/Client/IClientMetadata";
 import { GetMetadataResponse as GetMetadataResponseResult } from "../../../types/metadata/GetMetadataResponse";
