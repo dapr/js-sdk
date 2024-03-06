@@ -11,12 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 import { Any } from "google-protobuf/google/protobuf/any_pb";
 import {
   ExecuteActorStateTransactionRequest,
   GetActorStateRequest,
   GetActorStateResponse,
+  GetMetadataRequest,
   GetMetadataResponse,
   InvokeActorRequest,
   InvokeActorResponse,
@@ -279,7 +279,7 @@ export default class ActorClientGRPC implements IClientActor {
     const client = await this.client.getClient();
 
     return new Promise((resolve, reject) => {
-      client.getMetadata(new Empty(), (err, res: GetMetadataResponse) => {
+      client.getMetadata(new GetMetadataRequest(), (err, res: GetMetadataResponse) => {
         if (err) {
           return reject(err);
         }
