@@ -16,6 +16,7 @@ import { CommunicationProtocolEnum, DaprClient, LogLevel } from "../../../src";
 import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runtime/v1/dapr_grpc_pb";
 import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 import { NextCall } from "@grpc/grpc-js/build/src/client-interceptors";
+import { GetMetadataRequest } from "../../../src/proto/dapr/proto/runtime/v1/dapr_pb";
 
 const daprHost = "localhost";
 const daprPort = "50000"; // Dapr Sidecar Port of this Example Server
@@ -50,7 +51,7 @@ describe("grpc/client with api token", () => {
       interceptors: [mockInterceptor],
     });
 
-    await new Promise((resolve) => clientProxy.getMetadata(new Empty(), resolve));
+    await new Promise((resolve) => clientProxy.getMetadata(new GetMetadataRequest(), resolve));
     expect(mockMetadataRes.get("dapr-api-token")[0]).toBe("test");
   });
 });

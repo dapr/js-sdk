@@ -17,6 +17,7 @@ import {
   ExecuteActorStateTransactionRequest,
   GetActorStateRequest,
   GetActorStateResponse,
+  GetMetadataRequest,
   GetMetadataResponse,
   InvokeActorRequest,
   InvokeActorResponse,
@@ -279,7 +280,7 @@ export default class ActorClientGRPC implements IClientActor {
     const client = await this.client.getClient();
 
     return new Promise((resolve, reject) => {
-      client.getMetadata(new Empty(), (err, res: GetMetadataResponse) => {
+      client.getMetadata(new GetMetadataRequest(), (err, res: GetMetadataResponse) => {
         if (err) {
           return reject(err);
         }

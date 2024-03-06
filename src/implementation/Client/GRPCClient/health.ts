@@ -13,7 +13,7 @@ limitations under the License.
 
 import GRPCClient from "./GRPCClient";
 import IClientHealth from "../../../interfaces/Client/IClientHealth";
-import { GetMetadataResponse } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import { GetMetadataRequest, GetMetadataResponse } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 
 // https://docs.dapr.io/reference/api/health_api/
@@ -30,7 +30,7 @@ export default class GRPCClientHealth implements IClientHealth {
 
     return new Promise((resolve, _reject) => {
       try {
-        client.getMetadata(new Empty(), (err, _res: GetMetadataResponse) => {
+        client.getMetadata(new GetMetadataRequest(), (err, _res: GetMetadataResponse) => {
           if (err) {
             return resolve(false);
           }
