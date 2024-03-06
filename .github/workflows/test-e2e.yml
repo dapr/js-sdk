@@ -35,8 +35,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GOVER: 1.21
-      DAPR_CLI_VER: 1.13.0-rc.1
-      DAPR_RUNTIME_VER: 1.13.0-rc.10
+      DAPR_CLI_VER: 1.13.0
+      DAPR_RUNTIME_VER: 1.13.0
       DAPR_INSTALL_URL: https://raw.githubusercontent.com/dapr/cli/master/install/install.sh
       DAPR_CLI_REF: ""
       DAPR_REF: ""
