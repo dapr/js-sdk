@@ -46,8 +46,6 @@ export default class HTTPServer implements IServer {
 
     this.isInitialized = false;
 
-    this.logger.debug(`Configured HTTPServer Options: ${JSON.stringify(options)}`);
-
     this.server = options.serverHttp ?? express();
     this.server.use(
       bodyParser.text({
