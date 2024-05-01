@@ -11,8 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { randomUUID } from "crypto";
-
 export default class ActorId {
   private readonly id: string;
 
@@ -24,7 +22,7 @@ export default class ActorId {
   }
 
   static createRandomId(): ActorId {
-    return new ActorId(randomUUID());
+    return new ActorId(crypto.randomUUID());
   }
 
   getId() {

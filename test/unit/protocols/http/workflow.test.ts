@@ -14,7 +14,6 @@ limitations under the License.
 import HTTPClient from "../../../../src/implementation/Client/HTTPClient/HTTPClient";
 import { PropertyRequiredError } from "../../../../src/errors/PropertyRequiredError";
 import HTTPClientWorkflow from "../../../../src/implementation/Client/HTTPClient/workflow";
-import { randomUUID } from "crypto";
 
 describe("workflow", () => {
   const client = new HTTPClient({
@@ -34,12 +33,12 @@ describe("workflow", () => {
     await expect(workflow._invokeMethod("", "raise")).rejects.toThrow(PropertyRequiredError);
   });
   it("should throw PropertyRequiredError when method variable is not provided in _invokeMethod method", async () => {
-    await expect(workflow._invokeMethod(randomUUID(), "")).rejects.toThrow(PropertyRequiredError);
+    await expect(workflow._invokeMethod(crypto.randomUUID(), "")).rejects.toThrow(PropertyRequiredError);
   });
   it("should throw PropertyRequiredError when instanceID variable is not provided in raise method", async () => {
     await expect(workflow.raise("", "Event")).rejects.toThrow(PropertyRequiredError);
   });
   it("should throw PropertyRequiredError when eventName variable is not provided in raise method", async () => {
-    await expect(workflow.raise(randomUUID(), "")).rejects.toThrow(PropertyRequiredError);
+    await expect(workflow.raise(crypto.randomUUID(), "")).rejects.toThrow(PropertyRequiredError);
   });
 });

@@ -17,7 +17,6 @@ import { WorkflowGetResponseType } from "../../../types/workflow/WorkflowGetResp
 import { Logger } from "../../../logger/Logger";
 import { KeyValueType } from "../../../types/KeyValue.type";
 import { WorkflowStartOptions } from "../../../types/workflow/WorkflowStartOptions.type";
-import { randomUUID } from "crypto";
 import { createHTTPQueryParam } from "../../../utils/Client.util";
 import { WorkflowRaiseOptions } from "../../../types/workflow/WorkflowRaiseOptions.type";
 import { PropertyRequiredError } from "../../../errors/PropertyRequiredError";
@@ -81,7 +80,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     }
 
     if (!instanceId) {
-      instanceId = randomUUID();
+      instanceId = crypto.randomUUID();
     }
 
     workflowComponent = workflowComponent ?? HTTPClientWorkflow.DEFAULT_WORKFLOW_COMPONENT;

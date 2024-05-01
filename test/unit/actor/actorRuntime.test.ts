@@ -17,7 +17,6 @@ import ActorId from "../../../src/actors/ActorId";
 import DemoActorCounterImpl from "../../actor/DemoActorCounterImpl";
 import DemoActorSayImpl from "../../actor/DemoActorSayImpl";
 import { ActorRuntimeOptions } from "../../../src/types/actors/ActorRuntimeOptions";
-import { randomUUID } from "crypto";
 
 describe("ActorRuntime", () => {
   let client: DaprClient;
@@ -102,7 +101,7 @@ describe("ActorRuntime", () => {
   });
 
   it("should be able to invoke an actor", async () => {
-    const actorId = randomUUID();
+    const actorId = crypto.randomUUID();
 
     await runtime.registerActor(DemoActorSayImpl);
 
@@ -111,7 +110,7 @@ describe("ActorRuntime", () => {
   });
 
   it("should receive an error if the actor method does not exist", async () => {
-    const actorId = randomUUID();
+    const actorId = crypto.randomUUID();
 
     await runtime.registerActor(DemoActorCounterImpl);
 
@@ -127,11 +126,11 @@ describe("ActorRuntime", () => {
 
   it("should be able to fire a reminder", async () => {
     // TODO: add this test
-    new ActorId(randomUUID());
+    new ActorId(crypto.randomUUID());
   });
 
   it("should be able to fire a timer", async () => {
     // TODO: add this test
-    new ActorId(randomUUID());
+    new ActorId(crypto.randomUUID());
   });
 });

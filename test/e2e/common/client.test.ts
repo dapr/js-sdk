@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { randomUUID } from "crypto";
 import {
   CommunicationProtocolEnum,
   DaprClient,
@@ -153,7 +152,7 @@ describe("common/client", () => {
 
   describe("distributed lock", () => {
     runIt("should be able to acquire a new lock and unlock", async (client: DaprClient) => {
-      const resourceId = randomUUID();
+      const resourceId = crypto.randomUUID();
       const lock = await client.lock.lock("redislock", resourceId, "owner1", 1000);
       expect(lock.success).toEqual(true);
       const unlock = await client.lock.unlock("redislock", resourceId, "owner1");
@@ -161,13 +160,13 @@ describe("common/client", () => {
     });
 
     runIt("should be not be able to unlock when the lock is not acquired", async (client: DaprClient) => {
-      const resourceId = randomUUID();
+      const resourceId = crypto.randomUUID();
       const unlock = await client.lock.unlock("redislock", resourceId, "owner1");
       expect(unlock.status).toEqual(LockStatus.LockDoesNotExist);
     });
 
     runIt("should be able to acquire a lock after the previous lock is expired", async (client: DaprClient) => {
-      const resourceId = randomUUID();
+      const resourceId = crypto.randomUUID();
       let lock = await client.lock.lock("redislock", resourceId, "owner1", 5);
       expect(lock.success).toEqual(true);
       await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -178,7 +177,7 @@ describe("common/client", () => {
     runIt(
       "should not be able to acquire a lock when the same lock is acquired by another owner",
       async (client: DaprClient) => {
-        const resourceId = randomUUID();
+        const resourceId = crypto.randomUUID();
         const lockOne = await client.lock.lock("redislock", resourceId, "owner1", 5);
         expect(lockOne.success).toEqual(true);
         const lockTwo = await client.lock.lock("redislock", resourceId, "owner2", 5);
@@ -189,9 +188,9 @@ describe("common/client", () => {
     runIt(
       "should be able to acquire a lock when a different lock is acquired by another owner",
       async (client: DaprClient) => {
-        const lockOne = await client.lock.lock("redislock", randomUUID(), "owner1", 5);
+        const lockOne = await client.lock.lock("redislock", crypto.randomUUID(), "owner1", 5);
         expect(lockOne.success).toEqual(true);
-        const lockTwo = await client.lock.lock("redislock", randomUUID(), "owner2", 5);
+        const lockTwo = await client.lock.lock("redislock", crypto.randomUUID(), "owner2", 5);
         expect(lockTwo.success).toEqual(true);
       },
     );
@@ -199,7 +198,7 @@ describe("common/client", () => {
     runIt(
       "should not be able to acquire a lock when that lock is acquired by another owner/process",
       async (client: DaprClient) => {
-        const resourceId = randomUUID();
+        const resourceId = crypto.randomUUID();
         const lockOne = await client.lock.lock("redislock", resourceId, "owner3", 5);
         expect(lockOne.success).toEqual(true);
         const lockTwo = await client.lock.lock("redislock", resourceId, "owner4", 5);
@@ -210,7 +209,7 @@ describe("common/client", () => {
     runIt(
       "should not be able to unlock a lock when that lock is acquired by another owner/process",
       async (client: DaprClient) => {
-        const resourceId = randomUUID();
+        const resourceId = crypto.randomUUID();
         const lockOne = await client.lock.lock("redislock", resourceId, "owner5", 5);
         expect(lockOne.success).toEqual(true);
         const unlock = await client.lock.unlock("redislock", resourceId, "owner6");

@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { randomUUID } from "crypto";
 import { Map } from "google-protobuf";
 
 import { ConfigurationItem as ConfigurationItemProto } from "../proto/dapr/proto/common/v1/common_pb";
@@ -179,7 +178,7 @@ export function getBulkPublishEntries(messages: PubSubBulkPublishMessage[]): Pub
     // If message is a PubSubBulkPublishEntry, use it directly
     if (typeof message !== "string" && "event" in message) {
       return {
-        entryID: message.entryID ? message.entryID : randomUUID(),
+        entryID: message.entryID ? message.entryID : crypto.randomUUID(),
         event: message.event,
         contentType: message.contentType ? message.contentType : getContentType(message.event),
         metadata: message.metadata ? message.metadata : {},
@@ -187,7 +186,7 @@ export function getBulkPublishEntries(messages: PubSubBulkPublishMessage[]): Pub
     }
     // Otherwise, create a PubSubBulkPublishEntry from the message
     return {
-      entryID: randomUUID(),
+      entryID: crypto.randomUUID(),
       event: message,
       contentType: getContentType(message),
       metadata: {},
