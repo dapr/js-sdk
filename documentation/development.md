@@ -28,6 +28,13 @@ A custom script is utilized here since we have 2 libraries in one for HTTP and g
 
 ## Running Tests
 
+Before running tests, make sure to run some pre-requisite scripts:
+./scripts/prebuild.sh
+./scripts/fetch-proto.sh
+
+To confirm, that everything is up and halthy, we can run:
+./scripts/build.sh
+
 Tests are written per protocol layer: http or grpc. This is done because Dapr requires endpoints to be registered for for pubsub and bindings, making us having to start up the test, initialize those endpoints and then run. Since Dapr is a sidecar architecture, we thus have to start 2 test suites seperately. It requires the following containers:
 
 - **EMQX:** Used for Binding Tests
@@ -38,6 +45,7 @@ Tests are written per protocol layer: http or grpc. This is done because Dapr re
 # Start Container
 docker run -d --rm --name emqx -p 1883:1883 -p 8081:8081 -p 8083:8083 -p 8883:8883 -p 8084:8084 -p 18083:18083 emqx/emqx
 docker run -d --rm --name mongodb -p 27017:27017 mongo
+docker run -d --name dapr-redis -p 6379:6379 redis/redis-stack-server:latest
 
 # Run Unit Tests
 npm run test:unit:main
