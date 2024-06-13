@@ -46,7 +46,7 @@
   "author": "Xavier Geerinck",
   "license": "ISC",
   "dependencies": {
-    "@grpc/grpc-js": "^1.9.3",
+    "@grpc/grpc-js": "^1.9.15",
     "@js-temporal/polyfill": "^0.3.0",
     "@types/google-protobuf": "^3.15.5",
     "@types/node-fetch": "^2.6.2",
