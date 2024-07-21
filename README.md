@@ -35,23 +35,6 @@ npm install --save @dapr/dapr-dev
 
 Visit [https://docs.dapr.io/developing-applications/sdks/js/](https://docs.dapr.io/developing-applications/sdks/js/) to view the full documentation.
 
-## Who is using Dapr?
-
-Dapr is used by the world's leading companies.
-
-<div align="center">               
-    <img src="https://dapr.io/images/bosch.png" width="100px">      
-    <img src="https://dapr.io/images/zeiss.png" width="100px">        
-    <img src="https://dapr.io/images/alibaba.png" width="100px">       
-    <img src="https://dapr.io/images/ignition-group.png" width="100px">      
-    <img src="https://dapr.io/images/roadwork.png" width="100px">     
-    <img src="https://dapr.io/images/autonavi.png" width="100px">     
-    <img src="https://dapr.io/images/legentic.png" width="100px">      
-    <img src="https://dapr.io/images/man-group.png" width="100px">
-</div>
-
-View the main site [https://dapr.io/](https://dapr.io/) to learn more.
-
 ## Community
 
 There are multiple ways to get involved with the SDK community, please see [wiki/Community-engagement](https://github.com/dapr/js-sdk/wiki/Community-engagement) for more information.
