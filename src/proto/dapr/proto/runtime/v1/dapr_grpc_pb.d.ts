@@ -10,6 +10,7 @@ import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb"
 import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
 import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/timestamp_pb";
 import * as dapr_proto_common_v1_common_pb from "../../../../dapr/proto/common/v1/common_pb";
+import * as dapr_proto_runtime_v1_appcallback_pb from "../../../../dapr/proto/runtime/v1/appcallback_pb";
 
 interface IDaprService extends grpc.ServiceDefinition<grpc.UntypedServiceImplementation> {
     invokeService: IDaprService_IInvokeService;
@@ -22,6 +23,7 @@ interface IDaprService extends grpc.ServiceDefinition<grpc.UntypedServiceImpleme
     executeStateTransaction: IDaprService_IExecuteStateTransaction;
     publishEvent: IDaprService_IPublishEvent;
     bulkPublishEventAlpha1: IDaprService_IBulkPublishEventAlpha1;
+    subscribeTopicEventsAlpha1: IDaprService_ISubscribeTopicEventsAlpha1;
     invokeBinding: IDaprService_IInvokeBinding;
     getSecret: IDaprService_IGetSecret;
     getBulkSecret: IDaprService_IGetBulkSecret;
@@ -66,6 +68,9 @@ interface IDaprService extends grpc.ServiceDefinition<grpc.UntypedServiceImpleme
     resumeWorkflowBeta1: IDaprService_IResumeWorkflowBeta1;
     raiseEventWorkflowBeta1: IDaprService_IRaiseEventWorkflowBeta1;
     shutdown: IDaprService_IShutdown;
+    scheduleJobAlpha1: IDaprService_IScheduleJobAlpha1;
+    getJobAlpha1: IDaprService_IGetJobAlpha1;
+    deleteJobAlpha1: IDaprService_IDeleteJobAlpha1;
 }
 
 interface IDaprService_IInvokeService extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.InvokeServiceRequest, dapr_proto_common_v1_common_pb.InvokeResponse> {
@@ -157,6 +162,15 @@ interface IDaprService_IBulkPublishEventAlpha1 extends grpc.MethodDefinition<dap
     requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.BulkPublishRequest>;
     responseSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.BulkPublishResponse>;
     responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.BulkPublishResponse>;
+}
+interface IDaprService_ISubscribeTopicEventsAlpha1 extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsRequestAlpha1, dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsResponseAlpha1> {
+    path: "/dapr.proto.runtime.v1.Dapr/SubscribeTopicEventsAlpha1";
+    requestStream: true;
+    responseStream: true;
+    requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsRequestAlpha1>;
+    requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsRequestAlpha1>;
+    responseSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsResponseAlpha1>;
+    responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsResponseAlpha1>;
 }
 interface IDaprService_IInvokeBinding extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse> {
     path: "/dapr.proto.runtime.v1.Dapr/InvokeBinding";
@@ -554,6 +568,33 @@ interface IDaprService_IShutdown extends grpc.MethodDefinition<dapr_proto_runtim
     responseSerialize: grpc.serialize<google_protobuf_empty_pb.Empty>;
     responseDeserialize: grpc.deserialize<google_protobuf_empty_pb.Empty>;
 }
+interface IDaprService_IScheduleJobAlpha1 extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.ScheduleJobRequest, dapr_proto_runtime_v1_dapr_pb.ScheduleJobResponse> {
+    path: "/dapr.proto.runtime.v1.Dapr/ScheduleJobAlpha1";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.ScheduleJobRequest>;
+    requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.ScheduleJobRequest>;
+    responseSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.ScheduleJobResponse>;
+    responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.ScheduleJobResponse>;
+}
+interface IDaprService_IGetJobAlpha1 extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.GetJobRequest, dapr_proto_runtime_v1_dapr_pb.GetJobResponse> {
+    path: "/dapr.proto.runtime.v1.Dapr/GetJobAlpha1";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.GetJobRequest>;
+    requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.GetJobRequest>;
+    responseSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.GetJobResponse>;
+    responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.GetJobResponse>;
+}
+interface IDaprService_IDeleteJobAlpha1 extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.DeleteJobRequest, dapr_proto_runtime_v1_dapr_pb.DeleteJobResponse> {
+    path: "/dapr.proto.runtime.v1.Dapr/DeleteJobAlpha1";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.DeleteJobRequest>;
+    requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.DeleteJobRequest>;
+    responseSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.DeleteJobResponse>;
+    responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.DeleteJobResponse>;
+}
 
 export const DaprService: IDaprService;
 
@@ -568,6 +609,7 @@ export interface IDaprServer extends grpc.UntypedServiceImplementation {
     executeStateTransaction: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.ExecuteStateTransactionRequest, google_protobuf_empty_pb.Empty>;
     publishEvent: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.PublishEventRequest, google_protobuf_empty_pb.Empty>;
     bulkPublishEventAlpha1: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.BulkPublishRequest, dapr_proto_runtime_v1_dapr_pb.BulkPublishResponse>;
+    subscribeTopicEventsAlpha1: grpc.handleBidiStreamingCall<dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsRequestAlpha1, dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsResponseAlpha1>;
     invokeBinding: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse>;
     getSecret: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.GetSecretRequest, dapr_proto_runtime_v1_dapr_pb.GetSecretResponse>;
     getBulkSecret: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.GetBulkSecretRequest, dapr_proto_runtime_v1_dapr_pb.GetBulkSecretResponse>;
@@ -612,6 +654,9 @@ export interface IDaprServer extends grpc.UntypedServiceImplementation {
     resumeWorkflowBeta1: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.ResumeWorkflowRequest, google_protobuf_empty_pb.Empty>;
     raiseEventWorkflowBeta1: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.RaiseEventWorkflowRequest, google_protobuf_empty_pb.Empty>;
     shutdown: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.ShutdownRequest, google_protobuf_empty_pb.Empty>;
+    scheduleJobAlpha1: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.ScheduleJobRequest, dapr_proto_runtime_v1_dapr_pb.ScheduleJobResponse>;
+    getJobAlpha1: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.GetJobRequest, dapr_proto_runtime_v1_dapr_pb.GetJobResponse>;
+    deleteJobAlpha1: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.DeleteJobRequest, dapr_proto_runtime_v1_dapr_pb.DeleteJobResponse>;
 }
 
 export interface IDaprClient {
@@ -645,6 +690,9 @@ export interface IDaprClient {
     bulkPublishEventAlpha1(request: dapr_proto_runtime_v1_dapr_pb.BulkPublishRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.BulkPublishResponse) => void): grpc.ClientUnaryCall;
     bulkPublishEventAlpha1(request: dapr_proto_runtime_v1_dapr_pb.BulkPublishRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.BulkPublishResponse) => void): grpc.ClientUnaryCall;
     bulkPublishEventAlpha1(request: dapr_proto_runtime_v1_dapr_pb.BulkPublishRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.BulkPublishResponse) => void): grpc.ClientUnaryCall;
+    subscribeTopicEventsAlpha1(): grpc.ClientDuplexStream<dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsRequestAlpha1, dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsResponseAlpha1>;
+    subscribeTopicEventsAlpha1(options: Partial<grpc.CallOptions>): grpc.ClientDuplexStream<dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsRequestAlpha1, dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsResponseAlpha1>;
+    subscribeTopicEventsAlpha1(metadata: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientDuplexStream<dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsRequestAlpha1, dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsResponseAlpha1>;
     invokeBinding(request: dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse) => void): grpc.ClientUnaryCall;
     invokeBinding(request: dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse) => void): grpc.ClientUnaryCall;
     invokeBinding(request: dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse) => void): grpc.ClientUnaryCall;
@@ -775,6 +823,15 @@ export interface IDaprClient {
     shutdown(request: dapr_proto_runtime_v1_dapr_pb.ShutdownRequest, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
     shutdown(request: dapr_proto_runtime_v1_dapr_pb.ShutdownRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
     shutdown(request: dapr_proto_runtime_v1_dapr_pb.ShutdownRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
+    scheduleJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.ScheduleJobRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.ScheduleJobResponse) => void): grpc.ClientUnaryCall;
+    scheduleJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.ScheduleJobRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.ScheduleJobResponse) => void): grpc.ClientUnaryCall;
+    scheduleJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.ScheduleJobRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.ScheduleJobResponse) => void): grpc.ClientUnaryCall;
+    getJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.GetJobRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetJobResponse) => void): grpc.ClientUnaryCall;
+    getJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.GetJobRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetJobResponse) => void): grpc.ClientUnaryCall;
+    getJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.GetJobRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetJobResponse) => void): grpc.ClientUnaryCall;
+    deleteJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.DeleteJobRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.DeleteJobResponse) => void): grpc.ClientUnaryCall;
+    deleteJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.DeleteJobRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.DeleteJobResponse) => void): grpc.ClientUnaryCall;
+    deleteJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.DeleteJobRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.DeleteJobResponse) => void): grpc.ClientUnaryCall;
 }
 
 export class DaprClient extends grpc.Client implements IDaprClient {
@@ -809,6 +866,8 @@ export class DaprClient extends grpc.Client implements IDaprClient {
     public bulkPublishEventAlpha1(request: dapr_proto_runtime_v1_dapr_pb.BulkPublishRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.BulkPublishResponse) => void): grpc.ClientUnaryCall;
     public bulkPublishEventAlpha1(request: dapr_proto_runtime_v1_dapr_pb.BulkPublishRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.BulkPublishResponse) => void): grpc.ClientUnaryCall;
     public bulkPublishEventAlpha1(request: dapr_proto_runtime_v1_dapr_pb.BulkPublishRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.BulkPublishResponse) => void): grpc.ClientUnaryCall;
+    public subscribeTopicEventsAlpha1(options?: Partial<grpc.CallOptions>): grpc.ClientDuplexStream<dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsRequestAlpha1, dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsResponseAlpha1>;
+    public subscribeTopicEventsAlpha1(metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientDuplexStream<dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsRequestAlpha1, dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsResponseAlpha1>;
     public invokeBinding(request: dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse) => void): grpc.ClientUnaryCall;
     public invokeBinding(request: dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse) => void): grpc.ClientUnaryCall;
     public invokeBinding(request: dapr_proto_runtime_v1_dapr_pb.InvokeBindingRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.InvokeBindingResponse) => void): grpc.ClientUnaryCall;
@@ -937,4 +996,13 @@ export class DaprClient extends grpc.Client implements IDaprClient {
     public shutdown(request: dapr_proto_runtime_v1_dapr_pb.ShutdownRequest, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
     public shutdown(request: dapr_proto_runtime_v1_dapr_pb.ShutdownRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
     public shutdown(request: dapr_proto_runtime_v1_dapr_pb.ShutdownRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: google_protobuf_empty_pb.Empty) => void): grpc.ClientUnaryCall;
+    public scheduleJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.ScheduleJobRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.ScheduleJobResponse) => void): grpc.ClientUnaryCall;
+    public scheduleJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.ScheduleJobRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.ScheduleJobResponse) => void): grpc.ClientUnaryCall;
+    public scheduleJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.ScheduleJobRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.ScheduleJobResponse) => void): grpc.ClientUnaryCall;
+    public getJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.GetJobRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetJobResponse) => void): grpc.ClientUnaryCall;
+    public getJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.GetJobRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetJobResponse) => void): grpc.ClientUnaryCall;
+    public getJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.GetJobRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.GetJobResponse) => void): grpc.ClientUnaryCall;
+    public deleteJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.DeleteJobRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.DeleteJobResponse) => void): grpc.ClientUnaryCall;
+    public deleteJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.DeleteJobRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.DeleteJobResponse) => void): grpc.ClientUnaryCall;
+    public deleteJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.DeleteJobRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.DeleteJobResponse) => void): grpc.ClientUnaryCall;
 }

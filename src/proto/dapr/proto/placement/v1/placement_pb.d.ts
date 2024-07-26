@@ -115,6 +115,8 @@ export class Host extends jspb.Message {
     setPod(value: string): Host;
     getApiLevel(): number;
     setApiLevel(value: number): Host;
+    getNamespace(): string;
+    setNamespace(value: string): Host;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Host.AsObject;
@@ -135,5 +137,6 @@ export namespace Host {
         id: string,
         pod: string,
         apiLevel: number,
+        namespace: string,
     }
 }
