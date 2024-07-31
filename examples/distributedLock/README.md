@@ -36,7 +36,7 @@ const unlockResponse = await client.lock.unlock(storeName, resourceId, lockOwner
 Execute the example under the folder `examples/distributedLock/LockApplication`
 
 ```bash
-cd examples/distributedLock/LockApplication
+cd examples/distributedLock/TryLockApplication
 npm install
 ```
 
