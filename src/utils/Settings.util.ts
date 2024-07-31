@@ -29,8 +29,8 @@ export class Settings {
   private static readonly defaultPubSubRouteName = "default";
   private static readonly defaultPubSubDeadLetterRouteName = "deadletter";
 
-  private static readonly daprSidecarPollingDelayMs: number = 500;
-  private static readonly daprSidecarStartupTimeoutMs: number = 10 * 1000;
+  private static readonly daprSidecarPollingDelayMs: number = 1000;
+  private static readonly daprSidecarStartupTimeoutMs: number = 30 * 1000;
 
   static getDaprSidecarPollingDelayMs(): number {
     return Settings.daprSidecarPollingDelayMs;
