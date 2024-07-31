@@ -18,7 +18,7 @@ metadata:
   name: binding-mqtt
   namespace: default
 spec:
-  type: bindings.mqtt3
+  type: bindings.mqtt
   version: v1
   metadata:
   - name: consumerID
