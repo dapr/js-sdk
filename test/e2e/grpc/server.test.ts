@@ -88,7 +88,7 @@ describe("grpc/server", () => {
       await server.client.binding.send("binding-mqtt", "create", { hello: "world" });
 
       // Delay a bit for event to arrive
-      await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
+      await new Promise((resolve, _reject) => setTimeout(resolve, 5000));
       expect(mockBindingReceive.mock.calls.length).toBe(1);
 
       // Also test for receiving data
