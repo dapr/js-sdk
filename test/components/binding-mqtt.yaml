@@ -18,7 +18,7 @@ metadata:
   name: binding-mqtt
   namespace: default
 spec:
-  type: bindings.mqtt
+  type: bindings.mqtt3
   version: v1
   metadata:
   - name: consumerID
@@ -33,3 +33,5 @@ spec:
     value: "false"
   - name: cleanSession
     value: "false"
+  - name: direction
+    value: "input, output"

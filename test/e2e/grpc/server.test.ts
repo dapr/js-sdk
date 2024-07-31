@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { CommunicationProtocolEnum, DaprServer, HttpMethod } from "../../../src";
+import { CommunicationProtocolEnum, DaprServer, HttpMethod, LogLevel } from "../../../src";
 
 const serverHost = "localhost";
 const serverPort = "50001";
@@ -35,6 +35,9 @@ describe("grpc/server", () => {
         daprHost,
         daprPort,
         maxBodySizeMb: 20, // we set sending larger than receiving to test the error handling
+        logger: {
+          level: LogLevel.Debug,
+        },
       },
       maxBodySizeMb: 10,
     });
