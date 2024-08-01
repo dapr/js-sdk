@@ -194,6 +194,28 @@ function deserialize_dapr_proto_operator_v1_ListSubscriptionsResponse(buffer_arg
   return dapr_proto_operator_v1_operator_pb.ListSubscriptionsResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_operator_v1_SubscriptionUpdateEvent(arg) {
+  if (!(arg instanceof dapr_proto_operator_v1_operator_pb.SubscriptionUpdateEvent)) {
+    throw new Error('Expected argument of type dapr.proto.operator.v1.SubscriptionUpdateEvent');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_operator_v1_SubscriptionUpdateEvent(buffer_arg) {
+  return dapr_proto_operator_v1_operator_pb.SubscriptionUpdateEvent.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_operator_v1_SubscriptionUpdateRequest(arg) {
+  if (!(arg instanceof dapr_proto_operator_v1_operator_pb.SubscriptionUpdateRequest)) {
+    throw new Error('Expected argument of type dapr.proto.operator.v1.SubscriptionUpdateRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_operator_v1_SubscriptionUpdateRequest(buffer_arg) {
+  return dapr_proto_operator_v1_operator_pb.SubscriptionUpdateRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_google_protobuf_Empty(arg) {
   if (!(arg instanceof google_protobuf_empty_pb.Empty)) {
     throw new Error('Expected argument of type google.protobuf.Empty');
@@ -290,6 +312,18 @@ listSubscriptionsV2: {
     requestDeserialize: deserialize_dapr_proto_operator_v1_ListSubscriptionsRequest,
     responseSerialize: serialize_dapr_proto_operator_v1_ListSubscriptionsResponse,
     responseDeserialize: deserialize_dapr_proto_operator_v1_ListSubscriptionsResponse,
+  },
+  // Sends events to Dapr sidecars upon subscription changes.
+subscriptionUpdate: {
+    path: '/dapr.proto.operator.v1.Operator/SubscriptionUpdate',
+    requestStream: false,
+    responseStream: true,
+    requestType: dapr_proto_operator_v1_operator_pb.SubscriptionUpdateRequest,
+    responseType: dapr_proto_operator_v1_operator_pb.SubscriptionUpdateEvent,
+    requestSerialize: serialize_dapr_proto_operator_v1_SubscriptionUpdateRequest,
+    requestDeserialize: deserialize_dapr_proto_operator_v1_SubscriptionUpdateRequest,
+    responseSerialize: serialize_dapr_proto_operator_v1_SubscriptionUpdateEvent,
+    responseDeserialize: deserialize_dapr_proto_operator_v1_SubscriptionUpdateEvent,
   },
   // Returns a list of http endpoints
 listHTTPEndpoints: {

@@ -174,6 +174,54 @@ export namespace ListSubscriptionsResponse {
     }
 }
 
+export class SubscriptionUpdateRequest extends jspb.Message { 
+    getNamespace(): string;
+    setNamespace(value: string): SubscriptionUpdateRequest;
+    getPodname(): string;
+    setPodname(value: string): SubscriptionUpdateRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): SubscriptionUpdateRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: SubscriptionUpdateRequest): SubscriptionUpdateRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: SubscriptionUpdateRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): SubscriptionUpdateRequest;
+    static deserializeBinaryFromReader(message: SubscriptionUpdateRequest, reader: jspb.BinaryReader): SubscriptionUpdateRequest;
+}
+
+export namespace SubscriptionUpdateRequest {
+    export type AsObject = {
+        namespace: string,
+        podname: string,
+    }
+}
+
+export class SubscriptionUpdateEvent extends jspb.Message { 
+    getSubscription(): Uint8Array | string;
+    getSubscription_asU8(): Uint8Array;
+    getSubscription_asB64(): string;
+    setSubscription(value: Uint8Array | string): SubscriptionUpdateEvent;
+    getType(): ResourceEventType;
+    setType(value: ResourceEventType): SubscriptionUpdateEvent;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): SubscriptionUpdateEvent.AsObject;
+    static toObject(includeInstance: boolean, msg: SubscriptionUpdateEvent): SubscriptionUpdateEvent.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: SubscriptionUpdateEvent, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): SubscriptionUpdateEvent;
+    static deserializeBinaryFromReader(message: SubscriptionUpdateEvent, reader: jspb.BinaryReader): SubscriptionUpdateEvent;
+}
+
+export namespace SubscriptionUpdateEvent {
+    export type AsObject = {
+        subscription: Uint8Array | string,
+        type: ResourceEventType,
+    }
+}
+
 export class GetResiliencyRequest extends jspb.Message { 
     getName(): string;
     setName(value: string): GetResiliencyRequest;

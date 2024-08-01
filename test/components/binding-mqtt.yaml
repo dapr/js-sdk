@@ -33,3 +33,5 @@ spec:
     value: "false"
   - name: cleanSession
     value: "false"
+  - name: direction
+    value: "input, output"

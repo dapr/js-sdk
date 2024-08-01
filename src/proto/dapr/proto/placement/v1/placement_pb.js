@@ -13,7 +13,13 @@
 
 var jspb = require('google-protobuf');
 var goog = jspb;
-var global = (function() { return this || window || global || self || Function('return this')(); }).call(null);
+var global =
+    (typeof globalThis !== 'undefined' && globalThis) ||
+    (typeof window !== 'undefined' && window) ||
+    (typeof global !== 'undefined' && global) ||
+    (typeof self !== 'undefined' && self) ||
+    (function () { return this; }).call(null) ||
+    Function('return this')();
 
 goog.exportSymbol('proto.dapr.proto.placement.v1.Host', null, global);
 goog.exportSymbol('proto.dapr.proto.placement.v1.PlacementOrder', null, global);
@@ -450,7 +456,8 @@ proto.dapr.proto.placement.v1.PlacementTables.prototype.getEntriesMap = function
  */
 proto.dapr.proto.placement.v1.PlacementTables.prototype.clearEntriesMap = function() {
   this.getEntriesMap().clear();
-  return this;};
+  return this;
+};
 
 
 /**
@@ -681,7 +688,8 @@ proto.dapr.proto.placement.v1.PlacementTable.prototype.getHostsMap = function(op
  */
 proto.dapr.proto.placement.v1.PlacementTable.prototype.clearHostsMap = function() {
   this.getHostsMap().clear();
-  return this;};
+  return this;
+};
 
 
 /**
@@ -740,7 +748,8 @@ proto.dapr.proto.placement.v1.PlacementTable.prototype.getLoadMapMap = function(
  */
 proto.dapr.proto.placement.v1.PlacementTable.prototype.clearLoadMapMap = function() {
   this.getLoadMapMap().clear();
-  return this;};
+  return this;
+};
 
 
 /**
@@ -806,7 +815,8 @@ proto.dapr.proto.placement.v1.Host.toObject = function(includeInstance, msg) {
     entitiesList: (f = jspb.Message.getRepeatedField(msg, 4)) == null ? undefined : f,
     id: jspb.Message.getFieldWithDefault(msg, 5, ""),
     pod: jspb.Message.getFieldWithDefault(msg, 6, ""),
-    apiLevel: jspb.Message.getFieldWithDefault(msg, 7, 0)
+    apiLevel: jspb.Message.getFieldWithDefault(msg, 7, 0),
+    namespace: jspb.Message.getFieldWithDefault(msg, 8, "")
   };
 
   if (includeInstance) {
@@ -870,6 +880,10 @@ proto.dapr.proto.placement.v1.Host.deserializeBinaryFromReader = function(msg, r
     case 7:
       var value = /** @type {number} */ (reader.readUint32());
       msg.setApiLevel(value);
+      break;
+    case 8:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setNamespace(value);
       break;
     default:
       reader.skipField();
@@ -946,6 +960,13 @@ proto.dapr.proto.placement.v1.Host.serializeBinaryToWriter = function(message, w
   if (f !== 0) {
     writer.writeUint32(
       7,
+      f
+    );
+  }
+  f = message.getNamespace();
+  if (f.length > 0) {
+    writer.writeString(
+      8,
       f
     );
   }
@@ -1094,6 +1115,24 @@ proto.dapr.proto.placement.v1.Host.prototype.getApiLevel = function() {
  */
 proto.dapr.proto.placement.v1.Host.prototype.setApiLevel = function(value) {
   return jspb.Message.setProto3IntField(this, 7, value);
+};
+
+
+/**
+ * optional string namespace = 8;
+ * @return {string}
+ */
+proto.dapr.proto.placement.v1.Host.prototype.getNamespace = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 8, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.placement.v1.Host} returns this
+ */
+proto.dapr.proto.placement.v1.Host.prototype.setNamespace = function(value) {
+  return jspb.Message.setProto3StringField(this, 8, value);
 };
 
 

@@ -20,6 +20,7 @@ var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js'
 var google_protobuf_empty_pb = require('google-protobuf/google/protobuf/empty_pb.js');
 var google_protobuf_timestamp_pb = require('google-protobuf/google/protobuf/timestamp_pb.js');
 var dapr_proto_common_v1_common_pb = require('../../../../dapr/proto/common/v1/common_pb.js');
+var dapr_proto_runtime_v1_appcallback_pb = require('../../../../dapr/proto/runtime/v1/appcallback_pb.js');
 
 function serialize_dapr_proto_common_v1_InvokeResponse(arg) {
   if (!(arg instanceof dapr_proto_common_v1_common_pb.InvokeResponse)) {
@@ -85,6 +86,28 @@ function serialize_dapr_proto_runtime_v1_DeleteBulkStateRequest(arg) {
 
 function deserialize_dapr_proto_runtime_v1_DeleteBulkStateRequest(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.DeleteBulkStateRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_DeleteJobRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.DeleteJobRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.DeleteJobRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_DeleteJobRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.DeleteJobRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_DeleteJobResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.DeleteJobResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.DeleteJobResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_DeleteJobResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.DeleteJobResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_dapr_proto_runtime_v1_DeleteStateRequest(arg) {
@@ -228,6 +251,28 @@ function serialize_dapr_proto_runtime_v1_GetConfigurationResponse(arg) {
 
 function deserialize_dapr_proto_runtime_v1_GetConfigurationResponse(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.GetConfigurationResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_GetJobRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.GetJobRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.GetJobRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_GetJobRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.GetJobRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_GetJobResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.GetJobResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.GetJobResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_GetJobResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.GetJobResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_dapr_proto_runtime_v1_GetMetadataRequest(arg) {
@@ -483,6 +528,28 @@ function deserialize_dapr_proto_runtime_v1_SaveStateRequest(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.SaveStateRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_runtime_v1_ScheduleJobRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.ScheduleJobRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.ScheduleJobRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_ScheduleJobRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.ScheduleJobRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_ScheduleJobResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.ScheduleJobResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.ScheduleJobResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_ScheduleJobResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.ScheduleJobResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_runtime_v1_SetMetadataRequest(arg) {
   if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SetMetadataRequest)) {
     throw new Error('Expected argument of type dapr.proto.runtime.v1.SetMetadataRequest');
@@ -547,6 +614,28 @@ function serialize_dapr_proto_runtime_v1_SubscribeConfigurationResponse(arg) {
 
 function deserialize_dapr_proto_runtime_v1_SubscribeConfigurationResponse(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.SubscribeConfigurationResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_SubscribeTopicEventsRequestAlpha1(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsRequestAlpha1)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.SubscribeTopicEventsRequestAlpha1');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_SubscribeTopicEventsRequestAlpha1(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsRequestAlpha1.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_SubscribeTopicEventsResponseAlpha1(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsResponseAlpha1)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.SubscribeTopicEventsResponseAlpha1');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_SubscribeTopicEventsResponseAlpha1(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsResponseAlpha1.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_dapr_proto_runtime_v1_SubtleDecryptRequest(arg) {
@@ -936,6 +1025,19 @@ bulkPublishEventAlpha1: {
     requestDeserialize: deserialize_dapr_proto_runtime_v1_BulkPublishRequest,
     responseSerialize: serialize_dapr_proto_runtime_v1_BulkPublishResponse,
     responseDeserialize: deserialize_dapr_proto_runtime_v1_BulkPublishResponse,
+  },
+  // SubscribeTopicEventsAlpha1 subscribes to a PubSub topic and receives topic
+// events from it.
+subscribeTopicEventsAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/SubscribeTopicEventsAlpha1',
+    requestStream: true,
+    responseStream: true,
+    requestType: dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsRequestAlpha1,
+    responseType: dapr_proto_runtime_v1_dapr_pb.SubscribeTopicEventsResponseAlpha1,
+    requestSerialize: serialize_dapr_proto_runtime_v1_SubscribeTopicEventsRequestAlpha1,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_SubscribeTopicEventsRequestAlpha1,
+    responseSerialize: serialize_dapr_proto_runtime_v1_SubscribeTopicEventsResponseAlpha1,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_SubscribeTopicEventsResponseAlpha1,
   },
   // Invokes binding data to specific output bindings
 invokeBinding: {
@@ -1464,6 +1566,42 @@ shutdown: {
     requestDeserialize: deserialize_dapr_proto_runtime_v1_ShutdownRequest,
     responseSerialize: serialize_google_protobuf_Empty,
     responseDeserialize: deserialize_google_protobuf_Empty,
+  },
+  // Create and schedule a job
+scheduleJobAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/ScheduleJobAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.ScheduleJobRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.ScheduleJobResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_ScheduleJobRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_ScheduleJobRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_ScheduleJobResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_ScheduleJobResponse,
+  },
+  // Gets a scheduled job
+getJobAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/GetJobAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.GetJobRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.GetJobResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_GetJobRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_GetJobRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_GetJobResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_GetJobResponse,
+  },
+  // Delete a job
+deleteJobAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/DeleteJobAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.DeleteJobRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.DeleteJobResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_DeleteJobRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_DeleteJobRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_DeleteJobResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_DeleteJobResponse,
   },
 };
 

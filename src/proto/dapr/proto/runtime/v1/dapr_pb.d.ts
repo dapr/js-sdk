@@ -9,6 +9,7 @@ import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb"
 import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
 import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/timestamp_pb";
 import * as dapr_proto_common_v1_common_pb from "../../../../dapr/proto/common/v1/common_pb";
+import * as dapr_proto_runtime_v1_appcallback_pb from "../../../../dapr/proto/runtime/v1/appcallback_pb";
 
 export class InvokeServiceRequest extends jspb.Message { 
     getId(): string;
@@ -511,6 +512,159 @@ export namespace BulkPublishResponseFailedEntry {
     export type AsObject = {
         entryId: string,
         error: string,
+    }
+}
+
+export class SubscribeTopicEventsRequestAlpha1 extends jspb.Message { 
+
+    hasInitialRequest(): boolean;
+    clearInitialRequest(): void;
+    getInitialRequest(): SubscribeTopicEventsRequestInitialAlpha1 | undefined;
+    setInitialRequest(value?: SubscribeTopicEventsRequestInitialAlpha1): SubscribeTopicEventsRequestAlpha1;
+
+    hasEventProcessed(): boolean;
+    clearEventProcessed(): void;
+    getEventProcessed(): SubscribeTopicEventsRequestProcessedAlpha1 | undefined;
+    setEventProcessed(value?: SubscribeTopicEventsRequestProcessedAlpha1): SubscribeTopicEventsRequestAlpha1;
+
+    getSubscribeTopicEventsRequestTypeCase(): SubscribeTopicEventsRequestAlpha1.SubscribeTopicEventsRequestTypeCase;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): SubscribeTopicEventsRequestAlpha1.AsObject;
+    static toObject(includeInstance: boolean, msg: SubscribeTopicEventsRequestAlpha1): SubscribeTopicEventsRequestAlpha1.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: SubscribeTopicEventsRequestAlpha1, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): SubscribeTopicEventsRequestAlpha1;
+    static deserializeBinaryFromReader(message: SubscribeTopicEventsRequestAlpha1, reader: jspb.BinaryReader): SubscribeTopicEventsRequestAlpha1;
+}
+
+export namespace SubscribeTopicEventsRequestAlpha1 {
+    export type AsObject = {
+        initialRequest?: SubscribeTopicEventsRequestInitialAlpha1.AsObject,
+        eventProcessed?: SubscribeTopicEventsRequestProcessedAlpha1.AsObject,
+    }
+
+    export enum SubscribeTopicEventsRequestTypeCase {
+        SUBSCRIBE_TOPIC_EVENTS_REQUEST_TYPE_NOT_SET = 0,
+        INITIAL_REQUEST = 1,
+        EVENT_PROCESSED = 2,
+    }
+
+}
+
+export class SubscribeTopicEventsRequestInitialAlpha1 extends jspb.Message { 
+    getPubsubName(): string;
+    setPubsubName(value: string): SubscribeTopicEventsRequestInitialAlpha1;
+    getTopic(): string;
+    setTopic(value: string): SubscribeTopicEventsRequestInitialAlpha1;
+
+    getMetadataMap(): jspb.Map<string, string>;
+    clearMetadataMap(): void;
+
+    hasDeadLetterTopic(): boolean;
+    clearDeadLetterTopic(): void;
+    getDeadLetterTopic(): string | undefined;
+    setDeadLetterTopic(value: string): SubscribeTopicEventsRequestInitialAlpha1;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): SubscribeTopicEventsRequestInitialAlpha1.AsObject;
+    static toObject(includeInstance: boolean, msg: SubscribeTopicEventsRequestInitialAlpha1): SubscribeTopicEventsRequestInitialAlpha1.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: SubscribeTopicEventsRequestInitialAlpha1, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): SubscribeTopicEventsRequestInitialAlpha1;
+    static deserializeBinaryFromReader(message: SubscribeTopicEventsRequestInitialAlpha1, reader: jspb.BinaryReader): SubscribeTopicEventsRequestInitialAlpha1;
+}
+
+export namespace SubscribeTopicEventsRequestInitialAlpha1 {
+    export type AsObject = {
+        pubsubName: string,
+        topic: string,
+
+        metadataMap: Array<[string, string]>,
+        deadLetterTopic?: string,
+    }
+}
+
+export class SubscribeTopicEventsRequestProcessedAlpha1 extends jspb.Message { 
+    getId(): string;
+    setId(value: string): SubscribeTopicEventsRequestProcessedAlpha1;
+
+    hasStatus(): boolean;
+    clearStatus(): void;
+    getStatus(): dapr_proto_runtime_v1_appcallback_pb.TopicEventResponse | undefined;
+    setStatus(value?: dapr_proto_runtime_v1_appcallback_pb.TopicEventResponse): SubscribeTopicEventsRequestProcessedAlpha1;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): SubscribeTopicEventsRequestProcessedAlpha1.AsObject;
+    static toObject(includeInstance: boolean, msg: SubscribeTopicEventsRequestProcessedAlpha1): SubscribeTopicEventsRequestProcessedAlpha1.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: SubscribeTopicEventsRequestProcessedAlpha1, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): SubscribeTopicEventsRequestProcessedAlpha1;
+    static deserializeBinaryFromReader(message: SubscribeTopicEventsRequestProcessedAlpha1, reader: jspb.BinaryReader): SubscribeTopicEventsRequestProcessedAlpha1;
+}
+
+export namespace SubscribeTopicEventsRequestProcessedAlpha1 {
+    export type AsObject = {
+        id: string,
+        status?: dapr_proto_runtime_v1_appcallback_pb.TopicEventResponse.AsObject,
+    }
+}
+
+export class SubscribeTopicEventsResponseAlpha1 extends jspb.Message { 
+
+    hasInitialResponse(): boolean;
+    clearInitialResponse(): void;
+    getInitialResponse(): SubscribeTopicEventsResponseInitialAlpha1 | undefined;
+    setInitialResponse(value?: SubscribeTopicEventsResponseInitialAlpha1): SubscribeTopicEventsResponseAlpha1;
+
+    hasEventMessage(): boolean;
+    clearEventMessage(): void;
+    getEventMessage(): dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest | undefined;
+    setEventMessage(value?: dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest): SubscribeTopicEventsResponseAlpha1;
+
+    getSubscribeTopicEventsResponseTypeCase(): SubscribeTopicEventsResponseAlpha1.SubscribeTopicEventsResponseTypeCase;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): SubscribeTopicEventsResponseAlpha1.AsObject;
+    static toObject(includeInstance: boolean, msg: SubscribeTopicEventsResponseAlpha1): SubscribeTopicEventsResponseAlpha1.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: SubscribeTopicEventsResponseAlpha1, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): SubscribeTopicEventsResponseAlpha1;
+    static deserializeBinaryFromReader(message: SubscribeTopicEventsResponseAlpha1, reader: jspb.BinaryReader): SubscribeTopicEventsResponseAlpha1;
+}
+
+export namespace SubscribeTopicEventsResponseAlpha1 {
+    export type AsObject = {
+        initialResponse?: SubscribeTopicEventsResponseInitialAlpha1.AsObject,
+        eventMessage?: dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest.AsObject,
+    }
+
+    export enum SubscribeTopicEventsResponseTypeCase {
+        SUBSCRIBE_TOPIC_EVENTS_RESPONSE_TYPE_NOT_SET = 0,
+        INITIAL_RESPONSE = 1,
+        EVENT_MESSAGE = 2,
+    }
+
+}
+
+export class SubscribeTopicEventsResponseInitialAlpha1 extends jspb.Message { 
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): SubscribeTopicEventsResponseInitialAlpha1.AsObject;
+    static toObject(includeInstance: boolean, msg: SubscribeTopicEventsResponseInitialAlpha1): SubscribeTopicEventsResponseInitialAlpha1.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: SubscribeTopicEventsResponseInitialAlpha1, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): SubscribeTopicEventsResponseInitialAlpha1;
+    static deserializeBinaryFromReader(message: SubscribeTopicEventsResponseInitialAlpha1, reader: jspb.BinaryReader): SubscribeTopicEventsResponseInitialAlpha1;
+}
+
+export namespace SubscribeTopicEventsResponseInitialAlpha1 {
+    export type AsObject = {
     }
 }
 
@@ -1330,6 +1484,8 @@ export class PubsubSubscription extends jspb.Message {
     setRules(value?: PubsubSubscriptionRules): PubsubSubscription;
     getDeadLetterTopic(): string;
     setDeadLetterTopic(value: string): PubsubSubscription;
+    getType(): PubsubSubscriptionType;
+    setType(value: PubsubSubscriptionType): PubsubSubscription;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): PubsubSubscription.AsObject;
@@ -1349,6 +1505,7 @@ export namespace PubsubSubscription {
         metadataMap: Array<[string, string]>,
         rules?: PubsubSubscriptionRules.AsObject,
         deadLetterTopic: string,
+        type: PubsubSubscriptionType,
     }
 }
 
@@ -2534,4 +2691,181 @@ export class ShutdownRequest extends jspb.Message {
 export namespace ShutdownRequest {
     export type AsObject = {
     }
+}
+
+export class Job extends jspb.Message { 
+    getName(): string;
+    setName(value: string): Job;
+
+    hasSchedule(): boolean;
+    clearSchedule(): void;
+    getSchedule(): string | undefined;
+    setSchedule(value: string): Job;
+
+    hasRepeats(): boolean;
+    clearRepeats(): void;
+    getRepeats(): number | undefined;
+    setRepeats(value: number): Job;
+
+    hasDueTime(): boolean;
+    clearDueTime(): void;
+    getDueTime(): string | undefined;
+    setDueTime(value: string): Job;
+
+    hasTtl(): boolean;
+    clearTtl(): void;
+    getTtl(): string | undefined;
+    setTtl(value: string): Job;
+
+    hasData(): boolean;
+    clearData(): void;
+    getData(): google_protobuf_any_pb.Any | undefined;
+    setData(value?: google_protobuf_any_pb.Any): Job;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): Job.AsObject;
+    static toObject(includeInstance: boolean, msg: Job): Job.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: Job, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Job;
+    static deserializeBinaryFromReader(message: Job, reader: jspb.BinaryReader): Job;
+}
+
+export namespace Job {
+    export type AsObject = {
+        name: string,
+        schedule?: string,
+        repeats?: number,
+        dueTime?: string,
+        ttl?: string,
+        data?: google_protobuf_any_pb.Any.AsObject,
+    }
+}
+
+export class ScheduleJobRequest extends jspb.Message { 
+
+    hasJob(): boolean;
+    clearJob(): void;
+    getJob(): Job | undefined;
+    setJob(value?: Job): ScheduleJobRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ScheduleJobRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: ScheduleJobRequest): ScheduleJobRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ScheduleJobRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ScheduleJobRequest;
+    static deserializeBinaryFromReader(message: ScheduleJobRequest, reader: jspb.BinaryReader): ScheduleJobRequest;
+}
+
+export namespace ScheduleJobRequest {
+    export type AsObject = {
+        job?: Job.AsObject,
+    }
+}
+
+export class ScheduleJobResponse extends jspb.Message { 
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ScheduleJobResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: ScheduleJobResponse): ScheduleJobResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ScheduleJobResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ScheduleJobResponse;
+    static deserializeBinaryFromReader(message: ScheduleJobResponse, reader: jspb.BinaryReader): ScheduleJobResponse;
+}
+
+export namespace ScheduleJobResponse {
+    export type AsObject = {
+    }
+}
+
+export class GetJobRequest extends jspb.Message { 
+    getName(): string;
+    setName(value: string): GetJobRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetJobRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: GetJobRequest): GetJobRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetJobRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetJobRequest;
+    static deserializeBinaryFromReader(message: GetJobRequest, reader: jspb.BinaryReader): GetJobRequest;
+}
+
+export namespace GetJobRequest {
+    export type AsObject = {
+        name: string,
+    }
+}
+
+export class GetJobResponse extends jspb.Message { 
+
+    hasJob(): boolean;
+    clearJob(): void;
+    getJob(): Job | undefined;
+    setJob(value?: Job): GetJobResponse;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetJobResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: GetJobResponse): GetJobResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetJobResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetJobResponse;
+    static deserializeBinaryFromReader(message: GetJobResponse, reader: jspb.BinaryReader): GetJobResponse;
+}
+
+export namespace GetJobResponse {
+    export type AsObject = {
+        job?: Job.AsObject,
+    }
+}
+
+export class DeleteJobRequest extends jspb.Message { 
+    getName(): string;
+    setName(value: string): DeleteJobRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): DeleteJobRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: DeleteJobRequest): DeleteJobRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: DeleteJobRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): DeleteJobRequest;
+    static deserializeBinaryFromReader(message: DeleteJobRequest, reader: jspb.BinaryReader): DeleteJobRequest;
+}
+
+export namespace DeleteJobRequest {
+    export type AsObject = {
+        name: string,
+    }
+}
+
+export class DeleteJobResponse extends jspb.Message { 
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): DeleteJobResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: DeleteJobResponse): DeleteJobResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: DeleteJobResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): DeleteJobResponse;
+    static deserializeBinaryFromReader(message: DeleteJobResponse, reader: jspb.BinaryReader): DeleteJobResponse;
+}
+
+export namespace DeleteJobResponse {
+    export type AsObject = {
+    }
+}
+
+export enum PubsubSubscriptionType {
+    UNKNOWN = 0,
+    DECLARATIVE = 1,
+    PROGRAMMATIC = 2,
+    STREAMING = 3,
 }

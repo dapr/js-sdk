@@ -6,6 +6,7 @@
 
 import * as grpc from "@grpc/grpc-js";
 import * as dapr_proto_runtime_v1_appcallback_pb from "../../../../dapr/proto/runtime/v1/appcallback_pb";
+import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb";
 import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
 import * as dapr_proto_common_v1_common_pb from "../../../../dapr/proto/common/v1/common_pb";
 import * as google_protobuf_struct_pb from "google-protobuf/google/protobuf/struct_pb";
@@ -146,6 +147,7 @@ export class AppCallbackHealthCheckClient extends grpc.Client implements IAppCal
 
 interface IAppCallbackAlphaService extends grpc.ServiceDefinition<grpc.UntypedServiceImplementation> {
     onBulkTopicEventAlpha1: IAppCallbackAlphaService_IOnBulkTopicEventAlpha1;
+    onJobEventAlpha1: IAppCallbackAlphaService_IOnJobEventAlpha1;
 }
 
 interface IAppCallbackAlphaService_IOnBulkTopicEventAlpha1 extends grpc.MethodDefinition<dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse> {
@@ -157,17 +159,30 @@ interface IAppCallbackAlphaService_IOnBulkTopicEventAlpha1 extends grpc.MethodDe
     responseSerialize: grpc.serialize<dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse>;
     responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse>;
 }
+interface IAppCallbackAlphaService_IOnJobEventAlpha1 extends grpc.MethodDefinition<dapr_proto_runtime_v1_appcallback_pb.JobEventRequest, dapr_proto_runtime_v1_appcallback_pb.JobEventResponse> {
+    path: "/dapr.proto.runtime.v1.AppCallbackAlpha/OnJobEventAlpha1";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<dapr_proto_runtime_v1_appcallback_pb.JobEventRequest>;
+    requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_appcallback_pb.JobEventRequest>;
+    responseSerialize: grpc.serialize<dapr_proto_runtime_v1_appcallback_pb.JobEventResponse>;
+    responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_appcallback_pb.JobEventResponse>;
+}
 
 export const AppCallbackAlphaService: IAppCallbackAlphaService;
 
 export interface IAppCallbackAlphaServer extends grpc.UntypedServiceImplementation {
     onBulkTopicEventAlpha1: grpc.handleUnaryCall<dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse>;
+    onJobEventAlpha1: grpc.handleUnaryCall<dapr_proto_runtime_v1_appcallback_pb.JobEventRequest, dapr_proto_runtime_v1_appcallback_pb.JobEventResponse>;
 }
 
 export interface IAppCallbackAlphaClient {
     onBulkTopicEventAlpha1(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse) => void): grpc.ClientUnaryCall;
     onBulkTopicEventAlpha1(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse) => void): grpc.ClientUnaryCall;
     onBulkTopicEventAlpha1(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse) => void): grpc.ClientUnaryCall;
+    onJobEventAlpha1(request: dapr_proto_runtime_v1_appcallback_pb.JobEventRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.JobEventResponse) => void): grpc.ClientUnaryCall;
+    onJobEventAlpha1(request: dapr_proto_runtime_v1_appcallback_pb.JobEventRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.JobEventResponse) => void): grpc.ClientUnaryCall;
+    onJobEventAlpha1(request: dapr_proto_runtime_v1_appcallback_pb.JobEventRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.JobEventResponse) => void): grpc.ClientUnaryCall;
 }
 
 export class AppCallbackAlphaClient extends grpc.Client implements IAppCallbackAlphaClient {
@@ -175,4 +190,7 @@ export class AppCallbackAlphaClient extends grpc.Client implements IAppCallbackA
     public onBulkTopicEventAlpha1(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse) => void): grpc.ClientUnaryCall;
     public onBulkTopicEventAlpha1(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse) => void): grpc.ClientUnaryCall;
     public onBulkTopicEventAlpha1(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse) => void): grpc.ClientUnaryCall;
+    public onJobEventAlpha1(request: dapr_proto_runtime_v1_appcallback_pb.JobEventRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.JobEventResponse) => void): grpc.ClientUnaryCall;
+    public onJobEventAlpha1(request: dapr_proto_runtime_v1_appcallback_pb.JobEventRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.JobEventResponse) => void): grpc.ClientUnaryCall;
+    public onJobEventAlpha1(request: dapr_proto_runtime_v1_appcallback_pb.JobEventRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.JobEventResponse) => void): grpc.ClientUnaryCall;
 }
