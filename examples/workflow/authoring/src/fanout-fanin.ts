@@ -20,16 +20,17 @@ import {
   TWorkflow,
 } from "@dapr/dapr";
 
+const daprHost = "localhost";
+const daprPort = "50001";
+const workflowRuntime = new WorkflowRuntime({
+  daprHost,
+  daprPort,
+});
+
 // Wrap the entire code in an immediately-invoked async function
 async function start() {
   // Update the gRPC client and worker to use a local address and port
-  const daprHost = "localhost";
-  const daprPort = "50001";
   const workflowClient = new DaprWorkflowClient({
-    daprHost,
-    daprPort,
-  });
-  const workflowRuntime = new WorkflowRuntime({
     daprHost,
     daprPort,
   });
@@ -99,13 +100,16 @@ async function start() {
     console.error("Error scheduling or waiting for orchestration:", error);
   }
 
-  // stop worker and client
-  await workflowRuntime.stop();
+  // stop client
   await workflowClient.stop();
 
   // stop the dapr side car
   process.exit(0);
 }
+
+process.on('SIGTERM', () => {
+  workflowRuntime.stop();
+})
 
 start().catch((e) => {
   console.error(e);

@@ -7,6 +7,7 @@
 ```bash
 # Install
 npm install
+npm install --save-dev @types/readline-sync
 
 # Run the example
 npm run start:dapr:activity-sequence
