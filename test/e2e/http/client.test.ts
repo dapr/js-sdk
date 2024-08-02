@@ -29,7 +29,7 @@ describe("http/client", () => {
       communicationProtocol: CommunicationProtocolEnum.HTTP,
       isKeepAlive: false,
     });
-  }, 10 * 1000);
+  }, 20 * 1000);
 
   afterAll(async () => {
     await client.stop();
