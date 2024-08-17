@@ -3,7 +3,7 @@ OS=$(echo `uname`|tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 ORG_NAME="dapr"
 REPO_NAME="dapr"
-BRANCH_NAME="v1.14.0-rc.7"
+BRANCH_NAME="v1.14.0"
 
 # Path to store output
 PATH_ROOT=$(pwd)

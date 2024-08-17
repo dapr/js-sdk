@@ -183,7 +183,7 @@ export default abstract class AbstractActor {
 
   /**
    * Saves all the state changes (ADD/UPDATE/REMOVE) that were made since the last call
-   * to the actor state provider associated with teh actor
+   * to the actor state provider associated with the actor
    */
   async saveStateInternal(): Promise<void> {
     await this.stateManager.saveState();
