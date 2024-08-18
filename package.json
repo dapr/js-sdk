@@ -1,6 +1,6 @@
 {
   "name": "@dapr/dapr",
-  "version": "3.4.0-rc.1",
+  "version": "3.4.0",
   "description": "The official Dapr (https://dapr.io) SDK for Node.js",
   "types": "./build/index.d.ts",
   "scripts": {
@@ -48,13 +48,13 @@
   "dependencies": {
     "@grpc/grpc-js": "^1.9.3",
     "@js-temporal/polyfill": "^0.3.0",
+    "@microsoft/durabletask-js": "^0.1.0-alpha.1",
     "@types/google-protobuf": "^3.15.5",
     "@types/node-fetch": "^2.6.2",
     "body-parser": "^1.19.0",
     "express": "^4.18.2",
     "google-protobuf": "^3.18.0",
     "http-terminator": "^3.2.0",
-    "@microsoft/durabletask-js": "^0.1.0-alpha.1",
     "node-fetch": "^2.6.7"
   },
   "devDependencies": {
