@@ -23,6 +23,8 @@ export function convertHttpVerbNumberToString(verbNumber: HTTPExtension.Verb): s
       return "DELETE";
     case HTTPExtension.Verb.PUT:
       return "PUT";
+    case HTTPExtension.Verb.PATCH:
+      return "PATCH";
     case HTTPExtension.Verb.TRACE:
       return "TRACE";
     case HTTPExtension.Verb.CONNECT:
@@ -48,6 +50,8 @@ export function convertHttpVerbStringToNumber(verbStr: string): HTTPExtension.Ve
       return HTTPExtension.Verb.DELETE;
     case "PUT":
       return HTTPExtension.Verb.PUT;
+    case "PATCH":
+      return HTTPExtension.Verb.PATCH;
     case "TRACE":
       return HTTPExtension.Verb.TRACE;
     case "CONNECT":
