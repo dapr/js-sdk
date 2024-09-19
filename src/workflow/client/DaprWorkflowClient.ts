@@ -17,6 +17,7 @@ import { generateApiTokenClientInterceptors, generateEndpoint, getDaprApiToken }
 import { TWorkflow } from "../../types/workflow/Workflow.type";
 import { getFunctionName } from "../internal";
 import { WorkflowClientOptions } from "../../types/workflow/WorkflowClientOption";
+import { GrpcEndpoint } from "../../network/GrpcEndpoint";
 
 /**
  * Class that defines client operations for managing workflow instances.
@@ -34,10 +35,10 @@ export default class DaprWorkflowClient {
   constructor(options: Partial<WorkflowClientOptions> = {}) {
     const grpcEndpoint = generateEndpoint(options);
     options.daprApiToken = getDaprApiToken(options);
-    this._innerClient = this.buildInnerClient(grpcEndpoint.endpoint, options);
+    this._innerClient = this.buildInnerClient(grpcEndpoint, options);
   }
 
-  private buildInnerClient(hostAddress: string, options: Partial<WorkflowClientOptions>): TaskHubGrpcClient {
+  private buildInnerClient(grpcEndpoint: GrpcEndpoint, options: Partial<WorkflowClientOptions>): TaskHubGrpcClient {
     let innerOptions = options?.grpcOptions;
     if (options.daprApiToken !== undefined && options.daprApiToken !== "") {
       innerOptions = {
@@ -45,7 +46,7 @@ export default class DaprWorkflowClient {
         interceptors: [generateApiTokenClientInterceptors(options), ...(innerOptions?.interceptors ?? [])],
       };
     }
-    return new TaskHubGrpcClient(hostAddress, innerOptions);
+    return new TaskHubGrpcClient(grpcEndpoint.endpoint, innerOptions, grpcEndpoint.tls);
   }
 
   /**
