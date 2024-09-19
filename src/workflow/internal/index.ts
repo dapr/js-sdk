@@ -48,9 +48,19 @@ export function getFunctionName(fn: TWorkflow | TWorkflowActivity<TInput, TOutpu
  * @returns A GrpcEndpoint representing the Dapr gRPC endpoint.
  */
 export function generateEndpoint(options: Partial<WorkflowClientOptions>): GrpcEndpoint {
+  // NOTE: same logic as src/implementation/Client/GRPCClient/GRPCClient.ts
   const host = options?.daprHost ?? Settings.getDefaultHost();
   const port = options?.daprPort ?? Settings.getDefaultGrpcPort();
-  const uri = `${host}:${port}`;
+  let uri = `${host}:${port}`;
+
+  if (!(options?.daprHost || options?.daprPort)) {
+    // If neither host nor port are specified, check the endpoint environment variable.
+    const endpoint = Settings.getDefaultGrpcEndpoint();
+    if (endpoint != "") {
+      uri = endpoint;
+    }
+  }
+
   return new GrpcEndpoint(uri);
 }
 

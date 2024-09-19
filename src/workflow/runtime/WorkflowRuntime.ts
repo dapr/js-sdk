@@ -20,6 +20,7 @@ import WorkflowContext from "./WorkflowContext";
 import { generateApiTokenClientInterceptors, generateEndpoint, getDaprApiToken } from "../internal/index";
 import { getFunctionName } from "../internal";
 import { WorkflowClientOptions } from "../../types/workflow/WorkflowClientOption";
+import { GrpcEndpoint } from "../../network/GrpcEndpoint";
 
 /**
  * Contains methods to register workflows and activities.
@@ -34,10 +35,10 @@ export default class WorkflowRuntime {
   constructor(options: Partial<WorkflowClientOptions> = {}) {
     const grpcEndpoint = generateEndpoint(options);
     options.daprApiToken = getDaprApiToken(options);
-    this.worker = this.buildInnerWorker(grpcEndpoint.endpoint, options);
+    this.worker = this.buildInnerWorker(grpcEndpoint, options);
   }
 
-  private buildInnerWorker(hostAddress: string, options: Partial<WorkflowClientOptions>): TaskHubGrpcWorker {
+  private buildInnerWorker(grpcEndpoint: GrpcEndpoint, options: Partial<WorkflowClientOptions>): TaskHubGrpcWorker {
     let innerOptions = options?.grpcOptions;
     if (options.daprApiToken !== undefined && options.daprApiToken !== "") {
       innerOptions = {
@@ -45,7 +46,7 @@ export default class WorkflowRuntime {
         interceptors: [generateApiTokenClientInterceptors(options), ...(innerOptions?.interceptors ?? [])],
       };
     }
-    return new TaskHubGrpcWorker(hostAddress, innerOptions);
+    return new TaskHubGrpcWorker(grpcEndpoint.endpoint, innerOptions, grpcEndpoint.tls);
   }
 
   /**
