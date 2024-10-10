@@ -175,6 +175,11 @@ describe("grpc/client", () => {
       const res = await client.secret.getBulk("secret-envvars");
       expect(Object.keys(res).length).toBeGreaterThan(1);
     });
+
+    it("should be able to correctly fetch the secrets in bulk from a file", async () => {
+      const res = await client.secret.getBulk("secret-file");
+      expect(Object.keys(res).length).toBeGreaterThan(0);
+    });
   });
 
   describe("crypto", () => {
