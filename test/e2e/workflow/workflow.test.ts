@@ -139,7 +139,7 @@ describe("Workflow", () => {
 
     const parentWorkflow: TWorkflow = async function* (ctx: WorkflowContext): any {
       // Call sub-orchestration
-      yield ctx.callSubWorkflow(childWorkflow);
+      yield ctx.callChildWorkflow(childWorkflow);
     };
 
     workflowRuntime

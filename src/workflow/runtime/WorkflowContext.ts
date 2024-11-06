@@ -96,6 +96,7 @@ export default class WorkflowContext {
   }
 
   /**
+   * Deprecated, use callChildWorkflow
    * Schedule sub-orchestrator function for execution.
    *
    * @param orchestrator A reference to the orchestrator function call
@@ -105,6 +106,26 @@ export default class WorkflowContext {
    * @returns {Task<TOutput>} A Durable Task that completes when the sub-orchestrator function completes.
    */
   public callSubWorkflow<TInput, TOutput>(
+    orchestrator: TWorkflow | string,
+    input?: TInput,
+    instanceId?: string,
+  ): Task<TOutput> {
+    if (typeof orchestrator === "string") {
+      return this._innerContext.callSubOrchestrator(orchestrator, input, instanceId);
+    }
+    return this._innerContext.callSubOrchestrator(getFunctionName(orchestrator), input, instanceId);
+  }
+
+  /**
+   * Schedule child workflow for execution.
+   *
+   * @param orchestrator A reference to the orchestrator function call
+   * @param input The JSON-serializable input value for the orchestrator function.
+   * @param instanceId A unique ID to use for the sub-orchestration instance. If not provided, a new GUID will be used.
+   *
+   * @returns {Task<TOutput>} A Durable Task that completes when the sub-orchestrator function completes.
+   */
+  public callChildWorkflow<TInput, TOutput>(
     orchestrator: TWorkflow | string,
     input?: TInput,
     instanceId?: string,
