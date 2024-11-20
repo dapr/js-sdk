@@ -23,6 +23,7 @@ import { DaprClient } from "../../..";
 import { Logger } from "../../../logger/Logger";
 import { getRegisteredActorResponse } from "../../../utils/Actors.util";
 import HttpStatusCode from "../../../enum/HttpStatusCode.enum";
+import { DeactivateResult } from "../../../actors/runtime/ActorManager";
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class HTTPServerActor implements IServerActor {
@@ -89,8 +90,20 @@ export default class HTTPServerActor implements IServerActor {
   private async handlerDeactivate(req: IRequest, res: IResponse): Promise<IResponse> {
     const { actorTypeName, actorId } = req.params;
     const result = await ActorRuntime.getInstance(this.client.daprClient).deactivate(actorTypeName, actorId);
-    res.statusCode = HttpStatusCode.OK;
-    return this.handleResult(res, result);
+
+    switch (result) {
+      case DeactivateResult.Success:
+        res.statusCode = HttpStatusCode.OK;
+        return this.handleResult(res, result);
+      case DeactivateResult.Error:
+        res.statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
+        return this.handleResult(res, result);
+      case DeactivateResult.ActorDoesNotExist:
+        res.statusCode = HttpStatusCode.NOT_FOUND;
+        return this.handleResult(res, result);
+      default:
+        throw new Error("Unsupported result type received");
+    }
   }
 
   private async handlerMethod(req: IRequest, res: IResponse): Promise<IResponse> {
