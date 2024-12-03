@@ -113,13 +113,13 @@ To ensure consistency throughout the source code, keep these rules in mind as yo
 
 - All features or bug fixes **must be tested** by one or more specs (unit-tests).
 - All public API methods **must be documented**.
-- We follow [ESLint RecommendedRules][https://eslint.org/docs/rules/].
+- We follow [ESLint RecommendedRules](https://eslint.org/docs/rules/).
 
 ## Examples
 
 The `examples` directory contains code samples for users to run to try out specific functionality of the various JavaScript SDK packages and extensions. When writing new and updated samples keep in mind:
 
-- All examples should be runnable on Windows, Linux, and MacOS. While JavaScript code is consistent among operating systems, any pre/post example commands should provide options through [codetabs]({{< ref "contributing-docs.md#tabbed-content" >}})
+- All examples should be runnable on Windows, Linux, and MacOS. While JavaScript code is consistent among operating systems, any pre/post example commands should provide options through [codetabs]({{< ref "contributing-docs.md#tabbed-content" >}}).
 - Contain steps to download/install any required pre-requisites. Someone coming in with a fresh OS install should be able to start on the example and complete it without an error. Links to external download pages are fine.
 
 ## Docs
