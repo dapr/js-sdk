@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { ActivityContext, OrchestrationContext, TaskHubGrpcWorker } from "@microsoft/durabletask-js";
+import { ActivityContext, OrchestrationContext, TaskHubGrpcWorker } from "@dapr/durabletask-js";
 import { TWorkflow } from "../../types/workflow/Workflow.type";
 import { TWorkflowActivity } from "../../types/workflow/Activity.type";
 import { TInput, TOutput } from "../../types/workflow/InputOutput.type";

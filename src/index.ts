@@ -45,7 +45,7 @@ import WorkflowActivityContext from "./workflow/runtime/WorkflowActivityContext"
 import WorkflowContext from "./workflow/runtime/WorkflowContext";
 import WorkflowRuntime from "./workflow/runtime/WorkflowRuntime";
 import { TWorkflow } from "./types/workflow/Workflow.type";
-import { Task } from "@microsoft/durabletask-js/task/task";
+import { Task } from "@dapr/durabletask-js/task/task";
 import { WorkflowFailureDetails } from "./workflow/client/WorkflowFailureDetails";
 import { WorkflowState } from "./workflow/client/WorkflowState";
 import {
