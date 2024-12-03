@@ -157,6 +157,15 @@ export default class WorkflowContext {
   }
 
   /**
+   * Sets the custom status
+   *
+   * @param status {string} The new custom status
+   */
+  public setCustomStatus(status: string): void {
+    this._innerContext.setCustomStatus(status);
+  }
+
+  /**
    * Returns a task that completes when all of the provided tasks complete or when one of the tasks fail
    *
    * @param tasks the tasks to wait for

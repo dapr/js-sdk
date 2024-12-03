@@ -105,4 +105,14 @@ export class WorkflowState {
   public get workflowFailureDetails(): WorkflowFailureDetails | undefined {
     return this._workflowFailureDetails;
   }
+
+
+  /**
+   * Gets the workflow instance's custom status, if any, as a string value.
+   * @returns {string | undefined} The workflow instance's custom status or undefined.
+   */
+  public get customStatus(): string | undefined {
+    return this._orchestrationState.serializedCustomStatus;
+  }
+
 }
