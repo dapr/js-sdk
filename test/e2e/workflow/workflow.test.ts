@@ -18,7 +18,7 @@ import { TWorkflow } from "../../../src/types/workflow/Workflow.type";
 import { getFunctionName } from "../../../src/workflow/internal";
 import { WorkflowRuntimeStatus } from "../../../src/workflow/runtime/WorkflowRuntimeStatus";
 import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
-import { Task } from "@microsoft/durabletask-js/task/task";
+import { Task } from "@dapr/durabletask-js/task/task";
 
 const clientHost = "localhost";
 const clientPort = "4001";

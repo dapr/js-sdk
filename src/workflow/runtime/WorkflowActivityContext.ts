@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { ActivityContext } from "@microsoft/durabletask-js";
+import { ActivityContext } from "@dapr/durabletask-js";
 
 /**
  * Used by activity to perform actions such as getting activity's name and
