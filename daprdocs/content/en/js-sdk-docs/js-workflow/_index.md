@@ -6,10 +6,6 @@ weight: 20000
 description: How to get up and running with workflows using the Dapr JavaScript SDK
 ---
 
-{{% alert title="Note" color="primary" %}}
-Dapr Workflow is currently in beta. [See known limitations for {{% dapr-latest-version cli="true" %}}]({{< ref "workflow-overview.md#limitations" >}}).
-{{% /alert %}}
-
 Let’s create a Dapr workflow and invoke it using the console. With the [provided workflow example](https://github.com/dapr/js-sdk/tree/main/examples/workflow), you will:
 
 - Execute the workflow instance using the [JavaScript workflow worker](https://github.com/dapr/js-sdk/tree/main/src/workflow/runtime/WorkflowRuntime.ts)
