@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { OrchestrationState } from "@microsoft/durabletask-js/orchestration/orchestration-state";
+import { OrchestrationState } from "@dapr/durabletask-js/orchestration/orchestration-state";
 import { WorkflowFailureDetails } from "./WorkflowFailureDetails";
 import { WorkflowRuntimeStatus, fromOrchestrationStatus } from "../runtime/WorkflowRuntimeStatus";
 
@@ -104,5 +104,13 @@ export class WorkflowState {
    */
   public get workflowFailureDetails(): WorkflowFailureDetails | undefined {
     return this._workflowFailureDetails;
+  }
+
+  /**
+   * Gets the workflow instance's custom status, if any, as a string value.
+   * @returns {string | undefined} The workflow instance's custom status or undefined.
+   */
+  public get customStatus(): string | undefined {
+    return this._orchestrationState.serializedCustomStatus;
   }
 }

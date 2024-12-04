@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { FailureDetails } from "@microsoft/durabletask-js/task/failure-details";
+import { FailureDetails } from "@dapr/durabletask-js/task/failure-details";
 
 /**
  * Class that represents the details of a task failure.

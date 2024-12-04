@@ -18,7 +18,7 @@ import { TWorkflow } from "../../../src/types/workflow/Workflow.type";
 import { getFunctionName } from "../../../src/workflow/internal";
 import { WorkflowRuntimeStatus } from "../../../src/workflow/runtime/WorkflowRuntimeStatus";
 import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
-import { Task } from "@microsoft/durabletask-js/task/task";
+import { Task } from "@dapr/durabletask-js/task/task";
 
 const clientHost = "localhost";
 const clientPort = "4001";
@@ -76,7 +76,7 @@ describe("Workflow", () => {
         current = yield ctx.callActivity(plusOne, current);
         numbers.push(current);
       }
-
+      ctx.setCustomStatus("foo");
       return numbers;
     };
 
@@ -93,6 +93,7 @@ describe("Workflow", () => {
     expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.COMPLETED);
     expect(state?.serializedInput).toEqual(JSON.stringify(1));
     expect(state?.serializedOutput).toEqual(JSON.stringify([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]));
+    expect(state?.customStatus).toEqual("foo");
   }, 31000);
 
   it("should be able to run fan-out/fan-in", async () => {

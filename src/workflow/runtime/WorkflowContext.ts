@@ -11,14 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { OrchestrationContext } from "@microsoft/durabletask-js";
-import { Task } from "@microsoft/durabletask-js/task/task";
+import { OrchestrationContext } from "@dapr/durabletask-js";
+import { Task } from "@dapr/durabletask-js/task/task";
 import { TWorkflowActivity } from "../../types/workflow/Activity.type";
 import { TWorkflow } from "../../types/workflow/Workflow.type";
 import { getFunctionName } from "../internal";
-import { WhenAllTask } from "@microsoft/durabletask-js/task/when-all-task";
-import { whenAll, whenAny } from "@microsoft/durabletask-js/task";
-import { WhenAnyTask } from "@microsoft/durabletask-js/task/when-any-task";
+import { WhenAllTask } from "@dapr/durabletask-js/task/when-all-task";
+import { whenAll, whenAny } from "@dapr/durabletask-js/task";
+import { WhenAnyTask } from "@dapr/durabletask-js/task/when-any-task";
 import { TInput, TOutput } from "../../types/workflow/InputOutput.type";
 
 /**
@@ -154,6 +154,15 @@ export default class WorkflowContext {
    */
   public continueAsNew(newInput: any, saveEvents: boolean): void {
     this._innerContext.continueAsNew(newInput, saveEvents);
+  }
+
+  /**
+   * Sets the custom status
+   *
+   * @param status {string} The new custom status
+   */
+  public setCustomStatus(status: string): void {
+    this._innerContext.setCustomStatus(status);
   }
 
   /**

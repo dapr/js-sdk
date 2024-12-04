@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import WorkflowContext from "../../workflow/runtime/WorkflowContext";
-import { Task } from "@microsoft/durabletask-js/task/task";
+import { Task } from "@dapr/durabletask-js/task/task";
 import { TOutput } from "./InputOutput.type";
 
 /**
