@@ -4,7 +4,7 @@
 
 ## Getting Started
 
-Instantly get started by installing the Dapr JS SDK and reading the [getting started documentation](https://docs.dapr.io/developing-applications/sdks/js) or [follow one of the quickstarts](https://github.com/dapr/quickstarts)
+Instantly get started by installing the Dapr JS SDK and reading the [getting started documentation](https://docs.dapr.io/developing-applications/sdks/js/) or [follow one of the quickstarts](https://github.com/dapr/quickstarts)
 
 ```
 npm install --save @dapr/dapr
