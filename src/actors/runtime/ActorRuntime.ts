@@ -17,7 +17,7 @@ import { ActorRuntimeOptions } from "../../types/actors/ActorRuntimeOptions";
 import Class from "../../types/Class";
 import ActorId from "../ActorId";
 import AbstractActor from "./AbstractActor";
-import ActorManager from "./ActorManager";
+import ActorManager, { DeactivateResult } from "./ActorManager";
 
 /**
  * Creates instances of "Actor" and activates and deactivates "Actor"
@@ -141,7 +141,7 @@ export default class ActorRuntime {
     return await manager.fireTimer(actorIdObj, name, requestBody);
   }
 
-  async deactivate(actorTypeName: string, actorId: string): Promise<void> {
+  async deactivate(actorTypeName: string, actorId: string): Promise<DeactivateResult> {
     const actorIdObj = new ActorId(actorId);
     const manager = this.getActorManager(actorTypeName);
     return await manager.deactivateActor(actorIdObj);
