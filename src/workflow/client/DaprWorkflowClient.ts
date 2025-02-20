@@ -194,6 +194,23 @@ export default class DaprWorkflowClient {
   }
 
   /**
+   * This method suspends a workflow instance, halting processing of it until resumeWorkflow is used to
+   * resume the workflow.
+   * @param {string} workflowInstanceId - The unique identifier of the workflow instance to suspend.
+   */
+  public async suspendWorkflow(workflowInstanceId: string): Promise<void> {
+    return await this._innerClient.suspendOrchestration(workflowInstanceId);
+  }
+
+  /**
+   * This method resumes a workflow instance that was suspended via suspendWorkflow.
+   * @param {string} workflowInstanceId - The unique identifier of the workflow instance to resume.
+   */
+  public async resumeWorkflow(workflowInstanceId: string): Promise<void> {
+    return await this._innerClient.resumeOrchestration(workflowInstanceId);
+  }
+
+  /**
    * Closes the inner DurableTask client and shutdown the GRPC channel.
    */
   public async stop() {
