@@ -126,14 +126,14 @@ export class SubscriptionManager {
   }
 
   /**
-   * Lookup the topic and route for a given pubsub, topic (with wilcard support) and path.
+   * Lookup the topic and route for a given pubsub, topic (with wildcard support) and path.
    * If not found, topic is empty.
    * @param pubsub name of the pubsub component
    * @param topic name of the topic
    * @param path path from the event
    * @returns the topic and route
    */
-  public lookupTopicWilcard(pubsub: string, topic: string, path: string): [string, string] {
+  public lookupTopicWildcard(pubsub: string, topic: string, path: string): [string, string] {
     if (!this.isPubSubRegistered(pubsub)) {
       return ["", ""];
     }
