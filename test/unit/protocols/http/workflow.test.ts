@@ -25,10 +25,10 @@ describe("workflow", () => {
   const workflow = new HTTPClientWorkflow(client);
 
   it("should throw PropertyRequiredError when instanceID variable is not provided in get method", async () => {
-    await expect(workflow.get("")).rejects.toThrow(PropertyRequiredError);
+    await expect(workflow.getWorkflowState("")).rejects.toThrow(PropertyRequiredError);
   });
   it("should throw PropertyRequiredError when workflowName variable is not provided in start method", async () => {
-    await expect(workflow.start("")).rejects.toThrow(PropertyRequiredError);
+    await expect(workflow.scheduleNewWorkflow("")).rejects.toThrow(PropertyRequiredError);
   });
   it("should throw PropertyRequiredError when instanceID variable is not provided in _invokeMethod method", async () => {
     await expect(workflow._invokeMethod("", "raise")).rejects.toThrow(PropertyRequiredError);
@@ -37,9 +37,9 @@ describe("workflow", () => {
     await expect(workflow._invokeMethod(randomUUID(), "")).rejects.toThrow(PropertyRequiredError);
   });
   it("should throw PropertyRequiredError when instanceID variable is not provided in raise method", async () => {
-    await expect(workflow.raise("", "Event")).rejects.toThrow(PropertyRequiredError);
+    await expect(workflow.raiseEvent("", "Event")).rejects.toThrow(PropertyRequiredError);
   });
   it("should throw PropertyRequiredError when eventName variable is not provided in raise method", async () => {
-    await expect(workflow.raise(randomUUID(), "")).rejects.toThrow(PropertyRequiredError);
+    await expect(workflow.raiseEvent(randomUUID(), "")).rejects.toThrow(PropertyRequiredError);
   });
 });
