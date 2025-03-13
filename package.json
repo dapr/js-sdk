@@ -43,8 +43,8 @@
     "pretty-fix": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
   },
   "keywords": [],
-  "author": "Xavier Geerinck",
-  "license": "ISC",
+  "author": "Dapr Authors",
+  "license": "apache-2.0",
   "dependencies": {
     "@grpc/grpc-js": "^1.9.3",
     "@js-temporal/polyfill": "^0.3.0",
