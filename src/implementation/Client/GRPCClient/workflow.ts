@@ -23,36 +23,35 @@ export default class GRPCClientWorkflow implements IClientWorkflow {
     this.client = client;
   }
 
-  get(_instanceId: string, _workflowComponent?: string | undefined): Promise<WorkflowGetResponseType> {
+  get(_instanceId: string): Promise<WorkflowGetResponseType> {
     throw new GRPCNotSupportedError();
   }
 
   start(
     _workflowName: string,
     _input?: any,
-    _instanceId?: string | undefined,
-    _workflowComponent?: string | undefined,
+    _instanceId?: string | undefined
   ): Promise<string> {
     throw new GRPCNotSupportedError();
   }
 
-  terminate(_instanceId: string, _workflowComponent?: string | undefined): Promise<any> {
+  terminate(_instanceId: string): Promise<any> {
     throw new GRPCNotSupportedError();
   }
 
-  pause(_instanceId: string, _workflowComponent?: string | undefined): Promise<any> {
+  pause(_instanceId: string): Promise<any> {
     throw new GRPCNotSupportedError();
   }
 
-  resume(_instanceId: string, _workflowComponent?: string | undefined): Promise<any> {
+  resume(_instanceId: string): Promise<any> {
     throw new GRPCNotSupportedError();
   }
 
-  purge(_instanceId: string, _workflowComponent?: string | undefined): Promise<any> {
+  purge(_instanceId: string): Promise<any> {
     throw new GRPCNotSupportedError();
   }
 
-  raise(_instanceId: string, _eventName: string, _input?: any, _workflowComponent?: string | undefined): Promise<any> {
+  raise(_instanceId: string, _eventName: string, _input?: any): Promise<any> {
     throw new GRPCNotSupportedError();
   }
 }
