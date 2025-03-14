@@ -33,7 +33,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     this.logger = new Logger("HTTPClient", "Workflow", client.options.logger);
   }
 
-  async get(instanceID: string, workflowComponent?: string): Promise<WorkflowGetResponseType> {
+  async getWorkflowState(instanceID: string, workflowComponent?: string): Promise<WorkflowGetResponseType> {
     if (!instanceID) {
       throw new PropertyRequiredError("instanceID");
     }
@@ -69,7 +69,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     }
   }
 
-  async start(
+  async scheduleNewWorkflow(
     workflowName: string,
     input?: any,
     instanceId?: string | undefined,
@@ -113,7 +113,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     }
   }
 
-  async raise(
+  async raiseEvent(
     instanceId: string,
     eventName: string,
     eventData?: any,
@@ -153,19 +153,19 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     }
   }
 
-  async terminate(instanceId: string, workflowComponent?: string | undefined): Promise<void> {
+  async terminateWorkflow(instanceId: string, workflowComponent?: string | undefined): Promise<void> {
     await this._invokeMethod(instanceId, "terminate", workflowComponent);
   }
 
-  async pause(instanceId: string, workflowComponent?: string | undefined): Promise<void> {
+  async suspendWorkflow(instanceId: string, workflowComponent?: string | undefined): Promise<void> {
     await this._invokeMethod(instanceId, "pause", workflowComponent);
   }
 
-  async resume(instanceId: string, workflowComponent?: string | undefined): Promise<void> {
+  async resumeWorkflow(instanceId: string, workflowComponent?: string | undefined): Promise<void> {
     await this._invokeMethod(instanceId, "resume", workflowComponent);
   }
 
-  async purge(instanceId: string, workflowComponent?: string | undefined): Promise<void> {
+  async purgeInstance(instanceId: string, workflowComponent?: string | undefined): Promise<void> {
     await this._invokeMethod(instanceId, "purge", workflowComponent);
   }
 
