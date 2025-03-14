@@ -360,8 +360,8 @@ describe("http/actors", () => {
       const res0 = await actor.getCounter();
       expect(res0).toEqual(0);
 
-      // Now we wait for dueTime (750ms)
-      await NodeJSUtil.sleep(1500);
+      // Now we wait for dueTime (1s)
+      await NodeJSUtil.sleep(1200);
 
       // After that the reminder callback will be called
       // In our case, the callback increments the count attribute
@@ -371,7 +371,7 @@ describe("http/actors", () => {
       await actor.removeReminder();
 
       // Now we wait an extra period - duration (seconds)
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // Make sure the counter didn't change since we removed the reminder
       const res2 = await actor.getCounter();
