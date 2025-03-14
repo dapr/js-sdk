@@ -18,6 +18,7 @@ import DemoActorCounterImpl from "../../actor/DemoActorCounterImpl";
 import DemoActorSayImpl from "../../actor/DemoActorSayImpl";
 import { ActorRuntimeOptions } from "../../../src/types/actors/ActorRuntimeOptions";
 import { randomUUID } from "crypto";
+import { DeactivateResult } from "../../../src/actors/runtime/ActorManager";
 
 describe("ActorRuntime", () => {
   let client: DaprClient;
@@ -108,6 +109,25 @@ describe("ActorRuntime", () => {
 
     const res = await runtime.invoke(DemoActorSayImpl.name, actorId, "sayString", Buffer.from("Hello World"));
     expect(res.toString()).toEqual(`Actor said: "Hello World"`);
+  });
+
+  it("should be able to deactivate a actor", async () => {
+    const actorId = randomUUID();
+
+    await runtime.registerActor(DemoActorSayImpl);
+    await runtime.invoke(DemoActorSayImpl.name, actorId, "sayString", Buffer.from("Hello World"));
+    const result = await runtime.deactivate(DemoActorSayImpl.name, actorId);
+
+    expect(result).toEqual(DeactivateResult.Success);
+  });
+
+  it("should not error when calling deactivate on an actor that does not exist", async () => {
+    const actorId = randomUUID();
+
+    await runtime.registerActor(DemoActorSayImpl);
+    const result = await runtime.deactivate(DemoActorSayImpl.name, actorId);
+
+    expect(result).toEqual(DeactivateResult.ActorDoesNotExist);
   });
 
   it("should receive an error if the actor method does not exist", async () => {
