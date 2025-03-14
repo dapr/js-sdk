@@ -20,7 +20,7 @@ export default class DemoActorReminderImpl extends AbstractActor implements Demo
   async init(): Promise<string> {
     await super.registerActorReminder(
       "my-reminder-name",
-      Temporal.Duration.from({ milliseconds: 1 }),
+      Temporal.Duration.from({ milliseconds: 1000 }),
       Temporal.Duration.from({ seconds: 1 }),
       undefined,
       123,
