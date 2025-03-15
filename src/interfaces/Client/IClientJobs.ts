@@ -11,10 +11,33 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+export enum FixedPeriod {
+    Yearly = "@yearly",
+    Monthly = "@monthly",
+    Weekly = "@weekly",
+    Daily = "@daily",
+    Hourly = "@hourly"
+}
+
+// note: This can get pretty crazy, more than TS can really handle.
+type SystemDCronExpression = `${string} ${string} ${string} ${string} ${string} ${string}`;
+
+type EveryPeriod = `@every ${string}`;
+
+type Schedule = FixedPeriod | EveryPeriod | SystemDCronExpression;
+
+export type JobSchedule = Schedule;
+
 export default interface IClientJobs {
 
-    schedule(): Promise<unknown>;
+    schedule(
+        jobName: string,
+        data: object | string,
+        schedule: JobSchedule | null,
+        dueTime: string | Date | null,
+        repeats: number | null,
+        ttl: string | null
+    ): Promise<void>;
     get(): Promise<unknown>;
     delete(): Promise<unknown>;
-
 }
