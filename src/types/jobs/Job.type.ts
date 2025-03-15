@@ -11,19 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { JobSchedule } from "../../types/jobs/JobSchedule.type";
-import { Job } from "../../types/jobs/Job.type";
+import { JobSchedule } from "./JobSchedule.type";
 
-export default interface IClientJobs {
-
-    schedule(
-        jobName: string,
-        data: object | string,
-        schedule: JobSchedule | null,
-        dueTime: string | Date | null,
-        repeats: number | null,
-        ttl: string | null
-    ): Promise<void>;
-    get(jobName: string): Promise<Job>;
-    delete(jobName: string): Promise<void>;
+export interface Job<DataType = object | string> {
+    name: string;
+    schedule: JobSchedule;
+    data: {
+        value: DataType,
+    };
 }

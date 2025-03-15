@@ -11,19 +11,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { JobSchedule } from "../../types/jobs/JobSchedule.type";
-import { Job } from "../../types/jobs/Job.type";
-
-export default interface IClientJobs {
-
-    schedule(
-        jobName: string,
-        data: object | string,
-        schedule: JobSchedule | null,
-        dueTime: string | Date | null,
-        repeats: number | null,
-        ttl: string | null
-    ): Promise<void>;
-    get(jobName: string): Promise<Job>;
-    delete(jobName: string): Promise<void>;
+export enum FixedPeriod {
+    Yearly = "@yearly",
+    Monthly = "@monthly",
+    Weekly = "@weekly",
+    Daily = "@daily",
+    Hourly = "@hourly"
 }
+
+type EveryPeriod = `@every ${string}`;
+
+// note: This can get crazy, more than TS can really handle.
+type SystemDCronExpression = `${string} ${string} ${string} ${string} ${string} ${string}`;
+
+type Schedule = FixedPeriod | EveryPeriod | SystemDCronExpression;
+
+export type JobSchedule = Schedule;

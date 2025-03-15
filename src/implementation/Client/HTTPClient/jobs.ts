@@ -11,20 +11,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import IClientJobs, { JobSchedule } from "../../../interfaces/Client/IClientJobs";
+import IClientJobs from "../../../interfaces/Client/IClientJobs";
 import HTTPClient from "./HTTPClient";
-import { Logger } from "../../../logger/Logger";
 import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type";
+import { Job } from "../../../types/jobs/Job.type";
+import { JobSchedule } from "../../../types/jobs/JobSchedule.type";
 
 export default class HTTPClientJobs implements IClientJobs {
 
-    private readonly logger: Logger;
-    private readonly httpClient: HTTPClient;
-
-    constructor(httpClient: HTTPClient) {
-        this.logger = new Logger("HTTPClient", "Jobs", httpClient.options.logger);
-        this.httpClient = httpClient;
-    }
+    constructor(private readonly httpClient: HTTPClient) {}
 
     async schedule(
         jobName: string,
@@ -35,35 +30,47 @@ export default class HTTPClientJobs implements IClientJobs {
         ttl: string | null = null
     ): Promise<void> {
 
-        try {
-            await this.httpClient.executeWithApiVersion(
-                "v1.0-alpha1",
-                `/jobs/${jobName}`,
-                {
-                    method: "POST",
-                    body: {
-                        data,
-                        schedule,
-                        dueTime,
-                        repeats,
-                        ttl,
-                    },
-                    headers: {
-                        "content-type": "application/json",
-                    },
-                } as THTTPExecuteParams
-            );
-        }
-        catch (e: any) {
-            this.logger.error(e);
-        }
+        await this.httpClient.executeWithApiVersion(
+            "v1.0-alpha1",
+            `/jobs/${jobName}`,
+            {
+                method: "POST",
+                body: {
+                    data,
+                    schedule,
+                    dueTime,
+                    repeats,
+                    ttl,
+                },
+                headers: {
+                    "content-type": "application/json",
+                },
+            } as THTTPExecuteParams
+        );
     }
 
-    get(): Promise<unknown> {
-        throw new Error("Not yet!");
+    async get(jobName: string): Promise<Job>;
+    async get<DataType>(jobName: string): Promise<Job<DataType>> {
+
+        const result = await this.httpClient.executeWithApiVersion(
+            "v1.0-alpha1",
+            `/jobs/${jobName}`,
+            {
+                method: "GET",
+            }
+        );
+
+        return result as Job<DataType>;
     }
 
-    delete(): Promise<unknown> {
-        throw new Error("Not yet!");
+    async delete(jobName: string): Promise<void> {
+
+        await this.httpClient.executeWithApiVersion(
+            "v1.0-alpha1",
+            `/jobs/${jobName}`,
+            {
+                method: "DELETE"
+            }
+        );
     }
 }
