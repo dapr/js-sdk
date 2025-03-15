@@ -11,4 +11,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-export type TypeDaprJobsCallback = (data: any, headers: object) => Promise<any | void>;
+export type TypeDaprJobsCallback<DataType = object | string> = (data: DataType, headers: object) => Promise<unknown>;
