@@ -16,11 +16,9 @@ import HTTPServer from "./HTTPServer";
 import { TypeDaprJobsCallback } from "../../../types/DaprJobsCallback.type";
 
 export default class HTTPServerJobs implements IServerJobs {
+  constructor(private readonly httpServer: HTTPServer) {}
 
-    constructor(private readonly httpServer: HTTPServer) {}
-
-    listen(jobName: string, callback: TypeDaprJobsCallback) : void;
-    listen<DataType>(jobName: string, callback: TypeDaprJobsCallback<DataType>): void {
-        this.httpServer.getServer().post(`/job/${jobName}`, callback);
-    }
+  listen<DataType>(jobName: string, callback: TypeDaprJobsCallback<DataType>): void {
+    this.httpServer.getServer().post(`/job/${jobName}`, callback);
+  }
 }
