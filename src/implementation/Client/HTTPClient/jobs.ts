@@ -19,58 +19,45 @@ import { JobSchedule } from "../../../types/jobs/JobSchedule.type";
 
 export default class HTTPClientJobs implements IClientJobs {
 
-    constructor(private readonly httpClient: HTTPClient) {}
+  private static ApiVersion = "v1.0-alpha1";
+  private static Path = "jobs";
 
-    async schedule(
-        jobName: string,
-        data: object | string,
-        schedule: JobSchedule | null = null,
-        dueTime: string | Date | null = null,
-        repeats: number | null = null,
-        ttl: string | null = null
-    ): Promise<void> {
+  constructor(private readonly httpClient: HTTPClient) {}
 
-        await this.httpClient.executeWithApiVersion(
-            "v1.0-alpha1",
-            `/jobs/${jobName}`,
-            {
-                method: "POST",
-                body: {
-                    data,
-                    schedule,
-                    dueTime,
-                    repeats,
-                    ttl,
-                },
-                headers: {
-                    "content-type": "application/json",
-                },
-            } as THTTPExecuteParams
-        );
-    }
+  async schedule(
+    jobName: string,
+    data: object | string,
+    schedule: JobSchedule | null = null,
+    dueTime: string | Date | null = null,
+    repeats: number | null = null,
+    ttl: string | null = null,
+  ): Promise<void> {
+    await this.httpClient.executeWithApiVersion(HTTPClientJobs.ApiVersion, `/${HTTPClientJobs.Path}/${jobName}`, {
+      method: "POST",
+      body: {
+        data,
+        schedule,
+        dueTime,
+        repeats,
+        ttl,
+      },
+      headers: {
+        "content-type": "application/json",
+      },
+    } as THTTPExecuteParams);
+  }
 
-    async get(jobName: string): Promise<Job>;
-    async get<DataType>(jobName: string): Promise<Job<DataType>> {
+  async get<DataType>(jobName: string): Promise<Job<DataType>> {
+    const result = await this.httpClient.executeWithApiVersion(HTTPClientJobs.ApiVersion, `/${HTTPClientJobs.Path}/${jobName}`, {
+      method: "GET",
+    });
 
-        const result = await this.httpClient.executeWithApiVersion(
-            "v1.0-alpha1",
-            `/jobs/${jobName}`,
-            {
-                method: "GET",
-            }
-        );
+    return result as Job<DataType>;
+  }
 
-        return result as Job<DataType>;
-    }
-
-    async delete(jobName: string): Promise<void> {
-
-        await this.httpClient.executeWithApiVersion(
-            "v1.0-alpha1",
-            `/jobs/${jobName}`,
-            {
-                method: "DELETE"
-            }
-        );
-    }
+  async delete(jobName: string): Promise<void> {
+    await this.httpClient.executeWithApiVersion(HTTPClientJobs.ApiVersion, `/${HTTPClientJobs.Path}/${jobName}`, {
+      method: "DELETE",
+    });
+  }
 }

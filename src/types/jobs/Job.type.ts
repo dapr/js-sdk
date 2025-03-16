@@ -14,9 +14,9 @@ limitations under the License.
 import { JobSchedule } from "./JobSchedule.type";
 
 export interface Job<DataType = object | string> {
-    name: string;
-    schedule: JobSchedule;
-    data: {
-        value: DataType,
-    };
+  name: string;
+  schedule: JobSchedule;
+  data: {
+    value: DataType;
+  };
 }

@@ -13,6 +13,8 @@ limitations under the License.
 
 import IClientJobs from "../../../interfaces/Client/IClientJobs";
 import GRPCClient from "./GRPCClient";
+import { JobSchedule } from "../../../types/jobs/JobSchedule.type";
+import { Job } from "../../../types/jobs/Job.type";
 
 
 export default class GRPCClientJobs implements IClientJobs {
@@ -23,13 +25,22 @@ export default class GRPCClientJobs implements IClientJobs {
         this.grpcClient = grpcClient;
     }
 
-    schedule(): Promise<unknown> {
+    async schedule(
+        jobName: string,
+        data: object | string,
+        schedule: JobSchedule | null = null,
+        dueTime: string | Date | null = null,
+        repeats: number | null = null,
+        ttl: string | null = null
+    ): Promise<void> {
         throw new Error("Not yet!");
     }
-    get(): Promise<unknown> {
+
+    async get<DataType>(jobName: string): Promise<Job<DataType>> {
         throw new Error("Not yet!");
     }
-    delete(): Promise<unknown> {
+
+    async delete(jobName: string): Promise<void> {
         throw new Error("Not yet!");
     }
 }

@@ -12,11 +12,11 @@ limitations under the License.
 */
 
 export enum FixedPeriod {
-    Yearly = "@yearly",
-    Monthly = "@monthly",
-    Weekly = "@weekly",
-    Daily = "@daily",
-    Hourly = "@hourly"
+  Yearly = "@yearly",
+  Monthly = "@monthly",
+  Weekly = "@weekly",
+  Daily = "@daily",
+  Hourly = "@hourly",
 }
 
 type EveryPeriod = `@every ${string}`;
