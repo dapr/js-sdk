@@ -11,6 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// todo: remove after implementation
+/* eslint-disable */
+
 import IClientJobs from "../../../interfaces/Client/IClientJobs";
 import GRPCClient from "./GRPCClient";
 import { JobSchedule } from "../../../types/jobs/JobSchedule.type";
