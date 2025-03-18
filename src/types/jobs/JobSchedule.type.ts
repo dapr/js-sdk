@@ -11,7 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-export enum PrefixedPeriodExpression {
+import { CronExpression, CronExpressionString } from "./CronExpression.type";
+
+export enum PeriodConstant {
     Yearly = "@yearly",
     Monthly = "@monthly",
     Weekly = "@weekly",
@@ -19,29 +21,47 @@ export enum PrefixedPeriodExpression {
     Hourly = "@hourly",
 }
 
-type EveryPeriod = `@every ${string}`;
+type EveryExpressionString = `@every ${string}`;
 
-// note: This can get crazy, more than TS can really handle.
-type SystemDCronExpression = `${string} ${string} ${string} ${string} ${string} ${string}`;
+class EveryExpression {
 
-type ScheduleString = PrefixedPeriodExpression | EveryPeriod | SystemDCronExpression;
+    private static readonly EveryExpressionValue = /^(d+(m?s|m|h))+$/;
 
-class Schedule {
+    private readonly value: string;
 
-    private static readonly IsEveryExpression = /^@every (d+(m?s|m|h))+$/;
-
-    private readonly value: ScheduleString;
-
-    constructor(scheduleString: ScheduleString) {
-        this.value = scheduleString;
+    public static isEveryExpression(value: string) {
+        return EveryExpression.EveryExpressionValue.test(`@every ${value}`);
     }
 
-    public get isPrefixedPeriodExpression() {
-      return (
-          Object.values(PrefixedPeriodExpression).includes(this.value as PrefixedPeriodExpression)
-          || this.value.match(Schedule.IsEveryExpression)
-      );
+    constructor(value: string) {
+
+        if (! EveryExpression.isEveryExpression(value))
+            throw new Error(`${value} is not a valid every expression value.`);
+
+        this.value = value;
+    }
+
+    public toString(): EveryExpressionString {
+        return `@every ${this.value}`;
     }
 }
 
-export type JobSchedule = ScheduleString | Schedule;
+export type Schedule = PeriodConstant | EveryExpression | EveryExpressionString | CronExpression | CronExpressionString;
+
+export class ScheduleUnboxer {
+
+    private readonly value: Schedule | null;
+
+    constructor(value: Schedule | null) {
+        this.value = value;
+    }
+
+    public unbox(): string | null {
+        if(this.value instanceof EveryExpression)
+            return this.value.toString();
+        if(this.value instanceof CronExpression)
+            return this.value.toString();
+
+        return this.value;
+    }
+}

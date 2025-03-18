@@ -13,7 +13,7 @@ limitations under the License.
 
 import HTTPClient from "../../../src/implementation/Client/HTTPClient/HTTPClient";
 import HTTPClientJobs from "../../../src/implementation/Client/HTTPClient/jobs";
-import { PrefixedPeriodExpression } from "../../../src/types/jobs/JobSchedule.type";
+import { PeriodConstant } from "../../../src/types/jobs/JobSchedule.type";
 
 jest.mock("../../../src/implementation/Client/HTTPClient/HTTPClient");
 
@@ -35,7 +35,7 @@ describe("Jobs Client", () => {
             {
                 some: "data",
             },
-            PrefixedPeriodExpression.Daily
+            PeriodConstant.Daily
         );
 
         expect(httpClient.executeWithApiVersion).toHaveBeenCalledTimes(1);
