@@ -15,7 +15,7 @@ import IClientJobs from "../../../interfaces/Client/IClientJobs";
 import HTTPClient from "./HTTPClient";
 import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type";
 import { Job } from "../../../types/jobs/Job.type";
-import { JobSchedule } from "../../../types/jobs/JobSchedule.type";
+import { Schedule, ScheduleUnboxer } from "../../../types/jobs/JobSchedule.type";
 
 export default class HTTPClientJobs implements IClientJobs {
 
@@ -27,19 +27,22 @@ export default class HTTPClientJobs implements IClientJobs {
   async schedule(
     jobName: string,
     data: object | string,
-    schedule: JobSchedule | null = null,
+    schedule: Schedule | null = null,
     dueTime: string | Date | null = null,
     repeats: number | null = null,
     ttl: string | null = null,
   ): Promise<void> {
+
+    const boxedSchedule = new ScheduleUnboxer(schedule);
+
     await this.httpClient.executeWithApiVersion(HTTPClientJobs.ApiVersion, `/${HTTPClientJobs.Path}/${jobName}`, {
       method: "POST",
       body: {
         data,
-        schedule,
         dueTime,
         repeats,
         ttl,
+        schedule: boxedSchedule.unbox(),
       },
       headers: {
         "content-type": "application/json",

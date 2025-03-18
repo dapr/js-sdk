@@ -11,6 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// note: This can get crazy, more than TS can really handle.
+export type CronExpressionString = `${string} ${string} ${string} ${string} ${string} ${string}`;
+
 export enum CronPeriod {
   Second,
   Minute,
@@ -191,7 +194,7 @@ export class CronExpression {
     return this;
   }
 
-  public toString() {
+  public toString(): CronExpressionString {
     return `${this.seconds} ${this.minutes} ${this.hours} ${this.dayOfMonth} ${this.month} ${this.dayOfWeek}`;
   }
 
