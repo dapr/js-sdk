@@ -16,7 +16,7 @@ limitations under the License.
 
 import IClientJobs from "../../../interfaces/Client/IClientJobs";
 import GRPCClient from "./GRPCClient";
-import { JobSchedule } from "../../../types/jobs/JobSchedule.type";
+import { Schedule } from "../../../types/jobs/JobSchedule.type";
 import { Job } from "../../../types/jobs/Job.type";
 
 
@@ -31,7 +31,7 @@ export default class GRPCClientJobs implements IClientJobs {
     async schedule(
         jobName: string,
         data: object | string,
-        schedule: JobSchedule | null = null,
+        schedule: Schedule | null = null,
         dueTime: string | Date | null = null,
         repeats: number | null = null,
         ttl: string | null = null
