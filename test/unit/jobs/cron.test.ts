@@ -21,19 +21,19 @@ import {
 
 describe("CRON Expressions", () => {
   it("Every minute string is valid", () => {
-    expect(CronExpression.IsCronExpression("* * * * *")).toBe(true);
+    expect(CronExpression.isCronExpression("* * * * *")).toBe(true);
   });
 
   it("Every hour string is valid", () => {
-    expect(CronExpression.IsCronExpression("0 * * * *")).toBe(true);
+    expect(CronExpression.isCronExpression("0 * * * *")).toBe(true);
   });
 
   it("Every third hour on Mondays string is valid", () => {
-    expect(CronExpression.IsCronExpression("0 */3 * * 1")).toBe(true);
+    expect(CronExpression.isCronExpression("0 */3 * * 1")).toBe(true);
   });
 
   it("A fairly complicated string is valid", () => {
-    expect(CronExpression.IsCronExpression("0/5 2,6,10,14,18,22 8-14 * 1")).toBe(true);
+    expect(CronExpression.isCronExpression("0/5 2,6,10,14,18,22 8-14 * 1")).toBe(true);
   });
 
   it("On second results in matching cron string", () => {
