@@ -94,7 +94,7 @@ export class CronExpression {
     `${CronExpression.SecondsAndMinutesRegexText.source} ${CronExpression.SecondsAndMinutesRegexText.source} ${CronExpression.HoursRegexText.source} ${CronExpression.DayOfMonthRegexText.source} ${CronExpression.MonthRegexText.source} ${CronExpression.DayOfWeekRegexText.source}`,
   );
 
-  public static IsCronExpression(value: string) {
+  public static isCronExpression(value: string) {
     return CronExpression.cronExpressionRegex.test(value);
   }
 

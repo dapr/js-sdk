@@ -11,11 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { JobSchedule } from "./JobSchedule.type";
+
+import { Schedule } from "./JobSchedule.type";
 
 export interface Job<DataType = object | string> {
   name: string;
-  schedule: JobSchedule;
+  schedule: Schedule;
   data: {
     value: DataType;
   };
