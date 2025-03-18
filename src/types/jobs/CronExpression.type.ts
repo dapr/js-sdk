@@ -71,7 +71,7 @@ export class CronExpressionBuilder {
     return new CronExpression().through(period, from, to);
   }
 
-  public static each(period: CronPeriod) {
+  public static every(period: CronPeriod) {
     return new CronExpression().every(period);
   }
 }
