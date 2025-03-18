@@ -11,12 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-export enum FixedPeriod {
-  Yearly = "@yearly",
-  Monthly = "@monthly",
-  Weekly = "@weekly",
-  Daily = "@daily",
-  Hourly = "@hourly",
+export enum PrefixedPeriodExpression {
+    Yearly = "@yearly",
+    Monthly = "@monthly",
+    Weekly = "@weekly",
+    Daily = "@daily",
+    Hourly = "@hourly",
 }
 
 type EveryPeriod = `@every ${string}`;
@@ -24,6 +24,24 @@ type EveryPeriod = `@every ${string}`;
 // note: This can get crazy, more than TS can really handle.
 type SystemDCronExpression = `${string} ${string} ${string} ${string} ${string} ${string}`;
 
-type Schedule = FixedPeriod | EveryPeriod | SystemDCronExpression;
+type ScheduleString = PrefixedPeriodExpression | EveryPeriod | SystemDCronExpression;
 
-export type JobSchedule = Schedule;
+class Schedule {
+
+    private static readonly IsEveryExpression = /^@every (d+(m?s|m|h))+$/;
+
+    private readonly value: ScheduleString;
+
+    constructor(scheduleString: ScheduleString) {
+        this.value = scheduleString;
+    }
+
+    public get isPrefixedPeriodExpression() {
+      return (
+          Object.values(PrefixedPeriodExpression).includes(this.value as PrefixedPeriodExpression)
+          || this.value.match(Schedule.IsEveryExpression)
+      );
+    }
+}
+
+export type JobSchedule = ScheduleString | Schedule;
