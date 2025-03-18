@@ -16,7 +16,7 @@ limitations under the License.
 
 import IClientJobs from "../../../src/interfaces/Client/IClientJobs";
 
-describe("Jobs", async () => {
+describe("JobsE2E", async () => {
 
     let jobsClient: IClientJobs
 
