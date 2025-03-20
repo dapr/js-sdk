@@ -85,16 +85,14 @@ export class CronExpressionBuilder {
 }
 
 export class CronExpression {
-  private static readonly SecondsAndMinutesRegexText = /.*/;
-  private static readonly HoursRegexText = /.*/;
-  private static readonly DayOfMonthRegexText = /.*/;
-  // (^(\*\/)?((0?\d)|(1[0-2]))$)|(^\*$)|(^((0?\d)|(1[0-2]))(-((0?\d)|(1[0-2]))?)$)|(^(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)(?:-(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC))?(?:,(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)(?:-(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC))?)*$)
-  private static readonly MonthRegexText = /.*/;
-  // \*|(\*\/(0?[0-6])|(0?[0-6](-0?[0-6])?)|((,?(SUN|MON|TUE|WED|THU|FRI|SAT))+)|((SUN|MON|TUE|WED|THU|FRI|SAT)(-(SUN|MON|TUE|WED|THU|FRI|SAT))?))
-  private static readonly DayOfWeekRegexText = /.*/;
+  public static readonly SecondsAndMinutesRegexText = /(?:\*(?:\/[0-5]?\d)?|(?:[0-5]?\d)(?:-(?:[0-5]?\d))?(?:,(?:[0-5]?\d)(?:-(?:[0-5]?\d))?)*)/;
+  public static readonly HoursRegexText = /(?:\*(?:\/(?:[0-1]?\d|2[0-3]))?|(?:[0-1]?\d|2[0-3])(?:-(?:[0-1]?\d|2[0-3]))?(?:,(?:[0-1]?\d|2[0-3])(?:-(?:[0-1]?\d|2[0-3]))?)*)/;
+  public static readonly DayOfMonthRegexText = /(?:\*(?:\/(?:[1-9]|[12]\d|3[01]))?|(?:[1-9]|[12]\d|3[01])(?:-(?:[1-9]|[12]\d|3[01]))?(?:,(?:[1-9]|[12]\d|3[01])(?:-(?:[1-9]|[12]\d|3[01]))?)*)/;
+  public static readonly MonthRegexText = /(?:\*(?:\/(?:0?[1-9]|1[0-2]))?|(?:0?[1-9]|1[0-2])(?:-(?:0?[1-9]|1[0-2]))?(?:,(?:0?[1-9]|1[0-2])(?:-(?:0?[1-9]|1[0-2]))?)*)|(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)(?:-(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC))?(?:,(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)(?:-(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC))?)*/;
+  public static readonly DayOfWeekRegexText = /(?:\*(?:\/[0-6])?|[0-6](?:-[0-6])?(?:,[0-6](?:-[0-6])?)*)|(?:SUN|MON|TUE|WED|THU|FRI|SAT)(?:-(?:SUN|MON|TUE|WED|THU|FRI|SAT))?(?:,(?:SUN|MON|TUE|WED|THU|FRI|SAT)(?:-(?:SUN|MON|TUE|WED|THU|FRI|SAT))?)*/;
 
-  private static readonly cronExpressionRegex = new RegExp(
-    `${CronExpression.SecondsAndMinutesRegexText.source} ${CronExpression.SecondsAndMinutesRegexText.source} ${CronExpression.HoursRegexText.source} ${CronExpression.DayOfMonthRegexText.source} ${CronExpression.MonthRegexText.source} ${CronExpression.DayOfWeekRegexText.source}`,
+  public static readonly cronExpressionRegex = new RegExp(
+    `^(${CronExpression.SecondsAndMinutesRegexText.source})\\s(${CronExpression.SecondsAndMinutesRegexText.source})\\s(${CronExpression.HoursRegexText.source})\\s(${CronExpression.DayOfMonthRegexText.source})\\s(${CronExpression.MonthRegexText.source})\\s(${CronExpression.DayOfWeekRegexText.source})$`,
   );
 
   public static isCronExpression(value: string) {

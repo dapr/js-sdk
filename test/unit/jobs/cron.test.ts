@@ -20,20 +20,66 @@ import {
 } from "../../../src/types/jobs/CronExpression.type";
 
 describe("CRON Expressions", () => {
+
+  it("Seconds and minutes regexes are good", () => {
+    expect(CronExpression.SecondsAndMinutesRegexText.test("*")).toBe(true);
+    expect(CronExpression.SecondsAndMinutesRegexText.test("1")).toBe(true);
+    expect(CronExpression.SecondsAndMinutesRegexText.test("0/5")).toBe(true);
+    expect(CronExpression.SecondsAndMinutesRegexText.test("3-9")).toBe(true);
+    expect(CronExpression.SecondsAndMinutesRegexText.test("2,6,10,14,18,22")).toBe(true);
+  });
+
+  it("Hours regex is good", () => {
+    expect(CronExpression.HoursRegexText.test("*")).toBe(true);
+    expect(CronExpression.HoursRegexText.test("1")).toBe(true);
+    expect(CronExpression.HoursRegexText.test("0/5")).toBe(true);
+    expect(CronExpression.HoursRegexText.test("3-9")).toBe(true);
+    expect(CronExpression.HoursRegexText.test("2,6,10,14,18,22")).toBe(true);
+  });
+
+  it("Day of month regex is good", () => {
+    expect(CronExpression.DayOfMonthRegexText.test("*")).toBe(true);
+    expect(CronExpression.DayOfMonthRegexText.test("1")).toBe(true);
+    expect(CronExpression.DayOfMonthRegexText.test("0/5")).toBe(true);
+    expect(CronExpression.DayOfMonthRegexText.test("3-9")).toBe(true);
+    expect(CronExpression.DayOfMonthRegexText.test("2,6,10,14,18,22")).toBe(true);
+  });
+
+  it("Month regex is good", () => {
+    expect(CronExpression.MonthRegexText.test("*")).toBe(true);
+    expect(CronExpression.MonthRegexText.test("1")).toBe(true);
+    expect(CronExpression.MonthRegexText.test("0/5")).toBe(true);
+    expect(CronExpression.MonthRegexText.test("3-9")).toBe(true);
+    expect(CronExpression.MonthRegexText.test("3-9")).toBe(true);
+    expect(CronExpression.MonthRegexText.test("2,6,10")).toBe(true);
+  });
+
+  it("Day of week regex is good", () => {
+    expect(CronExpression.DayOfWeekRegexText.test("*")).toBe(true);
+    expect(CronExpression.DayOfWeekRegexText.test("1")).toBe(true);
+    expect(CronExpression.DayOfWeekRegexText.test("0/5")).toBe(true);
+    expect(CronExpression.DayOfWeekRegexText.test("3-7")).toBe(true);
+    expect(CronExpression.DayOfWeekRegexText.test("2,6,3")).toBe(true);
+  });
+
+  it("Every second string is valid", () => {
+    expect(CronExpression.isCronExpression("* * * * * *")).toBe(true);
+  });
+
   it("Every minute string is valid", () => {
-    expect(CronExpression.isCronExpression("* * * * *")).toBe(true);
+    expect(CronExpression.isCronExpression("0 * * * * *")).toBe(true);
   });
 
   it("Every hour string is valid", () => {
-    expect(CronExpression.isCronExpression("0 * * * *")).toBe(true);
+    expect(CronExpression.isCronExpression("0 0 * * * *")).toBe(true);
   });
 
   it("Every third hour on Mondays string is valid", () => {
-    expect(CronExpression.isCronExpression("0 */3 * * 1")).toBe(true);
+    expect(CronExpression.isCronExpression("0 0 */3 * * 1")).toBe(true);
   });
 
   it("A fairly complicated string is valid", () => {
-    expect(CronExpression.isCronExpression("0/5 2,6,10,14,18,22 8-14 * 1")).toBe(true);
+    expect(CronExpression.isCronExpression("*/5 2,6,10 8-14 * 1 *")).toBe(true);
   });
 
   it("On second results in matching cron string", () => {
@@ -94,9 +140,9 @@ describe("CRON Expressions", () => {
   });
 
   it("Through hours should create a valid cron string", () => {
-    const cronExpression = CronExpressionBuilder.through(CronPeriod.Hour, 13, 42).toString();
+    const cronExpression = CronExpressionBuilder.through(CronPeriod.Hour, 13, 15).toString();
 
-    expect(cronExpression).toEqual("* * 13-42 * * *");
+    expect(cronExpression).toEqual("* * 13-15 * * *");
   });
 
   it("Through days of the month should create a valid cron string", () => {
@@ -138,7 +184,7 @@ describe("CRON Expressions", () => {
   });
 
   it("Bad through hours order should fail", () => {
-    const cronExpressionThrow = () => CronExpressionBuilder.through(CronPeriod.Hour, 59, 14).toString();
+    const cronExpressionThrow = () => CronExpressionBuilder.through(CronPeriod.Hour, 23, 14).toString();
 
     expect(cronExpressionThrow).toThrow();
   });
