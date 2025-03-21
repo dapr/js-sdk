@@ -13,7 +13,7 @@ limitations under the License.
 
 import { CronExpression, CronExpressionString } from "./CronExpression.type";
 
-export enum PeriodConstant {
+export enum Period {
     Yearly = "@yearly",
     Monthly = "@monthly",
     Weekly = "@weekly",
@@ -46,9 +46,9 @@ class EveryExpression {
     }
 }
 
-export type Schedule = PeriodConstant | EveryExpression | EveryExpressionString | CronExpression | CronExpressionString;
+export type Schedule = Period | EveryExpression | EveryExpressionString | CronExpression | CronExpressionString;
 
-export class ScheduleUnboxer {
+export class BoxedSchedule {
 
     private readonly value: Schedule | null;
 
