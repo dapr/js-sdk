@@ -15,7 +15,7 @@ import IClientJobs from "../../../interfaces/Client/IClientJobs";
 import HTTPClient from "./HTTPClient";
 import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type";
 import { Job } from "../../../types/jobs/Job.type";
-import { Schedule, ScheduleUnboxer } from "../../../types/jobs/JobSchedule.type";
+import { Schedule, BoxedSchedule } from "../../../types/jobs/JobSchedule.type";
 
 export default class HTTPClientJobs implements IClientJobs {
 
@@ -33,7 +33,7 @@ export default class HTTPClientJobs implements IClientJobs {
     ttl: string | null = null,
   ): Promise<void> {
 
-    const boxedSchedule = new ScheduleUnboxer(schedule);
+    const boxedSchedule = new BoxedSchedule(schedule);
 
     await this.httpClient.executeWithApiVersion(HTTPClientJobs.ApiVersion, `/${HTTPClientJobs.Path}/${jobName}`, {
       method: "POST",

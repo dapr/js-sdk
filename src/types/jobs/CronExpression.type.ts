@@ -23,9 +23,11 @@ export enum CronPeriod {
   Month,
 }
 
-export type SecondOrMinuteValue = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40 | 41 | 42 | 43 | 44 | 45 | 46 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 | 56 | 57 | 58 | 59;
-export type HourValue = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23;
+export type SecondOrMinute = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40 | 41 | 42 | 43 | 44 | 45 | 46 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 | 56 | 57 | 58 | 59;
+export type Hour = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23;
 export type DayOfMonth = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31;
+export type DayOfWeekNumber = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+export type MonthNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 
 export enum DayOfWeek {
   Sunday = "SUN",
@@ -36,6 +38,8 @@ export enum DayOfWeek {
   Friday = "FRI",
   Saturday = "SAT",
 }
+
+export type DayOfWeekValue = DayOfWeek | DayOfWeekNumber;
 
 export enum Month {
   January = "JAN",
@@ -52,35 +56,53 @@ export enum Month {
   December = "DEC",
 }
 
+export type MonthValue = Month | MonthNumber;
+
 export class CronExpressionBuilder {
   public static on(
     period: CronPeriod.Second,
-    ...values: (SecondOrMinuteValue[] | SecondOrMinuteValue)[]
+    ...values: (SecondOrMinute[] | SecondOrMinute)[]
   ): CronExpression;
   public static on(
     period: CronPeriod.Minute,
-    ...values: (SecondOrMinuteValue[] | SecondOrMinuteValue)[]
+    ...values: (SecondOrMinute[] | SecondOrMinute)[]
   ): CronExpression;
-  public static on(period: CronPeriod.Hour, ...values: (HourValue[] | HourValue)[]): CronExpression;
-  public static on(period: CronPeriod.DayOfWeek, ...values: (DayOfWeek[] | DayOfWeek)[]): CronExpression;
+  public static on(period: CronPeriod.Hour, ...values: (Hour[] | Hour)[]): CronExpression;
+  public static on(period: CronPeriod.DayOfWeek, ...values: (DayOfWeekValue[] | DayOfWeekValue)[]): CronExpression;
   public static on(period: CronPeriod.DayOfMonth, ...values: (DayOfMonth[] | DayOfMonth)[]): CronExpression;
-  public static on(period: CronPeriod.Month, ...values: (Month[] | Month)[]): CronExpression;
+  public static on(period: CronPeriod.Month, ...values: (MonthValue[] | MonthValue)[]): CronExpression;
   public static on(period: any, ...values: (any[] | any)[]) {
     return new CronExpression().on(period, values.flat());
   }
 
-  public static through(period: CronPeriod.Second, from: SecondOrMinuteValue, to: SecondOrMinuteValue): CronExpression;
-  public static through(period: CronPeriod.Minute, from: SecondOrMinuteValue, to: SecondOrMinuteValue): CronExpression;
-  public static through(period: CronPeriod.Hour, from: HourValue, to: HourValue): CronExpression;
-  public static through(period: CronPeriod.DayOfWeek, from: DayOfWeek, to: DayOfWeek): CronExpression;
+  public static through(period: CronPeriod.Second, from: SecondOrMinute, to: SecondOrMinute): CronExpression;
+  public static through(period: CronPeriod.Minute, from: SecondOrMinute, to: SecondOrMinute): CronExpression;
+  public static through(period: CronPeriod.Hour, from: Hour, to: Hour): CronExpression;
+  public static through(period: CronPeriod.DayOfWeek, from: DayOfWeekValue, to: DayOfWeekValue): CronExpression;
   public static through(period: CronPeriod.DayOfMonth, from: DayOfMonth, to: DayOfMonth): CronExpression;
-  public static through(period: CronPeriod.Month, from: Month, to: Month): CronExpression;
-  public static through(period: any, from: any, to: any) {
+  public static through(period: CronPeriod.Month, from: MonthValue, to: MonthValue): CronExpression;
+  public static through(period: any, from: any, to: any): CronExpression {
     return new CronExpression().through(period, from, to);
   }
 
-  public static every(period: CronPeriod) {
-    return new CronExpression().every(period);
+  public static each(period: CronPeriod.Second): CronExpression;
+  public static each(period: CronPeriod.Minute): CronExpression;
+  public static each(period: CronPeriod.Hour): CronExpression;
+  public static each(period: CronPeriod.DayOfWeek): CronExpression;
+  public static each(period: CronPeriod.DayOfMonth): CronExpression;
+  public static each(period: CronPeriod.Month): CronExpression;
+  public static each(period: any) {
+    return new CronExpression().each(period);
+  }
+
+  public static every(period: CronPeriod.Second, interval: SecondOrMinute): CronExpression;
+  public static every(period: CronPeriod.Minute, interval: SecondOrMinute): CronExpression;
+  public static every(period: CronPeriod.Hour, interval: Hour): CronExpression;
+  public static every(period: CronPeriod.DayOfWeek, interval: DayOfWeekValue): CronExpression;
+  public static every(period: CronPeriod.DayOfMonth, interval: DayOfMonth): CronExpression;
+  public static every(period: CronPeriod.Month, interval: MonthValue): CronExpression;
+  public static every(period: any, interval: any) {
+    return new CronExpression().every(period, interval);
   }
 }
 
@@ -106,12 +128,12 @@ export class CronExpression {
   private month = "*";
   private dayOfWeek = "*";
 
-  public on(period: CronPeriod.Second, ...values: (SecondOrMinuteValue[] | SecondOrMinuteValue)[]): this;
-  public on(period: CronPeriod.Minute, ...values: (SecondOrMinuteValue[] | SecondOrMinuteValue)[]): this;
-  public on(period: CronPeriod.Hour, ...values: (HourValue[] | HourValue)[]): this;
-  public on(period: CronPeriod.DayOfWeek, ...values: (DayOfWeek[] | DayOfWeek)[]): this;
+  public on(period: CronPeriod.Second, ...values: (SecondOrMinute[] | SecondOrMinute)[]): this;
+  public on(period: CronPeriod.Minute, ...values: (SecondOrMinute[] | SecondOrMinute)[]): this;
+  public on(period: CronPeriod.Hour, ...values: (Hour[] | Hour)[]): this;
+  public on(period: CronPeriod.DayOfWeek, ...values: (DayOfWeekValue[] | DayOfWeekValue)[]): this;
   public on(period: CronPeriod.DayOfMonth, ...values: (DayOfMonth[] | DayOfMonth)[]): this;
-  public on(period: CronPeriod.Month, ...values: (Month[] | Month)[]): this;
+  public on(period: CronPeriod.Month, ...values: (MonthValue[] | MonthValue)[]): this;
   public on(period: any, ...values: (any[] | any)[]): this {
     const fixedValues = values.flat();
 
@@ -139,13 +161,13 @@ export class CronExpression {
     return this;
   }
 
-  public through(period: CronPeriod.Second, from: SecondOrMinuteValue, to: SecondOrMinuteValue): CronExpression;
-  public through(period: CronPeriod.Minute, from: SecondOrMinuteValue, to: SecondOrMinuteValue): CronExpression;
-  public through(period: CronPeriod.Hour, from: SecondOrMinuteValue, to: SecondOrMinuteValue): CronExpression;
-  public through(period: CronPeriod.DayOfWeek, from: DayOfWeek, to: DayOfWeek): CronExpression;
+  public through(period: CronPeriod.Second, from: SecondOrMinute, to: SecondOrMinute): CronExpression;
+  public through(period: CronPeriod.Minute, from: SecondOrMinute, to: SecondOrMinute): CronExpression;
+  public through(period: CronPeriod.Hour, from: SecondOrMinute, to: SecondOrMinute): CronExpression;
+  public through(period: CronPeriod.DayOfWeek, from: DayOfWeekValue, to: DayOfWeekValue): CronExpression;
   public through(period: CronPeriod.DayOfMonth, from: DayOfMonth, to: DayOfMonth): CronExpression;
-  public through(period: CronPeriod.Month, from: Month, to: Month): CronExpression;
-  public through(period: any, from: any, to: any) {
+  public through(period: CronPeriod.Month, from: MonthValue, to: MonthValue): CronExpression;
+  public through(period: any, from: any, to: any): this {
     switch (period) {
       case CronPeriod.Second:
         this.seconds = this.prepareSecondOrMinuteValueRange(from, to);
@@ -170,7 +192,13 @@ export class CronExpression {
     return this;
   }
 
-  public every(period: CronPeriod): this {
+  public each(period: CronPeriod.Second): this;
+  public each(period: CronPeriod.Minute): this;
+  public each(period: CronPeriod.Hour): this;
+  public each(period: CronPeriod.DayOfWeek): this;
+  public each(period: CronPeriod.DayOfMonth): this;
+  public each(period: CronPeriod.Month): this;
+  public each(period: any): this {
     switch (period) {
       case CronPeriod.Second:
         this.seconds = "*";
@@ -194,11 +222,44 @@ export class CronExpression {
     return this;
   }
 
+  public every(period: CronPeriod.Second, interval: SecondOrMinute): this;
+  public every(period: CronPeriod.Minute, interval: SecondOrMinute): this;
+  public every(period: CronPeriod.Hour, interval: Hour): this;
+  public every(period: CronPeriod.DayOfWeek, interval: DayOfWeekValue): this;
+  public every(period: CronPeriod.DayOfMonth, interval: DayOfMonth): this;
+  public every(period: CronPeriod.Month, interval: MonthValue): this;
+  public every(period: any, interval: any): this {
+
+    const intervalValue = `*/${interval}`;
+
+    switch (period) {
+      case CronPeriod.Second:
+        this.seconds = intervalValue;
+        break;
+      case CronPeriod.Minute:
+        this.minutes = intervalValue;
+        break;
+      case CronPeriod.Hour:
+        this.hours = intervalValue;
+        break;
+      case CronPeriod.DayOfWeek:
+        this.dayOfWeek = intervalValue;
+        break;
+      case CronPeriod.DayOfMonth:
+        this.dayOfMonth = intervalValue;
+        break;
+      case CronPeriod.Month:
+        this.month = intervalValue;
+        break;
+    }
+    return this;
+  }
+
   public toString(): CronExpressionString {
     return `${this.seconds} ${this.minutes} ${this.hours} ${this.dayOfMonth} ${this.month} ${this.dayOfWeek}`;
   }
 
-  private prepareSecondOrMinuteValueRange(from: SecondOrMinuteValue, to: SecondOrMinuteValue) {
+  private prepareSecondOrMinuteValueRange(from: SecondOrMinute, to: SecondOrMinute) {
     if (from >= to) throw new Error("Invalid range: 'from' must be less than 'to'");
 
     if ([from, to].some((v) => v < 0 || v > 59))
@@ -207,7 +268,7 @@ export class CronExpression {
     return `${from}-${to}`;
   }
 
-  private prepareHourValueRange(from: HourValue, to: HourValue) {
+  private prepareHourValueRange(from: Hour, to: Hour) {
     if (from >= to) throw new Error("Invalid range: 'from' must be less than 'to'");
 
     if ([from, to].some((v) => v < 0 || v > 23))
@@ -225,28 +286,36 @@ export class CronExpression {
     return `${from}-${to}`;
   }
 
-  private prepareMonthValueRange(from: Month, to: Month) {
-    if (Object.values(Month).indexOf(from) >= Object.values(Month).indexOf(to))
+  private prepareMonthValueRange(from: MonthValue, to: MonthValue) {
+    if (typeof(from) !== "number" && typeof(to) !== "number" && Object.values(Month).indexOf(from) >= Object.values(Month).indexOf(to))
       throw new Error("Invalid range: 'from' must be less than 'to'");
 
     return `${from}-${to}`;
   }
 
-  private prepareDayOfWeekValueRange(from: DayOfWeek, to: DayOfWeek) {
-    if (Object.values(DayOfWeek).indexOf(from) >= Object.values(DayOfWeek).indexOf(to))
+  private prepareDayOfWeekValueRange(from: DayOfWeekValue, to: DayOfWeekValue) {
+    if (typeof(from) !== "number" && typeof(to) !== "number" && Object.values(DayOfWeek).indexOf(from) >= Object.values(DayOfWeek).indexOf(to))
       throw new Error("Invalid range: 'from' must be less than 'to'");
 
     return `${from}-${to}`;
   }
 
-  private prepareSecondOrMinuteValueList(timeValues: SecondOrMinuteValue[]) {
+  private prepareSecondOrMinuteValueList(timeValues: SecondOrMinute[]) {
+
+    if (! timeValues.length)
+      throw new Error("Empty time value provided.");
+
     if (timeValues.some((v) => v < 0 || v > 59))
       throw new RangeError("Time values must be within 0 and 59, inclusive.");
 
     return [...timeValues].sort((a, b) => a - b).join(",");
   }
 
-  private prepareHourValueList(timeValues: HourValue[]) {
+  private prepareHourValueList(timeValues: Hour[]) {
+
+    if (! timeValues.length)
+      throw new Error("Empty hour value provided.");
+
     if (timeValues.some((v) => v < 0 || v > 23))
       throw new RangeError("Hour values must be within 0 and 23, inclusive.");
 
@@ -254,6 +323,10 @@ export class CronExpression {
   }
 
   private prepareDayOfMonthValueList(dayOfMonthValues: DayOfMonth[]) {
+
+    if (! dayOfMonthValues.length || dayOfMonthValues.some((v) => ! v))
+      throw new Error("Empty day of month value provided.");
+
     if (dayOfMonthValues.some((v) => v < 1 || v > 31))
       throw new RangeError("Day of month values must be within 1 and 31, inclusive.");
 
@@ -261,13 +334,21 @@ export class CronExpression {
   }
 
   private prepareMonthValueList(monthValues: Month[]) {
+
+    if (! monthValues.length || monthValues.some((v) => ! v))
+      throw new Error("Empty month value provided.");
+
     return [...monthValues]
       .sort((left, right) => Object.values(Month).indexOf(left) - Object.values(Month).indexOf(right))
       .join(",");
   }
 
-  private prepareDayOfWeekValueList(dayValues: DayOfWeek[]) {
-    return [...dayValues]
+  private prepareDayOfWeekValueList(dayOfWeekValues: DayOfWeek[]) {
+
+    if (! dayOfWeekValues.length || dayOfWeekValues.some((v) => ! v))
+      throw new Error("Empty month value provided.");
+
+    return [...dayOfWeekValues]
       .sort((left, right) => Object.values(DayOfWeek).indexOf(left) - Object.values(DayOfWeek).indexOf(right))
       .join(",");
   }

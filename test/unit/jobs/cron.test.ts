@@ -219,9 +219,9 @@ describe("CRON Expressions", () => {
     const cronExpression = CronExpressionBuilder
         .on(CronPeriod.Month, [Month.December, Month.January])
         .on(CronPeriod.DayOfWeek, DayOfWeek.Wednesday)
-        .every(CronPeriod.DayOfWeek)
+        .every(CronPeriod.DayOfWeek, DayOfWeek.Sunday)
         .toString();
 
-    expect(cronExpression).toEqual("* * * * JAN,DEC *");
+    expect(cronExpression).toEqual("* * * * JAN,DEC */SUN");
   });
 });
