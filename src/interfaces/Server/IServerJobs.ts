@@ -11,10 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { TypeDaprJobsCallback } from "../../types/DaprJobsCallback.type";
-
 export default interface IServerJobs {
-  listen(jobName: string, callback: TypeDaprJobsCallback): void;
-
-  listen<DataType>(jobName: string, callback: TypeDaprJobsCallback<DataType>): void;
+  listen(jobName: string, callback: (data: any) => unknown): void;
+  listen<DataType>(jobName: string, callback: (data: DataType) => unknown): void;
 }

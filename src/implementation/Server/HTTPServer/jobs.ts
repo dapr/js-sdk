@@ -13,12 +13,11 @@ limitations under the License.
 
 import IServerJobs from "../../../interfaces/Server/IServerJobs";
 import HTTPServer from "./HTTPServer";
-import { TypeDaprJobsCallback } from "../../../types/DaprJobsCallback.type";
 
 export default class HTTPServerJobs implements IServerJobs {
   constructor(private readonly httpServer: HTTPServer) {}
 
-  listen<DataType>(jobName: string, callback: TypeDaprJobsCallback<DataType>): void {
-    this.httpServer.getServer().post(`/job/${jobName}`, callback);
+  listen<DataType>(jobName: string, callback: (data: DataType) => unknown): void {
+    this.httpServer.getServer().post(`/job/${jobName}`, (request) => callback(request.body));
   }
 }

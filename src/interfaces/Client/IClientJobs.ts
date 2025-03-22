@@ -11,17 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { JobSchedule } from "../../types/jobs/JobSchedule.type";
+import { Schedule } from "../../types/jobs/JobSchedule.type";
 import { Job } from "../../types/jobs/Job.type";
 
 export default interface IClientJobs {
   schedule(
     jobName: string,
     data: object | string,
-    schedule: JobSchedule | null,
-    dueTime: string | Date | null,
-    repeats: number | null,
-    ttl: string | null,
+    schedule?: Schedule | null,
+    dueTime?: string | Date | null,
+    repeats?: number | null,
+    ttl?: string | null,
   ): Promise<void>;
 
   get(jobName: string): Promise<Job>;
