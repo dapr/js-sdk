@@ -16,6 +16,7 @@ import IServerPubSub from "../../interfaces/Server/IServerPubSub";
 import IServerBinding from "../../interfaces/Server/IServerBinding";
 import IServerInvoker from "../../interfaces/Server/IServerInvoker";
 import IServerActor from "../../interfaces/Server/IServerActor";
+import IServerJobs from "../../interfaces/Server/IServerJobs";
 
 import CommunicationProtocolEnum from "../../enum/CommunicationProtocol.enum";
 import GRPCServer from "./GRPCServer/GRPCServer";
@@ -23,16 +24,21 @@ import GRPCServerPubSub from "./GRPCServer/pubsub";
 import GRPCServerBinding from "./GRPCServer/binding";
 import GRPCServerInvoker from "./GRPCServer/invoker";
 import GRPCServerActor from "./GRPCServer/actor";
+import GRPCServerJobs from "./GRPCServer/jobs";
 
 import HTTPServer from "./HTTPServer/HTTPServer";
 import HTTPServerPubSub from "./HTTPServer/pubsub";
 import HTTPServerBinding from "./HTTPServer/binding";
 import HTTPServerInvoker from "./HTTPServer/invoker";
 import HTTPServerActor from "./HTTPServer/actor";
+import HTTPServerJobs from "./HTTPServer/jobs";
+
 import { Settings } from "../../utils/Settings.util";
 import { DaprServerOptions } from "../../types/DaprServerOptions";
 import DaprClient from "../Client/DaprClient";
 import { getClientOptions } from "../../utils/Client.util";
+
+
 
 export default class DaprServer {
   // App details
@@ -43,6 +49,7 @@ export default class DaprServer {
   readonly binding: IServerBinding;
   readonly invoker: IServerInvoker;
   readonly actor: IServerActor;
+  readonly jobs: IServerJobs;
   readonly client: DaprClient;
 
   constructor(serverOptions: Partial<DaprServerOptions> = {}) {
@@ -90,6 +97,7 @@ export default class DaprServer {
         this.binding = new GRPCServerBinding(server);
         this.invoker = new GRPCServerInvoker(server);
         this.actor = new GRPCServerActor(server);
+        this.jobs = new GRPCServerJobs(server);
         break;
       }
       case CommunicationProtocolEnum.HTTP:
@@ -101,6 +109,7 @@ export default class DaprServer {
         this.binding = new HTTPServerBinding(server);
         this.invoker = new HTTPServerInvoker(server);
         this.actor = new HTTPServerActor(server, this.client);
+        this.jobs = new HTTPServerJobs(server);
         break;
       }
     }
