@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { Schedule } from "../../types/jobs/JobSchedule.type";
+import { Schedule } from "../../types/jobs/Schedule.type";
 import { Job } from "../../types/jobs/Job.type";
 
 export default interface IClientJobs {

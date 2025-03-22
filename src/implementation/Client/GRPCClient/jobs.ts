@@ -16,7 +16,7 @@ limitations under the License.
 
 import IClientJobs from "../../../interfaces/Client/IClientJobs";
 import GRPCClient from "./GRPCClient";
-import { Schedule } from "../../../types/jobs/JobSchedule.type";
+import { Schedule } from "../../../types/jobs/Schedule.type";
 import { Job } from "../../../types/jobs/Job.type";
 
 

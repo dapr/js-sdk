@@ -15,7 +15,7 @@ import IClientJobs from "../../../interfaces/Client/IClientJobs";
 import HTTPClient from "./HTTPClient";
 import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type";
 import { Job } from "../../../types/jobs/Job.type";
-import { Schedule, BoxedSchedule } from "../../../types/jobs/JobSchedule.type";
+import { Schedule, BoxedSchedule } from "../../../types/jobs/Schedule.type";
 
 export default class HTTPClientJobs implements IClientJobs {
 

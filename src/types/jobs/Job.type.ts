@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 
-import { Schedule } from "./JobSchedule.type";
+import { Schedule } from "./Schedule.type";
 
 export interface Job<DataType = object | string> {
   name: string;
