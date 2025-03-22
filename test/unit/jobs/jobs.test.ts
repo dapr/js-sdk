@@ -13,7 +13,7 @@ limitations under the License.
 
 import HTTPClient from "../../../src/implementation/Client/HTTPClient/HTTPClient";
 import HTTPClientJobs from "../../../src/implementation/Client/HTTPClient/jobs";
-import { Period } from "../../../src/types/jobs/JobSchedule.type";
+import { Period } from "../../../src/types/jobs/Schedule.type";
 import { CronExpressionBuilder, CronPeriod, Month } from "../../../src/types/jobs/CronExpression.type";
 
 jest.mock("../../../src/implementation/Client/HTTPClient/HTTPClient");
