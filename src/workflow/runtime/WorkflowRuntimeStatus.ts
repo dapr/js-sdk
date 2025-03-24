@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { OrchestrationStatus } from "@microsoft/durabletask-js/orchestration/enum/orchestration-status.enum";
+import { OrchestrationStatus } from "@dapr/durabletask-js/orchestration/enum/orchestration-status.enum";
 
 /**
  * Enum describing the runtime status of a workflow.

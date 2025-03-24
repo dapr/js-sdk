@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { TaskHubGrpcClient } from "@microsoft/durabletask-js";
+import { TaskHubGrpcClient } from "@dapr/durabletask-js";
 import { WorkflowState } from "./WorkflowState";
 import { generateApiTokenClientInterceptors, generateEndpoint, getDaprApiToken } from "../internal/index";
 import { TWorkflow } from "../../types/workflow/Workflow.type";
@@ -191,6 +191,23 @@ export default class DaprWorkflowClient {
       return purgeResult.deletedInstanceCount > 0;
     }
     return false;
+  }
+
+  /**
+   * This method suspends a workflow instance, halting processing of it until resumeWorkflow is used to
+   * resume the workflow.
+   * @param {string} workflowInstanceId - The unique identifier of the workflow instance to suspend.
+   */
+  public async suspendWorkflow(workflowInstanceId: string): Promise<void> {
+    return await this._innerClient.suspendOrchestration(workflowInstanceId);
+  }
+
+  /**
+   * This method resumes a workflow instance that was suspended via suspendWorkflow.
+   * @param {string} workflowInstanceId - The unique identifier of the workflow instance to resume.
+   */
+  public async resumeWorkflow(workflowInstanceId: string): Promise<void> {
+    return await this._innerClient.resumeOrchestration(workflowInstanceId);
   }
 
   /**

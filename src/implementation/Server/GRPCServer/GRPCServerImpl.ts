@@ -208,7 +208,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
       return;
     }
 
-    const [topic, route] = this.subscriptionManager.lookupTopicWilcard(pubsub, req.getTopic(), req.getPath());
+    const [topic, route] = this.subscriptionManager.lookupTopicWildcard(pubsub, req.getTopic(), req.getPath());
     if (topic == "") {
       this.logger.warn(`Topic '${topic}' has not been subscribed to pubsub '${pubsub}', ignoring event.`);
       return;
@@ -267,7 +267,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
       return;
     }
 
-    const [topic, route] = this.subscriptionManager.lookupTopicWilcard(pubsub, req.getTopic(), req.getPath());
+    const [topic, route] = this.subscriptionManager.lookupTopicWildcard(pubsub, req.getTopic(), req.getPath());
     if (topic == "") {
       this.logger.warn(`Topic '${topic}' has not been subscribed to pubsub '${pubsub}', ignoring bulk event.`);
       return;

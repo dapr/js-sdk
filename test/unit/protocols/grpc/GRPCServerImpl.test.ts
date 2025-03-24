@@ -58,7 +58,7 @@ describe("GRPCServerImpl", () => {
       // @ts-ignore
       g.subscriptionManager = {
         isPubSubRegistered: () => true,
-        lookupTopicWilcard: () => ["", ""],
+        lookupTopicWildcard: () => ["", ""],
       };
 
       await g.onTopicEvent(
@@ -111,7 +111,7 @@ describe("GRPCServerImpl", () => {
       // @ts-ignore
       g.subscriptionManager = {
         isPubSubRegistered: () => true,
-        lookupTopicWilcard: () => ["", ""],
+        lookupTopicWildcard: () => ["", ""],
       };
 
       await g.onBulkTopicEventAlpha1(
