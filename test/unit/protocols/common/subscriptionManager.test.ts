@@ -17,7 +17,7 @@ describe("subscriptionManager", () => {
   describe("lookupTopicWildcard", () => {
     it("should return an empty topic and route if the pubsub is not registered", () => {
       const sm = new SubscriptionManager();
-      const res = sm.lookupTopicWilcard("pubsub", "topic", "route");
+      const res = sm.lookupTopicWildcard("pubsub", "topic", "route");
 
       expect(res[0]).toEqual("");
       expect(res[1]).toEqual("");
@@ -27,7 +27,7 @@ describe("subscriptionManager", () => {
       const sm = new SubscriptionManager();
       sm.registerSubscription("pubsub", "topic", {});
 
-      const res = sm.lookupTopicWilcard("pubsub", "topic-undefined", "route");
+      const res = sm.lookupTopicWildcard("pubsub", "topic-undefined", "route");
 
       expect(res[0]).toEqual("");
       expect(res[1]).toEqual("");
