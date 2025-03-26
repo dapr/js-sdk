@@ -19,7 +19,8 @@ import { Settings } from "../../../utils/Settings.util";
 import { Logger } from "../../../logger/Logger";
 import GRPCClientSidecar from "./sidecar";
 import DaprClient from "../DaprClient";
-import { SDK_VERSION } from "../../../version";
+// @ts-ignore
+import { version as SDK_VERSION } from "../../../../package.json";
 import communicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
 import { GrpcEndpoint } from "../../../network/GrpcEndpoint";
 
