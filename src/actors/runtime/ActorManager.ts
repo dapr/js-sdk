@@ -12,6 +12,7 @@ limitations under the License.
 */
 
 import DaprClient from "../../implementation/Client/DaprClient";
+import { Logger } from "../../logger/Logger";
 import Class from "../../types/Class";
 import ActorId from "../ActorId";
 import AbstractActor from "./AbstractActor";
@@ -23,11 +24,17 @@ import BufferSerializer from "./BufferSerializer";
  * The Actor Manager manages actor objects of a specific actor type
  */
 const REMINDER_METHOD_NAME = "receiveReminder"; // the callback method name for the reminder
+export enum DeactivateResult {
+  Success,
+  ActorDoesNotExist,
+  Error,
+}
 
 export default class ActorManager<T extends AbstractActor> {
   readonly actorCls: Class<T>;
   readonly daprClient: DaprClient;
   readonly serializer: BufferSerializer = new BufferSerializer();
+  readonly logger: Logger;
 
   actors: Map<string, T>;
 
@@ -39,6 +46,7 @@ export default class ActorManager<T extends AbstractActor> {
     this.daprClient = daprClient;
     this.actorCls = actorCls;
 
+    this.logger = new Logger("Actors", "ActorManager", daprClient.options.logger);
     this.actors = new Map<string, T>();
 
     // @todo: we need to make sure race condition cannot happen when accessing the active actors
@@ -71,20 +79,22 @@ export default class ActorManager<T extends AbstractActor> {
     this.actors.set(actorId.getId(), actor);
   }
 
-  async deactivateActor(actorId: ActorId): Promise<void> {
-    if (!this.actors.has(actorId.getId())) {
-      throw new Error(
-        JSON.stringify({
-          error: "ACTOR_NOT_ACTIVATED",
-          errorMsg: `The actor ${actorId.getId()} was not activated`,
-        }),
-      );
+  async deactivateActor(actorId: ActorId): Promise<DeactivateResult> {
+    if (this.actors.has(actorId.getId())) {
+      try {
+        const actor = await this.getActiveActor(actorId);
+        await actor.onDeactivateInternal();
+        return DeactivateResult.Success;
+      } catch (error) {
+        this.logger.error("Error encountered deactivating actor");
+      } finally {
+        this.actors.delete(actorId.getId());
+      }
+      return DeactivateResult.Error;
+    } else {
+      this.logger.warn(`The actor ${actorId.getId()} was not activated`);
+      return DeactivateResult.ActorDoesNotExist;
     }
-
-    const actor = await this.getActiveActor(actorId);
-    await actor.onDeactivateInternal();
-
-    this.actors.delete(actorId.getId());
   }
 
   async getActiveActor(actorId: ActorId): Promise<T> {
