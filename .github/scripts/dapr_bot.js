@@ -26,6 +26,7 @@ const owners = [
   "XavierGeerinck",
   "amulyavarote",
   "shubham1172",
+  "whitwaldo"
 ];
 
 /**

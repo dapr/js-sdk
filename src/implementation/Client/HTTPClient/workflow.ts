@@ -26,24 +26,20 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
   private readonly client: HTTPClient;
   private readonly logger: Logger;
 
-  private static readonly DEFAULT_WORKFLOW_COMPONENT = "dapr";
-
   constructor(client: HTTPClient) {
     this.client = client;
     this.logger = new Logger("HTTPClient", "Workflow", client.options.logger);
   }
 
-  async get(instanceID: string, workflowComponent?: string): Promise<WorkflowGetResponseType> {
+  async get(instanceID: string): Promise<WorkflowGetResponseType> {
     if (!instanceID) {
       throw new PropertyRequiredError("instanceID");
     }
 
-    workflowComponent = workflowComponent ?? HTTPClientWorkflow.DEFAULT_WORKFLOW_COMPONENT;
-
     try {
       const result = await this.client.executeWithApiVersion(
         "v1.0-beta1",
-        `/workflows/${workflowComponent}/${instanceID}`,
+        `/workflows/dapr/${instanceID}`,
         { method: "GET" },
       );
 
@@ -73,7 +69,6 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     workflowName: string,
     input?: any,
     instanceId?: string | undefined,
-    workflowComponent?: string | undefined,
     options: WorkflowStartOptions = {},
   ): Promise<string> {
     if (!workflowName) {
@@ -83,8 +78,6 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     if (!instanceId) {
       instanceId = randomUUID();
     }
-
-    workflowComponent = workflowComponent ?? HTTPClientWorkflow.DEFAULT_WORKFLOW_COMPONENT;
 
     const queryParams = createHTTPQueryParam({ data: { instanceID: instanceId } });
 
@@ -98,7 +91,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     try {
       await this.client.executeWithApiVersion(
         "v1.0-beta1",
-        `/workflows/${workflowComponent}/${workflowName}/start?${queryParams}`,
+        `/workflows/dapr/${workflowName}/start?${queryParams}`,
         {
           method: "POST",
           body: input,
@@ -117,7 +110,6 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     instanceId: string,
     eventName: string,
     eventData?: any,
-    workflowComponent?: string | undefined,
     options: WorkflowRaiseOptions = {},
   ): Promise<void> {
     if (!instanceId) {
@@ -127,8 +119,6 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     if (!eventName) {
       throw new PropertyRequiredError("eventName");
     }
-
-    workflowComponent = workflowComponent ?? HTTPClientWorkflow.DEFAULT_WORKFLOW_COMPONENT;
 
     // Set content type if provided.
     // If not, HTTPClient will infer it from the data.
@@ -140,7 +130,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     try {
       await this.client.executeWithApiVersion(
         "v1.0-beta1",
-        `/workflows/${workflowComponent}/${instanceId}/raiseEvent/${eventName}`,
+        `/workflows/dapr/${instanceId}/raiseEvent/${eventName}`,
         {
           method: "POST",
           body: eventData,
@@ -153,23 +143,23 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     }
   }
 
-  async terminate(instanceId: string, workflowComponent?: string | undefined): Promise<void> {
-    await this._invokeMethod(instanceId, "terminate", workflowComponent);
+  async terminate(instanceId: string): Promise<void> {
+    await this._invokeMethod(instanceId, "terminate");
   }
 
-  async pause(instanceId: string, workflowComponent?: string | undefined): Promise<void> {
-    await this._invokeMethod(instanceId, "pause", workflowComponent);
+  async pause(instanceId: string): Promise<void> {
+    await this._invokeMethod(instanceId, "pause");
   }
 
-  async resume(instanceId: string, workflowComponent?: string | undefined): Promise<void> {
-    await this._invokeMethod(instanceId, "resume", workflowComponent);
+  async resume(instanceId: string): Promise<void> {
+    await this._invokeMethod(instanceId, "resume");
   }
 
-  async purge(instanceId: string, workflowComponent?: string | undefined): Promise<void> {
-    await this._invokeMethod(instanceId, "purge", workflowComponent);
+  async purge(instanceId: string): Promise<void> {
+    await this._invokeMethod(instanceId, "purge");
   }
 
-  async _invokeMethod(instanceId: string, method: string, workflowComponent?: string | undefined): Promise<any> {
+  async _invokeMethod(instanceId: string, method: string): Promise<any> {
     if (!instanceId) {
       throw new PropertyRequiredError("instanceID");
     }
@@ -178,10 +168,8 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
       throw new PropertyRequiredError("method");
     }
 
-    workflowComponent = workflowComponent ?? HTTPClientWorkflow.DEFAULT_WORKFLOW_COMPONENT;
-
     try {
-      await this.client.executeWithApiVersion("v1.0-beta1", `/workflows/${workflowComponent}/${instanceId}/${method}`, {
+      await this.client.executeWithApiVersion("v1.0-beta1", `/workflows/dapr/${instanceId}/${method}`, {
         method: "POST",
       });
     } catch (e: any) {
