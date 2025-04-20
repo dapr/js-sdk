@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { GenericContainer, StartedTestContainer, Wait } from "testcontainers";
+import { GenericContainer, Network, StartedNetwork, StartedTestContainer, TestContainers, Wait } from "testcontainers";
 // import { LogWaitStrategy } from "testcontainers/build/wait-strategies/log-wait-strategy";
 import { CommunicationProtocolEnum, DaprClient, DaprServer } from "../../../src";
 // import { AbstractWaitStrategy } from "testcontainers/build/wait-strategies/wait-strategy";
@@ -20,31 +20,48 @@ jest.setTimeout(10000);
 
 describe("Jobs End to End", () => {
 
+    let network: StartedNetwork | null = null;
     let daprScheduler: StartedTestContainer | null = null;
     let daprd: StartedTestContainer | null = null;
     let server: DaprServer | null = null;
     let client: DaprClient | null = null;
 
+    function getIp(container: StartedTestContainer | null | undefined): string {
+
+      if (! network) throw new Error("Network is null or undefined?");
+      if (! container) throw new Error("Container is null or undefined?");
+
+      return container.getIpAddress(network.getName());
+    }
+
+    function getPort(container: StartedTestContainer | null | undefined, port: number): string {
+
+      if (! container) throw new Error("Container is null or undefined?");
+
+      return container.getMappedPort(port).toString();
+    }
+
     beforeAll(async () => {
 
+        await TestContainers.exposeHostPorts(8070);
+
+        network = await new Network().start();
+
         daprScheduler = await new GenericContainer("ghcr.io/dapr/dapr")
-          .withExposedPorts(
-            {
-              host: 8083,
-              container: 8083,
-            }
-          )
+          .withName("dapr-js-sdk-test-scheduler")
+          .withNetwork(network)
+          .withNetworkAliases("scheduler")
+          .withExposedPorts(8083)
           .withCommand([
             "./scheduler",
-            "--listen-address", "0.0.0.0",
+            // "--listen-address", "0.0.0.0",
             "--port", "8083",
             "--healthz-port", "8084",
             "--enable-metrics", "false",
             // note: This is here because `--enable-metrics=false` doesn't seem to be working.
             "--metrics-port", "8085",
+            "--log-level", "debug",
           ])
-          // note: This is here because of daemon visibility issues.
-          .withNetworkMode("host")
           .withTmpFs({
             "/data": "rw",
           })
@@ -53,28 +70,22 @@ describe("Jobs End to End", () => {
           .start();
 
         daprd = await new GenericContainer("ghcr.io/dapr/dapr")
-          .withExposedPorts(
-            {
-                host: 8081,
-                container: 8081
-            },
-            {
-                host: 8082,
-                container: 8082,
-            }
-          )
+          .withName("dapr-js-sdk-test-daemon")
+          .withNetwork(network)
+          .withNetworkAliases("daprd")
+          .withExposedPorts(8081, 8082)
           .withCommand([
             "./daprd",
             "--app-id", "dapr-js-sdk-testing",
+            // todo: Need to figure out how to tell daprd where my app can be found as it's not on `localhost`
+            // "--app-endpoint", "host.testcontainers.internal",
             "--app-port", "8070",
             "--dapr-grpc-port", "8081",
             "--dapr-http-port", "8082",
-            "--scheduler-host-address", "0.0.0.0:8083",
+            "--scheduler-host-address", `scheduler:${getPort(daprScheduler, 8083)}`,
             "--placement-host-address", "",
             "--enable-metrics", "false",
           ])
-          // note: This is here because well, the daemon likes it.
-          .withNetworkMode("host")
           // note: Because dapr containers don't have `sh` or `bash` inside, this is kind of the best health check.
           .withWaitStrategy(Wait.forLogMessage("HTTP server is running on port").withStartupTimeout(10000))
           .start()
@@ -88,14 +99,15 @@ describe("Jobs End to End", () => {
         serverPort: "8070",
         communicationProtocol: CommunicationProtocolEnum.HTTP,
         clientOptions: {
-          daprHost: "127.0.0.1",
-          daprPort: "8082",
+          daprHost: getIp(daprd),
+          daprPort: getPort(daprd, 8082),
+          communicationProtocol: CommunicationProtocolEnum.HTTP,
         },
       });
 
       client = new DaprClient({
-        daprHost: "127.0.0.1",
-        daprPort: "8082",
+        daprHost: getIp(daprd),
+        daprPort: getPort(daprd, 8082),
         communicationProtocol: CommunicationProtocolEnum.HTTP,
       });
 
@@ -109,6 +121,7 @@ describe("Jobs End to End", () => {
       // await daprScheduler?.restart();
 
       server = null;
+      client = null;
     })
 
     afterAll(async () => {
