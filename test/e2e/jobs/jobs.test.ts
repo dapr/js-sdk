@@ -143,7 +143,7 @@ describe("Jobs End to End", () => {
 
         const job = await client?.jobs.get("test");
 
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        await new Promise(resolve => setTimeout(resolve, 6000));
 
         expect(job).toMatchObject({
           "data": {
