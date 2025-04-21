@@ -14,6 +14,7 @@ limitations under the License.
 import { GenericContainer, Network, StartedNetwork, StartedTestContainer, TestContainers, Wait } from "testcontainers";
 // import { LogWaitStrategy } from "testcontainers/build/wait-strategies/log-wait-strategy";
 import { CommunicationProtocolEnum, DaprClient, DaprServer } from "../../../src";
+import { scheduler } from "node:timers/promises";
 // import { AbstractWaitStrategy } from "testcontainers/build/wait-strategies/wait-strategy";
 
 jest.setTimeout(10000);
@@ -25,21 +26,6 @@ describe("Jobs End to End", () => {
     let daprd: StartedTestContainer | null = null;
     let server: DaprServer | null = null;
     let client: DaprClient | null = null;
-
-    function getIp(container: StartedTestContainer | null | undefined): string {
-
-      if (! network) throw new Error("Network is null or undefined?");
-      if (! container) throw new Error("Container is null or undefined?");
-
-      return container.getIpAddress(network.getName());
-    }
-
-    function getPort(container: StartedTestContainer | null | undefined, port: number): string {
-
-      if (! container) throw new Error("Container is null or undefined?");
-
-      return container.getMappedPort(port).toString();
-    }
 
     beforeAll(async () => {
 
@@ -54,13 +40,12 @@ describe("Jobs End to End", () => {
           .withExposedPorts(8083)
           .withCommand([
             "./scheduler",
-            // "--listen-address", "0.0.0.0",
+            // note: Don't think this is necessary, buuuuut????
+            "--listen-address", "0.0.0.0",
             "--port", "8083",
-            "--healthz-port", "8084",
-            "--enable-metrics", "false",
-            // note: This is here because `--enable-metrics=false` doesn't seem to be working.
-            "--metrics-port", "8085",
             "--log-level", "debug",
+            // note: This feels redundant, but here as yet another thing I've tried.
+            // "--mode", "standalone",
           ])
           .withTmpFs({
             "/data": "rw",
@@ -78,7 +63,7 @@ describe("Jobs End to End", () => {
             "./daprd",
             "--app-id", "dapr-js-sdk-testing",
             // todo: Need to figure out how to tell daprd where my app can be found as it's not on `localhost`
-            // "--app-endpoint", "host.testcontainers.internal",
+            "--app-channel-address", "host.testcontainers.internal",
             "--app-port", "8070",
             "--dapr-grpc-port", "8081",
             "--dapr-http-port", "8082",
@@ -90,6 +75,10 @@ describe("Jobs End to End", () => {
           .withWaitStrategy(Wait.forLogMessage("HTTP server is running on port").withStartupTimeout(10000))
           .start()
         ;
+
+        console.info(`Scheduler: ${getIp(daprScheduler)}`);
+        console.info(`Daemon: ${getIp(daprd)}`);
+
     });
 
     beforeEach(async () => {
@@ -159,4 +148,19 @@ describe("Jobs End to End", () => {
           value: "test",
         });
     });
+
+  function getIp(container: StartedTestContainer | null | undefined): string {
+
+    if (! network) throw new Error("Network is null or undefined?");
+    if (! container) throw new Error("Container is null or undefined?");
+
+    return container.getIpAddress(network.getName());
+  }
+
+  function getPort(container: StartedTestContainer | null | undefined, port: number): string {
+
+    if (! container) throw new Error("Container is null or undefined?");
+
+    return container.getMappedPort(port).toString();
+  }
 })
