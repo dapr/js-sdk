@@ -20,6 +20,8 @@ export class SignCertificateRequest extends jspb.Message {
     getCertificateSigningRequest_asU8(): Uint8Array;
     getCertificateSigningRequest_asB64(): string;
     setCertificateSigningRequest(value: Uint8Array | string): SignCertificateRequest;
+    getTokenValidator(): SignCertificateRequest.TokenValidator;
+    setTokenValidator(value: SignCertificateRequest.TokenValidator): SignCertificateRequest;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): SignCertificateRequest.AsObject;
@@ -38,7 +40,16 @@ export namespace SignCertificateRequest {
         trustDomain: string,
         namespace: string,
         certificateSigningRequest: Uint8Array | string,
+        tokenValidator: SignCertificateRequest.TokenValidator,
     }
+
+    export enum TokenValidator {
+    UNKNOWN = 0,
+    INSECURE = 1,
+    KUBERNETES = 2,
+    JWKS = 3,
+    }
+
 }
 
 export class SignCertificateResponse extends jspb.Message { 

@@ -16,6 +16,7 @@
 'use strict';
 var grpc = require('@grpc/grpc-js');
 var dapr_proto_runtime_v1_appcallback_pb = require('../../../../dapr/proto/runtime/v1/appcallback_pb.js');
+var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js');
 var google_protobuf_empty_pb = require('google-protobuf/google/protobuf/empty_pb.js');
 var dapr_proto_common_v1_common_pb = require('../../../../dapr/proto/common/v1/common_pb.js');
 var google_protobuf_struct_pb = require('google-protobuf/google/protobuf/struct_pb.js');
@@ -73,6 +74,28 @@ function serialize_dapr_proto_runtime_v1_HealthCheckResponse(arg) {
 
 function deserialize_dapr_proto_runtime_v1_HealthCheckResponse(buffer_arg) {
   return dapr_proto_runtime_v1_appcallback_pb.HealthCheckResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_JobEventRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_appcallback_pb.JobEventRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.JobEventRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_JobEventRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_appcallback_pb.JobEventRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_JobEventResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_appcallback_pb.JobEventResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.JobEventResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_JobEventResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_appcallback_pb.JobEventResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_dapr_proto_runtime_v1_ListInputBindingsResponse(arg) {
@@ -255,6 +278,18 @@ onBulkTopicEventAlpha1: {
     requestDeserialize: deserialize_dapr_proto_runtime_v1_TopicEventBulkRequest,
     responseSerialize: serialize_dapr_proto_runtime_v1_TopicEventBulkResponse,
     responseDeserialize: deserialize_dapr_proto_runtime_v1_TopicEventBulkResponse,
+  },
+  // Sends job back to the app's endpoint at trigger time.
+onJobEventAlpha1: {
+    path: '/dapr.proto.runtime.v1.AppCallbackAlpha/OnJobEventAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_appcallback_pb.JobEventRequest,
+    responseType: dapr_proto_runtime_v1_appcallback_pb.JobEventResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_JobEventRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_JobEventRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_JobEventResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_JobEventResponse,
   },
 };
 

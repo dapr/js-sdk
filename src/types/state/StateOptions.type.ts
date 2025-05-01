@@ -11,10 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { EStateConsistency } from "../../enum/StateConsistency.enum";
-import { EStateConcurrency } from "../../enum/StateConcurrency.enum";
+import { StateConsistencyEnum } from "../../enum/StateConsistency.enum";
+import { StateConcurrencyEnum } from "../../enum/StateConcurrency.enum";
 
 export type IStateOptions = {
-  concurrency: EStateConcurrency;
-  consistency: EStateConsistency;
+  concurrency: StateConcurrencyEnum;
+  consistency: StateConsistencyEnum;
 };

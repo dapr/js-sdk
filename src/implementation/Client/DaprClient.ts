@@ -11,46 +11,52 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import IClientBinding from "../../interfaces/Client/IClientBinding";
-import IClientPubSub from "../../interfaces/Client/IClientPubSub";
-import IClientState from "../../interfaces/Client/IClientState";
-import IClientInvoker from "../../interfaces/Client/IClientInvoker";
-import IClientSecret from "../../interfaces/Client/IClientSecret";
-import IClientHealth from "../../interfaces/Client/IClientHealth";
-import IClientMetadata from "../../interfaces/Client/IClientMetadata";
-import IClientSidecar from "../../interfaces/Client/IClientSidecar";
-import IClientConfiguration from "../../interfaces/Client/IClientConfiguration";
-import IClientProxy from "../../interfaces/Client/IClientProxy";
-import IClientLock from "../../interfaces/Client/IClientLock";
-import IClientActorBuilder from "../../interfaces/Client/IClientActorBuilder";
 import IClient from "../../interfaces/Client/IClient";
+import IClientActorBuilder from "../../interfaces/Client/IClientActorBuilder";
+import IClientBinding from "../../interfaces/Client/IClientBinding";
+import IClientConfiguration from "../../interfaces/Client/IClientConfiguration";
+import IClientCrypto from "../../interfaces/Client/IClientCrypto";
+import IClientHealth from "../../interfaces/Client/IClientHealth";
+import IClientInvoker from "../../interfaces/Client/IClientInvoker";
+import IClientLock from "../../interfaces/Client/IClientLock";
+import IClientMetadata from "../../interfaces/Client/IClientMetadata";
+import IClientProxy from "../../interfaces/Client/IClientProxy";
+import IClientPubSub from "../../interfaces/Client/IClientPubSub";
+import IClientSecret from "../../interfaces/Client/IClientSecret";
+import IClientSidecar from "../../interfaces/Client/IClientSidecar";
+import IClientState from "../../interfaces/Client/IClientState";
+import IClientWorkflow from "../../interfaces/Client/IClientWorkflow";
 
-import GRPCClientBinding from "./GRPCClient/binding";
-import GRPCClientPubSub from "./GRPCClient/pubsub";
-import GRPCClientState from "./GRPCClient/state";
-import GRPCClientInvoker from "./GRPCClient/invoker";
-import GRPCClientSecret from "./GRPCClient/secret";
-import GRPCClientHealth from "./GRPCClient/health";
-import GRPCClientMetadata from "./GRPCClient/metadata";
-import GRPCClientSidecar from "./GRPCClient/sidecar";
-import GRPCClientConfiguration from "./GRPCClient/configuration";
-import GRPCClientLock from "./GRPCClient/lock";
-import GRPCClientActor from "./GRPCClient/actor";
 import GRPCClient from "./GRPCClient/GRPCClient";
+import GRPCClientActor from "./GRPCClient/actor";
+import GRPCClientBinding from "./GRPCClient/binding";
+import GRPCClientConfiguration from "./GRPCClient/configuration";
+import GRPCClientCrypto from "./GRPCClient/crypto";
+import GRPCClientHealth from "./GRPCClient/health";
+import GRPCClientInvoker from "./GRPCClient/invoker";
+import GRPCClientLock from "./GRPCClient/lock";
+import GRPCClientMetadata from "./GRPCClient/metadata";
+import GRPCClientPubSub from "./GRPCClient/pubsub";
+import GRPCClientSecret from "./GRPCClient/secret";
+import GRPCClientSidecar from "./GRPCClient/sidecar";
+import GRPCClientState from "./GRPCClient/state";
+import GRPCClientWorkflow from "./GRPCClient/workflow";
 
-import HTTPClientBinding from "./HTTPClient/binding";
-import HTTPClientPubSub from "./HTTPClient/pubsub";
-import HTTPClientState from "./HTTPClient/state";
-import HTTPClientInvoker from "./HTTPClient/invoker";
-import HTTPClientSecret from "./HTTPClient/secret";
-import HTTPClientHealth from "./HTTPClient/health";
-import HTTPClientMetadata from "./HTTPClient/metadata";
-import HTTPClientSidecar from "./HTTPClient/sidecar";
-import HTTPClientConfiguration from "./HTTPClient/configuration";
-import HTTPClientProxy from "./HTTPClient/proxy";
-import HTTPClientLock from "./HTTPClient/lock";
-import HTTPClientActor from "./HTTPClient/actor";
 import HTTPClient from "./HTTPClient/HTTPClient";
+import HTTPClientActor from "./HTTPClient/actor";
+import HTTPClientBinding from "./HTTPClient/binding";
+import HTTPClientConfiguration from "./HTTPClient/configuration";
+import HTTPClientCrypto from "./HTTPClient/crypto";
+import HTTPClientHealth from "./HTTPClient/health";
+import HTTPClientInvoker from "./HTTPClient/invoker";
+import HTTPClientLock from "./HTTPClient/lock";
+import HTTPClientMetadata from "./HTTPClient/metadata";
+import HTTPClientProxy from "./HTTPClient/proxy";
+import HTTPClientPubSub from "./HTTPClient/pubsub";
+import HTTPClientSecret from "./HTTPClient/secret";
+import HTTPClientSidecar from "./HTTPClient/sidecar";
+import HTTPClientState from "./HTTPClient/state";
+import HTTPClientWorkflow from "./HTTPClient/workflow";
 
 import CommunicationProtocolEnum from "../../enum/CommunicationProtocol.enum";
 import { DaprClientOptions } from "../../types/DaprClientOptions";
@@ -58,57 +64,45 @@ import { Settings } from "../../utils/Settings.util";
 import { Logger } from "../../logger/Logger";
 import GRPCClientProxy from "./GRPCClient/proxy";
 import * as NodeJSUtils from "../../utils/NodeJS.util";
-import { SDK_PACKAGE_NAME } from "../../version";
+import { getClientOptions } from "../../utils/Client.util";
 
 export default class DaprClient {
-  readonly daprHost: string;
-  readonly daprPort: string;
   readonly options: DaprClientOptions;
-  readonly communicationProtocol: CommunicationProtocolEnum;
-
   readonly daprClient: IClient;
-  readonly pubsub: IClientPubSub;
-  readonly state: IClientState;
-  readonly binding: IClientBinding;
-  readonly invoker: IClientInvoker;
-  readonly secret: IClientSecret;
-  readonly health: IClientHealth;
-  readonly metadata: IClientMetadata;
-  readonly sidecar: IClientSidecar;
-  readonly configuration: IClientConfiguration;
-  readonly proxy: IClientProxy;
-  readonly lock: IClientLock;
   readonly actor: IClientActorBuilder;
+  readonly binding: IClientBinding;
+  readonly configuration: IClientConfiguration;
+  readonly crypto: IClientCrypto;
+  readonly health: IClientHealth;
+  readonly invoker: IClientInvoker;
+  readonly lock: IClientLock;
+  readonly metadata: IClientMetadata;
+  readonly proxy: IClientProxy;
+  readonly pubsub: IClientPubSub;
+  readonly secret: IClientSecret;
+  readonly sidecar: IClientSidecar;
+  readonly state: IClientState;
+  readonly workflow: IClientWorkflow;
 
   private readonly logger: Logger;
 
-  constructor(
-    daprHost?: string,
-    daprPort?: string,
-    communicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP,
-    options: DaprClientOptions = {},
-  ) {
-    this.daprHost = daprHost ?? Settings.getDefaultHost();
-    this.daprPort = daprPort ?? Settings.getDefaultPort(communicationProtocol);
-    this.communicationProtocol = communicationProtocol;
-    this.options = options;
-    this.logger = new Logger("DaprClient", "DaprClient", this.options.logger);
+  constructor(options: Partial<DaprClientOptions> = {}) {
+    options = getClientOptions(options, Settings.getDefaultCommunicationProtocol(), undefined);
+    this.logger = new Logger("DaprClient", "DaprClient", options.logger);
 
-    // Validation on port
-    if (!/^[0-9]+$/.test(this.daprPort)) {
+    // Legacy validation on port
+    // URI validation is done later, when we instantiate the HttpEndpoint or GrpcEndpoint
+    // object in the HttpClient or GrpcClient constructor, but we need to
+    // keep this additional check for backward compatibility
+    // TODO: Remove this validation in the next major version
+    if (options?.daprPort && !/^[0-9]+$/.test(options?.daprPort)) {
       throw new Error("DAPR_INCORRECT_SIDECAR_PORT");
     }
 
-    if (String(SDK_PACKAGE_NAME) === "dapr-client") {
-      this.logger.warn(
-        "dapr-client is deprecated. Please use @dapr/dapr instead. For more information, see https://github.com/dapr/js-sdk/issues/259",
-      );
-    }
-
     // Builder
-    switch (communicationProtocol) {
+    switch (options.communicationProtocol) {
       case CommunicationProtocolEnum.GRPC: {
-        const client = new GRPCClient(this.daprHost, this.daprPort, this.options);
+        const client = new GRPCClient(options);
         this.daprClient = client;
 
         this.state = new GRPCClientState(client);
@@ -122,38 +116,48 @@ export default class DaprClient {
         this.proxy = new GRPCClientProxy(client);
         this.configuration = new GRPCClientConfiguration(client);
         this.lock = new GRPCClientLock(client);
-        this.actor = new GRPCClientActor(client); // we use a abstractor here since we interface through a builder with the Actor Runtime
+        this.crypto = new GRPCClientCrypto(client);
+        this.actor = new GRPCClientActor(client); // we use an abstractor here since we interface through a builder with the Actor Runtime
+        this.workflow = new GRPCClientWorkflow(client);
         break;
       }
       case CommunicationProtocolEnum.HTTP:
       default: {
-        const client = new HTTPClient(this.daprHost, this.daprPort, this.options);
+        const client = new HTTPClient(options);
         this.daprClient = client;
 
-        this.state = new HTTPClientState(client);
-        this.pubsub = new HTTPClientPubSub(client);
+        this.actor = new HTTPClientActor(client); // we use an abstractor here since we interface through a builder with the Actor Runtime
         this.binding = new HTTPClientBinding(client);
-        this.invoker = new HTTPClientInvoker(client);
-        this.secret = new HTTPClientSecret(client);
-        this.health = new HTTPClientHealth(client);
-        this.metadata = new HTTPClientMetadata(client);
-        this.sidecar = new HTTPClientSidecar(client);
         this.configuration = new HTTPClientConfiguration(client);
-        this.proxy = new HTTPClientProxy(client);
+        this.crypto = new HTTPClientCrypto(client);
+        this.health = new HTTPClientHealth(client);
+        this.invoker = new HTTPClientInvoker(client);
         this.lock = new HTTPClientLock(client);
-        this.actor = new HTTPClientActor(client); // we use a abstractor here since we interface through a builder with the Actor Runtime
+        this.metadata = new HTTPClientMetadata(client);
+        this.proxy = new HTTPClientProxy(client);
+        this.pubsub = new HTTPClientPubSub(client);
+        this.secret = new HTTPClientSecret(client);
+        this.sidecar = new HTTPClientSidecar(client);
+        this.state = new HTTPClientState(client);
+        this.workflow = new HTTPClientWorkflow(client);
         break;
       }
     }
+
+    this.options = {
+      daprHost: this.daprClient.options.daprHost,
+      daprPort: this.daprClient.options.daprPort,
+      communicationProtocol: this.daprClient.options.communicationProtocol,
+      isKeepAlive: options.isKeepAlive,
+      logger: options.logger,
+      actor: options.actor,
+      daprApiToken: options.daprApiToken,
+      maxBodySizeMb: options.maxBodySizeMb,
+    };
   }
 
   static create(client: IClient): DaprClient {
-    return new DaprClient(
-      client.getClientHost(),
-      client.getClientPort(),
-      client.getClientCommunicationProtocol(),
-      client.getOptions(),
-    );
+    return new DaprClient(client.options);
   }
 
   static async awaitSidecarStarted(fnIsSidecarStarted: () => Promise<boolean>, logger: Logger): Promise<void> {
@@ -192,26 +196,6 @@ export default class DaprClient {
 
   async start(): Promise<void> {
     await this.daprClient.start();
-  }
-
-  getDaprClient(): IClient {
-    return this.daprClient;
-  }
-
-  getDaprHost(): string {
-    return this.daprHost;
-  }
-
-  getDaprPort(): string {
-    return this.daprPort;
-  }
-
-  getOptions(): DaprClientOptions {
-    return this.options;
-  }
-
-  getCommunicationProtocol(): CommunicationProtocolEnum {
-    return this.communicationProtocol;
   }
 
   getIsInitialized(): boolean {

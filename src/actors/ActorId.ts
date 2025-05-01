@@ -17,6 +17,9 @@ export default class ActorId {
   private readonly id: string;
 
   constructor(id: string) {
+    if (!id) {
+      throw new Error("ActorId cannot be empty");
+    }
     this.id = id;
   }
 
@@ -26,6 +29,10 @@ export default class ActorId {
 
   getId() {
     return this.id;
+  }
+
+  getURLSafeId() {
+    return encodeURIComponent(this.id);
   }
 
   toString() {

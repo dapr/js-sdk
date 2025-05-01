@@ -35,10 +35,26 @@ const serverHost = "127.0.0.1"; // App Host of this Example Server
 const serverPort = "50051"; // App Port of this Example Server
 
 // HTTP Example
-const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
+const server = new DaprServer({
+  serverHost,
+  serverPort,
+  communicationProtocol: CommunicationProtocolEnum.HTTP, // DaprClient to use same communication protocol as DaprServer, in case DaprClient protocol not mentioned explicitly
+  clientOptions: {
+    daprHost,
+    daprPort,
+  },
+});
 
 // GRPC Example
-const server = new DaprServer(serverHost, serverPort, daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+const server = new DaprServer({
+  serverHost,
+  serverPort,
+  communicationProtocol: CommunicationProtocolEnum.GRPC,
+  clientOptions: {
+    daprHost,
+    daprPort,
+  },
+});
 ```
 
 ## Running
@@ -50,7 +66,14 @@ To run the examples, you can use two different protocols to interact with the Da
 ```typescript
 import { DaprServer } from "@dapr/dapr";
 
-const server = new DaprServer(appHost, appPort, daprHost, daprPort);
+const server = new DaprServer({
+  serverHost: appHost,
+  serverPort: appPort,
+  clientOptions: {
+    daprHost,
+    daprPort,
+  },
+});
 // initialize subscribtions, ... before server start
 // the dapr sidecar relies on these
 await server.start();
@@ -84,17 +107,15 @@ myApp.get("/my-custom-endpoint", (req, res) => {
   res.send({ msg: "My own express app!" });
 });
 
-const daprServer = new DaprServer(
-  "127.0.0.1", // App Host
-  "50002", // App Port
-  daprHost,
-  daprPort,
-  CommunicationProtocolEnum.HTTP,
-  {},
-  {
-    serverHttp: myApp,
-  },
-);
+const daprServer = new DaprServer({
+      serverHost: "127.0.0.1", // App Host
+      serverPort: "50002", // App Port
+      serverHttp: myApp,
+      clientOptions: {
+        daprHost
+        daprPort
+      }
+    });
 
 // Initialize subscriptions before the server starts, the Dapr sidecar uses it.
 // This will also initialize the app server itself (removing the need for `app.listen` to be called).
@@ -115,7 +136,15 @@ Since HTTP is the default, you will have to adapt the communication protocol to 
 ```typescript
 import { DaprServer, CommunicationProtocol } from "@dapr/dapr";
 
-const server = new DaprServer(appHost, appPort, daprHost, daprPort, CommunicationProtocol.GRPC);
+const server = new DaprServer({
+  serverHost: appHost,
+  serverPort: appPort,
+  communicationProtocol: CommunicationProtocolEnum.GRPC,
+  clientOptions: {
+    daprHost,
+    daprPort,
+  },
+});
 // initialize subscribtions, ... before server start
 // the dapr sidecar relies on these
 await server.start();
@@ -148,7 +177,14 @@ const serverHost = "127.0.0.1"; // App Host of this Example Server
 const serverPort = "50051"; // App Port of this Example Server "
 
 async function start() {
-  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
+  const server = new DaprServer({
+    serverHost,
+    serverPort,
+    clientOptions: {
+      daprHost,
+      daprPort,
+    },
+  });
 
   const callbackFunction = (data: DaprInvokerCallbackContent) => {
     console.log("Received body: ", data.body);
@@ -197,7 +233,14 @@ const serverHost = "127.0.0.1"; // App Host of this Example Server
 const serverPort = "50051"; // App Port of this Example Server "
 
 async function start() {
-  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
+  const server = new DaprServer({
+    serverHost,
+    serverPort,
+    clientOptions: {
+      daprHost,
+      daprPort,
+    },
+  });
 
   const pubSubName = "my-pubsub-name";
   const topic = "topic-a";
@@ -228,6 +271,84 @@ async function start() {
 
 > For a full list of state operations visit [How-To: Publish & subscribe]({{< ref howto-publish-subscribe.md >}}).
 
+#### Subscribe with SUCCESS/RETRY/DROP status
+
+Dapr supports [status codes for retry logic](https://docs.dapr.io/reference/api/pubsub_api/#expected-http-response) to specify what should happen after a message gets processed.
+
+> ⚠️ The JS SDK allows multiple callbacks on the same topic, we handle priority of status on `RETRY` > `DROP` > `SUCCESS` and default to `SUCCESS`
+
+> ⚠️ Make sure to [configure resiliency](https://docs.dapr.io/operations/resiliency/resiliency-overview/) in your application to handle `RETRY` messages
+
+In the JS SDK we support these messages through the `DaprPubSubStatusEnum` enum. To ensure Dapr will retry we configure a Resiliency policy as well.
+
+**components/resiliency.yaml**
+
+```yaml
+apiVersion: dapr.io/v1alpha1
+kind: Resiliency
+metadata:
+  name: myresiliency
+spec:
+  policies:
+    retries:
+      # Global Retry Policy for Inbound Component operations
+      DefaultComponentInboundRetryPolicy:
+        policy: constant
+        duration: 500ms
+        maxRetries: 10
+  targets:
+    components:
+      messagebus:
+        inbound:
+          retry: DefaultComponentInboundRetryPolicy
+```
+
+**src/index.ts**
+
+```typescript
+import { DaprServer, DaprPubSubStatusEnum } from "@dapr/dapr";
+
+const daprHost = "127.0.0.1"; // Dapr Sidecar Host
+const daprPort = "3500"; // Dapr Sidecar Port of this Example Server
+const serverHost = "127.0.0.1"; // App Host of this Example Server
+const serverPort = "50051"; // App Port of this Example Server "
+
+async function start() {
+  const server = new DaprServer({
+    serverHost,
+    serverPort,
+    clientOptions: {
+      daprHost,
+      daprPort,
+    },
+  });
+
+  const pubSubName = "my-pubsub-name";
+  const topic = "topic-a";
+
+  // Process a message successfully
+  await server.pubsub.subscribe(pubSubName, topic, async (data: any, headers: object) => {
+    return DaprPubSubStatusEnum.SUCCESS;
+  });
+
+  // Retry a message
+  // Note: this example will keep on retrying to deliver the message
+  // Note 2: each component can have their own retry configuration
+  //   e.g., https://docs.dapr.io/reference/components-reference/supported-pubsub/setup-redis-pubsub/
+  await server.pubsub.subscribe(pubSubName, topic, async (data: any, headers: object) => {
+    return DaprPubSubStatusEnum.RETRY;
+  });
+
+  // Drop a message
+  await server.pubsub.subscribe(pubSubName, topic, async (data: any, headers: object) => {
+    return DaprPubSubStatusEnum.DROP;
+  });
+
+  // Start the server
+  await server.start();
+}
+```
+
 #### Subscribe to messages rule based
 
 Dapr [supports routing messages](https://docs.dapr.io/developing-applications/building-blocks/pubsub/howto-route-messages/) to different handlers (routes) based on rules.
@@ -243,7 +364,14 @@ const serverHost = "127.0.0.1"; // App Host of this Example Server
 const serverPort = "50051"; // App Port of this Example Server "
 
 async function start() {
-  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
+  const server = new DaprServer({
+    serverHost,
+    serverPort,
+    clientOptions: {
+      daprHost,
+      daprPort,
+    },
+  });
 
   const pubSubName = "my-pubsub-name";
   const topic = "topic-a";
@@ -280,6 +408,97 @@ async function start() {
 }
 ```
 
+#### Susbcribe with Wildcards
+
+The popular wildcards `*` and `+` are supported (make sure to validate if the [pubsub component supports it](https://docs.dapr.io/reference/components-reference/supported-pubsub/)) and can be subscribed to as follows:
+
+```typescript
+import { DaprServer } from "@dapr/dapr";
+
+const daprHost = "127.0.0.1"; // Dapr Sidecar Host
+const daprPort = "3500"; // Dapr Sidecar Port of this Example Server
+const serverHost = "127.0.0.1"; // App Host of this Example Server
+const serverPort = "50051"; // App Port of this Example Server "
+
+async function start() {
+  const server = new DaprServer({
+    serverHost,
+    serverPort,
+    clientOptions: {
+      daprHost,
+      daprPort,
+    },
+  });
+
+  const pubSubName = "my-pubsub-name";
+
+  // * Wildcard
+  await server.pubsub.subscribe(pubSubName, "/events/*", async (data: any, headers: object) =>
+    console.log(`Received Data: ${JSON.stringify(data)}`),
+  );
+
+  // + Wildcard
+  await server.pubsub.subscribe(pubSubName, "/events/+/temperature", async (data: any, headers: object) =>
+    console.log(`Received Data: ${JSON.stringify(data)}`),
+  );
+
+  // Start the server
+  await server.start();
+}
+```
+
+#### Bulk Subscribe to messages
+
+Bulk Subscription is supported and is available through following API:
+
+- Bulk subscription through the `subscribeBulk` method: `maxMessagesCount` and `maxAwaitDurationMs` are optional; and if not provided, default values for related components will be used.
+
+While listening for messages, the application receives messages from Dapr in bulk. However, like regular subscribe, the callback function receives a single message at a time, and the user can choose to return a `DaprPubSubStatusEnum` value to acknowledge successfully, retry, or drop the message. The default behavior is to return a success response.
+
+Please refer [this document](https://v1-10.docs.dapr.io/developing-applications/building-blocks/pubsub/pubsub-bulk/) for more details.
+
+```typescript
+import { DaprServer } from "@dapr/dapr";
+
+const pubSubName = "orderPubSub";
+const topic = "topicbulk";
+
+const daprHost = process.env.DAPR_HOST || "127.0.0.1";
+const daprHttpPort = process.env.DAPR_HTTP_PORT || "3502";
+const serverHost = process.env.SERVER_HOST || "127.0.0.1";
+const serverPort = process.env.APP_PORT || 5001;
+
+async function start() {
+  const server = new DaprServer({
+    serverHost,
+    serverPort,
+    clientOptions: {
+      daprHost,
+      daprPort: daprHttpPort,
+    },
+  });
+
+  // Publish multiple messages to a topic with default config.
+  await client.pubsub.subscribeBulk(pubSubName, topic, (data) =>
+    console.log("Subscriber received: " + JSON.stringify(data)),
+  );
+
+  // Publish multiple messages to a topic with specific maxMessagesCount and maxAwaitDurationMs.
+  await client.pubsub.subscribeBulk(
+    pubSubName,
+    topic,
+    (data) => {
+      console.log("Subscriber received: " + JSON.stringify(data));
+      return DaprPubSubStatusEnum.SUCCESS; // If App doesn't return anything, the default is SUCCESS. App can also return RETRY or DROP based on the incoming message.
+    },
+    {
+      maxMessagesCount: 100,
+      maxAwaitDurationMs: 40,
+    },
+  );
+}
+```
+
 #### Dead Letter Topics
 
 Dapr supports [dead letter topic](https://docs.dapr.io/developing-applications/building-blocks/pubsub/pubsub-deadletter/). This means that when a message fails to be processed, it gets sent to a dead letter queue. E.g., when a message fails to be handled on `/my-queue` it will be sent to `/my-queue-failed`.
@@ -306,7 +525,14 @@ const serverHost = "127.0.0.1"; // App Host of this Example Server
 const serverPort = "50051"; // App Port of this Example Server "
 
 async function start() {
-  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
+  const server = new DaprServer({
+    serverHost,
+    serverPort,
+    clientOptions: {
+      daprHost,
+      daprPort,
+    },
+  });
 
   const pubSubName = "my-pubsub-name";
 
@@ -349,7 +575,14 @@ const serverHost = "127.0.0.1";
 const serverPort = "5051";
 
 async function start() {
-  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
+  const server = new DaprServer({
+    serverHost,
+    serverPort,
+    clientOptions: {
+      daprHost,
+      daprPort,
+    },
+  });
 
   const bindingName = "my-binding-name";
 
@@ -375,7 +608,7 @@ start().catch((e) => {
 #### Getting a configuration value
 
 ```typescript
-import { DaprServer } from "dapr-client";
+import { DaprServer } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1";
 const daprPort = "3500";
@@ -383,7 +616,11 @@ const serverHost = "127.0.0.1";
 const serverPort = "5051";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+  const client = new DaprClient({
+    daprHost,
+    daprPort,
+    communicationProtocol: CommunicationProtocolEnum.GRPC,
+  });
   const config = await client.configuration.get("config-redis", ["myconfigkey1", "myconfigkey2"]);
 }
 
@@ -396,7 +633,7 @@ start().catch((e) => {
 #### Subscribing to Key Changes
 
 ```typescript
-import { DaprServer } from "dapr-client";
+import { DaprServer } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1";
 const daprPort = "3500";
@@ -404,7 +641,11 @@ const serverHost = "127.0.0.1";
 const serverPort = "5051";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+  const client = new DaprClient({
+    daprHost,
+    daprPort,
+    communicationProtocol: CommunicationProtocolEnum.GRPC,
+  });
   const stream = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1", "myconfigkey2"], () => {
     // Received a key update
   });

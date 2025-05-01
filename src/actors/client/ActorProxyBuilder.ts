@@ -35,10 +35,10 @@ export default class ActorProxyBuilder<T> {
     if (args.length == 1) {
       const [daprClient] = args;
       this.actorClient = new ActorClient(
-        daprClient.getDaprHost(),
-        daprClient.getDaprPort(),
-        daprClient.getCommunicationProtocol(),
-        daprClient.getOptions(),
+        daprClient.options.daprHost,
+        daprClient.options.daprPort,
+        daprClient.options.communicationProtocol,
+        daprClient.options,
       );
     } else {
       const [host, port, communicationProtocol, clientOptions] = args;

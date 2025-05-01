@@ -16,6 +16,9 @@ interface IOperatorService extends grpc.ServiceDefinition<grpc.UntypedServiceImp
     getResiliency: IOperatorService_IGetResiliency;
     listResiliency: IOperatorService_IListResiliency;
     listSubscriptionsV2: IOperatorService_IListSubscriptionsV2;
+    subscriptionUpdate: IOperatorService_ISubscriptionUpdate;
+    listHTTPEndpoints: IOperatorService_IListHTTPEndpoints;
+    hTTPEndpointUpdate: IOperatorService_IHTTPEndpointUpdate;
 }
 
 interface IOperatorService_IComponentUpdate extends grpc.MethodDefinition<dapr_proto_operator_v1_operator_pb.ComponentUpdateRequest, dapr_proto_operator_v1_operator_pb.ComponentUpdateEvent> {
@@ -81,6 +84,33 @@ interface IOperatorService_IListSubscriptionsV2 extends grpc.MethodDefinition<da
     responseSerialize: grpc.serialize<dapr_proto_operator_v1_operator_pb.ListSubscriptionsResponse>;
     responseDeserialize: grpc.deserialize<dapr_proto_operator_v1_operator_pb.ListSubscriptionsResponse>;
 }
+interface IOperatorService_ISubscriptionUpdate extends grpc.MethodDefinition<dapr_proto_operator_v1_operator_pb.SubscriptionUpdateRequest, dapr_proto_operator_v1_operator_pb.SubscriptionUpdateEvent> {
+    path: "/dapr.proto.operator.v1.Operator/SubscriptionUpdate";
+    requestStream: false;
+    responseStream: true;
+    requestSerialize: grpc.serialize<dapr_proto_operator_v1_operator_pb.SubscriptionUpdateRequest>;
+    requestDeserialize: grpc.deserialize<dapr_proto_operator_v1_operator_pb.SubscriptionUpdateRequest>;
+    responseSerialize: grpc.serialize<dapr_proto_operator_v1_operator_pb.SubscriptionUpdateEvent>;
+    responseDeserialize: grpc.deserialize<dapr_proto_operator_v1_operator_pb.SubscriptionUpdateEvent>;
+}
+interface IOperatorService_IListHTTPEndpoints extends grpc.MethodDefinition<dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsRequest, dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsResponse> {
+    path: "/dapr.proto.operator.v1.Operator/ListHTTPEndpoints";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsRequest>;
+    requestDeserialize: grpc.deserialize<dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsRequest>;
+    responseSerialize: grpc.serialize<dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsResponse>;
+    responseDeserialize: grpc.deserialize<dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsResponse>;
+}
+interface IOperatorService_IHTTPEndpointUpdate extends grpc.MethodDefinition<dapr_proto_operator_v1_operator_pb.HTTPEndpointUpdateRequest, dapr_proto_operator_v1_operator_pb.HTTPEndpointUpdateEvent> {
+    path: "/dapr.proto.operator.v1.Operator/HTTPEndpointUpdate";
+    requestStream: false;
+    responseStream: true;
+    requestSerialize: grpc.serialize<dapr_proto_operator_v1_operator_pb.HTTPEndpointUpdateRequest>;
+    requestDeserialize: grpc.deserialize<dapr_proto_operator_v1_operator_pb.HTTPEndpointUpdateRequest>;
+    responseSerialize: grpc.serialize<dapr_proto_operator_v1_operator_pb.HTTPEndpointUpdateEvent>;
+    responseDeserialize: grpc.deserialize<dapr_proto_operator_v1_operator_pb.HTTPEndpointUpdateEvent>;
+}
 
 export const OperatorService: IOperatorService;
 
@@ -92,6 +122,9 @@ export interface IOperatorServer extends grpc.UntypedServiceImplementation {
     getResiliency: grpc.handleUnaryCall<dapr_proto_operator_v1_operator_pb.GetResiliencyRequest, dapr_proto_operator_v1_operator_pb.GetResiliencyResponse>;
     listResiliency: grpc.handleUnaryCall<dapr_proto_operator_v1_operator_pb.ListResiliencyRequest, dapr_proto_operator_v1_operator_pb.ListResiliencyResponse>;
     listSubscriptionsV2: grpc.handleUnaryCall<dapr_proto_operator_v1_operator_pb.ListSubscriptionsRequest, dapr_proto_operator_v1_operator_pb.ListSubscriptionsResponse>;
+    subscriptionUpdate: grpc.handleServerStreamingCall<dapr_proto_operator_v1_operator_pb.SubscriptionUpdateRequest, dapr_proto_operator_v1_operator_pb.SubscriptionUpdateEvent>;
+    listHTTPEndpoints: grpc.handleUnaryCall<dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsRequest, dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsResponse>;
+    hTTPEndpointUpdate: grpc.handleServerStreamingCall<dapr_proto_operator_v1_operator_pb.HTTPEndpointUpdateRequest, dapr_proto_operator_v1_operator_pb.HTTPEndpointUpdateEvent>;
 }
 
 export interface IOperatorClient {
@@ -115,6 +148,13 @@ export interface IOperatorClient {
     listSubscriptionsV2(request: dapr_proto_operator_v1_operator_pb.ListSubscriptionsRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_operator_v1_operator_pb.ListSubscriptionsResponse) => void): grpc.ClientUnaryCall;
     listSubscriptionsV2(request: dapr_proto_operator_v1_operator_pb.ListSubscriptionsRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_operator_v1_operator_pb.ListSubscriptionsResponse) => void): grpc.ClientUnaryCall;
     listSubscriptionsV2(request: dapr_proto_operator_v1_operator_pb.ListSubscriptionsRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_operator_v1_operator_pb.ListSubscriptionsResponse) => void): grpc.ClientUnaryCall;
+    subscriptionUpdate(request: dapr_proto_operator_v1_operator_pb.SubscriptionUpdateRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<dapr_proto_operator_v1_operator_pb.SubscriptionUpdateEvent>;
+    subscriptionUpdate(request: dapr_proto_operator_v1_operator_pb.SubscriptionUpdateRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<dapr_proto_operator_v1_operator_pb.SubscriptionUpdateEvent>;
+    listHTTPEndpoints(request: dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsResponse) => void): grpc.ClientUnaryCall;
+    listHTTPEndpoints(request: dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsResponse) => void): grpc.ClientUnaryCall;
+    listHTTPEndpoints(request: dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsResponse) => void): grpc.ClientUnaryCall;
+    hTTPEndpointUpdate(request: dapr_proto_operator_v1_operator_pb.HTTPEndpointUpdateRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<dapr_proto_operator_v1_operator_pb.HTTPEndpointUpdateEvent>;
+    hTTPEndpointUpdate(request: dapr_proto_operator_v1_operator_pb.HTTPEndpointUpdateRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<dapr_proto_operator_v1_operator_pb.HTTPEndpointUpdateEvent>;
 }
 
 export class OperatorClient extends grpc.Client implements IOperatorClient {
@@ -139,4 +179,11 @@ export class OperatorClient extends grpc.Client implements IOperatorClient {
     public listSubscriptionsV2(request: dapr_proto_operator_v1_operator_pb.ListSubscriptionsRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_operator_v1_operator_pb.ListSubscriptionsResponse) => void): grpc.ClientUnaryCall;
     public listSubscriptionsV2(request: dapr_proto_operator_v1_operator_pb.ListSubscriptionsRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_operator_v1_operator_pb.ListSubscriptionsResponse) => void): grpc.ClientUnaryCall;
     public listSubscriptionsV2(request: dapr_proto_operator_v1_operator_pb.ListSubscriptionsRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_operator_v1_operator_pb.ListSubscriptionsResponse) => void): grpc.ClientUnaryCall;
+    public subscriptionUpdate(request: dapr_proto_operator_v1_operator_pb.SubscriptionUpdateRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<dapr_proto_operator_v1_operator_pb.SubscriptionUpdateEvent>;
+    public subscriptionUpdate(request: dapr_proto_operator_v1_operator_pb.SubscriptionUpdateRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<dapr_proto_operator_v1_operator_pb.SubscriptionUpdateEvent>;
+    public listHTTPEndpoints(request: dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsResponse) => void): grpc.ClientUnaryCall;
+    public listHTTPEndpoints(request: dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsResponse) => void): grpc.ClientUnaryCall;
+    public listHTTPEndpoints(request: dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsResponse) => void): grpc.ClientUnaryCall;
+    public hTTPEndpointUpdate(request: dapr_proto_operator_v1_operator_pb.HTTPEndpointUpdateRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<dapr_proto_operator_v1_operator_pb.HTTPEndpointUpdateEvent>;
+    public hTTPEndpointUpdate(request: dapr_proto_operator_v1_operator_pb.HTTPEndpointUpdateRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<dapr_proto_operator_v1_operator_pb.HTTPEndpointUpdateEvent>;
 }

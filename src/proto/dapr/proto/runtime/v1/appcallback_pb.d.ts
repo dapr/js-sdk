@@ -5,9 +5,65 @@
 /* eslint-disable */
 
 import * as jspb from "google-protobuf";
+import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb";
 import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
 import * as dapr_proto_common_v1_common_pb from "../../../../dapr/proto/common/v1/common_pb";
 import * as google_protobuf_struct_pb from "google-protobuf/google/protobuf/struct_pb";
+
+export class JobEventRequest extends jspb.Message { 
+    getName(): string;
+    setName(value: string): JobEventRequest;
+
+    hasData(): boolean;
+    clearData(): void;
+    getData(): google_protobuf_any_pb.Any | undefined;
+    setData(value?: google_protobuf_any_pb.Any): JobEventRequest;
+    getMethod(): string;
+    setMethod(value: string): JobEventRequest;
+    getContentType(): string;
+    setContentType(value: string): JobEventRequest;
+
+    hasHttpExtension(): boolean;
+    clearHttpExtension(): void;
+    getHttpExtension(): dapr_proto_common_v1_common_pb.HTTPExtension | undefined;
+    setHttpExtension(value?: dapr_proto_common_v1_common_pb.HTTPExtension): JobEventRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): JobEventRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: JobEventRequest): JobEventRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: JobEventRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): JobEventRequest;
+    static deserializeBinaryFromReader(message: JobEventRequest, reader: jspb.BinaryReader): JobEventRequest;
+}
+
+export namespace JobEventRequest {
+    export type AsObject = {
+        name: string,
+        data?: google_protobuf_any_pb.Any.AsObject,
+        method: string,
+        contentType: string,
+        httpExtension?: dapr_proto_common_v1_common_pb.HTTPExtension.AsObject,
+    }
+}
+
+export class JobEventResponse extends jspb.Message { 
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): JobEventResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: JobEventResponse): JobEventResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: JobEventResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): JobEventResponse;
+    static deserializeBinaryFromReader(message: JobEventResponse, reader: jspb.BinaryReader): JobEventResponse;
+}
+
+export namespace JobEventResponse {
+    export type AsObject = {
+    }
+}
 
 export class TopicEventRequest extends jspb.Message { 
     getId(): string;

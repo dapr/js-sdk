@@ -14,7 +14,7 @@ The Dapr Client allows you to communicate with the Dapr Sidecar and get access t
 
 - [Dapr CLI]({{< ref install-dapr-cli.md >}}) installed
 - Initialized [Dapr environment]({{< ref install-dapr-selfhost.md >}})
-- [Latest LTS version of Node or greater](https://nodejs.org/en/)
+- [Latest LTS version of Node.js or greater](https://nodejs.org/en/)
 
 ## Installing and importing Dapr's JS SDK
 
@@ -35,10 +35,10 @@ const serverHost = "127.0.0.1"; // App Host of this Example Server
 const serverPort = "50051"; // App Port of this Example Server
 
 // HTTP Example
-const client = new DaprClient(daprHost, daprPort);
+const client = new DaprClient({ daprHost, daprPort });
 
 // GRPC Example
-const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+const client = new DaprClient({ daprHost, daprPort, communicationProtocol: CommunicationProtocolEnum.GRPC });
 ```
 
 ## Running
@@ -49,7 +49,7 @@ To run the examples, you can use two different protocols to interact with the Da
 
 ```typescript
 import { DaprClient } from "@dapr/dapr";
-const client = new DaprClient(daprHost, daprPort);
+const client = new DaprClient({ daprHost, daprPort });
 ```
 
 ```bash
@@ -66,7 +66,7 @@ Since HTTP is the default, you will have to adapt the communication protocol to 
 
 ```typescript
 import { DaprClient, CommunicationProtocol } from "@dapr/dapr";
-const client = new DaprClient(daprHost, daprPort, CommunicationProtocol.GRPC);
+const client = new DaprClient({ daprHost, daprPort, communicationProtocol: CommunicationProtocol.GRPC });
 ```
 
 ```bash
@@ -76,6 +76,34 @@ dapr run --app-id example-sdk --app-protocol grpc -- npm run start
 # or, using npm script
 npm run start:dapr-grpc
 ```
+
+### Environment Variables
+
+##### Dapr Sidecar Endpoints
+
+You can use the `DAPR_HTTP_ENDPOINT` and `DAPR_GRPC_ENDPOINT` environment variables to set the Dapr
+Sidecar's HTTP and gRPC endpoints respectively. When these variables are set, the `daprHost`
+and `daprPort` don't have to be set in the options argument of the constructor, the client will parse them automatically
+out of the provided endpoints.
+
+```typescript
+import { DaprClient, CommunicationProtocol } from "@dapr/dapr";
+
+// Using HTTP, when DAPR_HTTP_ENDPOINT is set
+const client = new DaprClient();
+
+// Using gRPC, when DAPR_GRPC_ENDPOINT is set
+const client = new DaprClient({ communicationProtocol: CommunicationProtocol.GRPC });
+```
+
+If the environment variables are set, but `daprHost` and `daprPort` values are passed to the
+constructor, the latter will take precedence over the environment variables.
+
+##### Dapr API Token
+
+You can use the `DAPR_API_TOKEN` environment variable to set the Dapr API token. When this variable
+is set, the `daprApiToken` doesn't have to be set in the options argument of the constructor,
+the client will get it automatically.
 
 ## General
 
@@ -88,7 +116,12 @@ import { DaprClient, CommunicationProtocol } from "@dapr/dapr";
 
 // Allow a body size of 10Mb to be used
 // The default is 4Mb
-const client = new DaprClient(daprHost, daprPort, CommunicationProtocol.HTTP, { maxBodySizeMb: 10 });
+const client = new DaprClient({
+  daprHost,
+  daprPort,
+  communicationProtocol: CommunicationProtocol.HTTP,
+  maxBodySizeMb: 10,
+});
 ```
 
 ### Proxying Requests
@@ -102,7 +135,7 @@ To perform gRPC proxying, simply create a proxy by calling the `client.proxy.cre
 ```typescript
 // As always, create a client to our dapr sidecar
 // this client takes care of making sure the sidecar is started, that we can communicate, ...
-const clientSidecar = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC);
+const clientSidecar = new DaprClient({ daprHost, daprPort, communicationProtocol: CommunicationProtocol.GRPC });
 
 // Create a Proxy that allows us to use our gRPC code
 const clientProxy = await clientSidecar.proxy.create<GreeterClient>(GreeterClient);
@@ -134,7 +167,7 @@ const daprHost = "127.0.0.1";
 const daprPort = "3500";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort);
+  const client = new DaprClient({ daprHost, daprPort });
 
   const serviceAppId = "my-app-id";
   const serviceMethod = "say-hello";
@@ -174,21 +207,32 @@ const daprHost = "127.0.0.1";
 const daprPort = "3500";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort);
+  const client = new DaprClient({ daprHost, daprPort });
 
   const serviceStoreName = "my-state-store-name";
 
   // Save State
-  const response = await client.state.save(serviceStoreName, [
+  const response = await client.state.save(
+    serviceStoreName,
+    [
+      {
+        key: "first-key-name",
+        value: "hello",
+        metadata: {
+          foo: "bar",
+        },
+      },
+      {
+        key: "second-key-name",
+        value: "world",
+      },
+    ],
     {
-      key: "first-key-name",
-      value: "hello",
+      metadata: {
+        ttlInSeconds: "3", // this should override the ttl in the state item
+      },
     },
-    {
-      key: "second-key-name",
-      value: "world",
-    },
-  ]);
+  );
 
   // Get State
   const response = await client.state.get(serviceStoreName, "first-key-name");
@@ -231,7 +275,7 @@ start().catch((e) => {
 import { DaprClient } from "@dapr/dapr";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort);
+  const client = new DaprClient({ daprHost, daprPort });
 
   const res = await client.state.query("state-mongodb", {
     filter: {
@@ -282,18 +326,23 @@ const daprHost = "127.0.0.1";
 const daprPort = "3500";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort);
+  const client = new DaprClient({ daprHost, daprPort });
 
   const pubSubName = "my-pubsub-name";
   const topic = "topic-a";
 
   // Publish message to topic as text/plain
+  // Note, the content type is inferred from the message type unless specified explicitly
   const response = await client.pubsub.publish(pubSubName, topic, "hello, world!");
   // If publish fails, response contains the error
   console.log(response);
 
   // Publish message to topic as application/json
   await client.pubsub.publish(pubSubName, topic, { hello: "world" });
+
+  // Publish a JSON message as plain text
+  const options = { contentType: "text/plain" };
+  await client.pubsub.publish(pubSubName, topic, { hello: "world" }, options);
 
   // Publish message to topic as application/cloudevents+json
   // You can also use the cloudevent SDK to create cloud events https://github.com/cloudevents/sdk-javascript
@@ -304,6 +353,10 @@ async function start() {
     id: "1234",
   };
   await client.pubsub.publish(pubSubName, topic, cloudEvent);
+
+  // Publish a cloudevent as raw payload
+  const options = { metadata: { rawPayload: true } };
+  await client.pubsub.publish(pubSubName, topic, "hello, world!", options);
 
   // Publish multiple messages to a topic as text/plain
   await client.pubsub.publishBulk(pubSubName, topic, ["message 1", "message 2", "message 3"]);
@@ -355,7 +408,7 @@ const daprHost = "127.0.0.1";
 const daprPort = "3500";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort);
+  const client = new DaprClient({ daprHost, daprPort });
 
   const bindingName = "my-binding-name";
   const bindingOperation = "create";
@@ -383,7 +436,7 @@ const daprHost = "127.0.0.1";
 const daprPort = "3500";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort);
+  const client = new DaprClient({ daprHost, daprPort });
 
   const secretStoreName = "my-secret-store";
   const secretKey = "secret-key";
@@ -411,10 +464,13 @@ start().catch((e) => {
 import { DaprClient } from "@dapr/dapr";
 
 const daprHost = "127.0.0.1";
-const daprAppId = "example-config";
 
 async function start() {
-  const client = new DaprClient(daprHost, process.env.DAPR_HTTP_PORT);
+  const client = new DaprClient({
+    daprHost,
+    daprPort: process.env.DAPR_GRPC_PORT,
+    communicationProtocol: CommunicationProtocolEnum.GRPC,
+  });
 
   const config = await client.configuration.get("config-store", ["key1", "key2"]);
   console.log(config);
@@ -425,6 +481,148 @@ start().catch((e) => {
   process.exit(1);
 });
 ```
+
+Sample output:
+
+```log
+{
+   items: {
+     key1: { key: 'key1', value: 'foo', version: '', metadata: {} },
+     key2: { key: 'key2', value: 'bar2', version: '', metadata: {} }
+   }
+}
+```
+
+#### Subscribe to Configuration Updates
+
+```typescript
+import { DaprClient } from "@dapr/dapr";
+
+const daprHost = "127.0.0.1";
+
+async function start() {
+  const client = new DaprClient({
+    daprHost,
+    daprPort: process.env.DAPR_GRPC_PORT,
+    communicationProtocol: CommunicationProtocolEnum.GRPC,
+  });
+
+  // Subscribes to config store changes for keys "key1" and "key2"
+  const stream = await client.configuration.subscribeWithKeys("config-store", ["key1", "key2"], async (data) => {
+    console.log("Subscribe received updates from config store: ", data);
+  });
+
+  // Wait for 60 seconds and unsubscribe.
+  await new Promise((resolve) => setTimeout(resolve, 60000));
+  stream.stop();
+}
+
+start().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
+```
+
+Sample output:
+
+```log
+Subscribe received updates from config store:  {
+  items: { key2: { key: 'key2', value: 'bar', version: '', metadata: {} } }
+}
+Subscribe received updates from config store:  {
+  items: { key1: { key: 'key1', value: 'foobar', version: '', metadata: {} } }
+}
+```
+
+### Cryptography API
+
+> Support for the cryptography API is only available on the gRPC client in the JavaScript SDK.
+
+```typescript
+import { createReadStream, createWriteStream } from "node:fs";
+import { readFile, writeFile } from "node:fs/promises";
+import { pipeline } from "node:stream/promises";
+
+import { DaprClient, CommunicationProtocolEnum } from "@dapr/dapr";
+
+const daprHost = "127.0.0.1";
+const daprPort = "50050"; // Dapr Sidecar Port of this example server
+
+async function start() {
+  const client = new DaprClient({
+    daprHost,
+    daprPort,
+    communicationProtocol: CommunicationProtocolEnum.GRPC,
+  });
+
+  // Encrypt and decrypt a message using streams
+  await encryptDecryptStream(client);
+
+  // Encrypt and decrypt a message from a buffer
+  await encryptDecryptBuffer(client);
+}
+
+async function encryptDecryptStream(client: DaprClient) {
+  // First, encrypt the message
+  console.log("== Encrypting message using streams");
+  console.log("Encrypting plaintext.txt to ciphertext.out");
+
+  await pipeline(
+    createReadStream("plaintext.txt"),
+    await client.crypto.encrypt({
+      componentName: "crypto-local",
+      keyName: "symmetric256",
+      keyWrapAlgorithm: "A256KW",
+    }),
+    createWriteStream("ciphertext.out"),
+  );
+
+  // Decrypt the message
+  console.log("== Decrypting message using streams");
+  console.log("Encrypting ciphertext.out to plaintext.out");
+  await pipeline(
+    createReadStream("ciphertext.out"),
+    await client.crypto.decrypt({
+      componentName: "crypto-local",
+    }),
+    createWriteStream("plaintext.out"),
+  );
+}
+
+async function encryptDecryptBuffer(client: DaprClient) {
+  // Read "plaintext.txt" so we have some content
+  const plaintext = await readFile("plaintext.txt");
+
+  // First, encrypt the message
+  console.log("== Encrypting message using buffers");
+
+  const ciphertext = await client.crypto.encrypt(plaintext, {
+    componentName: "crypto-local",
+    keyName: "my-rsa-key",
+    keyWrapAlgorithm: "RSA",
+  });
+
+  await writeFile("test.out", ciphertext);
+
+  // Decrypt the message
+  console.log("== Decrypting message using buffers");
+  const decrypted = await client.crypto.decrypt(ciphertext, {
+    componentName: "crypto-local",
+  });
+
+  // The contents should be equal
+  if (plaintext.compare(decrypted) !== 0) {
+    throw new Error("Decrypted message does not match original message");
+  }
+}
+
+start().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
+```
+
+> For a full guide on cryptography visit [How-To: Cryptography]({{< ref howto-cryptography.md >}}).
 
 ### Distributed Lock API
 
@@ -438,7 +636,7 @@ const daprHost = "127.0.0.1";
 const daprPortDefault = "3500";
 
 async function start() {
-  const client = new DaprClient(daprHost, daprPort);
+  const client = new DaprClient({ daprHost, daprPort });
 
   const storeName = "redislock";
   const resourceId = "resourceId";
@@ -446,8 +644,8 @@ async function start() {
   let expiryInSeconds = 1000;
 
   console.log(`Acquiring lock on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
-  const tryLockResponse = await client.lock.tryLock(storeName, resourceId, lockOwner, expiryInSeconds);
-  console.log(tryLockResponse);
+  const lockResponse = await client.lock.lock(storeName, resourceId, lockOwner, expiryInSeconds);
+  console.log(lockResponse);
 
   console.log(`Unlocking on ${storeName}, ${resourceId} as owner: ${lockOwner}`);
   const unlockResponse = await client.lock.unlock(storeName, resourceId, lockOwner);
@@ -474,6 +672,56 @@ start().catch((e) => {
 ```
 
 > For a full guide on distributed locks visit [How-To: Use Distributed Locks]({{< ref howto-use-distributed-lock.md >}}).
+
+### Workflow API
+
+#### Workflow management
+
+```typescript
+import { DaprClient } from "@dapr/dapr";
+
+async function start() {
+  const client = new DaprClient();
+
+  // Start a new workflow instance
+  const instanceId = await client.workflow.start("OrderProcessingWorkflow", {
+    Name: "Paperclips",
+    TotalCost: 99.95,
+    Quantity: 4,
+  });
+  console.log(`Started workflow instance ${instanceId}`);
+
+  // Get a workflow instance
+  const workflow = await client.workflow.get(instanceId);
+  console.log(
+    `Workflow ${workflow.workflowName}, created at ${workflow.createdAt.toUTCString()}, has status ${
+      workflow.runtimeStatus
+    }`,
+  );
+  console.log(`Additional properties: ${JSON.stringify(workflow.properties)}`);
+
+  // Pause a workflow instance
+  await client.workflow.pause(instanceId);
+  console.log(`Paused workflow instance ${instanceId}`);
+
+  // Resume a workflow instance
+  await client.workflow.resume(instanceId);
+  console.log(`Resumed workflow instance ${instanceId}`);
+
+  // Terminate a workflow instance
+  await client.workflow.terminate(instanceId);
+  console.log(`Terminated workflow instance ${instanceId}`);
+
+  // Purge a workflow instance
+  await client.workflow.purge(instanceId);
+  console.log(`Purged workflow instance ${instanceId}`);
+}
+
+start().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
+```
 
 ## Related links
 

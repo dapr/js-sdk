@@ -15,11 +15,19 @@ import CommunicationProtocolEnum from "../enum/CommunicationProtocol.enum";
 
 export class Settings {
   private static readonly defaultAppId: string = "my-dapr-app";
+  private static readonly defaultApiToken = undefined;
   private static readonly defaultHost: string = "127.0.0.1";
   private static readonly defaultHttpAppPort: string = "3000";
   private static readonly defaultHttpPort: string = "3500";
   private static readonly defaultGrpcAppPort: string = "50000";
   private static readonly defaultGrpcPort: string = "50001";
+  private static readonly defaultHttpEndpoint: string = "";
+  private static readonly defaultGrpcEndpoint: string = "";
+  private static readonly defaultCommunicationProtocol: CommunicationProtocolEnum = CommunicationProtocolEnum.HTTP;
+  private static readonly defaultKeepAlive: boolean = true;
+  private static readonly defaultStateGetBulkParallelism: number = 10;
+  private static readonly defaultPubSubRouteName = "default";
+  private static readonly defaultPubSubDeadLetterRouteName = "deadletter";
 
   private static readonly daprSidecarPollingDelayMs: number = 500;
   private static readonly daprSidecarStartupTimeoutMs: number = 10 * 1000;
@@ -32,8 +40,20 @@ export class Settings {
     return Settings.daprSidecarStartupTimeoutMs;
   }
 
+  static getDefaultCommunicationProtocol(): CommunicationProtocolEnum {
+    return Settings.defaultCommunicationProtocol;
+  }
+
+  static getDefaultKeepAlive(): boolean {
+    return Settings.defaultKeepAlive;
+  }
+
   static getAppId(): string {
     return process.env.APP_ID ?? Settings.defaultAppId;
+  }
+
+  static getDefaultApiToken() {
+    return process.env.DAPR_API_TOKEN || Settings.defaultApiToken;
   }
 
   static getDefaultHost(): string {
@@ -46,6 +66,10 @@ export class Settings {
 
   static getDefaultGrpcPort(): string {
     return process.env.DAPR_GRPC_PORT ?? Settings.defaultGrpcPort;
+  }
+
+  static getDefaultStateGetBulkParallelism(): number {
+    return Settings.defaultStateGetBulkParallelism;
   }
 
   /**
@@ -70,6 +94,14 @@ export class Settings {
     return process.env.APP_PORT ?? Settings.defaultGrpcAppPort;
   }
 
+  static getDefaultHttpEndpoint(): string {
+    return process.env.DAPR_HTTP_ENDPOINT || Settings.defaultHttpEndpoint;
+  }
+
+  static getDefaultGrpcEndpoint(): string {
+    return process.env.DAPR_GRPC_ENDPOINT || Settings.defaultGrpcEndpoint;
+  }
+
   /**
    * Gets the default port that the application is listening on.
    * @param communicationProtocolEnum communication protocol
@@ -82,5 +114,13 @@ export class Settings {
       default:
         return this.getDefaultHttpAppPort();
     }
+  }
+
+  static getDefaultPubSubRouteName(): string {
+    return Settings.defaultPubSubRouteName;
+  }
+
+  static getDefaultPubSubDeadLetterRouteName(): string {
+    return Settings.defaultPubSubDeadLetterRouteName;
   }
 }

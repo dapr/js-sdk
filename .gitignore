@@ -1,5 +1,5 @@
 ### vscode ###
-.vscode/*
+.vscode
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
@@ -145,3 +145,12 @@ build/
 
 # version file is auto-generated
 src/version.ts
+
+# OSX
+/.DS_Store
+
+# JetBrains
+/.idea
+
+# PNPM
+pnpm-lock.yaml

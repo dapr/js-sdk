@@ -13,6 +13,7 @@ limitations under the License.
 
 import { TypeDaprPubSubCallback } from "../DaprPubSubCallback.type";
 import { KeyValueType } from "../KeyValue.type";
+import { BulkSubscribeConfig } from "./BulkSubscribeConfig.type";
 import { DaprPubSubRouteType } from "./DaprPubSubRouteType.type";
 
 /**
@@ -33,4 +34,7 @@ export type PubSubSubscriptionOptionsType = {
 
   // The route creation for a single route or DaprPubSubRouteType
   route?: string | DaprPubSubRouteType;
+
+  // The settings for bulk subscribe
+  bulkSubscribe?: BulkSubscribeConfig;
 };

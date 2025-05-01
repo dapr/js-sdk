@@ -12,7 +12,6 @@ limitations under the License.
 */
 
 import * as grpc from "@grpc/grpc-js";
-import { InterceptingListener } from "@grpc/grpc-js/build/src/call-stream";
 import { NextCall } from "@grpc/grpc-js/build/src/client-interceptors";
 import Class from "../../../types/Class";
 import { Settings } from "../../../utils/Settings.util";
@@ -37,8 +36,8 @@ export class GRPCClientProxy<T> {
       return new grpc.InterceptingCall(nextCall(options), {
         start: (
           metadata: grpc.Metadata,
-          listener: InterceptingListener,
-          next: (metadata: grpc.Metadata, listener: InterceptingListener | grpc.Listener) => void,
+          listener: grpc.InterceptingListener,
+          next: (metadata: grpc.Metadata, listener: grpc.InterceptingListener | grpc.Listener) => void,
         ) => {
           metadata.add("dapr-app-id", `${Settings.getAppId()}`);
           next(metadata, listener);
@@ -60,10 +59,14 @@ export class GRPCClientProxy<T> {
       this.grpcClientOptions.interceptors = [];
     }
 
-    this.grpcClientOptions.interceptors = [...this.generateInterceptors(), ...this.grpcClientOptions.interceptors];
+    this.grpcClientOptions.interceptors = [
+      ...this.generateInterceptors(),
+      ...(this.grpcClient.getGrpcClientOptions().interceptors ?? []),
+      ...this.grpcClientOptions.interceptors,
+    ];
 
     const clientCustom = new this.clsProxy(
-      `${this.grpcClient.getClientHost()}:${this.grpcClient.getClientPort()}`,
+      `${this.grpcClient.options.daprHost}:${this.grpcClient.options.daprPort}`,
       this.grpcClient.getClientCredentials(),
       this.grpcClientOptions,
     );

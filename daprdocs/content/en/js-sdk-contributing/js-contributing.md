@@ -103,19 +103,23 @@ Try to keep the first commit line short. This is harder to do using this commit 
 concise and if you need more space, you can use the commit body. Try to make sure that the commit
 subject is clear and precise enough that users will know what change by just looking at the changelog.
 
+## Github Dapr Bot Commands
+
+Checkout the [daprbot documentation](https://docs.dapr.io/contributing/daprbot/) for Github commands you can run in this repo for common tasks. For example, you can run the `/assign` (as a comment on an issue) to assign issues to a user or group of users.
+
 ## Coding Rules
 
 To ensure consistency throughout the source code, keep these rules in mind as you are working:
 
 - All features or bug fixes **must be tested** by one or more specs (unit-tests).
 - All public API methods **must be documented**.
-- We follow [ESLint RecommendedRules][https://eslint.org/docs/rules/].
+- We follow [ESLint RecommendedRules](https://eslint.org/docs/rules/).
 
 ## Examples
 
 The `examples` directory contains code samples for users to run to try out specific functionality of the various JavaScript SDK packages and extensions. When writing new and updated samples keep in mind:
 
-- All examples should be runnable on Windows, Linux, and MacOS. While JavaScript code is consistent among operating systems, any pre/post example commands should provide options through [codetabs]({{< ref "contributing-docs.md#tabbed-content" >}})
+- All examples should be runnable on Windows, Linux, and MacOS. While JavaScript code is consistent among operating systems, any pre/post example commands should provide options through [codetabs]({{< ref "contributing-docs.md#tabbed-content" >}}).
 - Contain steps to download/install any required pre-requisites. Someone coming in with a fresh OS install should be able to start on the example and complete it without an error. Links to external download pages are fine.
 
 ## Docs

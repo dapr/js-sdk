@@ -38,6 +38,10 @@ export class PlacementTables extends jspb.Message {
     clearEntriesMap(): void;
     getVersion(): string;
     setVersion(value: string): PlacementTables;
+    getApiLevel(): number;
+    setApiLevel(value: number): PlacementTables;
+    getReplicationFactor(): number;
+    setReplicationFactor(value: number): PlacementTables;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): PlacementTables.AsObject;
@@ -54,6 +58,8 @@ export namespace PlacementTables {
 
         entriesMap: Array<[string, PlacementTable.AsObject]>,
         version: string,
+        apiLevel: number,
+        replicationFactor: number,
     }
 }
 
@@ -105,6 +111,12 @@ export class Host extends jspb.Message {
     addEntities(value: string, index?: number): string;
     getId(): string;
     setId(value: string): Host;
+    getPod(): string;
+    setPod(value: string): Host;
+    getApiLevel(): number;
+    setApiLevel(value: number): Host;
+    getNamespace(): string;
+    setNamespace(value: string): Host;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Host.AsObject;
@@ -123,5 +135,8 @@ export namespace Host {
         load: number,
         entitiesList: Array<string>,
         id: string,
+        pod: string,
+        apiLevel: number,
+        namespace: string,
     }
 }

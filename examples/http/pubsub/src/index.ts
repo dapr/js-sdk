@@ -20,8 +20,15 @@ const serverPort = "50001"; // App Port of this Example Server
 
 async function start() {
   // Create a Server (will subscribe) and Client (will publish)
-  const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
-  const client = new DaprClient(daprHost, daprPort);
+  const server = new DaprServer({
+    serverHost,
+    serverPort,
+    clientOptions: {
+      daprHost,
+      daprPort,
+    },
+  });
+  const client = new DaprClient({ daprHost, daprPort });
 
   // Initialize the server to subscribe (listen)
   await server.pubsub.subscribe("my-pubsub-component", "my-topic", async (data: any) =>

@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { CommunicationProtocolEnum, DaprServer, HttpMethod } from "../../../src";
+import { CommunicationProtocolEnum, DaprServer, HttpMethod, LogLevel } from "../../../src";
 
 const serverHost = "localhost";
 const serverPort = "50001";
@@ -27,15 +27,20 @@ describe("grpc/server", () => {
   // We need to start listening on some endpoints already
   // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
-    server = new DaprServer(
+    server = new DaprServer({
       serverHost,
       serverPort,
-      daprHost,
-      daprPort,
-      CommunicationProtocolEnum.GRPC,
-      { maxBodySizeMb: 20 }, // we set sending larger than receiving to test the error handling
-      { maxBodySizeMb: 10 },
-    );
+      communicationProtocol: CommunicationProtocolEnum.GRPC,
+      clientOptions: {
+        daprHost,
+        daprPort,
+        maxBodySizeMb: 20, // we set sending larger than receiving to test the error handling
+        logger: {
+          level: LogLevel.Debug,
+        },
+      },
+      maxBodySizeMb: 10,
+    });
 
     await server.binding.receive("binding-mqtt", mockBindingReceive);
     await server.invoker.listen("test-invoker", mockInvoker, { method: HttpMethod.POST });

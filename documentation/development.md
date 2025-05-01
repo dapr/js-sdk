@@ -22,9 +22,28 @@ npm run start:dev
 
 ## Publishing Package Package Maintenance
 
-For publishing a new version, we update the version in `package.json` and we run `./publish.sh`
+To publish a new package to [https://www.npmjs.com/package/@dapr/dapr](https://www.npmjs.com/package/@dapr/dapr) we need to do the following building and publishing steps.
+
+For **building** a new version, we:
+
+- update the version in `package.json` in the repo root, e.g. `3.4.0` for a final releaes or `3.4.0-rc.1` for a pre-release
+- run `npm install` again to refresh lock file (it should now be dirty and part of the change list)
+- verify the dapr runtime and versions in [./scripts/fetch-proto.sh](./scripts/fetch-proto.sh) and update if necessary
+- run `./scripts/fetch-proto.sh` from the repo root to regenerate protos to match runtime
+- verify [.github/workflows/test-e2e.yml](.github/workflows/test-e2e.yml) env variables, especially the Dapr and Node versions to test against
+
+PR this change into the right release branch, e.g. `release-3.4.0`. Merging to `master` branch should happen last.
 
 A custom script is utilized here since we have 2 libraries in one for HTTP and gRPC
+
+For **publishing** the package, we simply cut a new release by:
+
+- create a new release/tag in the dapr/js-sdk repo
+  - for a final release the tag should look like `v3.4.0` and mark it as final official release. Generate release notes using the N-1 released version, e.g. using 3.3.1.
+  - for a pre-release it should look like `v3.4.0-rc.1` and mark it as a pre-release
+- verify the package is now uploaded to [https://www.npmjs.com/package/@dapr/dapr](https://www.npmjs.com/package/@dapr/dapr) and shows the new version
+
+Publishing is automated in the CI/CD pipeline. Each time a version is release (GitHub ref starting with `refs/tags/v`) then the pipeline will deploy the package as described in [build.yml](./.github/workflows/build.yml).
 
 ## Running Tests
 
@@ -49,10 +68,6 @@ npm run test:e2e:grpc
 # Start HTTP tests
 npm run test:e2e:http
 ```
-
-## Publishing
-
-Publishing is automated in the CI/CD pipeline. Each time a version is release (GitHub ref starting with `refs/tags/v`) then the pipeline will deploy the package as described in [build.yml](./.github/workflows/build.yml).
 
 ## Setup GitHub actions
 

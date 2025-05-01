@@ -5,23 +5,26 @@ linkTitle: "JavaScript"
 weight: 1000
 description: JavaScript SDK packages for developing Dapr applications
 no_list: true
+cascade:
+  github_repo: https://github.com/dapr/js-sdk
+  github_subdir: daprdocs/content/en/js-sdk-docs
+  path_base_for_github_subdir: content/en/developing-applications/sdks/js/
+  github_branch: main
 ---
 
 A client library for building Dapr apps in JavaScript and TypeScript. This client abstracts the public Dapr APIs like service to service invocation, state management, pub/sub, secrets, and much more, and provides a simple, intuitive API for building applications.
 
 ## Installation
 
-To get started with the Javascript SDK, install the Dapr JavaScript SDK package from [NPM](https://www.npmjs.com/package/@dapr/dapr):
+To get started with the JavaScript SDK, install the Dapr JavaScript SDK package from [NPM](https://www.npmjs.com/package/@dapr/dapr):
 
 ```bash
 npm install --save @dapr/dapr
 ```
 
-> ⚠️ [dapr-client](https://www.npmjs.com/package/dapr-client) is now deprecated. Please see [#259](https://github.com/dapr/js-sdk/issues/259) for more information.
-
 ## Structure
 
-The Dapr Javascript SDK contains two major components:
+The Dapr JavaScript SDK contains two major components:
 
 - **DaprServer**: to manage all Dapr sidecar to application communication.
 - **DaprClient**: to manage all application to Dapr sidecar communication.

@@ -3,7 +3,7 @@ OS=$(echo `uname`|tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 ORG_NAME="dapr"
 REPO_NAME="dapr"
-BRANCH_NAME="v1.10.0"
+BRANCH_NAME="v1.14.0"
 
 # Path to store output
 PATH_ROOT=$(pwd)
@@ -141,6 +141,7 @@ echo ""
 echo "Downloading latest Google Protobuf gRPC files"
 downloadFile "https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/any.proto" "$PATH_ROOT/src/proto/google/protobuf/any.proto"
 downloadFile "https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/empty.proto" "$PATH_ROOT/src/proto/google/protobuf/empty.proto"
+downloadFile "https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/timestamp.proto" "$PATH_ROOT/src/proto/google/protobuf/timestamp.proto"
 
 echo ""
 echo "Compiling gRPC files"
@@ -156,6 +157,7 @@ generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/sentry/v1/sentry.proto"
 
 generateGrpc "$PATH_ROOT/src/proto" "google/protobuf/any.proto"
 generateGrpc "$PATH_ROOT/src/proto" "google/protobuf/empty.proto"
+generateGrpc "$PATH_ROOT/src/proto" "google/protobuf/timestamp.proto"
 
 
 echo ""

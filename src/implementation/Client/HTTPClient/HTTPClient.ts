@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import fetch, { RequestInit } from "node-fetch";
-import { CommunicationProtocolEnum, DaprClient } from "../../..";
+import { DaprClient } from "../../..";
 import IClient from "../../../interfaces/Client/IClient";
 import http from "http";
 import https from "https";
@@ -23,36 +23,38 @@ import { Logger } from "../../../logger/Logger";
 import HTTPClientSidecar from "./sidecar";
 import { SDK_VERSION } from "../../../version";
 import * as SerializerUtil from "../../../utils/Serializer.util";
+import communicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
+import { HttpEndpoint } from "../../../network/HttpEndpoint";
 
 export default class HTTPClient implements IClient {
-  private isInitialized: boolean;
+  readonly options: DaprClientOptions;
 
+  private isInitialized: boolean;
   private static client: typeof fetch;
-  private readonly clientHost: string;
-  private readonly clientPort: string;
   private readonly clientUrl: string;
-  private readonly options: DaprClientOptions;
   private readonly logger: Logger;
 
   private static httpAgent: http.Agent;
   private static httpsAgent: https.Agent;
+  private daprEndpoint: HttpEndpoint;
 
-  constructor(host = Settings.getDefaultHost(), port = Settings.getDefaultHttpPort(), options: DaprClientOptions = {}) {
-    this.clientHost = host;
-    this.clientPort = port;
-    this.options = options;
+  constructor(options: Partial<DaprClientOptions>) {
+    this.daprEndpoint = this.generateEndpoint(options);
+
+    this.options = {
+      daprHost: this.daprEndpoint.hostname,
+      daprPort: this.daprEndpoint.port,
+      communicationProtocol: communicationProtocolEnum.HTTP,
+      isKeepAlive: options?.isKeepAlive,
+      logger: options?.logger,
+      actor: options?.actor,
+      daprApiToken: options?.daprApiToken,
+      maxBodySizeMb: options?.maxBodySizeMb,
+    };
+
     this.logger = new Logger("HTTPClient", "HTTPClient", this.options.logger);
     this.isInitialized = false;
-    // fallback to default
-    if (this.options.isKeepAlive === undefined) {
-      this.options.isKeepAlive = true;
-    }
-
-    if (!this.clientHost.startsWith("http://") && !this.clientHost.startsWith("https://")) {
-      this.clientUrl = `http://${this.clientHost}:${this.clientPort}/v1.0`;
-    } else {
-      this.clientUrl = `${this.clientHost}:${this.clientPort}/v1.0`;
-    }
+    this.clientUrl = `${this.daprEndpoint.endpoint}/v1.0`;
 
     if (!HTTPClient.client) {
       HTTPClient.client = fetch;
@@ -61,7 +63,7 @@ export default class HTTPClient implements IClient {
     // Add a custom agent so we can decide if we want to reuse connections or not
     // we use an agent so we can reuse an open connection, limiting handshake requirements
     // Note: when using an agent, we will encounter TCPWRAP since the connection doesn't get destroyed
-    const keepAlive = this.options.isKeepAlive;
+    const keepAlive = this.options.isKeepAlive ?? Settings.getDefaultKeepAlive();
     const keepAliveMsecs = 30 * 1000; // it is applicable only when keepAlive is set to true
 
     if (!HTTPClient.httpAgent) {
@@ -72,6 +74,22 @@ export default class HTTPClient implements IClient {
     }
   }
 
+  private generateEndpoint(options: Partial<DaprClientOptions>): HttpEndpoint {
+    const host = options?.daprHost ?? Settings.getDefaultHost();
+    const port = options?.daprPort ?? Settings.getDefaultHttpPort();
+    let uri = `${host}:${port}`;
+
+    if (!(options?.daprHost || options?.daprPort)) {
+      // If neither host nor port are specified, check the endpoint environment variable.
+      const endpoint = Settings.getDefaultHttpEndpoint();
+      if (endpoint != "") {
+        uri = endpoint;
+      }
+    }
+
+    return new HttpEndpoint(uri);
+  }
+
   async getClient(requiresInitialization = true): Promise<typeof fetch> {
     // Ensure the sidecar has been started
     if (requiresInitialization && !this.isInitialized) {
@@ -80,26 +98,6 @@ export default class HTTPClient implements IClient {
     }
 
     return HTTPClient.client;
-  }
-
-  getClientHost(): string {
-    return this.clientHost;
-  }
-
-  getClientPort(): string {
-    return this.clientPort;
-  }
-
-  getClientUrl(): string {
-    return this.clientUrl;
-  }
-
-  getClientCommunicationProtocol(): CommunicationProtocolEnum {
-    return CommunicationProtocolEnum.HTTP;
-  }
-
-  getOptions(): DaprClientOptions {
-    return this.options;
   }
 
   setIsInitialized(isInitialized: boolean): void {
@@ -161,13 +159,11 @@ export default class HTTPClient implements IClient {
 
     // Set Body and Content-Type Header
     if (params?.body) {
-      const { serializedData, contentType } = SerializerUtil.serializeHttp(params?.body);
+      // If content-type is already present, use that to serialize the data.
+      const headerContentType = params?.headers?.["Content-Type"] ?? undefined;
+      const { serializedData, contentType } = SerializerUtil.serializeHttp(params?.body, headerContentType);
 
-      // Don't overwrite it
-      if (!params?.headers?.["Content-Type"]) {
-        clientOptions.headers["Content-Type"] = contentType;
-      }
-
+      clientOptions.headers["Content-Type"] = contentType;
       clientOptions.body = serializedData;
     }
 

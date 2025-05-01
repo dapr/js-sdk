@@ -79,6 +79,9 @@ import { CommunicationProtocolEnum, DaprClient, DaprServer } from "@dapr/dapr";
 
 // Configure the actor runtime with the DaprClientOptions.
 const clientOptions = {
+  daprHost: daprHost,
+  daprPort: daprPort,
+  communicationProtocol: CommunicationProtocolEnum.HTTP,
   actor: {
     actorIdleTimeout: "1h",
     actorScanInterval: "30s",
@@ -95,9 +98,9 @@ const clientOptions = {
 // Use the options when creating DaprServer and DaprClient.
 
 // Note, DaprServer creates a DaprClient internally, which needs to be configured with clientOptions.
-const server = new DaprServer(serverHost, serverPort, daprHost, daprPort, clientOptions);
+const server = new DaprServer({ serverHost, serverPort, clientOptions });
 
-const client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.HTTP, clientOptions);
+const client = new DaprClient(clientOptions);
 ```
 
 ## Registering Actors
@@ -113,7 +116,14 @@ const daprPort = "50000";
 const serverHost = "127.0.0.1";
 const serverPort = "50001";
 
-const server = new DaprServer(serverHost, serverPort, daprHost, daprPort);
+const server = new DaprServer({
+  serverHost,
+  serverPort,
+  clientOptions: {
+    daprHost,
+    daprPort,
+  },
+});
 
 await server.actor.init(); // Let the server know we need actors
 server.actor.registerActor(ParkingSensorImpl); // Register the actor
@@ -136,7 +146,7 @@ import ParkingSensorInterface from "./ParkingSensorInterface";
 const daprHost = "127.0.0.1";
 const daprPort = "50000";
 
-const client = new DaprClient(daprHost, daprPort);
+const client = new DaprClient({ daprHost, daprPort });
 
 // Create a new actor builder. It can be used to create multiple actors of a type.
 const builder = new ActorProxyBuilder<ParkingSensorInterface>(ParkingSensorImpl, client);

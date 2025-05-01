@@ -84,6 +84,28 @@ function deserialize_dapr_proto_operator_v1_GetResiliencyResponse(buffer_arg) {
   return dapr_proto_operator_v1_operator_pb.GetResiliencyResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dapr_proto_operator_v1_HTTPEndpointUpdateEvent(arg) {
+  if (!(arg instanceof dapr_proto_operator_v1_operator_pb.HTTPEndpointUpdateEvent)) {
+    throw new Error('Expected argument of type dapr.proto.operator.v1.HTTPEndpointUpdateEvent');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_operator_v1_HTTPEndpointUpdateEvent(buffer_arg) {
+  return dapr_proto_operator_v1_operator_pb.HTTPEndpointUpdateEvent.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_operator_v1_HTTPEndpointUpdateRequest(arg) {
+  if (!(arg instanceof dapr_proto_operator_v1_operator_pb.HTTPEndpointUpdateRequest)) {
+    throw new Error('Expected argument of type dapr.proto.operator.v1.HTTPEndpointUpdateRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_operator_v1_HTTPEndpointUpdateRequest(buffer_arg) {
+  return dapr_proto_operator_v1_operator_pb.HTTPEndpointUpdateRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dapr_proto_operator_v1_ListComponentResponse(arg) {
   if (!(arg instanceof dapr_proto_operator_v1_operator_pb.ListComponentResponse)) {
     throw new Error('Expected argument of type dapr.proto.operator.v1.ListComponentResponse');
@@ -104,6 +126,28 @@ function serialize_dapr_proto_operator_v1_ListComponentsRequest(arg) {
 
 function deserialize_dapr_proto_operator_v1_ListComponentsRequest(buffer_arg) {
   return dapr_proto_operator_v1_operator_pb.ListComponentsRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_operator_v1_ListHTTPEndpointsRequest(arg) {
+  if (!(arg instanceof dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsRequest)) {
+    throw new Error('Expected argument of type dapr.proto.operator.v1.ListHTTPEndpointsRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_operator_v1_ListHTTPEndpointsRequest(buffer_arg) {
+  return dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_operator_v1_ListHTTPEndpointsResponse(arg) {
+  if (!(arg instanceof dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsResponse)) {
+    throw new Error('Expected argument of type dapr.proto.operator.v1.ListHTTPEndpointsResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_operator_v1_ListHTTPEndpointsResponse(buffer_arg) {
+  return dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_dapr_proto_operator_v1_ListResiliencyRequest(arg) {
@@ -148,6 +192,28 @@ function serialize_dapr_proto_operator_v1_ListSubscriptionsResponse(arg) {
 
 function deserialize_dapr_proto_operator_v1_ListSubscriptionsResponse(buffer_arg) {
   return dapr_proto_operator_v1_operator_pb.ListSubscriptionsResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_operator_v1_SubscriptionUpdateEvent(arg) {
+  if (!(arg instanceof dapr_proto_operator_v1_operator_pb.SubscriptionUpdateEvent)) {
+    throw new Error('Expected argument of type dapr.proto.operator.v1.SubscriptionUpdateEvent');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_operator_v1_SubscriptionUpdateEvent(buffer_arg) {
+  return dapr_proto_operator_v1_operator_pb.SubscriptionUpdateEvent.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_operator_v1_SubscriptionUpdateRequest(arg) {
+  if (!(arg instanceof dapr_proto_operator_v1_operator_pb.SubscriptionUpdateRequest)) {
+    throw new Error('Expected argument of type dapr.proto.operator.v1.SubscriptionUpdateRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_operator_v1_SubscriptionUpdateRequest(buffer_arg) {
+  return dapr_proto_operator_v1_operator_pb.SubscriptionUpdateRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_google_protobuf_Empty(arg) {
@@ -246,6 +312,42 @@ listSubscriptionsV2: {
     requestDeserialize: deserialize_dapr_proto_operator_v1_ListSubscriptionsRequest,
     responseSerialize: serialize_dapr_proto_operator_v1_ListSubscriptionsResponse,
     responseDeserialize: deserialize_dapr_proto_operator_v1_ListSubscriptionsResponse,
+  },
+  // Sends events to Dapr sidecars upon subscription changes.
+subscriptionUpdate: {
+    path: '/dapr.proto.operator.v1.Operator/SubscriptionUpdate',
+    requestStream: false,
+    responseStream: true,
+    requestType: dapr_proto_operator_v1_operator_pb.SubscriptionUpdateRequest,
+    responseType: dapr_proto_operator_v1_operator_pb.SubscriptionUpdateEvent,
+    requestSerialize: serialize_dapr_proto_operator_v1_SubscriptionUpdateRequest,
+    requestDeserialize: deserialize_dapr_proto_operator_v1_SubscriptionUpdateRequest,
+    responseSerialize: serialize_dapr_proto_operator_v1_SubscriptionUpdateEvent,
+    responseDeserialize: deserialize_dapr_proto_operator_v1_SubscriptionUpdateEvent,
+  },
+  // Returns a list of http endpoints
+listHTTPEndpoints: {
+    path: '/dapr.proto.operator.v1.Operator/ListHTTPEndpoints',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsRequest,
+    responseType: dapr_proto_operator_v1_operator_pb.ListHTTPEndpointsResponse,
+    requestSerialize: serialize_dapr_proto_operator_v1_ListHTTPEndpointsRequest,
+    requestDeserialize: deserialize_dapr_proto_operator_v1_ListHTTPEndpointsRequest,
+    responseSerialize: serialize_dapr_proto_operator_v1_ListHTTPEndpointsResponse,
+    responseDeserialize: deserialize_dapr_proto_operator_v1_ListHTTPEndpointsResponse,
+  },
+  // Sends events to Dapr sidecars upon http endpoint changes.
+hTTPEndpointUpdate: {
+    path: '/dapr.proto.operator.v1.Operator/HTTPEndpointUpdate',
+    requestStream: false,
+    responseStream: true,
+    requestType: dapr_proto_operator_v1_operator_pb.HTTPEndpointUpdateRequest,
+    responseType: dapr_proto_operator_v1_operator_pb.HTTPEndpointUpdateEvent,
+    requestSerialize: serialize_dapr_proto_operator_v1_HTTPEndpointUpdateRequest,
+    requestDeserialize: deserialize_dapr_proto_operator_v1_HTTPEndpointUpdateRequest,
+    responseSerialize: serialize_dapr_proto_operator_v1_HTTPEndpointUpdateEvent,
+    responseDeserialize: deserialize_dapr_proto_operator_v1_HTTPEndpointUpdateEvent,
   },
 };
 

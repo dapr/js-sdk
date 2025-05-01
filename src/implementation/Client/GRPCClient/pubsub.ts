@@ -25,6 +25,7 @@ import { addMetadataToMap, getBulkPublishEntries, getBulkPublishResponse } from 
 import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
 import { PubSubBulkPublishResponse } from "../../../types/pubsub/PubSubBulkPublishResponse.type";
 import { PubSubBulkPublishMessage } from "../../../types/pubsub/PubSubBulkPublishMessage.type";
+import { PubSubPublishOptions } from "../../../types/pubsub/PubSubPublishOptions.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class GRPCClientPubSub implements IClientPubSub {
@@ -34,26 +35,26 @@ export default class GRPCClientPubSub implements IClientPubSub {
 
   constructor(client: GRPCClient) {
     this.client = client;
-    this.logger = new Logger("GRPCClient", "PubSub", client.getOptions().logger);
+    this.logger = new Logger("GRPCClient", "PubSub", client.options.logger);
   }
 
   async publish(
     pubSubName: string,
     topic: string,
     data: object | string,
-    metadata?: KeyValueType,
+    options: PubSubPublishOptions = {},
   ): Promise<PubSubPublishResponseType> {
     const msgService = new PublishEventRequest();
     msgService.setPubsubName(pubSubName);
     msgService.setTopic(topic);
 
     if (data) {
-      const serialized = SerializerUtil.serializeGrpc(data);
+      const serialized = SerializerUtil.serializeGrpc(data, options.contentType);
       msgService.setData(serialized.serializedData);
       msgService.setDataContentType(serialized.contentType);
     }
 
-    addMetadataToMap(msgService.getMetadataMap(), metadata);
+    addMetadataToMap(msgService.getMetadataMap(), options.metadata);
 
     const client = await this.client.getClient();
     return new Promise((resolve, reject) => {

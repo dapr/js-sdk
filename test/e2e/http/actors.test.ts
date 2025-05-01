@@ -22,13 +22,17 @@ import DemoActorCounterImpl from "../../actor/DemoActorCounterImpl";
 import DemoActorCounterInterface from "../../actor/DemoActorCounterInterface";
 import DemoActorReminderImpl from "../../actor/DemoActorReminderImpl";
 import DemoActorReminder2Impl from "../../actor/DemoActorReminder2Impl";
+import DemoActorReminderOnceImpl from "../../actor/DemoActorReminderOnceImpl";
 import DemoActorReminderInterface from "../../actor/DemoActorReminderInterface";
 import DemoActorSayImpl from "../../actor/DemoActorSayImpl";
 import DemoActorSayInterface from "../../actor/DemoActorSayInterface";
 import DemoActorTimerImpl from "../../actor/DemoActorTimerImpl";
+import DemoActorTimerOnceImpl from "../../actor/DemoActorTimerOnceImpl";
 import DemoActorTimerInterface from "../../actor/DemoActorTimerInterface";
 import DemoActorTimerTtlImpl from "../../actor/DemoActorTimerTtlImpl";
 import DemoActorReminderTtlImpl from "../../actor/DemoActorReminderTtlImpl";
+import DemoActorDeleteStateImpl from "../../actor/DemoActorDeleteStateImpl";
+import DemoActorDeleteStateInterface from "../../actor/DemoActorDeleteStateInterface";
 
 const serverHost = "127.0.0.1";
 const serverPort = "50001";
@@ -37,6 +41,9 @@ const sidecarPort = "50000";
 const serverStartWaitTimeMs = 5 * 1000;
 
 const daprClientOptions: DaprClientOptions = {
+  daprHost: sidecarHost,
+  daprPort: sidecarPort,
+  communicationProtocol: CommunicationProtocolEnum.HTTP,
   isKeepAlive: false,
   actor: {
     actorIdleTimeout: "1h",
@@ -61,16 +68,14 @@ describe("http/actors", () => {
     // Start server and client with keepAlive on the client set to false.
     // this means that we won't re-use connections here which is necessary for the tests
     // since it will keep handles open else it has to be initialized before the server starts!
-    server = new DaprServer(
+    server = new DaprServer({
       serverHost,
       serverPort,
-      sidecarHost,
-      sidecarPort,
-      CommunicationProtocolEnum.HTTP,
-      daprClientOptions,
-    );
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
+      clientOptions: daprClientOptions,
+    });
 
-    client = new DaprClient(sidecarHost, sidecarPort, CommunicationProtocolEnum.HTTP, daprClientOptions);
+    client = new DaprClient(daprClientOptions);
 
     // This will initialize the actor routes.
     // Actors themselves can be initialized later
@@ -79,10 +84,13 @@ describe("http/actors", () => {
     await server.actor.registerActor(DemoActorSayImpl);
     await server.actor.registerActor(DemoActorReminderImpl);
     await server.actor.registerActor(DemoActorReminder2Impl);
+    await server.actor.registerActor(DemoActorReminderOnceImpl);
     await server.actor.registerActor(DemoActorTimerImpl);
+    await server.actor.registerActor(DemoActorTimerOnceImpl);
     await server.actor.registerActor(DemoActorActivateImpl);
     await server.actor.registerActor(DemoActorTimerTtlImpl);
     await server.actor.registerActor(DemoActorReminderTtlImpl);
+    await server.actor.registerActor(DemoActorDeleteStateImpl);
 
     // Start server
     await server.start(); // Start the general server, this can take a while
@@ -105,13 +113,33 @@ describe("http/actors", () => {
 
       const config = JSON.parse(await res.text());
 
-      expect(config.entities.length).toBe(8);
+      expect(config.entities.length).toBe(11);
       expect(config.actorIdleTimeout).toBe("1h");
       expect(config.actorScanInterval).toBe("30s");
       expect(config.drainOngoingCallTimeout).toBe("1m");
       expect(config.drainRebalancedActors).toBe(true);
       expect(config.reentrancy.enabled).toBe(true);
       expect(config.reentrancy.maxStackDepth).toBe(32);
+    });
+  });
+
+  describe("actorId", () => {
+    it("should be able to create an actorId", () => {
+      const actorId = ActorId.createRandomId();
+      expect(actorId.getId()).toBeDefined();
+      expect(actorId.getURLSafeId()).toBeDefined();
+      expect(actorId.toString()).toBeDefined();
+    });
+
+    it("should not be able to create an actorId with an empty string", () => {
+      expect(() => new ActorId("")).toThrowError("ActorId cannot be empty");
+    });
+
+    it("should be able to create an actorId with url unsafe characters like '/'", () => {
+      const actorId = new ActorId("test/actor");
+      expect(actorId.getURLSafeId()).toEqual("test%2Factor");
+      expect(actorId.getId()).toEqual("test/actor");
+      expect(actorId.toString()).toEqual("test/actor");
     });
   });
 
@@ -151,19 +179,39 @@ describe("http/actors", () => {
     });
   });
 
+  describe("deleteActorState", () => {
+    it("should be able to delete actor state", async () => {
+      const builder = new ActorProxyBuilder<DemoActorDeleteStateInterface>(DemoActorDeleteStateImpl, client);
+      const actor = builder.build(ActorId.createRandomId());
+      await actor.init();
+
+      const res = await actor.tryGetState();
+      expect(res).toEqual(true);
+
+      await actor.deleteState("data");
+
+      const deletedRes = await actor.tryGetState();
+      console.log(deletedRes);
+      expect(deletedRes).toEqual(false);
+    });
+  });
   describe("invoke", () => {
     it("should register actors correctly", async () => {
       const actors = await server.actor.getRegisteredActors();
 
-      expect(actors.length).toEqual(8);
+      expect(actors.length).toEqual(11);
 
       expect(actors).toContain(DemoActorCounterImpl.name);
       expect(actors).toContain(DemoActorSayImpl.name);
       expect(actors).toContain(DemoActorReminderImpl.name);
+      expect(actors).toContain(DemoActorReminder2Impl.name);
+      expect(actors).toContain(DemoActorReminderOnceImpl.name);
       expect(actors).toContain(DemoActorTimerImpl.name);
+      expect(actors).toContain(DemoActorTimerOnceImpl.name);
       expect(actors).toContain(DemoActorActivateImpl.name);
       expect(actors).toContain(DemoActorTimerTtlImpl.name);
       expect(actors).toContain(DemoActorReminderTtlImpl.name);
+      expect(actors).toContain(DemoActorDeleteStateImpl.name);
     });
 
     it("should be able to invoke an actor through a text message", async () => {
@@ -272,6 +320,32 @@ describe("http/actors", () => {
       const res4 = await actor.getCounter();
       expect(res4).toEqual(200);
     }, 10000);
+
+    it("should only fire once when period is not set to a timer", async () => {
+      const builder = new ActorProxyBuilder<DemoActorTimerInterface>(DemoActorTimerOnceImpl, client);
+      const actor = builder.build(ActorId.createRandomId());
+
+      // Activate our actor
+      await actor.init();
+
+      const res0 = await actor.getCounter();
+      expect(res0).toEqual(0);
+
+      // Now we wait for dueTime (2s)
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // After that the timer callback will be called
+      // In our case, the callback increments the count attribute
+      // the count attribute is +100 due to the passed state
+      const res1 = await actor.getCounter();
+      expect(res1).toEqual(100);
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Make sure the counter didn't change
+      const res2 = await actor.getCounter();
+      expect(res2).toEqual(100);
+    }, 5000);
   });
 
   describe("reminders", () => {
@@ -286,8 +360,8 @@ describe("http/actors", () => {
       const res0 = await actor.getCounter();
       expect(res0).toEqual(0);
 
-      // Now we wait for dueTime (1.5s)
-      await NodeJSUtil.sleep(1500);
+      // Now we wait for dueTime (1s)
+      await NodeJSUtil.sleep(1200);
 
       // After that the reminder callback will be called
       // In our case, the callback increments the count attribute
@@ -296,10 +370,10 @@ describe("http/actors", () => {
 
       await actor.removeReminder();
 
-      // Now we wait an extra period - duration (1s)
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Now we wait an extra period - duration (seconds)
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // Make sure the counter didn't change as we removed it
+      // Make sure the counter didn't change since we removed the reminder
       const res2 = await actor.getCounter();
       expect(res2).toEqual(123);
     });
@@ -359,5 +433,31 @@ describe("http/actors", () => {
       const res2 = await actor.getCounter();
       expect(res2).toEqual(123);
     });
+
+    it("should only fire once when period is not set to a reminder", async () => {
+      const builder = new ActorProxyBuilder<DemoActorReminderInterface>(DemoActorReminderOnceImpl, client);
+      const actor = builder.build(ActorId.createRandomId());
+
+      // Activate our actor
+      // this will initialize the reminder to be called
+      await actor.init();
+
+      const res0 = await actor.getCounter();
+      expect(res0).toEqual(0);
+
+      // Now we wait for dueTime (1.5s)
+      await NodeJSUtil.sleep(1500);
+
+      // After that the reminder callback will be called
+      // In our case, the callback increments the count attribute
+      const res1 = await actor.getCounter();
+      expect(res1).toEqual(100);
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Make sure the counter didn't change
+      const res2 = await actor.getCounter();
+      expect(res2).toEqual(100);
+    }, 5000);
   });
 });

@@ -11,16 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { join } from "node:path";
+import { createReadStream } from "node:fs";
+import { readFile } from "node:fs/promises";
+import { Readable } from "node:stream";
 import * as grpc from "@grpc/grpc-js";
 import { CommunicationProtocolEnum, DaprClient, LogLevel } from "../../../src";
 import { SubscribeConfigurationResponse } from "../../../src/types/configuration/SubscribeConfigurationResponse";
-import { LockStatus } from "../../../src/types/lock/UnlockResponse";
 import * as DockerUtils from "../../utils/DockerUtil";
 import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runtime/v1/dapr_grpc_pb";
-import { Empty } from "google-protobuf/google/protobuf/empty_pb";
-import { InterceptingListener } from "@grpc/grpc-js/build/src/call-stream";
 import { NextCall } from "@grpc/grpc-js/build/src/client-interceptors";
-import { randomUUID } from "crypto";
+import { GetMetadataRequest } from "../../../src/proto/dapr/proto/runtime/v1/dapr_pb";
 
 const daprHost = "localhost";
 const daprPort = "50000"; // Dapr Sidecar Port of this Example Server
@@ -31,7 +32,10 @@ describe("grpc/client", () => {
   // We need to start listening on some endpoints already
   // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
-    client = new DaprClient(daprHost, daprPort, CommunicationProtocolEnum.GRPC, {
+    client = new DaprClient({
+      daprHost,
+      daprPort,
+      communicationProtocol: CommunicationProtocolEnum.GRPC,
       logger: {
         level: LogLevel.Debug,
       },
@@ -45,22 +49,22 @@ describe("grpc/client", () => {
   describe("client", () => {
     it("should return isInitialized is true if the sidecar has been started", async () => {
       // Awaiting this will ensure the client is started
-      await client.getDaprClient().getClient();
+      await client.daprClient.getClient();
 
       const isInitialized = await client.getIsInitialized();
       expect(isInitialized).toBe(true);
     });
   });
 
-  describe("Proxy", () => {
+  describe("proxy", () => {
     it("should allow to use a proxy builder to proxy a gRPC request", async () => {
       let mockMetadataRes: grpc.Metadata = new grpc.Metadata();
       const mockInterceptor = jest.fn((options: grpc.InterceptorOptions, nextCall: NextCall): grpc.InterceptingCall => {
         return new grpc.InterceptingCall(nextCall(options), {
           start: function (
             metadata: grpc.Metadata,
-            listener: InterceptingListener,
-            next: (metadata: grpc.Metadata, listener: InterceptingListener | grpc.Listener) => void,
+            listener: grpc.InterceptingListener,
+            next: (metadata: grpc.Metadata, listener: grpc.InterceptingListener | grpc.Listener) => void,
           ) {
             mockMetadataRes = metadata;
             next(metadata, listener);
@@ -72,7 +76,7 @@ describe("grpc/client", () => {
         interceptors: [mockInterceptor],
       });
 
-      await new Promise((resolve) => clientProxy.getMetadata(new Empty(), resolve));
+      await new Promise((resolve) => clientProxy.getMetadata(new GetMetadataRequest(), resolve));
 
       expect(mockInterceptor.mock.calls.length).toBe(1);
       expect(mockMetadataRes.get("dapr-app-id")[0]).toBe("test-suite");
@@ -87,8 +91,8 @@ describe("grpc/client", () => {
         return new grpc.InterceptingCall(nextCall(options), {
           start: function (
             metadata: grpc.Metadata,
-            listener: InterceptingListener,
-            next: (metadata: grpc.Metadata, listener: InterceptingListener | grpc.Listener) => void,
+            listener: grpc.InterceptingListener,
+            next: (metadata: grpc.Metadata, listener: grpc.InterceptingListener | grpc.Listener) => void,
           ) {
             mockMetadataRes = metadata;
             next(metadata, listener);
@@ -100,7 +104,7 @@ describe("grpc/client", () => {
         interceptors: [mockInterceptor],
       });
 
-      await new Promise((resolve) => clientProxy.getMetadata(new Empty(), resolve));
+      await new Promise((resolve) => clientProxy.getMetadata(new GetMetadataRequest(), resolve));
 
       expect(mockInterceptor.mock.calls.length).toBe(1);
       expect(mockMetadataRes.get("dapr-app-id")[0]).toBe(process.env.APP_ID);
@@ -110,7 +114,7 @@ describe("grpc/client", () => {
 
   describe("sidecar", () => {
     it("should return true if the sidecar has been started", async () => {
-      await client.getDaprClient().getClient();
+      await client.daprClient.getClient();
 
       // Note: difficult to test as we start up dapr with dapr run, which starts the sidecar for us automatically
       // there is however a delay between the sidecar being ready and the app starting as they are started asynchronously
@@ -135,7 +139,7 @@ describe("grpc/client", () => {
     // it('should be able to get the capabilities of components via metadata call', async () => {
     //   const res = await client.metadata.get();
     //   const redisStateComponent = res.components.filter( (component) => component.name == "state-redis" );
-    //   const expectedRedisStateCapabilities = [ 'ETAG', 'TRANSACTIONAL', 'QUERY_API', 'ACTOR' ];
+    //   const expectedRedisStateCapabilities = [ 'ETAG', 'TRANSACTIONAL', 'ACTOR' ];
     //   expect(res.id.length).toBeGreaterThan(0);
     //   expect(res.components.length).toBeGreaterThan(0);
     //   expect(redisStateComponent.length).toEqual(1)
@@ -173,186 +177,168 @@ describe("grpc/client", () => {
     });
   });
 
-  describe("state", () => {
-    beforeEach(async () => {
-      await client.state.delete("state-redis", "key-1");
-      await client.state.delete("state-redis", "key-2");
-      await client.state.delete("state-redis", "key-3");
+  describe("crypto", () => {
+    // Set timeout to 10s for these tests
+    jest.setTimeout(10000);
+
+    let plaintextFile: Buffer;
+
+    const testFileSmall = join(__dirname, "../../", "fixtures/plaintext.txt");
+    const testFileLarge = join(__dirname, "../../", "fixtures/sterlinglanier-lanier-LnKEVHbrg0k-unsplash.jpg");
+
+    it("read test file", async () => {
+      // Read the test file in memory
+      // This is in its own test case because we can't have async code in a describe() block
+      plaintextFile = await readFile(testFileSmall);
     });
 
-    it("should be able to save the state", async () => {
-      await client.state.save("state-redis", [
-        {
-          key: "key-1",
-          value: "value-1",
-        },
-        {
-          key: "key-2",
-          value: "value-2",
-        },
-        {
-          key: "key-3",
-          value: "value-3",
-        },
-      ]);
-
-      const res = await client.state.get("state-redis", "key-1");
-      expect(res).toEqual("value-1");
-    });
-
-    it("should be able to add metadata, etag and options", async () => {
-      await client.state.save("state-redis", [
-        {
-          key: "key-1",
-          value: "value-1",
-          etag: "1234",
-          options: {
-            concurrency: "first-write",
-            consistency: "strong",
-          },
-          metadata: {
-            hello: "world",
-          },
-        },
-        {
-          key: "key-2",
-          value: "value-2",
-        },
-        {
-          key: "key-3",
-          value: "value-3",
-        },
-      ]);
-
-      const res = await client.state.get("state-redis", "key-1");
-      expect(res).toEqual("value-1");
-    });
-
-    it("should be able to get the state in bulk", async () => {
-      await client.state.save("state-redis", [
-        {
-          key: "key-1",
-          value: "value-1",
-        },
-        {
-          key: "key-2",
-          value: "value-2",
-        },
-        {
-          key: "key-3",
-          value: "value-3",
-        },
-      ]);
-
-      const res = await client.state.getBulk("state-redis", ["key-3", "key-2"]);
-
-      expect(res).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ key: "key-2", data: "value-2" }),
-          expect.objectContaining({ key: "key-3", data: "value-3" }),
-        ]),
+    it("should be able to encrypt and decrypt a stream", async () => {
+      // First, encrypt the file as a stream, and read the data in memory
+      const encStream = Readable.from(plaintextFile).pipe(
+        await client.crypto.encrypt({
+          componentName: "crypto-local",
+          keyName: "symmetric256",
+          keyWrapAlgorithm: "A256KW",
+        }),
       );
-    });
+      const enc = await readStreamToBuffer(encStream);
 
-    it("should be able to delete a key from the state store", async () => {
-      await client.state.save("state-redis", [
-        {
-          key: "key-1",
-          value: "value-1",
-        },
-        {
-          key: "key-2",
-          value: "value-2",
-        },
-        {
-          key: "key-3",
-          value: "value-3",
-        },
-      ]);
+      // The output is at least partly random, so we can't make a lot of assertions
+      // We will test it more when decrypting it
+      expect(enc.length).toBeGreaterThan(1000);
+      expect(enc.slice(0, 15).toString("utf8")).toEqual("dapr.io/enc/v1\n");
 
-      await client.state.delete("state-redis", "key-2");
-      const res = await client.state.get("state-redis", "key-2");
-      expect(res).toEqual("");
-    });
-
-    it("should be able to perform a transaction that replaces a key and deletes another", async () => {
-      await client.state.transaction("state-redis", [
-        {
-          operation: "upsert",
-          request: {
-            key: "key-1",
-            value: "my-new-data-1",
-          },
-        },
-        {
-          operation: "delete",
-          request: {
-            key: "key-3",
-          },
-        },
-      ]);
-
-      const resTransactionDelete = await client.state.get("state-redis", "key-3");
-      const resTransactionUpsert = await client.state.get("state-redis", "key-1");
-      expect(resTransactionDelete).toEqual("");
-      expect(resTransactionUpsert).toEqual("my-new-data-1");
-    });
-
-    it("should be able to perform a transaction with metadata", async () => {
-      await client.state.transaction(
-        "state-redis",
-        [
-          {
-            operation: "upsert",
-            request: {
-              key: "key-with-metadata-1",
-              value: "my-new-data-with-metadata-1",
-            },
-          },
-          {
-            operation: "delete",
-            request: {
-              key: "key-with-metadata-2",
-            },
-          },
-        ],
-        {
-          trace_id: "mock trace id here",
-        },
+      // Decrypt the stream
+      const decStream = Readable.from(enc).pipe(
+        await client.crypto.decrypt({
+          componentName: "crypto-local",
+        }),
       );
+      const dec = await readStreamToBuffer(decStream);
 
-      const resTransactionDelete = await client.state.get("state-redis", "key-with-metadata-2");
-      const resTransactionUpsert = await client.state.get("state-redis", "key-with-metadata-1");
-      expect(resTransactionDelete).toEqual("");
-      expect(resTransactionUpsert).toEqual("my-new-data-with-metadata-1");
+      // dec should be the same as the plaintext file
+      expect(dec).toEqual(plaintextFile);
     });
 
-    it("should be able to add metadata, etag and options", async () => {
-      await client.state.save("state-redis", [
-        {
-          key: "key-1",
-          value: "value-1",
-          etag: "1234",
-          options: {
-            concurrency: "first-write",
-            consistency: "strong",
-          },
-          metadata: {
-            hello: "world",
-          },
-        },
-        {
-          key: "key-2",
-          value: "value-2",
-        },
-        {
-          key: "key-3",
-          value: "value-3",
-        },
-      ]);
+    it("should be able to handle backpressure", async () => {
+      const enc = await client.crypto.encrypt({
+        componentName: "crypto-local",
+        keyName: "symmetric256",
+        keyWrapAlgorithm: "AES",
+      });
 
-      const res = await client.state.get("state-redis", "key-1");
-      expect(res).toEqual("value-1");
+      // Encrypt a large file
+      const encStream = createReadStream(testFileLarge).pipe(enc);
+
+      // Sleep for 1.5s before starting to process the stream (which happens when a handler is attached to the "data" event)
+      // This makes sure the backpressure is handled before we start reading
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      const readN = await new Promise((resolve) => {
+        let readN = 0;
+        let readCount = 0;
+
+        encStream.on("data", (chunk: Buffer) => {
+          // After the 2nd and 4th chunks, pause reading for 1.5s
+          // This is enough to cause backpressure
+          if (readCount == 1 || readCount == 3) {
+            encStream.pause();
+            setTimeout(() => {
+              encStream.resume();
+            }, 1500);
+          }
+
+          readCount++;
+          readN += chunk.length;
+        });
+
+        encStream.on("end", () => {
+          resolve(readN);
+        });
+      });
+
+      // This is the size of the encrypted file
+      expect(readN).toBe(1273620);
+    });
+
+    // Used to encrypt data, accepting the various types that client.crypto.encrypt accepts
+    const doEncrypt = async function (data: Buffer | ArrayBuffer | ArrayBufferView | string): Promise<Buffer> {
+      return client.crypto.encrypt(data, {
+        componentName: "crypto-local",
+        keyName: "symmetric256",
+        keyWrapAlgorithm: "A256KW",
+      });
+    };
+
+    // Used to decryot data, accepting the various types that client.crypto.decrypt accepts
+    const doDecrypt = async function (data: Buffer | ArrayBuffer | ArrayBufferView): Promise<Buffer> {
+      return client.crypto.decrypt(data, {
+        componentName: "crypto-local",
+      });
+    };
+
+    it("should be able to encrypt and decrypt Buffer's", async () => {
+      // Encrypt the data as a Buffer
+      const enc = await doEncrypt(plaintextFile);
+
+      // Basic assertions
+      expect(Buffer.isBuffer(enc)).toBeTruthy();
+      expect(enc.length).toBeGreaterThan(1000);
+      expect(enc.slice(0, 15).toString("utf8")).toEqual("dapr.io/enc/v1\n");
+
+      // Decrypt the data as Buffer
+      const dec = await doDecrypt(enc);
+
+      // dec should be the same as the plaintext file
+      expect(dec).toEqual(plaintextFile);
+    });
+
+    it("should be able to encrypt and decrypt strings", async () => {
+      // Encrypt the data as a string
+      const enc = await doEncrypt(plaintextFile.toString("utf8"));
+
+      // Basic assertions
+      expect(Buffer.isBuffer(enc)).toBeTruthy();
+      expect(enc.length).toBeGreaterThan(1000);
+      expect(enc.slice(0, 15).toString("utf8")).toEqual("dapr.io/enc/v1\n");
+
+      // Decrypt the data as a Buffer (we don't use strings for binary data)
+      const dec = await doDecrypt(enc);
+
+      // dec should be the same as the plaintext file
+      expect(dec).toEqual(plaintextFile);
+    });
+
+    it("should be able to encrypt and decrypt ArrayBuffer's", async () => {
+      // Encrypt the data as an ArrayBuffer
+      const enc = await doEncrypt(plaintextFile.buffer);
+
+      // Basic assertions
+      expect(Buffer.isBuffer(enc)).toBeTruthy();
+      expect(enc.length).toBeGreaterThan(1000);
+      expect(enc.slice(0, 15).toString("utf8")).toEqual("dapr.io/enc/v1\n");
+
+      // Decrypt the data as an ArrayBuffer
+      const dec = await doDecrypt(enc.buffer);
+
+      // dec should be the same as the plaintext file
+      expect(dec).toEqual(plaintextFile);
+    });
+
+    it("should be able to encrypt and decrypt typed arrays", async () => {
+      // Encrypt the data as an ArrayBuffer
+      const enc = await doEncrypt(new Uint8Array(plaintextFile.buffer));
+
+      // Basic assertions
+      expect(Buffer.isBuffer(enc)).toBeTruthy();
+      expect(enc.length).toBeGreaterThan(1000);
+      expect(enc.slice(0, 15).toString("utf8")).toEqual("dapr.io/enc/v1\n");
+
+      // Decrypt the data as an ArrayBuffer
+      const dec = await doDecrypt(new Uint8Array(enc.buffer));
+
+      // dec should be the same as the plaintext file
+      expect(dec).toEqual(plaintextFile);
     });
   });
 
@@ -376,16 +362,13 @@ describe("grpc/client", () => {
       expect(config.items["myconfigkey3"].value == "key3_initialvalue");
     });
 
-    it("should be able to get the configuration items with metadata", async () => {
-      await client.configuration.get("config-redis", ["myconfigkey1"], {
-        hello: "world",
-      });
-
-      // Disabled for now as I am unsure if Dapr returns the metadata items
-      // Java SDK: https://github.com/dapr/java-sdk/blob/06d92dafca62a6b48e74ccf939feeac7189e360f/sdk/src/test/java/io/dapr/client/DaprPreviewClientGrpcTest.java#L119
-      // ^ shows that it is not being tested, it tries but doesn't assert
-      // expect(conf.items.filter(i => i.key == "myconfigkey1")[0].metadata).toHaveProperty("hello");
-    });
+    // todo: enable this once we have a component to test this with.
+    // Redis does not support metadata, PG and Azure App Config do.
+    // it("should be able to get the configuration items with metadata", async () => {
+    //   const conf = await client.configuration.get("config-redis", ["myconfigkey1"], {
+    //     hello: "world",
+    //   });
+    // });
 
     it("should be able to subscribe to configuration item changes on all keys", async () => {
       const m = jest.fn(async (_res: SubscribeConfigurationResponse) => {
@@ -491,60 +474,17 @@ describe("grpc/client", () => {
       stream2.stop();
     });
   });
-
-  describe("distributed lock", () => {
-    it("should be able to acquire a new lock and unlock", async () => {
-      const resourceId = randomUUID();
-      const tryLock = await client.lock.tryLock("redislock", resourceId, "owner1", 1000);
-      expect(tryLock.success).toEqual(true);
-      const unlock = await client.lock.unlock("redislock", resourceId, "owner1");
-      expect(unlock.status).toEqual(LockStatus.Success);
-    });
-
-    it("should be not be able to unlock when the lock is not acquired", async () => {
-      const resourceId = randomUUID();
-      const unlock = await client.lock.unlock("redislock", resourceId, "owner1");
-      expect(unlock.status).toEqual(LockStatus.LockDoesNotExist);
-    });
-
-    it("should be able to acquire a lock after the previous lock is expired", async () => {
-      const resourceId = randomUUID();
-      let tryLock = await client.lock.tryLock("redislock", resourceId, "owner1", 5);
-      expect(tryLock.success).toEqual(true);
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      tryLock = await client.lock.tryLock("redislock", resourceId, "owner2", 5);
-      expect(tryLock.success).toEqual(false);
-    });
-
-    it("should not be able to acquire a lock when the same lock is acquired by another owner", async () => {
-      const resourceId = randomUUID();
-      const tryLockOne = await client.lock.tryLock("redislock", resourceId, "owner1", 5);
-      expect(tryLockOne.success).toEqual(true);
-      const tryLockTwo = await client.lock.tryLock("redislock", resourceId, "owner2", 5);
-      expect(tryLockTwo.success).toEqual(false);
-    });
-
-    it("should be able to acquire a lock when a different lock is acquired by another owner", async () => {
-      const tryLockOne = await client.lock.tryLock("redislock", randomUUID(), "owner1", 5);
-      expect(tryLockOne.success).toEqual(true);
-      const tryLockTwo = await client.lock.tryLock("redislock", randomUUID(), "owner2", 5);
-      expect(tryLockTwo.success).toEqual(true);
-    });
-
-    it("should not be able to acquire a lock when that lock is acquired by another owner/process", async () => {
-      const resourceId = randomUUID();
-      const tryLockOne = await client.lock.tryLock("redislock", resourceId, "owner3", 5);
-      expect(tryLockOne.success).toEqual(true);
-      const tryLockTwo = await client.lock.tryLock("redislock", resourceId, "owner4", 5);
-      expect(tryLockTwo.success).toEqual(false);
-    });
-
-    it("should not be able to unlock a lock when that lock is acquired by another owner/process", async () => {
-      const resourceId = randomUUID();
-      const tryLockOne = await client.lock.tryLock("redislock", resourceId, "owner5", 5);
-      expect(tryLockOne.success).toEqual(true);
-      const unlock = await client.lock.unlock("redislock", resourceId, "owner6");
-      expect(unlock.status).toEqual(LockStatus.LockBelongsToOthers);
-    });
-  });
 });
+
+/**
+ * Reads all data from a readable stream in full, returning a buffer.
+ * This is not the most efficient way to process or even read a stream, but it's ok for testing purposes.
+ * @param stream Readable stream.
+ */
+async function readStreamToBuffer(stream: Readable): Promise<Buffer> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) {
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks);
+}

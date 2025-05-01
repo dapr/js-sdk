@@ -13,6 +13,7 @@ limitations under the License.
 
 import { TypeDaprPubSubCallback } from "../../types/DaprPubSubCallback.type";
 import { KeyValueType } from "../../types/KeyValue.type";
+import { BulkSubscribeOptions } from "../../types/pubsub/BulkSubscribeOptions.type";
 import { DaprPubSubRouteType } from "../../types/pubsub/DaprPubSubRouteType.type";
 import { PubSubSubscriptionOptionsType } from "../../types/pubsub/PubSubSubscriptionOptions.type";
 import { PubSubSubscriptionsType } from "../../types/pubsub/PubSubSubscriptions.type";
@@ -59,6 +60,27 @@ export default interface IServerPubSub {
     route: string | DaprPubSubRouteType,
     cb: TypeDaprPubSubCallback,
   ): void;
+
+  /**
+   * Bulk Subscribe to a topic with providing configurations for bulk subscribe.
+   * If maxMessagesCount or/and maxAwaitDurationMs not provided, default values
+   * for related component will be used.
+   *
+   * @param pubSubName name of the pubsub
+   * @param topic name of the topic
+   * @param cb callback function to handle messages
+   * @param maxMessagesCount max messages count
+   * @param maxAwaitDurationMs max await duration in milliseconds
+   * @param route The HTTP route override to register for the event subscription.
+   * Default value is `/route-${pubsubName}-${topic}`. Ignored if gRPC is used.
+   * @param metadata metadata for the subscription
+   */
+  subscribeBulk(
+    pubSubName: string,
+    topic: string,
+    cb: TypeDaprPubSubCallback,
+    bulkSubscribeOptions?: BulkSubscribeOptions,
+  ): Promise<void>;
 
   /**
    * Get a list of the registered subscriptions

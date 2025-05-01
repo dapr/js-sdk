@@ -11,16 +11,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { randomUUID } from "crypto";
+import { Map } from "google-protobuf";
+
+import { ConfigurationItem as ConfigurationItemProto } from "../proto/dapr/proto/common/v1/common_pb";
+import { isCloudEvent } from "./CloudEvent.util";
+
 import { KeyValueType } from "../types/KeyValue.type";
 import { ConfigurationType } from "../types/configuration/Configuration.type";
 import { ConfigurationItem } from "../types/configuration/ConfigurationItem";
-import { ConfigurationItem as ConfigurationItemProto } from "../proto/dapr/proto/common/v1/common_pb";
-import { Map } from "google-protobuf";
 import { PubSubBulkPublishEntry } from "../types/pubsub/PubSubBulkPublishEntry.type";
-import { randomUUID } from "crypto";
 import { PubSubBulkPublishResponse } from "../types/pubsub/PubSubBulkPublishResponse.type";
 import { PubSubBulkPublishMessage } from "../types/pubsub/PubSubBulkPublishMessage.type";
 import { PubSubBulkPublishApiResponse } from "../types/pubsub/PubSubBulkPublishApiResponse.type";
+import { DaprClientOptions } from "../types/DaprClientOptions";
+import CommunicationProtocolEnum from "../enum/CommunicationProtocol.enum";
+import { LoggerOptions } from "../types/logger/LoggerOptions";
+import { StateConsistencyEnum } from "../enum/StateConsistency.enum";
+import { StateConcurrencyEnum } from "../enum/StateConcurrency.enum";
+import { Settings } from "./Settings.util";
+
 /**
  * Adds metadata to a map.
  * @param map Input map
@@ -33,26 +43,67 @@ export function addMetadataToMap(map: Map<string, string>, metadata: KeyValueTyp
 }
 
 /**
- * Converts a KeyValueType to a HTTP query parameters.
- * The query parameters are separated by "&", and the key value pair is separated by "=".
- * Each metadata key is prefixed with "metadata.".
- *
- * Example, if the metadata is { "key1": "value1", "key2": "value2" }, the query parameter will be:
- * "metadata.key1=value1&metadata.key2=value2"
+ * Converts one or multiple sets of data to a querystring
+ * Each set of data contains a set of KeyValue Pair
+ * An optional "metadata" type can be added in each set, in which case
+ * the QS key of each data in the set will be prefixed with "metadata.".
  *
  * Note, the returned value does not contain the "?" prefix.
  *
- * @param metadata key value pair of metadata
+ * @param params one of multiple set of data
  * @returns HTTP query parameter string
  */
-export function createHTTPMetadataQueryParam(metadata: KeyValueType = {}): string {
-  let queryParam = "";
-  for (const [key, value] of Object.entries(metadata)) {
-    queryParam += "&" + "metadata." + encodeURIComponent(key) + "=" + encodeURIComponent(value);
+export function createHTTPQueryParam(...params: { data?: KeyValueType; type?: "metadata" }[]): string {
+  const queryBuilder = new URLSearchParams();
+
+  for (const group of params) {
+    if (!group?.data) {
+      continue;
+    }
+
+    for (const [key, value] of Object.entries(group.data)) {
+      let propName = key;
+      if (group?.type === "metadata") {
+        propName = `metadata.${propName}`;
+      }
+
+      if (value !== undefined) {
+        queryBuilder.set(propName, value);
+      }
+    }
   }
-  // strip the first "&" if it exists
-  queryParam = queryParam.substring(1);
-  return queryParam;
+
+  return queryBuilder.toString();
+}
+
+/**
+ * Return the string representation of a valid consistency configuration
+ * @param c
+ */
+export function getStateConsistencyValue(c?: StateConsistencyEnum): "eventual" | "strong" | undefined {
+  switch (c) {
+    case StateConsistencyEnum.CONSISTENCY_EVENTUAL:
+      return "eventual";
+    case StateConsistencyEnum.CONSISTENCY_STRONG:
+      return "strong";
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * Return the string representation of a valid concurrency configuration
+ * @param c
+ */
+export function getStateConcurrencyValue(c?: StateConcurrencyEnum): "first-write" | "last-write" | undefined {
+  switch (c) {
+    case StateConcurrencyEnum.CONCURRENCY_FIRST_WRITE:
+      return "first-write";
+    case StateConcurrencyEnum.CONCURRENCY_LAST_WRITE:
+      return "last-write";
+    default:
+      return undefined;
+  }
 }
 
 /**
@@ -80,24 +131,6 @@ export function createConfigurationType(configDict: Map<string, ConfigurationIte
     configMap[k] = item;
   });
   return configMap;
-}
-
-/**
- * Checks if the input object is a valid Cloud Event.
- * A valid Cloud Event is a JSON object that contains id, source, type, and specversion.
- * See https://github.com/cloudevents/spec/blob/v1.0/spec.md#required-attributes
- * @param str input object
- * @returns true if the object is a valid Cloud Event
- */
-function isCloudEvent(obj: object): boolean {
-  const requiredAttributes = ["id", "source", "type", "specversion"];
-  return (
-    typeof obj === "object" &&
-    obj !== null &&
-    requiredAttributes.every((attr) => {
-      return Object.prototype.hasOwnProperty.call(obj, attr);
-    })
-  );
 }
 
 /**
@@ -215,4 +248,30 @@ function getType(o: any) {
   }
 
   return typeof o;
+}
+
+/**
+ * Prepares DaprClientOptions for use by the DaprClient/DaprServer.
+ * If the user does not provide a value for a mandatory option, the default value is used.
+ * @param clientOptions DaprClientOptions
+ * @param defaultCommunicationProtocol CommunicationProtocolEnum
+ * @param defaultLoggerOptions
+ * @returns DaprClientOptions
+ */
+export function getClientOptions(
+  clientOptions: Partial<DaprClientOptions> | undefined,
+  defaultCommunicationProtocol: CommunicationProtocolEnum,
+  defaultLoggerOptions: LoggerOptions | undefined,
+): Partial<DaprClientOptions> {
+  const clientCommunicationProtocol = clientOptions?.communicationProtocol ?? defaultCommunicationProtocol;
+  return {
+    daprHost: clientOptions?.daprHost,
+    daprPort: clientOptions?.daprPort,
+    communicationProtocol: clientCommunicationProtocol,
+    isKeepAlive: clientOptions?.isKeepAlive,
+    logger: clientOptions?.logger ?? defaultLoggerOptions,
+    actor: clientOptions?.actor,
+    daprApiToken: clientOptions?.daprApiToken ?? Settings.getDefaultApiToken(),
+    maxBodySizeMb: clientOptions?.maxBodySizeMb,
+  };
 }

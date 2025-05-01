@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import GRPCClient from "./GRPCClient";
-import { TryLockResponse as TryLockResponseResult } from "../../../types/lock/TryLockResponse";
+import { LockResponse as LockResponseResult } from "../../../types/lock/LockResponse";
 import { UnlockResponse as UnLockResponseResult, LockStatus } from "../../../types/lock/UnlockResponse";
 import {
   TryLockRequest,
@@ -29,17 +29,17 @@ export default class GRPCClientLock implements IClientLock {
     this.client = client;
   }
 
-  async tryLock(
+  async lock(
     storeName: string,
     resourceId: string,
     lockOwner: string,
     expiryInSeconds: number,
-  ): Promise<TryLockResponseResult> {
+  ): Promise<LockResponseResult> {
     const request = new TryLockRequest()
       .setStoreName(storeName)
       .setResourceId(resourceId)
       .setLockOwner(lockOwner)
-      .setExpiryinseconds(expiryInSeconds);
+      .setExpiryInSeconds(expiryInSeconds);
 
     const client = await this.client.getClient();
     return new Promise((resolve, reject) => {
@@ -48,7 +48,7 @@ export default class GRPCClientLock implements IClientLock {
           return reject(err);
         }
 
-        const wrapped: TryLockResponseResult = {
+        const wrapped: LockResponseResult = {
           success: res.getSuccess(),
         };
 

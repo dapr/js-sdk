@@ -32,14 +32,21 @@ By default, the example uses HTTP. To use gRPC instead:
 - Add `CommunicationProtocolEnum.GRPC` to the DaprServer and DaprClient object creations and update the client port to `DAPR_GRPC_PORT`:
 
   ```typescript
-  const server = new DaprServer(
+  const server = new DaprServer({
     serverHost,
     serverPort,
+    communicationProtocol: CommunicationProtocolEnum.GRPC,
+    clientOptions: {
+      daprHost,
+      daprPort: process.env.DAPR_GRPC_PORT,
+    },
+  });
+
+  const client = new DaprClient({
     daprHost,
-    process.env.DAPR_GRPC_PORT,
-    CommunicationProtocolEnum.GRPC,
-  );
-  const client = new DaprClient(daprHost, process.env.DAPR_GRPC_PORT, CommunicationProtocolEnum.GRPC);
+    daprPort: process.env.DAPR_GRPC_PORT,
+    communicationProtocol: CommunicationProtocolEnum.GRPC,
+  });
   ```
 
 - To run:

@@ -14,18 +14,22 @@ limitations under the License.
 import { ConfigurationItem } from "../../../src/proto/dapr/proto/common/v1/common_pb";
 import {
   addMetadataToMap,
-  createHTTPMetadataQueryParam,
   createConfigurationType,
   getContentType,
   getBulkPublishEntries,
   getBulkPublishResponse,
+  getClientOptions,
+  createHTTPQueryParam,
 } from "../../../src/utils/Client.util";
 import { Map } from "google-protobuf";
 import { PubSubBulkPublishEntry } from "../../../src/types/pubsub/PubSubBulkPublishEntry.type";
 import { PubSubBulkPublishApiResponse } from "../../../src/types/pubsub/PubSubBulkPublishApiResponse.type";
+import { CommunicationProtocolEnum, DaprClientOptions, LogLevel } from "../../../src";
+import { DaprClient } from "../../../src";
+import { Settings } from "../../../src/utils/Settings.util";
 
 describe("Client.util", () => {
-  describe("getGRPCMetadata", () => {
+  describe("addMetadataToMap", () => {
     it("should add values to Map", () => {
       const m = new Map<string, string>([]);
       const metadata = {
@@ -52,30 +56,24 @@ describe("Client.util", () => {
       expect(m.entries()).toEqual(new Map<string, string>([]).entries());
     });
   });
-
-  describe("getHTTPMetadataQueryParam", () => {
+  describe("createHTTPQueryParam", () => {
     it("converts a KeyValueType to a HTTP query parameters", () => {
       const metadata = {
         key1: "value1",
         key2: "value2",
       };
-      const queryParam = createHTTPMetadataQueryParam(metadata);
+      const queryParam = createHTTPQueryParam({ data: metadata, type: "metadata" });
       expect(queryParam).toEqual("metadata.key1=value1&metadata.key2=value2");
     });
 
     it("converts a KeyValueType to a HTTP query parameters with empty metadata", () => {
       const metadata = {};
-      const queryParam = createHTTPMetadataQueryParam(metadata);
+      const queryParam = createHTTPQueryParam({ data: metadata, type: "metadata" });
       expect(queryParam).toEqual("");
     });
 
     it("converts a KeyValueType to a HTTP query parameters with no metadata", () => {
-      const queryParam = createHTTPMetadataQueryParam();
-      expect(queryParam).toEqual("");
-    });
-
-    it("converts a KeyValueType to a HTTP query parameters with undefined metadata", () => {
-      const queryParam = createHTTPMetadataQueryParam(undefined);
+      const queryParam = createHTTPQueryParam();
       expect(queryParam).toEqual("");
     });
 
@@ -84,9 +82,32 @@ describe("Client.util", () => {
         "key&with=special!ch#r#cters": "value1&value2",
         key00: "value3 value4",
       };
-      const queryParam = createHTTPMetadataQueryParam(metadata);
+      const queryParam = createHTTPQueryParam({ data: metadata, type: "metadata" });
       expect(queryParam).toEqual(
-        "metadata.key%26with%3Dspecial!ch%23r%23cters=value1%26value2&metadata.key00=value3%20value4",
+        "metadata.key%26with%3Dspecial%21ch%23r%23cters=value1%26value2&metadata.key00=value3+value4",
+      );
+    });
+
+    it("supports setting non-metadata query parameters", () => {
+      const data = {
+        key1: "value1",
+        key2: "value2",
+      };
+      const queryParam = createHTTPQueryParam({ data });
+      expect(queryParam).toEqual("key1=value1&key2=value2");
+    });
+    it("mix of data and metadata", () => {
+      const data = {
+        key1: "value1",
+        key2: "value2",
+      };
+      const metadata = {
+        "key&with=special!ch#r#cters": "value1&value2",
+        key00: "value3 value4",
+      };
+      const queryParam = createHTTPQueryParam({ data: metadata, type: "metadata" }, { data });
+      expect(queryParam).toEqual(
+        "metadata.key%26with%3Dspecial%21ch%23r%23cters=value1%26value2&metadata.key00=value3+value4&key1=value1&key2=value2",
       );
     });
   });
@@ -299,6 +320,231 @@ describe("Client.util", () => {
       expect(response.failedMessages.length).toEqual(1);
       expect(response.failedMessages[0].message).toEqual(entries[0]);
       expect(response.failedMessages[0].error).toEqual(new Error(apiResponse.failedEntries[0].error));
+    });
+  });
+
+  describe("getClientOptions", () => {
+    it("returns correct Dapr Client Options for provided options", () => {
+      const inOptions: DaprClientOptions = {
+        daprHost: "localhost",
+        daprPort: "50001",
+        communicationProtocol: CommunicationProtocolEnum.GRPC,
+        isKeepAlive: true,
+        logger: { level: LogLevel.Error },
+        maxBodySizeMb: 10,
+      };
+      const options = getClientOptions(inOptions, CommunicationProtocolEnum.HTTP, undefined);
+      expect(options).toEqual(inOptions);
+    });
+
+    it("returns correct Dapr Client Options when host not provided", () => {
+      const inOptions: Partial<DaprClientOptions> = {
+        daprPort: "50001",
+        communicationProtocol: CommunicationProtocolEnum.GRPC,
+      };
+
+      const options = getClientOptions(inOptions, CommunicationProtocolEnum.HTTP, { level: LogLevel.Error });
+      const expectedOptions: Partial<DaprClientOptions> = {
+        daprPort: inOptions.daprPort,
+        communicationProtocol: inOptions.communicationProtocol,
+        logger: { level: LogLevel.Error },
+      };
+      expect(options).toEqual(expectedOptions);
+    });
+
+    it("returns correct Dapr Client Options when host and port not provided", () => {
+      const inOptions: Partial<DaprClientOptions> = {
+        communicationProtocol: CommunicationProtocolEnum.GRPC,
+      };
+      const options = getClientOptions(inOptions, CommunicationProtocolEnum.HTTP, undefined);
+      const expectedOptions: Partial<DaprClientOptions> = {
+        communicationProtocol: CommunicationProtocolEnum.GRPC,
+      };
+      expect(options).toEqual(expectedOptions);
+    });
+
+    it("returns correct Dapr Client Options when token provided in constructor", () => {
+      const inOptions: Partial<DaprClientOptions> = {
+        daprApiToken: "token",
+      };
+      const options = getClientOptions(inOptions, CommunicationProtocolEnum.HTTP, undefined);
+      expect(options.daprApiToken).toEqual("token");
+    });
+
+    it("returns correct Dapr Client Options when token provided in env variable", () => {
+      const oldToken = process.env.DAPR_API_TOKEN;
+      process.env.DAPR_API_TOKEN = "envtoken";
+      const options = getClientOptions(undefined, CommunicationProtocolEnum.HTTP, undefined);
+      expect(options.daprApiToken).toEqual("envtoken");
+      process.env.DAPR_API_TOKEN = oldToken;
+    });
+
+    it("returns correct Dapr Client Options when token provided both in constructor and in env variable", () => {
+      process.env.DAPR_API_TOKEN = "envtoken";
+
+      const inOptions: Partial<DaprClientOptions> = {
+        daprApiToken: "token",
+      };
+      const options = getClientOptions(inOptions, CommunicationProtocolEnum.HTTP, undefined);
+
+      expect(options.daprApiToken).toEqual("token");
+
+      delete process.env.DAPR_API_TOKEN;
+    });
+
+    it("returns correct Dapr Client Options when undefined options provided", () => {
+      const options = getClientOptions(undefined, CommunicationProtocolEnum.GRPC, undefined);
+      const expectedOptions: Partial<DaprClientOptions> = {
+        communicationProtocol: CommunicationProtocolEnum.GRPC,
+      };
+      expect(options).toEqual(expectedOptions);
+    });
+
+    it("returns correct Dapr Client Options when undefined options provided and default HTTP communication", () => {
+      const options = getClientOptions(undefined, CommunicationProtocolEnum.HTTP, undefined);
+      const expectedOptions: Partial<DaprClientOptions> = {
+        communicationProtocol: CommunicationProtocolEnum.HTTP,
+      };
+      expect(options).toEqual(expectedOptions);
+    });
+  });
+
+  describe("test correct client instantiation", () => {
+    let client: DaprClient;
+    const daprHost = "127.0.0.1";
+    const daprGrpcPort = "50000";
+    const daprHttpPort = "3500";
+
+    // We need to start listening on some endpoints already
+    // this because Dapr is not dynamic and registers endpoints on boot
+    // we put a timeout of 10s since it takes around 4s for Dapr to boot up
+
+    afterAll(async () => {
+      await client.stop();
+    });
+
+    it("should give preference to host and port in constructor arguments over endpoint environment variables ", async () => {
+      process.env.DAPR_HTTP_ENDPOINT = "https://httpdomain.com";
+      process.env.DAPR_GRPC_ENDPOINT = "https://grpcdomain.com";
+
+      // HTTP
+      client = new DaprClient({
+        daprHost,
+        daprPort: daprHttpPort,
+        communicationProtocol: CommunicationProtocolEnum.HTTP,
+        isKeepAlive: false,
+      });
+
+      expect(client.options.daprHost).toEqual(daprHost);
+      expect(client.options.daprPort).toEqual(daprHttpPort);
+
+      // GRPC
+      client = new DaprClient({
+        daprHost,
+        daprPort: daprGrpcPort,
+        communicationProtocol: CommunicationProtocolEnum.GRPC,
+        isKeepAlive: false,
+      });
+
+      expect(client.options.daprHost).toEqual(daprHost);
+      expect(client.options.daprPort).toEqual(daprGrpcPort);
+    });
+
+    it("should give preference to port with no host in constructor arguments over environment variables ", async () => {
+      process.env.DAPR_HTTP_ENDPOINT = "https://httpdomain.com";
+      process.env.DAPR_GRPC_ENDPOINT = "https://grpcdomain.com";
+
+      // HTTP
+      client = new DaprClient({
+        daprPort: daprHttpPort,
+        communicationProtocol: CommunicationProtocolEnum.HTTP,
+        isKeepAlive: false,
+      });
+
+      expect(client.options.daprHost).toEqual(Settings.getDefaultHost());
+      expect(client.options.daprPort).toEqual(daprHttpPort);
+
+      // GRPC
+      client = new DaprClient({
+        daprPort: daprGrpcPort,
+        communicationProtocol: CommunicationProtocolEnum.GRPC,
+        isKeepAlive: false,
+      });
+
+      expect(client.options.daprHost).toEqual(Settings.getDefaultHost());
+      expect(client.options.daprPort).toEqual(daprGrpcPort);
+    });
+
+    it("should give preference to host with no port in constructor arguments over environment variables ", async () => {
+      process.env.DAPR_HTTP_ENDPOINT = "https://httpdomain.com";
+      process.env.DAPR_GRPC_ENDPOINT = "https://grpcdomain.com";
+
+      // HTTP
+      client = new DaprClient({
+        daprHost: daprHost,
+        communicationProtocol: CommunicationProtocolEnum.HTTP,
+        isKeepAlive: false,
+      });
+
+      expect(client.options.daprHost).toEqual(daprHost);
+      expect(client.options.daprPort).toEqual(Settings.getDefaultPort(CommunicationProtocolEnum.HTTP));
+
+      // GRPC
+      client = new DaprClient({
+        daprHost: daprHost,
+        communicationProtocol: CommunicationProtocolEnum.GRPC,
+        isKeepAlive: false,
+      });
+
+      expect(client.options.daprHost).toEqual(daprHost);
+      expect(client.options.daprPort).toEqual(Settings.getDefaultPort(CommunicationProtocolEnum.GRPC));
+    });
+
+    it("should use environment variable endpoint for HTTP", async () => {
+      process.env.DAPR_HTTP_ENDPOINT = "https://httpdomain.com";
+      process.env.DAPR_GRPC_ENDPOINT = "https://grpcdomain.com";
+      client = new DaprClient({
+        communicationProtocol: CommunicationProtocolEnum.HTTP,
+        isKeepAlive: false,
+      });
+
+      expect(client.options.daprHost).toEqual("httpdomain.com");
+      expect(client.options.daprPort).toEqual("443");
+    });
+
+    it("should use environment variable endpoint for GRPC", async () => {
+      process.env.DAPR_HTTP_ENDPOINT = "https://httpdomain.com";
+      process.env.DAPR_GRPC_ENDPOINT = "https://grpcdomain.com";
+      client = new DaprClient({
+        communicationProtocol: CommunicationProtocolEnum.GRPC,
+        isKeepAlive: false,
+      });
+
+      expect(client.options.daprHost).toEqual("grpcdomain.com");
+      expect(client.options.daprPort).toEqual("443");
+    });
+
+    it("should use default host and port when no other parameters provided", async () => {
+      process.env.DAPR_HTTP_ENDPOINT = "";
+      process.env.DAPR_GRPC_ENDPOINT = "";
+
+      // HTTP
+      client = new DaprClient({
+        communicationProtocol: CommunicationProtocolEnum.HTTP,
+        isKeepAlive: false,
+      });
+
+      expect(client.options.daprHost).toEqual(Settings.getDefaultHost());
+      expect(client.options.daprPort).toEqual(Settings.getDefaultPort(CommunicationProtocolEnum.HTTP));
+
+      // GRPC
+      client = new DaprClient({
+        communicationProtocol: CommunicationProtocolEnum.GRPC,
+        isKeepAlive: false,
+      });
+
+      expect(client.options.daprHost).toEqual(Settings.getDefaultHost());
+      expect(client.options.daprPort).toEqual(Settings.getDefaultPort(CommunicationProtocolEnum.GRPC));
     });
   });
 });

@@ -54,12 +54,12 @@ export default abstract class AbstractActor {
   constructor(daprClient: DaprClient, id: ActorId) {
     this.daprClient = daprClient;
     this.actorClient = new ActorClient(
-      daprClient.getDaprHost(),
-      daprClient.getDaprPort(),
-      daprClient.getCommunicationProtocol(),
-      daprClient.getOptions(),
+      daprClient.options.daprHost,
+      daprClient.options.daprPort,
+      daprClient.options.communicationProtocol,
+      daprClient.options,
     );
-    this.logger = new Logger("Actors", "AbstractActor", daprClient.getOptions().logger);
+    this.logger = new Logger("Actors", "AbstractActor", daprClient.options.logger);
     this.id = id;
 
     this.stateManager = new ActorStateManager(this);
@@ -95,7 +95,7 @@ export default abstract class AbstractActor {
   async registerActorReminder<_Type>(
     reminderName: string,
     dueTime: Temporal.Duration,
-    period: Temporal.Duration,
+    period?: Temporal.Duration,
     ttl?: Temporal.Duration,
     state?: any,
   ) {
@@ -115,7 +115,7 @@ export default abstract class AbstractActor {
     timerName: string,
     callback: string,
     dueTime: Temporal.Duration,
-    period: Temporal.Duration,
+    period?: Temporal.Duration,
     ttl?: Temporal.Duration,
     state?: any,
   ) {
@@ -183,7 +183,7 @@ export default abstract class AbstractActor {
 
   /**
    * Saves all the state changes (ADD/UPDATE/REMOVE) that were made since the last call
-   * to the actor state provider associated with teh actor
+   * to the actor state provider associated with the actor
    */
   async saveStateInternal(): Promise<void> {
     await this.stateManager.saveState();

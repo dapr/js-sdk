@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { TryLockResponse } from "../../types/lock/TryLockResponse";
+import { LockResponse } from "../../types/lock/LockResponse";
 import { UnlockResponse } from "../../types/lock/UnlockResponse";
 
 export default interface IClientLock {
@@ -22,7 +22,7 @@ export default interface IClientLock {
    * @param lockOwner owner owning the lock.
    * @param expiryInSeconds the expiry time for the lock.
    */
-  tryLock(storeName: string, resourceId: string, lockOwner: string, expiryInSeconds: number): Promise<TryLockResponse>;
+  lock(storeName: string, resourceId: string, lockOwner: string, expiryInSeconds: number): Promise<LockResponse>;
 
   /**
    *
