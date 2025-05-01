@@ -155,7 +155,7 @@ export default class HTTPClient implements IClient {
       clientOptions.headers["dapr-api-token"] = this.options.daprApiToken;
     }
 
-    clientOptions.headers["user-agent"] = `dapr-sdk-js/v${pkg.version} http/1`;
+    clientOptions.headers["user-agent"] = `dapr-sdk-js/v${SDK_VERSION} http/1`;
 
     // Set Body and Content-Type Header
     if (params?.body) {

@@ -19,7 +19,7 @@ import { Settings } from "../../../utils/Settings.util";
 import { Logger } from "../../../logger/Logger";
 import GRPCClientSidecar from "./sidecar";
 import DaprClient from "../DaprClient";
-import pkg from "../../../../package.json";
+import { SDK_VERSION } from "../../../version";
 import communicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
 import { GrpcEndpoint } from "../../../network/GrpcEndpoint";
 
@@ -116,7 +116,7 @@ export default class GRPCClient implements IClient {
     options["grpc-node.max_session_memory"] = Number.MAX_SAFE_INTEGER;
 
     // Add user agent
-    options["grpc.primary_user_agent"] = "dapr-sdk-js/v" + pkg.version;
+    options["grpc.primary_user_agent"] = "dapr-sdk-js/v" + SDK_VERSION;
 
     // Add interceptors if we have an API token
     if (this.options.daprApiToken !== "") {
