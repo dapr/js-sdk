@@ -50,8 +50,9 @@ export default class ActorProxyBuilder<T> {
   }
 
   build(actorId?: ActorId | string): T {
-    const self = this;
     const actorIdParsed = actorId ? (actorId instanceof ActorId ? actorId : new ActorId(actorId)) : ActorId.createRandomId();
+    const actorClient = this.actorClient;
+    const actorTypeName = this.actorTypeName;
 
     // Create an instance of the abstract class to inspect its methods
     // This won't be used directly but helps with method discovery
@@ -69,7 +70,7 @@ export default class ActorProxyBuilder<T> {
         // Proxy the method call to the actor client
         return async function (...args: any) {
           const body = args.length > 0 ? args : null;
-          const res = await self.actorClient.actor.invoke(self.actorTypeName, actorIdParsed, prop, body);
+          const res = await actorClient.actor.invoke(actorTypeName, actorIdParsed, prop, body);
           return res;
         };
       },
