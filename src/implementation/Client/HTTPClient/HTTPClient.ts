@@ -21,7 +21,7 @@ import { Settings } from "../../../utils/Settings.util";
 import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type";
 import { Logger } from "../../../logger/Logger";
 import HTTPClientSidecar from "./sidecar";
-import pkg from "../../../../package.json";
+import { SDK_VERSION } from "../../../version";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import communicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
 import { HttpEndpoint } from "../../../network/HttpEndpoint";
