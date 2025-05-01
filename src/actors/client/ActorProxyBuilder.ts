@@ -14,23 +14,24 @@ limitations under the License.
 import { CommunicationProtocolEnum, DaprClient, DaprClientOptions } from "../..";
 import ActorClient from "./ActorClient/ActorClient";
 import ActorId from "../ActorId";
+import Class from "../../types/Class";
 
 export default class ActorProxyBuilder<T> {
   // The registered actor name
   actorTypeName: string;
   actorClient: ActorClient;
-  actorAbstractClass: Function;
+  actorAbstractClass: Class<T>;
 
-  constructor(actorTypeName: string, actorTypeClass: Function, daprClient: DaprClient);
+  constructor(actorTypeName: string, actorTypeClass: Class<T>, daprClient: DaprClient);
   constructor(
     actorTypeName: string,
-    abstractClass: Function,
+    abstractClass: Class<T>,
     host: string,
     port: string,
     communicationProtocol: CommunicationProtocolEnum,
     clientOptions: DaprClientOptions,
   );
-  constructor(actorTypeName: string, abstractClass: Function, ...args: any[]) {
+  constructor(actorTypeName: string, abstractClass: Class<T>, ...args: any[]) {
     this.actorTypeName = actorTypeName;
     this.actorAbstractClass = abstractClass;
 
