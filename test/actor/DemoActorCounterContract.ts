@@ -16,7 +16,7 @@ export default class DemoActorCounterContract {
     throw new Error("Method not implemented.");
   }
 
-  countBy(amount: number, multiplier: number): Promise<void> {
+  countBy(_amount: number, _multiplier: number): Promise<void> {
     throw new Error("Method not implemented.");
   }
 

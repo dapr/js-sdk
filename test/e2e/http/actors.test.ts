@@ -33,7 +33,6 @@ import DemoActorTimerTtlImpl from "../../actor/DemoActorTimerTtlImpl";
 import DemoActorReminderTtlImpl from "../../actor/DemoActorReminderTtlImpl";
 import DemoActorDeleteStateImpl from "../../actor/DemoActorDeleteStateImpl";
 import DemoActorDeleteStateInterface from "../../actor/DemoActorDeleteStateInterface";
-import DemoActorCounterAbstract from "../../actor/DemoActorCounterContract";
 import DemoActorCounterContract from "../../actor/DemoActorCounterContract";
 
 const serverHost = "127.0.0.1";
