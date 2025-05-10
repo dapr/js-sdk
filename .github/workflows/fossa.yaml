@@ -21,15 +21,15 @@ jobs:
       FOSSA_API_KEY: b88e1f4287c3108c8751bf106fb46db6 # This is a PUSH ONLY token that is safe to be shared with the public
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: "Run FOSSA Scan"
-        uses: fossas/fossa-action@v1.1.0 # Use a specific version if locking is preferred
+        uses: fossas/fossa-action@c0a7d013f84c8ee5e910593186598625513cc1e4 # v1.6.0
         with:
           api-key: ${{ env.FOSSA_API_KEY }}
           
       - name: "Run FOSSA Test"
-        uses: fossas/fossa-action@v1.1.0 # Use a specific version if locking is preferred
+        uses: fossas/fossa-action@c0a7d013f84c8ee5e910593186598625513cc1e4 # v1.6.0
         with:
           api-key: ${{ env.FOSSA_API_KEY }}
           run-tests: true
