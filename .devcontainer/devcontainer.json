@@ -5,31 +5,35 @@
   "dockerFile": "Dockerfile",
 
   // Set *default* container specific settings.json values on container create.
-  "settings": {
-    "terminal.integrated.profiles.linux": {
-      "bash": {
-        "path": "bash"
-      },
-      "zsh": {
-        "path": "zsh"
-      },
-      "fish": {
-        "path": "fish"
-      },
-      "tmux": {
-        "path": "tmux",
-        "icon": "terminal-tmux"
-      },
-      "pwsh": {
-        "path": "pwsh",
-        "icon": "terminal-powershell"
+  "customizations": {
+    "vscode": {
+      // Add the IDs of extensions you want installed when the container is created.
+      "extensions": ["ms-azuretools.vscode-dapr"],
+      // Use 'settings' to set *default* container specific settings.json values on container create.
+      "settings": {
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "bash"
+          },
+          "zsh": {
+            "path": "zsh"
+          },
+          "fish": {
+            "path": "fish"
+          },
+          "tmux": {
+            "path": "tmux",
+            "icon": "terminal-tmux"
+          },
+          "pwsh": {
+            "path": "pwsh",
+            "icon": "terminal-powershell"
+          }
+        },
+        "terminal.integrated.defaultProfile.linux": "bash"
       }
-    },
-    "terminal.integrated.defaultProfile.linux": "bash"
+    }
   },
-
-  // Add the IDs of extensions you want installed when the container is created.
-  "extensions": ["ms-azuretools.vscode-dapr"],
 
   "mounts": ["source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"],
 
