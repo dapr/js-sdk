@@ -1,0 +1,19 @@
+{
+  "name": "testcontainers",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "ts-jest": "^29.3.2",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "testcontainers": "^10.25.0"
+  }
+}
