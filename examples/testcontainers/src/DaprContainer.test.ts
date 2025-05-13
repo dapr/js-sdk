@@ -13,17 +13,20 @@ limitations under the License.
 
 // import { setTimeout } from "node:timers/promises";
 // import { GenericContainer, Network, Wait } from "testcontainers";
+import { Network } from "testcontainers";
 import { DaprContainer, DAPRD_DEFAULT_GRPC_PORT, DAPRD_DEFAULT_HTTP_PORT } from "./DaprContainer";
 
 // jest.setTimeout(120_000);
 
 describe("DaprContainer", () => {
   it("should start and stop", async () => {
-    const container = new DaprContainer("daprio/dapr:latest");
+    const network = await new Network().start();
+    const container = new DaprContainer("daprio/dapr:latest").withNetwork(network);
     const startedContainer = await container.start();
     expect(startedContainer.getHost()).toBeDefined();
     expect(startedContainer.getMappedPort(DAPRD_DEFAULT_HTTP_PORT)).toBeDefined();
     expect(startedContainer.getMappedPort(DAPRD_DEFAULT_GRPC_PORT)).toBeDefined();
     await startedContainer.stop();
+    await network.stop();
   }, 120_000);
 });

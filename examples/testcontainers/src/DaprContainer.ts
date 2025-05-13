@@ -11,7 +11,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { AbstractStartedContainer, GenericContainer, Network, StartedTestContainer, Wait } from "testcontainers";
+import {
+  AbstractStartedContainer,
+  GenericContainer,
+  log,
+  StartedNetwork,
+  StartedTestContainer,
+  StopOptions,
+  StoppedTestContainer,
+  Wait
+} from "testcontainers";
+import { DaprPlacementContainer } from "./DaprPlacementContainer";
+import { DaprSchedulerContainer } from "./DaprSchedulerContainer";
+import assert from "node:assert";
 
 export const DAPR_VERSION = "1.15.4";
 export const DAPR_RUNTIME_IMAGE = "daprio/daprd:" + DAPR_VERSION;
@@ -24,19 +36,20 @@ export const DAPR_PROTOCOL = "http";
 
 export class DaprContainer extends GenericContainer {
   private daprLogLevel = "info";
-  private appChannelAddress = "localhost";
+  private appChannelAddress = "localhost"; // TODO?
   private placementService = "placement";
   private schedulerService = "scheduler";
   private placementDockerImageName = DAPR_PLACEMENT_IMAGE;
   private schedulerDockerImageName = DAPR_SCHEDULER_IMAGE;
   // private configuration: Configuration;
-  private placementContainer: GenericContainer;
-  private schedulerContainer: GenericContainer;
-  private appName: string;
-  private appPort: number;
-  private appHealthCheckPath: string;
-  private shouldReusePlacement: boolean;
-  private shouldReuseScheduler: boolean;
+  private placementContainer?: DaprPlacementContainer;
+  private schedulerContainer?: DaprSchedulerContainer;
+  private appName?: string;
+  private appPort?: number;
+  private appHealthCheckPath?: string;
+  // private shouldReusePlacement?: boolean;
+  // private shouldReuseScheduler?: boolean;
+  private startedNetwork?: StartedNetwork;
 
   constructor(image = DAPR_RUNTIME_IMAGE) {
     super(image);
@@ -46,87 +59,70 @@ export class DaprContainer extends GenericContainer {
       .withStartupTimeout(120_000)
   }
 
+  public withNetwork(network: StartedNetwork): this {
+    this.startedNetwork = network;
+    return super.withNetwork(network);
+  }
+
   public override async start(): Promise<StartedDaprContainer> {
-    return new StartedDaprContainer(await super.start());
+    assert(this.startedNetwork, "Network must be provided before starting the container");
+    if (!this.placementContainer) {
+      this.placementContainer = new DaprPlacementContainer(this.placementDockerImageName)
+        .withNetwork(this.startedNetwork)
+        .withNetworkAliases(this.placementService);
+    }
+    if (!this.schedulerContainer) {
+      this.schedulerContainer = new DaprSchedulerContainer(this.schedulerDockerImageName)
+        .withNetwork(this.startedNetwork)
+        .withNetworkAliases(this.schedulerService);
+    }
+    const containers = await Promise.all([
+      this.placementContainer.start(),
+      this.schedulerContainer.start(),
+    ]);
+    return new StartedDaprContainer(await super.start(), containers);
   }
 
   protected override async beforeContainerCreated(): Promise<void> {
-    this.withCommand([
+    assert(this.placementContainer, "Placement container must be provided");
+    assert(this.schedulerContainer, "Scheduler container must be provided");
+    const cmds = [
       "./daprd",
       "--app-id",
-      "FIXME",
+      this.appName ?? "dapr-app",
       "--dapr-listen-addresses=0.0.0.0",
       "--app-protocol",
       DAPR_PROTOCOL,
       "--placement-host-address",
-      `${this.placementService}:50005`,
+      `${this.placementService}:${this.placementContainer.getPort()}`,
       "--scheduler-host-address",
-      `${this.schedulerService}:51005`,
-    ]);
+      `${this.schedulerService}:${this.schedulerContainer.getPort()}`,
+      "--log-level",
+      this.daprLogLevel,
+      // "--resources-path",
+      // "/dapr-resources",
+    ];
 
-    // if (!this.networkMode) {
-    //   this.withNetwork(await new Network().start());
+    if (this.appChannelAddress) {
+      cmds.push("--app-channel-address", this.appChannelAddress);
+    }
+
+    if (this.appPort) {
+      cmds.push("--app-port", this.appPort.toString());
+    }
+
+    if (this.appHealthCheckPath) {
+      cmds.push("--enable-app-health-check", "--app-health-check-path", this.appHealthCheckPath);
+    }
+
+    // if (this.configuration) {
+    //   cmds.push("--config", `/dapr-resources/${this.configuration.getName()}.yaml`);
     // }
 
-    // if (this.placementContainer == null) {
-    //   this.placementContainer = new DaprPlacementContainer(this.placementDockerImageName)
-    //       .withNetwork(getNetwork())
-    //       .withNetworkAliases(placementService)
-    //       .withReuse(this.shouldReusePlacement);
-    //   this.placementContainer.start();
-    // }
+    log.info("> `daprd` Command: \n");
+    log.info("\t" + cmds + "\n");
 
-    // if (this.schedulerContainer == null) {
-    //   this.schedulerContainer = new DaprSchedulerContainer(this.schedulerDockerImageName)
-    //       .withNetwork(getNetwork())
-    //       .withNetworkAliases(schedulerService)
-    //       .withReuse(this.shouldReuseScheduler);
-    //   this.schedulerContainer.start();
-    // }
-
-    // List<String> cmds = new ArrayList<>();
-    // cmds.add("./daprd");
-    // cmds.add("--app-id");
-    // cmds.add(appName);
-    // cmds.add("--dapr-listen-addresses=0.0.0.0");
-    // cmds.add("--app-protocol");
-    // cmds.add(DAPR_PROTOCOL.getName());
-    // cmds.add("--placement-host-address");
-    // cmds.add(placementService + ":50005");
-    // cmds.add("--scheduler-host-address");
-    // cmds.add(schedulerService + ":51005");
-
-    // if (appChannelAddress != null && !appChannelAddress.isEmpty()) {
-    //   cmds.add("--app-channel-address");
-    //   cmds.add(appChannelAddress);
-    // }
-
-    // if (appPort != null) {
-    //   cmds.add("--app-port");
-    //   cmds.add(Integer.toString(appPort));
-    // }
-
-    // if (appHealthCheckPath != null && !appHealthCheckPath.isEmpty()) {
-    //   cmds.add("--enable-app-health-check");
-    //   cmds.add("--app-health-check-path");
-    //   cmds.add(appHealthCheckPath);
-    // }
-
-    // if (configuration != null) {
-    //   cmds.add("--config");
-    //   cmds.add("/dapr-resources/" + configuration.getName() + ".yaml");
-    // }
-
-    // cmds.add("--log-level");
-    // cmds.add(daprLogLevel.toString());
-    // cmds.add("--resources-path");
-    // cmds.add("/dapr-resources");
-
-    // String[] cmdArray = cmds.toArray(new String[]{});
-    // LOGGER.info("> `daprd` Command: \n");
-    // LOGGER.info("\t" + Arrays.toString(cmdArray) + "\n");
-
-    // withCommand(cmdArray);
+    this.withCommand(cmds);
 
     // if (configuration != null) {
     //   String configurationYaml = CONFIGURATION_CONVERTER.convert(configuration);
@@ -172,8 +168,6 @@ export class DaprContainer extends GenericContainer {
 
     //   withCopyToContainer(Transferable.of(endpointYaml), "/dapr-resources/" + endpoint.getName() + ".yaml");
     // }
-
-    // dependsOn(placementContainer, schedulerContainer);
   }
 
   // public override async start(): Promise<StartedK3sContainer> {
@@ -199,8 +193,14 @@ export class DaprContainer extends GenericContainer {
 }
 
 export class StartedDaprContainer extends AbstractStartedContainer {
-  constructor(startedTestContainer: StartedTestContainer) {
+  constructor(startedTestContainer: StartedTestContainer, private readonly containers: StartedTestContainer[]) {
     super(startedTestContainer);
+  }
+
+  async stop(options?: Partial<StopOptions>): Promise<StoppedTestContainer> {
+    const stoppedTestContainer = await super.stop(options);
+    await Promise.all(this.containers.map((container) => container.stop(options)));
+    return stoppedTestContainer;
   }
 }
 
