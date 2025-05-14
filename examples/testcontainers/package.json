@@ -10,10 +10,12 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@dapr/dapr": "^3.5.2",
     "ts-jest": "^29.3.2",
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "testcontainers": "^10.25.0"
+    "testcontainers": "^10.25.0",
+    "yaml": "^2.7.1"
   }
 }

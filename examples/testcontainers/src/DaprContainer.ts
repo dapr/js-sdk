@@ -1,5 +1,5 @@
 /*
-Copyright 2022 The Dapr Authors
+Copyright 2025 The Dapr Authors
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -11,6 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import assert from "node:assert";
+import fs from "node:fs";
 import {
   AbstractStartedContainer,
   GenericContainer,
@@ -21,14 +23,17 @@ import {
   StoppedTestContainer,
   Wait
 } from "testcontainers";
+import { Component } from "./Component";
+import { Configuration } from "./Configuration";
 import { DaprPlacementContainer } from "./DaprPlacementContainer";
 import { DaprSchedulerContainer } from "./DaprSchedulerContainer";
-import assert from "node:assert";
+import { HttpEndpoint } from "./HttpEndpoint";
+import { Subscription } from "./Subscription";
 
 export const DAPR_VERSION = "1.15.4";
-export const DAPR_RUNTIME_IMAGE = "daprio/daprd:" + DAPR_VERSION;
-export const DAPR_PLACEMENT_IMAGE = "daprio/placement:" + DAPR_VERSION;
-export const DAPR_SCHEDULER_IMAGE = "daprio/scheduler:" + DAPR_VERSION;
+export const DAPR_RUNTIME_IMAGE = `daprio/daprd:${DAPR_VERSION}`;
+export const DAPR_PLACEMENT_IMAGE = `daprio/placement:${DAPR_VERSION}`;
+export const DAPR_SCHEDULER_IMAGE = `daprio/scheduler:${DAPR_VERSION}`;
 
 export const DAPRD_DEFAULT_HTTP_PORT = 3500;
 export const DAPRD_DEFAULT_GRPC_PORT = 50001;
@@ -37,19 +42,22 @@ export const DAPR_PROTOCOL = "http";
 export class DaprContainer extends GenericContainer {
   private daprLogLevel = "info";
   private appChannelAddress = "localhost"; // TODO?
+  private appName = "dapr-app";
+  private appPort?: number; // TODO?
+  private appHealthCheckPath?: string;
   private placementService = "placement";
   private schedulerService = "scheduler";
-  private placementDockerImageName = DAPR_PLACEMENT_IMAGE;
-  private schedulerDockerImageName = DAPR_SCHEDULER_IMAGE;
-  // private configuration: Configuration;
+  private placementImage = DAPR_PLACEMENT_IMAGE;
+  private schedulerImage = DAPR_SCHEDULER_IMAGE;
   private placementContainer?: DaprPlacementContainer;
   private schedulerContainer?: DaprSchedulerContainer;
-  private appName?: string;
-  private appPort?: number;
-  private appHealthCheckPath?: string;
-  // private shouldReusePlacement?: boolean;
-  // private shouldReuseScheduler?: boolean;
+  private shouldReusePlacement = false;
+  private shouldReuseScheduler = false;
   private startedNetwork?: StartedNetwork;
+  private configuration?: Configuration;
+  private components = new Set<Component>();
+  private subscriptions = new Set<Subscription>();
+  private httpEndpoints = new Set<HttpEndpoint>();
 
   constructor(image = DAPR_RUNTIME_IMAGE) {
     super(image);
@@ -67,14 +75,22 @@ export class DaprContainer extends GenericContainer {
   public override async start(): Promise<StartedDaprContainer> {
     assert(this.startedNetwork, "Network must be provided before starting the container");
     if (!this.placementContainer) {
-      this.placementContainer = new DaprPlacementContainer(this.placementDockerImageName)
+      const container = new DaprPlacementContainer(this.placementImage)
         .withNetwork(this.startedNetwork)
-        .withNetworkAliases(this.placementService);
+        .withNetworkAliases(this.placementService)
+      if (this.shouldReusePlacement) {
+        container.withReuse();
+      }
+      this.placementContainer = container;
     }
     if (!this.schedulerContainer) {
-      this.schedulerContainer = new DaprSchedulerContainer(this.schedulerDockerImageName)
+      const container = new DaprSchedulerContainer(this.schedulerImage)
         .withNetwork(this.startedNetwork)
         .withNetworkAliases(this.schedulerService);
+      if (this.shouldReuseScheduler) {
+        container.withReuse();
+      }
+      this.schedulerContainer = container;
     }
     const containers = await Promise.all([
       this.placementContainer.start(),
@@ -84,8 +100,8 @@ export class DaprContainer extends GenericContainer {
   }
 
   protected override async beforeContainerCreated(): Promise<void> {
-    assert(this.placementContainer, "Placement container must be provided");
-    assert(this.schedulerContainer, "Scheduler container must be provided");
+    assert(this.placementContainer, "Placement container expected");
+    assert(this.schedulerContainer, "Scheduler container expected");
     const cmds = [
       "./daprd",
       "--app-id",
@@ -99,8 +115,8 @@ export class DaprContainer extends GenericContainer {
       `${this.schedulerService}:${this.schedulerContainer.getPort()}`,
       "--log-level",
       this.daprLogLevel,
-      // "--resources-path",
-      // "/dapr-resources",
+      "--resources-path",
+      "/dapr-resources",
     ];
 
     if (this.appChannelAddress) {
@@ -115,81 +131,192 @@ export class DaprContainer extends GenericContainer {
       cmds.push("--enable-app-health-check", "--app-health-check-path", this.appHealthCheckPath);
     }
 
-    // if (this.configuration) {
-    //   cmds.push("--config", `/dapr-resources/${this.configuration.getName()}.yaml`);
-    // }
+    if (this.configuration) {
+      cmds.push("--config", `/dapr-resources/${this.configuration.name}.yaml`);
+    }
 
     log.info("> `daprd` Command: \n");
-    log.info("\t" + cmds + "\n");
+    log.info(`\t${JSON.stringify(cmds, undefined, 2)}\n`);
 
     this.withCommand(cmds);
 
-    // if (configuration != null) {
-    //   String configurationYaml = CONFIGURATION_CONVERTER.convert(configuration);
+    if (this.configuration) {
+      const configurationYaml = this.configuration.toYaml();
+      log.info("> Configuration YAML: \n");
+      log.info(`\t\n${configurationYaml}\n`);
+      this.withCopyContentToContainer([
+        { content: configurationYaml, target: `/dapr-resources/${this.configuration.name}.yaml` }
+      ]);
+    }
 
-    //   LOGGER.info("> Configuration YAML: \n");
-    //   LOGGER.info("\t\n" + configurationYaml + "\n");
+    if (!this.components.size) {
+      this.components.add(new Component("kvstore", "state.in-memory", "v1", []));
+      this.components.add(new Component("pubsub", "pubsub.in-memory", "v1", []));
+    }
 
-    //   withCopyToContainer(Transferable.of(configurationYaml), "/dapr-resources/" + configuration.getName() + ".yaml");
-    // }
+    if (!this.subscriptions.size && this.components.size) {
+      this.subscriptions.add(new Subscription("local", "pubsub", "topic", "/events"));
+    }
 
-    // if (components.isEmpty()) {
-    //   components.add(new Component("kvstore", "state.in-memory", "v1", Collections.emptyMap()));
-    //   components.add(new Component("pubsub", "pubsub.in-memory", "v1", Collections.emptyMap()));
-    // }
+    for (const component of this.components) {
+      const componentYaml = component.toYaml();
+      log.info("> Component YAML: \n");
+      log.info(`\t\n${componentYaml}\n`);
+      this.withCopyContentToContainer([
+        { content: componentYaml, target: `/dapr-resources/${component.name}.yaml` }
+      ]);
+    }
 
-    // if (subscriptions.isEmpty() && !components.isEmpty()) {
-    //   subscriptions.add(new Subscription("local", "pubsub", "topic", "/events"));
-    // }
+    for (const subscription of this.subscriptions) {
+      const subscriptionYaml = subscription.toYaml();
+      log.info("> Subscription YAML: \n");
+      log.info(`\t\n${subscriptionYaml}\n`);
+      this.withCopyContentToContainer([
+        { content: subscriptionYaml, target: `/dapr-resources/${subscription.name}.yaml` }
+      ]);
+    }
 
-    // for (Component component : components) {
-    //   String componentYaml = COMPONENT_CONVERTER.convert(component);
-
-    //   LOGGER.info("> Component YAML: \n");
-    //   LOGGER.info("\t\n" + componentYaml + "\n");
-
-    //   withCopyToContainer(Transferable.of(componentYaml), "/dapr-resources/" + component.getName() + ".yaml");
-    // }
-
-    // for (Subscription subscription : subscriptions) {
-    //   String subscriptionYaml = SUBSCRIPTION_CONVERTER.convert(subscription);
-
-    //   LOGGER.info("> Subscription YAML: \n");
-    //   LOGGER.info("\t\n" + subscriptionYaml + "\n");
-
-    //   withCopyToContainer(Transferable.of(subscriptionYaml), "/dapr-resources/" + subscription.getName() + ".yaml");
-    // }
-
-    // for (HttpEndpoint endpoint : httpEndpoints) {
-    //   String endpointYaml = HTTPENDPOINT_CONVERTER.convert(endpoint);
-
-    //   LOGGER.info("> HTTPEndpoint YAML: \n");
-    //   LOGGER.info("\t\n" + endpointYaml + "\n");
-
-    //   withCopyToContainer(Transferable.of(endpointYaml), "/dapr-resources/" + endpoint.getName() + ".yaml");
-    // }
+    for (const endpoint of this.httpEndpoints) {
+      const endpointYaml = endpoint.toYaml();
+      log.info("> HTTPEndpoint YAML: \n");
+      log.info(`\t\n${endpointYaml}\n`);
+      this.withCopyContentToContainer([
+        { content: endpointYaml, target: `/dapr-resources/${endpoint.name}.yaml` }
+      ]);
+    }
   }
 
-  // public override async start(): Promise<StartedK3sContainer> {
-  //   const container = await super.start();
-  //   const tarStream = await container.copyArchiveFromContainer(KUBE_CONFIG_PATH);
-  //   const rawKubeConfig = await extractFromTarStream(tarStream, basename(KUBE_CONFIG_PATH));
-  //   return new StartedK3sContainer(container, rawKubeConfig);
-  // }
+  getAppName(): string {
+    return this.appName;
+  }
 
-  // protected override async beforeContainerCreated(): Promise<void> {
-  //   this.resolveHostname();
-  //   await this.flagLambdaSessionId();
-  // }
+  getAppPort(): number | undefined {
+    return this.appPort;
+  }
 
-  // protected override async beforeContainerCreated() {
-  //   let command = this.createOpts.Cmd ?? ["server", "--disable=traefik"];
-  //   if (this.networkMode && this.networkAliases.length > 0) {
-  //     const aliases = this.networkAliases.join();
-  //     command = [...command, `--tls-san=${aliases}`];
-  //   }
-  //   this.withCommand(command);
-  // }
+  getAppChannelAddress(): string {
+    return this.appChannelAddress;
+  }
+
+  getPlacementService(): string {
+    return this.placementService;
+  }
+
+  getConfiguration(): Configuration | undefined {
+    return this.configuration;
+  }
+
+  getComponents(): Set<Component> {
+    return this.components;
+  }
+
+  getSubscriptions(): Set<Subscription> {
+    return this.subscriptions;
+  }
+
+  getHttpEndpoints(): Set<HttpEndpoint> {
+    return this.httpEndpoints;
+  }
+
+  withAppPort(port: number): this {
+    this.appPort = port;
+    return this;
+  }
+
+  withAppChannelAddress(appChannelAddress: string): this {
+    this.appChannelAddress = appChannelAddress;
+    return this;
+  }
+
+  withAppHealthCheckPath(appHealthCheckPath: string): this {
+    this.appHealthCheckPath = appHealthCheckPath;
+    return this;
+  }
+
+  withConfiguration(configuration: Configuration): this {
+    this.configuration = configuration;
+    return this;
+  }
+
+  withPlacementService(placementService: string): this {
+    this.placementService = placementService;
+    return this;
+  }
+
+  withSchedulerService(schedulerService: string): this {
+    this.schedulerService = schedulerService;
+    return this;
+  }
+
+  withAppName(appName: string): this {
+    this.appName = appName;
+    return this;
+  }
+
+  withDaprLogLevel(daprLogLevel: string): this {
+    this.daprLogLevel = daprLogLevel;
+    return this;
+  }
+
+  withSubscription(subscription: Subscription): this {
+    this.subscriptions.add(subscription);
+    return this;
+  }
+
+  withHttpEndpoint(httpEndpoint: HttpEndpoint): this {
+    this.httpEndpoints.add(httpEndpoint);
+    return this;
+  }
+
+  withPlacementImage(placementImage: string): this {
+    this.placementImage = placementImage;
+    return this;
+  }
+
+  withSchedulerImage(schedulerImage: string): this {
+    this.schedulerImage = schedulerImage;
+    return this;
+  }
+
+  withReusablePlacement(shouldReusePlacement: boolean): this {
+    this.shouldReusePlacement = shouldReusePlacement;
+    return this;
+  }
+
+  withReuseScheduler(shouldReuseScheduler: boolean): this {
+    this.shouldReuseScheduler = shouldReuseScheduler;
+    return this;
+  }
+
+  withPlacementContainer(placementContainer: DaprPlacementContainer): this {
+    this.placementContainer = placementContainer;
+    return this;
+  }
+
+  withSchedulerContainer(schedulerContainer: DaprSchedulerContainer): this {
+    this.schedulerContainer = schedulerContainer;
+    return this;
+  }
+
+  withComponent(component: Component): this {
+    this.components.add(component);
+    return this;
+  }
+
+  /**
+   * Adds a Dapr component from a YAML file.
+   * @param path Path to the YAML file.
+   * @return This container.
+   */
+  withComponentFromPath(path: string): this {
+    try {
+      const src = fs.readFileSync(path, "utf8");
+      return this.withComponent(Component.fromYaml(src));
+    } catch {
+      log.warn(`Error while reading component from ${path}`);
+    }
+    return this;
+  }
 }
 
 export class StartedDaprContainer extends AbstractStartedContainer {
@@ -202,30 +329,20 @@ export class StartedDaprContainer extends AbstractStartedContainer {
     await Promise.all(this.containers.map((container) => container.stop(options)));
     return stoppedTestContainer;
   }
+
+  getHttpPort(): number {
+    return this.getMappedPort(DAPRD_DEFAULT_HTTP_PORT);
+  }
+
+  getHttpEndpoint(): string {
+    return `http://${this.getHost()}:${this.getMappedPort(DAPRD_DEFAULT_HTTP_PORT)}`;
+  }
+
+  getGrpcPort(): number {
+    return this.getMappedPort(DAPRD_DEFAULT_GRPC_PORT);
+  }
+
+  getGrpcEndpoint(): string {
+    return `:${this.getMappedPort(DAPRD_DEFAULT_GRPC_PORT)}`;
+  }
 }
-
-// export class StartedK3sContainer extends AbstractStartedContainer {
-//   constructor(
-//     startedTestContainer: StartedTestContainer,
-//     private readonly rawKubeConfig: string
-//   ) {
-//     super(startedTestContainer);
-//   }
-// }
-
-// export class StartedLocalStackContainer extends AbstractStartedContainer {
-//   constructor(startedTestContainer: StartedTestContainer) {
-//     super(startedTestContainer);
-//   }
-
-//   public getPort(): number {
-//     return this.startedTestContainer.getMappedPort(LOCALSTACK_PORT);
-//   }
-
-//   /**
-//    * @returns A connection URI in the form of `http://host:port`
-//    */
-//   public getConnectionUri(): string {
-//     return `http://${this.getHost()}:${this.getPort().toString()}`;
-//   }
-// }
