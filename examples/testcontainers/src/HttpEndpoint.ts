@@ -39,6 +39,6 @@ export class HttpEndpoint {
         baseUrl: this.baseUrl
       }
     };
-    return YAML.stringify(endpointObj);
+    return YAML.stringify(endpointObj, { indentSeq: false });
   }
 }

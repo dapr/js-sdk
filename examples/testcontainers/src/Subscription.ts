@@ -59,6 +59,6 @@ export class Subscription {
         ]
       }
     };
-    return YAML.stringify(subscriptionObj);
+    return YAML.stringify(subscriptionObj, { indentSeq: false });
   }
 }

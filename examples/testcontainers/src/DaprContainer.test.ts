@@ -13,15 +13,21 @@ limitations under the License.
 
 // import { setTimeout } from "node:timers/promises";
 // import { GenericContainer, Network, Wait } from "testcontainers";
+import path from "node:path";
 import { Network } from "testcontainers";
-import { DaprContainer } from "./DaprContainer";
+import { DaprContainer, DAPR_RUNTIME_IMAGE } from "./DaprContainer";
 
 // jest.setTimeout(120_000);
 
 describe("DaprContainer", () => {
   it("should start and stop", async () => {
     const network = await new Network().start();
-    const container = new DaprContainer("daprio/dapr:latest").withNetwork(network);
+    const container = new DaprContainer("daprio/dapr:latest")
+      .withNetwork(network)
+      .withAppName("dapr-app")
+      .withAppPort(8081)
+      .withDaprLogLevel("debug")
+      .withAppChannelAddress("host.testcontainers.internal");
     const startedContainer = await container.start();
     expect(startedContainer.getHost()).toBeDefined();
     expect(startedContainer.getHttpPort()).toBeDefined();
@@ -31,4 +37,36 @@ describe("DaprContainer", () => {
     await startedContainer.stop();
     await network.stop();
   }, 120_000);
+  it("should load component from path", async () => {
+    const componentPath = path.join(__dirname, '__fixtures__', 'dapr-resources', 'statestore.yaml');
+    const dapr = new DaprContainer(DAPR_RUNTIME_IMAGE)
+        .withAppName("dapr-app")
+        .withAppPort(8081)
+        .withComponentFromPath(componentPath)
+        .withAppChannelAddress("host.testcontainers.internal");
+
+    const components = dapr.getComponents();
+    expect(components.length).toBe(1);
+    const kvstore = components[0];
+    expect(kvstore.getMetadata().length).toBeTruthy();
+
+    const componentYaml = kvstore.toYaml();
+    const expectedComponentYaml =
+        "apiVersion: dapr.io/v1alpha1\n"
+      + "kind: Component\n"
+      + "metadata:\n"
+      + "  name: statestore\n"
+      + "spec:\n"
+      + "  type: state.redis\n"
+      + "  version: v1\n"
+      + "  metadata:\n"
+      + "  - name: keyPrefix\n"
+      + "    value: name\n"
+      + "  - name: redisHost\n"
+      + "    value: redis:6379\n"
+      + "  - name: redisPassword\n"
+      + "    value: \"\"\n"
+
+    expect(componentYaml).toBe(expectedComponentYaml);
+  });
 });

@@ -19,7 +19,7 @@ export type ListEntry = {
 }
 
 export type AppHttpPipeline = {
-  handlers: Array<ListEntry>;
+  handlers: ListEntry[];
 }
 
 export type OtelTracingConfigurationSettings = {
@@ -98,6 +98,6 @@ export class Configuration {
         ...{ appHttpPipeline: this.appHttpPipeline },
       }
     };
-    return YAML.stringify(configurationObj);
+    return YAML.stringify(configurationObj, { indentSeq: false });
   }
 }

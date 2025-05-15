@@ -39,7 +39,7 @@ export class Component {
   }
 
   getMetadata(): MetadataEntry[] {
-    return this.metadata;
+    return this.metadata.slice();
   }
 
   toYaml(): string {
@@ -55,7 +55,7 @@ export class Component {
         metadata: this.metadata,
       },
     };
-    return YAML.stringify(componentObj);
+    return YAML.stringify(componentObj, { indentSeq: false });
   }
 
   static fromYaml(src: string): Component {
@@ -73,7 +73,6 @@ export class Component {
     };
     const metadata = resource.metadata;
     const spec = resource.spec;
-    const specMetadata = spec.metadata ?? [];
-    return new Component(metadata.name, spec.type, spec.version, specMetadata);
+    return new Component(metadata.name, spec.type, spec.version, (spec.metadata ?? []));
   }
 }

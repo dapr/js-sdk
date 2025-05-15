@@ -41,9 +41,9 @@ export const DAPR_PROTOCOL = "http";
 
 export class DaprContainer extends GenericContainer {
   private daprLogLevel = "info";
-  private appChannelAddress = "localhost"; // TODO?
   private appName = "dapr-app";
-  private appPort?: number; // TODO?
+  private appChannelAddress?: string; // "host.testcontainers.internal"
+  private appPort?: number;
   private appHealthCheckPath?: string;
   private placementService = "placement";
   private schedulerService = "scheduler";
@@ -55,9 +55,9 @@ export class DaprContainer extends GenericContainer {
   private shouldReuseScheduler = false;
   private startedNetwork?: StartedNetwork;
   private configuration?: Configuration;
-  private components = new Set<Component>();
-  private subscriptions = new Set<Subscription>();
-  private httpEndpoints = new Set<HttpEndpoint>();
+  private components: Component[] = [];
+  private subscriptions: Subscription[] = [];
+  private httpEndpoints: HttpEndpoint[] = [];
 
   constructor(image = DAPR_RUNTIME_IMAGE) {
     super(image);
@@ -105,7 +105,7 @@ export class DaprContainer extends GenericContainer {
     const cmds = [
       "./daprd",
       "--app-id",
-      this.appName ?? "dapr-app",
+      this.appName,
       "--dapr-listen-addresses=0.0.0.0",
       "--app-protocol",
       DAPR_PROTOCOL,
@@ -149,13 +149,13 @@ export class DaprContainer extends GenericContainer {
       ]);
     }
 
-    if (!this.components.size) {
-      this.components.add(new Component("kvstore", "state.in-memory", "v1", []));
-      this.components.add(new Component("pubsub", "pubsub.in-memory", "v1", []));
+    if (!this.components.length) {
+      this.components.push(new Component("kvstore", "state.in-memory", "v1", []));
+      this.components.push(new Component("pubsub", "pubsub.in-memory", "v1", []));
     }
 
-    if (!this.subscriptions.size && this.components.size) {
-      this.subscriptions.add(new Subscription("local", "pubsub", "topic", "/events"));
+    if (!this.subscriptions.length && this.components.length) {
+      this.subscriptions.push(new Subscription("local", "pubsub", "topic", "/events"));
     }
 
     for (const component of this.components) {
@@ -194,7 +194,7 @@ export class DaprContainer extends GenericContainer {
     return this.appPort;
   }
 
-  getAppChannelAddress(): string {
+  getAppChannelAddress(): string | undefined {
     return this.appChannelAddress;
   }
 
@@ -206,16 +206,16 @@ export class DaprContainer extends GenericContainer {
     return this.configuration;
   }
 
-  getComponents(): Set<Component> {
-    return this.components;
+  getComponents(): Component[] {
+    return this.components.slice();
   }
 
-  getSubscriptions(): Set<Subscription> {
-    return this.subscriptions;
+  getSubscriptions(): Subscription[] {
+    return this.subscriptions.slice();
   }
 
-  getHttpEndpoints(): Set<HttpEndpoint> {
-    return this.httpEndpoints;
+  getHttpEndpoints(): HttpEndpoint[] {
+    return this.httpEndpoints.slice();
   }
 
   withAppPort(port: number): this {
@@ -259,12 +259,12 @@ export class DaprContainer extends GenericContainer {
   }
 
   withSubscription(subscription: Subscription): this {
-    this.subscriptions.add(subscription);
+    this.subscriptions.push(subscription);
     return this;
   }
 
   withHttpEndpoint(httpEndpoint: HttpEndpoint): this {
-    this.httpEndpoints.add(httpEndpoint);
+    this.httpEndpoints.push(httpEndpoint);
     return this;
   }
 
@@ -299,7 +299,7 @@ export class DaprContainer extends GenericContainer {
   }
 
   withComponent(component: Component): this {
-    this.components.add(component);
+    this.components.push(component);
     return this;
   }
 
