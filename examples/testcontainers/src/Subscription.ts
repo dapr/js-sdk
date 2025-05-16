@@ -29,13 +29,9 @@ export class Subscription {
         name: string;
       };
       spec: {
-        pubsub: string;
+        pubsubname: string;
         topic: string;
         route: string;
-        metadata: {
-          name: string;
-          value: string;
-        }[];
       };
     } = {
       apiVersion: "dapr.io/v1alpha1",
@@ -44,19 +40,9 @@ export class Subscription {
         name: this.name
       },
       spec: {
-        pubsub: this.pubsubName,
+        pubsubname: this.pubsubName,
         topic: this.topic,
         route: this.route,
-        metadata: [
-          {
-            name: "topic",
-            value: this.topic
-          },
-          {
-            name: "pubsubname",
-            value: this.pubsubName
-          }
-        ]
       }
     };
     return YAML.stringify(subscriptionObj, { indentSeq: false });

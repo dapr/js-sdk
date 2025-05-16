@@ -15,7 +15,7 @@ limitations under the License.
 // import { GenericContainer, Network, Wait } from "testcontainers";
 import path from "node:path";
 import { Network } from "testcontainers";
-import { DaprContainer, DAPR_RUNTIME_IMAGE } from "./DaprContainer";
+import { DAPR_RUNTIME_IMAGE, DaprContainer } from "./DaprContainer";
 
 // jest.setTimeout(120_000);
 
@@ -38,7 +38,7 @@ describe("DaprContainer", () => {
     await network.stop();
   }, 120_000);
   it("should load component from path", async () => {
-    const componentPath = path.join(__dirname, '__fixtures__', 'dapr-resources', 'statestore.yaml');
+    const componentPath = path.join(__dirname, "__fixtures__", "dapr-resources", "statestore.yaml");
     const dapr = new DaprContainer(DAPR_RUNTIME_IMAGE)
         .withAppName("dapr-app")
         .withAppPort(8081)
@@ -52,20 +52,20 @@ describe("DaprContainer", () => {
 
     const componentYaml = kvstore.toYaml();
     const expectedComponentYaml =
-        "apiVersion: dapr.io/v1alpha1\n"
-      + "kind: Component\n"
-      + "metadata:\n"
-      + "  name: statestore\n"
-      + "spec:\n"
-      + "  type: state.redis\n"
-      + "  version: v1\n"
-      + "  metadata:\n"
-      + "  - name: keyPrefix\n"
-      + "    value: name\n"
-      + "  - name: redisHost\n"
-      + "    value: redis:6379\n"
-      + "  - name: redisPassword\n"
-      + "    value: \"\"\n"
+      "apiVersion: dapr.io/v1alpha1\n" +
+      "kind: Component\n" +
+      "metadata:\n" +
+      "  name: statestore\n" +
+      "spec:\n" +
+      "  type: state.redis\n" +
+      "  version: v1\n" +
+      "  metadata:\n" +
+      "  - name: keyPrefix\n" +
+      "    value: name\n" +
+      "  - name: redisHost\n" +
+      "    value: redis:6379\n" +
+      "  - name: redisPassword\n" +
+      '    value: ""\n';
 
     expect(componentYaml).toBe(expectedComponentYaml);
   });

@@ -18,25 +18,33 @@ export type ListEntry = {
   type: string;
 }
 
-export type AppHttpPipeline = {
-  handlers: ListEntry[];
+export class AppHttpPipeline {
+  constructor(
+    public readonly handlers: ListEntry[]
+  ) {}
 }
 
-export type OtelTracingConfigurationSettings = {
-  endpointAddress?: string;
-  isSecure?: boolean;
-  protocol?: string;
+export class OtelTracingConfigurationSettings {
+  constructor(
+    public readonly endpointAddress?: string,
+    public readonly isSecure?: boolean,
+    public readonly protocol?: string
+  ) {}
 }
 
-export type ZipkinTracingConfigurationSettings = {
-  endpointAddress?: string;
+export class ZipkinTracingConfigurationSettings {
+  constructor(
+    public readonly endpointAddress?: string
+  ) {}
 }
 
-export type TracingConfigurationSettings = {
-  samplingRate?: string;
-  stdout?: boolean;
-  otel?: OtelTracingConfigurationSettings;
-  zipkin?: ZipkinTracingConfigurationSettings;
+export class TracingConfigurationSettings {
+  constructor(
+    public readonly samplingRate?: string,
+    public readonly stdout?: boolean,
+    public readonly otel?: OtelTracingConfigurationSettings,
+    public readonly zipkin?: ZipkinTracingConfigurationSettings
+  ) {}
 }
 
 /**
