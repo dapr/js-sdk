@@ -79,7 +79,7 @@ export class DaprContainer extends GenericContainer {
         .withNetwork(this.startedNetwork)
         .withNetworkAliases(this.placementService)
       if (this.shouldReusePlacement) {
-        container.withReuse();
+        container.withReuse().withAutoRemove(false);
       }
       this.placementContainer = container;
     }
@@ -88,7 +88,7 @@ export class DaprContainer extends GenericContainer {
         .withNetwork(this.startedNetwork)
         .withNetworkAliases(this.schedulerService);
       if (this.shouldReuseScheduler) {
-        container.withReuse();
+        container.withReuse().withAutoRemove(false);
       }
       this.schedulerContainer = container;
     }
