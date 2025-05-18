@@ -13,6 +13,17 @@ limitations under the License.
 
 import YAML from "yaml";
 
+type HttpEndpointResource = {
+  apiVersion: "dapr.io/v1alpha1";
+  kind: "HTTPEndpoint";
+  metadata: {
+    name: string;
+  };
+  spec: {
+    baseUrl: string;
+  };
+};
+
 export class HttpEndpoint {
   constructor(
     public readonly name: string,
@@ -20,16 +31,7 @@ export class HttpEndpoint {
   ) {}
 
   toYaml(): string {
-    const endpointObj: {
-      apiVersion: string;
-      kind: string;
-      metadata: {
-        name: string;
-      };
-      spec: {
-        baseUrl: string;
-      };
-    } = {
+    const resource: HttpEndpointResource= {
       apiVersion: "dapr.io/v1alpha1",
       kind: "HTTPEndpoint",
       metadata: {
@@ -39,6 +41,6 @@ export class HttpEndpoint {
         baseUrl: this.baseUrl
       }
     };
-    return YAML.stringify(endpointObj, { indentSeq: false });
+    return YAML.stringify(resource, { indentSeq: false });
   }
 }

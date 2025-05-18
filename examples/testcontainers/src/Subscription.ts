@@ -13,28 +13,39 @@ limitations under the License.
 
 import YAML from "yaml";
 
+type Rule = {
+  match?: string;
+  path: string;
+};
+
+type SubscriptionResource = {
+  apiVersion: "dapr.io/v2alpha1";
+  kind: "Subscription";
+  metadata: {
+    name: string;
+  };
+  spec: {
+    pubsubname: string;
+    topic: string;
+    routes: {
+      rules?: Rule[];
+      default?: string;
+    }
+  };
+};
+
 export class Subscription {
   constructor(
     public readonly name: string,
     public readonly pubsubName: string,
     public readonly topic: string,
-    public readonly route: string
+    public readonly rules?: Rule[],
+    public readonly defaultRoute?: string
   ) {}
 
   toYaml(): string {
-    const subscriptionObj: {
-      apiVersion: string;
-      kind: string;
-      metadata: {
-        name: string;
-      };
-      spec: {
-        pubsubname: string;
-        topic: string;
-        route: string;
-      };
-    } = {
-      apiVersion: "dapr.io/v1alpha1",
+    const resource: SubscriptionResource = {
+      apiVersion: "dapr.io/v2alpha1",
       kind: "Subscription",
       metadata: {
         name: this.name
@@ -42,9 +53,12 @@ export class Subscription {
       spec: {
         pubsubname: this.pubsubName,
         topic: this.topic,
-        route: this.route,
+        routes: {
+          ...{ rules: this.rules },
+          ...{ default: this.defaultRoute }
+        }
       }
     };
-    return YAML.stringify(subscriptionObj, { indentSeq: false });
+    return YAML.stringify(resource, { indentSeq: false });
   }
 }

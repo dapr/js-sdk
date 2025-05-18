@@ -41,6 +41,7 @@ export const DAPR_PROTOCOL = "http";
 
 export class DaprContainer extends GenericContainer {
   private daprLogLevel = "info";
+  private daprApiLogging = false;
   private appName = "dapr-app";
   private appChannelAddress?: string; // "host.testcontainers.internal"
   private appPort?: number;
@@ -100,8 +101,8 @@ export class DaprContainer extends GenericContainer {
   }
 
   protected override async beforeContainerCreated(): Promise<void> {
-    assert(this.placementContainer, "Placement container expected");
-    assert(this.schedulerContainer, "Scheduler container expected");
+    assert(this.placementContainer, "DaprPlacementContainer expected");
+    assert(this.schedulerContainer, "DaprSchedulerContainer expected");
     const cmds = [
       "./daprd",
       "--app-id",
@@ -131,6 +132,10 @@ export class DaprContainer extends GenericContainer {
       cmds.push("--enable-app-health-check", "--app-health-check-path", this.appHealthCheckPath);
     }
 
+    if (this.daprApiLogging) {
+      cmds.push("--enable-api-logging");
+    }
+
     if (this.configuration) {
       cmds.push("--config", `/dapr-resources/${this.configuration.name}.yaml`);
     }
@@ -155,7 +160,7 @@ export class DaprContainer extends GenericContainer {
     }
 
     if (!this.subscriptions.length && this.components.length) {
-      this.subscriptions.push(new Subscription("local", "pubsub", "topic", "/events"));
+      this.subscriptions.push(new Subscription("local", "pubsub", "topic", undefined, "/events"));
     }
 
     for (const component of this.components) {
@@ -255,6 +260,11 @@ export class DaprContainer extends GenericContainer {
 
   withDaprLogLevel(daprLogLevel: string): this {
     this.daprLogLevel = daprLogLevel;
+    return this;
+  }
+
+  withDaprApiLoggingEnabled(enabled: boolean): this {
+    this.daprApiLogging = enabled;
     return this;
   }
 

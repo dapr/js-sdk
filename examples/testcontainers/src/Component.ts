@@ -18,6 +18,19 @@ export type MetadataEntry = {
   readonly value: string;
 };
 
+type ComponentResource = {
+  apiVersion: "dapr.io/v1alpha1";
+  kind: "Component";
+  metadata: {
+    name: string;
+  };
+  spec: {
+    type: string;
+    version: string;
+    metadata?: MetadataEntry[];
+  };
+};
+
 export class Component {
   private readonly metadata: MetadataEntry[];
 
@@ -43,7 +56,7 @@ export class Component {
   }
 
   toYaml(): string {
-    const componentObj = {
+    const resource: ComponentResource = {
       apiVersion: "dapr.io/v1alpha1",
       kind: "Component",
       metadata: {
@@ -55,22 +68,11 @@ export class Component {
         metadata: this.metadata,
       },
     };
-    return YAML.stringify(componentObj, { indentSeq: false });
+    return YAML.stringify(resource, { indentSeq: false });
   }
 
   static fromYaml(src: string): Component {
-    const resource = YAML.parse(src) as {
-      apiVersion: string;
-      kind: string;
-      metadata: {
-        name: string;
-      };
-      spec: {
-        type: string;
-        version: string;
-        metadata?: MetadataEntry[];
-      };
-    };
+    const resource: ComponentResource = YAML.parse(src);
     const metadata = resource.metadata;
     const spec = resource.spec;
     return new Component(metadata.name, spec.type, spec.version, (spec.metadata ?? []));

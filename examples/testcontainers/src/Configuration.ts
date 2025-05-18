@@ -47,6 +47,18 @@ export class TracingConfigurationSettings {
   ) {}
 }
 
+type ConfigurationResource = {
+  apiVersion: "dapr.io/v1alpha1";
+  kind: "Configuration";
+  metadata: {
+    name: string;
+  };
+  spec: {
+    tracing?: TracingConfigurationSettings;
+    appHttpPipeline?: AppHttpPipeline;
+  };
+};
+
 /**
  * Configuration class for Dapr.
  * 
@@ -85,17 +97,7 @@ export class Configuration {
   ) {}
 
   toYaml(): string {
-    const configurationObj: {
-      apiVersion: string;
-      kind: string;
-      metadata: {
-        name: string;
-      };
-      spec: {
-        tracing?: TracingConfigurationSettings;
-        appHttpPipeline?: AppHttpPipeline;
-      };
-    } = {
+    const resource: ConfigurationResource = {
       apiVersion: "dapr.io/v1alpha1",
       kind: "Configuration",
       metadata: {
@@ -106,6 +108,6 @@ export class Configuration {
         ...{ appHttpPipeline: this.appHttpPipeline },
       }
     };
-    return YAML.stringify(configurationObj, { indentSeq: false });
+    return YAML.stringify(resource, { indentSeq: false });
   }
 }

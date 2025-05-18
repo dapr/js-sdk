@@ -15,25 +15,50 @@ import { DAPR_RUNTIME_IMAGE, DaprContainer } from "./DaprContainer";
 import { Subscription } from "./Subscription";
 
 describe("Subscription", () => {
-  it("should convert to YAML", () => {
+  it("should convert default route to YAML", () => {
     const dapr = new DaprContainer(DAPR_RUNTIME_IMAGE)
       .withAppName("dapr-app")
       .withAppPort(8081)
-      .withSubscription(new Subscription("my-subscription", "pubsub", "topic", "/events"))
+      .withSubscription(new Subscription("my-subscription", "pubsub", "topic", undefined, "/events"))
       .withAppChannelAddress("host.testcontainers.internal");
     const subscriptions = dapr.getSubscriptions();
     expect(subscriptions.length).toBe(1);
     const subscription = subscriptions[0];
     const subscriptionYaml = subscription.toYaml();
     const expectedSubscriptionYaml =
-      "apiVersion: dapr.io/v1alpha1\n" +
+      "apiVersion: dapr.io/v2alpha1\n" +
       "kind: Subscription\n" +
       "metadata:\n" +
       "  name: my-subscription\n" +
       "spec:\n" +
       "  pubsubname: pubsub\n" +
       "  topic: topic\n" +
-      "  route: /events\n";
+      "  routes:\n" +
+      "    default: /events\n";
+    expect(subscriptionYaml).toEqual(expectedSubscriptionYaml);
+  });
+
+  it("should convert rules to YAML", () => {
+    const rules = [
+      {
+        match: 'event.type == "foo"',
+        path: "/foo",
+      },
+    ];
+    const subscription = new Subscription("my-subscription", "pubsub", "topic", rules);
+    const subscriptionYaml = subscription.toYaml();
+    const expectedSubscriptionYaml =
+      "apiVersion: dapr.io/v2alpha1\n" +
+      "kind: Subscription\n" +
+      "metadata:\n" +
+      "  name: my-subscription\n" +
+      "spec:\n" +
+      "  pubsubname: pubsub\n" +
+      "  topic: topic\n" +
+      "  routes:\n" +
+      "    rules:\n" +
+      '    - match: event.type == "foo"\n' +
+      "      path: /foo\n";
     expect(subscriptionYaml).toEqual(expectedSubscriptionYaml);
   });
 });
