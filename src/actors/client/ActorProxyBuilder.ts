@@ -22,22 +22,49 @@ export default class ActorProxyBuilder<T> {
   actorClient: ActorClient;
   actorAbstractClass: Class<T>;
 
-  constructor(actorTypeName: string, actorTypeClass: Class<T>, daprClient: DaprClient);
+  constructor(actorTypeClass: Class<T>, daprClient: DaprClient);
   constructor(
-    actorTypeName: string,
-    abstractClass: Class<T>,
+    actorTypeClass: Class<T>,
     host: string,
     port: string,
     communicationProtocol: CommunicationProtocolEnum,
     clientOptions: DaprClientOptions,
   );
-  constructor(actorTypeName: string, abstractClass: Class<T>, ...args: any[]) {
+  constructor(
+    actorTypeName: string,
+    actorTypeClass: Class<T>,
+    daprClient: DaprClient
+  );
+  constructor(
+    actorTypeName: string,
+    actorTypeClass: Class<T>,
+    host: string,
+    port: string,
+    communicationProtocol: CommunicationProtocolEnum,
+    clientOptions: DaprClientOptions,
+  );
+  constructor(...args: any[]) {
+    let actorTypeName: string;
+    let actorTypeClass: Class<T>;
+    let rest: any[];
+
+    // Determine if the first argument is a string (actorTypeName) or a class
+    if (typeof args[0] === "string") {
+      actorTypeName = args[0];
+      actorTypeClass = args[1];
+      rest = args.slice(2);
+    } else {
+      actorTypeClass = args[0];
+      actorTypeName = actorTypeClass.name;
+      rest = args.slice(1);
+    }
+
     this.actorTypeName = actorTypeName;
-    this.actorAbstractClass = abstractClass;
+    this.actorAbstractClass = actorTypeClass;
 
     // Create the actor client based on the provided arguments
-    if (args.length == 1) {
-      const [daprClient] = args;
+    if (rest.length == 1) {
+      const [daprClient] = rest;
       this.actorClient = new ActorClient(
         daprClient.options.daprHost,
         daprClient.options.daprPort,
@@ -45,7 +72,7 @@ export default class ActorProxyBuilder<T> {
         daprClient.options,
       );
     } else {
-      const [host, port, communicationProtocol, clientOptions] = args;
+      const [host, port, communicationProtocol, clientOptions] = rest;
       this.actorClient = new ActorClient(host, port, communicationProtocol, clientOptions);
     }
   }

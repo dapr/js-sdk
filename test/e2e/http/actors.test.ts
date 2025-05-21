@@ -161,6 +161,22 @@ describe("http/actors", () => {
       expect(c3).toEqual(11);
     });
 
+    it("should be able to create an actor object through the proxy and the deprecated way of working (when we have the implementation)", async () => {
+      const builder = new ActorProxyBuilder<DemoActorCounterInterface>(DemoActorCounterImpl, client);
+      const actor = builder.build(ActorId.createRandomId());
+
+      const c1 = await actor.getCounter();
+      expect(c1).toEqual(0);
+
+      await actor.countBy(1, 1);
+      const c2 = await actor.getCounter();
+      expect(c2).toEqual(1);
+
+      await actor.countBy(1, 10);
+      const c3 = await actor.getCounter();
+      expect(c3).toEqual(11);
+    });
+
     it("should be able to create an actor object through the proxy (without requiring the implementation)", async () => {
       const builder = new ActorProxyBuilder<DemoActorCounterContract>("DemoActorCounterImpl", DemoActorCounterContract, client);
       const actor = builder.build(ActorId.createRandomId());
