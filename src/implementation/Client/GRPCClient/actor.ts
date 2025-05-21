@@ -29,6 +29,7 @@ export default class GRPCClientActor implements IClientActorBuilder {
   // this means that we can't use T to new up an object (sadly enough) so we have to pass it
   create<T>(actorTypeClass: Class<T>): T {
     const builder = new ActorProxyBuilder<T>(
+      actorTypeClass.name,
       actorTypeClass,
       this.client.options.daprHost,
       this.client.options.daprPort,
