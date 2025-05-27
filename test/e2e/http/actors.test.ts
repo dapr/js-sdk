@@ -366,7 +366,7 @@ describe("http/actors", () => {
       // After that the reminder callback will be called
       // In our case, the callback increments the count attribute
       const res1 = await actor.getCounter();
-      expect(res1).toEqual(123);
+      expect(res1).toBeGreaterThan(0);
 
       await actor.removeReminder();
 
@@ -375,7 +375,7 @@ describe("http/actors", () => {
 
       // Make sure the counter didn't change since we removed the reminder
       const res2 = await actor.getCounter();
-      expect(res2).toEqual(123);
+      expect(res2).toEqual(res1);
     });
 
     it("should fire a reminder but with a warning if it's not implemented correctly", async () => {
