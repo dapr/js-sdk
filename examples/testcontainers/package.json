@@ -1,0 +1,23 @@
+{
+  "name": "testcontainers",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@dapr/dapr": "^3.5.2",
+    "body-parser": "^2.2.0",
+    "express": "^5.1.0",
+    "ts-jest": "^29.3.2",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "testcontainers": "^10.25.0",
+    "yaml": "^2.8.0"
+  }
+}
