@@ -23,11 +23,11 @@ export default class GRPCClientWorkflow implements IClientWorkflow {
     this.client = client;
   }
 
-  get(_instanceId: string): Promise<WorkflowGetResponseType> {
+  getWorkflowState(_instanceId: string, _workflowComponent?: string | undefined): Promise<WorkflowGetResponseType> {
     throw new GRPCNotSupportedError();
   }
 
-  start(
+  scheduleNewWorkflow(
     _workflowName: string,
     _input?: any,
     _instanceId?: string | undefined
