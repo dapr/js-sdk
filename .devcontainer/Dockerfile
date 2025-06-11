@@ -11,7 +11,7 @@
 # limitations under the License.
 #
 
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 
 # Avoid warnings by switching to noninteractive
 ENV DEBIAN_FRONTEND=noninteractive
@@ -21,7 +21,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # will be updated to match your local UID/GID (when using the dockerFile property).
 # See https://aka.ms/vscode-remote/containers/non-root-user for details.
 ARG USERNAME=vscode
-ARG USER_UID=1000
+ARG USER_UID=1001
 ARG USER_GID=$USER_UID
 
 # Uncomment the following COPY line and the corresponding lines in the `RUN` command if you wish to
@@ -48,8 +48,8 @@ RUN apt-get update \
     && export NVM_DIR="$HOME/.nvm" \
     && \. "$NVM_DIR/nvm.sh" \
     #
-    # Install Node 16.14.0 (latest LTS)
-    && nvm install v16.14.0 \
+    # Install Node 22.16 (latest LTS)
+    && nvm install v22.16.0 \
     #
     # Install Typescript Globally
     && npm install -g typescript \

@@ -27,7 +27,7 @@ on:
   workflow_dispatch: {}
 
 env:
-  NODE_VER: 16.14.0
+  NODE_VER: 22.16.0
 
 jobs:
   build:
@@ -35,12 +35,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node_version: [16.14.0]
+        node_version: [22.16.0]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Node ${{ matrix.node_version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node_version }}
 
@@ -53,7 +53,7 @@ jobs:
         run: npm run test:unit:all
 
       - name: Upload test coverage
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@ad3126e916f78f00edff4ed0317cf185271ccc2d # v5.4.2
 
   publish:
     needs: build
@@ -61,10 +61,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Node ${{ env.NODE_VER }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VER }}
           registry-url: "https://registry.npmjs.org"
@@ -103,10 +103,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: development
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Node ${{ env.NODE_VER }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VER }}
           registry-url: "https://registry.npmjs.org"
