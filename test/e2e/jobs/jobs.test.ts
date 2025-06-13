@@ -13,10 +13,13 @@ limitations under the License.
 
 import { GenericContainer, Network, StartedNetwork, StartedTestContainer, TestContainers, Wait } from "testcontainers";
 // import { LogWaitStrategy } from "testcontaineclienrs/build/wait-strategies/log-wait-strategy";
-import { CommunicationProtocolEnum, DaprClient, DaprServer } from "../../../src";
+import { CommunicationProtocolEnum, DaprServer } from "../../../src";
+import express from "express";
+import http from "http";
+import fetch from "node-fetch";
 // import { AbstractWaitStrategy } from "testcontainers/build/wait-strategies/wait-strategy";
 
-jest.setTimeout(40 * 1000);
+jest.setTimeout(120 * 1000);
 
 describe("Jobs End to End", () => {
 
@@ -24,11 +27,8 @@ describe("Jobs End to End", () => {
     let daprScheduler: StartedTestContainer | null = null;
     let daprd: StartedTestContainer | null = null;
     let server: DaprServer | null = null;
-    let client: DaprClient | null = null;
 
     beforeAll(async () => {
-
-      await TestContainers.exposeHostPorts(8070);
 
       network = await new Network().start();
 
@@ -51,7 +51,16 @@ describe("Jobs End to End", () => {
         })
         // note: Because dapr containers don't have `sh` or `bash` inside, this is kind of the best health check.
         .withWaitStrategy(Wait.forLogMessage("api is ready").withStartupTimeout(10000))
+        // .withWaitStrategy(Wait.forHttp("/v1.0/healthz/outbound", 8082)
+        //   .forStatusCodeMatching((statusCode) => statusCode >= 200 && statusCode <= 399))
+        // .withStartupTimeout(120_000)
         .start());
+
+        const dummyExpress = createDummyExpress(8070);
+
+        console.info("Exposing 8070.")
+        await TestContainers.exposeHostPorts(8070);
+        console.info("8070 exposed.")
 
         daprd = await (new GenericContainer("ghcr.io/dapr/dapr")
           .withName("dapr-js-sdk-test-daemon")
@@ -62,6 +71,7 @@ describe("Jobs End to End", () => {
             "./daprd",
             "--app-id", "dapr-js-sdk-testing",
             "--app-channel-address", "host.testcontainers.internal",
+            "--app-protocol", "http",
             "--app-port", "8070",
             "--dapr-grpc-port", "8081",
             "--dapr-http-port", "8082",
@@ -73,6 +83,8 @@ describe("Jobs End to End", () => {
           // note: Because dapr containers don't have `sh` or `bash` inside, this is kind of the best health check.
           .withWaitStrategy(Wait.forLogMessage("HTTP server is running on port").withStartupTimeout(10000))
           .start());
+
+      dummyExpress.close();
 
       console.info(`Scheduler: ${getIp(daprScheduler)}`);
       console.info(`Daemon: ${getIp(daprd)}`);
@@ -86,12 +98,6 @@ describe("Jobs End to End", () => {
           daprPort: getPort(daprd, 8082),
           communicationProtocol: CommunicationProtocolEnum.HTTP,
         },
-      });
-
-      client = new DaprClient({
-        daprHost: "localhost",
-        daprPort: getPort(daprd, 8082),
-        communicationProtocol: CommunicationProtocolEnum.HTTP,
       });
     });
 
@@ -110,7 +116,7 @@ describe("Jobs End to End", () => {
 
       await server?.start();
 
-      await client?.jobs.schedule(
+      await server?.client.jobs.schedule(
         "test",
         { value: "test" },
         "* * * * * *"
@@ -118,9 +124,12 @@ describe("Jobs End to End", () => {
 
       const job = await server?.client.jobs.get("test");
 
-      await (new Promise(resolve => setTimeout(resolve, 6000)));
+      console.log("Waiting...");
+      await (new Promise(resolve => setTimeout(resolve, 10000)));
+      console.log("Done waiting.");
 
-      await client?.jobs.delete("test");
+      await server?.stop();
+      await server?.client.jobs.delete("test");
 
       expect(job).toMatchObject({
         "data": {
@@ -150,5 +159,12 @@ describe("Jobs End to End", () => {
     if (! container) throw new Error("Container is null or undefined?");
 
     return container.getMappedPort(port).toString();
+  }
+
+  function createDummyExpress(port: number): http.Server {
+
+    const expressApp = express();
+
+    return expressApp.listen(port);
   }
 })
