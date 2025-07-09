@@ -12,8 +12,8 @@ The Dapr Client allows you to communicate with the Dapr Sidecar and get access t
 
 ## Pre-requisites
 
-- [Dapr CLI]({{< ref install-dapr-cli.md >}}) installed
-- Initialized [Dapr environment]({{< ref install-dapr-selfhost.md >}})
+- [Dapr CLI]({{% ref install-dapr-cli.md %}}) installed
+- Initialized [Dapr environment]({{% ref install-dapr-selfhost.md %}})
 - [Latest LTS version of Node.js or greater](https://nodejs.org/en/)
 
 ## Installing and importing Dapr's JS SDK
@@ -154,7 +154,7 @@ We can now call the methods as defined in our `GreeterClient` interface (which i
 
 ## Building blocks
 
-The JavaScript Client SDK allows you to interface with all of the [Dapr building blocks]({{< ref building-blocks >}}) focusing on Client to Sidecar features.
+The JavaScript Client SDK allows you to interface with all of the [Dapr building blocks]({{% ref building-blocks %}}) focusing on Client to Sidecar features.
 
 ### Invocation API
 
@@ -194,7 +194,7 @@ start().catch((e) => {
 });
 ```
 
-> For a full guide on service invocation visit [How-To: Invoke a service]({{< ref howto-invoke-discover-services.md >}}).
+> For a full guide on service invocation visit [How-To: Invoke a service]({{% ref howto-invoke-discover-services.md %}}).
 
 ### State Management API
 
@@ -267,7 +267,7 @@ start().catch((e) => {
 });
 ```
 
-> For a full list of state operations visit [How-To: Get & save state]({{< ref howto-get-save-state.md >}}).
+> For a full list of state operations visit [How-To: Get & save state]({{% ref howto-get-save-state.md %}}).
 
 #### Query State API
 
@@ -423,7 +423,7 @@ start().catch((e) => {
 });
 ```
 
-> For a full guide on output bindings visit [How-To: Use bindings]({{< ref howto-bindings.md >}}).
+> For a full guide on output bindings visit [How-To: Use bindings]({{% ref howto-bindings.md %}}).
 
 ### Secret API
 
@@ -454,7 +454,7 @@ start().catch((e) => {
 });
 ```
 
-> For a full guide on secrets visit [How-To: Retrieve secrets]({{< ref howto-secrets.md >}}).
+> For a full guide on secrets visit [How-To: Retrieve secrets]({{% ref howto-secrets.md %}}).
 
 ### Configuration API
 
@@ -622,7 +622,7 @@ start().catch((e) => {
 });
 ```
 
-> For a full guide on cryptography visit [How-To: Cryptography]({{< ref howto-cryptography.md >}}).
+> For a full guide on cryptography visit [How-To: Cryptography]({{% ref howto-cryptography.md %}}).
 
 ### Distributed Lock API
 
@@ -671,7 +671,7 @@ start().catch((e) => {
 });
 ```
 
-> For a full guide on distributed locks visit [How-To: Use Distributed Locks]({{< ref howto-use-distributed-lock.md >}}).
+> For a full guide on distributed locks visit [How-To: Use Distributed Locks]({{% ref howto-use-distributed-lock.md %}}).
 
 ### Workflow API
 
