@@ -12,12 +12,8 @@ limitations under the License.
 */
 
 import { GenericContainer, Network, StartedNetwork, StartedTestContainer, TestContainers, Wait } from "testcontainers";
-// import { LogWaitStrategy } from "testcontaineclienrs/build/wait-strategies/log-wait-strategy";
-import { CommunicationProtocolEnum, DaprServer } from "../../../src";
+import { CommunicationProtocolEnum, DaprClient } from "../../../src";
 import express from "express";
-import http from "http";
-import fetch from "node-fetch";
-// import { AbstractWaitStrategy } from "testcontainers/build/wait-strategies/wait-strategy";
 
 jest.setTimeout(120 * 1000);
 
@@ -25,8 +21,6 @@ describe("Jobs End to End", () => {
 
     let network: StartedNetwork | null = null;
     let daprScheduler: StartedTestContainer | null = null;
-    let daprd: StartedTestContainer | null = null;
-    let server: DaprServer | null = null;
 
     beforeAll(async () => {
 
@@ -36,13 +30,15 @@ describe("Jobs End to End", () => {
         .withName("dapr-js-sdk-test-scheduler")
         .withNetwork(network)
         .withNetworkAliases("scheduler")
-        .withExposedPorts(8083)
+        .withExposedPorts(8083, 8080)
         .withCommand([
           "./scheduler",
           // note: Don't think this is necessary, buuuuut????
           "--listen-address", "0.0.0.0",
           "--port", "8083",
           "--log-level", "debug",
+          "--healthz-listen-address", "0.0.0.0",
+          "--healthz-port", "8080",
           // note: This feels redundant, but here as yet another thing I've tried.
           // "--mode", "standalone",
         ])
@@ -51,59 +47,14 @@ describe("Jobs End to End", () => {
         })
         // note: Because dapr containers don't have `sh` or `bash` inside, this is kind of the best health check.
         .withWaitStrategy(Wait.forLogMessage("api is ready").withStartupTimeout(10000))
-        // .withWaitStrategy(Wait.forHttp("/v1.0/healthz/outbound", 8082)
+        // note: Still having some issues with this.
+        // .withWaitStrategy(Wait.forHttp("/healthz", 8080)
         //   .forStatusCodeMatching((statusCode) => statusCode >= 200 && statusCode <= 399))
         // .withStartupTimeout(120_000)
         .start());
-
-        const dummyExpress = createDummyExpress(8070);
-
-        console.info("Exposing 8070.")
-        await TestContainers.exposeHostPorts(8070);
-        console.info("8070 exposed.")
-
-        daprd = await (new GenericContainer("ghcr.io/dapr/dapr")
-          .withName("dapr-js-sdk-test-daemon")
-          .withNetwork(network)
-          .withNetworkAliases("daprd")
-          .withExposedPorts(8081, 8082)
-          .withCommand([
-            "./daprd",
-            "--app-id", "dapr-js-sdk-testing",
-            "--app-channel-address", "host.testcontainers.internal",
-            "--app-protocol", "http",
-            "--app-port", "8070",
-            "--dapr-grpc-port", "8081",
-            "--dapr-http-port", "8082",
-            "--scheduler-host-address", `scheduler:8083`,
-            "--placement-host-address", "",
-            "--enable-metrics", "false",
-            "--log-level", "debug",
-          ])
-          // note: Because dapr containers don't have `sh` or `bash` inside, this is kind of the best health check.
-          .withWaitStrategy(Wait.forLogMessage("HTTP server is running on port").withStartupTimeout(10000))
-          .start());
-
-      dummyExpress.close();
-
-      console.info(`Scheduler: ${getIp(daprScheduler)}`);
-      console.info(`Daemon: ${getIp(daprd)}`);
-
-      server = new DaprServer({
-        serverHost: "0.0.0.0",
-        serverPort: "8070",
-        communicationProtocol: CommunicationProtocolEnum.HTTP,
-        clientOptions: {
-          daprHost: "localhost",
-          daprPort: getPort(daprd, 8082),
-          communicationProtocol: CommunicationProtocolEnum.HTTP,
-        },
-      });
     });
 
     afterAll(async () => {
-      await server?.stop();
-      await daprd?.stop();
       await daprScheduler?.stop();
       await network?.stop();
     });
@@ -112,24 +63,70 @@ describe("Jobs End to End", () => {
 
       const callback = jest.fn(async () => { console.info("Callback called!"); });
 
-      server?.jobs.listen("test", callback);
+      const expressApp = express();
+      expressApp.post("/job/test", callback);
+      const expressServer = expressApp.listen(8070);
 
-      await server?.start();
+      console.log("Waiting for listen...");
+      await (new Promise(resolve => setTimeout(resolve, 10000)));
+      console.log("Done waiting for listen.");
 
-      await server?.client.jobs.schedule(
+      console.info("Exposing 8070.");
+      await TestContainers.exposeHostPorts(8070);
+      console.info("8070 exposed.");
+
+      const daprContainer = new GenericContainer("ghcr.io/dapr/dapr")
+        .withName("dapr-js-sdk-test-daemon")
+        .withNetwork(network!)
+        .withNetworkAliases("daprd")
+        .withExposedPorts(8081, 8082)
+        .withCommand([
+          "./daprd",
+          "--app-id", "dapr-js-sdk-testing",
+          "--app-channel-address", "host.testcontainers.internal",
+          // "--app-channel-address", "host.containers.internal",
+          "--app-protocol", "http",
+          "--app-port", "8070",
+          "--dapr-grpc-port", "8081",
+          "--dapr-http-port", "8082",
+          "--scheduler-host-address", `scheduler:8083`,
+          "--placement-host-address", "",
+          "--enable-metrics", "false",
+          "--log-level", "debug",
+          "--enable-api-logging",
+        ])
+        // .withWaitStrategy(Wait.forLogMessage("dapr initialized. Status: Running.").withStartupTimeout(10000))
+        .withWaitStrategy(Wait.forLogMessage("HTTP server is running on port").withStartupTimeout(10000))
+        // .withWaitStrategy(Wait.forHttp("/v1.0/healthz/outbound", 8082)
+        //   .forStatusCodeMatching((statusCode) => statusCode >= 200 && statusCode <= 399))
+        // .withStartupTimeout(120_000)
+      ;
+
+      const daprd = await daprContainer.start();
+console.info("daprd started.");
+      const client = new DaprClient({
+        daprHost: getIp(daprd),
+        daprPort: getPort(daprd, 8082),
+        communicationProtocol: CommunicationProtocolEnum.HTTP,
+      });
+console.info("client created.");
+      await client?.jobs.schedule(
         "test",
         { value: "test" },
         "* * * * * *"
       );
+console.info("job scheduled.");
+      const job = await client?.jobs.get("test");
 
-      const job = await server?.client.jobs.get("test");
+      await client.start();
+      console.info("client started.");
 
       console.log("Waiting...");
       await (new Promise(resolve => setTimeout(resolve, 10000)));
       console.log("Done waiting.");
 
-      await server?.stop();
-      await server?.client.jobs.delete("test");
+      await client?.jobs.delete("test");
+      expressServer.close();
 
       expect(job).toMatchObject({
         "data": {
@@ -160,11 +157,4 @@ describe("Jobs End to End", () => {
 
     return container.getMappedPort(port).toString();
   }
-
-  function createDummyExpress(port: number): http.Server {
-
-    const expressApp = express();
-
-    return expressApp.listen(port);
-  }
-})
+});
