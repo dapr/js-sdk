@@ -39,7 +39,6 @@ import DaprClient from "../Client/DaprClient";
 import { getClientOptions } from "../../utils/Client.util";
 
 
-
 export default class DaprServer {
   // App details
   private readonly serverOptions: DaprServerOptions;

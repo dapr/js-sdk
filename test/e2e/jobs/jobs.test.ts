@@ -97,9 +97,6 @@ describe("Jobs End to End", () => {
         "--enable-api-logging",
       ])
       .withWaitStrategy(Wait.forLogMessage("dapr initialized. Status: Running.").withStartupTimeout(10000))
-      // .withWaitStrategy(Wait.forLogMessage("HTTP server is running on port").withStartupTimeout(10000))
-      // .withWaitStrategy(Wait.forHttp("/v1.0/healthz/outbound", 8082).forStatusCodeMatching((statusCode) => statusCode >= 200 && statusCode <= 399))
-      // .withStartupTimeout(120_000)
       .start()
     ;
   });
@@ -142,10 +139,10 @@ describe("Jobs End to End", () => {
     
     expect(callback).toHaveBeenCalledTimes(times);
   });
-
-  function getPort(container: StartedTestContainer | null | undefined, port: number): string {
-    if (!container) throw new Error("Container is null or undefined?");
-
-    return container.getMappedPort(port).toString();
-  }
 });
+
+function getPort(container: StartedTestContainer | null | undefined, port: number): string {
+  if (!container) throw new Error("Container is null or undefined?");
+
+  return container.getMappedPort(port).toString();
+}
