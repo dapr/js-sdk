@@ -18,142 +18,133 @@ import express from "express";
 jest.setTimeout(120 * 1000);
 
 describe("Jobs End to End", () => {
+  let network: StartedNetwork | null = null;
+  let daprScheduler: StartedTestContainer | null = null;
+  let daprDaemon: StartedTestContainer | null = null;
+  let expressServer: any | null = null;
+  let callback: (() => unknown) | null = null;
 
-    let network: StartedNetwork | null = null;
-    let daprScheduler: StartedTestContainer | null = null;
+  beforeAll(async () => {
+    network = await new Network().start();
+  });
 
-    beforeAll(async () => {
+  afterAll(async () => {
+    await network?.stop();
+  });
 
-      network = await new Network().start();
+  beforeEach(async () => {
 
-      daprScheduler = await (new GenericContainer("ghcr.io/dapr/dapr")
-        .withName("dapr-js-sdk-test-scheduler")
-        .withNetwork(network)
-        .withNetworkAliases("scheduler")
-        .withExposedPorts(8083, 8080)
-        .withCommand([
-          "./scheduler",
-          // note: Don't think this is necessary, buuuuut????
-          "--listen-address", "0.0.0.0",
-          "--port", "8083",
-          "--log-level", "debug",
-          "--healthz-listen-address", "0.0.0.0",
-          "--healthz-port", "8080",
-          // note: This feels redundant, but here as yet another thing I've tried.
-          // "--mode", "standalone",
-        ])
-        .withTmpFs({
-          "/data": "rw",
-        })
-        // note: Because dapr containers don't have `sh` or `bash` inside, this is kind of the best health check.
-        .withWaitStrategy(Wait.forLogMessage("api is ready").withStartupTimeout(10000))
-        // note: Still having some issues with this.
-        // .withWaitStrategy(Wait.forHttp("/healthz", 8080)
-        //   .forStatusCodeMatching((statusCode) => statusCode >= 200 && statusCode <= 399))
-        // .withStartupTimeout(120_000)
-        .start());
+    if (! network) throw new Error("Network not ready!");
+    
+    callback = jest.fn(async () => { console.debug("Callback called!"); });
+
+    const expressApp = express()
+    expressApp.post("/job/test", (req, res) => {
+      
+      if (! callback) throw new Error("Callback not ready!");
+      
+      callback();
+      
+      res.send("👍");
+    });
+    expressServer = expressApp.listen(8070, "0.0.0.0");
+
+    await TestContainers.exposeHostPorts(8070);
+    
+    daprScheduler = await new GenericContainer("ghcr.io/dapr/dapr")
+      .withName("dapr-js-sdk-test-scheduler")
+      .withNetwork(network)
+      .withNetworkAliases("scheduler")
+      .withExposedPorts(8083, 8080)
+      .withCommand([
+        "./scheduler",
+        "--listen-address",
+        "0.0.0.0",
+        "--port",
+        "8083",
+        "--log-level",
+        "debug",
+        "--healthz-listen-address",
+        "0.0.0.0",
+        "--healthz-port",
+        "8080",
+      ])
+      .withTmpFs({
+        "/data": "rw",
+      })
+      .withWaitStrategy(Wait.forLogMessage("api is ready").withStartupTimeout(10000))
+      .start()
+    ;
+    
+    daprDaemon = await new GenericContainer("ghcr.io/dapr/dapr")
+      .withName("dapr-js-sdk-test-daemon")
+      .withNetwork(network)
+      .withNetworkAliases("daprd")
+      .withExposedPorts(8081, 8082)
+      .withCommand([
+        "./daprd",
+        "--app-id", "dapr-js-sdk-testing",
+        "--app-channel-address", "host.testcontainers.internal",
+        // "--app-channel-address", "host.containers.internal",
+        "--app-protocol", "http",
+        "--app-port", "8070",
+        "--dapr-grpc-port", "8081",
+        "--dapr-http-port", "8082",
+        "--scheduler-host-address", `scheduler:8083`,
+        "--placement-host-address", "",
+        "--enable-metrics", "false",
+        "--log-level", "debug",
+        "--enable-api-logging",
+      ])
+      .withWaitStrategy(Wait.forLogMessage("dapr initialized. Status: Running.").withStartupTimeout(10000))
+      // .withWaitStrategy(Wait.forLogMessage("HTTP server is running on port").withStartupTimeout(10000))
+      // .withWaitStrategy(Wait.forHttp("/v1.0/healthz/outbound", 8082).forStatusCodeMatching((statusCode) => statusCode >= 200 && statusCode <= 399))
+      // .withStartupTimeout(120_000)
+      .start()
+    ;
+  });
+  
+  afterEach(async () => {
+    await daprDaemon?.stop();
+    await daprScheduler?.stop();
+    await expressServer?.close();
+  });
+
+  it("Registers and receives a one second job five times.", async () => {
+    
+    const times = 5;
+    
+    const client = new DaprClient({
+      daprHost: "localhost",
+      daprPort: getPort(daprDaemon, 8082),
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
     });
 
-    afterAll(async () => {
-      await daprScheduler?.stop();
-      await network?.stop();
-    });
+    await client?.jobs.schedule(
+      "test",
+      { value: "test" },
+      "* * * * * *"
+    );
 
-    it("Registers and receives a one second job five times.", async () => {
+    const job = await client?.jobs.get("test");
+    
+    await (new Promise(resolve => setTimeout(resolve, times * 1000)));
 
-      const callback = jest.fn(async () => { console.info("Callback called!"); });
-
-      const expressApp = express();
-      expressApp.post("/job/test", callback);
-      const expressServer = expressApp.listen(8070);
-
-      console.log("Waiting for listen...");
-      await (new Promise(resolve => setTimeout(resolve, 10000)));
-      console.log("Done waiting for listen.");
-
-      console.info("Exposing 8070.");
-      await TestContainers.exposeHostPorts(8070);
-      console.info("8070 exposed.");
-
-      const daprContainer = new GenericContainer("ghcr.io/dapr/dapr")
-        .withName("dapr-js-sdk-test-daemon")
-        .withNetwork(network!)
-        .withNetworkAliases("daprd")
-        .withExposedPorts(8081, 8082)
-        .withCommand([
-          "./daprd",
-          "--app-id", "dapr-js-sdk-testing",
-          "--app-channel-address", "host.testcontainers.internal",
-          // "--app-channel-address", "host.containers.internal",
-          "--app-protocol", "http",
-          "--app-port", "8070",
-          "--dapr-grpc-port", "8081",
-          "--dapr-http-port", "8082",
-          "--scheduler-host-address", `scheduler:8083`,
-          "--placement-host-address", "",
-          "--enable-metrics", "false",
-          "--log-level", "debug",
-          "--enable-api-logging",
-        ])
-        // .withWaitStrategy(Wait.forLogMessage("dapr initialized. Status: Running.").withStartupTimeout(10000))
-        .withWaitStrategy(Wait.forLogMessage("HTTP server is running on port").withStartupTimeout(10000))
-        // .withWaitStrategy(Wait.forHttp("/v1.0/healthz/outbound", 8082)
-        //   .forStatusCodeMatching((statusCode) => statusCode >= 200 && statusCode <= 399))
-        // .withStartupTimeout(120_000)
-      ;
-
-      const daprd = await daprContainer.start();
-console.info("daprd started.");
-      const client = new DaprClient({
-        daprHost: getIp(daprd),
-        daprPort: getPort(daprd, 8082),
-        communicationProtocol: CommunicationProtocolEnum.HTTP,
-      });
-console.info("client created.");
-      await client?.jobs.schedule(
-        "test",
-        { value: "test" },
-        "* * * * * *"
-      );
-console.info("job scheduled.");
-      const job = await client?.jobs.get("test");
-
-      await client.start();
-      console.info("client started.");
-
-      console.log("Waiting...");
-      await (new Promise(resolve => setTimeout(resolve, 10000)));
-      console.log("Done waiting.");
-
-      await client?.jobs.delete("test");
-      expressServer.close();
-
-      expect(job).toMatchObject({
-        "data": {
-          "value": {
-            "value": "test",
-          },
+    expect(job).toMatchObject({
+      "data": {
+        "value": {
+          "value": "test",
         },
-        "name": "test",
-        "schedule": "* * * * * *",
-      });
-      expect(callback).toHaveBeenCalledTimes(5);
-      expect(callback).toHaveBeenCalledWith({
-        value: "test",
-      });
+      },
+      "name": "test",
+      "schedule": "* * * * * *",
     });
-
-  function getIp(container: StartedTestContainer | null | undefined): string {
-
-    if (! network) throw new Error("Network is null or undefined?");
-    if (! container) throw new Error("Container is null or undefined?");
-
-    return container.getIpAddress(network.getName());
-  }
+    
+    expect(callback).toHaveBeenCalledTimes(times);
+  });
 
   function getPort(container: StartedTestContainer | null | undefined, port: number): string {
-
-    if (! container) throw new Error("Container is null or undefined?");
+    if (!container) throw new Error("Container is null or undefined?");
 
     return container.getMappedPort(port).toString();
   }
