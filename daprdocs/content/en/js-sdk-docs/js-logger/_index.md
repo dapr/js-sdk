@@ -28,7 +28,7 @@ const client = new DaprClient({
 });
 ```
 
-> For more details on how to use the Client, see [JavaScript Client]({{< ref js-client >}}).
+> For more details on how to use the Client, see [JavaScript Client]({{% ref js-client %}}).
 
 ### DaprServer
 
@@ -47,7 +47,7 @@ const server = new DaprServer({
 });
 ```
 
-> For more details on how to use the Server, see [JavaScript Server]({{< ref js-server >}}).
+> For more details on how to use the Server, see [JavaScript Server]({{% ref js-server %}}).
 
 ## Custom LoggerService
 
