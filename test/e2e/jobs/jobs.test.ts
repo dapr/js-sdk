@@ -115,13 +115,13 @@ describe("Jobs End to End", () => {
       communicationProtocol: CommunicationProtocolEnum.HTTP,
     });
 
-    await client?.jobs.schedule(
+    await client.jobs.schedule(
       "test",
       { value: "test" },
       "* * * * * *"
     );
 
-    const job = await client?.jobs.get("test");
+    const job = await client.jobs.get("test");
 
     await (new Promise(resolve => setTimeout(resolve, 5 * 1000)));
 
@@ -146,15 +146,15 @@ describe("Jobs End to End", () => {
       communicationProtocol: CommunicationProtocolEnum.HTTP,
     });
 
-    await client?.jobs.schedule(
+    await client.jobs.schedule(
       "test",
       { value: "test" },
       "* * * * * *"
     );
 
-    await client?.jobs.delete("test");
+    await client.jobs.delete("test");
     
-    const job = await client?.jobs.get("test");
+    const job = await client.jobs.get("test");
 
     expect(job).toBeNull();
   });
