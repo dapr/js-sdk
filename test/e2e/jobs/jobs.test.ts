@@ -108,9 +108,7 @@ describe("Jobs End to End", () => {
   });
 
   it("Registers and receives a one second job five times.", async () => {
-    
-    const times = 5;
-    
+
     const client = new DaprClient({
       daprHost: "localhost",
       daprPort: getPort(daprDaemon, 8082),
@@ -124,8 +122,8 @@ describe("Jobs End to End", () => {
     );
 
     const job = await client?.jobs.get("test");
-    
-    await (new Promise(resolve => setTimeout(resolve, times * 1000)));
+
+    await (new Promise(resolve => setTimeout(resolve, 5 * 1000)));
 
     expect(job).toMatchObject({
       "data": {
@@ -137,7 +135,28 @@ describe("Jobs End to End", () => {
       "schedule": "* * * * * *",
     });
     
-    expect(callback).toHaveBeenCalledTimes(times);
+    expect(callback).toHaveBeenCalledTimes(5);
+  });
+
+  it("Should be able to delete jobs.", async () => {
+
+    const client = new DaprClient({
+      daprHost: "localhost",
+      daprPort: getPort(daprDaemon, 8082),
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
+    });
+
+    await client?.jobs.schedule(
+      "test",
+      { value: "test" },
+      "* * * * * *"
+    );
+
+    await client?.jobs.delete("test");
+    
+    const job = await client?.jobs.get("test");
+
+    expect(job).toBeNull();
   });
 });
 

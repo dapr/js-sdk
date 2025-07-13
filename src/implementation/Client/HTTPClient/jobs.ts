@@ -50,12 +50,21 @@ export default class HTTPClientJobs implements IClientJobs {
     } as THTTPExecuteParams);
   }
 
-  async get<DataType>(jobName: string): Promise<Job<DataType>> {
-    const result = await this.httpClient.executeWithApiVersion(HTTPClientJobs.ApiVersion, `/${HTTPClientJobs.Path}/${jobName}`, {
-      method: "GET",
-    });
+  async get<DataType>(jobName: string): Promise<Job<DataType> | null> {
+    
+    try {
+      const result = await this.httpClient.executeWithApiVersion(HTTPClientJobs.ApiVersion, `/${HTTPClientJobs.Path}/${jobName}`, {
+        method: "GET",
+      });
 
-    return result as Job<DataType>;
+      return result as Job<DataType>;
+    }
+    catch (error: any) {
+      
+      if (error.message?.includes("code = NotFound")) return null;
+      
+      throw error;
+    }
   }
 
   async delete(jobName: string): Promise<void> {

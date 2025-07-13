@@ -39,7 +39,7 @@ export default class GRPCClientJobs implements IClientJobs {
         throw new Error("Not yet!");
     }
 
-    async get<DataType>(jobName: string): Promise<Job<DataType>> {
+    async get<DataType>(jobName: string): Promise<Job<DataType> | null> {
         throw new Error("Not yet!");
     }
 

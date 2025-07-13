@@ -24,8 +24,8 @@ export default interface IClientJobs {
     ttl?: string | null,
   ): Promise<void>;
 
-  get(jobName: string): Promise<Job>;
-  get<DataType>(jobName: string): Promise<Job<DataType>>;
+  get(jobName: string): Promise<Job | null>;
+  get<DataType>(jobName: string): Promise<Job<DataType> | null>;
 
   delete(jobName: string): Promise<void>;
 }
