@@ -20,6 +20,30 @@ The command below runs the build process and will rebuild each time we change a 
 npm run start:dev
 ```
 
+## Running Tests
+
+Tests are written per protocol layer: http or grpc. This is done because Dapr requires endpoints to be registered for for pubsub and bindings, making us having to start up the test, initialize those endpoints and then run. Since Dapr is a sidecar architecture, we thus have to start 2 test suites seperately. It requires the following containers:
+
+- **EMQX:** Used for Binding Tests
+  - Credentials: http://localhost:18083 (user: admin, pass: public)
+- **MongoDB:** Used for State Query API
+
+```bash
+# Start Container
+docker run -d --rm --name emqx -p 1883:1883 -p 8081:8081 -p 8083:8083 -p 8883:8883 -p 8084:8084 -p 18083:18083 emqx/emqx
+docker run -d --rm --name mongodb -p 27017:27017 mongo
+
+# Run Unit Tests
+npm run test:unit:main
+npm run test:unit:actors
+
+# Start gRPC tests
+npm run test:e2e:grpc
+
+# Start HTTP tests
+npm run test:e2e:http
+```
+
 ## Publishing Package Package Maintenance
 
 To publish a new package to [https://www.npmjs.com/package/@dapr/dapr](https://www.npmjs.com/package/@dapr/dapr) we need to do the following building and publishing steps.
@@ -45,29 +69,6 @@ For **publishing** the package, we simply cut a new release by:
 
 Publishing is automated in the CI/CD pipeline. Each time a version is release (GitHub ref starting with `refs/tags/v`) then the pipeline will deploy the package as described in [build.yml](./.github/workflows/build.yml).
 
-## Running Tests
-
-Tests are written per protocol layer: http or grpc. This is done because Dapr requires endpoints to be registered for for pubsub and bindings, making us having to start up the test, initialize those endpoints and then run. Since Dapr is a sidecar architecture, we thus have to start 2 test suites seperately. It requires the following containers:
-
-- **EMQX:** Used for Binding Tests
-  - Credentials: http://localhost:18083 (user: admin, pass: public)
-- **MongoDB:** Used for State Query API
-
-```bash
-# Start Container
-docker run -d --rm --name emqx -p 1883:1883 -p 8081:8081 -p 8083:8083 -p 8883:8883 -p 8084:8084 -p 18083:18083 emqx/emqx
-docker run -d --rm --name mongodb -p 27017:27017 mongo
-
-# Run Unit Tests
-npm run test:unit:main
-npm run test:unit:actors
-
-# Start gRPC tests
-npm run test:e2e:grpc
-
-# Start HTTP tests
-npm run test:e2e:http
-```
 
 ## Setup GitHub actions
 
