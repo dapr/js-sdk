@@ -49,8 +49,6 @@ stop_dapr() {
 
 trap stop_dapr ERR
 
-npm run prebuild
-
 echo "[SCRIPT] Starting Dapr instances..."
 
 # Run Dapr with gRPC
