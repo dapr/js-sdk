@@ -65,7 +65,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     }
   }
 
-  async start(
+  async scheduleNewWorkflow(
     workflowName: string,
     input?: any,
     instanceId?: string | undefined,
@@ -106,7 +106,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     }
   }
 
-  async raise(
+  async raiseEvent(
     instanceId: string,
     eventName: string,
     eventData?: any,
