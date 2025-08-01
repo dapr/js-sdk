@@ -154,5 +154,5 @@ INFO[0006] dc040bea-6436-4051-9166-c9294f9d2201: 'sequence' completed with a COM
 
 ## Next steps
 
-- [Learn more about Dapr workflow]({{< ref workflow-overview.md >}})
-- [Workflow API reference]({{< ref workflow_api.md >}})
+- [Learn more about Dapr workflow]({{% ref workflow-overview.md %}})
+- [Workflow API reference]({{% ref workflow_api.md %}})

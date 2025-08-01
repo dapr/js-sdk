@@ -8,12 +8,12 @@ description: How to get up and running with Actors using the Dapr JavaScript SDK
 
 The Dapr actors package allows you to interact with Dapr virtual actors from a JavaScript application. The examples below demonstrate how to use the JavaScript SDK for interacting with virtual actors.
 
-For a more in-depth overview of Dapr actors, visit the [actors overview page]({{< ref actors-overview >}}).
+For a more in-depth overview of Dapr actors, visit the [actors overview page]({{% ref actors-overview %}}).
 
 ## Pre-requisites
 
-- [Dapr CLI]({{< ref install-dapr-cli.md >}}) installed
-- Initialized [Dapr environment]({{< ref install-dapr-selfhost.md >}})
+- [Dapr CLI]({{% ref install-dapr-cli.md %}}) installed
+- Initialized [Dapr environment]({{% ref install-dapr-selfhost.md %}})
 - [Latest LTS version of Node or greater](https://nodejs.org/en/)
 - [JavaScript NPM package installed](https://www.npmjs.com/package/@dapr/dapr)
 
@@ -195,7 +195,7 @@ The JS SDK supports actors that can schedule periodic work on themselves by regi
 
 This distinction allows users to trade off between light-weight but stateless timers versus more resource-demanding but stateful reminders.
 
-The scheduling interface of timers and reminders is identical. For an more in-depth look at the scheduling configurations see the [actors timers and reminders docs]({{< ref "howto-actors.md#actor-timers-and-reminders" >}}).
+The scheduling interface of timers and reminders is identical. For an more in-depth look at the scheduling configurations see the [actors timers and reminders docs]({{% ref "howto-actors.md#actor-timers-and-reminders" %}}).
 
 ### Actor Timers
 
@@ -255,4 +255,4 @@ export default class ParkingSensorImpl extends AbstractActor implements ParkingS
 }
 ```
 
-For a full guide on actors, visit [How-To: Use virtual actors in Dapr]({{< ref howto-actors.md >}}).
+For a full guide on actors, visit [How-To: Use virtual actors in Dapr]({{% ref howto-actors.md %}}).
