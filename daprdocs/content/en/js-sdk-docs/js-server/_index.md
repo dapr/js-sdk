@@ -12,8 +12,8 @@ The Dapr Server will allow you to receive communication from the Dapr Sidecar an
 
 ## Pre-requisites
 
-- [Dapr CLI]({{< ref install-dapr-cli.md >}}) installed
-- Initialized [Dapr environment]({{< ref install-dapr-selfhost.md >}})
+- [Dapr CLI]({{% ref install-dapr-cli.md %}}) installed
+- Initialized [Dapr environment]({{% ref install-dapr-selfhost.md %}})
 - [Latest LTS version of Node or greater](https://nodejs.org/en/)
 
 ## Installing and importing Dapr's JS SDK
@@ -162,7 +162,7 @@ npm run start:dapr-grpc
 
 ## Building blocks
 
-The JavaScript Server SDK allows you to interface with all of the [Dapr building blocks]({{< ref building-blocks >}}) focusing on Sidecar to App features.
+The JavaScript Server SDK allows you to interface with all of the [Dapr building blocks]({{% ref building-blocks %}}) focusing on Sidecar to App features.
 
 ### Invocation API
 
@@ -206,7 +206,7 @@ start().catch((e) => {
 });
 ```
 
-> For a full guide on service invocation visit [How-To: Invoke a service]({{< ref howto-invoke-discover-services.md >}}).
+> For a full guide on service invocation visit [How-To: Invoke a service]({{% ref howto-invoke-discover-services.md %}}).
 
 ### PubSub API
 
@@ -269,7 +269,7 @@ async function start() {
 }
 ```
 
-> For a full list of state operations visit [How-To: Publish & subscribe]({{< ref howto-publish-subscribe.md >}}).
+> For a full list of state operations visit [How-To: Publish & subscribe]({{% ref howto-publish-subscribe.md %}}).
 
 #### Subscribe with SUCCESS/RETRY/DROP status
 
@@ -599,7 +599,7 @@ start().catch((e) => {
 });
 ```
 
-> For a full guide on output bindings visit [How-To: Use bindings]({{< ref howto-bindings.md >}}).
+> For a full guide on output bindings visit [How-To: Use bindings]({{% ref howto-bindings.md %}}).
 
 ### Configuration API
 
