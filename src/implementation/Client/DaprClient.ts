@@ -56,6 +56,7 @@ import HTTPClientPubSub from "./HTTPClient/pubsub";
 import HTTPClientSecret from "./HTTPClient/secret";
 import HTTPClientSidecar from "./HTTPClient/sidecar";
 import HTTPClientState from "./HTTPClient/state";
+import HTTPClientConversation from "./HTTPClient/conversation";
 import HTTPClientWorkflow from "./HTTPClient/workflow";
 
 import CommunicationProtocolEnum from "../../enum/CommunicationProtocol.enum";
@@ -65,6 +66,8 @@ import { Logger } from "../../logger/Logger";
 import GRPCClientProxy from "./GRPCClient/proxy";
 import * as NodeJSUtils from "../../utils/NodeJS.util";
 import { getClientOptions } from "../../utils/Client.util";
+import IClientConversation from "../../interfaces/Client/IClientConversation";
+import GRPCClientConversation from "./GRPCClient/conversation";
 
 export default class DaprClient {
   readonly options: DaprClientOptions;
@@ -82,6 +85,7 @@ export default class DaprClient {
   readonly secret: IClientSecret;
   readonly sidecar: IClientSidecar;
   readonly state: IClientState;
+  readonly conversation: IClientConversation;
   readonly workflow: IClientWorkflow;
 
   private readonly logger: Logger;
@@ -119,6 +123,7 @@ export default class DaprClient {
         this.crypto = new GRPCClientCrypto(client);
         this.actor = new GRPCClientActor(client); // we use an abstractor here since we interface through a builder with the Actor Runtime
         this.workflow = new GRPCClientWorkflow(client);
+        this.conversation = new GRPCClientConversation(client);
         break;
       }
       case CommunicationProtocolEnum.HTTP:
@@ -139,6 +144,7 @@ export default class DaprClient {
         this.secret = new HTTPClientSecret(client);
         this.sidecar = new HTTPClientSidecar(client);
         this.state = new HTTPClientState(client);
+        this.conversation = new HTTPClientConversation(client);
         this.workflow = new HTTPClientWorkflow(client);
         break;
       }
