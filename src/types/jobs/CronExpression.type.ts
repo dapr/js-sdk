@@ -345,13 +345,16 @@ export class CronExpression {
       .join(",");
   }
 
-  private prepareDayOfWeekValueList(dayOfWeekValues: DayOfWeek[]) {
+  public prepareDayOfWeekValueList(dayOfWeekValues: DayOfWeekValue[]) {
 
-    if (! dayOfWeekValues.length || dayOfWeekValues.some((v) => ! v))
+    if (! dayOfWeekValues.length || dayOfWeekValues.some((v) => v === null || v === undefined))
       throw new Error("Empty month value provided.");
 
+    const weekOrder = Object.values(DayOfWeek);
+
     return [...dayOfWeekValues]
-      .sort((left, right) => Object.values(DayOfWeek).indexOf(left) - Object.values(DayOfWeek).indexOf(right))
+      .map(val => typeof val === "number" ? weekOrder[val] : val)
+      .sort((a, b) => weekOrder.indexOf(a) - weekOrder.indexOf(b))
       .join(",");
   }
 }

@@ -172,18 +172,21 @@ describe("CRON Expressions", () => {
   });
 
   it("Bad through seconds order should fail", () => {
+
     const cronExpressionThrow = () => CronExpressionBuilder.through(CronPeriod.Second, 59, 14).toString();
 
     expect(cronExpressionThrow).toThrow();
   });
 
   it("Bad through minutes order should fail", () => {
+
     const cronExpressionThrow = () => CronExpressionBuilder.through(CronPeriod.Minute, 59, 14).toString();
 
     expect(cronExpressionThrow).toThrow();
   });
 
   it("Bad through hours order should fail", () => {
+
     const cronExpressionThrow = () => CronExpressionBuilder.through(CronPeriod.Hour, 23, 14).toString();
 
     expect(cronExpressionThrow).toThrow();
@@ -223,5 +226,21 @@ describe("CRON Expressions", () => {
         .toString();
 
     expect(cronExpression).toEqual("* * * * JAN,DEC */SUN");
+  });
+
+  it("Day of week sorting should work for enum strings", () => {
+
+    const cronExpression = new CronExpression();
+    const cronExpressionValue = cronExpression.prepareDayOfWeekValueList([DayOfWeek.Sunday, DayOfWeek.Saturday]).toString();
+
+    expect(cronExpressionValue).toEqual("SUN,SAT");
+  });
+
+  it("Day of week sorting should work for integers", () => {
+
+    const cronExpression = new CronExpression();
+    const cronExpressionValue = cronExpression.prepareDayOfWeekValueList([0,5,3,1,2,4,6]).toString();
+
+    expect(cronExpressionValue).toEqual("SUN,MON,TUE,WED,THU,FRI,SAT");
   });
 });

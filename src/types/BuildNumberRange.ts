@@ -11,6 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-export type BuildNumberRange<T extends number, U extends number, R extends number[] = []> = R["length"] extends U
+export type Increment<N extends number, R extends unknown[] = []> =
+  R['length'] extends N ? [...R, unknown]['length'] : Increment<N, [...R, unknown]>;
+
+export type BuildNumberRange<T extends number, U extends number, R extends number[] = []> = R["length"] extends Increment<U>
   ? R[number]
   : BuildNumberRange<T, U, [...R, R["length"] & number]>;
