@@ -18,6 +18,7 @@ export default interface IClientWorkflow {
    * Get information about a workflow instance.
    * @param instanceId The unique identifier for the workflow instance.
    */
+
   get(instanceId: string): Promise<WorkflowGetResponseType>;
 
   /**
