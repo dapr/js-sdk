@@ -136,7 +136,42 @@ console.log(`Registered Actors: ${JSON.stringify(resRegisteredActors)}`);
 
 ## Invoking Actor Methods
 
-After Actors are registered, create a Proxy object that implements `ParkingSensorInterface` using the `ActorProxyBuilder`. You can invoke the actor methods by directly calling methods on the Proxy object. Internally, it translates to making a network call to the Actor API and fetches the result back.
+After Actors are registered, we can create a Proxy object that uses a implementation stub class (as we require the methods through reflection internally). You can invoke the actor methods by directly calling methods on the Proxy object. Internally, it translates to making a network call to the Actor API and fetches the result back.
+
+```typescript
+export default class ParkingSensorContract {
+  async carEnter(): Promise<void> {
+    throw new Error("Not implemented");
+  }
+
+  async carLeave(): Promise<void> {
+    throw new Error("Not implemented");
+  }
+}
+```
+
+```typescript
+import { ActorId, DaprClient } from "@dapr/dapr";
+import ParkingSensorContract from "./ParkingSensorContract";
+
+const daprHost = "127.0.0.1";
+const daprPort = "50000";
+
+const client = new DaprClient({ daprHost, daprPort });
+
+// Create a new actor builder for the registered actor ParkingSensorContract with interface ParkingSensorContract. It can be used to create multiple actors of a type.
+const builder = new ActorProxyBuilder<ParkingSensorContract>("ParkingSensorContract", ParkingSensorContract, client);
+
+// Create a new actor instance.
+const actor = builder.build(new ActorId("my-actor"));
+// Or alternatively, use a random ID
+// const actor = builder.build(ActorId.createRandomId());
+
+// Invoke the method.
+await actor.carEnter();
+```
+
+Alternatively, you can also use the existing implementation (if you have access to it):
 
 ```typescript
 import { ActorId, DaprClient } from "@dapr/dapr";
@@ -148,8 +183,8 @@ const daprPort = "50000";
 
 const client = new DaprClient({ daprHost, daprPort });
 
-// Create a new actor builder. It can be used to create multiple actors of a type.
-const builder = new ActorProxyBuilder<ParkingSensorInterface>(ParkingSensorImpl, client);
+// Create a new actor builder for the registered actor ParkingSensorImpl with interface ParkingSensorImpl. It can be used to create multiple actors of a type.
+const builder = new ActorProxyBuilder<ParkingSensorInterface>("ParkingSensorImpl", ParkingSensorImpl, client);
 
 // Create a new actor instance.
 const actor = builder.build(new ActorId("my-actor"));
