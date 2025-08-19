@@ -13,13 +13,13 @@
 
 var jspb = require('google-protobuf');
 var goog = jspb;
-var global =
-    (typeof globalThis !== 'undefined' && globalThis) ||
-    (typeof window !== 'undefined' && window) ||
-    (typeof global !== 'undefined' && global) ||
-    (typeof self !== 'undefined' && self) ||
-    (function () { return this; }).call(null) ||
-    Function('return this')();
+var global = (function() {
+  if (this) { return this; }
+  if (typeof window !== 'undefined') { return window; }
+  if (typeof global !== 'undefined') { return global; }
+  if (typeof self !== 'undefined') { return self; }
+  return Function('return this')();
+}.call(null));
 
 var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js');
 goog.object.extend(proto, google_protobuf_any_pb);
@@ -27,6 +27,8 @@ var google_protobuf_empty_pb = require('google-protobuf/google/protobuf/empty_pb
 goog.object.extend(proto, google_protobuf_empty_pb);
 var google_protobuf_timestamp_pb = require('google-protobuf/google/protobuf/timestamp_pb.js');
 goog.object.extend(proto, google_protobuf_timestamp_pb);
+var google_protobuf_struct_pb = require('google-protobuf/google/protobuf/struct_pb.js');
+goog.object.extend(proto, google_protobuf_struct_pb);
 var dapr_proto_common_v1_common_pb = require('../../../../dapr/proto/common/v1/common_pb.js');
 goog.object.extend(proto, dapr_proto_common_v1_common_pb);
 var dapr_proto_runtime_v1_appcallback_pb = require('../../../../dapr/proto/runtime/v1/appcallback_pb.js');
@@ -41,6 +43,30 @@ goog.exportSymbol('proto.dapr.proto.runtime.v1.BulkPublishRequestEntry', null, g
 goog.exportSymbol('proto.dapr.proto.runtime.v1.BulkPublishResponse', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.BulkPublishResponseFailedEntry', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.BulkStateItem', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationInput', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationInputAlpha2', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationMessage', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationMessage.MessageTypesCase', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationMessageContent', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationMessageOfSystem', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationMessageOfTool', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationMessageOfUser', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationRequest', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationRequestAlpha2', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationResponse', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationResponseAlpha2', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationResult', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationResultAlpha2', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationResultChoices', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationResultMessage', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationToolCalls', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationToolCalls.ToolTypesCase', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationTools', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationTools.ToolTypesCase', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.ConversationToolsFunction', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.DecryptRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.DecryptRequestOptions', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.DecryptResponse', null, global);
@@ -78,6 +104,7 @@ goog.exportSymbol('proto.dapr.proto.runtime.v1.InvokeBindingResponse', null, glo
 goog.exportSymbol('proto.dapr.proto.runtime.v1.InvokeServiceRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.Job', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.MetadataHTTPEndpoint', null, global);
+goog.exportSymbol('proto.dapr.proto.runtime.v1.MetadataScheduler', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.PauseWorkflowRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.PublishEventRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.runtime.v1.PubsubSubscription', null, global);
@@ -1039,6 +1066,27 @@ if (goog.DEBUG && !COMPILED) {
    * @override
    */
   proto.dapr.proto.runtime.v1.GetMetadataResponse.displayName = 'proto.dapr.proto.runtime.v1.GetMetadataResponse';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.MetadataScheduler = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.dapr.proto.runtime.v1.MetadataScheduler.repeatedFields_, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.MetadataScheduler, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.MetadataScheduler.displayName = 'proto.dapr.proto.runtime.v1.MetadataScheduler';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -2237,6 +2285,447 @@ if (goog.DEBUG && !COMPILED) {
    */
   proto.dapr.proto.runtime.v1.DeleteJobResponse.displayName = 'proto.dapr.proto.runtime.v1.DeleteJobResponse';
 }
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.dapr.proto.runtime.v1.ConversationRequest.repeatedFields_, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.ConversationRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.ConversationRequest.displayName = 'proto.dapr.proto.runtime.v1.ConversationRequest';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2 = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.repeatedFields_, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.ConversationRequestAlpha2, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.displayName = 'proto.dapr.proto.runtime.v1.ConversationRequestAlpha2';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.ConversationInput = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.ConversationInput, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.ConversationInput.displayName = 'proto.dapr.proto.runtime.v1.ConversationInput';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.ConversationInputAlpha2 = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.dapr.proto.runtime.v1.ConversationInputAlpha2.repeatedFields_, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.ConversationInputAlpha2, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.ConversationInputAlpha2.displayName = 'proto.dapr.proto.runtime.v1.ConversationInputAlpha2';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.dapr.proto.runtime.v1.ConversationMessage.oneofGroups_);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.ConversationMessage, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.ConversationMessage.displayName = 'proto.dapr.proto.runtime.v1.ConversationMessage';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.repeatedFields_, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.displayName = 'proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfSystem = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.repeatedFields_, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.ConversationMessageOfSystem, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.displayName = 'proto.dapr.proto.runtime.v1.ConversationMessageOfSystem';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfUser = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.dapr.proto.runtime.v1.ConversationMessageOfUser.repeatedFields_, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.ConversationMessageOfUser, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.ConversationMessageOfUser.displayName = 'proto.dapr.proto.runtime.v1.ConversationMessageOfUser';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.repeatedFields_, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.displayName = 'proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfTool = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.dapr.proto.runtime.v1.ConversationMessageOfTool.repeatedFields_, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.ConversationMessageOfTool, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.ConversationMessageOfTool.displayName = 'proto.dapr.proto.runtime.v1.ConversationMessageOfTool';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCalls = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.dapr.proto.runtime.v1.ConversationToolCalls.oneofGroups_);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.ConversationToolCalls, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.ConversationToolCalls.displayName = 'proto.dapr.proto.runtime.v1.ConversationToolCalls';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction.displayName = 'proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageContent = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.ConversationMessageContent, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.ConversationMessageContent.displayName = 'proto.dapr.proto.runtime.v1.ConversationMessageContent';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.ConversationResult = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.ConversationResult, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.ConversationResult.displayName = 'proto.dapr.proto.runtime.v1.ConversationResult';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.ConversationResultAlpha2 = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.dapr.proto.runtime.v1.ConversationResultAlpha2.repeatedFields_, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.ConversationResultAlpha2, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.ConversationResultAlpha2.displayName = 'proto.dapr.proto.runtime.v1.ConversationResultAlpha2';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.ConversationResultChoices = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.ConversationResultChoices, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.ConversationResultChoices.displayName = 'proto.dapr.proto.runtime.v1.ConversationResultChoices';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.ConversationResultMessage = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.dapr.proto.runtime.v1.ConversationResultMessage.repeatedFields_, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.ConversationResultMessage, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.ConversationResultMessage.displayName = 'proto.dapr.proto.runtime.v1.ConversationResultMessage';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.ConversationResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.dapr.proto.runtime.v1.ConversationResponse.repeatedFields_, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.ConversationResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.ConversationResponse.displayName = 'proto.dapr.proto.runtime.v1.ConversationResponse';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.ConversationResponseAlpha2 = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.dapr.proto.runtime.v1.ConversationResponseAlpha2.repeatedFields_, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.ConversationResponseAlpha2, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.ConversationResponseAlpha2.displayName = 'proto.dapr.proto.runtime.v1.ConversationResponseAlpha2';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.ConversationTools = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.dapr.proto.runtime.v1.ConversationTools.oneofGroups_);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.ConversationTools, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.ConversationTools.displayName = 'proto.dapr.proto.runtime.v1.ConversationTools';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.dapr.proto.runtime.v1.ConversationToolsFunction = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.dapr.proto.runtime.v1.ConversationToolsFunction, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.dapr.proto.runtime.v1.ConversationToolsFunction.displayName = 'proto.dapr.proto.runtime.v1.ConversationToolsFunction';
+}
 
 
 
@@ -2638,8 +3127,7 @@ proto.dapr.proto.runtime.v1.GetStateRequest.prototype.getMetadataMap = function(
  */
 proto.dapr.proto.runtime.v1.GetStateRequest.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -2888,8 +3376,7 @@ proto.dapr.proto.runtime.v1.GetBulkStateRequest.prototype.getMetadataMap = funct
  */
 proto.dapr.proto.runtime.v1.GetBulkStateRequest.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -3326,8 +3813,7 @@ proto.dapr.proto.runtime.v1.BulkStateItem.prototype.getMetadataMap = function(op
  */
 proto.dapr.proto.runtime.v1.BulkStateItem.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -3544,8 +4030,7 @@ proto.dapr.proto.runtime.v1.GetStateResponse.prototype.getMetadataMap = function
  */
 proto.dapr.proto.runtime.v1.GetStateResponse.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -3840,8 +4325,7 @@ proto.dapr.proto.runtime.v1.DeleteStateRequest.prototype.getMetadataMap = functi
  */
 proto.dapr.proto.runtime.v1.DeleteStateRequest.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -4414,8 +4898,7 @@ proto.dapr.proto.runtime.v1.QueryStateRequest.prototype.getMetadataMap = functio
  */
 proto.dapr.proto.runtime.v1.QueryStateRequest.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -4882,8 +5365,7 @@ proto.dapr.proto.runtime.v1.QueryStateResponse.prototype.getMetadataMap = functi
  */
 proto.dapr.proto.runtime.v1.QueryStateResponse.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -5160,8 +5642,7 @@ proto.dapr.proto.runtime.v1.PublishEventRequest.prototype.getMetadataMap = funct
  */
 proto.dapr.proto.runtime.v1.PublishEventRequest.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -5414,8 +5895,7 @@ proto.dapr.proto.runtime.v1.BulkPublishRequest.prototype.getMetadataMap = functi
  */
 proto.dapr.proto.runtime.v1.BulkPublishRequest.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -5662,8 +6142,7 @@ proto.dapr.proto.runtime.v1.BulkPublishRequestEntry.prototype.getMetadataMap = f
  */
 proto.dapr.proto.runtime.v1.BulkPublishRequestEntry.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -6416,8 +6895,7 @@ proto.dapr.proto.runtime.v1.SubscribeTopicEventsRequestInitialAlpha1.prototype.g
  */
 proto.dapr.proto.runtime.v1.SubscribeTopicEventsRequestInitialAlpha1.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 /**
@@ -7192,8 +7670,7 @@ proto.dapr.proto.runtime.v1.InvokeBindingRequest.prototype.getMetadataMap = func
  */
 proto.dapr.proto.runtime.v1.InvokeBindingRequest.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 /**
@@ -7398,8 +7875,7 @@ proto.dapr.proto.runtime.v1.InvokeBindingResponse.prototype.getMetadataMap = fun
  */
 proto.dapr.proto.runtime.v1.InvokeBindingResponse.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -7592,8 +8068,7 @@ proto.dapr.proto.runtime.v1.GetSecretRequest.prototype.getMetadataMap = function
  */
 proto.dapr.proto.runtime.v1.GetSecretRequest.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -7726,8 +8201,7 @@ proto.dapr.proto.runtime.v1.GetSecretResponse.prototype.getDataMap = function(op
  */
 proto.dapr.proto.runtime.v1.GetSecretResponse.prototype.clearDataMap = function() {
   this.getDataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -7890,8 +8364,7 @@ proto.dapr.proto.runtime.v1.GetBulkSecretRequest.prototype.getMetadataMap = func
  */
 proto.dapr.proto.runtime.v1.GetBulkSecretRequest.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -8024,8 +8497,7 @@ proto.dapr.proto.runtime.v1.SecretResponse.prototype.getSecretsMap = function(op
  */
 proto.dapr.proto.runtime.v1.SecretResponse.prototype.clearSecretsMap = function() {
   this.getSecretsMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -8158,8 +8630,7 @@ proto.dapr.proto.runtime.v1.GetBulkSecretResponse.prototype.getDataMap = functio
  */
 proto.dapr.proto.runtime.v1.GetBulkSecretResponse.prototype.clearDataMap = function() {
   this.getDataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -8563,8 +9034,7 @@ proto.dapr.proto.runtime.v1.ExecuteStateTransactionRequest.prototype.getMetadata
  */
 proto.dapr.proto.runtime.v1.ExecuteStateTransactionRequest.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -10019,8 +10489,7 @@ proto.dapr.proto.runtime.v1.GetActorStateResponse.prototype.getMetadataMap = fun
  */
 proto.dapr.proto.runtime.v1.GetActorStateResponse.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -10484,8 +10953,7 @@ proto.dapr.proto.runtime.v1.TransactionalActorStateOperation.prototype.getMetada
  */
 proto.dapr.proto.runtime.v1.TransactionalActorStateOperation.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -10762,8 +11230,7 @@ proto.dapr.proto.runtime.v1.InvokeActorRequest.prototype.getMetadataMap = functi
  */
 proto.dapr.proto.runtime.v1.InvokeActorRequest.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -11073,7 +11540,8 @@ proto.dapr.proto.runtime.v1.GetMetadataResponse.toObject = function(includeInsta
     appConnectionProperties: (f = msg.getAppConnectionProperties()) && proto.dapr.proto.runtime.v1.AppConnectionProperties.toObject(includeInstance, f),
     runtimeVersion: jspb.Message.getFieldWithDefault(msg, 8, ""),
     enabledFeaturesList: (f = jspb.Message.getRepeatedField(msg, 9)) == null ? undefined : f,
-    actorRuntime: (f = msg.getActorRuntime()) && proto.dapr.proto.runtime.v1.ActorRuntime.toObject(includeInstance, f)
+    actorRuntime: (f = msg.getActorRuntime()) && proto.dapr.proto.runtime.v1.ActorRuntime.toObject(includeInstance, f),
+    scheduler: (f = msg.getScheduler()) && proto.dapr.proto.runtime.v1.MetadataScheduler.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -11157,6 +11625,11 @@ proto.dapr.proto.runtime.v1.GetMetadataResponse.deserializeBinaryFromReader = fu
       var value = new proto.dapr.proto.runtime.v1.ActorRuntime;
       reader.readMessage(value,proto.dapr.proto.runtime.v1.ActorRuntime.deserializeBinaryFromReader);
       msg.setActorRuntime(value);
+      break;
+    case 11:
+      var value = new proto.dapr.proto.runtime.v1.MetadataScheduler;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.MetadataScheduler.deserializeBinaryFromReader);
+      msg.setScheduler(value);
       break;
     default:
       reader.skipField();
@@ -11258,6 +11731,14 @@ proto.dapr.proto.runtime.v1.GetMetadataResponse.serializeBinaryToWriter = functi
       10,
       f,
       proto.dapr.proto.runtime.v1.ActorRuntime.serializeBinaryToWriter
+    );
+  }
+  f = message.getScheduler();
+  if (f != null) {
+    writer.writeMessage(
+      11,
+      f,
+      proto.dapr.proto.runtime.v1.MetadataScheduler.serializeBinaryToWriter
     );
   }
 };
@@ -11376,8 +11857,7 @@ proto.dapr.proto.runtime.v1.GetMetadataResponse.prototype.getExtendedMetadataMap
  */
 proto.dapr.proto.runtime.v1.GetMetadataResponse.prototype.clearExtendedMetadataMap = function() {
   this.getExtendedMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 /**
@@ -11582,6 +12062,199 @@ proto.dapr.proto.runtime.v1.GetMetadataResponse.prototype.clearActorRuntime = fu
  */
 proto.dapr.proto.runtime.v1.GetMetadataResponse.prototype.hasActorRuntime = function() {
   return jspb.Message.getField(this, 10) != null;
+};
+
+
+/**
+ * optional MetadataScheduler scheduler = 11;
+ * @return {?proto.dapr.proto.runtime.v1.MetadataScheduler}
+ */
+proto.dapr.proto.runtime.v1.GetMetadataResponse.prototype.getScheduler = function() {
+  return /** @type{?proto.dapr.proto.runtime.v1.MetadataScheduler} */ (
+    jspb.Message.getWrapperField(this, proto.dapr.proto.runtime.v1.MetadataScheduler, 11));
+};
+
+
+/**
+ * @param {?proto.dapr.proto.runtime.v1.MetadataScheduler|undefined} value
+ * @return {!proto.dapr.proto.runtime.v1.GetMetadataResponse} returns this
+*/
+proto.dapr.proto.runtime.v1.GetMetadataResponse.prototype.setScheduler = function(value) {
+  return jspb.Message.setWrapperField(this, 11, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.GetMetadataResponse} returns this
+ */
+proto.dapr.proto.runtime.v1.GetMetadataResponse.prototype.clearScheduler = function() {
+  return this.setScheduler(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.GetMetadataResponse.prototype.hasScheduler = function() {
+  return jspb.Message.getField(this, 11) != null;
+};
+
+
+
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.dapr.proto.runtime.v1.MetadataScheduler.repeatedFields_ = [1];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.MetadataScheduler.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.MetadataScheduler.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.MetadataScheduler} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.MetadataScheduler.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    connectedAddressesList: (f = jspb.Message.getRepeatedField(msg, 1)) == null ? undefined : f
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.MetadataScheduler}
+ */
+proto.dapr.proto.runtime.v1.MetadataScheduler.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.MetadataScheduler;
+  return proto.dapr.proto.runtime.v1.MetadataScheduler.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.MetadataScheduler} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.MetadataScheduler}
+ */
+proto.dapr.proto.runtime.v1.MetadataScheduler.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addConnectedAddresses(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.MetadataScheduler.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.MetadataScheduler.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.MetadataScheduler} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.MetadataScheduler.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getConnectedAddressesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * repeated string connected_addresses = 1;
+ * @return {!Array<string>}
+ */
+proto.dapr.proto.runtime.v1.MetadataScheduler.prototype.getConnectedAddressesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 1));
+};
+
+
+/**
+ * @param {!Array<string>} value
+ * @return {!proto.dapr.proto.runtime.v1.MetadataScheduler} returns this
+ */
+proto.dapr.proto.runtime.v1.MetadataScheduler.prototype.setConnectedAddressesList = function(value) {
+  return jspb.Message.setField(this, 1, value || []);
+};
+
+
+/**
+ * @param {string} value
+ * @param {number=} opt_index
+ * @return {!proto.dapr.proto.runtime.v1.MetadataScheduler} returns this
+ */
+proto.dapr.proto.runtime.v1.MetadataScheduler.prototype.addConnectedAddresses = function(value, opt_index) {
+  return jspb.Message.addToRepeatedField(this, 1, value, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.dapr.proto.runtime.v1.MetadataScheduler} returns this
+ */
+proto.dapr.proto.runtime.v1.MetadataScheduler.prototype.clearConnectedAddressesList = function() {
+  return this.setConnectedAddressesList([]);
 };
 
 
@@ -13099,8 +13772,7 @@ proto.dapr.proto.runtime.v1.PubsubSubscription.prototype.getMetadataMap = functi
  */
 proto.dapr.proto.runtime.v1.PubsubSubscription.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 /**
@@ -13872,8 +14544,7 @@ proto.dapr.proto.runtime.v1.GetConfigurationRequest.prototype.getMetadataMap = f
  */
 proto.dapr.proto.runtime.v1.GetConfigurationRequest.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -14006,8 +14677,7 @@ proto.dapr.proto.runtime.v1.GetConfigurationResponse.prototype.getItemsMap = fun
  */
 proto.dapr.proto.runtime.v1.GetConfigurationResponse.prototype.clearItemsMap = function() {
   this.getItemsMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -14226,8 +14896,7 @@ proto.dapr.proto.runtime.v1.SubscribeConfigurationRequest.prototype.getMetadataM
  */
 proto.dapr.proto.runtime.v1.SubscribeConfigurationRequest.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -14550,8 +15219,7 @@ proto.dapr.proto.runtime.v1.SubscribeConfigurationResponse.prototype.getItemsMap
  */
 proto.dapr.proto.runtime.v1.SubscribeConfigurationResponse.prototype.clearItemsMap = function() {
   this.getItemsMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -20446,8 +21114,7 @@ proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.getPropertiesMap = fun
  */
 proto.dapr.proto.runtime.v1.GetWorkflowResponse.prototype.clearPropertiesMap = function() {
   this.getPropertiesMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -20682,8 +21349,7 @@ proto.dapr.proto.runtime.v1.StartWorkflowRequest.prototype.getOptionsMap = funct
  */
 proto.dapr.proto.runtime.v1.StartWorkflowRequest.prototype.clearOptionsMap = function() {
   this.getOptionsMap().clear();
-  return this;
-};
+  return this;};
 
 
 /**
@@ -21880,7 +22546,8 @@ proto.dapr.proto.runtime.v1.Job.toObject = function(includeInstance, msg) {
     repeats: jspb.Message.getFieldWithDefault(msg, 3, 0),
     dueTime: jspb.Message.getFieldWithDefault(msg, 4, ""),
     ttl: jspb.Message.getFieldWithDefault(msg, 5, ""),
-    data: (f = msg.getData()) && google_protobuf_any_pb.Any.toObject(includeInstance, f)
+    data: (f = msg.getData()) && google_protobuf_any_pb.Any.toObject(includeInstance, f),
+    failurePolicy: (f = msg.getFailurePolicy()) && dapr_proto_common_v1_common_pb.JobFailurePolicy.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -21941,6 +22608,11 @@ proto.dapr.proto.runtime.v1.Job.deserializeBinaryFromReader = function(msg, read
       var value = new google_protobuf_any_pb.Any;
       reader.readMessage(value,google_protobuf_any_pb.Any.deserializeBinaryFromReader);
       msg.setData(value);
+      break;
+    case 7:
+      var value = new dapr_proto_common_v1_common_pb.JobFailurePolicy;
+      reader.readMessage(value,dapr_proto_common_v1_common_pb.JobFailurePolicy.deserializeBinaryFromReader);
+      msg.setFailurePolicy(value);
       break;
     default:
       reader.skipField();
@@ -22012,6 +22684,14 @@ proto.dapr.proto.runtime.v1.Job.serializeBinaryToWriter = function(message, writ
       6,
       f,
       google_protobuf_any_pb.Any.serializeBinaryToWriter
+    );
+  }
+  f = message.getFailurePolicy();
+  if (f != null) {
+    writer.writeMessage(
+      7,
+      f,
+      dapr_proto_common_v1_common_pb.JobFailurePolicy.serializeBinaryToWriter
     );
   }
 };
@@ -22216,6 +22896,43 @@ proto.dapr.proto.runtime.v1.Job.prototype.hasData = function() {
 };
 
 
+/**
+ * optional dapr.proto.common.v1.JobFailurePolicy failure_policy = 7;
+ * @return {?proto.dapr.proto.common.v1.JobFailurePolicy}
+ */
+proto.dapr.proto.runtime.v1.Job.prototype.getFailurePolicy = function() {
+  return /** @type{?proto.dapr.proto.common.v1.JobFailurePolicy} */ (
+    jspb.Message.getWrapperField(this, dapr_proto_common_v1_common_pb.JobFailurePolicy, 7));
+};
+
+
+/**
+ * @param {?proto.dapr.proto.common.v1.JobFailurePolicy|undefined} value
+ * @return {!proto.dapr.proto.runtime.v1.Job} returns this
+*/
+proto.dapr.proto.runtime.v1.Job.prototype.setFailurePolicy = function(value) {
+  return jspb.Message.setWrapperField(this, 7, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.Job} returns this
+ */
+proto.dapr.proto.runtime.v1.Job.prototype.clearFailurePolicy = function() {
+  return this.setFailurePolicy(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.Job.prototype.hasFailurePolicy = function() {
+  return jspb.Message.getField(this, 7) != null;
+};
+
+
 
 
 
@@ -22248,7 +22965,8 @@ proto.dapr.proto.runtime.v1.ScheduleJobRequest.prototype.toObject = function(opt
  */
 proto.dapr.proto.runtime.v1.ScheduleJobRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    job: (f = msg.getJob()) && proto.dapr.proto.runtime.v1.Job.toObject(includeInstance, f)
+    job: (f = msg.getJob()) && proto.dapr.proto.runtime.v1.Job.toObject(includeInstance, f),
+    overwrite: jspb.Message.getBooleanFieldWithDefault(msg, 2, false)
   };
 
   if (includeInstance) {
@@ -22290,6 +23008,10 @@ proto.dapr.proto.runtime.v1.ScheduleJobRequest.deserializeBinaryFromReader = fun
       reader.readMessage(value,proto.dapr.proto.runtime.v1.Job.deserializeBinaryFromReader);
       msg.setJob(value);
       break;
+    case 2:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setOverwrite(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -22325,6 +23047,13 @@ proto.dapr.proto.runtime.v1.ScheduleJobRequest.serializeBinaryToWriter = functio
       1,
       f,
       proto.dapr.proto.runtime.v1.Job.serializeBinaryToWriter
+    );
+  }
+  f = message.getOverwrite();
+  if (f) {
+    writer.writeBool(
+      2,
+      f
     );
   }
 };
@@ -22364,6 +23093,24 @@ proto.dapr.proto.runtime.v1.ScheduleJobRequest.prototype.clearJob = function() {
  */
 proto.dapr.proto.runtime.v1.ScheduleJobRequest.prototype.hasJob = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional bool overwrite = 2;
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ScheduleJobRequest.prototype.getOverwrite = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 2, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.dapr.proto.runtime.v1.ScheduleJobRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.ScheduleJobRequest.prototype.setOverwrite = function(value) {
+  return jspb.Message.setProto3BooleanField(this, 2, value);
 };
 
 
@@ -22977,6 +23724,4907 @@ proto.dapr.proto.runtime.v1.DeleteJobResponse.prototype.serializeBinary = functi
  */
 proto.dapr.proto.runtime.v1.DeleteJobResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
+};
+
+
+
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.repeatedFields_ = [3];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.ConversationRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.ConversationRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    contextid: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    inputsList: jspb.Message.toObjectList(msg.getInputsList(),
+    proto.dapr.proto.runtime.v1.ConversationInput.toObject, includeInstance),
+    parametersMap: (f = msg.getParametersMap()) ? f.toObject(includeInstance, proto.google.protobuf.Any.toObject) : [],
+    metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : [],
+    scrubpii: jspb.Message.getBooleanFieldWithDefault(msg, 6, false),
+    temperature: jspb.Message.getFloatingPointFieldWithDefault(msg, 7, 0.0)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequest}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.ConversationRequest;
+  return proto.dapr.proto.runtime.v1.ConversationRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequest}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setName(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setContextid(value);
+      break;
+    case 3:
+      var value = new proto.dapr.proto.runtime.v1.ConversationInput;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.ConversationInput.deserializeBinaryFromReader);
+      msg.addInputs(value);
+      break;
+    case 4:
+      var value = msg.getParametersMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.google.protobuf.Any.deserializeBinaryFromReader, "", new proto.google.protobuf.Any());
+         });
+      break;
+    case 5:
+      var value = msg.getMetadataMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "", "");
+         });
+      break;
+    case 6:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setScrubpii(value);
+      break;
+    case 7:
+      var value = /** @type {number} */ (reader.readDouble());
+      msg.setTemperature(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.ConversationRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getName();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = /** @type {string} */ (jspb.Message.getField(message, 2));
+  if (f != null) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getInputsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      3,
+      f,
+      proto.dapr.proto.runtime.v1.ConversationInput.serializeBinaryToWriter
+    );
+  }
+  f = message.getParametersMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(4, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.google.protobuf.Any.serializeBinaryToWriter);
+  }
+  f = message.getMetadataMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(5, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+  f = /** @type {boolean} */ (jspb.Message.getField(message, 6));
+  if (f != null) {
+    writer.writeBool(
+      6,
+      f
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 7));
+  if (f != null) {
+    writer.writeDouble(
+      7,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string name = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.getName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.setName = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string contextID = 2;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.getContextid = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.setContextid = function(value) {
+  return jspb.Message.setField(this, 2, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.clearContextid = function() {
+  return jspb.Message.setField(this, 2, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.hasContextid = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * repeated ConversationInput inputs = 3;
+ * @return {!Array<!proto.dapr.proto.runtime.v1.ConversationInput>}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.getInputsList = function() {
+  return /** @type{!Array<!proto.dapr.proto.runtime.v1.ConversationInput>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.dapr.proto.runtime.v1.ConversationInput, 3));
+};
+
+
+/**
+ * @param {!Array<!proto.dapr.proto.runtime.v1.ConversationInput>} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequest} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.setInputsList = function(value) {
+  return jspb.Message.setRepeatedWrapperField(this, 3, value);
+};
+
+
+/**
+ * @param {!proto.dapr.proto.runtime.v1.ConversationInput=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.dapr.proto.runtime.v1.ConversationInput}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.addInputs = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 3, opt_value, proto.dapr.proto.runtime.v1.ConversationInput, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.clearInputsList = function() {
+  return this.setInputsList([]);
+};
+
+
+/**
+ * map<string, google.protobuf.Any> parameters = 4;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,!proto.google.protobuf.Any>}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.getParametersMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.google.protobuf.Any>} */ (
+      jspb.Message.getMapField(this, 4, opt_noLazyCreate,
+      proto.google.protobuf.Any));
+};
+
+
+/**
+ * Clears values from the map. The map will be non-null.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.clearParametersMap = function() {
+  this.getParametersMap().clear();
+  return this;};
+
+
+/**
+ * map<string, string> metadata = 5;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.getMetadataMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 5, opt_noLazyCreate,
+      null));
+};
+
+
+/**
+ * Clears values from the map. The map will be non-null.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.clearMetadataMap = function() {
+  this.getMetadataMap().clear();
+  return this;};
+
+
+/**
+ * optional bool scrubPII = 6;
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.getScrubpii = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 6, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.setScrubpii = function(value) {
+  return jspb.Message.setField(this, 6, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.clearScrubpii = function() {
+  return jspb.Message.setField(this, 6, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.hasScrubpii = function() {
+  return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional double temperature = 7;
+ * @return {number}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.getTemperature = function() {
+  return /** @type {number} */ (jspb.Message.getFloatingPointFieldWithDefault(this, 7, 0.0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.setTemperature = function(value) {
+  return jspb.Message.setField(this, 7, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequest} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.clearTemperature = function() {
+  return jspb.Message.setField(this, 7, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequest.prototype.hasTemperature = function() {
+  return jspb.Message.getField(this, 7) != null;
+};
+
+
+
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.repeatedFields_ = [3,8];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.ConversationRequestAlpha2} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    contextId: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    inputsList: jspb.Message.toObjectList(msg.getInputsList(),
+    proto.dapr.proto.runtime.v1.ConversationInputAlpha2.toObject, includeInstance),
+    parametersMap: (f = msg.getParametersMap()) ? f.toObject(includeInstance, proto.google.protobuf.Any.toObject) : [],
+    metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : [],
+    scrubPii: jspb.Message.getBooleanFieldWithDefault(msg, 6, false),
+    temperature: jspb.Message.getFloatingPointFieldWithDefault(msg, 7, 0.0),
+    toolsList: jspb.Message.toObjectList(msg.getToolsList(),
+    proto.dapr.proto.runtime.v1.ConversationTools.toObject, includeInstance),
+    toolChoice: jspb.Message.getFieldWithDefault(msg, 9, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequestAlpha2}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.ConversationRequestAlpha2;
+  return proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationRequestAlpha2} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequestAlpha2}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setName(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setContextId(value);
+      break;
+    case 3:
+      var value = new proto.dapr.proto.runtime.v1.ConversationInputAlpha2;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.ConversationInputAlpha2.deserializeBinaryFromReader);
+      msg.addInputs(value);
+      break;
+    case 4:
+      var value = msg.getParametersMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.google.protobuf.Any.deserializeBinaryFromReader, "", new proto.google.protobuf.Any());
+         });
+      break;
+    case 5:
+      var value = msg.getMetadataMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "", "");
+         });
+      break;
+    case 6:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setScrubPii(value);
+      break;
+    case 7:
+      var value = /** @type {number} */ (reader.readDouble());
+      msg.setTemperature(value);
+      break;
+    case 8:
+      var value = new proto.dapr.proto.runtime.v1.ConversationTools;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.ConversationTools.deserializeBinaryFromReader);
+      msg.addTools(value);
+      break;
+    case 9:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setToolChoice(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationRequestAlpha2} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getName();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = /** @type {string} */ (jspb.Message.getField(message, 2));
+  if (f != null) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getInputsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      3,
+      f,
+      proto.dapr.proto.runtime.v1.ConversationInputAlpha2.serializeBinaryToWriter
+    );
+  }
+  f = message.getParametersMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(4, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.google.protobuf.Any.serializeBinaryToWriter);
+  }
+  f = message.getMetadataMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(5, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+  f = /** @type {boolean} */ (jspb.Message.getField(message, 6));
+  if (f != null) {
+    writer.writeBool(
+      6,
+      f
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 7));
+  if (f != null) {
+    writer.writeDouble(
+      7,
+      f
+    );
+  }
+  f = message.getToolsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      8,
+      f,
+      proto.dapr.proto.runtime.v1.ConversationTools.serializeBinaryToWriter
+    );
+  }
+  f = /** @type {string} */ (jspb.Message.getField(message, 9));
+  if (f != null) {
+    writer.writeString(
+      9,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string name = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.getName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequestAlpha2} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.setName = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string context_id = 2;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.getContextId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequestAlpha2} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.setContextId = function(value) {
+  return jspb.Message.setField(this, 2, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequestAlpha2} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.clearContextId = function() {
+  return jspb.Message.setField(this, 2, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.hasContextId = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * repeated ConversationInputAlpha2 inputs = 3;
+ * @return {!Array<!proto.dapr.proto.runtime.v1.ConversationInputAlpha2>}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.getInputsList = function() {
+  return /** @type{!Array<!proto.dapr.proto.runtime.v1.ConversationInputAlpha2>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.dapr.proto.runtime.v1.ConversationInputAlpha2, 3));
+};
+
+
+/**
+ * @param {!Array<!proto.dapr.proto.runtime.v1.ConversationInputAlpha2>} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequestAlpha2} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.setInputsList = function(value) {
+  return jspb.Message.setRepeatedWrapperField(this, 3, value);
+};
+
+
+/**
+ * @param {!proto.dapr.proto.runtime.v1.ConversationInputAlpha2=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.dapr.proto.runtime.v1.ConversationInputAlpha2}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.addInputs = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 3, opt_value, proto.dapr.proto.runtime.v1.ConversationInputAlpha2, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequestAlpha2} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.clearInputsList = function() {
+  return this.setInputsList([]);
+};
+
+
+/**
+ * map<string, google.protobuf.Any> parameters = 4;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,!proto.google.protobuf.Any>}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.getParametersMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.google.protobuf.Any>} */ (
+      jspb.Message.getMapField(this, 4, opt_noLazyCreate,
+      proto.google.protobuf.Any));
+};
+
+
+/**
+ * Clears values from the map. The map will be non-null.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequestAlpha2} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.clearParametersMap = function() {
+  this.getParametersMap().clear();
+  return this;};
+
+
+/**
+ * map<string, string> metadata = 5;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.getMetadataMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 5, opt_noLazyCreate,
+      null));
+};
+
+
+/**
+ * Clears values from the map. The map will be non-null.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequestAlpha2} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.clearMetadataMap = function() {
+  this.getMetadataMap().clear();
+  return this;};
+
+
+/**
+ * optional bool scrub_pii = 6;
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.getScrubPii = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 6, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequestAlpha2} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.setScrubPii = function(value) {
+  return jspb.Message.setField(this, 6, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequestAlpha2} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.clearScrubPii = function() {
+  return jspb.Message.setField(this, 6, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.hasScrubPii = function() {
+  return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional double temperature = 7;
+ * @return {number}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.getTemperature = function() {
+  return /** @type {number} */ (jspb.Message.getFloatingPointFieldWithDefault(this, 7, 0.0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequestAlpha2} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.setTemperature = function(value) {
+  return jspb.Message.setField(this, 7, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequestAlpha2} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.clearTemperature = function() {
+  return jspb.Message.setField(this, 7, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.hasTemperature = function() {
+  return jspb.Message.getField(this, 7) != null;
+};
+
+
+/**
+ * repeated ConversationTools tools = 8;
+ * @return {!Array<!proto.dapr.proto.runtime.v1.ConversationTools>}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.getToolsList = function() {
+  return /** @type{!Array<!proto.dapr.proto.runtime.v1.ConversationTools>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.dapr.proto.runtime.v1.ConversationTools, 8));
+};
+
+
+/**
+ * @param {!Array<!proto.dapr.proto.runtime.v1.ConversationTools>} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequestAlpha2} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.setToolsList = function(value) {
+  return jspb.Message.setRepeatedWrapperField(this, 8, value);
+};
+
+
+/**
+ * @param {!proto.dapr.proto.runtime.v1.ConversationTools=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.dapr.proto.runtime.v1.ConversationTools}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.addTools = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 8, opt_value, proto.dapr.proto.runtime.v1.ConversationTools, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequestAlpha2} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.clearToolsList = function() {
+  return this.setToolsList([]);
+};
+
+
+/**
+ * optional string tool_choice = 9;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.getToolChoice = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 9, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequestAlpha2} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.setToolChoice = function(value) {
+  return jspb.Message.setField(this, 9, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationRequestAlpha2} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.clearToolChoice = function() {
+  return jspb.Message.setField(this, 9, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationRequestAlpha2.prototype.hasToolChoice = function() {
+  return jspb.Message.getField(this, 9) != null;
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.ConversationInput.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.ConversationInput.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.ConversationInput} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationInput.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    content: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    role: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    scrubpii: jspb.Message.getBooleanFieldWithDefault(msg, 3, false)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationInput}
+ */
+proto.dapr.proto.runtime.v1.ConversationInput.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.ConversationInput;
+  return proto.dapr.proto.runtime.v1.ConversationInput.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationInput} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationInput}
+ */
+proto.dapr.proto.runtime.v1.ConversationInput.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setContent(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setRole(value);
+      break;
+    case 3:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setScrubpii(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.ConversationInput.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.ConversationInput.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationInput} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationInput.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getContent();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = /** @type {string} */ (jspb.Message.getField(message, 2));
+  if (f != null) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = /** @type {boolean} */ (jspb.Message.getField(message, 3));
+  if (f != null) {
+    writer.writeBool(
+      3,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string content = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationInput.prototype.getContent = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationInput} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationInput.prototype.setContent = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string role = 2;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationInput.prototype.getRole = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationInput} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationInput.prototype.setRole = function(value) {
+  return jspb.Message.setField(this, 2, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationInput} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationInput.prototype.clearRole = function() {
+  return jspb.Message.setField(this, 2, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationInput.prototype.hasRole = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional bool scrubPII = 3;
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationInput.prototype.getScrubpii = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 3, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationInput} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationInput.prototype.setScrubpii = function(value) {
+  return jspb.Message.setField(this, 3, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationInput} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationInput.prototype.clearScrubpii = function() {
+  return jspb.Message.setField(this, 3, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationInput.prototype.hasScrubpii = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.dapr.proto.runtime.v1.ConversationInputAlpha2.repeatedFields_ = [1];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.ConversationInputAlpha2.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.ConversationInputAlpha2.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.ConversationInputAlpha2} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationInputAlpha2.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    messagesList: jspb.Message.toObjectList(msg.getMessagesList(),
+    proto.dapr.proto.runtime.v1.ConversationMessage.toObject, includeInstance),
+    scrubPii: jspb.Message.getBooleanFieldWithDefault(msg, 2, false)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationInputAlpha2}
+ */
+proto.dapr.proto.runtime.v1.ConversationInputAlpha2.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.ConversationInputAlpha2;
+  return proto.dapr.proto.runtime.v1.ConversationInputAlpha2.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationInputAlpha2} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationInputAlpha2}
+ */
+proto.dapr.proto.runtime.v1.ConversationInputAlpha2.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.dapr.proto.runtime.v1.ConversationMessage;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.ConversationMessage.deserializeBinaryFromReader);
+      msg.addMessages(value);
+      break;
+    case 2:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setScrubPii(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.ConversationInputAlpha2.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.ConversationInputAlpha2.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationInputAlpha2} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationInputAlpha2.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getMessagesList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      1,
+      f,
+      proto.dapr.proto.runtime.v1.ConversationMessage.serializeBinaryToWriter
+    );
+  }
+  f = /** @type {boolean} */ (jspb.Message.getField(message, 2));
+  if (f != null) {
+    writer.writeBool(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * repeated ConversationMessage messages = 1;
+ * @return {!Array<!proto.dapr.proto.runtime.v1.ConversationMessage>}
+ */
+proto.dapr.proto.runtime.v1.ConversationInputAlpha2.prototype.getMessagesList = function() {
+  return /** @type{!Array<!proto.dapr.proto.runtime.v1.ConversationMessage>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.dapr.proto.runtime.v1.ConversationMessage, 1));
+};
+
+
+/**
+ * @param {!Array<!proto.dapr.proto.runtime.v1.ConversationMessage>} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationInputAlpha2} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationInputAlpha2.prototype.setMessagesList = function(value) {
+  return jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
+
+/**
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessage=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessage}
+ */
+proto.dapr.proto.runtime.v1.ConversationInputAlpha2.prototype.addMessages = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.dapr.proto.runtime.v1.ConversationMessage, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationInputAlpha2} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationInputAlpha2.prototype.clearMessagesList = function() {
+  return this.setMessagesList([]);
+};
+
+
+/**
+ * optional bool scrub_pii = 2;
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationInputAlpha2.prototype.getScrubPii = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 2, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationInputAlpha2} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationInputAlpha2.prototype.setScrubPii = function(value) {
+  return jspb.Message.setField(this, 2, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationInputAlpha2} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationInputAlpha2.prototype.clearScrubPii = function() {
+  return jspb.Message.setField(this, 2, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationInputAlpha2.prototype.hasScrubPii = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.oneofGroups_ = [[1,2,3,4,5]];
+
+/**
+ * @enum {number}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.MessageTypesCase = {
+  MESSAGE_TYPES_NOT_SET: 0,
+  OF_DEVELOPER: 1,
+  OF_SYSTEM: 2,
+  OF_USER: 3,
+  OF_ASSISTANT: 4,
+  OF_TOOL: 5
+};
+
+/**
+ * @return {proto.dapr.proto.runtime.v1.ConversationMessage.MessageTypesCase}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.getMessageTypesCase = function() {
+  return /** @type {proto.dapr.proto.runtime.v1.ConversationMessage.MessageTypesCase} */(jspb.Message.computeOneofCase(this, proto.dapr.proto.runtime.v1.ConversationMessage.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.ConversationMessage.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessage} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    ofDeveloper: (f = msg.getOfDeveloper()) && proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.toObject(includeInstance, f),
+    ofSystem: (f = msg.getOfSystem()) && proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.toObject(includeInstance, f),
+    ofUser: (f = msg.getOfUser()) && proto.dapr.proto.runtime.v1.ConversationMessageOfUser.toObject(includeInstance, f),
+    ofAssistant: (f = msg.getOfAssistant()) && proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.toObject(includeInstance, f),
+    ofTool: (f = msg.getOfTool()) && proto.dapr.proto.runtime.v1.ConversationMessageOfTool.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessage}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.ConversationMessage;
+  return proto.dapr.proto.runtime.v1.ConversationMessage.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessage} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessage}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.deserializeBinaryFromReader);
+      msg.setOfDeveloper(value);
+      break;
+    case 2:
+      var value = new proto.dapr.proto.runtime.v1.ConversationMessageOfSystem;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.deserializeBinaryFromReader);
+      msg.setOfSystem(value);
+      break;
+    case 3:
+      var value = new proto.dapr.proto.runtime.v1.ConversationMessageOfUser;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.ConversationMessageOfUser.deserializeBinaryFromReader);
+      msg.setOfUser(value);
+      break;
+    case 4:
+      var value = new proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.deserializeBinaryFromReader);
+      msg.setOfAssistant(value);
+      break;
+    case 5:
+      var value = new proto.dapr.proto.runtime.v1.ConversationMessageOfTool;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.ConversationMessageOfTool.deserializeBinaryFromReader);
+      msg.setOfTool(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.ConversationMessage.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessage} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getOfDeveloper();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.serializeBinaryToWriter
+    );
+  }
+  f = message.getOfSystem();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.serializeBinaryToWriter
+    );
+  }
+  f = message.getOfUser();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      proto.dapr.proto.runtime.v1.ConversationMessageOfUser.serializeBinaryToWriter
+    );
+  }
+  f = message.getOfAssistant();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.serializeBinaryToWriter
+    );
+  }
+  f = message.getOfTool();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      proto.dapr.proto.runtime.v1.ConversationMessageOfTool.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional ConversationMessageOfDeveloper of_developer = 1;
+ * @return {?proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.getOfDeveloper = function() {
+  return /** @type{?proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper} */ (
+    jspb.Message.getWrapperField(this, proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper, 1));
+};
+
+
+/**
+ * @param {?proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper|undefined} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessage} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.setOfDeveloper = function(value) {
+  return jspb.Message.setOneofWrapperField(this, 1, proto.dapr.proto.runtime.v1.ConversationMessage.oneofGroups_[0], value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessage} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.clearOfDeveloper = function() {
+  return this.setOfDeveloper(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.hasOfDeveloper = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional ConversationMessageOfSystem of_system = 2;
+ * @return {?proto.dapr.proto.runtime.v1.ConversationMessageOfSystem}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.getOfSystem = function() {
+  return /** @type{?proto.dapr.proto.runtime.v1.ConversationMessageOfSystem} */ (
+    jspb.Message.getWrapperField(this, proto.dapr.proto.runtime.v1.ConversationMessageOfSystem, 2));
+};
+
+
+/**
+ * @param {?proto.dapr.proto.runtime.v1.ConversationMessageOfSystem|undefined} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessage} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.setOfSystem = function(value) {
+  return jspb.Message.setOneofWrapperField(this, 2, proto.dapr.proto.runtime.v1.ConversationMessage.oneofGroups_[0], value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessage} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.clearOfSystem = function() {
+  return this.setOfSystem(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.hasOfSystem = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional ConversationMessageOfUser of_user = 3;
+ * @return {?proto.dapr.proto.runtime.v1.ConversationMessageOfUser}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.getOfUser = function() {
+  return /** @type{?proto.dapr.proto.runtime.v1.ConversationMessageOfUser} */ (
+    jspb.Message.getWrapperField(this, proto.dapr.proto.runtime.v1.ConversationMessageOfUser, 3));
+};
+
+
+/**
+ * @param {?proto.dapr.proto.runtime.v1.ConversationMessageOfUser|undefined} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessage} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.setOfUser = function(value) {
+  return jspb.Message.setOneofWrapperField(this, 3, proto.dapr.proto.runtime.v1.ConversationMessage.oneofGroups_[0], value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessage} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.clearOfUser = function() {
+  return this.setOfUser(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.hasOfUser = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional ConversationMessageOfAssistant of_assistant = 4;
+ * @return {?proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.getOfAssistant = function() {
+  return /** @type{?proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant} */ (
+    jspb.Message.getWrapperField(this, proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant, 4));
+};
+
+
+/**
+ * @param {?proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant|undefined} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessage} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.setOfAssistant = function(value) {
+  return jspb.Message.setOneofWrapperField(this, 4, proto.dapr.proto.runtime.v1.ConversationMessage.oneofGroups_[0], value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessage} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.clearOfAssistant = function() {
+  return this.setOfAssistant(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.hasOfAssistant = function() {
+  return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional ConversationMessageOfTool of_tool = 5;
+ * @return {?proto.dapr.proto.runtime.v1.ConversationMessageOfTool}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.getOfTool = function() {
+  return /** @type{?proto.dapr.proto.runtime.v1.ConversationMessageOfTool} */ (
+    jspb.Message.getWrapperField(this, proto.dapr.proto.runtime.v1.ConversationMessageOfTool, 5));
+};
+
+
+/**
+ * @param {?proto.dapr.proto.runtime.v1.ConversationMessageOfTool|undefined} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessage} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.setOfTool = function(value) {
+  return jspb.Message.setOneofWrapperField(this, 5, proto.dapr.proto.runtime.v1.ConversationMessage.oneofGroups_[0], value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessage} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.clearOfTool = function() {
+  return this.setOfTool(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessage.prototype.hasOfTool = function() {
+  return jspb.Message.getField(this, 5) != null;
+};
+
+
+
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.repeatedFields_ = [2];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    contentList: jspb.Message.toObjectList(msg.getContentList(),
+    proto.dapr.proto.runtime.v1.ConversationMessageContent.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper;
+  return proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setName(value);
+      break;
+    case 2:
+      var value = new proto.dapr.proto.runtime.v1.ConversationMessageContent;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.ConversationMessageContent.deserializeBinaryFromReader);
+      msg.addContent(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = /** @type {string} */ (jspb.Message.getField(message, 1));
+  if (f != null) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getContentList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      2,
+      f,
+      proto.dapr.proto.runtime.v1.ConversationMessageContent.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional string name = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.prototype.getName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.prototype.setName = function(value) {
+  return jspb.Message.setField(this, 1, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.prototype.clearName = function() {
+  return jspb.Message.setField(this, 1, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.prototype.hasName = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * repeated ConversationMessageContent content = 2;
+ * @return {!Array<!proto.dapr.proto.runtime.v1.ConversationMessageContent>}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.prototype.getContentList = function() {
+  return /** @type{!Array<!proto.dapr.proto.runtime.v1.ConversationMessageContent>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.dapr.proto.runtime.v1.ConversationMessageContent, 2));
+};
+
+
+/**
+ * @param {!Array<!proto.dapr.proto.runtime.v1.ConversationMessageContent>} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.prototype.setContentList = function(value) {
+  return jspb.Message.setRepeatedWrapperField(this, 2, value);
+};
+
+
+/**
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageContent=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageContent}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.prototype.addContent = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.dapr.proto.runtime.v1.ConversationMessageContent, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfDeveloper.prototype.clearContentList = function() {
+  return this.setContentList([]);
+};
+
+
+
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.repeatedFields_ = [2];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageOfSystem} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    contentList: jspb.Message.toObjectList(msg.getContentList(),
+    proto.dapr.proto.runtime.v1.ConversationMessageContent.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfSystem}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.ConversationMessageOfSystem;
+  return proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageOfSystem} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfSystem}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setName(value);
+      break;
+    case 2:
+      var value = new proto.dapr.proto.runtime.v1.ConversationMessageContent;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.ConversationMessageContent.deserializeBinaryFromReader);
+      msg.addContent(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageOfSystem} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = /** @type {string} */ (jspb.Message.getField(message, 1));
+  if (f != null) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getContentList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      2,
+      f,
+      proto.dapr.proto.runtime.v1.ConversationMessageContent.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional string name = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.prototype.getName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfSystem} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.prototype.setName = function(value) {
+  return jspb.Message.setField(this, 1, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfSystem} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.prototype.clearName = function() {
+  return jspb.Message.setField(this, 1, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.prototype.hasName = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * repeated ConversationMessageContent content = 2;
+ * @return {!Array<!proto.dapr.proto.runtime.v1.ConversationMessageContent>}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.prototype.getContentList = function() {
+  return /** @type{!Array<!proto.dapr.proto.runtime.v1.ConversationMessageContent>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.dapr.proto.runtime.v1.ConversationMessageContent, 2));
+};
+
+
+/**
+ * @param {!Array<!proto.dapr.proto.runtime.v1.ConversationMessageContent>} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfSystem} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.prototype.setContentList = function(value) {
+  return jspb.Message.setRepeatedWrapperField(this, 2, value);
+};
+
+
+/**
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageContent=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageContent}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.prototype.addContent = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.dapr.proto.runtime.v1.ConversationMessageContent, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfSystem} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfSystem.prototype.clearContentList = function() {
+  return this.setContentList([]);
+};
+
+
+
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfUser.repeatedFields_ = [2];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfUser.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.ConversationMessageOfUser.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageOfUser} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfUser.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    contentList: jspb.Message.toObjectList(msg.getContentList(),
+    proto.dapr.proto.runtime.v1.ConversationMessageContent.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfUser}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfUser.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.ConversationMessageOfUser;
+  return proto.dapr.proto.runtime.v1.ConversationMessageOfUser.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageOfUser} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfUser}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfUser.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setName(value);
+      break;
+    case 2:
+      var value = new proto.dapr.proto.runtime.v1.ConversationMessageContent;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.ConversationMessageContent.deserializeBinaryFromReader);
+      msg.addContent(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfUser.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.ConversationMessageOfUser.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageOfUser} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfUser.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = /** @type {string} */ (jspb.Message.getField(message, 1));
+  if (f != null) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getContentList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      2,
+      f,
+      proto.dapr.proto.runtime.v1.ConversationMessageContent.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional string name = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfUser.prototype.getName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfUser} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfUser.prototype.setName = function(value) {
+  return jspb.Message.setField(this, 1, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfUser} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfUser.prototype.clearName = function() {
+  return jspb.Message.setField(this, 1, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfUser.prototype.hasName = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * repeated ConversationMessageContent content = 2;
+ * @return {!Array<!proto.dapr.proto.runtime.v1.ConversationMessageContent>}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfUser.prototype.getContentList = function() {
+  return /** @type{!Array<!proto.dapr.proto.runtime.v1.ConversationMessageContent>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.dapr.proto.runtime.v1.ConversationMessageContent, 2));
+};
+
+
+/**
+ * @param {!Array<!proto.dapr.proto.runtime.v1.ConversationMessageContent>} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfUser} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationMessageOfUser.prototype.setContentList = function(value) {
+  return jspb.Message.setRepeatedWrapperField(this, 2, value);
+};
+
+
+/**
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageContent=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageContent}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfUser.prototype.addContent = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.dapr.proto.runtime.v1.ConversationMessageContent, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfUser} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfUser.prototype.clearContentList = function() {
+  return this.setContentList([]);
+};
+
+
+
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.repeatedFields_ = [2,3];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    contentList: jspb.Message.toObjectList(msg.getContentList(),
+    proto.dapr.proto.runtime.v1.ConversationMessageContent.toObject, includeInstance),
+    toolCallsList: jspb.Message.toObjectList(msg.getToolCallsList(),
+    proto.dapr.proto.runtime.v1.ConversationToolCalls.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant;
+  return proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setName(value);
+      break;
+    case 2:
+      var value = new proto.dapr.proto.runtime.v1.ConversationMessageContent;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.ConversationMessageContent.deserializeBinaryFromReader);
+      msg.addContent(value);
+      break;
+    case 3:
+      var value = new proto.dapr.proto.runtime.v1.ConversationToolCalls;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.ConversationToolCalls.deserializeBinaryFromReader);
+      msg.addToolCalls(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = /** @type {string} */ (jspb.Message.getField(message, 1));
+  if (f != null) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getContentList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      2,
+      f,
+      proto.dapr.proto.runtime.v1.ConversationMessageContent.serializeBinaryToWriter
+    );
+  }
+  f = message.getToolCallsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      3,
+      f,
+      proto.dapr.proto.runtime.v1.ConversationToolCalls.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional string name = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.prototype.getName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.prototype.setName = function(value) {
+  return jspb.Message.setField(this, 1, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.prototype.clearName = function() {
+  return jspb.Message.setField(this, 1, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.prototype.hasName = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * repeated ConversationMessageContent content = 2;
+ * @return {!Array<!proto.dapr.proto.runtime.v1.ConversationMessageContent>}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.prototype.getContentList = function() {
+  return /** @type{!Array<!proto.dapr.proto.runtime.v1.ConversationMessageContent>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.dapr.proto.runtime.v1.ConversationMessageContent, 2));
+};
+
+
+/**
+ * @param {!Array<!proto.dapr.proto.runtime.v1.ConversationMessageContent>} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.prototype.setContentList = function(value) {
+  return jspb.Message.setRepeatedWrapperField(this, 2, value);
+};
+
+
+/**
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageContent=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageContent}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.prototype.addContent = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.dapr.proto.runtime.v1.ConversationMessageContent, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.prototype.clearContentList = function() {
+  return this.setContentList([]);
+};
+
+
+/**
+ * repeated ConversationToolCalls tool_calls = 3;
+ * @return {!Array<!proto.dapr.proto.runtime.v1.ConversationToolCalls>}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.prototype.getToolCallsList = function() {
+  return /** @type{!Array<!proto.dapr.proto.runtime.v1.ConversationToolCalls>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.dapr.proto.runtime.v1.ConversationToolCalls, 3));
+};
+
+
+/**
+ * @param {!Array<!proto.dapr.proto.runtime.v1.ConversationToolCalls>} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.prototype.setToolCallsList = function(value) {
+  return jspb.Message.setRepeatedWrapperField(this, 3, value);
+};
+
+
+/**
+ * @param {!proto.dapr.proto.runtime.v1.ConversationToolCalls=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.dapr.proto.runtime.v1.ConversationToolCalls}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.prototype.addToolCalls = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 3, opt_value, proto.dapr.proto.runtime.v1.ConversationToolCalls, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfAssistant.prototype.clearToolCallsList = function() {
+  return this.setToolCallsList([]);
+};
+
+
+
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfTool.repeatedFields_ = [3];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfTool.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.ConversationMessageOfTool.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageOfTool} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfTool.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    toolId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    name: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    contentList: jspb.Message.toObjectList(msg.getContentList(),
+    proto.dapr.proto.runtime.v1.ConversationMessageContent.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfTool}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfTool.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.ConversationMessageOfTool;
+  return proto.dapr.proto.runtime.v1.ConversationMessageOfTool.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageOfTool} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfTool}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfTool.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setToolId(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setName(value);
+      break;
+    case 3:
+      var value = new proto.dapr.proto.runtime.v1.ConversationMessageContent;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.ConversationMessageContent.deserializeBinaryFromReader);
+      msg.addContent(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfTool.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.ConversationMessageOfTool.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageOfTool} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfTool.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = /** @type {string} */ (jspb.Message.getField(message, 1));
+  if (f != null) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getName();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getContentList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      3,
+      f,
+      proto.dapr.proto.runtime.v1.ConversationMessageContent.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional string tool_id = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfTool.prototype.getToolId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfTool} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfTool.prototype.setToolId = function(value) {
+  return jspb.Message.setField(this, 1, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfTool} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfTool.prototype.clearToolId = function() {
+  return jspb.Message.setField(this, 1, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfTool.prototype.hasToolId = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional string name = 2;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfTool.prototype.getName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfTool} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfTool.prototype.setName = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * repeated ConversationMessageContent content = 3;
+ * @return {!Array<!proto.dapr.proto.runtime.v1.ConversationMessageContent>}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfTool.prototype.getContentList = function() {
+  return /** @type{!Array<!proto.dapr.proto.runtime.v1.ConversationMessageContent>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.dapr.proto.runtime.v1.ConversationMessageContent, 3));
+};
+
+
+/**
+ * @param {!Array<!proto.dapr.proto.runtime.v1.ConversationMessageContent>} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfTool} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationMessageOfTool.prototype.setContentList = function(value) {
+  return jspb.Message.setRepeatedWrapperField(this, 3, value);
+};
+
+
+/**
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageContent=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageContent}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfTool.prototype.addContent = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 3, opt_value, proto.dapr.proto.runtime.v1.ConversationMessageContent, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageOfTool} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageOfTool.prototype.clearContentList = function() {
+  return this.setContentList([]);
+};
+
+
+
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCalls.oneofGroups_ = [[2]];
+
+/**
+ * @enum {number}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCalls.ToolTypesCase = {
+  TOOL_TYPES_NOT_SET: 0,
+  FUNCTION: 2
+};
+
+/**
+ * @return {proto.dapr.proto.runtime.v1.ConversationToolCalls.ToolTypesCase}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCalls.prototype.getToolTypesCase = function() {
+  return /** @type {proto.dapr.proto.runtime.v1.ConversationToolCalls.ToolTypesCase} */(jspb.Message.computeOneofCase(this, proto.dapr.proto.runtime.v1.ConversationToolCalls.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCalls.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.ConversationToolCalls.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.ConversationToolCalls} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCalls.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    id: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    pb_function: (f = msg.getFunction()) && proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationToolCalls}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCalls.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.ConversationToolCalls;
+  return proto.dapr.proto.runtime.v1.ConversationToolCalls.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationToolCalls} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationToolCalls}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCalls.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setId(value);
+      break;
+    case 2:
+      var value = new proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction.deserializeBinaryFromReader);
+      msg.setFunction(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCalls.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.ConversationToolCalls.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationToolCalls} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCalls.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = /** @type {string} */ (jspb.Message.getField(message, 1));
+  if (f != null) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getFunction();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional string id = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCalls.prototype.getId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationToolCalls} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCalls.prototype.setId = function(value) {
+  return jspb.Message.setField(this, 1, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationToolCalls} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCalls.prototype.clearId = function() {
+  return jspb.Message.setField(this, 1, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCalls.prototype.hasId = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional ConversationToolCallsOfFunction function = 2;
+ * @return {?proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCalls.prototype.getFunction = function() {
+  return /** @type{?proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction} */ (
+    jspb.Message.getWrapperField(this, proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction, 2));
+};
+
+
+/**
+ * @param {?proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction|undefined} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationToolCalls} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationToolCalls.prototype.setFunction = function(value) {
+  return jspb.Message.setOneofWrapperField(this, 2, proto.dapr.proto.runtime.v1.ConversationToolCalls.oneofGroups_[0], value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationToolCalls} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCalls.prototype.clearFunction = function() {
+  return this.setFunction(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCalls.prototype.hasFunction = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    arguments: jspb.Message.getFieldWithDefault(msg, 2, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction;
+  return proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setName(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setArguments(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getName();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getArguments();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string name = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction.prototype.getName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction.prototype.setName = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string arguments = 2;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction.prototype.getArguments = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationToolCallsOfFunction.prototype.setArguments = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageContent.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.ConversationMessageContent.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageContent} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageContent.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    text: jspb.Message.getFieldWithDefault(msg, 1, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageContent}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageContent.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.ConversationMessageContent;
+  return proto.dapr.proto.runtime.v1.ConversationMessageContent.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageContent} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageContent}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageContent.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setText(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageContent.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.ConversationMessageContent.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationMessageContent} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageContent.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getText();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string text = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageContent.prototype.getText = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationMessageContent} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationMessageContent.prototype.setText = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.ConversationResult.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.ConversationResult.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.ConversationResult} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationResult.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    result: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    parametersMap: (f = msg.getParametersMap()) ? f.toObject(includeInstance, proto.google.protobuf.Any.toObject) : []
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResult}
+ */
+proto.dapr.proto.runtime.v1.ConversationResult.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.ConversationResult;
+  return proto.dapr.proto.runtime.v1.ConversationResult.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationResult} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResult}
+ */
+proto.dapr.proto.runtime.v1.ConversationResult.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setResult(value);
+      break;
+    case 2:
+      var value = msg.getParametersMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.google.protobuf.Any.deserializeBinaryFromReader, "", new proto.google.protobuf.Any());
+         });
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.ConversationResult.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.ConversationResult.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationResult} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationResult.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getResult();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getParametersMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(2, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.google.protobuf.Any.serializeBinaryToWriter);
+  }
+};
+
+
+/**
+ * optional string result = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationResult.prototype.getResult = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResult} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationResult.prototype.setResult = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * map<string, google.protobuf.Any> parameters = 2;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,!proto.google.protobuf.Any>}
+ */
+proto.dapr.proto.runtime.v1.ConversationResult.prototype.getParametersMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.google.protobuf.Any>} */ (
+      jspb.Message.getMapField(this, 2, opt_noLazyCreate,
+      proto.google.protobuf.Any));
+};
+
+
+/**
+ * Clears values from the map. The map will be non-null.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResult} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationResult.prototype.clearParametersMap = function() {
+  this.getParametersMap().clear();
+  return this;};
+
+
+
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.dapr.proto.runtime.v1.ConversationResultAlpha2.repeatedFields_ = [1];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.ConversationResultAlpha2.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.ConversationResultAlpha2.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.ConversationResultAlpha2} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationResultAlpha2.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    choicesList: jspb.Message.toObjectList(msg.getChoicesList(),
+    proto.dapr.proto.runtime.v1.ConversationResultChoices.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResultAlpha2}
+ */
+proto.dapr.proto.runtime.v1.ConversationResultAlpha2.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.ConversationResultAlpha2;
+  return proto.dapr.proto.runtime.v1.ConversationResultAlpha2.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationResultAlpha2} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResultAlpha2}
+ */
+proto.dapr.proto.runtime.v1.ConversationResultAlpha2.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.dapr.proto.runtime.v1.ConversationResultChoices;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.ConversationResultChoices.deserializeBinaryFromReader);
+      msg.addChoices(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.ConversationResultAlpha2.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.ConversationResultAlpha2.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationResultAlpha2} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationResultAlpha2.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getChoicesList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      1,
+      f,
+      proto.dapr.proto.runtime.v1.ConversationResultChoices.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * repeated ConversationResultChoices choices = 1;
+ * @return {!Array<!proto.dapr.proto.runtime.v1.ConversationResultChoices>}
+ */
+proto.dapr.proto.runtime.v1.ConversationResultAlpha2.prototype.getChoicesList = function() {
+  return /** @type{!Array<!proto.dapr.proto.runtime.v1.ConversationResultChoices>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.dapr.proto.runtime.v1.ConversationResultChoices, 1));
+};
+
+
+/**
+ * @param {!Array<!proto.dapr.proto.runtime.v1.ConversationResultChoices>} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResultAlpha2} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationResultAlpha2.prototype.setChoicesList = function(value) {
+  return jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
+
+/**
+ * @param {!proto.dapr.proto.runtime.v1.ConversationResultChoices=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResultChoices}
+ */
+proto.dapr.proto.runtime.v1.ConversationResultAlpha2.prototype.addChoices = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.dapr.proto.runtime.v1.ConversationResultChoices, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResultAlpha2} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationResultAlpha2.prototype.clearChoicesList = function() {
+  return this.setChoicesList([]);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.ConversationResultChoices.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.ConversationResultChoices.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.ConversationResultChoices} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationResultChoices.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    finishReason: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    index: jspb.Message.getFieldWithDefault(msg, 2, 0),
+    message: (f = msg.getMessage()) && proto.dapr.proto.runtime.v1.ConversationResultMessage.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResultChoices}
+ */
+proto.dapr.proto.runtime.v1.ConversationResultChoices.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.ConversationResultChoices;
+  return proto.dapr.proto.runtime.v1.ConversationResultChoices.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationResultChoices} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResultChoices}
+ */
+proto.dapr.proto.runtime.v1.ConversationResultChoices.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setFinishReason(value);
+      break;
+    case 2:
+      var value = /** @type {number} */ (reader.readInt64());
+      msg.setIndex(value);
+      break;
+    case 3:
+      var value = new proto.dapr.proto.runtime.v1.ConversationResultMessage;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.ConversationResultMessage.deserializeBinaryFromReader);
+      msg.setMessage(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.ConversationResultChoices.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.ConversationResultChoices.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationResultChoices} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationResultChoices.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getFinishReason();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getIndex();
+  if (f !== 0) {
+    writer.writeInt64(
+      2,
+      f
+    );
+  }
+  f = message.getMessage();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      proto.dapr.proto.runtime.v1.ConversationResultMessage.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional string finish_reason = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationResultChoices.prototype.getFinishReason = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResultChoices} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationResultChoices.prototype.setFinishReason = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional int64 index = 2;
+ * @return {number}
+ */
+proto.dapr.proto.runtime.v1.ConversationResultChoices.prototype.getIndex = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResultChoices} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationResultChoices.prototype.setIndex = function(value) {
+  return jspb.Message.setProto3IntField(this, 2, value);
+};
+
+
+/**
+ * optional ConversationResultMessage message = 3;
+ * @return {?proto.dapr.proto.runtime.v1.ConversationResultMessage}
+ */
+proto.dapr.proto.runtime.v1.ConversationResultChoices.prototype.getMessage = function() {
+  return /** @type{?proto.dapr.proto.runtime.v1.ConversationResultMessage} */ (
+    jspb.Message.getWrapperField(this, proto.dapr.proto.runtime.v1.ConversationResultMessage, 3));
+};
+
+
+/**
+ * @param {?proto.dapr.proto.runtime.v1.ConversationResultMessage|undefined} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResultChoices} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationResultChoices.prototype.setMessage = function(value) {
+  return jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResultChoices} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationResultChoices.prototype.clearMessage = function() {
+  return this.setMessage(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationResultChoices.prototype.hasMessage = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.dapr.proto.runtime.v1.ConversationResultMessage.repeatedFields_ = [2];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.ConversationResultMessage.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.ConversationResultMessage.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.ConversationResultMessage} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationResultMessage.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    content: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    toolCallsList: jspb.Message.toObjectList(msg.getToolCallsList(),
+    proto.dapr.proto.runtime.v1.ConversationToolCalls.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResultMessage}
+ */
+proto.dapr.proto.runtime.v1.ConversationResultMessage.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.ConversationResultMessage;
+  return proto.dapr.proto.runtime.v1.ConversationResultMessage.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationResultMessage} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResultMessage}
+ */
+proto.dapr.proto.runtime.v1.ConversationResultMessage.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setContent(value);
+      break;
+    case 2:
+      var value = new proto.dapr.proto.runtime.v1.ConversationToolCalls;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.ConversationToolCalls.deserializeBinaryFromReader);
+      msg.addToolCalls(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.ConversationResultMessage.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.ConversationResultMessage.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationResultMessage} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationResultMessage.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getContent();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getToolCallsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      2,
+      f,
+      proto.dapr.proto.runtime.v1.ConversationToolCalls.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional string content = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationResultMessage.prototype.getContent = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResultMessage} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationResultMessage.prototype.setContent = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * repeated ConversationToolCalls tool_calls = 2;
+ * @return {!Array<!proto.dapr.proto.runtime.v1.ConversationToolCalls>}
+ */
+proto.dapr.proto.runtime.v1.ConversationResultMessage.prototype.getToolCallsList = function() {
+  return /** @type{!Array<!proto.dapr.proto.runtime.v1.ConversationToolCalls>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.dapr.proto.runtime.v1.ConversationToolCalls, 2));
+};
+
+
+/**
+ * @param {!Array<!proto.dapr.proto.runtime.v1.ConversationToolCalls>} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResultMessage} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationResultMessage.prototype.setToolCallsList = function(value) {
+  return jspb.Message.setRepeatedWrapperField(this, 2, value);
+};
+
+
+/**
+ * @param {!proto.dapr.proto.runtime.v1.ConversationToolCalls=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.dapr.proto.runtime.v1.ConversationToolCalls}
+ */
+proto.dapr.proto.runtime.v1.ConversationResultMessage.prototype.addToolCalls = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.dapr.proto.runtime.v1.ConversationToolCalls, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResultMessage} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationResultMessage.prototype.clearToolCallsList = function() {
+  return this.setToolCallsList([]);
+};
+
+
+
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.dapr.proto.runtime.v1.ConversationResponse.repeatedFields_ = [2];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.ConversationResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.ConversationResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.ConversationResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    contextid: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    outputsList: jspb.Message.toObjectList(msg.getOutputsList(),
+    proto.dapr.proto.runtime.v1.ConversationResult.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResponse}
+ */
+proto.dapr.proto.runtime.v1.ConversationResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.ConversationResponse;
+  return proto.dapr.proto.runtime.v1.ConversationResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResponse}
+ */
+proto.dapr.proto.runtime.v1.ConversationResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setContextid(value);
+      break;
+    case 2:
+      var value = new proto.dapr.proto.runtime.v1.ConversationResult;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.ConversationResult.deserializeBinaryFromReader);
+      msg.addOutputs(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.ConversationResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.ConversationResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = /** @type {string} */ (jspb.Message.getField(message, 1));
+  if (f != null) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getOutputsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      2,
+      f,
+      proto.dapr.proto.runtime.v1.ConversationResult.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional string contextID = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationResponse.prototype.getContextid = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResponse} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationResponse.prototype.setContextid = function(value) {
+  return jspb.Message.setField(this, 1, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResponse} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationResponse.prototype.clearContextid = function() {
+  return jspb.Message.setField(this, 1, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationResponse.prototype.hasContextid = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * repeated ConversationResult outputs = 2;
+ * @return {!Array<!proto.dapr.proto.runtime.v1.ConversationResult>}
+ */
+proto.dapr.proto.runtime.v1.ConversationResponse.prototype.getOutputsList = function() {
+  return /** @type{!Array<!proto.dapr.proto.runtime.v1.ConversationResult>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.dapr.proto.runtime.v1.ConversationResult, 2));
+};
+
+
+/**
+ * @param {!Array<!proto.dapr.proto.runtime.v1.ConversationResult>} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResponse} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationResponse.prototype.setOutputsList = function(value) {
+  return jspb.Message.setRepeatedWrapperField(this, 2, value);
+};
+
+
+/**
+ * @param {!proto.dapr.proto.runtime.v1.ConversationResult=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResult}
+ */
+proto.dapr.proto.runtime.v1.ConversationResponse.prototype.addOutputs = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.dapr.proto.runtime.v1.ConversationResult, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResponse} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationResponse.prototype.clearOutputsList = function() {
+  return this.setOutputsList([]);
+};
+
+
+
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.dapr.proto.runtime.v1.ConversationResponseAlpha2.repeatedFields_ = [2];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.ConversationResponseAlpha2.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.ConversationResponseAlpha2.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.ConversationResponseAlpha2} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationResponseAlpha2.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    contextId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    outputsList: jspb.Message.toObjectList(msg.getOutputsList(),
+    proto.dapr.proto.runtime.v1.ConversationResultAlpha2.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResponseAlpha2}
+ */
+proto.dapr.proto.runtime.v1.ConversationResponseAlpha2.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.ConversationResponseAlpha2;
+  return proto.dapr.proto.runtime.v1.ConversationResponseAlpha2.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationResponseAlpha2} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResponseAlpha2}
+ */
+proto.dapr.proto.runtime.v1.ConversationResponseAlpha2.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setContextId(value);
+      break;
+    case 2:
+      var value = new proto.dapr.proto.runtime.v1.ConversationResultAlpha2;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.ConversationResultAlpha2.deserializeBinaryFromReader);
+      msg.addOutputs(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.ConversationResponseAlpha2.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.ConversationResponseAlpha2.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationResponseAlpha2} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationResponseAlpha2.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = /** @type {string} */ (jspb.Message.getField(message, 1));
+  if (f != null) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getOutputsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      2,
+      f,
+      proto.dapr.proto.runtime.v1.ConversationResultAlpha2.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional string context_id = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationResponseAlpha2.prototype.getContextId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResponseAlpha2} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationResponseAlpha2.prototype.setContextId = function(value) {
+  return jspb.Message.setField(this, 1, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResponseAlpha2} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationResponseAlpha2.prototype.clearContextId = function() {
+  return jspb.Message.setField(this, 1, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationResponseAlpha2.prototype.hasContextId = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * repeated ConversationResultAlpha2 outputs = 2;
+ * @return {!Array<!proto.dapr.proto.runtime.v1.ConversationResultAlpha2>}
+ */
+proto.dapr.proto.runtime.v1.ConversationResponseAlpha2.prototype.getOutputsList = function() {
+  return /** @type{!Array<!proto.dapr.proto.runtime.v1.ConversationResultAlpha2>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.dapr.proto.runtime.v1.ConversationResultAlpha2, 2));
+};
+
+
+/**
+ * @param {!Array<!proto.dapr.proto.runtime.v1.ConversationResultAlpha2>} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResponseAlpha2} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationResponseAlpha2.prototype.setOutputsList = function(value) {
+  return jspb.Message.setRepeatedWrapperField(this, 2, value);
+};
+
+
+/**
+ * @param {!proto.dapr.proto.runtime.v1.ConversationResultAlpha2=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResultAlpha2}
+ */
+proto.dapr.proto.runtime.v1.ConversationResponseAlpha2.prototype.addOutputs = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.dapr.proto.runtime.v1.ConversationResultAlpha2, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationResponseAlpha2} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationResponseAlpha2.prototype.clearOutputsList = function() {
+  return this.setOutputsList([]);
+};
+
+
+
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.dapr.proto.runtime.v1.ConversationTools.oneofGroups_ = [[1]];
+
+/**
+ * @enum {number}
+ */
+proto.dapr.proto.runtime.v1.ConversationTools.ToolTypesCase = {
+  TOOL_TYPES_NOT_SET: 0,
+  FUNCTION: 1
+};
+
+/**
+ * @return {proto.dapr.proto.runtime.v1.ConversationTools.ToolTypesCase}
+ */
+proto.dapr.proto.runtime.v1.ConversationTools.prototype.getToolTypesCase = function() {
+  return /** @type {proto.dapr.proto.runtime.v1.ConversationTools.ToolTypesCase} */(jspb.Message.computeOneofCase(this, proto.dapr.proto.runtime.v1.ConversationTools.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.ConversationTools.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.ConversationTools.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.ConversationTools} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationTools.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    pb_function: (f = msg.getFunction()) && proto.dapr.proto.runtime.v1.ConversationToolsFunction.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationTools}
+ */
+proto.dapr.proto.runtime.v1.ConversationTools.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.ConversationTools;
+  return proto.dapr.proto.runtime.v1.ConversationTools.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationTools} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationTools}
+ */
+proto.dapr.proto.runtime.v1.ConversationTools.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.dapr.proto.runtime.v1.ConversationToolsFunction;
+      reader.readMessage(value,proto.dapr.proto.runtime.v1.ConversationToolsFunction.deserializeBinaryFromReader);
+      msg.setFunction(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.ConversationTools.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.ConversationTools.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationTools} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationTools.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getFunction();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.dapr.proto.runtime.v1.ConversationToolsFunction.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional ConversationToolsFunction function = 1;
+ * @return {?proto.dapr.proto.runtime.v1.ConversationToolsFunction}
+ */
+proto.dapr.proto.runtime.v1.ConversationTools.prototype.getFunction = function() {
+  return /** @type{?proto.dapr.proto.runtime.v1.ConversationToolsFunction} */ (
+    jspb.Message.getWrapperField(this, proto.dapr.proto.runtime.v1.ConversationToolsFunction, 1));
+};
+
+
+/**
+ * @param {?proto.dapr.proto.runtime.v1.ConversationToolsFunction|undefined} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationTools} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationTools.prototype.setFunction = function(value) {
+  return jspb.Message.setOneofWrapperField(this, 1, proto.dapr.proto.runtime.v1.ConversationTools.oneofGroups_[0], value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationTools} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationTools.prototype.clearFunction = function() {
+  return this.setFunction(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationTools.prototype.hasFunction = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolsFunction.prototype.toObject = function(opt_includeInstance) {
+  return proto.dapr.proto.runtime.v1.ConversationToolsFunction.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.dapr.proto.runtime.v1.ConversationToolsFunction} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationToolsFunction.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    description: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    parameters: (f = msg.getParameters()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationToolsFunction}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolsFunction.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.dapr.proto.runtime.v1.ConversationToolsFunction;
+  return proto.dapr.proto.runtime.v1.ConversationToolsFunction.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationToolsFunction} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationToolsFunction}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolsFunction.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setName(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDescription(value);
+      break;
+    case 3:
+      var value = new google_protobuf_struct_pb.Struct;
+      reader.readMessage(value,google_protobuf_struct_pb.Struct.deserializeBinaryFromReader);
+      msg.setParameters(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolsFunction.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.dapr.proto.runtime.v1.ConversationToolsFunction.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.dapr.proto.runtime.v1.ConversationToolsFunction} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.dapr.proto.runtime.v1.ConversationToolsFunction.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getName();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = /** @type {string} */ (jspb.Message.getField(message, 2));
+  if (f != null) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getParameters();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      google_protobuf_struct_pb.Struct.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional string name = 1;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolsFunction.prototype.getName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationToolsFunction} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationToolsFunction.prototype.setName = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string description = 2;
+ * @return {string}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolsFunction.prototype.getDescription = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationToolsFunction} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationToolsFunction.prototype.setDescription = function(value) {
+  return jspb.Message.setField(this, 2, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationToolsFunction} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationToolsFunction.prototype.clearDescription = function() {
+  return jspb.Message.setField(this, 2, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolsFunction.prototype.hasDescription = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional google.protobuf.Struct parameters = 3;
+ * @return {?proto.google.protobuf.Struct}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolsFunction.prototype.getParameters = function() {
+  return /** @type{?proto.google.protobuf.Struct} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_struct_pb.Struct, 3));
+};
+
+
+/**
+ * @param {?proto.google.protobuf.Struct|undefined} value
+ * @return {!proto.dapr.proto.runtime.v1.ConversationToolsFunction} returns this
+*/
+proto.dapr.proto.runtime.v1.ConversationToolsFunction.prototype.setParameters = function(value) {
+  return jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.dapr.proto.runtime.v1.ConversationToolsFunction} returns this
+ */
+proto.dapr.proto.runtime.v1.ConversationToolsFunction.prototype.clearParameters = function() {
+  return this.setParameters(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.runtime.v1.ConversationToolsFunction.prototype.hasParameters = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

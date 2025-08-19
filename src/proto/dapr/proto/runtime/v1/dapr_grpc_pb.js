@@ -19,6 +19,7 @@ var dapr_proto_runtime_v1_dapr_pb = require('../../../../dapr/proto/runtime/v1/d
 var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js');
 var google_protobuf_empty_pb = require('google-protobuf/google/protobuf/empty_pb.js');
 var google_protobuf_timestamp_pb = require('google-protobuf/google/protobuf/timestamp_pb.js');
+var google_protobuf_struct_pb = require('google-protobuf/google/protobuf/struct_pb.js');
 var dapr_proto_common_v1_common_pb = require('../../../../dapr/proto/common/v1/common_pb.js');
 var dapr_proto_runtime_v1_appcallback_pb = require('../../../../dapr/proto/runtime/v1/appcallback_pb.js');
 
@@ -53,6 +54,50 @@ function serialize_dapr_proto_runtime_v1_BulkPublishResponse(arg) {
 
 function deserialize_dapr_proto_runtime_v1_BulkPublishResponse(buffer_arg) {
   return dapr_proto_runtime_v1_dapr_pb.BulkPublishResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_ConversationRequest(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.ConversationRequest)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.ConversationRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_ConversationRequest(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.ConversationRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_ConversationRequestAlpha2(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.ConversationRequestAlpha2)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.ConversationRequestAlpha2');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_ConversationRequestAlpha2(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.ConversationRequestAlpha2.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_ConversationResponse(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.ConversationResponse)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.ConversationResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_ConversationResponse(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.ConversationResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dapr_proto_runtime_v1_ConversationResponseAlpha2(arg) {
+  if (!(arg instanceof dapr_proto_runtime_v1_dapr_pb.ConversationResponseAlpha2)) {
+    throw new Error('Expected argument of type dapr.proto.runtime.v1.ConversationResponseAlpha2');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dapr_proto_runtime_v1_ConversationResponseAlpha2(buffer_arg) {
+  return dapr_proto_runtime_v1_dapr_pb.ConversationResponseAlpha2.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_dapr_proto_runtime_v1_DecryptRequest(arg) {
@@ -1603,6 +1648,30 @@ deleteJobAlpha1: {
     responseSerialize: serialize_dapr_proto_runtime_v1_DeleteJobResponse,
     responseDeserialize: deserialize_dapr_proto_runtime_v1_DeleteJobResponse,
   },
+  // Converse with a LLM service
+converseAlpha1: {
+    path: '/dapr.proto.runtime.v1.Dapr/ConverseAlpha1',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.ConversationRequest,
+    responseType: dapr_proto_runtime_v1_dapr_pb.ConversationResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_ConversationRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_ConversationRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_ConversationResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_ConversationResponse,
+  },
+  // Converse with a LLM service via alpha2 api
+converseAlpha2: {
+    path: '/dapr.proto.runtime.v1.Dapr/ConverseAlpha2',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_dapr_pb.ConversationRequestAlpha2,
+    responseType: dapr_proto_runtime_v1_dapr_pb.ConversationResponseAlpha2,
+    requestSerialize: serialize_dapr_proto_runtime_v1_ConversationRequestAlpha2,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_ConversationRequestAlpha2,
+    responseSerialize: serialize_dapr_proto_runtime_v1_ConversationResponseAlpha2,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_ConversationResponseAlpha2,
+  },
 };
 
-exports.DaprClient = grpc.makeGenericClientConstructor(DaprService);
+exports.DaprClient = grpc.makeGenericClientConstructor(DaprService, 'Dapr');

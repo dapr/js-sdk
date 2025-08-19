@@ -59,4 +59,4 @@ signCertificate: {
   },
 };
 
-exports.CAClient = grpc.makeGenericClientConstructor(CAService);
+exports.CAClient = grpc.makeGenericClientConstructor(CAService, 'CA');

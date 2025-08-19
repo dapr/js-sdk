@@ -245,7 +245,7 @@ onBindingEvent: {
   },
 };
 
-exports.AppCallbackClient = grpc.makeGenericClientConstructor(AppCallbackService);
+exports.AppCallbackClient = grpc.makeGenericClientConstructor(AppCallbackService, 'AppCallback');
 // AppCallbackHealthCheck V1 is an optional extension to AppCallback V1 to implement
 // the HealthCheck method.
 var AppCallbackHealthCheckService = exports.AppCallbackHealthCheckService = {
@@ -263,7 +263,7 @@ healthCheck: {
   },
 };
 
-exports.AppCallbackHealthCheckClient = grpc.makeGenericClientConstructor(AppCallbackHealthCheckService);
+exports.AppCallbackHealthCheckClient = grpc.makeGenericClientConstructor(AppCallbackHealthCheckService, 'AppCallbackHealthCheck');
 // AppCallbackAlpha V1 is an optional extension to AppCallback V1 to opt
 // for Alpha RPCs.
 var AppCallbackAlphaService = exports.AppCallbackAlphaService = {
@@ -293,4 +293,4 @@ onJobEventAlpha1: {
   },
 };
 
-exports.AppCallbackAlphaClient = grpc.makeGenericClientConstructor(AppCallbackAlphaService);
+exports.AppCallbackAlphaClient = grpc.makeGenericClientConstructor(AppCallbackAlphaService, 'AppCallbackAlpha');
