@@ -6,6 +6,7 @@
 
 import * as jspb from "google-protobuf";
 import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb";
+import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 
 export class HTTPExtension extends jspb.Message { 
     getVerb(): HTTPExtension.Verb;
@@ -253,5 +254,89 @@ export namespace ConfigurationItem {
         version: string,
 
         metadataMap: Array<[string, string]>,
+    }
+}
+
+export class JobFailurePolicy extends jspb.Message { 
+
+    hasDrop(): boolean;
+    clearDrop(): void;
+    getDrop(): JobFailurePolicyDrop | undefined;
+    setDrop(value?: JobFailurePolicyDrop): JobFailurePolicy;
+
+    hasConstant(): boolean;
+    clearConstant(): void;
+    getConstant(): JobFailurePolicyConstant | undefined;
+    setConstant(value?: JobFailurePolicyConstant): JobFailurePolicy;
+
+    getPolicyCase(): JobFailurePolicy.PolicyCase;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): JobFailurePolicy.AsObject;
+    static toObject(includeInstance: boolean, msg: JobFailurePolicy): JobFailurePolicy.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: JobFailurePolicy, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): JobFailurePolicy;
+    static deserializeBinaryFromReader(message: JobFailurePolicy, reader: jspb.BinaryReader): JobFailurePolicy;
+}
+
+export namespace JobFailurePolicy {
+    export type AsObject = {
+        drop?: JobFailurePolicyDrop.AsObject,
+        constant?: JobFailurePolicyConstant.AsObject,
+    }
+
+    export enum PolicyCase {
+        POLICY_NOT_SET = 0,
+        DROP = 1,
+        CONSTANT = 2,
+    }
+
+}
+
+export class JobFailurePolicyDrop extends jspb.Message { 
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): JobFailurePolicyDrop.AsObject;
+    static toObject(includeInstance: boolean, msg: JobFailurePolicyDrop): JobFailurePolicyDrop.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: JobFailurePolicyDrop, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): JobFailurePolicyDrop;
+    static deserializeBinaryFromReader(message: JobFailurePolicyDrop, reader: jspb.BinaryReader): JobFailurePolicyDrop;
+}
+
+export namespace JobFailurePolicyDrop {
+    export type AsObject = {
+    }
+}
+
+export class JobFailurePolicyConstant extends jspb.Message { 
+
+    hasInterval(): boolean;
+    clearInterval(): void;
+    getInterval(): google_protobuf_duration_pb.Duration | undefined;
+    setInterval(value?: google_protobuf_duration_pb.Duration): JobFailurePolicyConstant;
+
+    hasMaxRetries(): boolean;
+    clearMaxRetries(): void;
+    getMaxRetries(): number | undefined;
+    setMaxRetries(value: number): JobFailurePolicyConstant;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): JobFailurePolicyConstant.AsObject;
+    static toObject(includeInstance: boolean, msg: JobFailurePolicyConstant): JobFailurePolicyConstant.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: JobFailurePolicyConstant, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): JobFailurePolicyConstant;
+    static deserializeBinaryFromReader(message: JobFailurePolicyConstant, reader: jspb.BinaryReader): JobFailurePolicyConstant;
+}
+
+export namespace JobFailurePolicyConstant {
+    export type AsObject = {
+        interval?: google_protobuf_duration_pb.Duration.AsObject,
+        maxRetries?: number,
     }
 }

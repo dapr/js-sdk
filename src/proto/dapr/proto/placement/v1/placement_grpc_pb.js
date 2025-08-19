@@ -56,4 +56,4 @@ reportDaprStatus: {
   },
 };
 
-exports.PlacementClient = grpc.makeGenericClientConstructor(PlacementService);
+exports.PlacementClient = grpc.makeGenericClientConstructor(PlacementService, 'Placement');

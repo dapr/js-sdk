@@ -9,6 +9,7 @@ import * as dapr_proto_runtime_v1_dapr_pb from "../../../../dapr/proto/runtime/v
 import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb";
 import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
 import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/timestamp_pb";
+import * as google_protobuf_struct_pb from "google-protobuf/google/protobuf/struct_pb";
 import * as dapr_proto_common_v1_common_pb from "../../../../dapr/proto/common/v1/common_pb";
 import * as dapr_proto_runtime_v1_appcallback_pb from "../../../../dapr/proto/runtime/v1/appcallback_pb";
 
@@ -71,6 +72,8 @@ interface IDaprService extends grpc.ServiceDefinition<grpc.UntypedServiceImpleme
     scheduleJobAlpha1: IDaprService_IScheduleJobAlpha1;
     getJobAlpha1: IDaprService_IGetJobAlpha1;
     deleteJobAlpha1: IDaprService_IDeleteJobAlpha1;
+    converseAlpha1: IDaprService_IConverseAlpha1;
+    converseAlpha2: IDaprService_IConverseAlpha2;
 }
 
 interface IDaprService_IInvokeService extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.InvokeServiceRequest, dapr_proto_common_v1_common_pb.InvokeResponse> {
@@ -595,6 +598,24 @@ interface IDaprService_IDeleteJobAlpha1 extends grpc.MethodDefinition<dapr_proto
     responseSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.DeleteJobResponse>;
     responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.DeleteJobResponse>;
 }
+interface IDaprService_IConverseAlpha1 extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.ConversationRequest, dapr_proto_runtime_v1_dapr_pb.ConversationResponse> {
+    path: "/dapr.proto.runtime.v1.Dapr/ConverseAlpha1";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.ConversationRequest>;
+    requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.ConversationRequest>;
+    responseSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.ConversationResponse>;
+    responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.ConversationResponse>;
+}
+interface IDaprService_IConverseAlpha2 extends grpc.MethodDefinition<dapr_proto_runtime_v1_dapr_pb.ConversationRequestAlpha2, dapr_proto_runtime_v1_dapr_pb.ConversationResponseAlpha2> {
+    path: "/dapr.proto.runtime.v1.Dapr/ConverseAlpha2";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.ConversationRequestAlpha2>;
+    requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.ConversationRequestAlpha2>;
+    responseSerialize: grpc.serialize<dapr_proto_runtime_v1_dapr_pb.ConversationResponseAlpha2>;
+    responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_dapr_pb.ConversationResponseAlpha2>;
+}
 
 export const DaprService: IDaprService;
 
@@ -657,6 +678,8 @@ export interface IDaprServer extends grpc.UntypedServiceImplementation {
     scheduleJobAlpha1: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.ScheduleJobRequest, dapr_proto_runtime_v1_dapr_pb.ScheduleJobResponse>;
     getJobAlpha1: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.GetJobRequest, dapr_proto_runtime_v1_dapr_pb.GetJobResponse>;
     deleteJobAlpha1: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.DeleteJobRequest, dapr_proto_runtime_v1_dapr_pb.DeleteJobResponse>;
+    converseAlpha1: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.ConversationRequest, dapr_proto_runtime_v1_dapr_pb.ConversationResponse>;
+    converseAlpha2: grpc.handleUnaryCall<dapr_proto_runtime_v1_dapr_pb.ConversationRequestAlpha2, dapr_proto_runtime_v1_dapr_pb.ConversationResponseAlpha2>;
 }
 
 export interface IDaprClient {
@@ -832,6 +855,12 @@ export interface IDaprClient {
     deleteJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.DeleteJobRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.DeleteJobResponse) => void): grpc.ClientUnaryCall;
     deleteJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.DeleteJobRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.DeleteJobResponse) => void): grpc.ClientUnaryCall;
     deleteJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.DeleteJobRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.DeleteJobResponse) => void): grpc.ClientUnaryCall;
+    converseAlpha1(request: dapr_proto_runtime_v1_dapr_pb.ConversationRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.ConversationResponse) => void): grpc.ClientUnaryCall;
+    converseAlpha1(request: dapr_proto_runtime_v1_dapr_pb.ConversationRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.ConversationResponse) => void): grpc.ClientUnaryCall;
+    converseAlpha1(request: dapr_proto_runtime_v1_dapr_pb.ConversationRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.ConversationResponse) => void): grpc.ClientUnaryCall;
+    converseAlpha2(request: dapr_proto_runtime_v1_dapr_pb.ConversationRequestAlpha2, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.ConversationResponseAlpha2) => void): grpc.ClientUnaryCall;
+    converseAlpha2(request: dapr_proto_runtime_v1_dapr_pb.ConversationRequestAlpha2, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.ConversationResponseAlpha2) => void): grpc.ClientUnaryCall;
+    converseAlpha2(request: dapr_proto_runtime_v1_dapr_pb.ConversationRequestAlpha2, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.ConversationResponseAlpha2) => void): grpc.ClientUnaryCall;
 }
 
 export class DaprClient extends grpc.Client implements IDaprClient {
@@ -1005,4 +1034,10 @@ export class DaprClient extends grpc.Client implements IDaprClient {
     public deleteJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.DeleteJobRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.DeleteJobResponse) => void): grpc.ClientUnaryCall;
     public deleteJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.DeleteJobRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.DeleteJobResponse) => void): grpc.ClientUnaryCall;
     public deleteJobAlpha1(request: dapr_proto_runtime_v1_dapr_pb.DeleteJobRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.DeleteJobResponse) => void): grpc.ClientUnaryCall;
+    public converseAlpha1(request: dapr_proto_runtime_v1_dapr_pb.ConversationRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.ConversationResponse) => void): grpc.ClientUnaryCall;
+    public converseAlpha1(request: dapr_proto_runtime_v1_dapr_pb.ConversationRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.ConversationResponse) => void): grpc.ClientUnaryCall;
+    public converseAlpha1(request: dapr_proto_runtime_v1_dapr_pb.ConversationRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.ConversationResponse) => void): grpc.ClientUnaryCall;
+    public converseAlpha2(request: dapr_proto_runtime_v1_dapr_pb.ConversationRequestAlpha2, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.ConversationResponseAlpha2) => void): grpc.ClientUnaryCall;
+    public converseAlpha2(request: dapr_proto_runtime_v1_dapr_pb.ConversationRequestAlpha2, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.ConversationResponseAlpha2) => void): grpc.ClientUnaryCall;
+    public converseAlpha2(request: dapr_proto_runtime_v1_dapr_pb.ConversationRequestAlpha2, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_dapr_pb.ConversationResponseAlpha2) => void): grpc.ClientUnaryCall;
 }
