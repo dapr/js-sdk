@@ -18,6 +18,7 @@ package dapr.proto.runtime.v1;
 import "google/protobuf/any.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
 import "dapr/proto/common/v1/common.proto";
 import "dapr/proto/runtime/v1/appcallback.proto";
 
@@ -151,25 +152,39 @@ service Dapr {
   rpc SubtleVerifyAlpha1(SubtleVerifyRequest) returns (SubtleVerifyResponse);
 
   // Starts a new instance of a workflow
-  rpc StartWorkflowAlpha1 (StartWorkflowRequest) returns (StartWorkflowResponse) {}
+  rpc StartWorkflowAlpha1 (StartWorkflowRequest) returns (StartWorkflowResponse) {
+    option deprecated = true;
+  }
 
   // Gets details about a started workflow instance
-  rpc GetWorkflowAlpha1 (GetWorkflowRequest) returns (GetWorkflowResponse) {}
+  rpc GetWorkflowAlpha1 (GetWorkflowRequest) returns (GetWorkflowResponse) {
+    option deprecated = true;
+  }
 
   // Purge Workflow
-  rpc PurgeWorkflowAlpha1 (PurgeWorkflowRequest) returns (google.protobuf.Empty) {}
+  rpc PurgeWorkflowAlpha1 (PurgeWorkflowRequest) returns (google.protobuf.Empty) {
+    option deprecated = true;
+  }
 
   // Terminates a running workflow instance
-  rpc TerminateWorkflowAlpha1 (TerminateWorkflowRequest) returns (google.protobuf.Empty) {}
+  rpc TerminateWorkflowAlpha1 (TerminateWorkflowRequest) returns (google.protobuf.Empty) {
+    option deprecated = true;
+  }
 
   // Pauses a running workflow instance
-  rpc PauseWorkflowAlpha1 (PauseWorkflowRequest) returns (google.protobuf.Empty) {}
+  rpc PauseWorkflowAlpha1 (PauseWorkflowRequest) returns (google.protobuf.Empty) {
+    option deprecated = true;
+  }
 
   // Resumes a paused workflow instance
-  rpc ResumeWorkflowAlpha1 (ResumeWorkflowRequest) returns (google.protobuf.Empty) {}
+  rpc ResumeWorkflowAlpha1 (ResumeWorkflowRequest) returns (google.protobuf.Empty) {
+    option deprecated = true;
+  }
 
   // Raise an event to a running workflow instance
-  rpc RaiseEventWorkflowAlpha1 (RaiseEventWorkflowRequest) returns (google.protobuf.Empty) {}
+  rpc RaiseEventWorkflowAlpha1 (RaiseEventWorkflowRequest) returns (google.protobuf.Empty) {
+    option deprecated = true;
+  }
 
   // Starts a new instance of a workflow
   rpc StartWorkflowBeta1 (StartWorkflowRequest) returns (StartWorkflowResponse) {}
@@ -191,6 +206,7 @@ service Dapr {
 
   // Raise an event to a running workflow instance
   rpc RaiseEventWorkflowBeta1 (RaiseEventWorkflowRequest) returns (google.protobuf.Empty) {}
+
   // Shutdown the sidecar
   rpc Shutdown (ShutdownRequest) returns (google.protobuf.Empty) {}
 
@@ -202,6 +218,12 @@ service Dapr {
 
   // Delete a job
   rpc DeleteJobAlpha1(DeleteJobRequest) returns (DeleteJobResponse) {}
+
+  // Converse with a LLM service
+  rpc ConverseAlpha1(ConversationRequest) returns (ConversationResponse) {}
+
+  // Converse with a LLM service via alpha2 api
+  rpc ConverseAlpha2(ConversationRequestAlpha2) returns (ConversationResponseAlpha2) {}
 }
 
 // InvokeServiceRequest represents the request message for Service invocation.
@@ -493,6 +515,7 @@ message InvokeBindingRequest {
   //
   // Common metadata property:
   // - ttlInSeconds : the time to live in seconds for the message.
+  //
   // If set in the binding definition will cause all messages to
   // have a default time to live. The message ttl overrides any value
   // in the binding definition.
@@ -675,7 +698,14 @@ message GetMetadataResponse {
   string runtime_version = 8 [json_name = "runtimeVersion"];
   repeated string enabled_features = 9 [json_name = "enabledFeatures"];
   ActorRuntime actor_runtime = 10 [json_name = "actorRuntime"];
-  //TODO: Cassie: probably add scheduler runtime status
+  optional MetadataScheduler scheduler = 11 [json_name = "scheduler"];
+}
+
+// MetadataScheduler is a message that contains the list of addresses of the
+// scheduler connections.
+message MetadataScheduler {
+  // connected_addresses the list of addresses of the scheduler connections.
+  repeated string connected_addresses = 1;
 }
 
 message ActorRuntime {
@@ -839,11 +869,11 @@ message TryLockRequest {
   //
   // The reason why we don't make it automatically generated is:
   // 1. If it is automatically generated,there must be a 'my_lock_owner_id' field in the response.
-  // This name is so weird that we think it is inappropriate to put it into the api spec
+  //   This name is so weird that we think it is inappropriate to put it into the api spec
   // 2. If we change the field 'my_lock_owner_id' in the response to 'lock_owner',which means the current lock owner of this lock,
-  // we find that in some lock services users can't get the current lock owner.Actually users don't need it at all.
+  //   we find that in some lock services users can't get the current lock owner.Actually users don't need it at all.
   // 3. When reentrant lock is needed,the existing lock_owner is required to identify client and check "whether this client can reenter this lock".
-  // So this field in the request shouldn't be removed.
+  //   So this field in the request shouldn't be removed.
   string lock_owner = 3 [json_name = "lockOwner"];
 
   // Required. The time before expiry.The time unit is second.
@@ -880,7 +910,7 @@ message SubtleGetKeyRequest {
     // JSON (JSON Web Key) as string
     JSON = 1;
   }
- 
+
   // Name of the component
   string component_name = 1 [json_name="componentName"];
   // Name (or name/version) of the key to use in the key vault
@@ -1062,7 +1092,7 @@ message EncryptRequestOptions {
   // If true, the encrypted document does not contain a key reference.
   // In that case, calls to the Decrypt method must provide a key reference (name or name/version).
   // Defaults to false.
-  bool omit_decryption_key_name = 11 [json_name="omitDecryptionKeyName"]; 
+  bool omit_decryption_key_name = 11 [json_name="omitDecryptionKeyName"];
   // Key reference to embed in the encrypted document (name or name/version).
   // This is helpful if the reference of the key used to decrypt the document is different from the one used to encrypt it.
   // If unset, uses the reference of the key used to encrypt the document (this is the default behavior).
@@ -1205,20 +1235,20 @@ message Job {
   //
   // Systemd timer style cron accepts 6 fields:
   // seconds | minutes | hours | day of month | month        | day of week
-  // 0-59    | 0-59    | 0-23  | 1-31         | 1-12/jan-dec | 0-7/sun-sat
+  // 0-59    | 0-59    | 0-23  | 1-31         | 1-12/jan-dec | 0-6/sun-sat
   //
   // "0 30 * * * *" - every hour on the half hour
   // "0 15 3 * * *" - every day at 03:15
   //
   // Period string expressions:
-	// Entry                  | Description                                | Equivalent To
-	// -----                  | -----------                                | -------------
-  // @every <duration>      | Run every <duration> (e.g. '@every 1h30m') | N/A
-	// @yearly (or @annually) | Run once a year, midnight, Jan. 1st        | 0 0 0 1 1 *
-	// @monthly               | Run once a month, midnight, first of month | 0 0 0 1 * *
-	// @weekly                | Run once a week, midnight on Sunday        | 0 0 0 * * 0
-	// @daily (or @midnight)  | Run once a day, midnight                   | 0 0 0 * * *
-	// @hourly                | Run once an hour, beginning of hour        | 0 0 * * * *
+	// Entry                  | Description                                  | Equivalent To
+	// -----                  | -----------                                  | -------------
+  // @every `<duration>`    | Run every `<duration>` (e.g. '@every 1h30m') | N/A
+	// @yearly (or @annually) | Run once a year, midnight, Jan. 1st          | 0 0 0 1 1 *
+	// @monthly               | Run once a month, midnight, first of month   | 0 0 0 1 * *
+	// @weekly                | Run once a week, midnight on Sunday          | 0 0 0 * * 0
+	// @daily (or @midnight)  | Run once a day, midnight                     | 0 0 0 * * *
+	// @hourly                | Run once an hour, beginning of hour          | 0 0 * * * *
   optional string schedule = 2 [json_name = "schedule"];
 
   // repeats is the optional number of times in which the job should be
@@ -1239,12 +1269,17 @@ message Job {
   // payload is the serialized job payload that will be sent to the recipient
   // when the job is triggered.
   google.protobuf.Any data = 6 [json_name = "data"];
+
+  // failure_policy is the optional policy for handling job failures.
+  optional common.v1.JobFailurePolicy failure_policy = 7 [json_name = "failurePolicy"];
 }
 
 // ScheduleJobRequest is the message to create/schedule the job.
 message ScheduleJobRequest {
   // The job details.
   Job job = 1;
+  // If true, allows this job to overwrite an existing job with the same name.
+  bool overwrite = 2  [json_name = "overwrite"];
 }
 
 // ScheduleJobResponse is the message response to create/schedule the job.
@@ -1273,4 +1308,327 @@ message DeleteJobRequest {
 // DeleteJobResponse is the message response to delete the job by name.
 message DeleteJobResponse {
   // Empty
+}
+
+// ConversationRequest is the request object for Conversation.
+message ConversationRequest {
+  option deprecated = true;
+  
+  // The name of Conversation component
+  string name = 1;
+
+  // The ID of an existing chat (like in ChatGPT)
+  optional string contextID = 2;
+
+  // Inputs for the conversation, support multiple input in one time.
+  repeated ConversationInput inputs = 3;
+
+  // Parameters for all custom fields.
+  map<string, google.protobuf.Any> parameters = 4;
+
+  // The metadata passing to conversation components.
+  map<string, string> metadata = 5;
+
+  // Scrub PII data that comes back from the LLM
+  optional bool scrubPII = 6;
+
+  // Temperature for the LLM to optimize for creativity or predictability
+  optional double temperature = 7;
+}
+
+// ConversationRequestAlpha2 is the new request object for Conversation.
+// Many of these fields are inspired by openai.ChatCompletionNewParams
+// https://github.com/openai/openai-go/blob/main/chatcompletion.go#L2106
+message ConversationRequestAlpha2 {
+  // The name of Conversation component
+  string name = 1;
+
+  // The ID of an existing chat (like in ChatGPT)
+  optional string context_id = 2;
+
+  // Inputs for the conversation, support multiple input in one time.
+  // This is the revamped conversation inputs better matching openai.
+  repeated ConversationInputAlpha2 inputs = 3;
+
+  // Parameters for all custom fields.
+  map<string, google.protobuf.Any> parameters = 4;
+
+  // The metadata passing to conversation components.
+  map<string, string> metadata = 5;
+
+  // Scrub PII data that comes back from the LLM
+  optional bool scrub_pii = 6;
+
+  // Temperature for the LLM to optimize for creativity or predictability
+  optional double temperature = 7;
+
+  // Tools register the tools available to be used by the LLM during the conversation.
+  // These are sent on a per request basis.
+  // The tools available during the first round of the conversation
+  // may be different than tools specified later on.
+  repeated ConversationTools tools = 8;
+
+  // Controls which (if any) tool is called by the model. 
+  // `none` means the model will not call any tool and instead generates a message. 
+  // `auto` means the model can pick between generating a message or calling one or more tools.
+  // Alternatively, a specific tool name may be used here, and casing/syntax must match on tool name.
+  // `none` is the default when no tools are present.
+  // `auto` is the default if tools are present.
+  // `required` requires one or more functions to be called.
+  // ref: https://github.com/openai/openai-go/blob/main/chatcompletion.go#L1976
+  // ref: https://python.langchain.com/docs/how_to/tool_choice/
+  optional string tool_choice = 9;
+
+  /* TODO: fields to bring in from openai.ChatCompletionNewParams after Dapr 1.16.
+  Note: They can be within the other messages, not necessarily top level here.
+  MaxCompletionTokens: https://github.com/openai/openai-go/blob/main/chatcompletion.go#L2131
+  Audio: https://github.com/openai/openai-go/blob/main/chatcompletion.go#L2186
+  Modalities: https://github.com/openai/openai-go/blob/main/chatcompletion.go#L2215
+  ReasoningEffort: https://github.com/openai/openai-go/blob/main/chatcompletion.go#L2224
+  Stop: https://github.com/openai/openai-go/blob/main/chatcompletion.go#L2249 <----------------should we bring this in?
+  StreamOptions: https://github.com/openai/openai-go/blob/main/chatcompletion.go#L2251
+  ResponseFormat: https://github.com/openai/openai-go/blob/main/chatcompletion.go#L2284
+  */
+}
+
+// maintained for backwards compatibility
+message ConversationInput {
+  option deprecated = true;
+
+  // The content to send to the llm
+  string content = 1;
+
+  // The role to set for the message
+  optional string role = 2;
+
+  // Scrub PII data that goes into the LLM
+  optional bool scrubPII = 3;
+}
+
+// directly inspired by openai.ChatCompletionNewParams
+// https://github.com/openai/openai-go/blob/main/chatcompletion.go#L2106
+message ConversationInputAlpha2 {
+  // The content to send to the llm
+  repeated ConversationMessage messages = 1;
+
+  // Scrub PII data that goes into the LLM
+  optional bool scrub_pii = 2;
+}
+
+// inspired by openai.ChatCompletionMessageParamUnion
+// https://github.com/openai/openai-go/blob/main/chatcompletion.go#L1449
+// The role field is inherent to the type of ConversationMessage,
+// and is propagated in the backend according to the underlying LLM provider type.
+message ConversationMessage {
+  oneof message_types {
+    ConversationMessageOfDeveloper of_developer = 1;
+    ConversationMessageOfSystem of_system = 2;
+    ConversationMessageOfUser of_user = 3;
+    ConversationMessageOfAssistant of_assistant = 4;
+    ConversationMessageOfTool of_tool = 5; 
+    // Note: there could be a ConversationMessageOfFunction type here too, 
+    // but that is deprecated in openai, so we will not support this.
+  }
+}
+
+// inspired by openai.ChatCompletionDeveloperMessageParam
+// https://github.com/openai/openai-go/blob/main/chatcompletion.go#L1130
+// ConversationMessageOfDeveloper is intended to be the contents of a conversation message,
+// as the role of a developer.
+message ConversationMessageOfDeveloper {
+  // The name of the participant in the message.
+  optional string name = 1;
+  repeated ConversationMessageContent content = 2;
+}
+
+// inspired by openai.ChatCompletionSystemMessageParam
+// https://github.com/openai/openai-go/blob/main/chatcompletion.go#L1842
+// ConversationMessageOfSystem is intended to be the contents of a conversation message,
+// as the role of a system.
+message ConversationMessageOfSystem {
+  optional string name = 1;
+  repeated ConversationMessageContent content = 2;
+}
+
+// inspired by openai.ChatCompletionUserMessageParam
+// https://github.com/openai/openai-go/blob/main/chatcompletion.go#L2060C6-L2060C36
+// ConversationMessageOfUser is intended to be the contents of a conversation message,
+// as the role of an end user.
+message ConversationMessageOfUser {
+  optional string name = 1;
+  repeated ConversationMessageContent content = 2;
+}
+
+// inspired by openai.ChatCompletionAssistantMessageParam
+// https://github.com/openai/openai-go/blob/main/chatcompletion.go#L310
+// https://github.com/openai/openai-go/blob/main/chatcompletion.go#L2060C6-L2060C36
+// ConversationMessageOfAssistant is intended to be the contents of a conversation message,
+// as the role of an assistant.
+message ConversationMessageOfAssistant {
+  optional string name = 1;
+
+  // TODO: there is an audio field here to bring in when the time comes 1.17 or later.
+
+  repeated ConversationMessageContent content = 2;
+
+  // Tool calls generated by the model, such as function calls for the client to then make.
+  repeated ConversationToolCalls tool_calls = 3;
+
+  // TODO: after 1.16 there is a refusal field that openai has here,
+  // but langchain does not have support for this yet,
+  // so we do not add to our api.
+
+  // Note: There is a FunctionCall type too that is deprecated,
+  // so we are not bringing that to dapr.
+}
+
+// inspired by openai.ChatCompletionToolMessageParam
+// https://github.com/openai/openai-go/blob/main/chatcompletion.go#L2011
+// ConversationMessageOfTool is intended to be the contents of a conversation message,
+// as the role of a tool.
+message ConversationMessageOfTool {
+  // Tool ID is helpful for tracking tool history
+  optional string tool_id = 1;
+
+  // Name of tool associated with the message
+  string name = 2;
+
+  repeated ConversationMessageContent content = 3;
+
+}
+
+// inspired by openai.ChatCompletionMessageToolCallParam and openai.ChatCompletionMessageToolCall
+// https://github.com/openai/openai-go/blob/main/chatcompletion.go#L1669
+// https://github.com/openai/openai-go/blob/main/chatcompletion.go#L1611
+// ConversationToolCalls is the tool call request sent from the llm to the client to then call to execute.
+// This assumes that in our api if a client makes a request that would get a tool call response from the llm,
+// that this client can also have the tool handy itself to execute it.
+message ConversationToolCalls {
+  optional string id = 1;
+  oneof tool_types {
+      ConversationToolCallsOfFunction function = 2;
+  }
+}
+
+// inspired by openai.ChatCompletionMessageToolCallFunctionParam
+// https://github.com/openai/openai-go/blob/main/chatcompletion.go#L1692
+message ConversationToolCallsOfFunction {
+  string name = 1;
+  // The arguments to call the function with, as generated by the model in JSON
+  // format. Note that the model does not always generate valid JSON, and may
+  // hallucinate parameters not defined by your function schema. Validate the
+  // arguments in your code before calling your function.
+  string arguments = 2;
+}
+
+// inspired by openai.ChatCompletionContentPartTextParam & openai.ChatCompletionDeveloperMessageParamContentUnion
+// https://github.com/openai/openai-go/blob/main/chatcompletion.go#L1084
+// https://github.com/openai/openai-go/blob/main/chatcompletion.go#L1154C6-L1154C53
+// Note: openai has this message be either a message of string or message of array type,
+// so instead of this, we support that in one message type instead.
+message ConversationMessageContent {
+  string text = 1;
+}
+
+// ConversationResult is the result for one input.
+message ConversationResult {
+  option deprecated = true;
+
+  // Result for the one conversation input.
+  string result = 1;
+  // Parameters for all custom fields.
+  map<string, google.protobuf.Any> parameters = 2;
+}
+
+// inspired by openai.ChatCompletion
+// ConversationResultAlpha2 is the result for one input.
+message ConversationResultAlpha2 {
+  // Result for the conversation input.
+  repeated ConversationResultChoices choices = 1;
+
+  /* TODO bring in for 1.17 based on openai
+  https://github.com/openai/openai-go/blob/main/chatcompletion.go#L166
+  Usage https://github.com/openai/openai-go/blob/main/chatcompletion.go#L204
+
+  Bring in 1.16:
+  Created (timestamp): https://github.com/openai/openai-go/blob/main/chatcompletion.go#L173
+  Model: https://github.com/openai/openai-go/blob/main/chatcompletion.go#L175
+  */
+}
+
+// inspired by openai.ChatCompletionChoice
+// based on https://github.com/openai/openai-go/blob/main/chatcompletion.go#L226
+message ConversationResultChoices {
+  // The reason the model stopped generating tokens. This will be `stop` if the model
+  // hit a natural stop point or a provided stop sequence, `length` if the maximum
+  // number of tokens specified in the request was reached, `content_filter` if
+  // content was omitted due to a flag from our content filters, `tool_calls` if the
+  // model called a tool.
+  // Any of "stop", "length", "tool_calls", "content_filter".
+  string finish_reason = 1;
+
+  // The index of the choice in the list of choices.
+  int64 index = 2;
+
+  ConversationResultMessage message = 3;
+}
+
+// inspired by openai.ChatCompletionMessage
+// based on https://github.com/openai/openai-go/blob/main/chatcompletion.go#L1218C6-L1218C27
+message ConversationResultMessage {
+  // The contents of the message.
+  string content = 1;
+  // The tool calls generated by the model.
+  repeated ConversationToolCalls tool_calls = 2;
+
+  // TODO: after 1.16 there is a refusal field that openai has here,
+  // but langchain does not have support for this yet,
+  // so we do not add to our api.
+}
+
+// ConversationResponse is the response for Conversation.
+message ConversationResponse {
+  option deprecated = true;
+
+  // The ID of an existing chat (like in ChatGPT)
+  optional string contextID = 1;
+
+  // An array of results.
+  repeated ConversationResult outputs = 2;
+}
+
+// ConversationResponseAlpha2 is the Alpha2 response for Conversation.
+message ConversationResponseAlpha2 {
+  // The ID of an existing chat (like in ChatGPT)
+  optional string context_id = 1;
+
+  // An array of results.
+  repeated ConversationResultAlpha2 outputs = 2;
+}
+
+// ConversationTools are the typed tools available to be called.
+// inspired by openai.ChatCompletionToolParam
+// https://github.com/openai/openai-go/blob/main/chatcompletion.go#L1950
+message ConversationTools {
+  oneof tool_types {
+    ConversationToolsFunction function = 1;
+  }
+}
+
+// ConversationToolsFunction is the main tool type to be used in a conversation.
+// inspired by openai.FunctionDefinitionParam
+// https://pkg.go.dev/github.com/openai/openai-go/shared#FunctionDefinitionParam
+message ConversationToolsFunction {
+  // The name of the function to be called.
+  string name = 1;
+
+  // A description of what the function does, 
+  // used by the model to choose when and how to call the function.
+  optional string description = 2;
+
+  // The parameters the functions accepts, described as a JSON Schema object. 
+  // See the [guide](https://platform.openai.com/docs/guides/function-calling) for examples,
+  // and the [JSON Schema reference](https://json-schema.org/understanding-json-schema/) for documentation about the format.	
+  // Omitting `parameters` defines a function with an empty parameter list.
+  google.protobuf.Struct parameters = 3;
 }
