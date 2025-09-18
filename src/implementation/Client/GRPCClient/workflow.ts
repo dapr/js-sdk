@@ -51,7 +51,7 @@ export default class GRPCClientWorkflow implements IClientWorkflow {
     throw new GRPCNotSupportedError();
   }
 
-  raise(_instanceId: string, _eventName: string, _input?: any): Promise<any> {
+  raiseEvent(_instanceId: string, _eventName: string, _input?: any): Promise<any> {
     throw new GRPCNotSupportedError();
   }
 }
