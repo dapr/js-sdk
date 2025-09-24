@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/* eslint-disable @typescript-eslint/no-var-requires */
 // No top-level imports - we use jest.isolateModules() to import fresh modules
 
 describe("Settings - Environment Variable Support", () => {
