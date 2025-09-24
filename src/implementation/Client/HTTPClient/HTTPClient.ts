@@ -75,17 +75,18 @@ export default class HTTPClient implements IClient {
   }
 
   private generateEndpoint(options: Partial<DaprClientOptions>): HttpEndpoint {
-    const host = options?.daprHost ?? Settings.getDefaultHost();
-    const port = options?.daprPort ?? Settings.getDefaultHttpPort();
-    let uri = `${host}:${port}`;
-
+    // Check for explicit endpoint first (highest priority)
     if (!(options?.daprHost || options?.daprPort)) {
-      // If neither host nor port are specified, check the endpoint environment variable.
       const endpoint = Settings.getDefaultHttpEndpoint();
       if (endpoint != "") {
-        uri = endpoint;
+        return new HttpEndpoint(endpoint);
       }
     }
+
+    // Use provided options or environment variable defaults
+    const host = options?.daprHost ?? Settings.getDefaultHost();
+    const port = options?.daprPort ?? Settings.getDefaultHttpPort();
+    const uri = `${host}:${port}`;
 
     return new HttpEndpoint(uri);
   }
