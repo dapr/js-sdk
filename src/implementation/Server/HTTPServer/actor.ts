@@ -75,25 +75,23 @@ export default class HTTPServerActor implements IServerActor {
       .put("/actors/:actorTypeName/:actorId/method/remind/:reminderName", this.handlerReminder.bind(this));
   }
 
-  private async handlerHealth(_req: IRequest, res: IResponse): Promise<IResponse> {
-    return res.send("ok");
+  private async handlerHealth(_req: IRequest, res: IResponse): Promise<void> {
+    res.send("ok");
   }
 
-  private async handlerConfig(_req: IRequest, res: IResponse): Promise<IResponse> {
+  private async handlerConfig(_req: IRequest, res: IResponse): Promise<void> {
     const actorRuntime = ActorRuntime.getInstance(this.client.daprClient);
-    return res.send(
-      getRegisteredActorResponse(actorRuntime.getRegisteredActorTypes(), actorRuntime.getActorRuntimeOptions()),
-    );
+    res.send(getRegisteredActorResponse(actorRuntime.getRegisteredActorTypes(), actorRuntime.getActorRuntimeOptions()));
   }
 
-  private async handlerDeactivate(req: IRequest, res: IResponse): Promise<IResponse> {
+  private async handlerDeactivate(req: IRequest, res: IResponse): Promise<void> {
     const { actorTypeName, actorId } = req.params;
     const result = await ActorRuntime.getInstance(this.client.daprClient).deactivate(actorTypeName, actorId);
     res.statusCode = HttpStatusCode.OK;
-    return this.handleResult(res, result);
+    this.handleResult(res, result);
   }
 
-  private async handlerMethod(req: IRequest, res: IResponse): Promise<IResponse> {
+  private async handlerMethod(req: IRequest, res: IResponse): Promise<void> {
     const { actorTypeName, actorId, methodName } = req.params;
     const body = req.body;
 
@@ -108,16 +106,16 @@ export default class HTTPServerActor implements IServerActor {
         dataSerialized,
       );
       res.statusCode = HttpStatusCode.OK;
-      return this.handleResult(res, result);
+      this.handleResult(res, result);
     } catch (err) {
       if (err instanceof Error) {
         res.statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
       }
-      return this.handleResult(res, err);
+      this.handleResult(res, err);
     }
   }
 
-  private async handlerTimer(req: IRequest, res: IResponse): Promise<IResponse> {
+  private async handlerTimer(req: IRequest, res: IResponse): Promise<void> {
     const { actorTypeName, actorId, timerName } = req.params;
     const body = req.body;
 
@@ -128,10 +126,10 @@ export default class HTTPServerActor implements IServerActor {
       timerName,
       dataSerialized,
     );
-    return res.status(200).send(result);
+    res.status(200).send(result);
   }
 
-  private async handlerReminder(req: IRequest, res: IResponse): Promise<IResponse> {
+  private async handlerReminder(req: IRequest, res: IResponse): Promise<void> {
     const { actorTypeName, actorId, reminderName } = req.params;
     const body = req.body;
 
@@ -142,7 +140,7 @@ export default class HTTPServerActor implements IServerActor {
       reminderName,
       dataSerialized,
     );
-    return res.status(200).send(result);
+    res.status(200).send(result);
   }
 
   private handleResult(res: IResponse, result: any) {

@@ -102,7 +102,7 @@ export default class HTTPServerImpl {
         const bulkSubEnabled = subscription.dapr.bulkSubscribe?.enabled;
         if (bulkSubEnabled) {
           const result = await this.processBulkSubscribeMessage(routeObj, req);
-          return res.send(result);
+          res.send(result);
         }
 
         const headers = req.headers;
@@ -111,7 +111,7 @@ export default class HTTPServerImpl {
         // Process the callbacks
         // we handle priority of status on `RETRY` > `DROP` > `SUCCESS` and default to `SUCCESS`
         const status = await this.processPubSubCallbacks(routeObj, data, headers);
-        return res.send({ status });
+        res.send({ status });
       });
     }
 

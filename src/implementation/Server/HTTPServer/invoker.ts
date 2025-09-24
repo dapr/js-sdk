@@ -47,9 +47,9 @@ export default class HTTPServerInvoker implements IServerInvoker {
 
       if (!res.writableEnded) {
         if (invokeResponse) {
-          return res.end(JSON.stringify(invokeResponse));
+          res.end(JSON.stringify(invokeResponse));
         } else {
-          return res.end(JSON.stringify({ closed: true }));
+          res.end(JSON.stringify({ closed: true }));
         }
       }
     });
