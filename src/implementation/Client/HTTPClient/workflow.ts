@@ -31,7 +31,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     this.logger = new Logger("HTTPClient", "Workflow", client.options.logger);
   }
 
-  async get(instanceID: string): Promise<WorkflowGetResponseType> {
+  async getWorkflowState(instanceID: string): Promise<WorkflowGetResponseType> {
     if (!instanceID) {
       throw new PropertyRequiredError("instanceID");
     }
@@ -65,7 +65,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     }
   }
 
-  async start(
+  async scheduleNewWorkflow(
     workflowName: string,
     input?: any,
     instanceId?: string | undefined,
@@ -81,7 +81,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
 
     const queryParams = createHTTPQueryParam({ data: { instanceID: instanceId } });
 
-    // Set content type if provided.
+    // Set content-type if provided.
     // If not, HTTPClient will infer it from the data.
     const headers: KeyValueType = {};
     if (options.contentType) {
@@ -106,7 +106,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     }
   }
 
-  async raise(
+  async raiseEvent(
     instanceId: string,
     eventName: string,
     eventData?: any,
@@ -120,7 +120,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
       throw new PropertyRequiredError("eventName");
     }
 
-    // Set content type if provided.
+    // Set content-type if provided.
     // If not, HTTPClient will infer it from the data.
     const headers: KeyValueType = {};
     if (options.eventContentType) {
