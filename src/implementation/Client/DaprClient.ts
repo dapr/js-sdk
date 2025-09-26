@@ -26,6 +26,7 @@ import IClientSecret from "../../interfaces/Client/IClientSecret";
 import IClientSidecar from "../../interfaces/Client/IClientSidecar";
 import IClientState from "../../interfaces/Client/IClientState";
 import IClientWorkflow from "../../interfaces/Client/IClientWorkflow";
+import IClientJobs from "../../interfaces/Client/IClientJobs";
 
 import GRPCClient from "./GRPCClient/GRPCClient";
 import GRPCClientActor from "./GRPCClient/actor";
@@ -41,6 +42,7 @@ import GRPCClientSecret from "./GRPCClient/secret";
 import GRPCClientSidecar from "./GRPCClient/sidecar";
 import GRPCClientState from "./GRPCClient/state";
 import GRPCClientWorkflow from "./GRPCClient/workflow";
+import GRPCClientJobs from "./GRPCClient/jobs";
 
 import HTTPClient from "./HTTPClient/HTTPClient";
 import HTTPClientActor from "./HTTPClient/actor";
@@ -57,6 +59,7 @@ import HTTPClientSecret from "./HTTPClient/secret";
 import HTTPClientSidecar from "./HTTPClient/sidecar";
 import HTTPClientState from "./HTTPClient/state";
 import HTTPClientWorkflow from "./HTTPClient/workflow";
+import HTTPClientJobs from "./HTTPClient/jobs";
 
 import CommunicationProtocolEnum from "../../enum/CommunicationProtocol.enum";
 import { DaprClientOptions } from "../../types/DaprClientOptions";
@@ -83,6 +86,7 @@ export default class DaprClient {
   readonly sidecar: IClientSidecar;
   readonly state: IClientState;
   readonly workflow: IClientWorkflow;
+  readonly jobs: IClientJobs;
 
   private readonly logger: Logger;
 
@@ -119,6 +123,7 @@ export default class DaprClient {
         this.crypto = new GRPCClientCrypto(client);
         this.actor = new GRPCClientActor(client); // we use an abstractor here since we interface through a builder with the Actor Runtime
         this.workflow = new GRPCClientWorkflow(client);
+        this.jobs = new GRPCClientJobs(client);
         break;
       }
       case CommunicationProtocolEnum.HTTP:
@@ -140,6 +145,7 @@ export default class DaprClient {
         this.sidecar = new HTTPClientSidecar(client);
         this.state = new HTTPClientState(client);
         this.workflow = new HTTPClientWorkflow(client);
+        this.jobs = new HTTPClientJobs(client);
         break;
       }
     }

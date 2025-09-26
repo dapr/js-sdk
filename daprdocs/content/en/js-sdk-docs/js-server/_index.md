@@ -112,7 +112,7 @@ const daprServer = new DaprServer({
       serverPort: "50002", // App Port
       serverHttp: myApp,
       clientOptions: {
-        daprHost
+        daprHost,
         daprPort
       }
     });
@@ -560,6 +560,61 @@ async function start() {
   // Start server
   await server.start();
 }
+```
+
+### Jobs API
+
+The [jobs API](https://docs.dapr.io/developing-applications/building-blocks/jobs/jobs-overview/) allows you to schedule actions for dapr to invoke at some later point.
+
+#### Schedule Job
+
+Using the dapr client, you can have your application called with a desired payload at specific time(s).
+
+```typescript
+const client = new DaprClient({
+  daprHost: daprHost,
+  daprPort: daprPort,
+  communicationProtocol: CommunicationProtocolEnum.HTTP,
+});
+
+await client.jobs.schedule(
+  "my-job",
+  { value: "hello world" },
+  "* * * * * *"
+);
+```
+
+Dapr will call your application at `/job/{nameOfJob}` according to the cron expression 
+provided when registered.  Using the example above, that would be `/job/my-job`.
+
+### Get Job
+
+You can retrieve information about a registered job by calling the `get` method.
+
+```typescript
+const client = new DaprClient({
+  daprHost: daprHost,
+  daprPort: daprPort,
+  communicationProtocol: CommunicationProtocolEnum.HTTP,
+});
+
+await client.jobs.get("my-job");
+```
+
+The result is the payload provided when the job was registered, inside a `Job` wrapper instance.
+
+#### Delete Job
+
+If you wish to cancel any registered job, you can use the delete method found on the client:
+
+```typescript
+const client = new DaprClient({
+  daprHost: daprHost,
+  daprPort: daprPort,
+  communicationProtocol: CommunicationProtocolEnum.HTTP,
+});
+
+await client.jobs.delete("my-job");
 ```
 
 ### Bindings API
