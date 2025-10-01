@@ -44,7 +44,6 @@
     "test:unit:workflow": "cross-env NODE_ENV=test npm run test:unit 'test/unit/workflow/.*\\.test\\.ts'",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "prebuild": "node scripts/prebuild.js",
-    "update-protos": "node scripts/fetch-proto.js",
     "build-ci": "npm run prebuild && node scripts/build.js",
     "start:dev": "npm run build && nodemon --ext \".ts,.js\" --watch \"./src\" --exec \"npm run build\"",
     "pretty": "prettier --list-different \"**/*.{ts,tsx,js,jsx,json,md}\"",
@@ -54,6 +53,7 @@
   "author": "Dapr Authors",
   "license": "apache-2.0",
   "dependencies": {
+    "@bufbuild/protobuf": "^2.9.0",
     "@dapr/durabletask-js": "0.1.0-alpha.2",
     "@grpc/grpc-js": "^1.9.3",
     "@js-temporal/polyfill": "^0.3.0",
@@ -65,6 +65,7 @@
     "http-terminator": "^3.2.0"
   },
   "devDependencies": {
+    "@bufbuild/buf": "^1.57.2",
     "@types/body-parser": "^1.19.1",
     "@types/express": "^4.17.15",
     "@types/jest": "^27.0.1",
@@ -81,7 +82,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "execa": "^9.6.0",
     "fs-extra": "^11.3.2",
-    "grpc_tools_node_protoc_ts": "^5.3.2",
+    "grpc_tools_node_protoc_ts": "^5.3.3",
     "grpc-tools": "^1.13.0",
     "husky": "^8.0.1",
     "jest": "^27.2.0",

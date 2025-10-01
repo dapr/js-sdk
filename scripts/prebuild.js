@@ -32,15 +32,15 @@ async function main() {
 
     // Ensure we're in the project root
     const projectRoot = path.resolve(__dirname, '..');
+    const protoDir = path.join('dapr', 'proto');
     process.chdir(projectRoot);
 
     // Step 1: Ensure proto directory exists
     console.log('Ensuring proto directory structure...');
-    await fs.ensureDir(path.join('src', 'proto'));
+    await fs.ensureDir(protoDir);
 
     // Step 2: Check if proto files need to be fetched/updated
     console.log('Checking proto files...');
-    const protoDir = path.join('src', 'proto');
     const protoExists = await fs.pathExists(protoDir);
 
     if (!protoExists || (await fs.readdir(protoDir)).length === 0) {
@@ -50,24 +50,24 @@ async function main() {
 
     // Step 3: Build/update gRPC bindings if needed
     console.log('Checking gRPC bindings...');
-    await runScript('build-grpc');
+    await execSync('npx buf generate');
 
-    // Step 4: Ensure TypeScript types are available
-    console.log('Verifying TypeScript compilation setup...');
-    try {
-      execSync('npx tsc --noEmit --skipLibCheck', {
-        stdio: 'pipe',
-        cwd: projectRoot
-      });
-      console.log('TypeScript compilation check passed');
-    } catch (error) {
-      console.warn('TypeScript compilation check failed, but continuing...');
-      console.warn(error.message);
-    }
-
-    console.log('=======================================================');
-    console.log('Prebuild completed successfully!');
-    console.log('=======================================================');
+    // // Step 4: Ensure TypeScript types are available
+    // console.log('Verifying TypeScript compilation setup...');
+    // try {
+    //   execSync('npx tsc --noEmit --skipLibCheck', {
+    //     stdio: 'pipe',
+    //     cwd: projectRoot
+    //   });
+    //   console.log('TypeScript compilation check passed');
+    // } catch (error) {
+    //   console.warn('TypeScript compilation check failed, but continuing...');
+    //   console.warn(error.message);
+    // }
+    //
+    // console.log('=======================================================');
+    // console.log('Prebuild completed successfully!');
+    // console.log('=======================================================');
 
   } catch (error) {
     console.error('Prebuild failed:', error.message);

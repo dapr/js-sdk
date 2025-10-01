@@ -24,16 +24,15 @@ const https = require('https');
 
 // Configuration
 const DAPR_VERSION = process.env.DAPR_VERSION || 'v1.16.0'; // Default version, can be overridden
-const DAPR_REPO_URL = 'https://api.github.com/repos/dapr/dapr';
+const DAPR_REPO_URL = 'https://raw.githubusercontent.com/dapr/dapr/';
 const PROTO_BASE_PATH = 'dapr/proto';
-const LOCAL_PROTO_DIR = path.join('src', 'proto');
+const LOCAL_PROTO_DIR = path.join('dapr', 'proto');
 
 // Proto files to download (commonly used Dapr proto files)
 const PROTO_FILES = [
   'common/v1/common.proto',
   'runtime/v1/dapr.proto',
-  'runtime/v1/appcallback.proto',
-  'internals/v1/status.proto'
+  'runtime/v1/appcallback.proto'
 ];
 
 async function main() {
@@ -83,7 +82,7 @@ async function fetchProtoViaHTTP() {
   for (const protoFile of PROTO_FILES) {
     console.log(`Downloading ${protoFile}...`);
 
-    const url = `https://raw.githubusercontent.com/dapr/dapr/${DAPR_VERSION}/${PROTO_BASE_PATH}/${protoFile}`;
+    const url = `${DAPR_REPO_URL}${DAPR_VERSION}/${PROTO_BASE_PATH}/${protoFile}`;
     const localPath = path.join(LOCAL_PROTO_DIR, protoFile);
 
     // Ensure directory exists

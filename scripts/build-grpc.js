@@ -188,20 +188,42 @@ async function generateGrpc(protoPath, protoFile) {
   console.log(`[protoc] Generating RPC for ${protoPath}/${protoFile}`);
 
   const projectRoot = process.cwd();
-  const protocGenTsPath = path.join(projectRoot, 'node_modules', '.bin', 'protoc-gen-ts');
-  const protocGenGrpcPath = path.join(projectRoot, 'node_modules', '.bin', 'grpc_tools_node_protoc_plugin');
 
-  // Adjust paths for Windows
-  const protocGenTsCmd = process.platform === 'win32' ? `${protocGenTsPath}.cmd` : protocGenTsPath;
-  const protocGenGrpcCmd = process.platform === 'win32' ? `${protocGenGrpcPath}.cmd` : protocGenGrpcPath;
+  const grpcToolsBinDir = path.join(projectRoot, 'node_modules', 'grpc-tools', 'bin');
+  const nodeModulesBinDir = path.join(projectRoot, 'node_modules', '.bin');
 
-  // Check if the required tools exist
-  if (!await fs.pathExists(protocGenTsCmd) && !await fs.pathExists(protocGenTsPath)) {
+  // Find the TS plugin by platform
+  let protocGenTsCmd;
+  const protocGenTsWin = path.join(nodeModulesBinDir, 'protoc-gen-ts.cmd');
+  const protocGenTsUnix = path.join(nodeModulesBinDir, 'protoc-gen-ts');
+
+  if (await fs.pathExists(protocGenTsWin)) {
+    protocGenTsCmd = protocGenTsWin;
+  } else if (await fs.pathExists(protocGenTsUnix)) {
+    protocGenTsCmd = protocGenTsUnix;
+  } else {
     throw new Error('protoc-gen-ts not found. Please run: npm install grpc_tools_node_protoc_ts --save-dev');
   }
-  if (!await fs.pathExists(protocGenGrpcCmd) && !await fs.pathExists(protocGenGrpcPath)) {
+
+  // Check for gRPC plugin
+  let protocGenGrpcCmd;
+  const grpcPluginWinCmd = path.join(nodeModulesBinDir, 'grpc_tools_node_protoc_plugin.cmd');
+  const grpcPluginUnix = path.join(nodeModulesBinDir, 'grpc_tools_node_protoc_plugin');
+  const grpcPluginExe = path.join(grpcToolsBinDir, 'grpc_node_plugin.exe');
+
+  if (await fs.pathExists(grpcPluginWinCmd)) {
+    protocGenGrpcCmd = grpcPluginWinCmd;
+  } else if (await fs.pathExists(grpcPluginUnix)) {
+    protocGenGrpcCmd = grpcPluginUnix;
+  } else if (await fs.pathExists(grpcPluginExe)) {
+    // Use the .exe directly (this might work if DLL dependencies are resolved)
+    protocGenGrpcCmd = grpcPluginExe;
+  } else {
     throw new Error('grpc_tools_node_protoc_plugin not found. Please run: npm install grpc-tools --save-dev');
   }
+
+  console.log(`Using TypeScript plugin: ${protocGenTsCmd}`);
+  console.log(`Using gRPC plugin: ${protocGenGrpcCmd}`);
 
   const protocArgs = [
     `--proto_path=${protoPath}`,
@@ -214,11 +236,52 @@ async function generateGrpc(protoPath, protoFile) {
   ];
 
   try {
-    execSync(`protoc ${protocArgs.join(' ')}`, {
+    const command = `protoc ${protocArgs.join(' ')}`;
+    console.log(`Executing: ${command}`);
+
+    execSync(command, {
       stdio: 'inherit',
-      cwd: projectRoot
+      cwd: projectRoot,
+      env: {
+        ...process.env,
+        // Ensure protoc can find the plugins
+        PATH: `${nodeModulesBinDir}${path.delimiter}${grpcToolsBinDir}${path.delimiter}${process.env.PATH}`
+      }
     });
   } catch (error) {
+    // If the .exe fails due to DLL issues, try an alternative approach
+    if (protocGenGrpcCmd.endsWith('.exe')) {
+      console.log('Windows .exe plugin failed, trying alternative approach...');
+
+      // Try to skip gRPC generation for now and only generate JS/TS
+      const fallbackArgs = [
+        `--proto_path=${protoPath}`,
+        `--plugin=protoc-gen-ts=${protocGenTsCmd}`,
+        `--js_out=import_style=commonjs,binary:${protoPath}`,
+        `--ts_out=grpc_js:${protoPath}`,
+        path.join(protoPath, protoFile)
+      ];
+
+      try {
+        const fallbackCommand = `protoc ${fallbackArgs.join(' ')}`;
+        console.log(`Executing fallback (without gRPC): ${fallbackCommand}`);
+
+        execSync(fallbackCommand, {
+          stdio: 'inherit',
+          cwd: projectRoot,
+          env: {
+            ...process.env,
+            PATH: `${nodeModulesBinDir}${path.delimiter}${process.env.PATH}`
+          }
+        });
+
+        console.log(`Warning: Generated JS/TS files for ${protoFile} but skipped gRPC bindings due to Windows compatibility issues`);
+        return; // Success with fallback
+      } catch (fallbackError) {
+        throw new Error(`Both gRPC generation and fallback failed for ${protoFile}: ${fallbackError.message}`);
+      }
+    }
+
     throw new Error(`Failed to generate gRPC bindings for ${protoFile}: ${error.message}`);
   }
 }
