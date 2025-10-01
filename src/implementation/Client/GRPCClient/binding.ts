@@ -12,10 +12,11 @@ limitations under the License.
 */
 
 import GRPCClient from "./GRPCClient";
-import { InvokeBindingRequest, InvokeBindingResponse } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import  { InvokeBindingRequestSchema } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import type { InvokeBindingResponse } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import { create } from "@bufbuild/protobuf"
 import IClientBinding from "../../../interfaces/Client/IClientBinding";
 import * as SerializerUtil from "../../../utils/Serializer.util";
-import { addMetadataToMap } from "../../../utils/Client.util";
 import { KeyValueType } from "../../../types/KeyValue.type";
 
 // https://docs.dapr.io/reference/api/bindings_api/
@@ -29,16 +30,16 @@ export default class GRPCClientBinding implements IClientBinding {
   // Send an event to an external system
   // @todo: should return a specific typed Promise<TypeBindingResponse> instead of Promise<object>
   async send(bindingName: string, operation: string, data: any, metadata: KeyValueType = {}): Promise<object> {
-    const msgService = new InvokeBindingRequest();
-    msgService.setName(bindingName);
-    msgService.setOperation(operation);
+    const msgService = create(InvokeBindingRequestSchema);
+    msgService.name = bindingName;
+    msgService.operation = operation;
 
     if (data) {
       const serialized = SerializerUtil.serializeGrpc(data);
-      msgService.setData(serialized.serializedData);
+      msgService.data = serialized.serializedData;
     }
 
-    addMetadataToMap(msgService.getMetadataMap(), metadata);
+    Object.assign(msgService.metadata, metadata);
 
     const client = await this.client.getClient();
 
@@ -50,8 +51,8 @@ export default class GRPCClientBinding implements IClientBinding {
 
         // https://docs.dapr.io/reference/api/bindings_api/#payload
         return resolve({
-          data: res.getData(),
-          metadata: res.getMetadataMap(),
+          data: res.data,
+          metadata: res.metadata,
           operation,
         });
       });
