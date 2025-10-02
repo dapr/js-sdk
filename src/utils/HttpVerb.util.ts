@@ -11,58 +11,58 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { HTTPExtension } from "../proto/dapr/proto/common/v1/common_pb";
+import { HTTPExtension_Verb } from "../proto/dapr/proto/common/v1/common_pb";
 
-export function convertHttpVerbNumberToString(verbNumber: HTTPExtension.Verb): string {
+export function convertHttpVerbNumberToString(verbNumber: HTTPExtension_Verb): string {
   switch (verbNumber) {
-    case HTTPExtension.Verb.GET:
+    case HTTPExtension_Verb.GET:
       return "GET";
-    case HTTPExtension.Verb.POST:
+    case HTTPExtension_Verb.POST:
       return "POST";
-    case HTTPExtension.Verb.DELETE:
+    case HTTPExtension_Verb.DELETE:
       return "DELETE";
-    case HTTPExtension.Verb.PUT:
+    case HTTPExtension_Verb.PUT:
       return "PUT";
-    case HTTPExtension.Verb.PATCH:
+    case HTTPExtension_Verb.PATCH:
       return "PATCH";
-    case HTTPExtension.Verb.TRACE:
+    case HTTPExtension_Verb.TRACE:
       return "TRACE";
-    case HTTPExtension.Verb.CONNECT:
+    case HTTPExtension_Verb.CONNECT:
       return "CONNECT";
-    case HTTPExtension.Verb.HEAD:
+    case HTTPExtension_Verb.HEAD:
       return "HEAD";
-    case HTTPExtension.Verb.NONE:
+    case HTTPExtension_Verb.NONE:
       return "NONE";
-    case HTTPExtension.Verb.OPTIONS:
+    case HTTPExtension_Verb.OPTIONS:
       return "OPTIONS";
   }
 
   return "NONE";
 }
 
-export function convertHttpVerbStringToNumber(verbStr: string): HTTPExtension.Verb {
+export function convertHttpVerbStringToNumber(verbStr: string): HTTPExtension_Verb {
   switch (verbStr.toUpperCase()) {
     case "GET":
-      return HTTPExtension.Verb.GET;
+      return HTTPExtension_Verb.GET;
     case "POST":
-      return HTTPExtension.Verb.POST;
+      return HTTPExtension_Verb.POST;
     case "DELETE":
-      return HTTPExtension.Verb.DELETE;
+      return HTTPExtension_Verb.DELETE;
     case "PUT":
-      return HTTPExtension.Verb.PUT;
+      return HTTPExtension_Verb.PUT;
     case "PATCH":
-      return HTTPExtension.Verb.PATCH;
+      return HTTPExtension_Verb.PATCH;
     case "TRACE":
-      return HTTPExtension.Verb.TRACE;
+      return HTTPExtension_Verb.TRACE;
     case "CONNECT":
-      return HTTPExtension.Verb.CONNECT;
+      return HTTPExtension_Verb.CONNECT;
     case "HEAD":
-      return HTTPExtension.Verb.HEAD;
+      return HTTPExtension_Verb.HEAD;
     case "NONE":
-      return HTTPExtension.Verb.NONE;
+      return HTTPExtension_Verb.NONE;
     case "OPTIONS":
-      return HTTPExtension.Verb.OPTIONS;
+      return HTTPExtension_Verb.OPTIONS;
   }
 
-  return HTTPExtension.Verb.NONE;
+  return HTTPExtension_Verb.NONE;
 }

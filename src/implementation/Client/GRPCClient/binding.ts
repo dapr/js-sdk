@@ -44,7 +44,7 @@ export default class GRPCClientBinding implements IClientBinding {
     const client = await this.client.getClient();
 
     return new Promise((resolve, reject) => {
-      client.invokeBinding(msgService, (err, res: InvokeBindingResponse) => {
+      client.invokeBinding(msgService, (err: any, res: InvokeBindingResponse) => {
         if (err) {
           return reject(err);
         }
