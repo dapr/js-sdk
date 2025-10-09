@@ -351,4 +351,4 @@ hTTPEndpointUpdate: {
   },
 };
 
-exports.OperatorClient = grpc.makeGenericClientConstructor(OperatorService);
+exports.OperatorClient = grpc.makeGenericClientConstructor(OperatorService, 'Operator');
