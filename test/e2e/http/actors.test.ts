@@ -33,6 +33,7 @@ import DemoActorTimerTtlImpl from "../../actor/DemoActorTimerTtlImpl";
 import DemoActorReminderTtlImpl from "../../actor/DemoActorReminderTtlImpl";
 import DemoActorDeleteStateImpl from "../../actor/DemoActorDeleteStateImpl";
 import DemoActorDeleteStateInterface from "../../actor/DemoActorDeleteStateInterface";
+import DemoActorCounterContract from "../../actor/DemoActorCounterContract";
 
 const serverHost = "127.0.0.1";
 const serverPort = "50001";
@@ -144,8 +145,40 @@ describe("http/actors", () => {
   });
 
   describe("actorProxy", () => {
-    it("should be able to create an actor object through the proxy", async () => {
+    it("should be able to create an actor object through the proxy (when we have the implementation)", async () => {
+      const builder = new ActorProxyBuilder<DemoActorCounterInterface>("DemoActorCounterImpl", DemoActorCounterImpl, client);
+      const actor = builder.build(ActorId.createRandomId());
+
+      const c1 = await actor.getCounter();
+      expect(c1).toEqual(0);
+
+      await actor.countBy(1, 1);
+      const c2 = await actor.getCounter();
+      expect(c2).toEqual(1);
+
+      await actor.countBy(1, 10);
+      const c3 = await actor.getCounter();
+      expect(c3).toEqual(11);
+    });
+
+    it("should be able to create an actor object through the proxy and the deprecated way of working (when we have the implementation)", async () => {
       const builder = new ActorProxyBuilder<DemoActorCounterInterface>(DemoActorCounterImpl, client);
+      const actor = builder.build(ActorId.createRandomId());
+
+      const c1 = await actor.getCounter();
+      expect(c1).toEqual(0);
+
+      await actor.countBy(1, 1);
+      const c2 = await actor.getCounter();
+      expect(c2).toEqual(1);
+
+      await actor.countBy(1, 10);
+      const c3 = await actor.getCounter();
+      expect(c3).toEqual(11);
+    });
+
+    it("should be able to create an actor object through the proxy (without requiring the implementation)", async () => {
+      const builder = new ActorProxyBuilder<DemoActorCounterContract>("DemoActorCounterImpl", DemoActorCounterContract, client);
       const actor = builder.build(ActorId.createRandomId());
 
       const c1 = await actor.getCounter();
@@ -163,7 +196,7 @@ describe("http/actors", () => {
 
   describe("invokeNonExistentMethod", () => {
     it("should not fail if invoked non-existing method on actor", async () => {
-      const builder = new ActorProxyBuilder<DemoActorCounterInterface>(DemoActorCounterImpl, client);
+      const builder = new ActorProxyBuilder<DemoActorCounterInterface>("DemoActorCounterImpl", DemoActorCounterImpl, client);
       const actorId = ActorId.createRandomId();
       builder.build(actorId);
 
@@ -181,7 +214,7 @@ describe("http/actors", () => {
 
   describe("deleteActorState", () => {
     it("should be able to delete actor state", async () => {
-      const builder = new ActorProxyBuilder<DemoActorDeleteStateInterface>(DemoActorDeleteStateImpl, client);
+      const builder = new ActorProxyBuilder<DemoActorDeleteStateInterface>("DemoActorDeleteStateImpl", DemoActorDeleteStateImpl, client);
       const actor = builder.build(ActorId.createRandomId());
       await actor.init();
 
@@ -195,6 +228,7 @@ describe("http/actors", () => {
       expect(deletedRes).toEqual(false);
     });
   });
+
   describe("invoke", () => {
     it("should register actors correctly", async () => {
       const actors = await server.actor.getRegisteredActors();
@@ -215,21 +249,21 @@ describe("http/actors", () => {
     });
 
     it("should be able to invoke an actor through a text message", async () => {
-      const builder = new ActorProxyBuilder<DemoActorSayInterface>(DemoActorSayImpl, client);
+      const builder = new ActorProxyBuilder<DemoActorSayInterface>("DemoActorSayImpl", DemoActorSayImpl, client);
       const actor = builder.build(ActorId.createRandomId());
       const res = await actor.sayString("Hello World");
       expect(res).toEqual(`Actor said: "Hello World"`);
     });
 
     it("should be able to invoke an actor through an object message", async () => {
-      const builder = new ActorProxyBuilder<DemoActorSayInterface>(DemoActorSayImpl, client);
+      const builder = new ActorProxyBuilder<DemoActorSayInterface>("DemoActorSayImpl", DemoActorSayImpl, client);
       const actor = builder.build(ActorId.createRandomId());
       const res = await actor.sayObject({ hello: "world" });
       expect(JSON.stringify(res)).toEqual(`{"said":{"hello":"world"}}`);
     });
 
     it("should be able to invoke an actor through multiple parameters", async () => {
-      const builder = new ActorProxyBuilder<DemoActorSayInterface>(DemoActorSayImpl, client);
+      const builder = new ActorProxyBuilder<DemoActorSayInterface>("DemoActorSayImpl", DemoActorSayImpl, client);
       const actor = builder.build(ActorId.createRandomId());
       const res = await actor.sayMulti(123, "123", { hello: "world 123" }, [1, 2, 3]);
       expect(JSON.stringify(res)).toEqual(
@@ -248,7 +282,7 @@ describe("http/actors", () => {
 
   describe("timers", () => {
     it("should fire a timer correctly (expected execution time > 5s)", async () => {
-      const builder = new ActorProxyBuilder<DemoActorTimerInterface>(DemoActorTimerImpl, client);
+      const builder = new ActorProxyBuilder<DemoActorTimerInterface>("DemoActorTimerImpl", DemoActorTimerImpl, client);
       const actor = builder.build(ActorId.createRandomId());
 
       // Activate our actor
@@ -285,7 +319,7 @@ describe("http/actors", () => {
     }, 10000);
 
     it("should apply the ttl when it is set (expected execution time > 5s)", async () => {
-      const builder = new ActorProxyBuilder<DemoActorTimerInterface>(DemoActorTimerTtlImpl, client);
+      const builder = new ActorProxyBuilder<DemoActorTimerInterface>("DemoActorTimerTtlImpl", DemoActorTimerTtlImpl, client);
       const actor = builder.build(ActorId.createRandomId());
 
       // Activate our actor
@@ -322,7 +356,7 @@ describe("http/actors", () => {
     }, 10000);
 
     it("should only fire once when period is not set to a timer", async () => {
-      const builder = new ActorProxyBuilder<DemoActorTimerInterface>(DemoActorTimerOnceImpl, client);
+      const builder = new ActorProxyBuilder<DemoActorTimerInterface>("DemoActorTimerOnceImpl", DemoActorTimerOnceImpl, client);
       const actor = builder.build(ActorId.createRandomId());
 
       // Activate our actor
@@ -350,7 +384,7 @@ describe("http/actors", () => {
 
   describe("reminders", () => {
     it("should be able to unregister a reminder", async () => {
-      const builder = new ActorProxyBuilder<DemoActorReminderInterface>(DemoActorReminderImpl, client);
+      const builder = new ActorProxyBuilder<DemoActorReminderInterface>("DemoActorReminderImpl", DemoActorReminderImpl, client);
       const actor = builder.build(ActorId.createRandomId());
 
       // Activate our actor
@@ -379,7 +413,7 @@ describe("http/actors", () => {
     });
 
     it("should fire a reminder but with a warning if it's not implemented correctly", async () => {
-      const builder = new ActorProxyBuilder<DemoActorReminderInterface>(DemoActorReminder2Impl, client);
+      const builder = new ActorProxyBuilder<DemoActorReminderInterface>("DemoActorReminder2Impl", DemoActorReminder2Impl, client);
       const actorId = ActorId.createRandomId();
       const actor = builder.build(actorId);
 
@@ -407,7 +441,7 @@ describe("http/actors", () => {
     });
 
     it("should apply the ttl when it is set to a reminder", async () => {
-      const builder = new ActorProxyBuilder<DemoActorReminderInterface>(DemoActorReminderTtlImpl, client);
+      const builder = new ActorProxyBuilder<DemoActorReminderInterface>("DemoActorReminderTtlImpl", DemoActorReminderTtlImpl, client);
       const actor = builder.build(ActorId.createRandomId());
 
       // Activate our actor
@@ -435,7 +469,7 @@ describe("http/actors", () => {
     });
 
     it("should only fire once when period is not set to a reminder", async () => {
-      const builder = new ActorProxyBuilder<DemoActorReminderInterface>(DemoActorReminderOnceImpl, client);
+      const builder = new ActorProxyBuilder<DemoActorReminderInterface>("DemoActorReminderOnceImpl", DemoActorReminderOnceImpl, client);
       const actor = builder.build(ActorId.createRandomId());
 
       // Activate our actor

@@ -28,7 +28,7 @@ The Dapr community can be found on [Discord](https://discord.com/invite/ptHhX6jc
 
 ## Contributing
 
-Please see our [Contributing Overview](https://docs.dapr.io/contributing/sdk-contrib/js-contributing/).
+Please see our [Contributing Overview](https://docs.dapr.io/contributing/sdk-contrib/js-contributing/) and [Development Guide](./documentation//development.md) for more information on how to contribute to the Dapr JS SDK.
 
 ### Good First Issues
 
