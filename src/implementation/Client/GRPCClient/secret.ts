@@ -13,12 +13,14 @@ limitations under the License.
 
 import GRPCClient from "./GRPCClient";
 import {
-  GetBulkSecretRequest,
+  GetBulkSecretRequestSchema,
   GetBulkSecretResponse,
-  GetSecretRequest,
+  GetSecretRequestSchema,
   GetSecretResponse,
 } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import IClientSecret from "../../../interfaces/Client/IClientSecret";
+import { create } from "@bufbuild/protobuf";
+import { convertToMap } from "../../../utils/Client.util";
 
 // https://docs.dapr.io/reference/api/secrets_api/
 export default class GRPCClientSecret implements IClientSecret {
@@ -30,38 +32,37 @@ export default class GRPCClientSecret implements IClientSecret {
 
   // @todo: implement metadata
   async get(secretStoreName: string, key: string, _metadata = ""): Promise<object> {
-    const msgService = new GetSecretRequest();
-    msgService.setStoreName(secretStoreName);
-    msgService.setKey(key);
+    const msgService = create(GetSecretRequestSchema);
+    msgService.storeName = secretStoreName;
+    msgService.key = key;
 
     const client = await this.client.getClient();
 
     return new Promise((resolve, reject) => {
-      client.getSecret(msgService, (err, res: GetSecretResponse) => {
+      client.getSecret(msgService, (err: Error, res: GetSecretResponse) => {
         if (err) {
           return reject(err);
         }
 
         // Convert [ [ 'TEST_SECRET_1', 'secret_val_1' ] ] => [ { TEST_SECRET_1: 'secret_val_1' } ]
-        const items = res
-          .getDataMap()
-          .getEntryList()
+        const items = convertToMap(res.data)
+          .toObject()
           .map((item) => ({ [item[0]]: item[1] }));
 
-        // Return first item (it's a single get)
+        // Return the first item (it's a single get)
         return resolve(items[0]);
       });
     });
   }
 
   async getBulk(secretStoreName: string): Promise<object> {
-    const msgService = new GetBulkSecretRequest();
-    msgService.setStoreName(secretStoreName);
+    const msgService = create(GetBulkSecretRequestSchema);
+    msgService.storeName = secretStoreName;
 
     const client = await this.client.getClient();
 
     return new Promise((resolve, reject) => {
-      client.getBulkSecret(msgService, (err, res: GetBulkSecretResponse) => {
+      client.getBulkSecret(msgService, (err: Error, res: GetBulkSecretResponse) => {
         if (err) {
           return reject(err);
         }
