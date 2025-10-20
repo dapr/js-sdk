@@ -107,6 +107,14 @@ export function getStateConcurrencyValue(c?: StateConcurrencyEnum): "first-write
 }
 
 /**
+ * Converts a protobuf map to a JavaScript map.
+ * @param obj
+ */
+export function convertToMap(obj: {[key: string]: string}) : Map<string, string> {
+  return new Map(Object.entries(obj));
+}
+
+/**
  * Converts a Map<string, common_pb.ConfigurationItemProto> to a ConfigurationType object.
  * @param Map<string, common_pb.ConfigurationItemProto>
  * @returns ConfigurationType object
@@ -117,10 +125,10 @@ export function createConfigurationType(configDict: Map<string, ConfigurationIte
   configDict.forEach(function (v, k) {
     const item: ConfigurationItem = {
       key: k,
-      value: v.getValue(),
-      version: v.getVersion(),
-      metadata: v
-        .getMetadataMap()
+      value: v.value,
+      version: v.version,
+      metadata:
+        convertToMap(v.metadata)
         .toObject()
         .reduce((result: object, [key, value]) => {
           // @ts-ignore

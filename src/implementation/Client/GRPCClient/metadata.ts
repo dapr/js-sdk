@@ -13,13 +13,15 @@ limitations under the License.
 
 import GRPCClient from "./GRPCClient";
 import {
-  GetMetadataRequest,
+  GetMetadataRequestSchema,
   GetMetadataResponse,
-  SetMetadataRequest,
+  SetMetadataRequestSchema,
 } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 import IClientMetadata from "../../../interfaces/Client/IClientMetadata";
 import { GetMetadataResponse as GetMetadataResponseResult } from "../../../types/metadata/GetMetadataResponse";
+import { create } from "@bufbuild/protobuf";
+import { convertToMap } from "../../../utils/Client.util";
 
 // https://docs.dapr.io/reference/api/metadata_api
 export default class GRPCClientMetadata implements IClientMetadata {
@@ -34,30 +36,30 @@ export default class GRPCClientMetadata implements IClientMetadata {
     const client = await this.client.getClient();
 
     return new Promise((resolve, reject) => {
-      client.getMetadata(new GetMetadataRequest(), (err, res: GetMetadataResponse) => {
+      client.getMetadata(create(GetMetadataRequestSchema), (err: Error, res: GetMetadataResponse) => {
         if (err) {
           return reject(err);
         }
 
         const wrapped: GetMetadataResponseResult = {
-          id: res.getId(),
-          actors: res.getActiveActorsCountList().map((a) => ({
-            type: a.getType(),
-            count: a.getCount(),
+          id: res.id,
+          actors: res.activeActorsCount.map((a) => ({
+            type: a.type,
+            count: a.count,
           })),
-          extended: res
-            .getExtendedMetadataMap()
+          extended:
+            convertToMap(res.extendedMetadata)
             .toObject()
             .reduce((result: object, [key, value]) => {
               // @ts-ignore
               result[key] = value;
               return result;
             }, {}),
-          components: res.getRegisteredComponentsList().map((c) => ({
-            name: c.getName(),
-            type: c.getType(),
-            version: c.getVersion(),
-            capabilities: c.getCapabilitiesList(),
+          components: res.registeredComponents.map(c => ({
+            name: c.name,
+            type: c.type,
+            version: c.version,
+            capabilities: c.capabilities
           })),
         };
 
@@ -67,14 +69,14 @@ export default class GRPCClientMetadata implements IClientMetadata {
   }
 
   async set(key: string, value: string): Promise<boolean> {
-    const msg = new SetMetadataRequest();
-    msg.setKey(key);
-    msg.setValue(value);
+    const msg = create(SetMetadataRequestSchema);
+    msg.key = key;
+    msg.value = value;
 
     const client = await this.client.getClient();
 
     return new Promise((resolve, reject) => {
-      client.setMetadata(msg, (err, _res: Empty) => {
+      client.setMetadata(msg, (err: Error, _res: Empty) => {
         if (err) {
           return reject(false);
         }
