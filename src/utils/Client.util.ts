@@ -110,7 +110,7 @@ export function getStateConcurrencyValue(c?: StateConcurrencyEnum): "first-write
  * Converts a protobuf map to a JavaScript map.
  * @param obj
  */
-export function convertToMap(obj: {[key: string]: string}) : Map<string, string> {
+export function convertToMap<T>(obj: {[key: string]: T}) : Map<string, T> {
   return new Map(Object.entries(obj));
 }
 
