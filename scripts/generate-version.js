@@ -29,7 +29,7 @@ export const SDK_VERSION = "${version}";
 `;
 
 // Write to src/version.ts
-const versionFilePath = path.join(__dirname, '..', 'version.ts');
+const versionFilePath = path.join(__dirname, '..', 'src', 'version.ts');
 fs.writeFileSync(versionFilePath, versionFileContent, 'utf8');
 
 console.log(`Generated version.ts with SDK version: ${version}`);
