@@ -11,20 +11,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { Any } from "google-protobuf/google/protobuf/any_pb";
 import {
-  ExecuteActorStateTransactionRequest,
-  GetActorStateRequest,
-  GetActorStateResponse,
-  GetMetadataRequest,
+  ExecuteActorStateTransactionRequestSchema,
+  GetActorStateRequestSchema,
+  GetActorStateResponse, GetMetadataRequestSchema,
   GetMetadataResponse,
-  InvokeActorRequest,
   InvokeActorResponse,
-  RegisterActorReminderRequest,
-  RegisterActorTimerRequest,
+  RegisterActorReminderRequestSchema,
+  RegisterActorTimerRequestSchema,
   TransactionalActorStateOperation,
-  UnregisterActorReminderRequest,
-  UnregisterActorTimerRequest,
+  UnregisterActorReminderRequestSchema,
+  UnregisterActorTimerRequestSchema,
+} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import {
+  InvokeActorRequestSchema,
+  TransactionalActorStateOperationSchema
 } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import GRPCClient from "../../../implementation/Client/GRPCClient/GRPCClient";
 import { OperationType } from "../../../types/Operation.type";
@@ -33,6 +34,7 @@ import { ActorTimerType } from "../../../types/ActorTimer.type";
 import IClientActor from "../../../interfaces/Client/IClientActor";
 import { KeyValueType } from "../../../types/KeyValue.type";
 import ActorId from "../../ActorId";
+import { create } from "@bufbuild/protobuf";
 
 // https://docs.dapr.io/reference/api/actors_api/
 export default class ActorClientGRPC implements IClientActor {
@@ -43,26 +45,26 @@ export default class ActorClientGRPC implements IClientActor {
   }
 
   async invoke(actorType: string, actorId: ActorId, methodName: string, body?: any): Promise<object> {
-    const msgService = new InvokeActorRequest();
-    msgService.setActorId(actorId.getId());
-    msgService.setActorType(actorType);
-    msgService.setMethod(methodName);
+    const msgService = create(InvokeActorRequestSchema);
+    msgService.actorId = actorId.getId();
+    msgService.actorType = actorType;
+    msgService.method = methodName;
 
     if (body) {
       // @todo: if body is any, do we have to figure out how to serialize in JS? (e.g. if object -> JSON.stringify?)
-      msgService.setData(body);
+      msgService.data = body;
     }
 
     const client = await this.client.getClient();
 
     return new Promise((resolve, reject) => {
-      client.invokeActor(msgService, (err, res: InvokeActorResponse) => {
+      client.invokeActor(msgService, (err: any, res: InvokeActorResponse) => {
         if (err) {
           return reject(err);
         }
 
         // https://docs.dapr.io/reference/api/secrets_api/#response-body
-        const resData = Buffer.from(res.getData()).toString();
+        const resData = Buffer.from(res.data).toString();
 
         try {
           return resolve(JSON.parse(resData));
@@ -77,21 +79,22 @@ export default class ActorClientGRPC implements IClientActor {
     const transactionItems: TransactionalActorStateOperation[] = [];
 
     for (const o of operations) {
-      const transactionItem = new TransactionalActorStateOperation();
-      transactionItem.setKey(o.request.key);
-      transactionItem.setOperationtype(o.operation);
+      const transactionItem = create(TransactionalActorStateOperationSchema);
+      transactionItem.key = o.request.key;
+      transactionItem.operationType = o.operation;
 
-      const msgSerialized = new Any();
-      msgSerialized.setValue(Buffer.from(`${o.request.value}`, "utf-8"));
-      transactionItem.setValue(msgSerialized);
+      const msgSerialized = {
+        value: Buffer.from(`${o.request.value}`, "utf-8")
+      };
+      transactionItem.value = msgSerialized as any;
 
       transactionItems.push(transactionItem);
     }
 
-    const msgService = new ExecuteActorStateTransactionRequest();
-    msgService.setActorType(actorType);
-    msgService.setActorId(actorId.getId());
-    msgService.setOperationsList(transactionItems);
+    const msgService = create(ExecuteActorStateTransactionRequestSchema);
+    msgService.actorType = actorType;
+    msgService.actorId = actorId.getId();
+    msgService.operations = transactionItems;
 
     const client = await this.client.getClient();
 
@@ -108,10 +111,10 @@ export default class ActorClientGRPC implements IClientActor {
   }
 
   async stateGet(actorType: string, actorId: ActorId, key: string): Promise<KeyValueType | string> {
-    const msgService = new GetActorStateRequest();
-    msgService.setActorType(actorType);
-    msgService.setActorId(actorId.getId());
-    msgService.setKey(key);
+    const msgService = create(GetActorStateRequestSchema);
+    msgService.actorType = actorType;
+    msgService.actorId = actorId.getId();
+    msgService.key = key;
 
     const client = await this.client.getClient();
 
@@ -122,7 +125,7 @@ export default class ActorClientGRPC implements IClientActor {
         }
 
         // https://docs.dapr.io/reference/api/actors_api/#http-response-codes-2
-        const resData = Buffer.from(res.getData()).toString();
+        const resData = Buffer.from(res.data).toString();
 
         try {
           const json = JSON.parse(resData);
@@ -140,25 +143,25 @@ export default class ActorClientGRPC implements IClientActor {
     name: string,
     reminder: ActorReminderType,
   ): Promise<void> {
-    const msgService = new RegisterActorReminderRequest();
-    msgService.setActorType(actorType);
-    msgService.setActorId(actorId.getId());
-    msgService.setName(name);
+    const msgService = create(RegisterActorReminderRequestSchema);
+    msgService.actorType = actorType;
+    msgService.actorId = actorId.getId();
+    msgService.name = name;
 
     if (reminder.data) {
-      msgService.setData(Buffer.from(reminder?.data.toString(), "utf-8"));
+      msgService.data = Buffer.from(reminder?.data.toString(), "utf-8");
     }
 
     if (reminder.period) {
-      msgService.setPeriod(reminder.period.toString());
+      msgService.period = reminder.period.toString();
     }
 
     if (reminder.dueTime) {
-      msgService.setDueTime(reminder.dueTime.toString());
+      msgService.dueTime = reminder.dueTime.toString();
     }
 
     if (reminder.ttl) {
-      msgService.setTtl(reminder.ttl.toString());
+      msgService.ttl = reminder.ttl.toString();
     }
 
     const client = await this.client.getClient();
@@ -176,10 +179,10 @@ export default class ActorClientGRPC implements IClientActor {
   }
 
   async unregisterActorReminder(actorType: string, actorId: ActorId, name: string): Promise<void> {
-    const msgService = new UnregisterActorReminderRequest();
-    msgService.setActorType(actorType);
-    msgService.setActorId(actorId.getId());
-    msgService.setName(name);
+    const msgService = create(UnregisterActorReminderRequestSchema);
+    msgService.actorType = actorType;
+    msgService.actorId = actorId.getId();
+    msgService.name = name;
 
     const client = await this.client.getClient();
 
@@ -196,29 +199,30 @@ export default class ActorClientGRPC implements IClientActor {
   }
 
   async registerActorTimer(actorType: string, actorId: ActorId, name: string, timer: ActorTimerType): Promise<void> {
-    const msgService = new RegisterActorTimerRequest();
-    msgService.setActorType(actorType);
-    msgService.setActorId(actorId.getId());
-    msgService.setName(name);
+    const msgService = create(RegisterActorTimerRequestSchema);
+
+    msgService.actorType = actorType;
+    msgService.actorId = actorId.getId();
+    msgService.name = name;
 
     if (timer.callback) {
-      msgService.setCallback(timer.callback);
+      msgService.callback = timer.callback;
     }
 
     if (timer.data) {
-      msgService.setData(Buffer.from(timer.data, "utf-8"));
+      msgService.data = Buffer.from(timer.data, "utf-8");
     }
 
     if (timer.period) {
-      msgService.setPeriod(timer.period.toString());
+      msgService.period = timer.period.toString();
     }
 
     if (timer.dueTime) {
-      msgService.setDueTime(timer.dueTime.toString());
+      msgService.dueTime = timer.dueTime.toString();
     }
 
     if (timer.ttl) {
-      msgService.setTtl(timer.ttl.toString());
+      msgService.ttl = timer.ttl.toString();
     }
 
     const client = await this.client.getClient();
@@ -236,10 +240,10 @@ export default class ActorClientGRPC implements IClientActor {
   }
 
   async unregisterActorTimer(actorType: string, actorId: ActorId, name: string): Promise<void> {
-    const msgService = new UnregisterActorTimerRequest();
-    msgService.setActorType(actorType);
-    msgService.setActorId(actorId.getId());
-    msgService.setName(name);
+    const msgService = create(UnregisterActorTimerRequestSchema);
+    msgService.actorType = actorType;
+    msgService.actorId = actorId.getId();
+    msgService.name = name;
 
     const client = await this.client.getClient();
 
@@ -279,13 +283,13 @@ export default class ActorClientGRPC implements IClientActor {
     const client = await this.client.getClient();
 
     return new Promise((resolve, reject) => {
-      client.getMetadata(new GetMetadataRequest(), (err, res: GetMetadataResponse) => {
+      client.getMetadata(create(GetMetadataRequestSchema), (err, res: GetMetadataResponse) => {
         if (err) {
           return reject(err);
         }
 
         // https://docs.dapr.io/reference/api/actors_api/#http-response-codes-2
-        return resolve(res.getActiveActorsCountList());
+        return resolve(res.activeActorsCount);
       });
     });
   }
