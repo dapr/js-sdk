@@ -13,14 +13,18 @@ limitations under the License.
 
 import { Any } from "google-protobuf/google/protobuf/any_pb";
 import GRPCClient from "./GRPCClient";
-
 import { HttpMethod } from "../../../enum/HttpMethod.enum";
-import { HTTPExtension, InvokeRequest, InvokeResponse } from "../../../proto/dapr/proto/common/v1/common_pb";
-import { InvokeServiceRequest } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import {
+  HTTPExtensionSchema,
+  InvokeRequestSchema,
+  InvokeResponse,
+} from "../../../proto/dapr/proto/common/v1/common_pb";
+import {  InvokeServiceRequestSchema } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import * as HttpVerbUtil from "../../../utils/HttpVerb.util";
 import IClientInvoker from "../../../interfaces/Client/IClientInvoker";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import { InvokerOptions } from "../../../types/InvokerOptions.type";
+import { create } from "@bufbuild/protobuf";
 
 // https://docs.dapr.io/reference/api/service_invocation_api/
 export default class GRPCClientInvoker implements IClientInvoker {
@@ -40,36 +44,36 @@ export default class GRPCClientInvoker implements IClientInvoker {
     _options: InvokerOptions = {},
   ): Promise<object> {
     // InvokeServiceRequest represents the request message for Service invocation.
-    const msgInvokeService = new InvokeServiceRequest();
-    msgInvokeService.setId(appId);
+    const msgInvokeService = create(InvokeServiceRequestSchema);
+    msgInvokeService.id = appId;
 
-    const httpExtension = new HTTPExtension();
-    httpExtension.setVerb(HttpVerbUtil.convertHttpVerbStringToNumber(method));
+    const httpExtension = create(HTTPExtensionSchema);
+    httpExtension.verb = HttpVerbUtil.convertHttpVerbStringToNumber(method);
 
     const msgSerialized = new Any();
     const { serializedData, contentType } = SerializerUtil.serializeGrpc(data);
     msgSerialized.setValue(serializedData);
 
-    const msgInvoke = new InvokeRequest();
-    msgInvoke.setMethod(methodName);
-    msgInvoke.setHttpExtension(httpExtension);
-    msgInvoke.setData(msgSerialized);
-    msgInvoke.setContentType(contentType);
+    const msgInvoke = create(InvokeRequestSchema);
+    msgInvoke.method = methodName;
+    msgInvoke.httpExtension = httpExtension;
+    msgInvoke.data = msgSerialized as any;
+    msgInvoke.contentType = contentType;
 
-    msgInvokeService.setMessage(msgInvoke);
+    msgInvokeService.message = msgInvoke;
 
     const client = await this.client.getClient();
 
     return new Promise((resolve, reject) => {
-      client.invokeService(msgInvokeService, (err, res: InvokeResponse) => {
+      client.invokeService(msgInvokeService, (err: Error, res: InvokeResponse) => {
         if (err) {
           return reject(err);
         }
 
         let resData = "";
 
-        if (res.getData()) {
-          resData = Buffer.from((res.getData() as Any).getValue()).toString();
+        if (res.data) {
+          resData = Buffer.from(res.data.value).toString();
         }
 
         try {
