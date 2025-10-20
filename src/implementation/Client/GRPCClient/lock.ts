@@ -15,12 +15,14 @@ import GRPCClient from "./GRPCClient";
 import { LockResponse as LockResponseResult } from "../../../types/lock/LockResponse";
 import { UnlockResponse as UnLockResponseResult, LockStatus } from "../../../types/lock/UnlockResponse";
 import {
-  TryLockRequest,
+  TryLockRequestSchema,
   TryLockResponse,
-  UnlockRequest,
+  UnlockRequestSchema,
   UnlockResponse,
+  UnlockResponse_Status,
 } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import IClientLock from "../../../interfaces/Client/IClientLock";
+import { create } from "@bufbuild/protobuf";
 
 export default class GRPCClientLock implements IClientLock {
   client: GRPCClient;
@@ -35,21 +37,21 @@ export default class GRPCClientLock implements IClientLock {
     lockOwner: string,
     expiryInSeconds: number,
   ): Promise<LockResponseResult> {
-    const request = new TryLockRequest()
-      .setStoreName(storeName)
-      .setResourceId(resourceId)
-      .setLockOwner(lockOwner)
-      .setExpiryInSeconds(expiryInSeconds);
+    const request = create(TryLockRequestSchema);
+    request.storeName = storeName;
+    request.resourceId = resourceId;
+    request.lockOwner = lockOwner;
+    request.expiryInSeconds = expiryInSeconds;
 
     const client = await this.client.getClient();
     return new Promise((resolve, reject) => {
-      client.tryLockAlpha1(request, (err, res: TryLockResponse) => {
+      client.tryLockAlpha1(request, (err: Error, res: TryLockResponse) => {
         if (err) {
           return reject(err);
         }
 
         const wrapped: LockResponseResult = {
-          success: res.getSuccess(),
+          success: res.success,
         };
 
         return resolve(wrapped);
@@ -58,11 +60,14 @@ export default class GRPCClientLock implements IClientLock {
   }
 
   async unlock(storeName: string, resourceId: string, lockOwner: string): Promise<UnLockResponseResult> {
-    const request = new UnlockRequest().setStoreName(storeName).setResourceId(resourceId).setLockOwner(lockOwner);
+    const request = create(UnlockRequestSchema);
+    request.storeName = storeName;
+    request.resourceId = resourceId;
+    request.lockOwner = lockOwner;
 
     const client = await this.client.getClient();
     return new Promise((resolve, reject) => {
-      client.unlockAlpha1(request, (err, res: UnlockResponse) => {
+      client.unlockAlpha1(request, (err: Error, res: UnlockResponse) => {
         if (err) {
           return reject(err);
         }
@@ -77,12 +82,12 @@ export default class GRPCClientLock implements IClientLock {
   }
 
   getUnlockResponse(res: UnlockResponse) {
-    switch (res.getStatus()) {
-      case UnlockResponse.Status.SUCCESS:
+    switch (res.status) {
+      case UnlockResponse_Status.SUCCESS:
         return LockStatus.Success;
-      case UnlockResponse.Status.LOCK_DOES_NOT_EXIST:
+      case UnlockResponse_Status.LOCK_DOES_NOT_EXIST:
         return LockStatus.LockDoesNotExist;
-      case UnlockResponse.Status.LOCK_BELONGS_TO_OTHERS:
+      case UnlockResponse_Status.LOCK_BELONGS_TO_OTHERS:
         return LockStatus.LockBelongsToOthers;
       default:
         return LockStatus.InternalError;
