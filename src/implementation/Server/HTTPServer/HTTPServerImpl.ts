@@ -174,7 +174,7 @@ export default class HTTPServerImpl {
     headers: IncomingHttpHeaders,
   ): Promise<DaprPubSubStatusEnum> {
     const eventHandlers = routeObj.eventHandlers;
-    const statuses = [];
+    const statuses: Array<DaprPubSubStatusEnum> = [];
 
     // Process the callbacks (default: SUCCESS)
     for (const cb of eventHandlers) {
@@ -214,7 +214,7 @@ export default class HTTPServerImpl {
   }
 
   generateDaprPubSubSubscriptionList(): DaprPubSubType[] {
-    const dapr = [];
+    const dapr: Array<DaprPubSubType> = [];
 
     for (const pubsub of Object.keys(this.getSubscriptions())) {
       for (const topic of Object.keys(this.getSubscriptions()[pubsub])) {
