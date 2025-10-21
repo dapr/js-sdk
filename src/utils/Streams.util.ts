@@ -16,6 +16,7 @@ import { ClientDuplexStream } from "@grpc/grpc-js";
 
 import { StreamPayload, StreamPayloadSchema } from "../proto/dapr/proto/common/v1/common_pb";
 import { create } from "@bufbuild/protobuf";
+import { DecryptRequest, EncryptRequest } from "../proto/dapr/proto/runtime/v1/dapr_pb";
 
 interface messageWithPayload {
   getPayload(): StreamPayload | undefined;
@@ -25,21 +26,19 @@ interface messageWithPayload {
 /**
  * DaprChunkedStream is a Readable stream that processes data sent from Dapr over a gRPC stream, chunked.
  */
-export class DaprChunkedStream<T extends messageWithPayload, U extends messageWithPayload> extends Duplex {
+export class DaprChunkedStream<T extends messageWithPayload, U extends messageWithPayload, V extends EncryptRequest | DecryptRequest> extends Duplex {
   private grpcStream: ClientDuplexStream<T, U>;
-  private readonly reqFactory: { new (): T };
-  private readonly setReqOptionsFn: (req: T) => void;
+  private readonly createReqFactory: (withOptions: boolean) => V;
   private writeSeq = BigInt(0);
 
-  constructor(grpcStream: ClientDuplexStream<T, U>, reqFactory: { new (): T }, setReqOptionsFn: (req: T) => void) {
+  constructor(grpcStream: ClientDuplexStream<T, U>, createReqFactory: (withOptions: boolean) => V) {
     super({
       objectMode: false,
       emitClose: true,
     });
 
     this.grpcStream = grpcStream;
-    this.reqFactory = reqFactory;
-    this.setReqOptionsFn = setReqOptionsFn;
+    this.createReqFactory = createReqFactory;
   }
 
   _read(): void {
@@ -67,19 +66,15 @@ export class DaprChunkedStream<T extends messageWithPayload, U extends messageWi
     // Read data from the input stream, in chunks of up to 2KB
     // Send the data until we reach the end of the input stream
     for (let n = 0; n < chunk.length; n += 2 << 10) {
-      const req = new this.reqFactory();
-
-      // If this is the first chunk, add the options
-      if (this.writeSeq == BigInt(0)) {
-        this.setReqOptionsFn(req);
-      }
+      // Create the request - if this is the first chunk, add the options
+      const req = this.createReqFactory(this.writeSeq == BigInt(0));
 
       // Add the payload
       const reqPayload = create (StreamPayloadSchema);
       // From the Node.js docs: "Specifying end greater than buf.length will return the same result as that of end equal to buf.length."
       reqPayload.data = chunk.subarray(n, n + (2 << 10));
       reqPayload.seq = this.writeSeq;
-      req.setPayload(reqPayload);
+      req.payload = reqPayload;
       this.writeSeq++;
 
       // Send the chunk
