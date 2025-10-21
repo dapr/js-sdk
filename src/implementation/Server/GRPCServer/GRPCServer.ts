@@ -13,7 +13,7 @@ limitations under the License.
 
 import * as grpc from "@grpc/grpc-js";
 import GRPCServerImpl from "./GRPCServerImpl";
-import { AppCallbackService, AppCallbackAlphaService } from "../../../proto/dapr/proto/runtime/v1/appcallback_grpc_pb";
+import { AppCallback as AppCallbackService } from "../../../proto/dapr/proto/runtime/v1/appcallback_pb"
 import IServer from "../../../interfaces/Server/IServer";
 import { DaprClient } from "../../..";
 import { Logger } from "../../../logger/Logger";

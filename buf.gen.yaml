@@ -2,14 +2,6 @@ version: v2
 managed:
   enabled: true
 plugins:
-#  - remote: buf.build/community/stephenh-ts-proto
-#    out: protos/dapr/proto
-#    include_imports: true
-#    opt:
-#      - esModuleInterop=true
-#      - importSuffix=.js
-#      - useExactTypes=true
-#      - target=js+dts
   - remote: buf.build/bufbuild/es
     out: ./src/proto
     include_imports: true
