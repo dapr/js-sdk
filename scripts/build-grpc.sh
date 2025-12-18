@@ -14,7 +14,7 @@
 OS=$(echo `uname`|tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 
-# Proto buf generation
+# Protobuf generation
 APPCALLBACK="appcallback"
 COMMON="common"
 DAPR="dapr"

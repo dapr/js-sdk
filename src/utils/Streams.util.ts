@@ -78,7 +78,7 @@ export class DaprChunkedStream<T extends messageWithPayload, U extends messageWi
       this.writeSeq++;
 
       // Send the chunk
-      this.grpcStream.write(req);
+      this.grpcStream.write(req as any);
     }
 
     callback();

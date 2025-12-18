@@ -48,7 +48,7 @@ async function main() {
       await runScript('fetch-proto');
     }
 
-    // Step 3: Build/update gRPC bindings if needed
+    // Step 3: Build/update gRPC bindings if needed using Buf
     console.log('Checking gRPC bindings...');
     await execSync('npx buf generate');
 

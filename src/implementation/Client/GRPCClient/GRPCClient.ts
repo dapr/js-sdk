@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import * as grpc from "@grpc/grpc-js";
-import { DaprClient as GrpcDaprClient } from "../../../proto/dapr/proto/runtime/v1/dapr_grpc_pb";
+import { Dapr as GrpcDaprClient } from "../../../proto/dapr/proto/runtime/v1/dapr_pb"
 import IClient from "../../../interfaces/Client/IClient";
 import { DaprClientOptions } from "../../../types/DaprClientOptions";
 import { Settings } from "../../../utils/Settings.util";
@@ -22,6 +22,8 @@ import DaprClient from "../DaprClient";
 import { SDK_VERSION } from "../../../version";
 import communicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
 import { GrpcEndpoint } from "../../../network/GrpcEndpoint";
+import { createConnectTransport } from "@connectrpc/connect-web";
+import { createClient } from "@connectrpc/connect";
 
 export default class GRPCClient implements IClient {
   readonly options: DaprClientOptions;
@@ -54,6 +56,15 @@ export default class GRPCClient implements IClient {
     this.isInitialized = false;
 
     this.logger.info(`Opening connection to ${this.options.daprHost}:${this.options.daprPort}`);
+
+    const transport = createConnectTransport({
+      baseUrl: this.daprEndpoint.endpoint,
+
+    });
+
+    const client = createClient(GrpcDaprClient, transport);
+
+
     this.client = new GrpcDaprClient(
       this.daprEndpoint.endpoint,
       this.getClientCredentials(),
@@ -157,7 +168,7 @@ export default class GRPCClient implements IClient {
     const deadline = Date.now() + Settings.getDaprSidecarStartupTimeoutMs();
 
     return new Promise((resolve, reject) => {
-      this.client.waitForReady(deadline, (err?) => {
+      this.client.waitForReady(deadline, (err?: Error) => {
         if (err) {
           this.logger.error(`Error waiting for client to be ready: ${err}`);
           return reject();
