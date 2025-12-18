@@ -29,7 +29,7 @@ export class GRPCClientProxy<T> {
   }
 
   generateInterceptors() {
-    const interceptors = [];
+    const interceptors: grpc.Interceptor[] = [];
 
     // Create an interceptor that adds 'dapr-app-id' to each call as metadata
     const interceptorDaprAppId = (options: grpc.InterceptorOptions, nextCall: NextCall): grpc.InterceptingCall => {

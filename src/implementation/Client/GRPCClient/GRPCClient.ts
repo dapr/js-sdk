@@ -11,8 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import * as grpc from "@grpc/grpc-js";
-import { Dapr as GrpcDaprClient } from "../../../proto/dapr/proto/runtime/v1/dapr_pb"
+import { Dapr } from "../../../proto/dapr/proto/runtime/v1/dapr_pb"
 import IClient from "../../../interfaces/Client/IClient";
 import { DaprClientOptions } from "../../../types/DaprClientOptions";
 import { Settings } from "../../../utils/Settings.util";
@@ -22,14 +21,14 @@ import DaprClient from "../DaprClient";
 import { SDK_VERSION } from "../../../version";
 import communicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
 import { GrpcEndpoint } from "../../../network/GrpcEndpoint";
-import { createConnectTransport } from "@connectrpc/connect-web";
-import { createClient } from "@connectrpc/connect";
+import { createGrpcTransport } from "@connectrpc/connect-node";
+import { createClient, Client } from "@connectrpc/connect";
 
 export default class GRPCClient implements IClient {
   readonly options: DaprClientOptions;
 
   private isInitialized: boolean;
-  private readonly client: GrpcDaprClient;
+  private readonly client: Client<typeof Dapr>;
   private readonly clientCredentials: grpc.ChannelCredentials;
   private readonly logger: Logger;
   private readonly grpcClientOptions: Partial<grpc.ClientOptions>;
@@ -57,22 +56,16 @@ export default class GRPCClient implements IClient {
 
     this.logger.info(`Opening connection to ${this.options.daprHost}:${this.options.daprPort}`);
 
-    const transport = createConnectTransport({
+    const transport = createGrpcTransport({
       baseUrl: this.daprEndpoint.endpoint,
-
+      httpVersion: "2",
+      interceptors: this.generateInterceptors(),
     });
 
-    const client = createClient(GrpcDaprClient, transport);
-
-
-    this.client = new GrpcDaprClient(
-      this.daprEndpoint.endpoint,
-      this.getClientCredentials(),
-      this.getGrpcClientOptions(),
-    );
+    this.client = createClient(Dapr, transport);
   }
 
-  async getClient(requiresInitialization = true): Promise<GrpcDaprClient> {
+  async getClient(requiresInitialization = true): Promise<Client<typeof Dapr>> {
     // Ensure the sidecar has been started
     if (!this.isInitialized && requiresInitialization) {
       await this.start();
@@ -139,17 +132,19 @@ export default class GRPCClient implements IClient {
     return options;
   }
 
-  private generateInterceptors(): (options: any, nextCall: any) => grpc.InterceptingCall {
-    return (options: any, nextCall: any) => {
-      return new grpc.InterceptingCall(nextCall(options), {
-        start: (metadata, listener, next) => {
-          if (metadata.get("dapr-api-token").length == 0) {
-            metadata.add("dapr-api-token", this.options.daprApiToken as grpc.MetadataValue);
-          }
-          next(metadata, listener);
-        },
-      });
-    };
+  private generateInterceptors(): any[] {
+    const interceptors = [];
+
+    // Add interceptors if we have an API token
+    if (this.options.daprApiToken !== "") {
+      const interceptorDaprApiToken = (next: any) => async (req: any) => {
+        req.header.set("dapr-api-token", this.options.daprApiToken);
+        return await next(req);
+      };
+      interceptors.push(interceptorDaprApiToken);
+    }
+
+    return interceptors;
   }
 
   setIsInitialized(isInitialized: boolean): void {
@@ -161,22 +156,14 @@ export default class GRPCClient implements IClient {
   }
 
   async stop(): Promise<void> {
-    this.client.close();
+    // Connect clients don't have a close method on the client itself, 
+    // but the transport can be managed. For now, we'll just leave it empty
+    // as createGrpcTransport doesn't expose a simple close()
   }
 
   async _startWaitForClientReady(): Promise<void> {
-    const deadline = Date.now() + Settings.getDaprSidecarStartupTimeoutMs();
-
-    return new Promise((resolve, reject) => {
-      this.client.waitForReady(deadline, (err?: Error) => {
-        if (err) {
-          this.logger.error(`Error waiting for client to be ready: ${err}`);
-          return reject();
-        }
-
-        return resolve();
-      });
-    });
+    // For Connect/gRPC, we can just check if we can get metadata
+    await GRPCClientSidecar.isStarted(this);
   }
 
   async _startAwaitSidecarStarted(): Promise<void> {

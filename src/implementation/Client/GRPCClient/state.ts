@@ -16,11 +16,8 @@ import {
   DeleteStateRequestSchema,
   ExecuteStateTransactionRequestSchema,
   GetBulkStateRequestSchema,
-  GetBulkStateResponse,
   GetStateRequestSchema,
-  GetStateResponse,
   QueryStateRequestSchema,
-  QueryStateResponse,
   SaveStateRequestSchema,
   TransactionalStateOperation,
   TransactionalStateOperationSchema,
@@ -29,7 +26,8 @@ import {
   EtagSchema,
   StateItem,
   StateItemSchema,
-  StateOptions, StateOptionsSchema,
+  StateOptions,
+  StateOptionsSchema,
 } from "../../../proto/dapr/proto/common/v1/common_pb";
 import { KeyValuePairType } from "../../../types/KeyValuePair.type";
 import { OperationType } from "../../../types/Operation.type";
@@ -93,17 +91,9 @@ export default class GRPCClientState implements IClientState {
     msgService.states = stateList;
 
     const client = await this.client.getClient();
+    await client.saveState(msgService);
 
-    return new Promise((resolve, reject) => {
-      client.saveState(msgService, (err: Error, _res) => {
-        if (err) {
-          return reject({ error: err });
-        }
-
-        // https://docs.dapr.io/reference/api/state_api/#response-body
-        return resolve({});
-      });
-    });
+    return {};
   }
 
   async get(storeName: string, key: string, options?: Partial<StateGetOptions>): Promise<KeyValueType | string> {
@@ -116,24 +106,14 @@ export default class GRPCClientState implements IClientState {
     }
 
     const client = await this.client.getClient();
+    const res = await client.getState(msgService);
+    const resData = Buffer.from(res.data).toString();
 
-    return new Promise((resolve, reject) => {
-      client.getState(msgService, (err: Error, res: GetStateResponse) => {
-        if (err) {
-          return reject(err);
-        }
-
-        // https://docs.dapr.io/reference/api/state_api/#http-response-1
-        const resData = Buffer.from(res.data).toString();
-
-        try {
-          const json = JSON.parse(resData);
-          return resolve(json);
-        } catch (e) {
-          return resolve(resData);
-        }
-      });
-    });
+    try {
+      return JSON.parse(resData);
+    } catch(err) {
+      return resData;
+    }
   }
 
   async getBulk(storeName: string, keys: string[], options: StateGetBulkOptions = {}): Promise<KeyValueType[]> {
@@ -147,33 +127,24 @@ export default class GRPCClientState implements IClientState {
     addMetadataToMap(convertToMap(msgService.metadata), options.metadata);
 
     const client = await this.client.getClient();
-    return new Promise((resolve, reject) => {
-      client.getBulkState(msgService, (err: Error, res: GetBulkStateResponse) => {
-        if (err) {
-          return reject(err);
+    const res = await client.getBulkState(msgService);
+    // https://docs.dapr.io/reference/api/state_api/#http-response-2
+    const items = res.items;
+
+    return items.map((i) => {
+        const resDataStr = Buffer.from(i.data).toString();
+        let data: string;
+        try {
+          data = JSON.parse(resDataStr);
+        } catch (e) {
+          data = resDataStr;
         }
-
-        // https://docs.dapr.io/reference/api/state_api/#http-response-2
-        const items = res.items;
-
-        return resolve(
-          items.map((i) => {
-            const resDataStr = Buffer.from(i.data).toString();
-            let data: string;
-            try {
-              data = JSON.parse(resDataStr);
-            } catch (e) {
-              data = resDataStr;
-            }
-            return {
-              key: i.key,
-              data,
-              etag: i.etag,
-            };
-          }),
-        );
+        return {
+          key: i.key,
+          data,
+          etag: i.etag,
+        };
       });
-    });
   }
 
   async delete(storeName: string, key: string, options?: StateDeleteOptions): Promise<StateSaveResponseType> {
@@ -190,17 +161,8 @@ export default class GRPCClientState implements IClientState {
     msgService.options = this._configureStateOptions(options);
 
     const client = await this.client.getClient();
-
-    return new Promise((resolve, reject) => {
-      client.deleteState(msgService, (err: Error, _res) => {
-        if (err) {
-          return reject(err);
-        }
-
-        // https://docs.dapr.io/reference/api/state_api/#http-response-3
-        return resolve({});
-      });
-    });
+    await client.deleteState(msgService);
+    return {};
   }
 
   async transaction(
@@ -239,17 +201,7 @@ export default class GRPCClientState implements IClientState {
     }
 
     const client = await this.client.getClient();
-
-    return new Promise((resolve, reject) => {
-      client.executeStateTransaction(msgService, (err: Error, _res) => {
-        if (err) {
-          return reject(err);
-        }
-
-        // https://docs.dapr.io/reference/api/state_api/#request-body-1
-        return resolve();
-      });
-    });
+    await client.executeStateTransaction(msgService);
   }
 
   async query(storeName: string, query: StateQueryType): Promise<StateQueryResponseType> {
@@ -258,35 +210,28 @@ export default class GRPCClientState implements IClientState {
     msgService.query = JSON.stringify(query);
 
     const client = await this.client.getClient();
+    const res = await client.queryStateAlpha1(msgService);
 
-    return new Promise((resolve, reject) => {
-      client.queryStateAlpha1(msgService, (err: Error, res: QueryStateResponse) => {
-        if (err) {
-          return reject(err);
-        }
-        const resultsList = res.results;
-        if (resultsList.length === 0) {
-          return resolve({
-            results: [],
-            token: res.token,
-          } as StateQueryResponseType);
-        }
+    const resultsList = res.results;
+    if (resultsList.length === 0) {
+      return {
+        results: [],
+        token: res.token,
+      };
+    }
 
-        // https://docs.dapr.io/reference/api/state_api/#response-body
-        // map the res from gRPC
-        const resMapped: StateQueryResponseType = {
-          results: res.results.map(i => ({
-            key: i.key,
-            data: i.data,
-            etag: i.etag,
-            error: i.error,
-          })),
-          token: res.token,
-        };
-
-        return resolve(resMapped);
-      });
-    });
+    // https://docs.dapr.io/reference/api/state_api/#response-body
+    // map the res from gRPC
+    const resMapped: StateQueryResponseType = {
+      results: res.results.map((i) => ({
+        key: i.key,
+        data: i.data,
+        etag: i.etag,
+        error: i.error,
+      })),
+      token: res.token,
+    };
+    return resMapped;
   }
 
   _configureStateOptions(opt?: Partial<IStateOptions>): StateOptions | undefined {

@@ -14,7 +14,6 @@ limitations under the License.
 import { TInput, TOutput } from "../../types/workflow/InputOutput.type";
 import { TWorkflowActivity } from "../../types/workflow/Activity.type";
 import { TWorkflow } from "../../types/workflow/Workflow.type";
-import * as grpc from "@grpc/grpc-js";
 import { WorkflowClientOptions } from "../../types/workflow/WorkflowClientOption";
 import { Settings } from "../../utils/Settings.util";
 import { GrpcEndpoint } from "../../network/GrpcEndpoint";

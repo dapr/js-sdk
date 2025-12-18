@@ -63,16 +63,8 @@ export default class GRPCClientPubSub implements IClientPubSub {
     addMetadataToMap(convertToMap(msgService.metadata), options.metadata);
 
     const client = await this.client.getClient();
-    return new Promise((resolve, reject) => {
-      client.publishEvent(msgService, (err: Error, _res) => {
-        if (err) {
-          this.logger.error(`publish failed: ${err}`);
-          return reject({ error: err });
-        }
-
-        return resolve({});
-      });
-    });
+    await client.publishEvent(msgService);
+    return {};
   }
 
   async publishBulk(
@@ -86,7 +78,7 @@ export default class GRPCClientPubSub implements IClientPubSub {
     bulkPublishRequest.topic = topic;
 
     const entries = getBulkPublishEntries(messages);
-    const serializedEntries = entries.map((entry) => {
+    bulkPublishRequest.entries = entries.map((entry) => {
       const serialized = SerializerUtil.serializeGrpc(entry.event);
       const bulkPublishEntry = create(BulkPublishRequestEntrySchema);
       bulkPublishEntry.event = serialized.serializedData;
@@ -95,33 +87,23 @@ export default class GRPCClientPubSub implements IClientPubSub {
       return bulkPublishEntry;
     });
 
-    bulkPublishRequest.entries = serializedEntries;
     addMetadataToMap(convertToMap(bulkPublishRequest.metadata), metadata);
 
     const client = await this.client.getClient();
-    return new Promise((resolve, _reject) => {
-      client.bulkPublishEventAlpha1(bulkPublishRequest, (err, res) => {
-        if (err) {
-          return resolve(getBulkPublishResponse({ entries: entries, error: err }));
-        }
+    const res = await client.bulkPublishEventAlpha1(bulkPublishRequest);
 
-        const failedEntries = res.getFailedentriesList();
-        if (failedEntries.length > 0) {
-          return resolve(
-            getBulkPublishResponse({
-              entries: entries,
-              response: {
-                failedEntries: failedEntries.map((entry) => ({
-                  entryID: entry.getEntryId(),
-                  error: entry.getError(),
-                })),
-              },
-            }),
-          );
-        }
-
-        return resolve({ failedMessages: [] });
+    if (res.failedEntries.length > 0) {
+      return getBulkPublishResponse({
+        entries: entries,
+        response: {
+          failedEntries: res.failedEntries.map((entry) => ({
+            entryID: entry.entryId,
+            error: entry.error
+          })),
+        },
       });
-    });
+    }
+
+    return { failedMessages: [] };
   }
 }

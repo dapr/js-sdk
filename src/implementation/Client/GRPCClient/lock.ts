@@ -16,7 +16,6 @@ import { LockResponse as LockResponseResult } from "../../../types/lock/LockResp
 import { UnlockResponse as UnLockResponseResult, LockStatus } from "../../../types/lock/UnlockResponse";
 import {
   TryLockRequestSchema,
-  TryLockResponse,
   UnlockRequestSchema,
   UnlockResponse,
   UnlockResponse_Status,
@@ -44,19 +43,13 @@ export default class GRPCClientLock implements IClientLock {
     request.expiryInSeconds = expiryInSeconds;
 
     const client = await this.client.getClient();
-    return new Promise((resolve, reject) => {
-      client.tryLockAlpha1(request, (err: Error, res: TryLockResponse) => {
-        if (err) {
-          return reject(err);
-        }
+    const res = await client.tryLockAlpha1(request);
 
-        const wrapped: LockResponseResult = {
-          success: res.success,
-        };
+    const wrapped: LockResponseResult = {
+      success: res.success
+    };
 
-        return resolve(wrapped);
-      });
-    });
+    return wrapped;
   }
 
   async unlock(storeName: string, resourceId: string, lockOwner: string): Promise<UnLockResponseResult> {
@@ -66,19 +59,13 @@ export default class GRPCClientLock implements IClientLock {
     request.lockOwner = lockOwner;
 
     const client = await this.client.getClient();
-    return new Promise((resolve, reject) => {
-      client.unlockAlpha1(request, (err: Error, res: UnlockResponse) => {
-        if (err) {
-          return reject(err);
-        }
+    const res = await client.unlockAlpha1(request);
 
-        const wrapped: UnLockResponseResult = {
-          status: this.getUnlockResponse(res),
-        };
+    const wrapped: UnLockResponseResult = {
+      status: this.getUnlockResponse(res)
+    };
 
-        return resolve(wrapped);
-      });
-    });
+    return wrapped;
   }
 
   getUnlockResponse(res: UnlockResponse) {

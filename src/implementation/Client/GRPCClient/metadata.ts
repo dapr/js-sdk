@@ -14,13 +14,11 @@ limitations under the License.
 import GRPCClient from "./GRPCClient";
 import {
   GetMetadataRequestSchema,
-  GetMetadataResponse,
   SetMetadataRequestSchema,
 } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
-import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 import IClientMetadata from "../../../interfaces/Client/IClientMetadata";
 import { GetMetadataResponse as GetMetadataResponseResult } from "../../../types/metadata/GetMetadataResponse";
-import { create } from "@bufbuild/protobuf";
+import { create } from "@bufbuild/protobuf"
 import { convertToMap } from "../../../utils/Client.util";
 
 // https://docs.dapr.io/reference/api/metadata_api
@@ -35,54 +33,39 @@ export default class GRPCClientMetadata implements IClientMetadata {
   async get(): Promise<GetMetadataResponseResult> {
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
-      client.getMetadata(create(GetMetadataRequestSchema), (err: Error, res: GetMetadataResponse) => {
-        if (err) {
-          return reject(err);
-        }
+    const res = await client.getMetadata(create(GetMetadataRequestSchema));
 
-        const wrapped: GetMetadataResponseResult = {
-          id: res.id,
-          actors: res.activeActorsCount.map((a) => ({
-            type: a.type,
-            count: a.count,
-          })),
-          extended:
-            convertToMap(res.extendedMetadata)
-            .toObject()
-            .reduce((result: object, [key, value]) => {
-              // @ts-ignore
-              result[key] = value;
-              return result;
-            }, {}),
-          components: res.registeredComponents.map(c => ({
-            name: c.name,
-            type: c.type,
-            version: c.version,
-            capabilities: c.capabilities
-          })),
-        };
+    const wrapped: GetMetadataResponseResult = {
+      id: res.id,
+      actors: res.activeActorsCount.map((a) => ({
+        type: a.type,
+        count: a.count,
+      })),
+      extended: convertToMap(res.extendedMetadata)
+        .toObject()
+        .reduce((result: any, [key, value]) => {
+          result[key] = value;
+          return result;
+        }, {}),
+      components: res.registeredComponents.map((c) => ({
+        name: c.name,
+        type: c.type,
+        version: c.version,
+        capabilities: c.capabilities,
+      }))
+    };
 
-        return resolve(wrapped);
-      });
-    });
+    return wrapped;
   }
 
   async set(key: string, value: string): Promise<boolean> {
-    const msg = create(SetMetadataRequestSchema);
-    msg.key = key;
-    msg.value = value;
-
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
-      client.setMetadata(msg, (err: Error, _res: Empty) => {
-        if (err) {
-          return reject(false);
-        }
-
-        return resolve(true);
-      });
-    });
+    try {
+      await client.setMetadata(create(SetMetadataRequestSchema, { key, value }));
+      return true;
+    } catch (err) {
+      return false;
+    }
   }
 }

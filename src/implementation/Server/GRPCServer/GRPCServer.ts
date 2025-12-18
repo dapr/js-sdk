@@ -13,7 +13,7 @@ limitations under the License.
 
 import * as grpc from "@grpc/grpc-js";
 import GRPCServerImpl from "./GRPCServerImpl";
-import { AppCallback as AppCallbackService } from "../../../proto/dapr/proto/runtime/v1/appcallback_pb"
+import { AppCallback, AppCallbackAlpha } from "../../../proto/dapr/proto/runtime/v1/appcallback_pb"
 import IServer from "../../../interfaces/Server/IServer";
 import { DaprClient } from "../../..";
 import { Logger } from "../../../logger/Logger";
@@ -49,13 +49,13 @@ export default class GRPCServer implements IServer {
     this.serverImpl = new GRPCServerImpl(this.server, client.options.logger);
 
     // Add our implementation
-    this.logger.info("Adding Service Implementation - AppCallbackService");
+    this.logger.info("Adding Service Implementation - AppCallback");
     // @ts-ignore
-    this.server.addService(AppCallbackService, this.serverImpl);
+    this.server.addService(AppCallback, this.serverImpl);
     // Add our implementation
-    this.logger.info("Adding Service Implementation - AppCallbackAlphaService");
+    this.logger.info("Adding Service Implementation - AppCallbackAlpha");
     // @ts-ignore
-    this.server.addService(AppCallbackAlphaService, this.serverImpl);
+    this.server.addService(AppCallbackAlpha, this.serverImpl);
   }
 
   // See: https://cs.github.com/nestjs/nest/blob/f4e9ac6208f3e7ee7ad44c3de713c9086f657977/packages/microservices/external/grpc-options.interface.ts

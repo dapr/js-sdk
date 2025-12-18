@@ -15,7 +15,6 @@ import GRPCClient from "./GRPCClient";
 import IClientHealth from "../../../interfaces/Client/IClientHealth";
 import {
   GetMetadataRequestSchema,
-  GetMetadataResponse,
 } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import { create } from "@bufbuild/protobuf";
 
@@ -30,19 +29,11 @@ export default class GRPCClientHealth implements IClientHealth {
   // There is no gRPC implementation of /healthz, so we try to fetch the metadata
   async isHealthy(): Promise<boolean> {
     const client = await this.client.getClient();
-
-    return new Promise((resolve, _reject) => {
-      try {
-        client.getMetadata(create(GetMetadataRequestSchema), (err: Error, _res: GetMetadataResponse) => {
-          if (err) {
-            return resolve(false);
-          }
-
-          return resolve(true);
-        });
-      } catch (e) {
-        return resolve(false);
-      }
-    });
+    try {
+      await client.getMetadata(create(GetMetadataRequestSchema));
+      return true;
+    } catch (err) {
+      return false;
+    }
   }
 }

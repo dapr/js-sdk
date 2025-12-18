@@ -60,18 +60,11 @@ export default class GRPCClientSecret implements IClientSecret {
     msgService.storeName = secretStoreName;
 
     const client = await this.client.getClient();
+    const res = await client.getBulkSecret(msgService);
 
-    return new Promise((resolve, reject) => {
-      client.getBulkSecret(msgService, (err: Error, res: GetBulkSecretResponse) => {
-        if (err) {
-          return reject(err);
-        }
-
-        // https://docs.dapr.io/reference/api/secrets_api/#response-body-1
-        // @ts-ignore
-        // tslint:disable-next-line
-        return resolve(res.getDataMap()["map_"]);
-      });
-    });
+    // https://docs.dapr.io/reference/api/secrets_api/#response-body-1
+    // @ts-ignore
+    // tslint:disable-next-line
+    return res.getDataMap()["map_"];
   }
 }

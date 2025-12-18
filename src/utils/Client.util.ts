@@ -12,7 +12,6 @@ limitations under the License.
 */
 
 import { randomUUID } from "crypto";
-import { Map } from "google-protobuf";
 
 import { ConfigurationItem as ConfigurationItemProto } from "../proto/dapr/proto/common/v1/common_pb";
 import { isCloudEvent } from "./CloudEvent.util";

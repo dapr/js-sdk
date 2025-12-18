@@ -11,10 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import * as grpc from "@grpc/grpc-js";
-import { Empty } from "google-protobuf/google/protobuf/empty_pb";
-import { Any } from "google-protobuf/google/protobuf/any_pb";
-
 import {
   HTTPExtension,
   InvokeRequest,
@@ -37,29 +33,16 @@ import { SubscriptionManager } from "../../../pubsub/subscriptionManager";
 import { PubSubSubscriptionsType } from "../../../types/pubsub/PubSubSubscriptions.type";
 import { create } from "@bufbuild/protobuf";
 import {
+  AppCallback,
   BindingEventResponseSchema,
   BulkSubscribeConfigSchema,
   ListInputBindingsResponseSchema,
   ListTopicSubscriptionsResponseSchema,
   TopicEventBulkResponseEntrySchema,
   TopicEventBulkResponseSchema,
-  TopicEventCERequest,
-  TopicEventResponse_TopicEventResponseStatus,
   TopicEventResponseSchema,
   TopicRuleSchema,
-  TopicSubscription,
   TopicSubscriptionSchema,
-} from "../../../proto/dapr/proto/runtime/v1/appcallback_pb";
-import {
-  BindingEventRequest,
-  BindingEventResponse,
-  ListInputBindingsResponse,
-  ListTopicSubscriptionsResponse,
-  TopicEventRequest,
-  TopicEventResponse,
-  TopicEventBulkRequest,
-  TopicEventBulkResponse,
-  TopicEventBulkResponseEntry,
   TopicRoutesSchema,
 } from "../../../proto/dapr/proto/runtime/v1/appcallback_pb";
 

@@ -8,6 +8,12 @@ plugins:
     opt:
       - target=js+dts
       - import_extension=none
+  - remote: buf.build/connectrpc/es
+    out: ./src/proto
+    include_imports: true
+    opt:
+      - target=js+dts
+      - import_extension=none
 inputs:
   - directory: ./
     paths:
