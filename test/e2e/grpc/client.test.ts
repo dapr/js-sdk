@@ -19,10 +19,10 @@ import * as grpc from "@grpc/grpc-js";
 import { CommunicationProtocolEnum, DaprClient, LogLevel } from "../../../src";
 import { SubscribeConfigurationResponse } from "../../../src/types/configuration/SubscribeConfigurationResponse";
 import * as DockerUtils from "../../utils/DockerUtil";
-import { Dapr } from "../../../src/proto/dapr/proto/runtime/v1/dapr_connect";
-import { NextCall } from "@grpc/grpc-js/build/src/client-interceptors";
-import { GetMetadataRequestSchema } from "../../../src/proto/dapr/proto/runtime/v1/dapr_pb";
+import { Dapr } from "../../../src/proto/dapr/proto/runtime/v1/dapr_pb";
 import { create } from "@bufbuild/protobuf";
+import { GetMetadataRequestSchema } from "../../../src/proto/dapr/proto/runtime/v1/dapr_pb";
+import type { Interceptor } from "@connectrpc/connect";
 
 const daprHost = "localhost";
 const daprPort = "50000"; // Dapr Sidecar Port of this Example Server
@@ -59,56 +59,40 @@ describe("grpc/client", () => {
 
   describe("proxy", () => {
     it("should allow to use a proxy builder to proxy a gRPC request", async () => {
-      let mockMetadataRes: grpc.Metadata = new grpc.Metadata();
-      const mockInterceptor = jest.fn((options: grpc.InterceptorOptions, nextCall: NextCall): grpc.InterceptingCall => {
-        return new grpc.InterceptingCall(nextCall(options), {
-          start: function (
-            metadata: grpc.Metadata,
-            listener: grpc.InterceptingListener,
-            next: (metadata: grpc.Metadata, listener: grpc.InterceptingListener | grpc.Listener) => void,
-          ) {
-            mockMetadataRes = metadata;
-            next(metadata, listener);
-          },
-        });
+      let capturedHeaders: Headers | undefined;
+      const mockInterceptor: Interceptor = jest.fn((next) => async (req) => {
+        capturedHeaders = req.header;
+        return await next(req);
       });
 
-      const clientProxy = await client.proxy.create<typeof Dapr>(Dapr as any, {
+      const clientProxy = await client.proxy.create<typeof Dapr>(Dapr, {
         interceptors: [mockInterceptor],
       });
 
-      await new Promise((resolve) => clientProxy.getMetadata(create(GetMetadataRequestSchema), resolve));
+      await clientProxy.getMetadata(create(GetMetadataRequestSchema));
 
-      expect(mockInterceptor.mock.calls.length).toBe(1);
-      expect(mockMetadataRes.get("dapr-app-id")[0]).toBe("test-suite");
+      expect(mockInterceptor).toHaveBeenCalled();
+      expect(capturedHeaders?.get("dapr-app-id")).toBe("test-suite");
     });
 
     it("should allow to use a proxy builder that uses daprAppId by setting custom env variable to proxy a gRPC request", async () => {
       const oldProcessAppId = process.env?.APP_ID;
       process.env.APP_ID = "test-suite-proxy";
 
-      let mockMetadataRes: grpc.Metadata = new grpc.Metadata();
-      const mockInterceptor = jest.fn((options: grpc.InterceptorOptions, nextCall: NextCall): grpc.InterceptingCall => {
-        return new grpc.InterceptingCall(nextCall(options), {
-          start: function (
-            metadata: grpc.Metadata,
-            listener: grpc.InterceptingListener,
-            next: (metadata: grpc.Metadata, listener: grpc.InterceptingListener | grpc.Listener) => void,
-          ) {
-            mockMetadataRes = metadata;
-            next(metadata, listener);
-          },
-        });
+      let capturedHeaders: Headers | undefined;
+      const mockInterceptor: Interceptor = jest.fn((next) => async (req) => {
+        capturedHeaders = req.header;
+        return await next(req);
       });
 
-      const clientProxy = await client.proxy.create<typeof Dapr>(Dapr as any, {
+      const clientProxy = await client.proxy.create<typeof Dapr>(Dapr, {
         interceptors: [mockInterceptor],
       });
 
-      await new Promise((resolve) => clientProxy.getMetadata(create(GetMetadataRequestSchema), resolve));
+      await clientProxy.getMetadata(create(GetMetadataRequestSchema));
 
-      expect(mockInterceptor.mock.calls.length).toBe(1);
-      expect(mockMetadataRes.get("dapr-app-id")[0]).toBe(process.env.APP_ID);
+      expect(mockInterceptor).toHaveBeenCalled();
+      expect(capturedHeaders?.get("dapr-app-id")).toBe(process.env.APP_ID);
       process.env.APP_ID = oldProcessAppId;
     });
   });

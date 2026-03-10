@@ -13,30 +13,54 @@ limitations under the License.
 
 import Class from "../../../types/Class";
 import GRPCClient from "./GRPCClient";
+import { createClient, Client, Interceptor } from "@connectrpc/connect";
+import { createGrpcTransport } from "@connectrpc/connect-node";
+import { Settings } from "../../../utils/Settings.util";
+import type { ServiceType } from "@bufbuild/protobuf";
 
-// Note: GRPCClientProxy functionality is currently limited after migration to Connect.
-// This is a stub implementation that maintains the interface but does not support
-// full proxy functionality. Full support would require @grpc/grpc-js for custom services.
 export class GRPCClientProxy<T> {
-  clsProxy: Class<T>;
+  clsProxy: Class<T> | ServiceType;
   grpcClient: GRPCClient;
   grpcClientOptions: Record<string, any>;
 
-  constructor(clsProxy: Class<T>, grpcClient: GRPCClient, grpcClientOptions?: Record<string, any>) {
+  constructor(clsProxy: Class<T> | ServiceType, grpcClient: GRPCClient, grpcClientOptions?: Record<string, any>) {
     this.clsProxy = clsProxy;
     this.grpcClient = grpcClient;
     this.grpcClientOptions = grpcClientOptions ?? {};
+  }
+
+  generateInterceptors(): Interceptor[] {
+    const interceptors: Interceptor[] = [];
+
+    // Create an interceptor that adds 'dapr-app-id' to each call as metadata
+    const interceptorDaprAppId: Interceptor = (next) => async (req) => {
+      req.header.set("dapr-app-id", `${Settings.getAppId()}`);
+      return await next(req);
+    };
+
+    interceptors.push(interceptorDaprAppId);
+
+    return interceptors;
   }
 
   async build(): Promise<T> {
     // Ensures the sidecar is started
     await this.grpcClient.start();
 
-    // Note: This proxy functionality is not fully implemented after Connect migration.
-    // For custom gRPC services, consider using Connect-generated clients directly.
-    throw new Error(
-      "GRPCClientProxy is not fully supported after migration to Connect. " +
-      "Please use Connect-generated clients for custom services."
-    );
+    // Combine interceptors from various sources
+    const allInterceptors = [
+      ...this.generateInterceptors(),
+      ...(this.grpcClientOptions.interceptors ?? []),
+    ];
+
+    // Create a transport with the interceptors
+    const transport = createGrpcTransport({
+      baseUrl: `http://${this.grpcClient.options.daprHost}:${this.grpcClient.options.daprPort}`,
+      interceptors: allInterceptors,
+    });
+
+    // Create and return the Connect client
+    const client = createClient(this.clsProxy as ServiceType, transport);
+    return client as T;
   }
 }
