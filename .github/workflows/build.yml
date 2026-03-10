@@ -47,7 +47,7 @@ jobs:
       - name: npm install
         run: npm install
 
-      - name: Build package (install dependencies, lint, prettier, build)
+      - name: Build package
         run: npm run build
 
       # @TODO: add a depend on the test-e2e pipeline?
