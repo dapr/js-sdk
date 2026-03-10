@@ -32,27 +32,20 @@ describe("GRPCServerImpl", () => {
 
   describe("onTopicEvent", () => {
     it("should correctly check if a pubsub was registered", async () => {
-      const g = new GRPCServerImpl(undefined as any, customLoggerService);
+      const g = new GRPCServerImpl(customLoggerService);
 
-      await g.onTopicEvent(
-        {
-          request: {
-            getPubsubName: () => "pubsub",
-          },
-        } as any,
-        () => {
-          return {
-            status: 200,
-          };
-        },
-      );
+      await g.onTopicEvent({
+        pubsubName: "pubsub",
+        topic: "",
+        path: "",
+      } as any);
 
       expect(mockLogWarn).toBeCalledTimes(1);
       expect(mockLogWarn.mock.calls[0][0]).toContain("PubSub 'pubsub' has not been registered, ignoring event.");
     });
 
     it("should correctly check if a topic was registered", async () => {
-      const g = new GRPCServerImpl(undefined as any, customLoggerService);
+      const g = new GRPCServerImpl(customLoggerService);
 
       // Mock the entire class SubscriptionManager with a custom implementation
       // @ts-ignore
@@ -61,20 +54,11 @@ describe("GRPCServerImpl", () => {
         lookupTopicWildcard: () => ["", ""],
       };
 
-      await g.onTopicEvent(
-        {
-          request: {
-            getPubsubName: () => "pubsub",
-            getTopic: () => "",
-            getPath: () => "path",
-          },
-        } as any,
-        () => {
-          return {
-            status: 200,
-          };
-        },
-      );
+      await g.onTopicEvent({
+        pubsubName: "pubsub",
+        topic: "",
+        path: "path",
+      } as any);
 
       expect(mockLogWarn).toBeCalledTimes(1);
       expect(mockLogWarn.mock.calls[0][0]).toContain(
@@ -85,27 +69,21 @@ describe("GRPCServerImpl", () => {
 
   describe("onBulkTopicEventAlpha1", () => {
     it("should correctly check if a pubsub was registered", async () => {
-      const g = new GRPCServerImpl(undefined as any, customLoggerService);
+      const g = new GRPCServerImpl(customLoggerService);
 
-      await g.onBulkTopicEventAlpha1(
-        {
-          request: {
-            getPubsubName: () => "pubsub",
-          },
-        } as any,
-        () => {
-          return {
-            status: 200,
-          };
-        },
-      );
+      await g.onBulkTopicEventAlpha1({
+        pubsubName: "pubsub",
+        topic: "",
+        path: "",
+        entries: [],
+      } as any);
 
       expect(mockLogWarn).toBeCalledTimes(1);
       expect(mockLogWarn.mock.calls[0][0]).toContain("PubSub 'pubsub' has not been registered, ignoring bulk event.");
     });
 
     it("should correctly check if a pubsub was registered", async () => {
-      const g = new GRPCServerImpl(undefined as any, customLoggerService);
+      const g = new GRPCServerImpl(customLoggerService);
 
       // Mock the entire class SubscriptionManager with a custom implementation
       // @ts-ignore
@@ -114,20 +92,12 @@ describe("GRPCServerImpl", () => {
         lookupTopicWildcard: () => ["", ""],
       };
 
-      await g.onBulkTopicEventAlpha1(
-        {
-          request: {
-            getPubsubName: () => "pubsub",
-            getTopic: () => "",
-            getPath: () => "path",
-          },
-        } as any,
-        () => {
-          return {
-            status: 200,
-          };
-        },
-      );
+      await g.onBulkTopicEventAlpha1({
+        pubsubName: "pubsub",
+        topic: "",
+        path: "path",
+        entries: [],
+      } as any);
 
       expect(mockLogWarn).toBeCalledTimes(1);
       expect(mockLogWarn.mock.calls[0][0]).toContain(

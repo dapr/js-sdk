@@ -62,38 +62,9 @@ export default class GRPCClientCrypto implements IClientCrypto {
       throw new Error(`Option 'keyWrapAlgorithm' is required`);
     }
 
-    // Create the gRPC stream
-    const client = await this.client.getClient();
-    const grpcStream = client.encryptAlpha1();
-
-    // Create a duplex stream that will send data to the server and read from it
-    const duplexStream = new DaprChunkedStream(grpcStream, (createOptions) => {
-      const req = create(EncryptRequestSchema);
-
-      if (createOptions)
-      {
-        const reqOptions = create(EncryptRequestOptionsSchema);
-        reqOptions.componentName = opts!.componentName;
-        reqOptions.keyName = opts!.keyName;
-        reqOptions.keyWrapAlgorithm = opts!.keyWrapAlgorithm;
-        if (opts!.dataEncryptionCipher) {
-          reqOptions.dataEncryptionCipher = opts!.dataEncryptionCipher;
-        }
-        if (opts!.decryptionKeyName) {
-          reqOptions.decryptionKeyName = opts!.decryptionKeyName;
-        }
-        if (opts!.omitDecryptionKeyName) {
-          reqOptions.omitDecryptionKeyName = opts!.omitDecryptionKeyName;
-        }
-
-        req.options = reqOptions;
-      }
-
-      return req;
-    });
-
-    // Process the data
-    return this.processStream(duplexStream, inData);
+    // TODO: Implement Connect bidirectional streaming for crypto
+    // This requires proper async generator implementation
+    throw new Error("Crypto streaming not yet implemented with Connect. Please use HTTP client for crypto operations.");
   }
 
   decrypt(opts: DecryptRequest): Promise<Duplex>;
@@ -117,29 +88,9 @@ export default class GRPCClientCrypto implements IClientCrypto {
       throw new Error(`Parameter 'opts' must be defined`);
     }
 
-    // Create the gRPC stream
-    const client = await this.client.getClient();
-    const grpcStream = client.decryptAlpha1();
-
-    // Create a duplex stream that will send data to the server and read from it
-    const duplexStream = new DaprChunkedStream(grpcStream, (createOptions) => {
-      const req = create(DecryptRequestSchema);
-
-      if (createOptions)
-      {
-        const reqOptions = create(DecryptRequestOptionsSchema);
-        reqOptions.componentName = opts!.componentName;
-        if (opts!.keyName) {
-          reqOptions.keyName = opts!.keyName;
-        }
-        req.options = reqOptions;
-      }
-
-      return req;
-    });
-
-    // Process the data
-    return this.processStream(duplexStream, inData);
+    // TODO: Implement Connect bidirectional streaming for crypto
+    // This requires proper async generator implementation
+    throw new Error("Crypto streaming not yet implemented with Connect. Please use HTTP client for crypto operations.");
   }
 
   private toArrayBuffer(inData: Buffer | ArrayBuffer | ArrayBufferView | string | any): Buffer {

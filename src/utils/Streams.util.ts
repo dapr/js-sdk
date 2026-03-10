@@ -12,26 +12,25 @@ limitations under the License.
 */
 
 import { Duplex } from "node:stream";
-import { ClientDuplexStream } from "@grpc/grpc-js";
 
 import { StreamPayload, StreamPayloadSchema } from "../proto/dapr/proto/common/v1/common_pb";
 import { create } from "@bufbuild/protobuf";
 import { DecryptRequest, EncryptRequest } from "../proto/dapr/proto/runtime/v1/dapr_pb";
 
 interface messageWithPayload {
-  getPayload(): StreamPayload | undefined;
-  setPayload(value?: StreamPayload): unknown;
+  payload?: StreamPayload;
 }
 
 /**
  * DaprChunkedStream is a Readable stream that processes data sent from Dapr over a gRPC stream, chunked.
  */
 export class DaprChunkedStream<T extends messageWithPayload, U extends messageWithPayload, V extends EncryptRequest | DecryptRequest> extends Duplex {
-  private grpcStream: ClientDuplexStream<T, U>;
+  private grpcStream: any; // Connect streaming interface
   private readonly createReqFactory: (withOptions: boolean) => V;
   private writeSeq = BigInt(0);
+  private readHandlersAttached = false;
 
-  constructor(grpcStream: ClientDuplexStream<T, U>, createReqFactory: (withOptions: boolean) => V) {
+  constructor(grpcStream: any, createReqFactory: (withOptions: boolean) => V) {
     super({
       objectMode: false,
       emitClose: true,
@@ -43,11 +42,9 @@ export class DaprChunkedStream<T extends messageWithPayload, U extends messageWi
 
   _read(): void {
     // Attach the handlers if they haven't been attached already
-    if (this.grpcStream.listenerCount("data") == 0) {
+    if (!this.readHandlersAttached) {
       this.readGrpcStream();
-    } else if (this.grpcStream.isPaused()) {
-      // Resume the stream if it's paused
-      this.grpcStream.resume();
+      this.readHandlersAttached = true;
     }
   }
 
@@ -90,41 +87,35 @@ export class DaprChunkedStream<T extends messageWithPayload, U extends messageWi
     callback();
   }
 
-  private readGrpcStream() {
+  private async readGrpcStream() {
     let readSeq = BigInt(0);
 
-    this.grpcStream.on("data", (chunk: messageWithPayload) => {
-      const payload = chunk.getPayload();
-      if (!payload) {
-        return;
+    try {
+      for await (const chunk of this.grpcStream) {
+        const payload = chunk.payload;
+        if (!payload) {
+          continue;
+        }
+
+        // Check sequence
+        if (payload.seq != readSeq) {
+          this.destroy(new Error(`Invalid payload sequence: got ${payload.seq} but expected ${readSeq}`));
+          return;
+        }
+        readSeq++;
+
+        // Push the data into the internal buffer
+        if (!this.push(payload.data)) {
+          // If push() returns false, we need to pause reading the stream
+          // With AsyncIterables, we just wait for the next _read() call
+          break;
+        }
       }
 
-      // Check sequence
-      if (payload.seq != readSeq) {
-        this.closeWithError(new Error(`Invalid payload sequence: got ${payload.seq} but expected ${readSeq}`));
-        return;
-      }
-      readSeq++;
-
-      // Push the data into the internal buffer
-      if (!this.push(payload.data)) {
-        // If push() returns false, we need to pause reading the stream
-        this.grpcStream.pause();
-      }
-    });
-
-    this.grpcStream.on("end", () => {
       // Push a null value to signal EOF
       this.push(null);
-    });
-
-    this.grpcStream.on("error", (err) => {
-      this.closeWithError(err);
-    });
-  }
-
-  private closeWithError(err: Error) {
-    this.grpcStream.cancel();
-    this.destroy(err);
+    } catch (err) {
+      this.destroy(err as Error);
+    }
   }
 }

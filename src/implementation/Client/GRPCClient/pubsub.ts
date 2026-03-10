@@ -50,17 +50,17 @@ export default class GRPCClientPubSub implements IClientPubSub {
     data: object | string,
     options: PubSubPublishOptions = {},
   ): Promise<PubSubPublishResponseType> {
-    const msgService = create(PublishEventRequestSchema);
-    msgService.pubsubName = pubSubName;
-    msgService.topic = topic;
+    const msgService = create(PublishEventRequestSchema, {
+      pubsubName: pubSubName,
+      topic: topic,
+      metadata: options.metadata || {},
+    });
 
     if (data) {
       const serialized = SerializerUtil.serializeGrpc(data, options.contentType);
       msgService.data = serialized.serializedData;
       msgService.dataContentType = serialized.contentType;
     }
-
-    addMetadataToMap(convertToMap(msgService.metadata), options.metadata);
 
     const client = await this.client.getClient();
     await client.publishEvent(msgService);

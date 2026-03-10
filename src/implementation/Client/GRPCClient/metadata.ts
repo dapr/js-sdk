@@ -41,12 +41,7 @@ export default class GRPCClientMetadata implements IClientMetadata {
         type: a.type,
         count: a.count,
       })),
-      extended: convertToMap(res.extendedMetadata)
-        .toObject()
-        .reduce((result: any, [key, value]) => {
-          result[key] = value;
-          return result;
-        }, {}),
+      extended: Object.fromEntries(convertToMap(res.extendedMetadata).entries()),
       components: res.registeredComponents.map((c) => ({
         name: c.name,
         type: c.type,

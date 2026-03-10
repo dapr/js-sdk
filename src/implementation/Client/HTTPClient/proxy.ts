@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import * as grpc from "@grpc/grpc-js";
 import Class from "../../../types/Class";
 import IClientProxy from "../../../interfaces/Client/IClientProxy";
 import HTTPClient from "./HTTPClient";
@@ -24,7 +23,7 @@ export default class HTTPClientProxy implements IClientProxy {
     this.client = client;
   }
 
-  async create<T>(_cls: Class<T>, _clientOptions?: Partial<grpc.ClientOptions> | undefined): Promise<T> {
+  async create<T>(_cls: Class<T>, _clientOptions?: Record<string, any>): Promise<T> {
     throw new HTTPNotSupportedError();
   }
 }

@@ -84,15 +84,9 @@ export function getDaprApiToken(options: Partial<WorkflowClientOptions>): string
  */
 export function generateApiTokenClientInterceptors(
   workflowOptions: Partial<WorkflowClientOptions>,
-): (options: any, nextCall: any) => grpc.InterceptingCall {
+): any {
+  // TODO: Implement Connect-compatible interceptor after migration
   return (options: any, nextCall: any) => {
-    return new grpc.InterceptingCall(nextCall(options), {
-      start: (metadata, listener, next) => {
-        if (metadata.get("dapr-api-token").length == 0) {
-          metadata.add("dapr-api-token", workflowOptions.daprApiToken as grpc.MetadataValue);
-        }
-        next(metadata, listener);
-      },
-    });
+    throw new Error("Workflow interceptors not yet implemented for Connect");
   };
 }

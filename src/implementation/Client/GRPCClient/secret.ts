@@ -37,22 +37,14 @@ export default class GRPCClientSecret implements IClientSecret {
     msgService.key = key;
 
     const client = await this.client.getClient();
+    const res = await client.getSecret(msgService);
 
-    return new Promise((resolve, reject) => {
-      client.getSecret(msgService, (err: Error, res: GetSecretResponse) => {
-        if (err) {
-          return reject(err);
-        }
+    // Convert Map to array of entries, then to objects
+    const items = Array.from(convertToMap(res.data).entries())
+      .map((item) => ({ [item[0]]: item[1] }));
 
-        // Convert [ [ 'TEST_SECRET_1', 'secret_val_1' ] ] => [ { TEST_SECRET_1: 'secret_val_1' } ]
-        const items = convertToMap(res.data)
-          .toObject()
-          .map((item) => ({ [item[0]]: item[1] }));
-
-        // Return the first item (it's a single get)
-        return resolve(items[0]);
-      });
-    });
+    // Return the first item (it's a single get)
+    return items[0];
   }
 
   async getBulk(secretStoreName: string): Promise<object> {
@@ -63,8 +55,11 @@ export default class GRPCClientSecret implements IClientSecret {
     const res = await client.getBulkSecret(msgService);
 
     // https://docs.dapr.io/reference/api/secrets_api/#response-body-1
-    // @ts-ignore
-    // tslint:disable-next-line
-    return res.getDataMap()["map_"];
+    // Convert the data map to a plain object
+    const result: any = {};
+    for (const [key, value] of Object.entries(res.data)) {
+      result[key] = value.secrets;
+    }
+    return result;
   }
 }

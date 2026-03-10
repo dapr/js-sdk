@@ -57,22 +57,16 @@ export default class ActorClientGRPC implements IClientActor {
 
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
-      client.invokeActor(msgService, (err: any, res: InvokeActorResponse) => {
-        if (err) {
-          return reject(err);
-        }
+    const res = await client.invokeActor(msgService);
 
-        // https://docs.dapr.io/reference/api/secrets_api/#response-body
-        const resData = Buffer.from(res.data).toString();
+    // https://docs.dapr.io/reference/api/secrets_api/#response-body
+    const resData = Buffer.from(res.data).toString();
 
-        try {
-          return resolve(JSON.parse(resData));
-        } catch (e) {
-          return resolve(resData as any);
-        }
-      });
-    });
+    try {
+      return JSON.parse(resData);
+    } catch (e) {
+      return resData as any;
+    }
   }
 
   async stateTransaction(actorType: string, actorId: ActorId, operations: OperationType[]): Promise<void> {
@@ -98,16 +92,10 @@ export default class ActorClientGRPC implements IClientActor {
 
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
-      client.executeActorStateTransaction(msgService, (err, _res) => {
-        if (err) {
-          return reject(err);
-        }
+    await client.executeActorStateTransaction(msgService);
 
-        // https://docs.dapr.io/reference/api/state_api/#request-body-1
-        return resolve();
-      });
-    });
+    // https://docs.dapr.io/reference/api/state_api/#request-body-1
+    return;
   }
 
   async stateGet(actorType: string, actorId: ActorId, key: string): Promise<KeyValueType | string> {
@@ -118,23 +106,17 @@ export default class ActorClientGRPC implements IClientActor {
 
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
-      client.getActorState(msgService, (err, res: GetActorStateResponse) => {
-        if (err) {
-          return reject(err);
-        }
+    const res = await client.getActorState(msgService);
 
-        // https://docs.dapr.io/reference/api/actors_api/#http-response-codes-2
-        const resData = Buffer.from(res.data).toString();
+    // https://docs.dapr.io/reference/api/actors_api/#http-response-codes-2
+    const resData = Buffer.from(res.data).toString();
 
-        try {
-          const json = JSON.parse(resData);
-          return resolve(json);
-        } catch (e) {
-          return resolve(resData);
-        }
-      });
-    });
+    try {
+      const json = JSON.parse(resData);
+      return json;
+    } catch (e) {
+      return resData;
+    }
   }
 
   async registerActorReminder(
@@ -166,16 +148,10 @@ export default class ActorClientGRPC implements IClientActor {
 
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
-      client.registerActorReminder(msgService, (err, _res) => {
-        if (err) {
-          return reject(err);
-        }
+    await client.registerActorReminder(msgService);
 
-        // https://docs.dapr.io/reference/api/actors_api/#http-response-codes-3
-        return resolve();
-      });
-    });
+    // https://docs.dapr.io/reference/api/actors_api/#http-response-codes-3
+    return;
   }
 
   async unregisterActorReminder(actorType: string, actorId: ActorId, name: string): Promise<void> {
@@ -186,16 +162,10 @@ export default class ActorClientGRPC implements IClientActor {
 
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
-      client.unregisterActorReminder(msgService, (err, _res) => {
-        if (err) {
-          return reject(err);
-        }
+    await client.unregisterActorReminder(msgService);
 
-        // https://docs.dapr.io/reference/api/actors_api/#delete-actor-reminder
-        return resolve();
-      });
-    });
+    // https://docs.dapr.io/reference/api/actors_api/#delete-actor-reminder
+    return;
   }
 
   async registerActorTimer(actorType: string, actorId: ActorId, name: string, timer: ActorTimerType): Promise<void> {
@@ -227,16 +197,10 @@ export default class ActorClientGRPC implements IClientActor {
 
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
-      client.registerActorTimer(msgService, (err, _res) => {
-        if (err) {
-          return reject(err);
-        }
+    await client.registerActorTimer(msgService);
 
-        // https://docs.dapr.io/reference/api/actors_api/#http-response-codes-3
-        return resolve();
-      });
-    });
+    // https://docs.dapr.io/reference/api/actors_api/#http-response-codes-3
+    return;
   }
 
   async unregisterActorTimer(actorType: string, actorId: ActorId, name: string): Promise<void> {
@@ -247,16 +211,10 @@ export default class ActorClientGRPC implements IClientActor {
 
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
-      client.unregisterActorTimer(msgService, (err, _res) => {
-        if (err) {
-          return reject(err);
-        }
+    await client.unregisterActorTimer(msgService);
 
-        // https://docs.dapr.io/reference/api/actors_api/#delete-actor-timer
-        return resolve();
-      });
-    });
+    // https://docs.dapr.io/reference/api/actors_api/#delete-actor-timer
+    return;
   }
 
   // @todo: cannot find this one
@@ -282,15 +240,9 @@ export default class ActorClientGRPC implements IClientActor {
   async getActors(): Promise<object> {
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
-      client.getMetadata(create(GetMetadataRequestSchema), (err, res: GetMetadataResponse) => {
-        if (err) {
-          return reject(err);
-        }
+    const res = await client.getMetadata(create(GetMetadataRequestSchema));
 
-        // https://docs.dapr.io/reference/api/actors_api/#http-response-codes-2
-        return resolve(res.activeActorsCount);
-      });
-    });
+    // https://docs.dapr.io/reference/api/actors_api/#http-response-codes-2
+    return res.activeActorsCount;
   }
 }

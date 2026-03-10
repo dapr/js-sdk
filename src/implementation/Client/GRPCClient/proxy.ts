@@ -12,7 +12,6 @@ limitations under the License.
 */
 
 import GRPCClient from "./GRPCClient";
-import * as grpc from "@grpc/grpc-js";
 import Class from "../../../types/Class";
 import { GRPCClientProxy as GRPCClientProxyImpl } from "./GRPCClientProxy";
 import IClientProxy from "../../../interfaces/Client/IClientProxy";
@@ -24,7 +23,7 @@ export default class GRPCClientProxy implements IClientProxy {
     this.client = client;
   }
 
-  async create<T>(cls: Class<T>, clientOptions?: Partial<grpc.ClientOptions> | undefined): Promise<T> {
+  async create<T>(cls: Class<T>, clientOptions?: Record<string, any>): Promise<T> {
     const proxy = new GRPCClientProxyImpl<T>(cls, this.client, clientOptions);
     return proxy.build();
   }

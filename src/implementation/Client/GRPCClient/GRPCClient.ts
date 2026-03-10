@@ -29,9 +29,7 @@ export default class GRPCClient implements IClient {
 
   private isInitialized: boolean;
   private readonly client: Client<typeof Dapr>;
-  private readonly clientCredentials: grpc.ChannelCredentials;
   private readonly logger: Logger;
-  private readonly grpcClientOptions: Partial<grpc.ClientOptions>;
   private daprEndpoint: GrpcEndpoint;
 
   constructor(options: Partial<DaprClientOptions>) {
@@ -48,9 +46,6 @@ export default class GRPCClient implements IClient {
       maxBodySizeMb: options?.maxBodySizeMb,
     };
 
-    this.clientCredentials = this.generateCredentials();
-    this.grpcClientOptions = this.generateChannelOptions();
-
     this.logger = new Logger("GRPCClient", "GRPCClient", options.logger);
     this.isInitialized = false;
 
@@ -58,7 +53,6 @@ export default class GRPCClient implements IClient {
 
     const transport = createGrpcTransport({
       baseUrl: this.daprEndpoint.endpoint,
-      httpVersion: "2",
       interceptors: this.generateInterceptors(),
     });
 
@@ -72,14 +66,6 @@ export default class GRPCClient implements IClient {
     }
 
     return this.client;
-  }
-
-  getClientCredentials(): grpc.ChannelCredentials {
-    return this.clientCredentials;
-  }
-
-  getGrpcClientOptions(): grpc.ClientOptions {
-    return this.grpcClientOptions;
   }
 
   private generateEndpoint(options: Partial<DaprClientOptions>): GrpcEndpoint {
@@ -98,42 +84,8 @@ export default class GRPCClient implements IClient {
     return new GrpcEndpoint(uri);
   }
 
-  private generateCredentials(): grpc.ChannelCredentials {
-    if (this.daprEndpoint?.tls) {
-      return grpc.ChannelCredentials.createSsl();
-    }
-    return grpc.ChannelCredentials.createInsecure();
-  }
-
-  private generateChannelOptions(): Partial<grpc.ClientOptions> {
-    // const options: Record<string, string | number> = {};
-    let options: Partial<grpc.ClientOptions> = {};
-
-    // See: GRPC_ARG_MAX_SEND_MESSAGE_LENGTH, it is in bytes
-    // https://grpc.github.io/grpc/core/group__grpc__arg__keys.html#ga813f94f9ac3174571dd712c96cdbbdc1
-    // Default is 4Mb
-    options["grpc.max_send_message_length"] = (this.options.maxBodySizeMb ?? 4) * 1024 * 1024;
-
-    // There was an issue that there was no default set in grpc-node, so we set it here
-    // https://github.com/grpc/grpc-node/issues/1158#issuecomment-1137023216
-    options["grpc-node.max_session_memory"] = Number.MAX_SAFE_INTEGER;
-
-    // Add user agent
-    options["grpc.primary_user_agent"] = "dapr-sdk-js/v" + SDK_VERSION;
-
-    // Add interceptors if we have an API token
-    if (this.options.daprApiToken !== "") {
-      options = {
-        interceptors: [this.generateInterceptors()],
-        ...options,
-      };
-    }
-
-    return options;
-  }
-
   private generateInterceptors(): any[] {
-    const interceptors = [];
+    const interceptors: any[] = [];
 
     // Add interceptors if we have an API token
     if (this.options.daprApiToken !== "") {

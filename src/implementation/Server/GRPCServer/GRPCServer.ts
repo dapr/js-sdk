@@ -11,15 +11,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import * as grpc from "@grpc/grpc-js";
+import { createServer } from "http";
+import { Server as HttpServer } from "http";
 import GRPCServerImpl from "./GRPCServerImpl";
-import { AppCallback, AppCallbackAlpha } from "../../../proto/dapr/proto/runtime/v1/appcallback_pb"
+import { AppCallback, AppCallbackAlpha } from "../../../proto/dapr/proto/runtime/v1/appcallback_connect";
 import IServer from "../../../interfaces/Server/IServer";
 import { DaprClient } from "../../..";
 import { Logger } from "../../../logger/Logger";
 import { DaprServerOptions } from "../../../types/DaprServerOptions";
+import { ConnectRouter, ServiceImpl } from "@connectrpc/connect";
+import { connectNodeAdapter } from "@connectrpc/connect-node";
 
-export type IServerType = grpc.Server;
+export type IServerType = HttpServer;
 export type IServerImplType = GRPCServerImpl;
 
 export default class GRPCServer implements IServer {
@@ -29,7 +32,6 @@ export default class GRPCServer implements IServer {
   serverOptions: DaprServerOptions;
   server: IServerType;
   serverImpl: IServerImplType;
-  serverCredentials: grpc.ServerCredentials;
   client: DaprClient;
   private readonly logger: Logger;
 
@@ -42,37 +44,33 @@ export default class GRPCServer implements IServer {
     this.client = client;
     this.logger = new Logger("GRPCServer", "GRPCServer", client.options.logger);
 
-    // Create Server
-    const grpcChannelOptions = this.generateChannelOptions();
-    this.server = new grpc.Server(grpcChannelOptions);
-    this.serverCredentials = grpc.ServerCredentials.createInsecure();
-    this.serverImpl = new GRPCServerImpl(this.server, client.options.logger);
+    this.serverImpl = new GRPCServerImpl(client.options.logger);
 
-    // Add our implementation
-    this.logger.info("Adding Service Implementation - AppCallback");
-    // @ts-ignore
-    this.server.addService(AppCallback, this.serverImpl);
-    // Add our implementation
-    this.logger.info("Adding Service Implementation - AppCallbackAlpha");
-    // @ts-ignore
-    this.server.addService(AppCallbackAlpha, this.serverImpl);
+    // Create Connect routes
+    const routes = (router: ConnectRouter) => {
+      this.logger.info("Adding Service Implementation - AppCallback");
+      // @ts-ignore - AppCallback service definition compatibility with Connect
+      router.service(AppCallback as any, {
+        onInvoke: this.serverImpl.onInvoke.bind(this.serverImpl) as any,
+        listTopicSubscriptions: this.serverImpl.listTopicSubscriptions.bind(this.serverImpl) as any,
+        onTopicEvent: this.serverImpl.onTopicEvent.bind(this.serverImpl) as any,
+        listInputBindings: this.serverImpl.listInputBindings.bind(this.serverImpl) as any,
+        onBindingEvent: this.serverImpl.onBindingEvent.bind(this.serverImpl) as any,
+      } as any);
+
+      this.logger.info("Adding Service Implementation - AppCallbackAlpha");
+      // @ts-ignore - AppCallbackAlpha service definition compatibility with Connect
+      router.service(AppCallbackAlpha as any, {
+        onBulkTopicEventAlpha1: this.serverImpl.onBulkTopicEventAlpha1.bind(this.serverImpl) as any,
+      } as any);
+    };
+
+    // Create HTTP/2 server with Connect adapter
+    this.server = createServer(
+      connectNodeAdapter({ routes })
+    );
   }
 
-  // See: https://cs.github.com/nestjs/nest/blob/f4e9ac6208f3e7ee7ad44c3de713c9086f657977/packages/microservices/external/grpc-options.interface.ts
-  private generateChannelOptions(): Record<string, string | number> {
-    const options: Record<string, string | number> = {};
-
-    // See: GRPC_ARG_MAX_SEND_MESSAGE_LENGTH, it is in bytes
-    // https://grpc.github.io/grpc/core/group__grpc__arg__keys.html#ga813f94f9ac3174571dd712c96cdbbdc1
-    // Default is 4Mb
-    options["grpc.max_receive_message_length"] = (this.serverOptions.maxBodySizeMb ?? 4) * 1024 * 1024;
-
-    // There was an issue that there was no default set in grpc-node, so we set it here
-    // https://github.com/grpc/grpc-node/issues/1158#issuecomment-1137023216
-    options["grpc-node.max_session_memory"] = Number.MAX_SAFE_INTEGER;
-
-    return options;
-  }
 
   getServerAddress(): string {
     if (!this.isInitialized) {
@@ -109,35 +107,29 @@ export default class GRPCServer implements IServer {
     this.serverHost = host;
     this.serverPort = port;
 
-    await this.initializeBind();
-    this.server.start();
+    return new Promise((resolve, reject) => {
+      this.logger.info(`Starting to listen on ${this.serverHost}:${this.serverPort}`);
 
-    // We are initialized
-    this.isInitialized = true;
+      this.server.listen(parseInt(port), host, () => {
+        this.logger.info(`Listening on ${this.serverHost}:${this.serverPort}`);
+        this.isInitialized = true;
+        resolve();
+      });
+
+      this.server.on("error", (err) => {
+        reject(err);
+      });
+    });
   }
 
   async stop(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.server.tryShutdown((err) => {
+      this.server.close((err) => {
         if (err) {
           return reject(err);
         }
 
         this.isInitialized = false;
-        return resolve();
-      });
-    });
-  }
-
-  private async initializeBind(): Promise<void> {
-    this.logger.info(`Starting to listen on ${this.serverHost}:${this.serverPort}`);
-    return new Promise((resolve, reject) => {
-      this.server.bindAsync(`${this.serverHost}:${this.serverPort}`, this.serverCredentials, (err, _port) => {
-        if (err) {
-          return reject(err);
-        }
-
-        this.logger.info(`Listening on ${this.serverHost}:${this.serverPort}`);
         return resolve();
       });
     });

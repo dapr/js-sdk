@@ -47,22 +47,15 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
     addMetadataToMap(convertToMap(msg.metadata), metadataObj);
 
     const client = await this.client.getClient();
+    const res = await client.getConfiguration(msg);
 
-    return new Promise((resolve, reject) => {
-      client.getConfiguration(msg, (err, res: GetConfigurationResponse) => {
-        if (err) {
-          return reject(err);
-        }
+    const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(convertToMap(res.items));
 
-        const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(convertToMap(res.items));
+    const result: SubscribeConfigurationResponseResult = {
+      items: configMap,
+    };
 
-        const result: SubscribeConfigurationResponseResult = {
-          items: configMap,
-        };
-
-        return resolve(result);
-      });
-    });
+    return result;
   }
 
   async subscribe(storeName: string, cb: SubscribeConfigurationCallback): Promise<SubscribeConfigurationStream> {
@@ -106,47 +99,49 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
 
     // Open a stream. Note that this is a never-ending stream
     // and will stay open as long as the client is open
-    // we will thus create a set with our listeners so we don't
-    // break on multi listeners
     const stream = client.subscribeConfiguration(msg);
     let streamId: string;
+    let aborted = false;
 
-    stream.on("data", async (data: SubscribeConfigurationResponse) => {
-      streamId = data.id;
-      const items = convertToMap(data.items);
+    // Process stream asynchronously
+    (async () => {
+      try {
+        for await (const data of stream) {
+          if (aborted) break;
 
-      if (items.getLength() == 0) {
-        return;
+          streamId = data.id;
+          const items = convertToMap(data.items);
+
+          if (items.size === 0) {
+            continue;
+          }
+
+          const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(items);
+
+          const wrapped: SubscribeConfigurationResponseResult = {
+            items: configMap,
+          };
+
+          await cb(wrapped);
+        }
+      } catch (err) {
+        // Stream ended or errored
       }
-
-      const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(items);
-
-      const wrapped: SubscribeConfigurationResponseResult = {
-        items: configMap,
-      };
-
-      await cb(wrapped);
-    });
+    })();
 
     return {
       stop: async () => {
-        return new Promise((resolve, reject) => {
-          const req = create(UnsubscribeConfigurationRequestSchema);
-          req.storeName = storeName;
-          req.id = streamId;
+        const req = create(UnsubscribeConfigurationRequestSchema);
+        req.storeName = storeName;
+        req.id = streamId;
 
-          client.unsubscribeConfiguration(req, (err: Error, res: UnsubscribeConfigurationResponse) => {
-            if (err || !res.ok) {
-              return reject(res.message);
-            }
+        const res = await client.unsubscribeConfiguration(req);
 
-            // Clean up the node.js event emitter
-            stream.removeAllListeners();
-            stream.destroy();
+        if (!res.ok) {
+          throw new Error(res.message);
+        }
 
-            return resolve();
-          });
-        });
+        aborted = true;
       },
     };
   }

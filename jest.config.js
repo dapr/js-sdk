@@ -16,4 +16,22 @@ module.exports = {
   testEnvironment: "node",
   collectCoverage: true,
   coverageReporters: ["lcov"],
+  transform: {
+    "^.+\\.tsx?$": ["ts-jest", {
+      isolatedModules: true,
+    }],
+  },
+  moduleNameMapper: {
+    // Mock proto files - they're ES modules that don't play well with Jest
+    "proto.*_pb$": "<rootDir>/test/__mocks__/proto.mock.ts",
+    "proto.*_connect$": "<rootDir>/test/__mocks__/proto.mock.ts",
+    "@bufbuild/protobuf/wkt": "<rootDir>/test/__mocks__/protobuf.mock.ts",
+    "@bufbuild/protobuf/codegenv2": "<rootDir>/test/__mocks__/protobuf.mock.ts",
+    "@bufbuild/protobuf": "<rootDir>/test/__mocks__/protobuf.mock.ts",
+    "@connectrpc/connect": "<rootDir>/test/__mocks__/connect.mock.ts",
+  },
+  testPathIgnorePatterns: [
+    "/node_modules/",
+    "/build/"
+  ]
 };

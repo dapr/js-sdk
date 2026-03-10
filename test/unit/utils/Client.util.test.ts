@@ -11,7 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { ConfigurationItem } from "../../../src/proto/dapr/proto/common/v1/common_pb";
+import { ConfigurationItemSchema } from "../../../src/proto/dapr/proto/common/v1/common_pb";
+import { create } from "@bufbuild/protobuf";
 import {
   addMetadataToMap,
   createConfigurationType,
@@ -21,7 +22,6 @@ import {
   getClientOptions,
   createHTTPQueryParam,
 } from "../../../src/utils/Client.util";
-import { Map } from "google-protobuf";
 import { PubSubBulkPublishEntry } from "../../../src/types/pubsub/PubSubBulkPublishEntry.type";
 import { PubSubBulkPublishApiResponse } from "../../../src/types/pubsub/PubSubBulkPublishApiResponse.type";
 import { CommunicationProtocolEnum, DaprClientOptions, LogLevel } from "../../../src";
@@ -31,7 +31,7 @@ import { Settings } from "../../../src/utils/Settings.util";
 describe("Client.util", () => {
   describe("addMetadataToMap", () => {
     it("should add values to Map", () => {
-      const m = new Map<string, string>([]);
+      const m = new Map<string, string>();
       const metadata = {
         key1: "value1",
         key2: "value2",
@@ -43,17 +43,17 @@ describe("Client.util", () => {
     });
 
     it("should add nothing to map when metadata is not passed", () => {
-      const m = new Map<string, string>([]);
+      const m = new Map<string, string>();
       addMetadataToMap(m);
 
-      expect(m.entries()).toEqual(new Map<string, string>([]).entries());
+      expect(m.size).toEqual(0);
     });
 
     it("should add nothing to map when metadata is undefined", () => {
-      const m = new Map<string, string>([]);
+      const m = new Map<string, string>();
       addMetadataToMap(m, undefined);
 
-      expect(m.entries()).toEqual(new Map<string, string>([]).entries());
+      expect(m.size).toEqual(0);
     });
   });
   describe("createHTTPQueryParam", () => {
@@ -114,17 +114,19 @@ describe("Client.util", () => {
 
   describe("createConfigurationType", () => {
     it("converts a dictionary to a configuration type", () => {
-      const item1 = new ConfigurationItem();
-      item1.setValue("value1");
-      item1.setVersion("v1");
-      item1.getMetadataMap().set("m1", "mv1");
+      const item1 = create(ConfigurationItemSchema, {
+        value: "value1",
+        version: "v1",
+        metadata: { m1: "mv1" },
+      });
 
-      const item2 = new ConfigurationItem();
-      item2.setValue("value2");
-      item2.setVersion("v2");
-      item2.getMetadataMap().set("m2", "mv2");
+      const item2 = create(ConfigurationItemSchema, {
+        value: "value2",
+        version: "v2",
+        metadata: { m2: "mv2" },
+      });
 
-      const m: Map<string, ConfigurationItem> = new Map([
+      const m: Map<string, typeof item1> = new Map([
         ["key1", item1],
         ["key2", item2],
       ]);

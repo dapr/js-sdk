@@ -30,32 +30,25 @@ export default class GRPCClientBinding implements IClientBinding {
   // Send an event to an external system
   // @todo: should return a specific typed Promise<TypeBindingResponse> instead of Promise<object>
   async send(bindingName: string, operation: string, data: any, metadata: KeyValueType = {}): Promise<object> {
-    const msgService = create(InvokeBindingRequestSchema);
-    msgService.name = bindingName;
-    msgService.operation = operation;
+    const msgService = create(InvokeBindingRequestSchema, {
+      name: bindingName,
+      operation: operation,
+      metadata: metadata,
+    });
 
     if (data) {
       const serialized = SerializerUtil.serializeGrpc(data);
       msgService.data = serialized.serializedData;
     }
 
-    Object.assign(msgService.metadata, metadata);
-
     const client = await this.client.getClient();
+    const res = await client.invokeBinding(msgService);
 
-    return new Promise((resolve, reject) => {
-      client.invokeBinding(msgService, (err: any, res: InvokeBindingResponse) => {
-        if (err) {
-          return reject(err);
-        }
-
-        // https://docs.dapr.io/reference/api/bindings_api/#payload
-        return resolve({
-          data: res.data,
-          metadata: res.metadata,
-          operation,
-        });
-      });
-    });
+    // https://docs.dapr.io/reference/api/bindings_api/#payload
+    return {
+      data: res.data,
+      metadata: res.metadata,
+      operation,
+    };
   }
 }

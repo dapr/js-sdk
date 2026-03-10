@@ -126,14 +126,7 @@ export function createConfigurationType(configDict: Map<string, ConfigurationIte
       key: k,
       value: v.value,
       version: v.version,
-      metadata:
-        convertToMap(v.metadata)
-        .toObject()
-        .reduce((result: object, [key, value]) => {
-          // @ts-ignore
-          result[key] = value;
-          return result;
-        }, {}),
+      metadata: Object.fromEntries(convertToMap(v.metadata).entries()),
     };
     configMap[k] = item;
   });
