@@ -13,17 +13,17 @@ limitations under the License.
 
 import Class from "../../../types/Class";
 import GRPCClient from "./GRPCClient";
-import { createClient, Client, Interceptor } from "@connectrpc/connect";
+import { createClient, Interceptor } from "@connectrpc/connect";
 import { createGrpcTransport } from "@connectrpc/connect-node";
 import { Settings } from "../../../utils/Settings.util";
-import type { ServiceType } from "@bufbuild/protobuf";
+import type { GenService } from "@bufbuild/protobuf/codegenv2";
 
 export class GRPCClientProxy<T> {
-  clsProxy: Class<T> | ServiceType;
+  clsProxy: Class<T> | GenService<any>;
   grpcClient: GRPCClient;
   grpcClientOptions: Record<string, any>;
 
-  constructor(clsProxy: Class<T> | ServiceType, grpcClient: GRPCClient, grpcClientOptions?: Record<string, any>) {
+  constructor(clsProxy: Class<T> | GenService<any>, grpcClient: GRPCClient, grpcClientOptions?: Record<string, any>) {
     this.clsProxy = clsProxy;
     this.grpcClient = grpcClient;
     this.grpcClientOptions = grpcClientOptions ?? {};
@@ -60,7 +60,7 @@ export class GRPCClientProxy<T> {
     });
 
     // Create and return the Connect client
-    const client = createClient(this.clsProxy as ServiceType, transport);
+    const client = createClient(this.clsProxy as GenService<any>, transport);
     return client as T;
   }
 }
