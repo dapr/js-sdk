@@ -34,9 +34,9 @@ jobs:
   test-e2e:
     runs-on: ubuntu-latest
     env:
-      GOVER: 1.22
-      DAPR_CLI_VER: 1.15.0
-      DAPR_RUNTIME_VER: 1.15.3
+      GOVER: 1.25
+      DAPR_CLI_VER: 1.17.0
+      DAPR_RUNTIME_VER: 1.17.1
       DAPR_INSTALL_URL: https://raw.githubusercontent.com/dapr/cli/master/install/install.sh
       DAPR_CLI_REF: ""
       DAPR_REF: ""
@@ -120,6 +120,9 @@ jobs:
         with:
           node-version: ${{ env.NODE_VER }}
           registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: npm install
 
       - name: Build Package
         run: npm run build
