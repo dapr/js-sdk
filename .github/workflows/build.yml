@@ -44,6 +44,9 @@ jobs:
         with:
           node-version: ${{ matrix.node_version }}
 
+      - name: npm install
+        run: npm run install
+
       - name: Build package (install dependencies, lint, prettier, build)
         run: npm run build
 
