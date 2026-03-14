@@ -36,7 +36,7 @@ export default class HTTPClientConversation implements IClientConversation {
     const body: Record<string, any> = {
       inputs: inputs.map((input) => ({
         messages: input.messages,
-        scrub_pii: input.scrubPII,
+        ...(input.scrubPII !== undefined && { scrub_pii: input.scrubPII }),
       })),
     };
 
