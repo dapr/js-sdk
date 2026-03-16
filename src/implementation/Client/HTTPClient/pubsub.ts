@@ -77,7 +77,7 @@ export default class HTTPClientPubSub implements IClientPubSub {
     };
 
     const entries = getBulkPublishEntries(messages);
-    params.body = entries;
+    params.body = { entries };
 
     try {
       await this.client.executeWithApiVersion(
