@@ -302,7 +302,7 @@ export class OrchestrationExecutor {
                 taskId,
                 getName(ctx.callSubOrchestrator),
                 action.getCreatesuborchestration()?.getName(),
-                action.getCreatesuborchestration()?.getName(),
+                event.getSuborchestrationinstancecreated()?.getName(),
               );
             }
           }
@@ -398,7 +398,7 @@ export class OrchestrationExecutor {
                 eventTask.complete(decodedResult);
               }
 
-              if (!taskList && eventName) {
+              if (taskList.length === 0 && eventName) {
                 delete ctx._pendingEvents[eventName];
               }
 

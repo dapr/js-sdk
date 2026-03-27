@@ -66,14 +66,17 @@ export class TaskHubGrpcClient {
     req.setName(name);
     req.setInstanceid(instanceId ?? randomUUID());
 
-    const i = new StringValue();
-    i.setValue(JSON.stringify(input));
+    if (input !== undefined) {
+      const i = new StringValue();
+      i.setValue(JSON.stringify(input));
+      req.setInput(i);
+    }
 
-    const ts = new Timestamp();
-    ts.fromDate(new Date(startAt?.getTime() ?? 0));
-
-    req.setInput(i);
-    req.setScheduledstarttimestamp(ts);
+    if (startAt) {
+      const ts = new Timestamp();
+      ts.fromDate(startAt);
+      req.setScheduledstarttimestamp(ts);
+    }
 
     console.log(`Starting new ${name} instance with ID = ${req.getInstanceid()}`);
 

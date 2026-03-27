@@ -22,7 +22,7 @@ import { Task } from "../task/task";
 import { StopIterationError } from "./exception/stop-iteration-error";
 
 export class RuntimeOrchestrationContext extends OrchestrationContext {
-  _generator?: Generator<Task<any>, any, any>;
+  _generator?: AsyncGenerator<Task<any>, any, any>;
   _previousTask?: Task<any>;
   _isReplaying: boolean;
   _isComplete: boolean;
@@ -78,7 +78,7 @@ export class RuntimeOrchestrationContext extends OrchestrationContext {
    *
    * @param generator
    */
-  async run(generator: Generator<Task<any>, any, any>) {
+  async run(generator: AsyncGenerator<Task<any>, any, any>) {
     this._generator = generator;
 
     // TODO: do something with this task
@@ -168,7 +168,7 @@ export class RuntimeOrchestrationContext extends OrchestrationContext {
 
     let resultJson;
 
-    if (result) {
+    if (result != null) {
       resultJson = isResultEncoded ? result : JSON.stringify(result);
     }
 
@@ -256,7 +256,7 @@ export class RuntimeOrchestrationContext extends OrchestrationContext {
     // If a number is passed, we use it as the number of seconds to wait
     // we use instanceof Date as number is not a native Javascript type
     if (!(fireAt instanceof Date)) {
-      fireAt = new Date(Date.now() + fireAt * 1000);
+      fireAt = new Date(this._currentUtcDatetime.getTime() + fireAt * 1000);
     }
 
     const action = ph.newCreateTimerAction(id, fireAt);

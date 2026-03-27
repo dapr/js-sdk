@@ -52,11 +52,9 @@ describe("Activity Executor", () => {
     try {
       await executor.execute(TEST_INSTANCE_ID, "Bogus", TEST_TASK_ID, undefined);
     } catch (ex: any) {
-      console.log(ex);
       caughtException = ex;
     }
 
-    console.log(caughtException);
     expect(caughtException?.constructor?.name).toEqual(ActivityNotRegisteredError.name);
     expect(caughtException).not.toBeNull();
     expect(caughtException?.message).toMatch(/Bogus/);

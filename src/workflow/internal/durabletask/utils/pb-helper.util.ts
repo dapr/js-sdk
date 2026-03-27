@@ -185,7 +185,7 @@ export function newFailureDetails(e: any): pb.TaskFailureDetails {
 
   // Construct a google_protobuf_wrappers_pb.StringValue
   const stringValueStackTrace = new StringValue();
-  stringValueStackTrace.setValue(e.stack.toString());
+  stringValueStackTrace.setValue(e.stack?.toString() ?? "");
   failure.setStacktrace(stringValueStackTrace);
 
   return failure;

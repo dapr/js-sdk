@@ -119,7 +119,10 @@ export class TaskHubGrpcWorker {
     this._stub = client.stub;
 
     // do not await so it runs in the background
-    this.internalRunWorker(client);
+    this.internalRunWorker(client).catch((err) => {
+      console.error("Worker failed:", err);
+      this._isRunning = false;
+    });
 
     this._isRunning = true;
   }
@@ -245,7 +248,8 @@ export class TaskHubGrpcWorker {
         pbh.newCompleteOrchestrationAction(
           -1,
           pb.OrchestrationStatus.ORCHESTRATION_STATUS_FAILED,
-          failureDetails?.toString(),
+          undefined,
+          failureDetails,
         ),
       ];
 

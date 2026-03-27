@@ -177,31 +177,6 @@ describe("Orchestration Executor", () => {
     const executor = new OrchestrationExecutor(registry);
     const result = await executor.execute(TEST_INSTANCE_ID, oldEvents, newEvents);
     const completeAction = getAndValidateSingleCompleteOrchestrationAction(result.actions);
-    console.log(completeAction?.getFailuredetails());
-    expect(completeAction?.getOrchestrationstatus()).toEqual(pb.OrchestrationStatus.ORCHESTRATION_STATUS_COMPLETED);
-    expect(completeAction?.getResult()?.getValue()).toEqual(encodedOutput);
-  });
-  it("should test the successful completion of an activity task", async () => {
-    const dummyActivity = async (_: ActivityContext) => {
-      // do nothing
-    };
-    const orchestrator: TOrchestrator = async function* (ctx: OrchestrationContext, _: any): any {
-      const result = yield ctx.callActivity(dummyActivity);
-      return result;
-    };
-    const registry = new Registry();
-    const name = registry.addOrchestrator(orchestrator);
-    const oldEvents = [
-      newOrchestratorStartedEvent(),
-      newExecutionStartedEvent(name, TEST_INSTANCE_ID, undefined),
-      newTaskScheduledEvent(1, dummyActivity.name),
-    ];
-    const encodedOutput = JSON.stringify("done!");
-    const newEvents = [newTaskCompletedEvent(1, encodedOutput)];
-    const executor = new OrchestrationExecutor(registry);
-    const result = await executor.execute(TEST_INSTANCE_ID, oldEvents, newEvents);
-    const completeAction = getAndValidateSingleCompleteOrchestrationAction(result.actions);
-    console.log(completeAction?.getFailuredetails());
     expect(completeAction?.getOrchestrationstatus()).toEqual(pb.OrchestrationStatus.ORCHESTRATION_STATUS_COMPLETED);
     expect(completeAction?.getResult()?.getValue()).toEqual(encodedOutput);
   });
