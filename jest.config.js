@@ -16,4 +16,5 @@ module.exports = {
   testEnvironment: "node",
   collectCoverage: true,
   coverageReporters: ["lcov"],
+  modulePathIgnorePatterns: ["<rootDir>/build/"],
 };
