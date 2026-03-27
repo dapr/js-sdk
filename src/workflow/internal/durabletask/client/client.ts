@@ -95,7 +95,7 @@ export class TaskHubGrpcClient {
    */
   async getOrchestrationState(
     instanceId: string,
-    fetchPayloads: boolean = true,
+    fetchPayloads = true,
   ): Promise<OrchestrationState | undefined> {
     const req = new pb.GetInstanceRequest();
     req.setInstanceid(instanceId);
@@ -125,8 +125,8 @@ export class TaskHubGrpcClient {
    */
   async waitForOrchestrationStart(
     instanceId: string,
-    fetchPayloads: boolean = false,
-    timeout: number = 60,
+    fetchPayloads = false,
+    timeout = 60,
   ): Promise<OrchestrationState | undefined> {
     const req = new pb.GetInstanceRequest();
     req.setInstanceid(instanceId);
@@ -167,8 +167,8 @@ export class TaskHubGrpcClient {
    */
   async waitForOrchestrationCompletion(
     instanceId: string,
-    fetchPayloads: boolean = true,
-    timeout: number = 60,
+    fetchPayloads = true,
+    timeout = 60,
   ): Promise<OrchestrationState | undefined> {
     const req = new pb.GetInstanceRequest();
     req.setInstanceid(instanceId);

@@ -123,7 +123,7 @@ export class RuntimeOrchestrationContext extends OrchestrationContext {
         }
       }
       if (this._previousTask.isComplete) {
-        while (true) {
+        while (true) { // eslint-disable-line no-constant-condition
           // Resume the generator. This will either return a Task or raise StopIteration if it's done.
           // @todo: Should we check for possible infinite loops here?
           // python: next_task = self._generator.send(self._previous_task.get_result())
@@ -155,7 +155,7 @@ export class RuntimeOrchestrationContext extends OrchestrationContext {
     }
   }
 
-  setComplete(result: any, status: pb.OrchestrationStatus, isResultEncoded: boolean = false) {
+  setComplete(result: any, status: pb.OrchestrationStatus, isResultEncoded = false) {
     if (this._isComplete) {
       return;
     }
@@ -347,7 +347,7 @@ export class RuntimeOrchestrationContext extends OrchestrationContext {
   /**
    * Orchestrations can be continued as new. This API allows an  orchestration to restart itself from scratch, optionally with a new input.
    */
-  continueAsNew(newInput: any, saveEvents: boolean = false) {
+  continueAsNew(newInput: any, saveEvents = false) {
     if (this._isComplete) {
       return;
     }

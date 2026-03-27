@@ -38,5 +38,6 @@ export class CompositeTask<T> extends Task<T> {
   }
 
   // @todo: should be abstract method
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   onChildCompleted(_: Task<any>): void {}
 }

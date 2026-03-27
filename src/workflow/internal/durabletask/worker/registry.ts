@@ -81,6 +81,7 @@ export class Registry {
     return this._activities[name];
   }
 
+  // eslint-disable-next-line @typescript-eslint/ban-types
   _getFunctionName(fn: Function): string {
     if (fn.name) {
       return fn.name;

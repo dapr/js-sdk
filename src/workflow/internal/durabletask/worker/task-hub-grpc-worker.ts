@@ -124,7 +124,7 @@ export class TaskHubGrpcWorker {
     this._isRunning = true;
   }
 
-  async internalRunWorker(client: GrpcClient, isRetry: boolean = false): Promise<void> {
+  async internalRunWorker(client: GrpcClient, isRetry = false): Promise<void> {
     try {
       // send a "Hello" message to the sidecar to ensure that it's listening
       const prom = promisify(client.stub.hello.bind(client.stub));

@@ -20,7 +20,7 @@ export class GrpcClient {
   private readonly _options: grpc.ChannelOptions;
   private _stub: stubs.TaskHubSidecarServiceClient;
 
-  constructor(hostAddress: string = "localhost:4001", options: grpc.ChannelOptions = {}, useTLS: boolean = false) {
+  constructor(hostAddress = "localhost:4001", options: grpc.ChannelOptions = {}, useTLS = false) {
     this._hostAddress = hostAddress;
     this._tls = useTLS;
     this._options = this._generateChannelOptions(options);

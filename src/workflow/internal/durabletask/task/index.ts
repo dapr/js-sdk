@@ -41,6 +41,7 @@ export function whenAny(tasks: Task<any>[]): WhenAnyTask {
  * @param fn
  * @returns
  */
+// eslint-disable-next-line @typescript-eslint/ban-types
 export function getName(fn: Function): string {
   if (!fn) {
     throw new Error("Cannot infer a name from a null or undefined function. Please provide a name explicitly.");

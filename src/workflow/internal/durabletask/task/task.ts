@@ -21,7 +21,7 @@ export class Task<T> {
   _result: T | undefined;
   _exception: TaskFailedError | undefined;
   _parent: CompositeTask<T> | undefined;
-  _isComplete: boolean = false;
+  _isComplete = false;
 
   constructor() {
     this._isComplete = false;
