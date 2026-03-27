@@ -174,7 +174,7 @@ export default class DaprWorkflowClient {
    * @param {any} [eventPayload] - An optional serializable data payload to include with the event.
    */
   public async raiseEvent(workflowInstanceId: string, eventName: string, eventPayload?: any) {
-    this._innerClient.raiseOrchestrationEvent(workflowInstanceId, eventName, eventPayload);
+    await this._innerClient.raiseOrchestrationEvent(workflowInstanceId, eventName, eventPayload);
   }
 
   /**
