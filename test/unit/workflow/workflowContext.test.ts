@@ -108,6 +108,7 @@ describe("WorkflowContext", () => {
 
   describe("callChildWorkflow", () => {
     it("should call child workflow by function reference", () => {
+      // eslint-disable-next-line require-yield
       const childWorkflow = async function* (_ctx: WorkflowContext): any {
         return "child-result";
       };
@@ -124,6 +125,7 @@ describe("WorkflowContext", () => {
     });
 
     it("should call child workflow without optional params", () => {
+      // eslint-disable-next-line require-yield
       const childWorkflow = async function* (_ctx: WorkflowContext): any {
         return "result";
       };
@@ -136,6 +138,7 @@ describe("WorkflowContext", () => {
 
   describe("callSubWorkflow (deprecated)", () => {
     it("should delegate to callSubOrchestrator by function reference", () => {
+      // eslint-disable-next-line require-yield
       const subWorkflow = async function* (_ctx: WorkflowContext): any {
         return "sub-result";
       };
