@@ -11,11 +11,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import WorkflowContext from "../../workflow/runtime/WorkflowContext";
-import { Task } from "../../workflow/internal/durabletask/task/task";
-import { TOutput } from "./InputOutput.type";
+import * as pb from "../../proto/orchestrator_service_pb";
+import { FailureDetails } from "../failure-details";
 
-/**
- * The type of the workflow.
- */
-export type TWorkflow = (context: WorkflowContext, input: any) => Generator<Task<any>, any, any> | TOutput;
+export class TaskFailedError extends Error {
+  private _details: FailureDetails;
+
+  constructor(message: string, details: pb.TaskFailureDetails) {
+    super(message);
+
+    this._details = new FailureDetails(
+      details.getErrormessage(),
+      details.getErrortype(),
+      details?.getStacktrace()?.getValue(),
+    );
+  }
+
+  get details(): FailureDetails {
+    return this._details;
+  }
+}

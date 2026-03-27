@@ -11,11 +11,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import WorkflowContext from "../../workflow/runtime/WorkflowContext";
-import { Task } from "../../workflow/internal/durabletask/task/task";
-import { TOutput } from "./InputOutput.type";
+import { CompositeTask } from "./composite-task";
+import { Task } from "./task";
 
 /**
- * The type of the workflow.
+ * A task that completes when any of its child tasks complete
  */
-export type TWorkflow = (context: WorkflowContext, input: any) => Generator<Task<any>, any, any> | TOutput;
+export class WhenAnyTask extends CompositeTask<Task<any>> {
+  constructor(tasks: Task<any>[]) {
+    super(tasks);
+  }
+
+  onChildCompleted(task: Task<any>): void {
+    if (!this.isComplete) {
+      this._isComplete = true;
+      this._result = task;
+    }
+  }
+}

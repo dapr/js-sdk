@@ -11,11 +11,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import WorkflowContext from "../../workflow/runtime/WorkflowContext";
-import { Task } from "../../workflow/internal/durabletask/task/task";
-import { TOutput } from "./InputOutput.type";
+export class FailureDetails {
+  private _message: string;
+  private _errorType: string;
+  private _stackTrace: string | undefined;
 
-/**
- * The type of the workflow.
- */
-export type TWorkflow = (context: WorkflowContext, input: any) => Generator<Task<any>, any, any> | TOutput;
+  constructor(message: string, errorType: string, stackTrace?: string) {
+    this._message = message;
+    this._errorType = errorType;
+    this._stackTrace = stackTrace;
+  }
+
+  get message(): string {
+    return this._message;
+  }
+
+  get errorType(): string {
+    return this._errorType;
+  }
+
+  get stackTrace(): string | undefined {
+    return this._stackTrace;
+  }
+}

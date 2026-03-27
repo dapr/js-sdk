@@ -11,11 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import WorkflowContext from "../../workflow/runtime/WorkflowContext";
-import { Task } from "../../workflow/internal/durabletask/task/task";
-import { TOutput } from "./InputOutput.type";
+import { OrchestrationContext } from "../task/context/orchestration-context";
+import { Task } from "../task/task";
+import { TOutput } from "./output.type";
 
-/**
- * The type of the workflow.
- */
-export type TWorkflow = (context: WorkflowContext, input: any) => Generator<Task<any>, any, any> | TOutput;
+export type TOrchestrator = (context: OrchestrationContext, input: any) => Generator<Task<any>, any, any> | TOutput;

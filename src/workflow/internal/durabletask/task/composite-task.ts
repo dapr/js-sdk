@@ -11,11 +11,32 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import WorkflowContext from "../../workflow/runtime/WorkflowContext";
-import { Task } from "../../workflow/internal/durabletask/task/task";
-import { TOutput } from "./InputOutput.type";
+import { Task } from "./task";
 
 /**
- * The type of the workflow.
+ * A task that is composed of other tasks
  */
-export type TWorkflow = (context: WorkflowContext, input: any) => Generator<Task<any>, any, any> | TOutput;
+export class CompositeTask<T> extends Task<T> {
+  _tasks: Task<any>[] = [];
+  _completedTasks: number;
+  _failedTasks: number;
+
+  constructor(tasks: Task<any>[]) {
+    super();
+
+    this._tasks = tasks;
+    this._completedTasks = 0;
+    this._failedTasks = 0;
+
+    for (const task of tasks) {
+      task._parent = this;
+
+      if (task._isComplete) {
+        this.onChildCompleted(task);
+      }
+    }
+  }
+
+  // @todo: should be abstract method
+  onChildCompleted(_: Task<any>): void {}
+}
