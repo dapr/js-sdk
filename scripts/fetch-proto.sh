@@ -55,12 +55,12 @@ downloadFile() {
     DST=$2
 
     # Ensure target path exists
-    mkdir -p $(dirname $DST)
+    mkdir -p "$(dirname "$DST")"
 
     # Download the file
     echo "[$HTTP_REQUEST_CLI] Downloading $1 ..."
     if [ "$HTTP_REQUEST_CLI" == "curl" ]; then
-        curl -SsL "$SRC" -o "$DST"
+        curl -SsL --fail "$SRC" -o "$DST" || { echo "ERROR: Failed to download $SRC"; exit 1; }
     else
         wget -q -P "$SRC" "$DST"
     fi
@@ -133,6 +133,7 @@ downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAM
 
 # Internal types
 downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/internals/v1/apiversion.proto" "$PATH_ROOT/src/proto/dapr/proto/internals/v1/apiversion.proto"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/internals/v1/reminders.proto" "$PATH_ROOT/src/proto/dapr/proto/internals/v1/reminders.proto"
 downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/internals/v1/service_invocation.proto" "$PATH_ROOT/src/proto/dapr/proto/internals/v1/service_invocation.proto"
 downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/internals/v1/status.proto" "$PATH_ROOT/src/proto/dapr/proto/internals/v1/status.proto"
 
@@ -169,6 +170,7 @@ downloadFile "https://raw.githubusercontent.com/protocolbuffers/protobuf/$PROTOB
 downloadFile "https://raw.githubusercontent.com/protocolbuffers/protobuf/$PROTOBUF_TAG/src/google/protobuf/timestamp.proto" "$PATH_ROOT/src/proto/google/protobuf/timestamp.proto"
 downloadFile "https://raw.githubusercontent.com/protocolbuffers/protobuf/$PROTOBUF_TAG/src/google/protobuf/struct.proto" "$PATH_ROOT/src/proto/google/protobuf/struct.proto"
 downloadFile "https://raw.githubusercontent.com/protocolbuffers/protobuf/$PROTOBUF_TAG/src/google/protobuf/duration.proto" "$PATH_ROOT/src/proto/google/protobuf/duration.proto"
+downloadFile "https://raw.githubusercontent.com/protocolbuffers/protobuf/$PROTOBUF_TAG/src/google/protobuf/wrappers.proto" "$PATH_ROOT/src/proto/google/protobuf/wrappers.proto"
 
 echo ""
 echo "Compiling gRPC files"
@@ -176,8 +178,9 @@ echo "Compiling gRPC files"
 # Common
 generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/common/v1/common.proto"
 
-# Internals
+# Internals (reminders.proto must precede service_invocation.proto)
 generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/internals/v1/apiversion.proto"
+generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/internals/v1/reminders.proto"
 generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/internals/v1/service_invocation.proto"
 generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/internals/v1/status.proto"
 
@@ -186,7 +189,10 @@ generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/operator/v1/operator.proto"
 generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/placement/v1/placement.proto"
 generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/sentry/v1/sentry.proto"
 
-# Runtime v1 — building block message types (must compile before dapr.proto and appcallback.proto)
+# Runtime v1 — appcallback.proto first (pubsub.proto imports it)
+generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/appcallback.proto"
+
+# Runtime v1 — building block message types
 generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/actors.proto"
 generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/ai.proto"
 generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/binding.proto"
@@ -201,9 +207,8 @@ generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/secret.proto"
 generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/state.proto"
 generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/workflow.proto"
 
-# Runtime v1 — main service definitions (depend on the above)
+# Runtime v1 — main service definition (depends on all the above)
 generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/dapr.proto"
-generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/appcallback.proto"
 
 # Google well-known types
 generateGrpc "$PATH_ROOT/src/proto" "google/protobuf/any.proto"
@@ -211,6 +216,7 @@ generateGrpc "$PATH_ROOT/src/proto" "google/protobuf/empty.proto"
 generateGrpc "$PATH_ROOT/src/proto" "google/protobuf/timestamp.proto"
 generateGrpc "$PATH_ROOT/src/proto" "google/protobuf/struct.proto"
 generateGrpc "$PATH_ROOT/src/proto" "google/protobuf/duration.proto"
+generateGrpc "$PATH_ROOT/src/proto" "google/protobuf/wrappers.proto"
 
 
 echo ""

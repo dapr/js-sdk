@@ -17,4 +17,4 @@ plugins:
     opt:
       - grpc_js
 inputs:
-  - directory: src/proto
+  - directory: src/proto/dapr

@@ -1,7 +1,6 @@
 version: v2
 modules:
-  - path: src/proto
-    name: buf.build/dapr/js-sdk
+  - path: src/proto/dapr
 lint:
   use:
     - STANDARD
