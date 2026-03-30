@@ -1,0 +1,20 @@
+version: v2
+plugins:
+  # Generate JavaScript CommonJS output (matches existing --js_out=import_style=commonjs,binary)
+  - local: protoc-gen-js
+    out: src/proto
+    opt:
+      - import_style=commonjs
+      - binary
+  # Generate TypeScript declarations for gRPC services
+  - local: protoc-gen-ts
+    out: src/proto
+    opt:
+      - grpc_js
+  # Generate gRPC service stubs
+  - local: grpc_tools_node_protoc_plugin
+    out: src/proto
+    opt:
+      - grpc_js
+inputs:
+  - directory: src/proto

@@ -3,7 +3,7 @@ OS=$(echo `uname`|tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 ORG_NAME="dapr"
 REPO_NAME="dapr"
-BRANCH_NAME="v1.16.0-rc.3"
+BRANCH_NAME="v1.17.0-rc.1"
 
 # Path to store output
 PATH_ROOT=$(pwd)
@@ -127,37 +127,90 @@ mkdir -p "$PATH_ROOT/src/proto"
 
 echo ""
 echo "Downloading latest Dapr gRPC files from $ORG_NAME/$REPO_NAME@$BRANCH_NAME"
+
+# Common types
 downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/common/v1/common.proto" "$PATH_ROOT/src/proto/dapr/proto/common/v1/common.proto"
+
+# Internal types
 downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/internals/v1/apiversion.proto" "$PATH_ROOT/src/proto/dapr/proto/internals/v1/apiversion.proto"
 downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/internals/v1/service_invocation.proto" "$PATH_ROOT/src/proto/dapr/proto/internals/v1/service_invocation.proto"
 downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/internals/v1/status.proto" "$PATH_ROOT/src/proto/dapr/proto/internals/v1/status.proto"
+
+# Operator, placement, sentry
 downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/operator/v1/operator.proto" "$PATH_ROOT/src/proto/dapr/proto/operator/v1/operator.proto"
 downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/placement/v1/placement.proto" "$PATH_ROOT/src/proto/dapr/proto/placement/v1/placement.proto"
-downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/runtime/v1/appcallback.proto" "$PATH_ROOT/src/proto/dapr/proto/runtime/v1/appcallback.proto"
-downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/runtime/v1/dapr.proto" "$PATH_ROOT/src/proto/dapr/proto/runtime/v1/dapr.proto"
 downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/sentry/v1/sentry.proto" "$PATH_ROOT/src/proto/dapr/proto/sentry/v1/sentry.proto"
+
+# Runtime v1 — main service definitions
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/runtime/v1/dapr.proto" "$PATH_ROOT/src/proto/dapr/proto/runtime/v1/dapr.proto"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/runtime/v1/appcallback.proto" "$PATH_ROOT/src/proto/dapr/proto/runtime/v1/appcallback.proto"
+
+# Runtime v1 — building block message types (split out in v1.17)
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/runtime/v1/actors.proto" "$PATH_ROOT/src/proto/dapr/proto/runtime/v1/actors.proto"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/runtime/v1/ai.proto" "$PATH_ROOT/src/proto/dapr/proto/runtime/v1/ai.proto"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/runtime/v1/binding.proto" "$PATH_ROOT/src/proto/dapr/proto/runtime/v1/binding.proto"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/runtime/v1/configuration.proto" "$PATH_ROOT/src/proto/dapr/proto/runtime/v1/configuration.proto"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/runtime/v1/crypto.proto" "$PATH_ROOT/src/proto/dapr/proto/runtime/v1/crypto.proto"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/runtime/v1/invoke.proto" "$PATH_ROOT/src/proto/dapr/proto/runtime/v1/invoke.proto"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/runtime/v1/jobs.proto" "$PATH_ROOT/src/proto/dapr/proto/runtime/v1/jobs.proto"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/runtime/v1/lock.proto" "$PATH_ROOT/src/proto/dapr/proto/runtime/v1/lock.proto"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/runtime/v1/metadata.proto" "$PATH_ROOT/src/proto/dapr/proto/runtime/v1/metadata.proto"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/runtime/v1/pubsub.proto" "$PATH_ROOT/src/proto/dapr/proto/runtime/v1/pubsub.proto"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/runtime/v1/secret.proto" "$PATH_ROOT/src/proto/dapr/proto/runtime/v1/secret.proto"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/runtime/v1/state.proto" "$PATH_ROOT/src/proto/dapr/proto/runtime/v1/state.proto"
+downloadFile "https://raw.githubusercontent.com/$ORG_NAME/$REPO_NAME/$BRANCH_NAME/dapr/proto/runtime/v1/workflow.proto" "$PATH_ROOT/src/proto/dapr/proto/runtime/v1/workflow.proto"
 
 echo ""
 echo "Downloading latest Google Protobuf gRPC files"
-downloadFile "https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/any.proto" "$PATH_ROOT/src/proto/google/protobuf/any.proto"
-downloadFile "https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/empty.proto" "$PATH_ROOT/src/proto/google/protobuf/empty.proto"
-downloadFile "https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/timestamp.proto" "$PATH_ROOT/src/proto/google/protobuf/timestamp.proto"
+# Pin to v28.3 tag for reproducibility (previously used floating master)
+PROTOBUF_TAG="v28.3"
+downloadFile "https://raw.githubusercontent.com/protocolbuffers/protobuf/$PROTOBUF_TAG/src/google/protobuf/any.proto" "$PATH_ROOT/src/proto/google/protobuf/any.proto"
+downloadFile "https://raw.githubusercontent.com/protocolbuffers/protobuf/$PROTOBUF_TAG/src/google/protobuf/empty.proto" "$PATH_ROOT/src/proto/google/protobuf/empty.proto"
+downloadFile "https://raw.githubusercontent.com/protocolbuffers/protobuf/$PROTOBUF_TAG/src/google/protobuf/timestamp.proto" "$PATH_ROOT/src/proto/google/protobuf/timestamp.proto"
+downloadFile "https://raw.githubusercontent.com/protocolbuffers/protobuf/$PROTOBUF_TAG/src/google/protobuf/struct.proto" "$PATH_ROOT/src/proto/google/protobuf/struct.proto"
+downloadFile "https://raw.githubusercontent.com/protocolbuffers/protobuf/$PROTOBUF_TAG/src/google/protobuf/duration.proto" "$PATH_ROOT/src/proto/google/protobuf/duration.proto"
 
 echo ""
 echo "Compiling gRPC files"
+
+# Common
 generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/common/v1/common.proto"
+
+# Internals
 generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/internals/v1/apiversion.proto"
 generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/internals/v1/service_invocation.proto"
 generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/internals/v1/status.proto"
+
+# Operator, placement, sentry
 generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/operator/v1/operator.proto"
 generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/placement/v1/placement.proto"
-generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/appcallback.proto"
-generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/dapr.proto"
 generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/sentry/v1/sentry.proto"
 
+# Runtime v1 — building block message types (must compile before dapr.proto and appcallback.proto)
+generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/actors.proto"
+generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/ai.proto"
+generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/binding.proto"
+generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/configuration.proto"
+generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/crypto.proto"
+generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/invoke.proto"
+generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/jobs.proto"
+generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/lock.proto"
+generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/metadata.proto"
+generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/pubsub.proto"
+generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/secret.proto"
+generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/state.proto"
+generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/workflow.proto"
+
+# Runtime v1 — main service definitions (depend on the above)
+generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/dapr.proto"
+generateGrpc "$PATH_ROOT/src/proto" "dapr/proto/runtime/v1/appcallback.proto"
+
+# Google well-known types
 generateGrpc "$PATH_ROOT/src/proto" "google/protobuf/any.proto"
 generateGrpc "$PATH_ROOT/src/proto" "google/protobuf/empty.proto"
 generateGrpc "$PATH_ROOT/src/proto" "google/protobuf/timestamp.proto"
+generateGrpc "$PATH_ROOT/src/proto" "google/protobuf/struct.proto"
+generateGrpc "$PATH_ROOT/src/proto" "google/protobuf/duration.proto"
 
 
 echo ""

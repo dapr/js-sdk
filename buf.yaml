@@ -1,0 +1,14 @@
+version: v2
+modules:
+  - path: src/proto
+    name: buf.build/dapr/js-sdk
+lint:
+  use:
+    - STANDARD
+  except:
+    - PACKAGE_VERSION_SUFFIX
+    - FIELD_NOT_REQUIRED
+    - PACKAGE_DIRECTORY_MATCH
+breaking:
+  use:
+    - FILE
