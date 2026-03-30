@@ -12,11 +12,9 @@ limitations under the License.
 */
 
 module.exports = {
-  preset: "ts-jest",
   testEnvironment: "node",
   collectCoverage: true,
   coverageReporters: ["lcov"],
-  // ts-jest 29 configuration
   transform: {
     "^.+\\.tsx?$": [
       "ts-jest",
