@@ -13,7 +13,8 @@ limitations under the License.
 
 import GRPCClient from "./GRPCClient";
 import IClientSidecar from "../../../interfaces/Client/IClientSidecar";
-import { GetMetadataRequest, GetMetadataResponse, ShutdownRequest } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import { ShutdownRequest } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import { GetMetadataRequest, GetMetadataResponse } from "../../../proto/dapr/proto/runtime/v1/metadata_pb";
 import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 
 // https://docs.dapr.io/reference/api/secrets_api/

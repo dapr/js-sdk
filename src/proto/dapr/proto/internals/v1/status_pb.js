@@ -84,9 +84,9 @@ proto.dapr.proto.internals.v1.Status.prototype.toObject = function(opt_includeIn
  */
 proto.dapr.proto.internals.v1.Status.toObject = function(includeInstance, msg) {
   var f, obj = {
-    code: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    message: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    detailsList: jspb.Message.toObjectList(msg.getDetailsList(),
+code: jspb.Message.getFieldWithDefault(msg, 1, 0),
+message: jspb.Message.getFieldWithDefault(msg, 2, ""),
+detailsList: jspb.Message.toObjectList(msg.getDetailsList(),
     google_protobuf_any_pb.Any.toObject, includeInstance)
   };
 

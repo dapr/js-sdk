@@ -75,8 +75,8 @@ proto.google.protobuf.Timestamp.prototype.toObject = function(opt_includeInstanc
  */
 proto.google.protobuf.Timestamp.toObject = function(includeInstance, msg) {
   var f, obj = {
-    seconds: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    nanos: jspb.Message.getFieldWithDefault(msg, 2, 0)
+seconds: jspb.Message.getFieldWithDefault(msg, 1, 0),
+nanos: jspb.Message.getFieldWithDefault(msg, 2, 0)
   };
 
   if (includeInstance) {

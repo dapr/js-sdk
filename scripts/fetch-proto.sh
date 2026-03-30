@@ -11,17 +11,18 @@ PATH_ROOT=$(pwd)
 # HTTP request CLI
 HTTP_REQUEST_CLI=curl
 
-# Install gRPC tools
+# Verify gRPC tools are installed (now in devDependencies)
 prerequisiteInstallGrpcTools() {
-    echo "Installing gRPC tools..."
-    # Note, grpc tools does not support native M1 architecture,
-    # so we need to install its x64 version.
-    # See https://github.com/grpc/grpc-node/issues/1880
-    if [ "$ARCH" = "arm64" ]; then
-        npm install grpc-tools --target_arch=x64 --no-save
-    else
-        npm install grpc-tools --no-save
+    echo "Checking gRPC tools..."
+    if [ ! -f "${PATH_ROOT}/node_modules/.bin/grpc_tools_node_protoc_plugin" ]; then
+        echo "grpc-tools not found. Run 'npm install' first."
+        exit 1
     fi
+    if [ ! -f "${PATH_ROOT}/node_modules/.bin/protoc-gen-js" ]; then
+        echo "protoc-gen-js not found. Run 'npm install' first."
+        exit 1
+    fi
+    echo "gRPC tools found in node_modules"
 }
 
 # Make sure curl or wget are installed
@@ -73,22 +74,20 @@ generateGrpc() {
 
     echo "[protoc] Generating RPC for $PATH_PROTO/$PATH_FILE"
 
-    # Tools to be installed by npm (see package.json)
-    # npm install grpc-tools --save-dev
-    # npm install grpc_tools_node_protoc_ts --save-dev
+    # All plugins installed via npm (see package.json devDependencies)
+    PROTOC_GEN_JS_PATH="${PATH_ROOT}/node_modules/.bin/protoc-gen-js"
     PROTOC_GEN_TS_PATH="${PATH_ROOT}/node_modules/.bin/protoc-gen-ts"
     PROTOC_GEN_GRPC_PATH="${PATH_ROOT}/node_modules/.bin/grpc_tools_node_protoc_plugin"
 
-    # Note: we specify --proto_path to show where we should start searching from. If we use import it will start from this path
-    # this is why PATH_PROTO != PATH_PROTO_DAPR; PATH_PROTO_DAPR is where we save our proto files while the other is the namespace
     protoc \
         --proto_path="${PATH_PROTO}" \
+        --plugin="protoc-gen-js=${PROTOC_GEN_JS_PATH}" \
         --plugin="protoc-gen-ts=${PROTOC_GEN_TS_PATH}" \
-        --plugin=protoc-gen-grpc=${PROTOC_GEN_GRPC_PATH} \
-        --js_out="import_style=commonjs,binary:$PATH_PROTO" \
-        --ts_out="grpc_js:$PATH_PROTO" \
-        --grpc_out="grpc_js:$PATH_PROTO" \
-        "$PATH_PROTO/$PATH_FILE"
+        --plugin="protoc-gen-grpc=${PROTOC_GEN_GRPC_PATH}" \
+        --js_out="import_style=commonjs,binary:${PATH_PROTO}" \
+        --ts_out="grpc_js:${PATH_PROTO}" \
+        --grpc_out="grpc_js:${PATH_PROTO}" \
+        "${PATH_PROTO}/${PATH_FILE}"
 }
 
 fail_trap() {

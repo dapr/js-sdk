@@ -460,11 +460,11 @@ proto.dapr.proto.runtime.v1.JobEventRequest.prototype.toObject = function(opt_in
  */
 proto.dapr.proto.runtime.v1.JobEventRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    data: (f = msg.getData()) && google_protobuf_any_pb.Any.toObject(includeInstance, f),
-    method: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    contentType: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    httpExtension: (f = msg.getHttpExtension()) && dapr_proto_common_v1_common_pb.HTTPExtension.toObject(includeInstance, f)
+name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+data: (f = msg.getData()) && google_protobuf_any_pb.Any.toObject(includeInstance, f),
+method: jspb.Message.getFieldWithDefault(msg, 3, ""),
+contentType: jspb.Message.getFieldWithDefault(msg, 4, ""),
+httpExtension: (f = msg.getHttpExtension()) && dapr_proto_common_v1_common_pb.HTTPExtension.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -853,16 +853,16 @@ proto.dapr.proto.runtime.v1.TopicEventRequest.prototype.toObject = function(opt_
  */
 proto.dapr.proto.runtime.v1.TopicEventRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    id: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    source: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    type: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    specVersion: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    dataContentType: jspb.Message.getFieldWithDefault(msg, 5, ""),
-    data: msg.getData_asB64(),
-    topic: jspb.Message.getFieldWithDefault(msg, 6, ""),
-    pubsubName: jspb.Message.getFieldWithDefault(msg, 8, ""),
-    path: jspb.Message.getFieldWithDefault(msg, 9, ""),
-    extensions: (f = msg.getExtensions()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
+id: jspb.Message.getFieldWithDefault(msg, 1, ""),
+source: jspb.Message.getFieldWithDefault(msg, 2, ""),
+type: jspb.Message.getFieldWithDefault(msg, 3, ""),
+specVersion: jspb.Message.getFieldWithDefault(msg, 4, ""),
+dataContentType: jspb.Message.getFieldWithDefault(msg, 5, ""),
+data: msg.getData_asB64(),
+topic: jspb.Message.getFieldWithDefault(msg, 6, ""),
+pubsubName: jspb.Message.getFieldWithDefault(msg, 8, ""),
+path: jspb.Message.getFieldWithDefault(msg, 9, ""),
+extensions: (f = msg.getExtensions()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1298,7 +1298,7 @@ proto.dapr.proto.runtime.v1.TopicEventResponse.prototype.toObject = function(opt
  */
 proto.dapr.proto.runtime.v1.TopicEventResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    status: jspb.Message.getFieldWithDefault(msg, 1, 0)
+status: jspb.Message.getFieldWithDefault(msg, 1, 0)
   };
 
   if (includeInstance) {
@@ -1437,13 +1437,13 @@ proto.dapr.proto.runtime.v1.TopicEventCERequest.prototype.toObject = function(op
  */
 proto.dapr.proto.runtime.v1.TopicEventCERequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    id: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    source: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    type: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    specVersion: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    dataContentType: jspb.Message.getFieldWithDefault(msg, 5, ""),
-    data: msg.getData_asB64(),
-    extensions: (f = msg.getExtensions()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
+id: jspb.Message.getFieldWithDefault(msg, 1, ""),
+source: jspb.Message.getFieldWithDefault(msg, 2, ""),
+type: jspb.Message.getFieldWithDefault(msg, 3, ""),
+specVersion: jspb.Message.getFieldWithDefault(msg, 4, ""),
+dataContentType: jspb.Message.getFieldWithDefault(msg, 5, ""),
+data: msg.getData_asB64(),
+extensions: (f = msg.getExtensions()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1818,11 +1818,11 @@ proto.dapr.proto.runtime.v1.TopicEventBulkRequestEntry.prototype.toObject = func
  */
 proto.dapr.proto.runtime.v1.TopicEventBulkRequestEntry.toObject = function(includeInstance, msg) {
   var f, obj = {
-    entryId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    bytes: msg.getBytes_asB64(),
-    cloudEvent: (f = msg.getCloudEvent()) && proto.dapr.proto.runtime.v1.TopicEventCERequest.toObject(includeInstance, f),
-    contentType: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : []
+entryId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+bytes: msg.getBytes_asB64(),
+cloudEvent: (f = msg.getCloudEvent()) && proto.dapr.proto.runtime.v1.TopicEventCERequest.toObject(includeInstance, f),
+contentType: jspb.Message.getFieldWithDefault(msg, 4, ""),
+metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -2142,14 +2142,14 @@ proto.dapr.proto.runtime.v1.TopicEventBulkRequest.prototype.toObject = function(
  */
 proto.dapr.proto.runtime.v1.TopicEventBulkRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    id: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    entriesList: jspb.Message.toObjectList(msg.getEntriesList(),
+id: jspb.Message.getFieldWithDefault(msg, 1, ""),
+entriesList: jspb.Message.toObjectList(msg.getEntriesList(),
     proto.dapr.proto.runtime.v1.TopicEventBulkRequestEntry.toObject, includeInstance),
-    metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : [],
-    topic: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    pubsubName: jspb.Message.getFieldWithDefault(msg, 5, ""),
-    type: jspb.Message.getFieldWithDefault(msg, 6, ""),
-    path: jspb.Message.getFieldWithDefault(msg, 7, "")
+metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : [],
+topic: jspb.Message.getFieldWithDefault(msg, 4, ""),
+pubsubName: jspb.Message.getFieldWithDefault(msg, 5, ""),
+type: jspb.Message.getFieldWithDefault(msg, 6, ""),
+path: jspb.Message.getFieldWithDefault(msg, 7, "")
   };
 
   if (includeInstance) {
@@ -2479,8 +2479,8 @@ proto.dapr.proto.runtime.v1.TopicEventBulkResponseEntry.prototype.toObject = fun
  */
 proto.dapr.proto.runtime.v1.TopicEventBulkResponseEntry.toObject = function(includeInstance, msg) {
   var f, obj = {
-    entryId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    status: jspb.Message.getFieldWithDefault(msg, 2, 0)
+entryId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+status: jspb.Message.getFieldWithDefault(msg, 2, 0)
   };
 
   if (includeInstance) {
@@ -2646,7 +2646,7 @@ proto.dapr.proto.runtime.v1.TopicEventBulkResponse.prototype.toObject = function
  */
 proto.dapr.proto.runtime.v1.TopicEventBulkResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    statusesList: jspb.Message.toObjectList(msg.getStatusesList(),
+statusesList: jspb.Message.toObjectList(msg.getStatusesList(),
     proto.dapr.proto.runtime.v1.TopicEventBulkResponseEntry.toObject, includeInstance)
   };
 
@@ -2799,9 +2799,9 @@ proto.dapr.proto.runtime.v1.BindingEventRequest.prototype.toObject = function(op
  */
 proto.dapr.proto.runtime.v1.BindingEventRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    data: msg.getData_asB64(),
-    metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : []
+name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+data: msg.getData_asB64(),
+metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -3024,12 +3024,12 @@ proto.dapr.proto.runtime.v1.BindingEventResponse.prototype.toObject = function(o
  */
 proto.dapr.proto.runtime.v1.BindingEventResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    storeName: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    statesList: jspb.Message.toObjectList(msg.getStatesList(),
+storeName: jspb.Message.getFieldWithDefault(msg, 1, ""),
+statesList: jspb.Message.toObjectList(msg.getStatesList(),
     dapr_proto_common_v1_common_pb.StateItem.toObject, includeInstance),
-    toList: (f = jspb.Message.getRepeatedField(msg, 3)) == null ? undefined : f,
-    data: msg.getData_asB64(),
-    concurrency: jspb.Message.getFieldWithDefault(msg, 5, 0)
+toList: (f = jspb.Message.getRepeatedField(msg, 3)) == null ? undefined : f,
+data: msg.getData_asB64(),
+concurrency: jspb.Message.getFieldWithDefault(msg, 5, 0)
   };
 
   if (includeInstance) {
@@ -3355,7 +3355,7 @@ proto.dapr.proto.runtime.v1.ListTopicSubscriptionsResponse.prototype.toObject = 
  */
 proto.dapr.proto.runtime.v1.ListTopicSubscriptionsResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    subscriptionsList: jspb.Message.toObjectList(msg.getSubscriptionsList(),
+subscriptionsList: jspb.Message.toObjectList(msg.getSubscriptionsList(),
     proto.dapr.proto.runtime.v1.TopicSubscription.toObject, includeInstance)
   };
 
@@ -3508,12 +3508,12 @@ proto.dapr.proto.runtime.v1.TopicSubscription.prototype.toObject = function(opt_
  */
 proto.dapr.proto.runtime.v1.TopicSubscription.toObject = function(includeInstance, msg) {
   var f, obj = {
-    pubsubName: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    topic: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : [],
-    routes: (f = msg.getRoutes()) && proto.dapr.proto.runtime.v1.TopicRoutes.toObject(includeInstance, f),
-    deadLetterTopic: jspb.Message.getFieldWithDefault(msg, 6, ""),
-    bulkSubscribe: (f = msg.getBulkSubscribe()) && proto.dapr.proto.runtime.v1.BulkSubscribeConfig.toObject(includeInstance, f)
+pubsubName: jspb.Message.getFieldWithDefault(msg, 1, ""),
+topic: jspb.Message.getFieldWithDefault(msg, 2, ""),
+metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : [],
+routes: (f = msg.getRoutes()) && proto.dapr.proto.runtime.v1.TopicRoutes.toObject(includeInstance, f),
+deadLetterTopic: jspb.Message.getFieldWithDefault(msg, 6, ""),
+bulkSubscribe: (f = msg.getBulkSubscribe()) && proto.dapr.proto.runtime.v1.BulkSubscribeConfig.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -3841,9 +3841,9 @@ proto.dapr.proto.runtime.v1.TopicRoutes.prototype.toObject = function(opt_includ
  */
 proto.dapr.proto.runtime.v1.TopicRoutes.toObject = function(includeInstance, msg) {
   var f, obj = {
-    rulesList: jspb.Message.toObjectList(msg.getRulesList(),
+rulesList: jspb.Message.toObjectList(msg.getRulesList(),
     proto.dapr.proto.runtime.v1.TopicRule.toObject, includeInstance),
-    pb_default: jspb.Message.getFieldWithDefault(msg, 2, "")
+pb_default: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -4024,8 +4024,8 @@ proto.dapr.proto.runtime.v1.TopicRule.prototype.toObject = function(opt_includeI
  */
 proto.dapr.proto.runtime.v1.TopicRule.toObject = function(includeInstance, msg) {
   var f, obj = {
-    match: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    path: jspb.Message.getFieldWithDefault(msg, 2, "")
+match: jspb.Message.getFieldWithDefault(msg, 1, ""),
+path: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -4184,9 +4184,9 @@ proto.dapr.proto.runtime.v1.BulkSubscribeConfig.prototype.toObject = function(op
  */
 proto.dapr.proto.runtime.v1.BulkSubscribeConfig.toObject = function(includeInstance, msg) {
   var f, obj = {
-    enabled: jspb.Message.getBooleanFieldWithDefault(msg, 1, false),
-    maxMessagesCount: jspb.Message.getFieldWithDefault(msg, 2, 0),
-    maxAwaitDurationMs: jspb.Message.getFieldWithDefault(msg, 3, 0)
+enabled: jspb.Message.getBooleanFieldWithDefault(msg, 1, false),
+maxMessagesCount: jspb.Message.getFieldWithDefault(msg, 2, 0),
+maxAwaitDurationMs: jspb.Message.getFieldWithDefault(msg, 3, 0)
   };
 
   if (includeInstance) {
@@ -4381,7 +4381,7 @@ proto.dapr.proto.runtime.v1.ListInputBindingsResponse.prototype.toObject = funct
  */
 proto.dapr.proto.runtime.v1.ListInputBindingsResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    bindingsList: (f = jspb.Message.getRepeatedField(msg, 1)) == null ? undefined : f
+bindingsList: (f = jspb.Message.getRepeatedField(msg, 1)) == null ? undefined : f
   };
 
   if (includeInstance) {

@@ -75,8 +75,8 @@ proto.google.protobuf.Any.prototype.toObject = function(opt_includeInstance) {
  */
 proto.google.protobuf.Any.toObject = function(includeInstance, msg) {
   var f, obj = {
-    typeUrl: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    value: msg.getValue_asB64()
+typeUrl: jspb.Message.getFieldWithDefault(msg, 1, ""),
+value: msg.getValue_asB64()
   };
 
   if (includeInstance) {

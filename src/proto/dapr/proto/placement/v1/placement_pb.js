@@ -141,8 +141,8 @@ proto.dapr.proto.placement.v1.PlacementOrder.prototype.toObject = function(opt_i
  */
 proto.dapr.proto.placement.v1.PlacementOrder.toObject = function(includeInstance, msg) {
   var f, obj = {
-    tables: (f = msg.getTables()) && proto.dapr.proto.placement.v1.PlacementTables.toObject(includeInstance, f),
-    operation: jspb.Message.getFieldWithDefault(msg, 2, "")
+tables: (f = msg.getTables()) && proto.dapr.proto.placement.v1.PlacementTables.toObject(includeInstance, f),
+operation: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -322,10 +322,10 @@ proto.dapr.proto.placement.v1.PlacementTables.prototype.toObject = function(opt_
  */
 proto.dapr.proto.placement.v1.PlacementTables.toObject = function(includeInstance, msg) {
   var f, obj = {
-    entriesMap: (f = msg.getEntriesMap()) ? f.toObject(includeInstance, proto.dapr.proto.placement.v1.PlacementTable.toObject) : [],
-    version: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    apiLevel: jspb.Message.getFieldWithDefault(msg, 3, 0),
-    replicationFactor: jspb.Message.getFieldWithDefault(msg, 4, 0)
+entriesMap: (f = msg.getEntriesMap()) ? f.toObject(includeInstance, proto.dapr.proto.placement.v1.PlacementTable.toObject) : [],
+version: jspb.Message.getFieldWithDefault(msg, 2, ""),
+apiLevel: jspb.Message.getFieldWithDefault(msg, 3, 0),
+replicationFactor: jspb.Message.getFieldWithDefault(msg, 4, 0)
   };
 
   if (includeInstance) {
@@ -553,10 +553,10 @@ proto.dapr.proto.placement.v1.PlacementTable.prototype.toObject = function(opt_i
  */
 proto.dapr.proto.placement.v1.PlacementTable.toObject = function(includeInstance, msg) {
   var f, obj = {
-    hostsMap: (f = msg.getHostsMap()) ? f.toObject(includeInstance, undefined) : [],
-    sortedSetList: (f = jspb.Message.getRepeatedField(msg, 2)) == null ? undefined : f,
-    loadMapMap: (f = msg.getLoadMapMap()) ? f.toObject(includeInstance, proto.dapr.proto.placement.v1.Host.toObject) : [],
-    totalLoad: jspb.Message.getFieldWithDefault(msg, 4, 0)
+hostsMap: (f = msg.getHostsMap()) ? f.toObject(includeInstance, undefined) : [],
+sortedSetList: (f = jspb.Message.getRepeatedField(msg, 2)) == null ? undefined : f,
+loadMapMap: (f = msg.getLoadMapMap()) ? f.toObject(includeInstance, proto.dapr.proto.placement.v1.Host.toObject) : [],
+totalLoad: jspb.Message.getFieldWithDefault(msg, 4, 0)
   };
 
   if (includeInstance) {
@@ -809,14 +809,14 @@ proto.dapr.proto.placement.v1.Host.prototype.toObject = function(opt_includeInst
  */
 proto.dapr.proto.placement.v1.Host.toObject = function(includeInstance, msg) {
   var f, obj = {
-    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    port: jspb.Message.getFieldWithDefault(msg, 2, 0),
-    load: jspb.Message.getFieldWithDefault(msg, 3, 0),
-    entitiesList: (f = jspb.Message.getRepeatedField(msg, 4)) == null ? undefined : f,
-    id: jspb.Message.getFieldWithDefault(msg, 5, ""),
-    pod: jspb.Message.getFieldWithDefault(msg, 6, ""),
-    apiLevel: jspb.Message.getFieldWithDefault(msg, 7, 0),
-    namespace: jspb.Message.getFieldWithDefault(msg, 8, "")
+name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+port: jspb.Message.getFieldWithDefault(msg, 2, 0),
+load: jspb.Message.getFieldWithDefault(msg, 3, 0),
+entitiesList: (f = jspb.Message.getRepeatedField(msg, 4)) == null ? undefined : f,
+id: jspb.Message.getFieldWithDefault(msg, 5, ""),
+pod: jspb.Message.getFieldWithDefault(msg, 6, ""),
+apiLevel: jspb.Message.getFieldWithDefault(msg, 7, 0),
+namespace: jspb.Message.getFieldWithDefault(msg, 8, "")
   };
 
   if (includeInstance) {

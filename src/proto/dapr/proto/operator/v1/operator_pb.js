@@ -496,8 +496,8 @@ proto.dapr.proto.operator.v1.ListComponentsRequest.prototype.toObject = function
  */
 proto.dapr.proto.operator.v1.ListComponentsRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    namespace: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    podname: jspb.Message.getFieldWithDefault(msg, 2, "")
+namespace: jspb.Message.getFieldWithDefault(msg, 1, ""),
+podname: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -656,8 +656,8 @@ proto.dapr.proto.operator.v1.ComponentUpdateRequest.prototype.toObject = functio
  */
 proto.dapr.proto.operator.v1.ComponentUpdateRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    namespace: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    podname: jspb.Message.getFieldWithDefault(msg, 2, "")
+namespace: jspb.Message.getFieldWithDefault(msg, 1, ""),
+podname: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -816,8 +816,8 @@ proto.dapr.proto.operator.v1.ComponentUpdateEvent.prototype.toObject = function(
  */
 proto.dapr.proto.operator.v1.ComponentUpdateEvent.toObject = function(includeInstance, msg) {
   var f, obj = {
-    component: msg.getComponent_asB64(),
-    type: jspb.Message.getFieldWithDefault(msg, 2, 0)
+component: msg.getComponent_asB64(),
+type: jspb.Message.getFieldWithDefault(msg, 2, 0)
   };
 
   if (includeInstance) {
@@ -1007,7 +1007,7 @@ proto.dapr.proto.operator.v1.ListComponentResponse.prototype.toObject = function
  */
 proto.dapr.proto.operator.v1.ListComponentResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    componentsList: msg.getComponentsList_asB64()
+componentsList: msg.getComponentsList_asB64()
   };
 
   if (includeInstance) {
@@ -1180,9 +1180,9 @@ proto.dapr.proto.operator.v1.GetConfigurationRequest.prototype.toObject = functi
  */
 proto.dapr.proto.operator.v1.GetConfigurationRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    namespace: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    podname: jspb.Message.getFieldWithDefault(msg, 3, "")
+name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+namespace: jspb.Message.getFieldWithDefault(msg, 2, ""),
+podname: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
   if (includeInstance) {
@@ -1370,7 +1370,7 @@ proto.dapr.proto.operator.v1.GetConfigurationResponse.prototype.toObject = funct
  */
 proto.dapr.proto.operator.v1.GetConfigurationResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    configuration: msg.getConfiguration_asB64()
+configuration: msg.getConfiguration_asB64()
   };
 
   if (includeInstance) {
@@ -1531,7 +1531,7 @@ proto.dapr.proto.operator.v1.ListSubscriptionsResponse.prototype.toObject = func
  */
 proto.dapr.proto.operator.v1.ListSubscriptionsResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    subscriptionsList: msg.getSubscriptionsList_asB64()
+subscriptionsList: msg.getSubscriptionsList_asB64()
   };
 
   if (includeInstance) {
@@ -1704,8 +1704,8 @@ proto.dapr.proto.operator.v1.SubscriptionUpdateRequest.prototype.toObject = func
  */
 proto.dapr.proto.operator.v1.SubscriptionUpdateRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    namespace: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    podname: jspb.Message.getFieldWithDefault(msg, 2, "")
+namespace: jspb.Message.getFieldWithDefault(msg, 1, ""),
+podname: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -1864,8 +1864,8 @@ proto.dapr.proto.operator.v1.SubscriptionUpdateEvent.prototype.toObject = functi
  */
 proto.dapr.proto.operator.v1.SubscriptionUpdateEvent.toObject = function(includeInstance, msg) {
   var f, obj = {
-    subscription: msg.getSubscription_asB64(),
-    type: jspb.Message.getFieldWithDefault(msg, 2, 0)
+subscription: msg.getSubscription_asB64(),
+type: jspb.Message.getFieldWithDefault(msg, 2, 0)
   };
 
   if (includeInstance) {
@@ -2048,8 +2048,8 @@ proto.dapr.proto.operator.v1.GetResiliencyRequest.prototype.toObject = function(
  */
 proto.dapr.proto.operator.v1.GetResiliencyRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    namespace: jspb.Message.getFieldWithDefault(msg, 2, "")
+name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+namespace: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -2208,7 +2208,7 @@ proto.dapr.proto.operator.v1.GetResiliencyResponse.prototype.toObject = function
  */
 proto.dapr.proto.operator.v1.GetResiliencyResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    resiliency: msg.getResiliency_asB64()
+resiliency: msg.getResiliency_asB64()
   };
 
   if (includeInstance) {
@@ -2362,7 +2362,7 @@ proto.dapr.proto.operator.v1.ListResiliencyRequest.prototype.toObject = function
  */
 proto.dapr.proto.operator.v1.ListResiliencyRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    namespace: jspb.Message.getFieldWithDefault(msg, 1, "")
+namespace: jspb.Message.getFieldWithDefault(msg, 1, "")
   };
 
   if (includeInstance) {
@@ -2499,7 +2499,7 @@ proto.dapr.proto.operator.v1.ListResiliencyResponse.prototype.toObject = functio
  */
 proto.dapr.proto.operator.v1.ListResiliencyResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    resilienciesList: msg.getResilienciesList_asB64()
+resilienciesList: msg.getResilienciesList_asB64()
   };
 
   if (includeInstance) {
@@ -2672,8 +2672,8 @@ proto.dapr.proto.operator.v1.ListSubscriptionsRequest.prototype.toObject = funct
  */
 proto.dapr.proto.operator.v1.ListSubscriptionsRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    podname: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    namespace: jspb.Message.getFieldWithDefault(msg, 2, "")
+podname: jspb.Message.getFieldWithDefault(msg, 1, ""),
+namespace: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -2832,8 +2832,8 @@ proto.dapr.proto.operator.v1.GetHTTPEndpointRequest.prototype.toObject = functio
  */
 proto.dapr.proto.operator.v1.GetHTTPEndpointRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    namespace: jspb.Message.getFieldWithDefault(msg, 2, "")
+name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+namespace: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -2992,7 +2992,7 @@ proto.dapr.proto.operator.v1.GetHTTPEndpointResponse.prototype.toObject = functi
  */
 proto.dapr.proto.operator.v1.GetHTTPEndpointResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    httpEndpoint: msg.getHttpEndpoint_asB64()
+httpEndpoint: msg.getHttpEndpoint_asB64()
   };
 
   if (includeInstance) {
@@ -3153,7 +3153,7 @@ proto.dapr.proto.operator.v1.ListHTTPEndpointsResponse.prototype.toObject = func
  */
 proto.dapr.proto.operator.v1.ListHTTPEndpointsResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    httpEndpointsList: msg.getHttpEndpointsList_asB64()
+httpEndpointsList: msg.getHttpEndpointsList_asB64()
   };
 
   if (includeInstance) {
@@ -3326,7 +3326,7 @@ proto.dapr.proto.operator.v1.ListHTTPEndpointsRequest.prototype.toObject = funct
  */
 proto.dapr.proto.operator.v1.ListHTTPEndpointsRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    namespace: jspb.Message.getFieldWithDefault(msg, 1, "")
+namespace: jspb.Message.getFieldWithDefault(msg, 1, "")
   };
 
   if (includeInstance) {
@@ -3456,8 +3456,8 @@ proto.dapr.proto.operator.v1.HTTPEndpointUpdateRequest.prototype.toObject = func
  */
 proto.dapr.proto.operator.v1.HTTPEndpointUpdateRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    namespace: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    podName: jspb.Message.getFieldWithDefault(msg, 2, "")
+namespace: jspb.Message.getFieldWithDefault(msg, 1, ""),
+podName: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -3616,7 +3616,7 @@ proto.dapr.proto.operator.v1.HTTPEndpointUpdateEvent.prototype.toObject = functi
  */
 proto.dapr.proto.operator.v1.HTTPEndpointUpdateEvent.toObject = function(includeInstance, msg) {
   var f, obj = {
-    httpEndpoints: msg.getHttpEndpoints_asB64()
+httpEndpoints: msg.getHttpEndpoints_asB64()
   };
 
   if (includeInstance) {
