@@ -46,7 +46,7 @@
   "author": "Dapr Authors",
   "license": "apache-2.0",
   "dependencies": {
-    "@grpc/grpc-js": "^1.9.3",
+    "@grpc/grpc-js": "^1.12.5",
     "@js-temporal/polyfill": "^0.3.0",
     "@dapr/durabletask-js": "0.1.0-alpha.2",
     "@types/google-protobuf": "^3.15.5",
