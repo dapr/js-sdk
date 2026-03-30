@@ -16,4 +16,13 @@ module.exports = {
   testEnvironment: "node",
   collectCoverage: true,
   coverageReporters: ["lcov"],
+  // ts-jest 29 configuration
+  transform: {
+    "^.+\\.tsx?$": [
+      "ts-jest",
+      {
+        tsconfig: "tsconfig.json",
+      },
+    ],
+  },
 };
