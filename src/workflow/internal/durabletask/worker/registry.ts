@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { getName } from "../task";
 import { TActivity } from "../types/activity.type";
 import { TInput } from "../types/input.type";
 import { TOrchestrator } from "../types/orchestrator.type";
@@ -30,7 +31,7 @@ export class Registry {
       throw new Error("An orchestrator function argument is required.");
     }
 
-    const name = this._getFunctionName(fn);
+    const name = getName(fn);
     this.addNamedOrchestrator(name, fn);
     return name;
   }
@@ -60,7 +61,7 @@ export class Registry {
       throw new Error("An activity function argument is required.");
     }
 
-    const name = this._getFunctionName(fn);
+    const name = getName(fn);
     this.addNamedActivity(name, fn);
     return name;
   }
@@ -81,16 +82,4 @@ export class Registry {
     return this._activities[name];
   }
 
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  _getFunctionName(fn: Function): string {
-    if (fn.name) {
-      return fn.name;
-    }
-
-    const fnStr = fn.toString();
-    const start = fnStr.indexOf("function") + "function".length;
-    const end = fnStr.indexOf("(", start);
-
-    return fnStr.slice(start, end).trim() || "";
-  }
 }

@@ -18,27 +18,17 @@ import * as grpc from "@grpc/grpc-js";
 import { WorkflowClientOptions } from "../../types/workflow/WorkflowClientOption";
 import { Settings } from "../../utils/Settings.util";
 import { GrpcEndpoint } from "../../network/GrpcEndpoint";
+import { getName } from "./durabletask/task";
 
 /**
  * Gets the name of a function from its definition or string representation.
+ * Delegates to the shared getName utility in durabletask/task.
  *
- * @param fn - The function for which the name is to be retrieved. Can be either a function or a string representation of a function.
+ * @param fn - The function for which the name is to be retrieved.
  * @returns The name of the function.
- *
- * @typeparam TWorkflow - The type of the workflow function.
- * @typeparam TInput - The type of the input for the workflow activity.
- * @typeparam TOutput - The type of the output for the workflow activity.
  */
 export function getFunctionName(fn: TWorkflow | TWorkflowActivity<TInput, TOutput>): string {
-  if (fn.name) {
-    return fn.name;
-  } else {
-    const match = fn.toString().match(/function\s*([^(]*)\(/);
-    if (match === null) {
-      throw new Error("Unable to determine function name, try to sepecify the workflow/activity name explicitly.");
-    }
-    return match[1];
-  }
+  return getName(fn);
 }
 
 /**

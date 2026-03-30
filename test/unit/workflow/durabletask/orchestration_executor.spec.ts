@@ -386,7 +386,7 @@ describe("Orchestration Executor", () => {
     // assert user_code_statement in complete_action.failureDetails.stackTrace.value
   });
   /**
-   * It should test the non-determinism detection when a sub-orchestration action is encounteed when it shouldn't be.
+   * It should test the non-determinism detection when a sub-orchestration action is encountered when it shouldn't be.
    * This variation tests the case where the expected task type is wrong (e.g. the code schedules a timer task
    * but the history contains a sub-orchestration completed task)
    */

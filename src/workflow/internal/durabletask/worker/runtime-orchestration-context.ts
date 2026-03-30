@@ -29,14 +29,14 @@ export class RuntimeOrchestrationContext extends OrchestrationContext {
   _result: any;
   _pendingActions: Record<number, pb.OrchestratorAction>;
   _pendingTasks: Record<number, CompletableTask<any>>;
-  _sequenceNumber: any;
-  _currentUtcDatetime: any;
+  private _sequenceNumber: number;
+  _currentUtcDatetime: Date;
   _instanceId: string;
   _completionStatus?: pb.OrchestrationStatus;
   _receivedEvents: Record<string, any[]>;
   _pendingEvents: Record<string, CompletableTask<any>[]>;
   _newInput?: any;
-  _saveEvents: any;
+  private _saveEvents: boolean;
   _customStatus: string;
 
   constructor(instanceId: string) {
@@ -123,9 +123,16 @@ export class RuntimeOrchestrationContext extends OrchestrationContext {
         }
       }
       if (this._previousTask.isComplete) {
+        const MAX_ITERATIONS = 100_000;
+        let iterations = 0;
         while (true) { // eslint-disable-line no-constant-condition
+          if (++iterations > MAX_ITERATIONS) {
+            throw new Error(
+              `Orchestrator exceeded maximum iteration limit (${MAX_ITERATIONS}). ` +
+              "This likely indicates an infinite loop in the orchestrator function.",
+            );
+          }
           // Resume the generator. This will either return a Task or raise StopIteration if it's done.
-          // @todo: Should we check for possible infinite loops here?
           // python: next_task = self._generator.send(self._previous_task.get_result())
 
           // This returns a Promise that we will not await yet
@@ -297,7 +304,7 @@ export class RuntimeOrchestrationContext extends OrchestrationContext {
     const id = this.nextSequenceNumber();
 
     // Create a deterministic instance ID based on the parent instance ID
-    // use the instanceId and apprent the id to it in hexadecimal with 4 digits (e.g. 0001)
+    // use the instanceId and append the id to it in hexadecimal with 4 digits (e.g. 0001)
     if (!instanceId) {
       const instanceIdSuffix = id.toString(16).padStart(4, "0");
       instanceId = `${this._instanceId}:${instanceIdSuffix}`;

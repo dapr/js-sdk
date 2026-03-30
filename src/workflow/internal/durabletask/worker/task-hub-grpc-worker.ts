@@ -26,6 +26,7 @@ import * as pbh from "../utils/pb-helper.util";
 import { OrchestrationExecutor } from "./orchestration-executor";
 import { ActivityExecutor } from "./activity-executor";
 import { StringValue } from "google-protobuf/google/protobuf/wrappers_pb";
+import { Logger } from "../../../../logger/Logger";
 
 export class TaskHubGrpcWorker {
   private _responseStream: grpc.ClientReadableStream<pb.WorkItem> | null;
@@ -36,6 +37,9 @@ export class TaskHubGrpcWorker {
   private _isRunning: boolean;
   private _stopWorker: boolean;
   private _stub: stubs.TaskHubSidecarServiceClient | null;
+  private _activeWorkItems: number;
+  private _maxConcurrentWorkItems: number;
+  private readonly logger: Logger;
 
   constructor(hostAddress?: string, options?: grpc.ChannelOptions, useTLS?: boolean) {
     this._registry = new Registry();
@@ -46,6 +50,9 @@ export class TaskHubGrpcWorker {
     this._isRunning = false;
     this._stopWorker = false;
     this._stub = null;
+    this._activeWorkItems = 0;
+    this._maxConcurrentWorkItems = 10;
+    this.logger = new Logger("DurableTask", "Worker");
   }
 
   /**
@@ -120,74 +127,109 @@ export class TaskHubGrpcWorker {
 
     // do not await so it runs in the background
     this.internalRunWorker(client).catch((err) => {
-      console.error("Worker failed:", err);
+      this.logger.error("Worker failed:", err);
       this._isRunning = false;
     });
 
     this._isRunning = true;
   }
 
-  async internalRunWorker(client: GrpcClient, isRetry = false): Promise<void> {
-    try {
-      // send a "Hello" message to the sidecar to ensure that it's listening
-      const prom = promisify(client.stub.hello.bind(client.stub));
-      await prom(new Empty());
+  async internalRunWorker(client: GrpcClient): Promise<void> {
+    const BASE_DELAY_MS = 1000;
+    const MAX_DELAY_MS = 30000;
+    let retryCount = 0;
+    let isFirstAttempt = true;
 
-      // Stream work items from the sidecar
-      const stream = client.stub.getWorkItems(new pb.GetWorkItemsRequest());
-      this._responseStream = stream;
+    while (!this._stopWorker) {
+      try {
+        // send a "Hello" message to the sidecar to ensure that it's listening
+        const prom = promisify(client.stub.hello.bind(client.stub));
+        await prom(new Empty());
 
-      console.log(`Successfully connected to ${this._hostAddress}. Waiting for work items...`);
+        // Stream work items from the sidecar
+        const stream = client.stub.getWorkItems(new pb.GetWorkItemsRequest());
+        this._responseStream = stream;
+        retryCount = 0; // Reset on successful connection
 
-      // Wait for a work item to be received
-      stream.on("data", (workItem: pb.WorkItem) => {
-        if (workItem.hasOrchestratorrequest()) {
-          console.log(
-            `Received "Orchestrator Request" work item with instance id '${workItem
-              ?.getOrchestratorrequest()
-              ?.getInstanceid()}'`,
-          );
-          this._executeOrchestrator(workItem.getOrchestratorrequest() as any, client.stub);
-        } else if (workItem.hasActivityrequest()) {
-          console.log(`Received "Activity Request" work item`);
-          this._executeActivity(workItem.getActivityrequest() as any, client.stub);
-        } else {
-          console.log(`Received unknown work item`);
-        }
-      });
+        this.logger.info(`Successfully connected to ${this._hostAddress}. Waiting for work items...`);
 
-      // Wait for the stream to end or error
-      stream.on("end", async () => {
-        stream.cancel();
-        stream.destroy();
+        // Wait for the stream to end using a promise
+        await new Promise<void>((resolve, reject) => {
+          stream.on("data", (workItem: pb.WorkItem) => {
+            if (this._activeWorkItems >= this._maxConcurrentWorkItems) {
+              this.logger.warn(
+                `Max concurrent work items (${this._maxConcurrentWorkItems}) reached, skipping work item`,
+              );
+              return;
+            }
+
+            if (workItem.hasOrchestratorrequest()) {
+              this.logger.info(
+                `Received "Orchestrator Request" work item with instance id '${workItem
+                  ?.getOrchestratorrequest()
+                  ?.getInstanceid()}'`,
+              );
+              this._trackWorkItem(
+                this._executeOrchestrator(workItem.getOrchestratorrequest() as any, client.stub),
+              );
+            } else if (workItem.hasActivityrequest()) {
+              this.logger.info(`Received "Activity Request" work item`);
+              this._trackWorkItem(
+                this._executeActivity(workItem.getActivityrequest() as any, client.stub),
+              );
+            } else {
+              this.logger.warn(`Received unknown work item`);
+            }
+          });
+
+          stream.on("end", () => {
+            stream.removeAllListeners();
+            stream.cancel();
+            stream.destroy();
+            resolve();
+          });
+
+          stream.on("error", (err: Error) => {
+            stream.removeAllListeners();
+            stream.cancel();
+            stream.destroy();
+            reject(err);
+          });
+        });
+
         if (this._stopWorker) {
-          console.log("Stream ended");
+          this.logger.info("Stream ended");
           return;
         }
-        console.log("Stream abruptly closed, will retry the connection...");
-        // TODO consider exponential backoff
-        await sleep(5000);
-        // do not await
-        this.internalRunWorker(client, true);
-      });
 
-      stream.on("error", (err: Error) => {
-        console.log("Stream error", err);
-      });
-    } catch (err) {
-      if (this._stopWorker) {
-        // ignoring the error because the worker has been stopped
-        return;
+        this.logger.warn("Stream abruptly closed, will retry the connection...");
+      } catch (err) {
+        if (this._stopWorker) {
+          return;
+        }
+        this.logger.error(`Error on grpc stream: ${err}`);
+        if (isFirstAttempt) {
+          throw err;
+        }
+        this.logger.info("Connection will be retried...");
       }
-      console.log(`Error on grpc stream: ${err}`);
-      if (!isRetry) {
-        throw err;
-      }
-      console.log("Connection will be retried...");
-      // TODO consider exponential backoff
-      await sleep(5000);
-      this.internalRunWorker(client, true);
-      return;
+
+      isFirstAttempt = false;
+
+      // Exponential backoff with jitter
+      const delay = Math.min(BASE_DELAY_MS * Math.pow(2, retryCount), MAX_DELAY_MS);
+      const jitter = delay * 0.5 * Math.random();
+      await sleep(delay + jitter);
+      retryCount++;
+    }
+  }
+
+  private async _trackWorkItem(workPromise: Promise<void>): Promise<void> {
+    this._activeWorkItems++;
+    try {
+      await workPromise;
+    } finally {
+      this._activeWorkItems--;
     }
   }
 
@@ -239,8 +281,7 @@ export class TaskHubGrpcWorker {
       cs.setValue(result.customStatus);
       res.setCustomstatus(cs);
     } catch (e: any) {
-      console.error(e);
-      console.log(`An error occurred while trying to execute instance '${req.getInstanceid()}': ${e.message}`);
+      this.logger.error(`An error occurred while trying to execute instance '${req.getInstanceid()}': ${e.message}`, e);
 
       const failureDetails = pbh.newFailureDetails(e);
 
@@ -262,7 +303,7 @@ export class TaskHubGrpcWorker {
       const stubCompleteOrchestratorTask = promisify(stub.completeOrchestratorTask.bind(stub));
       await stubCompleteOrchestratorTask(res);
     } catch (e: any) {
-      console.error(`An error occurred while trying to complete instance '${req.getInstanceid()}': ${e?.message}`);
+      this.logger.error(`An error occurred while trying to complete instance '${req.getInstanceid()}': ${e?.message}`);
     }
   }
 
@@ -295,8 +336,7 @@ export class TaskHubGrpcWorker {
       res.setTaskid(req.getTaskid());
       res.setResult(s);
     } catch (e: any) {
-      console.error(e);
-      console.log(`An error occurred while trying to execute activity '${req.getName()}': ${e.message}`);
+      this.logger.error(`An error occurred while trying to execute activity '${req.getName()}': ${e.message}`, e);
 
       const failureDetails = pbh.newFailureDetails(e);
 
@@ -310,7 +350,7 @@ export class TaskHubGrpcWorker {
       const stubCompleteActivityTask = promisify(stub.completeActivityTask.bind(stub));
       await stubCompleteActivityTask(res);
     } catch (e: any) {
-      console.error(
+      this.logger.error(
         `Failed to deliver activity response for '${req.getName()}#${req.getTaskid()}' of orchestration ID '${instanceId}' to sidecar: ${
           e?.message
         }`,

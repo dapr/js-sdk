@@ -45,9 +45,9 @@ export class GrpcClient {
 
   _generateChannelOptions(options: grpc.ChannelOptions = {}): grpc.ChannelOptions {
     const defaultOptions: Partial<grpc.ClientOptions> = {
-      "grpc.max_receive_message_length": -1,
-      "grpc.max_send_message_length": -1,
-      "grpc.primary_user_agent": "durabletask-js",
+      "grpc.max_receive_message_length": 128 * 1024 * 1024, // 128 MB
+      "grpc.max_send_message_length": 128 * 1024 * 1024, // 128 MB
+      "grpc.primary_user_agent": "dapr-js-sdk/workflow",
     };
     return {
       ...defaultOptions,

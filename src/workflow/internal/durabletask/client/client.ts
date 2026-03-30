@@ -28,12 +28,15 @@ import { TimeoutError } from "../exception/timeout-error";
 import { PurgeResult } from "../orchestration/orchestration-purge-result";
 import { PurgeInstanceCriteria } from "../orchestration/orchestration-purge-criteria";
 import * as grpc from "@grpc/grpc-js";
+import { Logger } from "../../../../logger/Logger";
 
 export class TaskHubGrpcClient {
   private _stub: stubs.TaskHubSidecarServiceClient;
+  private readonly logger: Logger;
 
   constructor(hostAddress?: string, option?: grpc.ChannelOptions, useTLS?: boolean) {
     this._stub = new GrpcClient(hostAddress, option, useTLS).stub;
+    this.logger = new Logger("DurableTask", "Client");
   }
 
   async stop(): Promise<void> {
@@ -78,7 +81,7 @@ export class TaskHubGrpcClient {
       req.setScheduledstarttimestamp(ts);
     }
 
-    console.log(`Starting new ${name} instance with ID = ${req.getInstanceid()}`);
+    this.logger.info(`Starting new ${name} instance with ID = ${req.getInstanceid()}`);
 
     const prom = promisify(this._stub.startInstance.bind(this._stub));
     const res = (await prom(req)) as pb.CreateInstanceResponse;
@@ -135,19 +138,24 @@ export class TaskHubGrpcClient {
     req.setInstanceid(instanceId);
     req.setGetinputsandoutputs(fetchPayloads);
 
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
     try {
       const prom = promisify(this._stub.waitForInstanceStart.bind(this._stub));
 
       // Execute the request and wait for the first response or timeout
       const res = (await Promise.race([
         prom(req),
-        new Promise((_, reject) => setTimeout(() => reject(new TimeoutError()), timeout * 1000)),
+        new Promise((_, reject) => {
+          timeoutHandle = setTimeout(() => reject(new TimeoutError()), timeout * 1000);
+        }),
       ])) as pb.GetInstanceResponse;
 
       return newOrchestrationState(req.getInstanceid(), res);
     } catch (e) {
-      console.log(e);
+      this.logger.error(e);
       throw e;
+    } finally {
+      clearTimeout(timeoutHandle);
     }
   }
 
@@ -177,15 +185,18 @@ export class TaskHubGrpcClient {
     req.setInstanceid(instanceId);
     req.setGetinputsandoutputs(fetchPayloads);
 
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
     try {
-      console.info(`Waiting ${timeout} seconds for instance ${instanceId} to complete...`);
+      this.logger.info(`Waiting ${timeout} seconds for instance ${instanceId} to complete...`);
 
       const prom = promisify(this._stub.waitForInstanceCompletion.bind(this._stub));
 
       // Execute the request and wait for the first response or timeout
       const res = (await Promise.race([
         prom(req),
-        new Promise((_, reject) => setTimeout(() => reject(new TimeoutError()), timeout * 1000)),
+        new Promise((_, reject) => {
+          timeoutHandle = setTimeout(() => reject(new TimeoutError()), timeout * 1000);
+        }),
       ])) as pb.GetInstanceResponse;
 
       const state = newOrchestrationState(req.getInstanceid(), res);
@@ -198,17 +209,19 @@ export class TaskHubGrpcClient {
 
       if (state.runtimeStatus === OrchestrationStatus.FAILED && state.failureDetails) {
         details = state.failureDetails;
-        console.info(`Instance ${instanceId} failed: [${details.errorType}] ${details.message}`);
+        this.logger.info(`Instance ${instanceId} failed: [${details.errorType}] ${details.message}`);
       } else if (state.runtimeStatus === OrchestrationStatus.TERMINATED) {
-        console.info(`Instance ${instanceId} was terminated`);
+        this.logger.info(`Instance ${instanceId} was terminated`);
       } else if (state.runtimeStatus === OrchestrationStatus.COMPLETED) {
-        console.info(`Instance ${instanceId} completed`);
+        this.logger.info(`Instance ${instanceId} completed`);
       }
 
       return state;
     } catch (e) {
-      console.log(e);
+      this.logger.error(e);
       throw e;
+    } finally {
+      clearTimeout(timeoutHandle);
     }
   }
 
@@ -232,7 +245,7 @@ export class TaskHubGrpcClient {
 
     req.setInput(i);
 
-    console.log(`Raising event '${eventName}' for instance '${instanceId}'`);
+    this.logger.info(`Raising event '${eventName}' for instance '${instanceId}'`);
 
     const prom = promisify(this._stub.raiseEvent.bind(this._stub));
     await prom(req);
@@ -253,7 +266,7 @@ export class TaskHubGrpcClient {
 
     req.setOutput(i);
 
-    console.log(`Terminating '${instanceId}'`);
+    this.logger.info(`Terminating '${instanceId}'`);
 
     const prom = promisify(this._stub.terminateInstance.bind(this._stub));
     await prom(req);
@@ -263,7 +276,7 @@ export class TaskHubGrpcClient {
     const req = new pb.SuspendRequest();
     req.setInstanceid(instanceId);
 
-    console.log(`Suspending '${instanceId}'`);
+    this.logger.info(`Suspending '${instanceId}'`);
 
     const prom = promisify(this._stub.suspendInstance.bind(this._stub));
     await prom(req);
@@ -273,7 +286,7 @@ export class TaskHubGrpcClient {
     const req = new pb.ResumeRequest();
     req.setInstanceid(instanceId);
 
-    console.log(`Resuming '${instanceId}'`);
+    this.logger.info(`Resuming '${instanceId}'`);
 
     const prom = promisify(this._stub.resumeInstance.bind(this._stub));
     await prom(req);
@@ -303,7 +316,7 @@ export class TaskHubGrpcClient {
       const req = new pb.PurgeInstancesRequest();
       req.setInstanceid(instanceId);
 
-      console.log(`Purging Instance '${instanceId}'`);
+      this.logger.info(`Purging Instance '${instanceId}'`);
 
       const prom = promisify(this._stub.purgeInstances.bind(this._stub));
       res = (await prom(req)) as pb.PurgeInstancesResponse;
@@ -330,14 +343,21 @@ export class TaskHubGrpcClient {
       req.setPurgeinstancefilter(filter);
       const timeout = purgeInstanceCriteria.getTimeout();
 
-      console.log("Purging Instance using purging criteria");
+      this.logger.info("Purging Instance using purging criteria");
 
       const prom = promisify(this._stub.purgeInstances.bind(this._stub));
       // Execute the request and wait for the first response or timeout
-      res = (await Promise.race([
-        prom(req),
-        new Promise((_, reject) => setTimeout(() => reject(new TimeoutError()), timeout)),
-      ])) as pb.PurgeInstancesResponse;
+      let purgeTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
+      try {
+        res = (await Promise.race([
+          prom(req),
+          new Promise((_, reject) => {
+            purgeTimeoutHandle = setTimeout(() => reject(new TimeoutError()), timeout);
+          }),
+        ])) as pb.PurgeInstancesResponse;
+      } finally {
+        clearTimeout(purgeTimeoutHandle);
+      }
     }
     if (!res) {
       return;

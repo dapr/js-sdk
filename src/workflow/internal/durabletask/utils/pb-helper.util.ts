@@ -328,7 +328,7 @@ export function isEmpty(v?: StringValue | null): boolean {
 }
 
 /**
- * Get the orchstration status by the enum value of the status
+ * Get the orchestration status by the enum value of the status
  *
  * @param status
  * @returns
