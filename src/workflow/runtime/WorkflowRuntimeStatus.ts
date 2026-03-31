@@ -34,7 +34,7 @@ export enum WorkflowRuntimeStatus {
  */
 export function fromOrchestrationStatus(val: OrchestrationStatus): WorkflowRuntimeStatus {
   const values = Object.values(WorkflowRuntimeStatus);
-  const valIdx = values.findIndex((v) => v == (val as number));
+  const valIdx = values.findIndex((v) => v === (val as number));
 
   // Return the entry of the WorkflowRuntimeStatus enum at index
   const entries = Object.entries(WorkflowRuntimeStatus);
@@ -49,7 +49,7 @@ export function fromOrchestrationStatus(val: OrchestrationStatus): WorkflowRunti
  */
 export function toOrchestrationStatus(val: WorkflowRuntimeStatus): OrchestrationStatus {
   const values = Object.values(OrchestrationStatus);
-  const valIdx = values.findIndex((v) => v == (val as number));
+  const valIdx = values.findIndex((v) => v === (val as number));
 
   // Return the entry of the WorkflowRuntimeStatus enum at index
   const entries = Object.entries(OrchestrationStatus);

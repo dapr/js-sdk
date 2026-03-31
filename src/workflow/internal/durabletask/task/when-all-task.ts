@@ -41,7 +41,7 @@ export class WhenAllTask<T> extends CompositeTask<T[]> {
       this._isComplete = true;
     }
 
-    if (this._completedTasks == this._tasks.length) {
+    if (this._completedTasks === this._tasks.length) {
       this._result = this._tasks.map((task) => task.getResult());
       this._isComplete = true;
     }

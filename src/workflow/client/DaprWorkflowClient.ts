@@ -158,7 +158,7 @@ export default class DaprWorkflowClient {
       fetchPayloads,
       timeoutInSeconds,
     );
-    if (state != undefined) {
+    if (state !== undefined) {
       return new WorkflowState(state);
     }
   }

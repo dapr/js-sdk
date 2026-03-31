@@ -59,7 +59,7 @@ export class OrchestrationExecutor {
 
     try {
       // Rebuild the local state by replaying the history events into the orchestrator function
-      this.logger.info(`${instanceId}: Rebuilding local state with ${oldEvents.length} history event...`);
+      this.logger.debug(`${instanceId}: Rebuilding local state with ${oldEvents.length} history event...`);
       ctx._isReplaying = true;
 
       for (const oldEvent of oldEvents) {
@@ -210,7 +210,7 @@ export class OrchestrationExecutor {
             } else if (!isScheduleTaskAction) {
               const expectedMethodName = getName(ctx.callActivity);
               throw getWrongActionTypeError(taskId, expectedMethodName, action);
-            } else if (action.getScheduletask()?.getName() != event.getTaskscheduled()?.getName()) {
+            } else if (action.getScheduletask()?.getName() !== event.getTaskscheduled()?.getName()) {
               throw getWrongActionNameError(
                 taskId,
                 getName(ctx.callActivity),
@@ -300,7 +300,7 @@ export class OrchestrationExecutor {
               const expectedMethodName = getName(ctx.callSubOrchestrator);
               throw getWrongActionTypeError(taskId, expectedMethodName, action);
             } else if (
-              action.getCreatesuborchestration()?.getName() != event.getSuborchestrationinstancecreated()?.getName()
+              action.getCreatesuborchestration()?.getName() !== event.getSuborchestrationinstancecreated()?.getName()
             ) {
               throw getWrongActionNameError(
                 taskId,

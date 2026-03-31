@@ -67,7 +67,7 @@ export function getMethodNameForAction(action: pb.OrchestratorAction): string {
 export function getNewEventSummary(newEvents: pb.HistoryEvent[]): string {
   if (!newEvents?.length) {
     return "[]";
-  } else if (newEvents.length == 1) {
+  } else if (newEvents.length === 1) {
     const enumKey = enumValueToKey(pb.HistoryEvent.EventtypeCase, newEvents[0].getEventtypeCase());
     return `[${enumKey}]`;
   } else {
@@ -92,7 +92,7 @@ export function getNewEventSummary(newEvents: pb.HistoryEvent[]): string {
 export function getActionSummary(newActions: pb.OrchestratorAction[]): string {
   if (!newActions?.length) {
     return "[]";
-  } else if (newActions.length == 1) {
+  } else if (newActions.length === 1) {
     const actionType = newActions[0].getOrchestratoractiontypeCase();
     const actionTypeName = enumValueToKey(pb.OrchestratorAction.OrchestratoractiontypeCase, actionType) ?? "UNKNOWN";
 
@@ -122,6 +122,6 @@ export function isSuspendable(event: pb.HistoryEvent): boolean {
   return (
     [pb.HistoryEvent.EventtypeCase.EXECUTIONRESUMED, pb.HistoryEvent.EventtypeCase.EXECUTIONTERMINATED].indexOf(
       event.getEventtypeCase(),
-    ) == -1
+    ) === -1
   );
 }

@@ -39,6 +39,8 @@ export class TaskHubGrpcWorker {
   private _stub: stubs.TaskHubSidecarServiceClient | null;
   private _activeWorkItems: number;
   private _maxConcurrentWorkItems: number;
+  private _workItemQueue: Array<{ workItem: pb.WorkItem; stub: stubs.TaskHubSidecarServiceClient }>;
+  private readonly _maxQueueSize: number;
   private readonly logger: Logger;
 
   constructor(hostAddress?: string, options?: grpc.ChannelOptions, useTLS?: boolean) {
@@ -52,6 +54,8 @@ export class TaskHubGrpcWorker {
     this._stub = null;
     this._activeWorkItems = 0;
     this._maxConcurrentWorkItems = 10;
+    this._workItemQueue = [];
+    this._maxQueueSize = 100;
     this.logger = new Logger("DurableTask", "Worker");
   }
 
@@ -157,29 +161,20 @@ export class TaskHubGrpcWorker {
         await new Promise<void>((resolve, reject) => {
           stream.on("data", (workItem: pb.WorkItem) => {
             if (this._activeWorkItems >= this._maxConcurrentWorkItems) {
-              this.logger.warn(
-                `Max concurrent work items (${this._maxConcurrentWorkItems}) reached, skipping work item`,
-              );
+              if (this._workItemQueue.length < this._maxQueueSize) {
+                this._workItemQueue.push({ workItem, stub: client.stub });
+                this.logger.debug(
+                  `Queued work item (${this._workItemQueue.length} queued)`,
+                );
+              } else {
+                this.logger.warn(
+                  `Work item queue full (${this._maxQueueSize}), dropping work item`,
+                );
+              }
               return;
             }
 
-            if (workItem.hasOrchestratorrequest()) {
-              this.logger.info(
-                `Received "Orchestrator Request" work item with instance id '${workItem
-                  ?.getOrchestratorrequest()
-                  ?.getInstanceid()}'`,
-              );
-              this._trackWorkItem(
-                this._executeOrchestrator(workItem.getOrchestratorrequest() as any, client.stub),
-              );
-            } else if (workItem.hasActivityrequest()) {
-              this.logger.info(`Received "Activity Request" work item`);
-              this._trackWorkItem(
-                this._executeActivity(workItem.getActivityrequest() as any, client.stub),
-              );
-            } else {
-              this.logger.warn(`Received unknown work item`);
-            }
+            this._dispatchWorkItem(workItem, client.stub);
           });
 
           stream.on("end", () => {
@@ -224,12 +219,44 @@ export class TaskHubGrpcWorker {
     }
   }
 
-  private async _trackWorkItem(workPromise: Promise<void>): Promise<void> {
+  private _dispatchWorkItem(workItem: pb.WorkItem, stub: stubs.TaskHubSidecarServiceClient): void {
+    if (workItem.hasOrchestratorrequest()) {
+      this.logger.info(
+        `Received "Orchestrator Request" work item with instance id '${workItem
+          ?.getOrchestratorrequest()
+          ?.getInstanceid()}'`,
+      );
+      this._trackWorkItem(
+        this._executeOrchestrator(workItem.getOrchestratorrequest() as any, stub),
+        stub,
+      );
+    } else if (workItem.hasActivityrequest()) {
+      this.logger.info(`Received "Activity Request" work item`);
+      this._trackWorkItem(
+        this._executeActivity(workItem.getActivityrequest() as any, stub),
+        stub,
+      );
+    } else {
+      this.logger.warn(`Received unknown work item`);
+    }
+  }
+
+  private _trackWorkItem(workPromise: Promise<void>, stub: stubs.TaskHubSidecarServiceClient): void {
     this._activeWorkItems++;
-    try {
-      await workPromise;
-    } finally {
-      this._activeWorkItems--;
+    workPromise
+      .catch((err) => {
+        this.logger.error("Unhandled error in work item execution:", err);
+      })
+      .finally(() => {
+        this._activeWorkItems--;
+        this._drainQueue(stub);
+      });
+  }
+
+  private _drainQueue(stub: stubs.TaskHubSidecarServiceClient): void {
+    while (this._workItemQueue.length > 0 && this._activeWorkItems < this._maxConcurrentWorkItems) {
+      const queued = this._workItemQueue.shift()!;
+      this._dispatchWorkItem(queued.workItem, queued.stub);
     }
   }
 
@@ -245,6 +272,23 @@ export class TaskHubGrpcWorker {
 
     this._responseStream?.cancel();
     this._responseStream?.destroy();
+
+    // Wait for in-flight work items to drain before closing the stub
+    const drainTimeoutMs = 30000;
+    const drainPollIntervalMs = 100;
+    const drainStart = Date.now();
+    while (this._activeWorkItems > 0 && Date.now() - drainStart < drainTimeoutMs) {
+      this.logger.info(
+        `Waiting for ${this._activeWorkItems} active work item(s) to complete before shutdown...`,
+      );
+      await sleep(drainPollIntervalMs);
+    }
+
+    if (this._activeWorkItems > 0) {
+      this.logger.warn(
+        `Shutdown timeout reached with ${this._activeWorkItems} work item(s) still active. Proceeding with shutdown.`,
+      );
+    }
 
     this._stub?.close();
 
