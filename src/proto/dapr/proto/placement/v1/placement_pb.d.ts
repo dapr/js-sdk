@@ -14,6 +14,8 @@ export class PlacementOrder extends jspb.Message {
     setTables(value?: PlacementTables): PlacementOrder;
     getOperation(): string;
     setOperation(value: string): PlacementOrder;
+    getVersion(): number;
+    setVersion(value: number): PlacementOrder;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): PlacementOrder.AsObject;
@@ -29,6 +31,7 @@ export namespace PlacementOrder {
     export type AsObject = {
         tables?: PlacementTables.AsObject,
         operation: string,
+        version: number,
     }
 }
 
@@ -117,6 +120,13 @@ export class Host extends jspb.Message {
     setApiLevel(value: number): Host;
     getNamespace(): string;
     setNamespace(value: string): Host;
+    getOperation(): HostOperation;
+    setOperation(value: HostOperation): Host;
+
+    hasVersion(): boolean;
+    clearVersion(): void;
+    getVersion(): number | undefined;
+    setVersion(value: number): Host;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Host.AsObject;
@@ -138,5 +148,15 @@ export namespace Host {
         pod: string,
         apiLevel: number,
         namespace: string,
+        operation: HostOperation,
+        version?: number,
     }
+}
+
+export enum HostOperation {
+    UNKNOWN = 0,
+    REPORT = 1,
+    LOCK = 2,
+    UPDATE = 3,
+    UNLOCK = 4,
 }

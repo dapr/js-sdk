@@ -13,15 +13,16 @@
 
 var jspb = require('google-protobuf');
 var goog = jspb;
-var global =
-    (typeof globalThis !== 'undefined' && globalThis) ||
-    (typeof window !== 'undefined' && window) ||
-    (typeof global !== 'undefined' && global) ||
-    (typeof self !== 'undefined' && self) ||
-    (function () { return this; }).call(null) ||
-    Function('return this')();
+var global = (function() {
+  if (this) { return this; }
+  if (typeof window !== 'undefined') { return window; }
+  if (typeof global !== 'undefined') { return global; }
+  if (typeof self !== 'undefined') { return self; }
+  return Function('return this')();
+}.call(null));
 
 goog.exportSymbol('proto.dapr.proto.placement.v1.Host', null, global);
+goog.exportSymbol('proto.dapr.proto.placement.v1.HostOperation', null, global);
 goog.exportSymbol('proto.dapr.proto.placement.v1.PlacementOrder', null, global);
 goog.exportSymbol('proto.dapr.proto.placement.v1.PlacementTable', null, global);
 goog.exportSymbol('proto.dapr.proto.placement.v1.PlacementTables', null, global);
@@ -142,7 +143,8 @@ proto.dapr.proto.placement.v1.PlacementOrder.prototype.toObject = function(opt_i
 proto.dapr.proto.placement.v1.PlacementOrder.toObject = function(includeInstance, msg) {
   var f, obj = {
     tables: (f = msg.getTables()) && proto.dapr.proto.placement.v1.PlacementTables.toObject(includeInstance, f),
-    operation: jspb.Message.getFieldWithDefault(msg, 2, "")
+    operation: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    version: jspb.Message.getFieldWithDefault(msg, 3, 0)
   };
 
   if (includeInstance) {
@@ -188,6 +190,10 @@ proto.dapr.proto.placement.v1.PlacementOrder.deserializeBinaryFromReader = funct
       var value = /** @type {string} */ (reader.readString());
       msg.setOperation(value);
       break;
+    case 3:
+      var value = /** @type {number} */ (reader.readUint64());
+      msg.setVersion(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -229,6 +235,13 @@ proto.dapr.proto.placement.v1.PlacementOrder.serializeBinaryToWriter = function(
   if (f.length > 0) {
     writer.writeString(
       2,
+      f
+    );
+  }
+  f = message.getVersion();
+  if (f !== 0) {
+    writer.writeUint64(
+      3,
       f
     );
   }
@@ -287,6 +300,24 @@ proto.dapr.proto.placement.v1.PlacementOrder.prototype.getOperation = function()
  */
 proto.dapr.proto.placement.v1.PlacementOrder.prototype.setOperation = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional uint64 version = 3;
+ * @return {number}
+ */
+proto.dapr.proto.placement.v1.PlacementOrder.prototype.getVersion = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.dapr.proto.placement.v1.PlacementOrder} returns this
+ */
+proto.dapr.proto.placement.v1.PlacementOrder.prototype.setVersion = function(value) {
+  return jspb.Message.setProto3IntField(this, 3, value);
 };
 
 
@@ -456,8 +487,7 @@ proto.dapr.proto.placement.v1.PlacementTables.prototype.getEntriesMap = function
  */
 proto.dapr.proto.placement.v1.PlacementTables.prototype.clearEntriesMap = function() {
   this.getEntriesMap().clear();
-  return this;
-};
+  return this;};
 
 
 /**
@@ -688,8 +718,7 @@ proto.dapr.proto.placement.v1.PlacementTable.prototype.getHostsMap = function(op
  */
 proto.dapr.proto.placement.v1.PlacementTable.prototype.clearHostsMap = function() {
   this.getHostsMap().clear();
-  return this;
-};
+  return this;};
 
 
 /**
@@ -748,8 +777,7 @@ proto.dapr.proto.placement.v1.PlacementTable.prototype.getLoadMapMap = function(
  */
 proto.dapr.proto.placement.v1.PlacementTable.prototype.clearLoadMapMap = function() {
   this.getLoadMapMap().clear();
-  return this;
-};
+  return this;};
 
 
 /**
@@ -816,7 +844,9 @@ proto.dapr.proto.placement.v1.Host.toObject = function(includeInstance, msg) {
     id: jspb.Message.getFieldWithDefault(msg, 5, ""),
     pod: jspb.Message.getFieldWithDefault(msg, 6, ""),
     apiLevel: jspb.Message.getFieldWithDefault(msg, 7, 0),
-    namespace: jspb.Message.getFieldWithDefault(msg, 8, "")
+    namespace: jspb.Message.getFieldWithDefault(msg, 8, ""),
+    operation: jspb.Message.getFieldWithDefault(msg, 9, 0),
+    version: jspb.Message.getFieldWithDefault(msg, 10, 0)
   };
 
   if (includeInstance) {
@@ -884,6 +914,14 @@ proto.dapr.proto.placement.v1.Host.deserializeBinaryFromReader = function(msg, r
     case 8:
       var value = /** @type {string} */ (reader.readString());
       msg.setNamespace(value);
+      break;
+    case 9:
+      var value = /** @type {!proto.dapr.proto.placement.v1.HostOperation} */ (reader.readEnum());
+      msg.setOperation(value);
+      break;
+    case 10:
+      var value = /** @type {number} */ (reader.readUint64());
+      msg.setVersion(value);
       break;
     default:
       reader.skipField();
@@ -967,6 +1005,20 @@ proto.dapr.proto.placement.v1.Host.serializeBinaryToWriter = function(message, w
   if (f.length > 0) {
     writer.writeString(
       8,
+      f
+    );
+  }
+  f = message.getOperation();
+  if (f !== 0.0) {
+    writer.writeEnum(
+      9,
+      f
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 10));
+  if (f != null) {
+    writer.writeUint64(
+      10,
       f
     );
   }
@@ -1135,5 +1187,70 @@ proto.dapr.proto.placement.v1.Host.prototype.setNamespace = function(value) {
   return jspb.Message.setProto3StringField(this, 8, value);
 };
 
+
+/**
+ * optional HostOperation operation = 9;
+ * @return {!proto.dapr.proto.placement.v1.HostOperation}
+ */
+proto.dapr.proto.placement.v1.Host.prototype.getOperation = function() {
+  return /** @type {!proto.dapr.proto.placement.v1.HostOperation} */ (jspb.Message.getFieldWithDefault(this, 9, 0));
+};
+
+
+/**
+ * @param {!proto.dapr.proto.placement.v1.HostOperation} value
+ * @return {!proto.dapr.proto.placement.v1.Host} returns this
+ */
+proto.dapr.proto.placement.v1.Host.prototype.setOperation = function(value) {
+  return jspb.Message.setProto3EnumField(this, 9, value);
+};
+
+
+/**
+ * optional uint64 version = 10;
+ * @return {number}
+ */
+proto.dapr.proto.placement.v1.Host.prototype.getVersion = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 10, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.dapr.proto.placement.v1.Host} returns this
+ */
+proto.dapr.proto.placement.v1.Host.prototype.setVersion = function(value) {
+  return jspb.Message.setField(this, 10, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.dapr.proto.placement.v1.Host} returns this
+ */
+proto.dapr.proto.placement.v1.Host.prototype.clearVersion = function() {
+  return jspb.Message.setField(this, 10, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.placement.v1.Host.prototype.hasVersion = function() {
+  return jspb.Message.getField(this, 10) != null;
+};
+
+
+/**
+ * @enum {number}
+ */
+proto.dapr.proto.placement.v1.HostOperation = {
+  UNKNOWN: 0,
+  REPORT: 1,
+  LOCK: 2,
+  UPDATE: 3,
+  UNLOCK: 4
+};
 
 goog.object.extend(exports, proto.dapr.proto.placement.v1);

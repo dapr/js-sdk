@@ -17,6 +17,7 @@
 var grpc = require('@grpc/grpc-js');
 var dapr_proto_sentry_v1_sentry_pb = require('../../../../dapr/proto/sentry/v1/sentry_pb.js');
 var google_protobuf_timestamp_pb = require('google-protobuf/google/protobuf/timestamp_pb.js');
+var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 
 function serialize_dapr_proto_sentry_v1_SignCertificateRequest(arg) {
   if (!(arg instanceof dapr_proto_sentry_v1_sentry_pb.SignCertificateRequest)) {
@@ -59,4 +60,4 @@ signCertificate: {
   },
 };
 
-exports.CAClient = grpc.makeGenericClientConstructor(CAService);
+exports.CAClient = grpc.makeGenericClientConstructor(CAService, 'CA');
