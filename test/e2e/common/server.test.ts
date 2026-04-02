@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import { CommunicationProtocolEnum, DaprServer, DaprPubSubStatusEnum } from "../../../src";
-
+import * as NodeJSUtil from "../../../src/utils/NodeJS.util";
 const serverHost = "127.0.0.1";
 const serverGrpcPort = "50001";
 const serverHttpPort = "3501";
@@ -137,9 +137,14 @@ describe("common/server", () => {
     });
 
     await setupPubSubSubscriptions();
+    // Sleep to make the tests less flaky.
+    // TODO: https://github.com/dapr/js-sdk/issues/560
+    await NodeJSUtil.sleep(2000);
 
     await httpServer.start();
     await grpcServer.start();
+    // Sleep for 2 seconds to get servers ready
+    await NodeJSUtil.sleep(2000);
   });
 
   beforeEach(() => {
