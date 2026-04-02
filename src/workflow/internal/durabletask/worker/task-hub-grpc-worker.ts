@@ -228,20 +228,18 @@ export class TaskHubGrpcWorker {
       );
       this._trackWorkItem(
         this._executeOrchestrator(workItem.getOrchestratorrequest() as any, stub),
-        stub,
       );
     } else if (workItem.hasActivityrequest()) {
       this.logger.info(`Received "Activity Request" work item`);
       this._trackWorkItem(
         this._executeActivity(workItem.getActivityrequest() as any, stub),
-        stub,
       );
     } else {
       this.logger.warn(`Received unknown work item`);
     }
   }
 
-  private _trackWorkItem(workPromise: Promise<void>, stub: stubs.TaskHubSidecarServiceClient): void {
+  private _trackWorkItem(workPromise: Promise<void>): void {
     this._activeWorkItems++;
     workPromise
       .catch((err) => {
@@ -249,14 +247,16 @@ export class TaskHubGrpcWorker {
       })
       .finally(() => {
         this._activeWorkItems--;
-        this._drainQueue(stub);
+        this._drainQueue();
       });
   }
 
-  private _drainQueue(stub: stubs.TaskHubSidecarServiceClient): void {
+  private _drainQueue(): void {
     while (this._workItemQueue.length > 0 && this._activeWorkItems < this._maxConcurrentWorkItems) {
-      const queued = this._workItemQueue.shift()!;
-      this._dispatchWorkItem(queued.workItem, queued.stub);
+      const queued = this._workItemQueue.shift();
+      if (queued) {
+        this._dispatchWorkItem(queued.workItem, queued.stub);
+      }
     }
   }
 

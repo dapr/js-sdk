@@ -34,14 +34,13 @@ describe("TaskHubGrpcWorker", () => {
     it("should increment and decrement activeWorkItems on success", async () => {
       const worker = new TaskHubGrpcWorker();
       const w = worker as any;
-      const stub = createMockStub();
       expect(w._activeWorkItems).toBe(0);
 
       const resolvePromise = new Promise<void>((resolve) => {
         setTimeout(resolve, 10);
       });
 
-      w._trackWorkItem(resolvePromise, stub);
+      w._trackWorkItem(resolvePromise);
       expect(w._activeWorkItems).toBe(1);
 
       await new Promise((resolve) => setTimeout(resolve, 50));
@@ -51,7 +50,6 @@ describe("TaskHubGrpcWorker", () => {
     it("should decrement activeWorkItems even when work item rejects", async () => {
       const worker = new TaskHubGrpcWorker();
       const w = worker as any;
-      const stub = createMockStub();
 
       expect(w._activeWorkItems).toBe(0);
 
@@ -59,7 +57,7 @@ describe("TaskHubGrpcWorker", () => {
         setTimeout(() => reject(new Error("test error")), 10);
       });
 
-      w._trackWorkItem(rejectPromise, stub);
+      w._trackWorkItem(rejectPromise);
       expect(w._activeWorkItems).toBe(1);
 
       await new Promise((resolve) => setTimeout(resolve, 50));
@@ -69,11 +67,10 @@ describe("TaskHubGrpcWorker", () => {
     it("should not cause unhandled promise rejection on failure", async () => {
       const worker = new TaskHubGrpcWorker();
       const w = worker as any;
-      const stub = createMockStub();
 
       const rejectPromise = Promise.reject(new Error("should be caught"));
 
-      w._trackWorkItem(rejectPromise, stub);
+      w._trackWorkItem(rejectPromise);
 
       await new Promise((resolve) => setTimeout(resolve, 50));
       expect(w._activeWorkItems).toBe(0);
@@ -82,22 +79,21 @@ describe("TaskHubGrpcWorker", () => {
     it("should track multiple concurrent work items", async () => {
       const worker = new TaskHubGrpcWorker();
       const w = worker as any;
-      const stub = createMockStub();
 
-      let resolve1: () => void;
-      let resolve2: () => void;
+      let resolve1: () => void = jest.fn();
+      let resolve2: () => void = jest.fn();
       const p1 = new Promise<void>((r) => { resolve1 = r; });
       const p2 = new Promise<void>((r) => { resolve2 = r; });
 
-      w._trackWorkItem(p1, stub);
-      w._trackWorkItem(p2, stub);
+      w._trackWorkItem(p1);
+      w._trackWorkItem(p2);
       expect(w._activeWorkItems).toBe(2);
 
-      resolve1!();
+      resolve1();
       await new Promise((resolve) => setTimeout(resolve, 10));
       expect(w._activeWorkItems).toBe(1);
 
-      resolve2!();
+      resolve2();
       await new Promise((resolve) => setTimeout(resolve, 10));
       expect(w._activeWorkItems).toBe(0);
     });
@@ -110,10 +106,10 @@ describe("TaskHubGrpcWorker", () => {
       // Fill up to max concurrent
       w._maxConcurrentWorkItems = 1;
 
-      let resolve1: () => void;
+      let resolve1: () => void = jest.fn();
       const p1 = new Promise<void>((r) => { resolve1 = r; });
 
-      w._trackWorkItem(p1, stub);
+      w._trackWorkItem(p1);
       expect(w._activeWorkItems).toBe(1);
 
       // Queue a work item (simulating what the data handler does)
@@ -124,7 +120,7 @@ describe("TaskHubGrpcWorker", () => {
       // Complete the first work item — _drainQueue should fire
       // but _dispatchWorkItem will fail since there's no real orchestrator registered.
       // The error will be caught by _trackWorkItem's .catch(), so the count should still decrement.
-      resolve1!();
+      resolve1();
       await new Promise((resolve) => setTimeout(resolve, 50));
 
       // Queue should have been drained (item was dequeued and dispatched)
@@ -169,7 +165,6 @@ describe("TaskHubGrpcWorker", () => {
       expect(w._workItemQueue.length).toBe(w._maxQueueSize);
 
       // Next item should be dropped
-      const overflow = createMockOrchestratorWorkItem("overflow");
       let dropped = false;
       if (w._workItemQueue.length >= w._maxQueueSize) {
         dropped = true;
@@ -195,7 +190,7 @@ describe("TaskHubGrpcWorker", () => {
       expect(w._workItemQueue.length).toBe(3);
 
       // Trigger drain — should dispatch up to _maxConcurrentWorkItems
-      w._drainQueue(stub);
+      w._drainQueue();
 
       // 2 should be dispatched (max concurrent), 1 should remain queued
       expect(w._activeWorkItems).toBe(2);
@@ -212,16 +207,15 @@ describe("TaskHubGrpcWorker", () => {
     it("should wait for active work items to drain before closing stub", async () => {
       const worker = new TaskHubGrpcWorker();
       const w = worker as any;
-      const stub = createMockStub();
 
       w._isRunning = true;
       w._stopWorker = false;
 
       const callOrder: string[] = [];
-      let resolveWork: () => void;
+      let resolveWork: () => void = jest.fn();
       const workPromise = new Promise<void>((r) => { resolveWork = r; });
 
-      w._trackWorkItem(workPromise, stub);
+      w._trackWorkItem(workPromise);
       expect(w._activeWorkItems).toBe(1);
 
       w._stub = {
@@ -241,7 +235,7 @@ describe("TaskHubGrpcWorker", () => {
       expect(w._activeWorkItems).toBe(1);
 
       // Complete the work item
-      resolveWork!();
+      resolveWork();
       await new Promise((resolve) => setTimeout(resolve, 200));
 
       await stopPromise;
