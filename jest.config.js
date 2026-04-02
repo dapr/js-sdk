@@ -17,6 +17,6 @@ module.exports = {
   collectCoverage: true,
   coverageReporters: ["lcov"],
   moduleNameMapper: {
-    "^node-fetch$": "<rootDir>/test/__mocks__/node-fetch.js",
+    "^node-fetch$": "<rootDir>/__mocks__/node-fetch.js",
   },
 };
