@@ -88,13 +88,22 @@ export default class HTTPServerActor implements IServerActor {
 
   private async handlerDeactivate(req: IRequest, res: IResponse): Promise<IResponse> {
     const { actorTypeName, actorId } = req.params;
-    const result = await ActorRuntime.getInstance(this.client.daprClient).deactivate(actorTypeName, actorId);
+    const normalizedActorTypeName = Array.isArray(actorTypeName) ? actorTypeName[0] : actorTypeName;
+    const normalizedActorId = Array.isArray(actorId) ? actorId[0] : actorId;
+
+    const result = await ActorRuntime.getInstance(this.client.daprClient).deactivate(
+      normalizedActorTypeName,
+      normalizedActorId,
+    );
     res.statusCode = HttpStatusCode.OK;
     return this.handleResult(res, result);
   }
 
   private async handlerMethod(req: IRequest, res: IResponse): Promise<IResponse> {
     const { actorTypeName, actorId, methodName } = req.params;
+    const normalizedActorTypeName = Array.isArray(actorTypeName) ? actorTypeName[0] : actorTypeName;
+    const normalizedActorId = Array.isArray(actorId) ? actorId[0] : actorId;
+    const normalizedMethodName = Array.isArray(methodName) ? methodName[0] : methodName;
     const body = req.body;
 
     // @todo: reentrancy id? (https://github.com/dapr/python-sdk/blob/master/ext/flask_dapr/flask_dapr/actor.py#L91)
@@ -102,9 +111,9 @@ export default class HTTPServerActor implements IServerActor {
     const dataSerialized = this.serializer.serialize(body);
     try {
       const result = await ActorRuntime.getInstance(this.client.daprClient).invoke(
-        actorTypeName,
-        actorId,
-        methodName,
+        normalizedActorTypeName,
+        normalizedActorId,
+        normalizedMethodName,
         dataSerialized,
       );
       res.statusCode = HttpStatusCode.OK;
@@ -119,13 +128,16 @@ export default class HTTPServerActor implements IServerActor {
 
   private async handlerTimer(req: IRequest, res: IResponse): Promise<IResponse> {
     const { actorTypeName, actorId, timerName } = req.params;
+    const normalizedActorTypeName = Array.isArray(actorTypeName) ? actorTypeName[0] : actorTypeName;
+    const normalizedActorId = Array.isArray(actorId) ? actorId[0] : actorId;
+    const normalizedTimerName = Array.isArray(timerName) ? timerName[0] : timerName;
     const body = req.body;
 
     const dataSerialized = this.serializer.serialize(body);
     const result = await ActorRuntime.getInstance(this.client.daprClient).fireTimer(
-      actorTypeName,
-      actorId,
-      timerName,
+      normalizedActorTypeName,
+      normalizedActorId,
+      normalizedTimerName,
       dataSerialized,
     );
     return res.status(200).send(result);
@@ -133,13 +145,16 @@ export default class HTTPServerActor implements IServerActor {
 
   private async handlerReminder(req: IRequest, res: IResponse): Promise<IResponse> {
     const { actorTypeName, actorId, reminderName } = req.params;
+    const normalizedActorTypeName = Array.isArray(actorTypeName) ? actorTypeName[0] : actorTypeName;
+    const normalizedActorId = Array.isArray(actorId) ? actorId[0] : actorId;
+    const normalizedReminderName = Array.isArray(reminderName) ? reminderName[0] : reminderName;
     const body = req.body;
 
     const dataSerialized = this.serializer.serialize(body);
     const result = await ActorRuntime.getInstance(this.client.daprClient).fireReminder(
-      actorTypeName,
-      actorId,
-      reminderName,
+      normalizedActorTypeName,
+      normalizedActorId,
+      normalizedReminderName,
       dataSerialized,
     );
     return res.status(200).send(result);

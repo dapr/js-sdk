@@ -75,7 +75,7 @@ export default class GRPCClientInvoker implements IClientInvoker {
         try {
           const parsedResData = JSON.parse(resData);
           return resolve(parsedResData);
-        } catch (e) {
+        } catch {
           throw new Error(
             JSON.stringify({
               error: "COULD_NOT_PARSE_RESULT",

@@ -11,12 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-module.exports = {
-  preset: "ts-jest",
-  testEnvironment: "node",
-  collectCoverage: true,
-  coverageReporters: ["lcov"],
-  moduleNameMapper: {
-    "^node-fetch$": "<rootDir>/__mocks__/node-fetch.js",
-  },
-};
+const fetch = () => Promise.resolve();
+module.exports = fetch;
+module.exports.default = fetch;
+module.exports.Headers = class Headers {};
+module.exports.Request = class Request {};
+module.exports.Response = class Response {};
+module.exports.RequestInit = {};

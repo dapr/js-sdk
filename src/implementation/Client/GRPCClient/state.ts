@@ -124,7 +124,7 @@ export default class GRPCClientState implements IClientState {
         try {
           const json = JSON.parse(resData);
           return resolve(json);
-        } catch (e) {
+        } catch {
           return resolve(resData);
         }
       });
@@ -157,7 +157,7 @@ export default class GRPCClientState implements IClientState {
             let data: string;
             try {
               data = JSON.parse(resDataStr);
-            } catch (e) {
+            } catch {
               data = resDataStr;
             }
             return {

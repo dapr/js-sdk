@@ -36,7 +36,7 @@ export default class GRPCClientHealth implements IClientHealth {
 
           return resolve(true);
         });
-      } catch (e) {
+      } catch {
         return resolve(false);
       }
     });

@@ -64,7 +64,7 @@ export default class HTTPServerImpl {
       try {
         // This can be JSON, so try to parse it.
         return JSON.parse(parsedBase64);
-      } catch (_e) {
+      } catch {
         // If it's not JSON, use the string as-is.
         return parsedBase64;
       }
@@ -139,7 +139,7 @@ export default class HTTPServerImpl {
           // This can be JSON, so try to parse it.
           parsedData = JSON.parse(data);
           data = parsedData;
-        } catch (_e) {
+        } catch {
           // If it's not JSON, use the string as-is.
           // Skip and continue with the same data
         }
