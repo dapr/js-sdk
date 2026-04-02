@@ -21,7 +21,7 @@ function tryParseJson(data: any): object | string {
 
   try {
     return JSON.parse(data);
-  } catch (e) {
+  } catch {
     return data;
   }
 }

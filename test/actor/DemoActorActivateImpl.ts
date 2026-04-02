@@ -25,7 +25,7 @@ export default class DemoActorActivateImpl extends AbstractActor implements Demo
       const callCountActivated = (await this.getStateManager().getState("call_count_activated")) as number;
       await this.getStateManager().setState("is_activated", true);
       await this.getStateManager().setState("call_count_activated", callCountActivated + 1);
-    } catch (e) {
+    } catch {
       await this.getStateManager().setState("is_activated", true);
       await this.getStateManager().setState("call_count_activated", 1);
     }
@@ -53,7 +53,7 @@ export default class DemoActorActivateImpl extends AbstractActor implements Demo
       const callCountDeactivated = (await this.getStateManager().getState("call_count_deactivated")) as number;
       await this.getStateManager().setState("is_deactivated", true);
       await this.getStateManager().setState("call_count_deactivated", callCountDeactivated + 1);
-    } catch (e) {
+    } catch {
       await this.getStateManager().setState("is_deactivated", true);
       await this.getStateManager().setState("call_count_deactivated", 1);
     }

@@ -19,7 +19,7 @@ export default class BufferSerializer {
     // this way manager.invoke has string | object
     try {
       deserializedBody = JSON.parse(deserializedBody);
-    } catch (e) {
+    } catch {
       // Do nothing
     }
 

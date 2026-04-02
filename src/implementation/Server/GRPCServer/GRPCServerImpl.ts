@@ -184,7 +184,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
     try {
       dataParsed = JSON.parse(data);
-    } catch (e) {
+    } catch {
       dataParsed = data;
     }
 

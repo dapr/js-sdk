@@ -29,7 +29,7 @@ export class HttpEndpoint extends Endpoint {
       // Remove brackets if it's a IPv6 addresses
       const hostPart = parsedUrl.hostname.includes("[") ? `[${this._hostname}]` : this._hostname;
       this._endpoint = `${this._scheme}://${hostPart}:${this._port}`;
-    } catch (error) {
+    } catch {
       throw new Error(`Invalid address: ${url}`);
     }
   }

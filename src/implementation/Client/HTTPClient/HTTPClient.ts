@@ -186,7 +186,7 @@ export default class HTTPClient implements IClient {
 
     try {
       txtParsed = JSON.parse(txt);
-    } catch (e) {
+    } catch {
       txtParsed = txt;
     }
 

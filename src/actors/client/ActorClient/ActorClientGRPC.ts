@@ -68,7 +68,7 @@ export default class ActorClientGRPC implements IClientActor {
 
         try {
           return resolve(JSON.parse(resData));
-        } catch (e) {
+        } catch {
           return resolve(resData as any);
         }
       });
@@ -129,7 +129,7 @@ export default class ActorClientGRPC implements IClientActor {
         try {
           const json = JSON.parse(resData);
           return resolve(json);
-        } catch (e) {
+        } catch {
           return resolve(resData);
         }
       });

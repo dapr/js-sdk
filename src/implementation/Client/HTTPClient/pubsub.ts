@@ -106,7 +106,7 @@ export default class HTTPClientPubSub implements IClientPubSub {
         const bulkPublishResponse = JSON.parse(err.error_msg);
         return getBulkPublishResponse({ entries: entries, response: bulkPublishResponse });
       }
-    } catch (_innerError: any) {
+    } catch {
       // This can indicate a general error with the request (e.g., network error, invalid pubsub name, etc.).
     }
 
