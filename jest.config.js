@@ -16,4 +16,5 @@ module.exports = {
   testEnvironment: "node",
   collectCoverage: true,
   coverageReporters: ["lcov"],
+  transformIgnorePatterns: ["node_modules/(?!(node-fetch)/)"],
 };
