@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import { CommunicationProtocolEnum, DaprServer, HttpMethod, LogLevel } from "../../../src";
-
+import * as net from "net";
 const serverHost = "127.0.0.1";
 const serverPort = "50001";
 const daprHost = "127.0.0.1";
@@ -48,8 +48,27 @@ describe("grpc/server", () => {
     // Start server
     await server.start();
 
-    await new Promise((resolve, _reject) => setTimeout(resolve, 2500));
-  }, 10 * 1000);
+    // Poll until port 50001 is accepting connections, up to 30 seconds
+    await new Promise<void>((resolve, reject) => {
+      const start = Date.now();
+      const check = () => {
+        const socket = net.connect(50001, "127.0.0.1", () => {
+          socket.destroy();
+          resolve();
+        });
+        socket.on("error", () => {
+          socket.destroy();
+          if (Date.now() - start > 30000) {
+            reject(new Error("gRPC server on 50001 did not start within 30s"));
+          } else {
+            setTimeout(check, 500);
+          }
+        });
+      };
+      check();
+    });
+
+  }, 35 * 1000);
 
   beforeEach(() => {
     mockBindingReceive.mockClear();
