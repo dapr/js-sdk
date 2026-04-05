@@ -50,8 +50,16 @@ import {
   ConversationMessageContent,
 } from "./types/conversation/ConversationMessage.type";
 import { ConversationOptions, ConversationTool } from "./types/conversation/ConversationOptions.type";
-import { ConversationResponse, ConversationTokenUsage, ConversationOutput, ConversationOutputChoice } from "./types/conversation/ConversationResponse.type";
-import { ConversationToolCall } from "./types/conversation/ConversationMessage.type";
+import {
+  ConversationResponse,
+  ConversationResult,
+  ConversationResultUsage,
+  ConversationResultChoice,
+  ConversationResultMessage,
+  ConversationResultCompletionTokensDetails,
+  ConversationResultPromptTokensDetails,
+} from "./types/conversation/ConversationResponse.type";
+import { ConversationToolCall, ConversationToolCallOfFunction } from "./types/conversation/ConversationMessage.type";
 
 import DaprWorkflowClient from "./workflow/client/DaprWorkflowClient";
 import WorkflowActivityContext from "./workflow/runtime/WorkflowActivityContext";
@@ -113,9 +121,13 @@ export {
   ConversationMessageContent,
   ConversationOptions,
   ConversationResponse,
-  ConversationTokenUsage,
-  ConversationOutput,
-  ConversationOutputChoice,
+  ConversationResult,
+  ConversationResultUsage,
+  ConversationResultChoice,
+  ConversationResultMessage,
+  ConversationResultCompletionTokensDetails,
+  ConversationResultPromptTokensDetails,
   ConversationTool,
   ConversationToolCall,
+  ConversationToolCallOfFunction,
 };

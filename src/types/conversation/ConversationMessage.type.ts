@@ -12,12 +12,15 @@ limitations under the License.
 */
 
 // ConversationToolCall is the tool call request sent by the LLM for the client to execute
+export type ConversationToolCallOfFunction = {
+  name: string;
+  arguments: string;
+};
+
 export type ConversationToolCall = {
-  id: string;
-  function: {
-    name: string;
-    arguments: string;
-  };
+  id?: string;
+  function?: ConversationToolCallOfFunction;
+  // Future: custom tool call types will be added here
 };
 
 // each message type encodes the sender role via its field name

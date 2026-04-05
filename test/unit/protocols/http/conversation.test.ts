@@ -34,17 +34,27 @@ describe("conversation - HTTP", () => {
   });
 
   it("should return parsed outputs from the response", async () => {
-    const mockOutputs = [{ choices: [{ index: 0, finishReason: "stop", message: { of_assistant: { content: [{ text: "Hi!" }] } } }] }];
     jest.spyOn(client, "executeWithApiVersion").mockResolvedValueOnce({
-      outputs: mockOutputs,
+      outputs: [
+        {
+          choices: [
+            {
+              index: 0,
+              finish_reason: "stop",
+              message: { content: "Hi!", tool_calls: [] },
+            },
+          ],
+        },
+      ],
     });
 
     const result = await conversation.converse("my-llm", [userInput]);
 
-    expect(result.outputs).toEqual(mockOutputs);
+    expect(result.outputs).toHaveLength(1);
+    expect(result.outputs?.[0].choices).toHaveLength(1);
+    expect(result.outputs?.[0].choices?.[0].finishReason).toBe("stop");
+    expect(result.outputs?.[0].choices?.[0].message?.content).toBe("Hi!");
     expect(result.contextId).toBeUndefined();
-    expect(result.model).toBeUndefined();
-    expect(result.usage).toBeUndefined();
   });
 
   it("should include response_format in request body when provided", async () => {
@@ -73,23 +83,78 @@ describe("conversation - HTTP", () => {
     );
   });
 
-  it("should parse model from response", async () => {
-    jest.spyOn(client, "executeWithApiVersion").mockResolvedValueOnce({ outputs: [], model: "gpt-4o" });
-
-    const result = await conversation.converse("my-llm", [userInput]);
-
-    expect(result.model).toBe("gpt-4o");
-  });
-
-  it("should parse usage from response", async () => {
+  it("should parse model from response output", async () => {
     jest.spyOn(client, "executeWithApiVersion").mockResolvedValueOnce({
-      outputs: [],
-      usage: { input_tokens: 10, output_tokens: 20, total_tokens: 30 },
+      outputs: [{ choices: [], model: "gpt-4o" }],
     });
 
     const result = await conversation.converse("my-llm", [userInput]);
 
-    expect(result.usage).toEqual({ inputTokens: 10, outputTokens: 20, totalTokens: 30 });
+    expect(result.outputs?.[0].model).toBe("gpt-4o");
+  });
+
+  it("should parse usage from response output", async () => {
+    jest.spyOn(client, "executeWithApiVersion").mockResolvedValueOnce({
+      outputs: [
+        {
+          choices: [],
+          usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 },
+        },
+      ],
+    });
+
+    const result = await conversation.converse("my-llm", [userInput]);
+
+    expect(result.outputs?.[0].usage).toEqual({
+      promptTokens: 10,
+      completionTokens: 20,
+      totalTokens: 30,
+      completionTokensDetails: undefined,
+      promptTokensDetails: undefined,
+    });
+  });
+
+  it("should parse usage details from response output", async () => {
+    jest.spyOn(client, "executeWithApiVersion").mockResolvedValueOnce({
+      outputs: [
+        {
+          choices: [],
+          usage: {
+            prompt_tokens: 100,
+            completion_tokens: 50,
+            total_tokens: 150,
+            prompt_tokens_details: {
+              audio_tokens: 5,
+              cached_tokens: 20,
+            },
+            completion_tokens_details: {
+              accepted_prediction_tokens: 10,
+              audio_tokens: 3,
+              reasoning_tokens: 15,
+              rejected_prediction_tokens: 2,
+            },
+          },
+        },
+      ],
+    });
+
+    const result = await conversation.converse("my-llm", [userInput]);
+
+    expect(result.outputs?.[0].usage).toEqual({
+      promptTokens: 100,
+      completionTokens: 50,
+      totalTokens: 150,
+      promptTokensDetails: {
+        audioTokens: 5,
+        cachedTokens: 20,
+      },
+      completionTokensDetails: {
+        acceptedPredictionTokens: 10,
+        audioTokens: 3,
+        reasoningTokens: 15,
+        rejectedPredictionTokens: 2,
+      },
+    });
   });
 
   it("should map options fields to snake_case request body", async () => {
@@ -142,5 +207,31 @@ describe("conversation - HTTP", () => {
         }),
       }),
     );
+  });
+
+  it("should parse choice with message and tool_calls", async () => {
+    jest.spyOn(client, "executeWithApiVersion").mockResolvedValueOnce({
+      outputs: [
+        {
+          choices: [
+            {
+              index: 0,
+              finish_reason: "tool_calls",
+              message: {
+                content: "Let me check that for you.",
+                tool_calls: [{ id: "call_123", function: { name: "get_weather", arguments: '{"location":"NYC"}' } }],
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    const result = await conversation.converse("my-llm", [userInput]);
+
+    expect(result.outputs?.[0].choices?.[0].message?.content).toBe("Let me check that for you.");
+    expect(result.outputs?.[0].choices?.[0].message?.toolCalls).toHaveLength(1);
+    expect(result.outputs?.[0].choices?.[0].message?.toolCalls?.[0].id).toBe("call_123");
+    expect(result.outputs?.[0].choices?.[0].message?.toolCalls?.[0].function?.name).toBe("get_weather");
   });
 });

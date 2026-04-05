@@ -57,15 +57,40 @@ export default class HTTPClientConversation implements IClientConversation {
 
     return {
       contextId: result["context_id"],
-      outputs: result["outputs"] ?? [],
-      model: result["model"],
-      usage: result["usage"]
-        ? {
-            inputTokens: result["usage"]["input_tokens"],
-            outputTokens: result["usage"]["output_tokens"],
-            totalTokens: result["usage"]["total_tokens"],
-          }
-        : undefined,
+      outputs: (result["outputs"] ?? []).map((output: Record<string, any>) => ({
+        choices: (output["choices"] ?? []).map((choice: Record<string, any>) => ({
+          finishReason: choice["finish_reason"],
+          index: choice["index"],
+          message: choice["message"]
+            ? {
+                content: choice["message"]["content"],
+                toolCalls: choice["message"]["tool_calls"],
+              }
+            : undefined,
+        })),
+        model: output["model"],
+        usage: output["usage"]
+          ? {
+              completionTokens: output["usage"]["completion_tokens"],
+              promptTokens: output["usage"]["prompt_tokens"],
+              totalTokens: output["usage"]["total_tokens"],
+              completionTokensDetails: output["usage"]["completion_tokens_details"]
+                ? {
+                    acceptedPredictionTokens: output["usage"]["completion_tokens_details"]["accepted_prediction_tokens"],
+                    audioTokens: output["usage"]["completion_tokens_details"]["audio_tokens"],
+                    reasoningTokens: output["usage"]["completion_tokens_details"]["reasoning_tokens"],
+                    rejectedPredictionTokens: output["usage"]["completion_tokens_details"]["rejected_prediction_tokens"],
+                  }
+                : undefined,
+              promptTokensDetails: output["usage"]["prompt_tokens_details"]
+                ? {
+                    audioTokens: output["usage"]["prompt_tokens_details"]["audio_tokens"],
+                    cachedTokens: output["usage"]["prompt_tokens_details"]["cached_tokens"],
+                  }
+                : undefined,
+            }
+          : undefined,
+      })),
     };
   }
 }
