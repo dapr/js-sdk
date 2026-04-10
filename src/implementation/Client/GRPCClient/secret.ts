@@ -17,7 +17,7 @@ import {
   GetBulkSecretResponse,
   GetSecretRequest,
   GetSecretResponse,
-} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+} from "../../../proto/dapr/proto/runtime/v1/secret_pb";
 import IClientSecret from "../../../interfaces/Client/IClientSecret";
 
 // https://docs.dapr.io/reference/api/secrets_api/

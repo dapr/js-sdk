@@ -13,13 +13,13 @@
 
 var jspb = require('google-protobuf');
 var goog = jspb;
-var global =
-    (typeof globalThis !== 'undefined' && globalThis) ||
-    (typeof window !== 'undefined' && window) ||
-    (typeof global !== 'undefined' && global) ||
-    (typeof self !== 'undefined' && self) ||
-    (function () { return this; }).call(null) ||
-    Function('return this')();
+var global = (function() {
+  if (this) { return this; }
+  if (typeof window !== 'undefined') { return window; }
+  if (typeof global !== 'undefined') { return global; }
+  if (typeof self !== 'undefined') { return self; }
+  return Function('return this')();
+}.call(null));
 
 var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js');
 goog.object.extend(proto, google_protobuf_any_pb);
@@ -2099,8 +2099,7 @@ proto.dapr.proto.runtime.v1.TopicEventBulkRequestEntry.prototype.getMetadataMap 
  */
 proto.dapr.proto.runtime.v1.TopicEventBulkRequestEntry.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -2371,8 +2370,7 @@ proto.dapr.proto.runtime.v1.TopicEventBulkRequest.prototype.getMetadataMap = fun
  */
 proto.dapr.proto.runtime.v1.TopicEventBulkRequest.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 /**
@@ -2981,8 +2979,7 @@ proto.dapr.proto.runtime.v1.BindingEventRequest.prototype.getMetadataMap = funct
  */
 proto.dapr.proto.runtime.v1.BindingEventRequest.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 
@@ -3706,8 +3703,7 @@ proto.dapr.proto.runtime.v1.TopicSubscription.prototype.getMetadataMap = functio
  */
 proto.dapr.proto.runtime.v1.TopicSubscription.prototype.clearMetadataMap = function() {
   this.getMetadataMap().clear();
-  return this;
-};
+  return this;};
 
 
 /**
