@@ -19,7 +19,7 @@ import {
   SubscribeConfigurationResponse,
   UnsubscribeConfigurationRequest,
   UnsubscribeConfigurationResponse,
-} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+} from "../../../proto/dapr/proto/runtime/v1/configuration_pb";
 import IClientConfiguration from "../../../interfaces/Client/IClientConfiguration";
 import { KeyValueType } from "../../../types/KeyValue.type";
 import { GetConfigurationResponse as GetConfigurationResponseResult } from "../../../types/configuration/GetConfigurationResponse";

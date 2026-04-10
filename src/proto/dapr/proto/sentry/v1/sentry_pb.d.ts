@@ -6,6 +6,7 @@
 
 import * as jspb from "google-protobuf";
 import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/timestamp_pb";
+import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 
 export class SignCertificateRequest extends jspb.Message { 
     getId(): string;
@@ -22,6 +23,10 @@ export class SignCertificateRequest extends jspb.Message {
     setCertificateSigningRequest(value: Uint8Array | string): SignCertificateRequest;
     getTokenValidator(): SignCertificateRequest.TokenValidator;
     setTokenValidator(value: SignCertificateRequest.TokenValidator): SignCertificateRequest;
+    clearJwtAudiencesList(): void;
+    getJwtAudiencesList(): Array<string>;
+    setJwtAudiencesList(value: Array<string>): SignCertificateRequest;
+    addJwtAudiences(value: string, index?: number): string;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): SignCertificateRequest.AsObject;
@@ -41,6 +46,7 @@ export namespace SignCertificateRequest {
         namespace: string,
         certificateSigningRequest: Uint8Array | string,
         tokenValidator: SignCertificateRequest.TokenValidator,
+        jwtAudiencesList: Array<string>,
     }
 
     export enum TokenValidator {
@@ -69,6 +75,11 @@ export class SignCertificateResponse extends jspb.Message {
     getValidUntil(): google_protobuf_timestamp_pb.Timestamp | undefined;
     setValidUntil(value?: google_protobuf_timestamp_pb.Timestamp): SignCertificateResponse;
 
+    hasJwt(): boolean;
+    clearJwt(): void;
+    getJwt(): google_protobuf_wrappers_pb.StringValue | undefined;
+    setJwt(value?: google_protobuf_wrappers_pb.StringValue): SignCertificateResponse;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): SignCertificateResponse.AsObject;
     static toObject(includeInstance: boolean, msg: SignCertificateResponse): SignCertificateResponse.AsObject;
@@ -84,5 +95,6 @@ export namespace SignCertificateResponse {
         workloadCertificate: Uint8Array | string,
         trustChainCertificatesList: Array<Uint8Array | string>,
         validUntil?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+        jwt?: google_protobuf_wrappers_pb.StringValue.AsObject,
     }
 }

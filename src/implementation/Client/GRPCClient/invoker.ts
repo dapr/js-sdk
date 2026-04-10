@@ -16,7 +16,7 @@ import GRPCClient from "./GRPCClient";
 
 import { HttpMethod } from "../../../enum/HttpMethod.enum";
 import { HTTPExtension, InvokeRequest, InvokeResponse } from "../../../proto/dapr/proto/common/v1/common_pb";
-import { InvokeServiceRequest } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import { InvokeServiceRequest } from "../../../proto/dapr/proto/runtime/v1/invoke_pb";
 import * as HttpVerbUtil from "../../../utils/HttpVerb.util";
 import IClientInvoker from "../../../interfaces/Client/IClientInvoker";
 import * as SerializerUtil from "../../../utils/Serializer.util";

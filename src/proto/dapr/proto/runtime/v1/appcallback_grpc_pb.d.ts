@@ -17,6 +17,7 @@ interface IAppCallbackService extends grpc.ServiceDefinition<grpc.UntypedService
     onTopicEvent: IAppCallbackService_IOnTopicEvent;
     listInputBindings: IAppCallbackService_IListInputBindings;
     onBindingEvent: IAppCallbackService_IOnBindingEvent;
+    onBulkTopicEvent: IAppCallbackService_IOnBulkTopicEvent;
 }
 
 interface IAppCallbackService_IOnInvoke extends grpc.MethodDefinition<dapr_proto_common_v1_common_pb.InvokeRequest, dapr_proto_common_v1_common_pb.InvokeResponse> {
@@ -64,6 +65,15 @@ interface IAppCallbackService_IOnBindingEvent extends grpc.MethodDefinition<dapr
     responseSerialize: grpc.serialize<dapr_proto_runtime_v1_appcallback_pb.BindingEventResponse>;
     responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_appcallback_pb.BindingEventResponse>;
 }
+interface IAppCallbackService_IOnBulkTopicEvent extends grpc.MethodDefinition<dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse> {
+    path: "/dapr.proto.runtime.v1.AppCallback/OnBulkTopicEvent";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest>;
+    requestDeserialize: grpc.deserialize<dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest>;
+    responseSerialize: grpc.serialize<dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse>;
+    responseDeserialize: grpc.deserialize<dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse>;
+}
 
 export const AppCallbackService: IAppCallbackService;
 
@@ -73,6 +83,7 @@ export interface IAppCallbackServer extends grpc.UntypedServiceImplementation {
     onTopicEvent: grpc.handleUnaryCall<dapr_proto_runtime_v1_appcallback_pb.TopicEventRequest, dapr_proto_runtime_v1_appcallback_pb.TopicEventResponse>;
     listInputBindings: grpc.handleUnaryCall<google_protobuf_empty_pb.Empty, dapr_proto_runtime_v1_appcallback_pb.ListInputBindingsResponse>;
     onBindingEvent: grpc.handleUnaryCall<dapr_proto_runtime_v1_appcallback_pb.BindingEventRequest, dapr_proto_runtime_v1_appcallback_pb.BindingEventResponse>;
+    onBulkTopicEvent: grpc.handleUnaryCall<dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse>;
 }
 
 export interface IAppCallbackClient {
@@ -91,6 +102,9 @@ export interface IAppCallbackClient {
     onBindingEvent(request: dapr_proto_runtime_v1_appcallback_pb.BindingEventRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.BindingEventResponse) => void): grpc.ClientUnaryCall;
     onBindingEvent(request: dapr_proto_runtime_v1_appcallback_pb.BindingEventRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.BindingEventResponse) => void): grpc.ClientUnaryCall;
     onBindingEvent(request: dapr_proto_runtime_v1_appcallback_pb.BindingEventRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.BindingEventResponse) => void): grpc.ClientUnaryCall;
+    onBulkTopicEvent(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse) => void): grpc.ClientUnaryCall;
+    onBulkTopicEvent(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse) => void): grpc.ClientUnaryCall;
+    onBulkTopicEvent(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse) => void): grpc.ClientUnaryCall;
 }
 
 export class AppCallbackClient extends grpc.Client implements IAppCallbackClient {
@@ -110,6 +124,9 @@ export class AppCallbackClient extends grpc.Client implements IAppCallbackClient
     public onBindingEvent(request: dapr_proto_runtime_v1_appcallback_pb.BindingEventRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.BindingEventResponse) => void): grpc.ClientUnaryCall;
     public onBindingEvent(request: dapr_proto_runtime_v1_appcallback_pb.BindingEventRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.BindingEventResponse) => void): grpc.ClientUnaryCall;
     public onBindingEvent(request: dapr_proto_runtime_v1_appcallback_pb.BindingEventRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.BindingEventResponse) => void): grpc.ClientUnaryCall;
+    public onBulkTopicEvent(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse) => void): grpc.ClientUnaryCall;
+    public onBulkTopicEvent(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse) => void): grpc.ClientUnaryCall;
+    public onBulkTopicEvent(request: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse) => void): grpc.ClientUnaryCall;
 }
 
 interface IAppCallbackHealthCheckService extends grpc.ServiceDefinition<grpc.UntypedServiceImplementation> {
