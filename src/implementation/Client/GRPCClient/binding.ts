@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import GRPCClient from "./GRPCClient";
-import { InvokeBindingRequest, InvokeBindingResponse } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import { InvokeBindingRequest, InvokeBindingResponse } from "../../../proto/dapr/proto/runtime/v1/binding_pb";
 import IClientBinding from "../../../interfaces/Client/IClientBinding";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import { addMetadataToMap } from "../../../utils/Client.util";

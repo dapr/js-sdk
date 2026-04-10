@@ -23,7 +23,7 @@ import {
   QueryStateResponse,
   SaveStateRequest,
   TransactionalStateOperation,
-} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+} from "../../../proto/dapr/proto/runtime/v1/state_pb";
 import { Etag, StateItem, StateOptions } from "../../../proto/dapr/proto/common/v1/common_pb";
 import { KeyValuePairType } from "../../../types/KeyValuePair.type";
 import { OperationType } from "../../../types/Operation.type";
