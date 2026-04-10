@@ -21,7 +21,7 @@ import {
   EncryptRequest as pbEncryptRequest,
   DecryptRequestOptions as pbDecryptRequestOptions,
   DecryptRequest as pbDecryptRequest,
-} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+} from "../../../proto/dapr/proto/runtime/v1/crypto_pb";
 import { DaprChunkedStream } from "../../../utils/Streams.util";
 
 export default class GRPCClientCrypto implements IClientCrypto {

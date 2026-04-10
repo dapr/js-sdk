@@ -1,0 +1,53 @@
+/*
+Copyright 2024 The Dapr Authors
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+package dapr.proto.internals.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/any.proto";
+import "dapr/proto/scheduler/v1/scheduler.proto";
+import "dapr/proto/common/v1/common.proto";
+
+option go_package = "github.com/dapr/dapr/pkg/proto/internals/v1;internals";
+
+// JobHTTPRequest is a request object for creating a job when using the HTTP
+// Dapr Job API. Specifically used so `data` is always serialized as a JSON
+// object (google.protobuf.Struct).
+// For field docmentation see `dapr/proto/runtime/v1/dapr.proto`.
+message JobHTTPRequest {
+  string name = 1 [json_name = "name"];
+  optional string schedule = 2 [json_name = "schedule"];
+  optional uint32 repeats = 3 [json_name = "repeats"];
+  optional string due_time = 4 [json_name = "dueTime"];
+  optional string ttl = 5 [json_name = "ttl"];
+  google.protobuf.Value data = 6 [json_name = "data"];
+  optional bool overwrite = 7 [json_name = "overwrite"];
+  optional common.v1.JobFailurePolicy failure_policy = 8 [json_name = "failurePolicy"];
+}
+
+// JobEvent is an event of a job to be processed by Scheduler.
+message JobEvent {
+  // key is the FQDN key of the job.
+  string key = 1;
+
+  // name is the name of the job.
+  string name = 2;
+
+  // metadata is the metadata associated with the job.
+  scheduler.v1.JobMetadata metadata = 3;
+
+  // data is the data payload of the job.
+  google.protobuf.Any data = 4;
+}
