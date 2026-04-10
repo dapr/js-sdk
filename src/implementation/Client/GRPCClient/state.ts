@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { create } from "@bufbuild/protobuf";
 import GRPCClient from "./GRPCClient";
 import {
   DeleteStateRequest,
@@ -24,7 +25,7 @@ import {
   SaveStateRequest,
   TransactionalStateOperation,
 } from "../../../proto/dapr/proto/runtime/v1/state_pb";
-import { Etag, StateItem, StateOptions } from "../../../proto/dapr/proto/common/v1/common_pb";
+import { Etag, EtagSchema, StateItem, StateItemSchema, StateOptions, StateOptionsSchema } from "../../../proto/dapr/proto/common/v1/common_pb";
 import { KeyValuePairType } from "../../../types/KeyValuePair.type";
 import { OperationType } from "../../../types/Operation.type";
 import { IRequestMetadata } from "../../../types/RequestMetadata.type";
@@ -58,28 +59,19 @@ export default class GRPCClientState implements IClientState {
     const stateList: StateItem[] = [];
 
     for (const stateObject of stateObjects) {
-      const si = new StateItem();
-      si.setKey(stateObject.key);
-      si.setValue(
-        Buffer.from(
-          typeof stateObject.value === "object" ? JSON.stringify(stateObject.value) : stateObject.value.toString(),
-          "utf-8",
-        ),
-      );
-
-      if (stateObject?.etag) {
-        const etag = new Etag();
-        etag.setValue(stateObject.etag);
-        si.setEtag(etag);
-      }
-
-      si.setOptions(this._configureStateOptions(stateObject?.options));
-
       // Merge metadata from stateObject and options.
       // Note, metadata from options will override metadata from stateObject.
       // See https://github.com/dapr/dapr/blob/029ec8cb7a1c88ec5d222bc2b0d1d53541217f19/pkg/http/api.go#L1525-L1532
-      addMetadataToMap(si.getMetadataMap(), stateObject.metadata);
-      addMetadataToMap(si.getMetadataMap(), options.metadata);
+      const si = create(StateItemSchema, {
+        key: stateObject.key,
+        value: Buffer.from(
+          typeof stateObject.value === "object" ? JSON.stringify(stateObject.value) : stateObject.value.toString(),
+          "utf-8",
+        ),
+        etag: stateObject?.etag ? create(EtagSchema, { value: stateObject.etag }) : undefined,
+        options: this._configureStateOptions(stateObject?.options),
+        metadata: { ...stateObject.metadata, ...options.metadata },
+      });
       stateList.push(si);
     }
 
@@ -177,9 +169,7 @@ export default class GRPCClientState implements IClientState {
     msgService.setKey(key);
 
     if (options?.etag) {
-      const etag = new Etag();
-      etag.setValue(options.etag);
-      msgService.setEtag(etag);
+      msgService.setEtag(create(EtagSchema, { value: options.etag }));
     }
 
     msgService.setOptions(this._configureStateOptions(options));
@@ -206,18 +196,12 @@ export default class GRPCClientState implements IClientState {
     const transactionItems: TransactionalStateOperation[] = [];
 
     for (const o of operations) {
-      const si = new StateItem();
-      si.setKey(o.request.key);
-      si.setValue(Buffer.from(o.request.value || "", "utf-8"));
-
-      if (o.request.etag) {
-        const etag = new Etag();
-        etag.setValue(o.request.etag.toString());
-
-        si.setEtag(etag);
-      }
-
-      si.setOptions(this._configureStateOptions(o.request?.options));
+      const si = create(StateItemSchema, {
+        key: o.request.key,
+        value: Buffer.from(o.request.value || "", "utf-8"),
+        etag: o.request.etag ? create(EtagSchema, { value: o.request.etag.toString() }) : undefined,
+        options: this._configureStateOptions(o.request?.options),
+      });
 
       const transactionItem = new TransactionalStateOperation();
       transactionItem.setOperationtype(o.operation);
@@ -289,15 +273,9 @@ export default class GRPCClientState implements IClientState {
       return undefined;
     }
 
-    const stateOptions = new StateOptions();
-    if (opt?.consistency) {
-      stateOptions.setConsistency(opt.consistency as any);
-    }
-
-    if (opt?.concurrency) {
-      stateOptions.setConcurrency(opt.concurrency as any);
-    }
-
-    return stateOptions;
+    return create(StateOptionsSchema, {
+      consistency: opt?.consistency as any,
+      concurrency: opt?.concurrency as any,
+    });
   }
 }

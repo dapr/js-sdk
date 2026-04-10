@@ -11,11 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { Any } from "google-protobuf/google/protobuf/any_pb";
+import { create } from "@bufbuild/protobuf";
+import { AnySchema } from "@bufbuild/protobuf/wkt";
 import GRPCClient from "./GRPCClient";
 
 import { HttpMethod } from "../../../enum/HttpMethod.enum";
-import { HTTPExtension, InvokeRequest, InvokeResponse } from "../../../proto/dapr/proto/common/v1/common_pb";
+import { HTTPExtensionSchema, InvokeRequest, InvokeRequestSchema, InvokeResponse } from "../../../proto/dapr/proto/common/v1/common_pb";
 import { InvokeServiceRequest } from "../../../proto/dapr/proto/runtime/v1/invoke_pb";
 import * as HttpVerbUtil from "../../../utils/HttpVerb.util";
 import IClientInvoker from "../../../interfaces/Client/IClientInvoker";
@@ -43,18 +44,19 @@ export default class GRPCClientInvoker implements IClientInvoker {
     const msgInvokeService = new InvokeServiceRequest();
     msgInvokeService.setId(appId);
 
-    const httpExtension = new HTTPExtension();
-    httpExtension.setVerb(HttpVerbUtil.convertHttpVerbStringToNumber(method));
+    const httpExtension = create(HTTPExtensionSchema, {
+      verb: HttpVerbUtil.convertHttpVerbStringToNumber(method),
+    });
 
-    const msgSerialized = new Any();
     const { serializedData, contentType } = SerializerUtil.serializeGrpc(data);
-    msgSerialized.setValue(serializedData);
+    const msgSerialized = create(AnySchema, { value: serializedData });
 
-    const msgInvoke = new InvokeRequest();
-    msgInvoke.setMethod(methodName);
-    msgInvoke.setHttpExtension(httpExtension);
-    msgInvoke.setData(msgSerialized);
-    msgInvoke.setContentType(contentType);
+    const msgInvoke = create(InvokeRequestSchema, {
+      method: methodName,
+      httpExtension,
+      data: msgSerialized,
+      contentType,
+    });
 
     msgInvokeService.setMessage(msgInvoke);
 
@@ -68,8 +70,8 @@ export default class GRPCClientInvoker implements IClientInvoker {
 
         let resData = "";
 
-        if (res.getData()) {
-          resData = Buffer.from((res.getData() as Any).getValue()).toString();
+        if (res.data) {
+          resData = Buffer.from(res.data.value).toString();
         }
 
         try {

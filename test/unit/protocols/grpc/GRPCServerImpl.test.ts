@@ -37,7 +37,7 @@ describe("GRPCServerImpl", () => {
       await g.onTopicEvent(
         {
           request: {
-            getPubsubName: () => "pubsub",
+            pubsubName: "pubsub",
           },
         } as any,
         () => {
@@ -64,9 +64,9 @@ describe("GRPCServerImpl", () => {
       await g.onTopicEvent(
         {
           request: {
-            getPubsubName: () => "pubsub",
-            getTopic: () => "",
-            getPath: () => "path",
+            pubsubName: "pubsub",
+            topic: "",
+            path: "path",
           },
         } as any,
         () => {
@@ -90,7 +90,7 @@ describe("GRPCServerImpl", () => {
       await g.onBulkTopicEventAlpha1(
         {
           request: {
-            getPubsubName: () => "pubsub",
+            pubsubName: "pubsub",
           },
         } as any,
         () => {
@@ -117,9 +117,9 @@ describe("GRPCServerImpl", () => {
       await g.onBulkTopicEventAlpha1(
         {
           request: {
-            getPubsubName: () => "pubsub",
-            getTopic: () => "",
-            getPath: () => "path",
+            pubsubName: "pubsub",
+            topic: "",
+            path: "path",
           },
         } as any,
         () => {

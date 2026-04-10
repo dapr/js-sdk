@@ -12,7 +12,6 @@ limitations under the License.
 */
 
 import { randomUUID } from "crypto";
-import { Map } from "google-protobuf";
 
 import { ConfigurationItem as ConfigurationItemProto } from "../proto/dapr/proto/common/v1/common_pb";
 import { isCloudEvent } from "./CloudEvent.util";
@@ -36,7 +35,7 @@ import { Settings } from "./Settings.util";
  * @param map Input map
  * @param metadata key value pair of metadata
  */
-export function addMetadataToMap(map: Map<string, string>, metadata: KeyValueType = {}): void {
+export function addMetadataToMap(map: { set(key: string, value: string): any }, metadata: KeyValueType = {}): void {
   for (const [key, value] of Object.entries(metadata)) {
     map.set(key, value);
   }
@@ -111,22 +110,15 @@ export function getStateConcurrencyValue(c?: StateConcurrencyEnum): "first-write
  * @param Map<string, common_pb.ConfigurationItemProto>
  * @returns ConfigurationType object
  */
-export function createConfigurationType(configDict: Map<string, ConfigurationItemProto>): ConfigurationType {
+export function createConfigurationType(configDict: { forEach(callback: (v: ConfigurationItemProto, k: string) => void): void }): ConfigurationType {
   const configMap: { [k: string]: ConfigurationItem } = {};
 
   configDict.forEach(function (v, k) {
     const item: ConfigurationItem = {
       key: k,
-      value: v.getValue(),
-      version: v.getVersion(),
-      metadata: v
-        .getMetadataMap()
-        .toObject()
-        .reduce((result: object, [key, value]) => {
-          // @ts-ignore
-          result[key] = value;
-          return result;
-        }, {}),
+      value: v.value,
+      version: v.version,
+      metadata: { ...v.metadata },
     };
     configMap[k] = item;
   });

@@ -11,10 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { create } from "@bufbuild/protobuf";
 import GRPCClient from "./GRPCClient";
 import IClientSidecar from "../../../interfaces/Client/IClientSidecar";
 import { GetMetadataRequest, GetMetadataResponse } from "../../../proto/dapr/proto/runtime/v1/metadata_pb";
-import { ShutdownRequest } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import { ShutdownRequestSchema } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 
 // https://docs.dapr.io/reference/api/secrets_api/
@@ -29,7 +30,7 @@ export default class GRPCClientSidecar implements IClientSidecar {
     const client = await this.client.getClient();
 
     return new Promise((resolve, reject) => {
-      client.shutdown(new ShutdownRequest(), (err, _res: Empty) => {
+      client.shutdown(create(ShutdownRequestSchema), (err, _res: Empty) => {
         if (err) {
           return reject(err);
         }

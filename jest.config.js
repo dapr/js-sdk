@@ -16,4 +16,20 @@ module.exports = {
   testEnvironment: "node",
   collectCoverage: true,
   coverageReporters: ["lcov"],
+  setupFiles: ["<rootDir>/jest.setup.js"],
+  moduleNameMapper: {
+    "^@bufbuild/protobuf/wkt$": "<rootDir>/node_modules/@bufbuild/protobuf/dist/cjs/wkt/index.js",
+    "^@bufbuild/protobuf/codegenv2$": "<rootDir>/node_modules/@bufbuild/protobuf/dist/cjs/codegenv2/index.js",
+    "^@bufbuild/protobuf/codegenv1$": "<rootDir>/node_modules/@bufbuild/protobuf/dist/cjs/codegenv1/index.js",
+  },
+  globals: {
+    "ts-jest": {
+      tsconfig: {
+        allowJs: true,
+      },
+    },
+  },
+  transform: {
+    "^.+\\.[jt]sx?$": "ts-jest",
+  },
 };
