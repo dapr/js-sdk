@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import GRPCClientBinding from "../../../../src/implementation/Client/GRPCClient/binding";
-import { InvokeBindingRequest } from "../../../../src/proto/dapr/proto/runtime/v1/dapr_pb";
+import { InvokeBindingRequest } from "../../../../src/proto/dapr/proto/runtime/v1/binding_pb";
 
 describe("grpc/binding", () => {
   describe("send should call invokeBinding with correct arguments", () => {

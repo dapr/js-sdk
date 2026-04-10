@@ -22,7 +22,7 @@ jobs:
     name: bot-processor
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2 # to make the JS script available for the next step
+      - uses: actions/checkout@v4 # to make the JS script available for the next step
       - name: Comment analyzer
         uses: actions/github-script@v4
         with:
