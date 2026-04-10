@@ -26,8 +26,12 @@ on:
   # Manual trigger
   workflow_dispatch: {}
 
+permissions:
+  id-token: write # Required for OIDC
+  contents: read
+
 env:
-  NODE_VER: 22.16.0
+  NODE_VER: 24
 
 jobs:
   build:
@@ -37,10 +41,10 @@ jobs:
       matrix:
         node_version: [22.16.0]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Node ${{ matrix.node_version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node_version }}
 
@@ -61,10 +65,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Node ${{ env.NODE_VER }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VER }}
           registry-url: "https://registry.npmjs.org"
@@ -94,8 +98,6 @@ jobs:
 
       - name: "[dapr-client] Publish to npm (dapr-client)"
         run: npm publish build/ --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-dev:
     needs: build
@@ -103,10 +105,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: development
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Node ${{ env.NODE_VER }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VER }}
           registry-url: "https://registry.npmjs.org"
@@ -135,5 +137,3 @@ jobs:
 
       - name: Publish to npm (@dapr/dapr-dev)
         run: npm publish build/ --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -19,7 +19,7 @@ import {
   TryLockResponse,
   UnlockRequest,
   UnlockResponse,
-} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+} from "../../../proto/dapr/proto/runtime/v1/lock_pb";
 import IClientLock from "../../../interfaces/Client/IClientLock";
 
 export default class GRPCClientLock implements IClientLock {
