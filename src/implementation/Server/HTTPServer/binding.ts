@@ -33,7 +33,7 @@ export default class HTTPServerBinding implements IServerBinding {
     const server = await this.server.getServer();
 
     server.options(`/${bindingName}`, async (_req, res) => {
-      return res.end();
+      res.end();
     });
 
     server.post(`/${bindingName}`, async (req, res) => {
@@ -46,13 +46,13 @@ export default class HTTPServerBinding implements IServerBinding {
         // note: if the callback takes longer than the expected wait time in the queue, it might be that this never gets called
         // @todo: can we do this cleaner without sending the response directly?
         res.statusCode = HttpStatusCode.OK;
-        return res.end();
+        res.end();
       } catch (e) {
         res.statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
 
         this.logger.error(`receive failed: ${e}`);
 
-        return res.end(
+        res.end(
           JSON.stringify({
             error: "COULD_NOT_PROCESS_CALLBACK",
             error_msg: `Something happened while processing the input binding callback`,
