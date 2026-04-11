@@ -16,8 +16,8 @@ import { AnySchema } from "@bufbuild/protobuf/wkt";
 import GRPCClient from "./GRPCClient";
 
 import { HttpMethod } from "../../../enum/HttpMethod.enum";
-import { HTTPExtensionSchema, InvokeRequest, InvokeRequestSchema, InvokeResponse } from "../../../proto/dapr/proto/common/v1/common_pb";
-import { InvokeServiceRequest } from "../../../proto/dapr/proto/runtime/v1/invoke_pb";
+import { HTTPExtensionSchema, InvokeRequestSchema } from "../../../proto/dapr/proto/common/v1/common_pb";
+import { InvokeServiceRequestSchema } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import * as HttpVerbUtil from "../../../utils/HttpVerb.util";
 import IClientInvoker from "../../../interfaces/Client/IClientInvoker";
 import * as SerializerUtil from "../../../utils/Serializer.util";
@@ -31,8 +31,6 @@ export default class GRPCClientInvoker implements IClientInvoker {
     this.client = client;
   }
 
-  // @todo: should return a specific typed Promise<TypeInvokerInvokeResponse> instead of Promise<nothing>
-
   async invoke(
     appId: string,
     methodName: string,
@@ -40,10 +38,6 @@ export default class GRPCClientInvoker implements IClientInvoker {
     data: object = {},
     _options: InvokerOptions = {},
   ): Promise<object> {
-    // InvokeServiceRequest represents the request message for Service invocation.
-    const msgInvokeService = new InvokeServiceRequest();
-    msgInvokeService.setId(appId);
-
     const httpExtension = create(HTTPExtensionSchema, {
       verb: HttpVerbUtil.convertHttpVerbStringToNumber(method),
     });
@@ -58,34 +52,29 @@ export default class GRPCClientInvoker implements IClientInvoker {
       contentType,
     });
 
-    msgInvokeService.setMessage(msgInvoke);
+    const msgInvokeService = create(InvokeServiceRequestSchema, {
+      id: appId,
+      message: msgInvoke,
+    });
 
     const client = await this.client.getClient();
+    const res = await client.invokeService(msgInvokeService);
 
-    return new Promise((resolve, reject) => {
-      client.invokeService(msgInvokeService, (err, res: InvokeResponse) => {
-        if (err) {
-          return reject(err);
-        }
+    let resData = "";
 
-        let resData = "";
+    if (res.data) {
+      resData = Buffer.from(res.data.value).toString();
+    }
 
-        if (res.data) {
-          resData = Buffer.from(res.data.value).toString();
-        }
-
-        try {
-          const parsedResData = JSON.parse(resData);
-          return resolve(parsedResData);
-        } catch (e) {
-          throw new Error(
-            JSON.stringify({
-              error: "COULD_NOT_PARSE_RESULT",
-              error_msg: `Could not parse the returned resultset: ${resData}`,
-            }),
-          );
-        }
-      });
-    });
+    try {
+      return JSON.parse(resData);
+    } catch (e) {
+      throw new Error(
+        JSON.stringify({
+          error: "COULD_NOT_PARSE_RESULT",
+          error_msg: `Could not parse the returned resultset: ${resData}`,
+        }),
+      );
+    }
   }
 }

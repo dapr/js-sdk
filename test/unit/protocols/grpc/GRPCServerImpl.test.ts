@@ -26,6 +26,11 @@ describe("GRPCServerImpl", () => {
     },
   };
 
+  // Minimal mock HandlerContext
+  const mockContext = {
+    requestHeader: new Headers(),
+  } as any;
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -36,15 +41,9 @@ describe("GRPCServerImpl", () => {
 
       await g.onTopicEvent(
         {
-          request: {
-            pubsubName: "pubsub",
-          },
+          pubsubName: "pubsub",
         } as any,
-        () => {
-          return {
-            status: 200,
-          };
-        },
+        mockContext,
       );
 
       expect(mockLogWarn).toBeCalledTimes(1);
@@ -63,17 +62,11 @@ describe("GRPCServerImpl", () => {
 
       await g.onTopicEvent(
         {
-          request: {
-            pubsubName: "pubsub",
-            topic: "",
-            path: "path",
-          },
+          pubsubName: "pubsub",
+          topic: "",
+          path: "path",
         } as any,
-        () => {
-          return {
-            status: 200,
-          };
-        },
+        mockContext,
       );
 
       expect(mockLogWarn).toBeCalledTimes(1);
@@ -89,15 +82,9 @@ describe("GRPCServerImpl", () => {
 
       await g.onBulkTopicEventAlpha1(
         {
-          request: {
-            pubsubName: "pubsub",
-          },
+          pubsubName: "pubsub",
         } as any,
-        () => {
-          return {
-            status: 200,
-          };
-        },
+        mockContext,
       );
 
       expect(mockLogWarn).toBeCalledTimes(1);
@@ -116,17 +103,11 @@ describe("GRPCServerImpl", () => {
 
       await g.onBulkTopicEventAlpha1(
         {
-          request: {
-            pubsubName: "pubsub",
-            topic: "",
-            path: "path",
-          },
+          pubsubName: "pubsub",
+          topic: "",
+          path: "path",
         } as any,
-        () => {
-          return {
-            status: 200,
-          };
-        },
+        mockContext,
       );
 
       expect(mockLogWarn).toBeCalledTimes(1);

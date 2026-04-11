@@ -12,17 +12,19 @@ limitations under the License.
 */
 
 import { Duplex } from "node:stream";
+import { create } from "@bufbuild/protobuf";
 
 import GRPCClient from "./GRPCClient";
 import { type DecryptRequest, type EncryptRequest } from "../../../types/crypto/Requests";
 import IClientCrypto from "../../../interfaces/Client/IClientCrypto";
 import {
-  EncryptRequestOptions as pbEncryptRequestOptions,
-  EncryptRequest as pbEncryptRequest,
-  DecryptRequestOptions as pbDecryptRequestOptions,
-  DecryptRequest as pbDecryptRequest,
-} from "../../../proto/dapr/proto/runtime/v1/crypto_pb";
-import { DaprChunkedStream } from "../../../utils/Streams.util";
+  EncryptRequestSchema,
+  EncryptRequestOptionsSchema,
+  DecryptRequestSchema,
+  DecryptRequestOptionsSchema,
+} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import { StreamPayloadSchema } from "../../../proto/dapr/proto/common/v1/common_pb";
+import { DaprChunkedStream, DeferredAsyncIterable } from "../../../utils/Streams.util";
 
 export default class GRPCClientCrypto implements IClientCrypto {
   client: GRPCClient;
@@ -38,16 +40,13 @@ export default class GRPCClientCrypto implements IClientCrypto {
     opts?: EncryptRequest,
   ): Promise<Duplex | Buffer> {
     // Handle overloading
-    // If we have a single argument, assume the user wants to use the Duplex stream-based approach
     let inData: Buffer | undefined;
     if (opts === undefined) {
       opts = arg0 as EncryptRequest;
     } else {
-      // Throws if arg0 is not a supported type
       inData = this.toArrayBuffer(arg0);
     }
 
-    // Ensure required options are present
     if (!opts) {
       throw new Error(`Parameter 'opts' must be defined`);
     }
@@ -61,32 +60,30 @@ export default class GRPCClientCrypto implements IClientCrypto {
       throw new Error(`Option 'keyWrapAlgorithm' is required`);
     }
 
-    // Create the gRPC stream
+    const encryptOpts = opts;
     const client = await this.client.getClient();
-    const grpcStream = client.encryptAlpha1();
 
-    // Create a duplex stream that will send data to the server and read from it
-    const duplexStream = new DaprChunkedStream(grpcStream, pbEncryptRequest, (req) => {
-      // Disable the @typescript-eslint/no-non-null-assertion linter in this block because opts here is guaranteed to be non-nil (see the check above), but TS doesn't seem to believe that
-      /* eslint-disable @typescript-eslint/no-non-null-assertion */
-      const reqOptions = new pbEncryptRequestOptions();
-      reqOptions.setComponentName(opts!.componentName);
-      reqOptions.setKeyName(opts!.keyName);
-      reqOptions.setKeyWrapAlgorithm(opts!.keyWrapAlgorithm);
-      if (opts!.dataEncryptionCipher) {
-        reqOptions.setDataEncryptionCipher(opts!.dataEncryptionCipher);
-      }
-      if (opts!.decryptionKeyName) {
-        reqOptions.setDecryptionKeyName(opts!.decryptionKeyName);
-      }
-      if (opts!.omitDecryptionKeyName) {
-        reqOptions.setOmitDecryptionKeyName(opts!.omitDecryptionKeyName);
-      }
-      req.setOptions(reqOptions);
-      /* eslint-enable @typescript-eslint/no-non-null-assertion */
-    });
+    const pusher = new DeferredAsyncIterable<ReturnType<typeof create<typeof EncryptRequestSchema>>>();
 
-    // Process the data
+    const responseStream = client.encryptAlpha1(pusher);
+
+    const duplexStream = new DaprChunkedStream(pusher, responseStream, (data, seq) =>
+      create(EncryptRequestSchema, {
+        options:
+          seq === 0
+            ? create(EncryptRequestOptionsSchema, {
+                componentName: encryptOpts.componentName,
+                keyName: encryptOpts.keyName,
+                keyWrapAlgorithm: encryptOpts.keyWrapAlgorithm,
+                dataEncryptionCipher: encryptOpts.dataEncryptionCipher ?? "",
+                omitDecryptionKeyName: encryptOpts.omitDecryptionKeyName ?? false,
+                decryptionKeyName: encryptOpts.decryptionKeyName ?? "",
+              })
+            : undefined,
+        payload: create(StreamPayloadSchema, { data, seq: BigInt(seq) }),
+      }),
+    );
+
     return this.processStream(duplexStream, inData);
   }
 
@@ -97,38 +94,37 @@ export default class GRPCClientCrypto implements IClientCrypto {
     opts?: DecryptRequest,
   ): Promise<Duplex | Buffer> {
     // Handle overloading
-    // If we have a single argument, assume the user wants to use the Duplex stream-based approach
     let inData: Buffer | undefined;
     if (opts === undefined) {
-      opts = arg0 as EncryptRequest;
+      opts = arg0 as DecryptRequest;
     } else {
-      // Throws if arg0 is not a supported type
       inData = this.toArrayBuffer(arg0);
     }
 
-    // Ensure required options are present
     if (!opts) {
       throw new Error(`Parameter 'opts' must be defined`);
     }
 
-    // Create the gRPC stream
+    const decryptOpts = opts;
     const client = await this.client.getClient();
-    const grpcStream = client.decryptAlpha1();
 
-    // Create a duplex stream that will send data to the server and read from it
-    const duplexStream = new DaprChunkedStream(grpcStream, pbDecryptRequest, (req) => {
-      // Disable the @typescript-eslint/no-non-null-assertion linter in this block because opts here is guaranteed to be non-nil (see the check above), but TS doesn't seem to believe that
-      /* eslint-disable @typescript-eslint/no-non-null-assertion */
-      const reqOptions = new pbDecryptRequestOptions();
-      reqOptions.setComponentName(opts!.componentName);
-      if (opts!.keyName) {
-        reqOptions.setKeyName(opts!.keyName);
-      }
-      req.setOptions(reqOptions);
-      /* eslint-enable @typescript-eslint/no-non-null-assertion */
-    });
+    const pusher = new DeferredAsyncIterable<ReturnType<typeof create<typeof DecryptRequestSchema>>>();
 
-    // Process the data
+    const responseStream = client.decryptAlpha1(pusher);
+
+    const duplexStream = new DaprChunkedStream(pusher, responseStream, (data, seq) =>
+      create(DecryptRequestSchema, {
+        options:
+          seq === 0
+            ? create(DecryptRequestOptionsSchema, {
+                componentName: decryptOpts.componentName,
+                keyName: decryptOpts.keyName ?? "",
+              })
+            : undefined,
+        payload: create(StreamPayloadSchema, { data, seq: BigInt(seq) }),
+      }),
+    );
+
     return this.processStream(duplexStream, inData);
   }
 
@@ -149,16 +145,13 @@ export default class GRPCClientCrypto implements IClientCrypto {
   }
 
   private processStream(duplexStream: DaprChunkedStream<any, any>, inData?: Buffer): Promise<Duplex | Buffer> {
-    // If the caller did not pass data (as a Buffer etc), return the duplex stream and stop here
     if (!inData) {
       return Promise.resolve(duplexStream);
     }
 
-    // Send the data to the stream and wait for the response
     return new Promise((resolve, reject) => {
       let data = Buffer.alloc(0);
 
-      // Add event listeners
       duplexStream.on("data", (chunk: Buffer) => {
         if (chunk?.length > 0) {
           data = Buffer.concat([data, chunk]);

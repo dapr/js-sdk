@@ -21,6 +21,11 @@ module.exports = {
     "^@bufbuild/protobuf/wkt$": "<rootDir>/node_modules/@bufbuild/protobuf/dist/cjs/wkt/index.js",
     "^@bufbuild/protobuf/codegenv2$": "<rootDir>/node_modules/@bufbuild/protobuf/dist/cjs/codegenv2/index.js",
     "^@bufbuild/protobuf/codegenv1$": "<rootDir>/node_modules/@bufbuild/protobuf/dist/cjs/codegenv1/index.js",
+    "^@bufbuild/protobuf/wire$": "<rootDir>/node_modules/@bufbuild/protobuf/dist/cjs/wire/index.js",
+    "^@connectrpc/connect/protocol$": "<rootDir>/node_modules/@connectrpc/connect/dist/cjs/protocol/index.js",
+    "^@connectrpc/connect/protocol-connect$": "<rootDir>/node_modules/@connectrpc/connect/dist/cjs/protocol-connect/index.js",
+    "^@connectrpc/connect/protocol-grpc$": "<rootDir>/node_modules/@connectrpc/connect/dist/cjs/protocol-grpc/index.js",
+    "^@connectrpc/connect/protocol-grpc-web$": "<rootDir>/node_modules/@connectrpc/connect/dist/cjs/protocol-grpc-web/index.js",
   },
   globals: {
     "ts-jest": {

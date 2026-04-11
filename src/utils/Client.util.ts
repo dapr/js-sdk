@@ -106,14 +106,14 @@ export function getStateConcurrencyValue(c?: StateConcurrencyEnum): "first-write
 }
 
 /**
- * Converts a Map<string, common_pb.ConfigurationItemProto> to a ConfigurationType object.
- * @param Map<string, common_pb.ConfigurationItemProto>
+ * Converts a plain object map of ConfigurationItem to a ConfigurationType object.
+ * @param configDict plain object map from Buf-generated GetConfigurationResponse/SubscribeConfigurationResponse
  * @returns ConfigurationType object
  */
-export function createConfigurationType(configDict: { forEach(callback: (v: ConfigurationItemProto, k: string) => void): void }): ConfigurationType {
+export function createConfigurationType(configDict: { [key: string]: ConfigurationItemProto }): ConfigurationType {
   const configMap: { [k: string]: ConfigurationItem } = {};
 
-  configDict.forEach(function (v, k) {
+  for (const [k, v] of Object.entries(configDict)) {
     const item: ConfigurationItem = {
       key: k,
       value: v.value,
@@ -121,7 +121,7 @@ export function createConfigurationType(configDict: { forEach(callback: (v: Conf
       metadata: { ...v.metadata },
     };
     configMap[k] = item;
-  });
+  }
   return configMap;
 }
 

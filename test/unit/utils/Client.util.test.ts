@@ -117,10 +117,10 @@ describe("Client.util", () => {
       const item1 = create(ConfigurationItemSchema, { value: "value1", version: "v1", metadata: { m1: "mv1" } });
       const item2 = create(ConfigurationItemSchema, { value: "value2", version: "v2", metadata: { m2: "mv2" } });
 
-      const m = new Map<string, ConfigurationItem>([
-        ["key1", item1],
-        ["key2", item2],
-      ]);
+      const m: { [key: string]: ConfigurationItem } = {
+        key1: item1,
+        key2: item2,
+      };
 
       const config = createConfigurationType(m);
       expect(config).toEqual({
