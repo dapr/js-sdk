@@ -28,7 +28,7 @@ describe("GRPCServerImpl", () => {
 
   // Minimal mock HandlerContext
   const mockContext = {
-    requestHeader: new Headers(),
+    requestHeader: { forEach: (_cb: (value: string, key: string) => void) => {} },
   } as any;
 
   beforeEach(() => {
