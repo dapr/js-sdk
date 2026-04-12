@@ -11,36 +11,8 @@
 // limitations under the License.
 //
 
-// List of maintainers who can trigger the Copilot review workflow.
-// Keep in sync with the owners list in dapr_bot.js.
-const owners = [
-  "yaron2",
-  "youngbupark",
-  "Haishi2016",
-  "lukekim",
-  "amanbha",
-  "msfussell",
-  "shalabhms",
-  "LMWF",
-  "artursouza",
-  "vinayada1",
-  "mukundansundar",
-  "wcs1only",
-  "orizohar",
-  "pruthvidhodda",
-  "mchmarny",
-  "tcnghia",
-  "berndverst",
-  "halspang",
-  "tanvigour",
-  "dmitsh",
-  "pkedy",
-  "CodeMonkeyLeet",
-  "XavierGeerinck",
-  "amulyavarote",
-  "shubham1172",
-  "whitwaldo",
-];
+// The GitHub team slug (under the repo's org) whose members may trigger Copilot reviews.
+const MAINTAINERS_TEAM_SLUG = "maintainers-js-sdk";
 
 module.exports = async ({ github, context }) => {
   const payload = context.payload;
@@ -54,6 +26,7 @@ module.exports = async ({ github, context }) => {
   }
 
   const commentBody = payload.comment.body || "";
+  const commentId = payload.comment.id;
 
   // Only process comments starting with "review:" (case-insensitive)
   const reviewMatch = commentBody.match(/^review:\s*([\s\S]+)/i);
@@ -61,10 +34,38 @@ module.exports = async ({ github, context }) => {
     return;
   }
 
-  // Only allow maintainers to trigger reviews
-  if (!owners.includes(actor)) {
-    console.log(`[copilot-review-request] ${actor} is not a maintainer, skipping.`);
-    return;
+  // Only allow members of the maintainers team to trigger reviews
+  try {
+    const membership = await github.rest.teams.getMembershipForUserInOrg({
+      org: owner,
+      team_slug: MAINTAINERS_TEAM_SLUG,
+      username: actor,
+    });
+    if (membership.data.state !== "active") {
+      console.log(`[copilot-review-request] ${actor} has pending team membership, skipping.`);
+      return;
+    }
+  } catch (e) {
+    if (e.status === 404) {
+      console.log(`[copilot-review-request] ${actor} is not a member of ${MAINTAINERS_TEAM_SLUG}, skipping.`);
+      return;
+    }
+    throw e;
+  }
+
+  // Add "eyes" reaction immediately to signal that the bot is processing the request
+  let eyesReactionId = null;
+  try {
+    const reaction = await github.rest.reactions.createForIssueComment({
+      owner,
+      repo,
+      comment_id: commentId,
+      content: "eyes",
+    });
+    eyesReactionId = reaction.data.id;
+    console.log(`[copilot-review-request] Added eyes reaction (id: ${eyesReactionId}).`);
+  } catch (e) {
+    console.log(`[copilot-review-request] Could not add eyes reaction: ${e.message}`);
   }
 
   const reviewText = reviewMatch[1].trim();
@@ -81,6 +82,10 @@ module.exports = async ({ github, context }) => {
       issue_number: prNumber,
       body: `⏳ A Copilot review is already in progress for this PR (branch \`${mirrorBranch}\` exists). Reviews are automatically cleaned up after 3 hours — please wait before requesting another.`,
     });
+    // Remove the eyes reaction since we're not proceeding
+    if (eyesReactionId !== null) {
+      await github.rest.reactions.deleteForIssueComment({ owner, repo, comment_id: commentId, reaction_id: eyesReactionId }).catch(() => {});
+    }
     return;
   } catch (e) {
     if (e.status !== 404) {
@@ -107,7 +112,7 @@ module.exports = async ({ github, context }) => {
   });
   console.log(`[copilot-review-request] Created branch ${mirrorBranch} at ${headSha}.`);
 
-  // Create the mirror PR
+  // Create the mirror PR (body will be updated below with the ack comment ID)
   const mirrorPr = await github.rest.pulls.create({
     owner,
     repo,
@@ -126,20 +131,7 @@ module.exports = async ({ github, context }) => {
   const mirrorPrNumber = mirrorPr.data.number;
   console.log(`[copilot-review-request] Created mirror PR #${mirrorPrNumber}.`);
 
-  // Attempt to request Copilot as a reviewer
-  try {
-    await github.rest.pulls.requestReviewers({
-      owner,
-      repo,
-      pull_number: mirrorPrNumber,
-      reviewers: ["copilot"],
-    });
-    console.log("[copilot-review-request] Requested copilot as reviewer.");
-  } catch (e) {
-    console.log(`[copilot-review-request] Could not add copilot as reviewer: ${e.message}`);
-  }
-
-  // Post the maintainer's review text as a comment directed at @copilot
+  // Post the maintainer's review text as a comment directed at @copilot on the mirror PR
   await github.rest.issues.createComment({
     owner,
     repo,
@@ -147,11 +139,38 @@ module.exports = async ({ github, context }) => {
     body: `<!-- copilot-review-request -->\n@copilot ${reviewText}`,
   });
 
-  // Acknowledge the request on the original PR
-  await github.rest.issues.createComment({
+  // Post the acknowledgement comment on the original PR and capture its ID
+  const ackComment = await github.rest.issues.createComment({
     owner,
     repo,
     issue_number: prNumber,
     body: `🔍 Copilot review requested in mirror PR #${mirrorPrNumber}. Results will be posted here when available.\n*(Mirror branch: \`${mirrorBranch}\` — auto-deleted after 3 hours.)*`,
   });
+  const ackCommentId = ackComment.data.id;
+  console.log(`[copilot-review-request] Posted ack comment (id: ${ackCommentId}) on PR #${prNumber}.`);
+
+  // Update the mirror PR body to embed the ack comment ID so cleanup can edit it later
+  await github.rest.pulls.update({
+    owner,
+    repo,
+    pull_number: mirrorPrNumber,
+    body: [
+      "<!-- copilot-review-mirror -->",
+      `<!-- copilot-review-ack-comment-id: ${ackCommentId} -->`,
+      `> **🤖 Automated mirror PR** created for Copilot review of #${prNumber}.`,
+      `> This PR will be automatically closed and the branch deleted after **3 hours**.`,
+      "",
+      `*Original PR: #${prNumber}*`,
+    ].join("\n"),
+  });
+
+  // Remove the eyes reaction now that the workflow has completed
+  if (eyesReactionId !== null) {
+    try {
+      await github.rest.reactions.deleteForIssueComment({ owner, repo, comment_id: commentId, reaction_id: eyesReactionId });
+      console.log("[copilot-review-request] Removed eyes reaction.");
+    } catch (e) {
+      console.log(`[copilot-review-request] Could not remove eyes reaction: ${e.message}`);
+    }
+  }
 };

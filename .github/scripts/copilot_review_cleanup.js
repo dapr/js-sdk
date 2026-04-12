@@ -65,17 +65,25 @@ module.exports = async ({ github, context }) => {
       console.log(`[copilot-review-cleanup] Failed to delete branch ${mirrorBranch}: ${e.message}`);
     }
 
-    // Post a cleanup notice on the original PR
-    if (origPrNumber) {
-      try {
-        await github.rest.issues.createComment({
-          owner,
-          repo,
-          issue_number: origPrNumber,
-          body: `🧹 The Copilot review mirror for this PR (mirror PR #${mirrorPrNumber}) has been automatically cleaned up after ${TTL_HOURS} hours.`,
-        });
-      } catch (e) {
-        console.log(`[copilot-review-cleanup] Failed to post notice on PR #${origPrNumber}: ${e.message}`);
+    // Parse the ack comment ID from the mirror PR body and edit it with strikethrough
+    if (origPrNumber && pr.body) {
+      const ackIdMatch = pr.body.match(/<!--\s*copilot-review-ack-comment-id:\s*(\d+)\s*-->/);
+      if (ackIdMatch) {
+        const ackCommentId = parseInt(ackIdMatch[1], 10);
+        try {
+          const ackComment = await github.rest.issues.getComment({ owner, repo, comment_id: ackCommentId });
+          // Wrap the mirror PR reference with strikethrough to show it no longer exists
+          const updatedBody = ackComment.data.body.replace(
+            new RegExp(`#${mirrorPrNumber}\\b`),
+            `~~#${mirrorPrNumber}~~`,
+          );
+          await github.rest.issues.updateComment({ owner, repo, comment_id: ackCommentId, body: updatedBody });
+          console.log(`[copilot-review-cleanup] Updated ack comment ${ackCommentId} on PR #${origPrNumber}.`);
+        } catch (e) {
+          console.log(`[copilot-review-cleanup] Failed to update ack comment on PR #${origPrNumber}: ${e.message}`);
+        }
+      } else {
+        console.log(`[copilot-review-cleanup] No ack comment ID found in mirror PR #${mirrorPrNumber} body.`);
       }
     }
   }
