@@ -11,29 +11,59 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { Network, StartedNetwork, StartedTestContainer, TestContainers } from "testcontainers";
 import { CommunicationProtocolEnum, DaprServer, HttpMethod, LogLevel } from "../../../src";
+import { DaprGrpcAppContainer, StartedGrpcDaprContainer } from "../helpers/DaprGrpcAppContainer";
+import {
+  startRedisContainer,
+  startMqttContainer,
+  buildBindingMqttComponent,
+  buildBindingRedisComponent,
+  buildConfigRedisComponent,
+} from "../helpers/containers";
 
 const serverHost = "127.0.0.1";
 const serverPort = "50001";
-const daprHost = "127.0.0.1";
-const daprPort = "50000"; // Dapr Sidecar Port of this Example Server
-const daprAppId = "test-suite";
+const daprAppId = "test-suite-grpc-server";
 
 describe("grpc/server", () => {
   let server: DaprServer;
+  let network: StartedNetwork;
+  let redisContainer: StartedTestContainer;
+  let mqttContainer: StartedTestContainer;
+  let daprContainer: StartedGrpcDaprContainer;
+
   const mockInvoker = jest.fn(async (_data: object) => _data);
   const mockBindingReceive = jest.fn(async (_data: object) => null);
 
-  // We need to start listening on some endpoints already
-  // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
+    network = await new Network().start();
+    [redisContainer, mqttContainer] = await Promise.all([
+      startRedisContainer(network),
+      startMqttContainer(network),
+    ]);
+
+    // The Dapr container calls back to the gRPC app server on the host.
+    await TestContainers.exposeHostPorts(parseInt(serverPort));
+
+    daprContainer = await new DaprGrpcAppContainer()
+      .withNetwork(network)
+      .withAppId(daprAppId)
+      .withAppPort(parseInt(serverPort))
+      .withAppChannelAddress("host.testcontainers.internal")
+      .withDaprLogLevel("info")
+      .withComponent(buildBindingMqttComponent())
+      .withComponent(buildBindingRedisComponent())
+      .withComponent(buildConfigRedisComponent())
+      .start();
+
     server = new DaprServer({
       serverHost,
       serverPort,
       communicationProtocol: CommunicationProtocolEnum.GRPC,
       clientOptions: {
-        daprHost,
-        daprPort,
+        daprHost: daprContainer.getHost(),
+        daprPort: daprContainer.getGrpcPort().toString(),
         maxBodySizeMb: 20, // we set sending larger than receiving to test the error handling
         logger: {
           level: LogLevel.Debug,
@@ -49,7 +79,7 @@ describe("grpc/server", () => {
     await server.start();
 
     await new Promise((resolve, _reject) => setTimeout(resolve, 2500));
-  }, 10 * 1000);
+  }, 300 * 1000);
 
   beforeEach(() => {
     mockBindingReceive.mockClear();
@@ -57,6 +87,10 @@ describe("grpc/server", () => {
 
   afterAll(async () => {
     await server.stop();
+    await daprContainer.stop();
+    await mqttContainer.stop();
+    await redisContainer.stop();
+    await network.stop();
   });
 
   describe("server", () => {
@@ -114,9 +148,6 @@ describe("grpc/server", () => {
       await server.invoker.listen("hello-world", mock, { method: HttpMethod.GET });
       const res = await server.client.invoker.invoke(daprAppId, "hello-world", HttpMethod.GET);
 
-      // Delay a bit for event to arrive
-      // await new Promise((resolve, reject) => setTimeout(resolve, 250));
-
       expect(mock.mock.calls.length).toBe(1);
       expect(JSON.stringify(res)).toEqual(`{"hello":"world"}`);
     });
@@ -128,9 +159,6 @@ describe("grpc/server", () => {
       const res = await server.client.invoker.invoke(daprAppId, "hello-world", HttpMethod.POST, {
         hello: "world",
       });
-
-      // Delay a bit for event to arrive
-      // await new Promise((resolve, reject) => setTimeout(resolve, 250));
 
       expect(mock.mock.calls.length).toBe(1);
       expect(JSON.stringify(res)).toEqual(`{"hello":"world"}`);

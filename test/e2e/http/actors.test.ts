@@ -13,6 +13,8 @@ limitations under the License.
 
 import { CommunicationProtocolEnum, DaprClient, DaprClientOptions, DaprServer } from "../../../src";
 import fetch from "node-fetch";
+import { Network, StartedNetwork, StartedTestContainer, TestContainers } from "testcontainers";
+import { DaprContainer, StartedDaprContainer, DAPR_RUNTIME_IMAGE } from "@dapr/testcontainer-node";
 
 import * as NodeJSUtil from "../../../src/utils/NodeJS.util";
 import ActorId from "../../../src/actors/ActorId";
@@ -33,38 +35,52 @@ import DemoActorTimerTtlImpl from "../../actor/DemoActorTimerTtlImpl";
 import DemoActorReminderTtlImpl from "../../actor/DemoActorReminderTtlImpl";
 import DemoActorDeleteStateImpl from "../../actor/DemoActorDeleteStateImpl";
 import DemoActorDeleteStateInterface from "../../actor/DemoActorDeleteStateInterface";
+import { startRedisContainer, buildStateRedisComponent } from "../helpers/containers";
 
 const serverHost = "127.0.0.1";
 const serverPort = "50001";
-const sidecarHost = "127.0.0.1";
-const sidecarPort = "50000";
 const serverStartWaitTimeMs = 5 * 1000;
-
-const daprClientOptions: DaprClientOptions = {
-  daprHost: sidecarHost,
-  daprPort: sidecarPort,
-  communicationProtocol: CommunicationProtocolEnum.HTTP,
-  isKeepAlive: false,
-  actor: {
-    actorIdleTimeout: "1h",
-    actorScanInterval: "30s",
-    drainOngoingCallTimeout: "1m",
-    drainRebalancedActors: true,
-    reentrancy: {
-      enabled: true,
-      maxStackDepth: 32,
-    },
-    remindersStoragePartitions: 0,
-  },
-};
 
 describe("http/actors", () => {
   let server: DaprServer;
   let client: DaprClient;
+  let network: StartedNetwork;
+  let redisContainer: StartedTestContainer;
+  let daprContainer: StartedDaprContainer;
 
-  // We need to start listening on some endpoints already
-  // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
+    network = await new Network().start();
+    redisContainer = await startRedisContainer(network);
+
+    // Allow the Dapr container to call back to the app server on the host.
+    await TestContainers.exposeHostPorts(parseInt(serverPort));
+
+    daprContainer = await new DaprContainer(DAPR_RUNTIME_IMAGE)
+      .withNetwork(network)
+      .withAppPort(parseInt(serverPort))
+      .withAppChannelAddress("host.testcontainers.internal")
+      // actorStateStore must be "true" for actor support
+      .withComponent(buildStateRedisComponent(true))
+      .start();
+
+    const daprClientOptions: DaprClientOptions = {
+      daprHost: daprContainer.getHost(),
+      daprPort: daprContainer.getHttpPort().toString(),
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
+      isKeepAlive: false,
+      actor: {
+        actorIdleTimeout: "1h",
+        actorScanInterval: "30s",
+        drainOngoingCallTimeout: "1m",
+        drainRebalancedActors: true,
+        reentrancy: {
+          enabled: true,
+          maxStackDepth: 32,
+        },
+        remindersStoragePartitions: 0,
+      },
+    };
+
     // Start server and client with keepAlive on the client set to false.
     // this means that we won't re-use connections here which is necessary for the tests
     // since it will keep handles open else it has to be initialized before the server starts!
@@ -104,7 +120,10 @@ describe("http/actors", () => {
   // Note: it can take > 5s so increase timeout as we are testing reminders and timers
   afterAll(async () => {
     await server.stop();
-  }, 30 * 1000);
+    await daprContainer.stop();
+    await redisContainer.stop();
+    await network.stop();
+  }, 60 * 1000);
 
   describe("configuration", () => {
     it("actor configuration endpoint should contain the correct parameters", async () => {
