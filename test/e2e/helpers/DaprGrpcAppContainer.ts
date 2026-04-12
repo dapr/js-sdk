@@ -61,8 +61,8 @@ export class DaprGrpcAppContainer extends GenericContainer {
   private placementContainer?: DaprPlacementContainer;
   private schedulerContainer?: DaprSchedulerContainer;
 
-  constructor(image = DAPR_TEST_RUNTIME_IMAGE) {
-    super(image);
+  constructor(daprRuntimeImage = DAPR_TEST_RUNTIME_IMAGE) {
+    super(daprRuntimeImage);
     this.withExposedPorts(DAPRD_HTTP_PORT, DAPRD_GRPC_PORT)
       .withWaitStrategy(
         Wait.forHttp("/v1.0/healthz/outbound", DAPRD_HTTP_PORT).forStatusCodeMatching(

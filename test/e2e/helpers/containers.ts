@@ -29,22 +29,22 @@ import { Component, DAPR_VERSION, DAPR_RUNTIME_IMAGE, DAPR_PLACEMENT_IMAGE, DAPR
 // so callers don't need to set all three images individually.
 // ------------------------------------------------------------------
 
-const DAPR_TEST_VER: string = process.env.DAPR_RUNTIME_VER ?? DAPR_VERSION;
+const DAPR_TEST_VERSION: string = process.env.DAPR_RUNTIME_VER ?? DAPR_VERSION;
 const versionOverridden = !!process.env.DAPR_RUNTIME_VER;
 
 /** daprd image at the configured test version. */
 export const DAPR_TEST_RUNTIME_IMAGE: string = versionOverridden
-  ? `daprio/daprd:${DAPR_TEST_VER}`
+  ? `daprio/daprd:${DAPR_TEST_VERSION}`
   : DAPR_RUNTIME_IMAGE;
 
 /** placement image at the configured test version. */
 export const DAPR_TEST_PLACEMENT_IMAGE: string = versionOverridden
-  ? `daprio/placement:${DAPR_TEST_VER}`
+  ? `daprio/placement:${DAPR_TEST_VERSION}`
   : DAPR_PLACEMENT_IMAGE;
 
 /** scheduler image at the configured test version. */
 export const DAPR_TEST_SCHEDULER_IMAGE: string = versionOverridden
-  ? `daprio/scheduler:${DAPR_TEST_VER}`
+  ? `daprio/scheduler:${DAPR_TEST_VERSION}`
   : DAPR_SCHEDULER_IMAGE;
 
 // ------------------------------------------------------------------
