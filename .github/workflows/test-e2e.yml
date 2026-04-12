@@ -14,16 +14,6 @@
 name: Test - E2E
 
 on:
-  push:
-    branches:
-      - main
-      - release-*
-    tags:
-      - v*
-  pull_request:
-    branches:
-      - main
-      - release-*
   # Manual trigger – optionally specify a Dapr runtime version to test against.
   workflow_dispatch:
     inputs:
@@ -33,9 +23,6 @@ on:
           Leave blank to use the version pinned in @dapr/testcontainer-node.
         required: false
         default: ""
-  # Dispatch on external events
-  repository_dispatch:
-    types: [e2e-test]
 
 jobs:
   test-e2e:
