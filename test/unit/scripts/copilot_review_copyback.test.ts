@@ -42,7 +42,12 @@ function reviewEventContext(opts: {
   reviewBody?: string;
   prNumber?: number;
 } = {}) {
-  const { headRef = "copilot/pr-7", reviewerLogin = "copilot-pull-request-reviewer[bot]", reviewBody = "Looks good!", prNumber = 42 } = opts;
+  const {
+    headRef = "copilot/pr-7",
+    reviewerLogin = "copilot-pull-request-reviewer[bot]",
+    reviewBody = "Looks good!",
+    prNumber = 42,
+  } = opts;
   return makeContext("pull_request_review", {
     review: { user: { login: reviewerLogin }, body: reviewBody, html_url: "https://github.com/example/review/1" },
     pull_request: { number: prNumber, head: { ref: headRef } },
