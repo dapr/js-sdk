@@ -84,7 +84,9 @@ module.exports = async ({ github, context }) => {
     });
     // Remove the eyes reaction since we're not proceeding
     if (eyesReactionId !== null) {
-      await github.rest.reactions.deleteForIssueComment({ owner, repo, comment_id: commentId, reaction_id: eyesReactionId }).catch(() => {});
+      await github.rest.reactions.deleteForIssueComment({ owner, repo, comment_id: commentId, reaction_id: eyesReactionId }).catch((e) => {
+        console.log(`[copilot-review-request] Could not remove eyes reaction on early return: ${e.message}`);
+      });
     }
     return;
   } catch (e) {

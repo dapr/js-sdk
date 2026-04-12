@@ -12,10 +12,10 @@
 //
 
 /**
- * Escapes backticks in a string so it is safe to use inside a markdown code span.
+ * Escapes backslashes and backticks in a string so it is safe to use inside a markdown code span.
  */
 function escapeCodeSpan(str) {
-  return str.replace(/`/g, "\\`");
+  return str.replace(/\\/g, "\\\\").replace(/`/g, "\\`");
 }
 
 /**

@@ -74,7 +74,7 @@ module.exports = async ({ github, context }) => {
           const ackComment = await github.rest.issues.getComment({ owner, repo, comment_id: ackCommentId });
           // Wrap the mirror PR reference with strikethrough to show it no longer exists
           const updatedBody = ackComment.data.body.replace(
-            new RegExp(`#${mirrorPrNumber}\\b`),
+            new RegExp(`(#${mirrorPrNumber})(?=\\W|$)`),
             `~~#${mirrorPrNumber}~~`,
           );
           await github.rest.issues.updateComment({ owner, repo, comment_id: ackCommentId, body: updatedBody });
