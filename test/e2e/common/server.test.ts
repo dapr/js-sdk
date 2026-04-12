@@ -13,14 +13,13 @@ limitations under the License.
 
 import { Network, StartedNetwork, StartedTestContainer, TestContainers } from "testcontainers";
 import { DaprContainer, StartedDaprContainer, DAPR_RUNTIME_IMAGE } from "@dapr/testcontainer-node";
-import { CommunicationProtocolEnum, DaprServer, DaprPubSubStatusEnum } from "../../../src";
+import { CommunicationProtocolEnum, DaprClient, DaprServer, DaprPubSubStatusEnum } from "../../../src";
 import * as NodeJSUtil from "../../../src/utils/NodeJS.util";
 import { DaprGrpcAppContainer, StartedGrpcDaprContainer } from "../helpers/DaprGrpcAppContainer";
 import {
   startRedisContainer,
   startMqttContainer,
   buildPubSubMqttComponent,
-  buildInMemoryPubSubComponent, // eslint-disable-line @typescript-eslint/no-unused-vars
 } from "../helpers/containers";
 
 const pubSubName = "pubsub-mqtt"; // MQTT is required by the tests with wildcard routes
@@ -121,7 +120,8 @@ describe("common/server/http", () => {
       serverPort: "3501",
       communicationProtocol: CommunicationProtocolEnum.HTTP,
       clientOptions: {
-        daprHost: "127.0.0.1", // will be updated after container starts; used only for client calls
+        // Placeholder — replaced with real container ports after daprContainer starts below.
+        daprHost: "127.0.0.1",
         daprPort: "3500",
       },
     });
@@ -211,6 +211,15 @@ describe("common/server/http", () => {
       .withAppChannelAddress("host.testcontainers.internal")
       .withComponent(buildPubSubMqttComponent())
       .start();
+
+    // Patch the DaprClient inside httpServer with the real container ports now that
+    // the container is running. The server app is already started; only the client
+    // (used in it() tests for publishing) needs the correct sidecar address.
+    (httpServer as any).client = new DaprClient({
+      daprHost: daprContainer.getHost(),
+      daprPort: daprContainer.getHttpPort().toString(),
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
+    });
   }, 300 * 1000);
 
   beforeEach(() => {
@@ -709,7 +718,8 @@ describe("common/server/grpc", () => {
       serverPort: "50001",
       communicationProtocol: CommunicationProtocolEnum.GRPC,
       clientOptions: {
-        daprHost: "127.0.0.1", // will be updated after container starts; used only for client calls
+        // Placeholder — replaced with real container ports after daprContainer starts below.
+        daprHost: "127.0.0.1",
         daprPort: "50000",
       },
     });
@@ -806,6 +816,15 @@ describe("common/server/grpc", () => {
       .withAppChannelAddress("host.testcontainers.internal")
       .withComponent(buildPubSubMqttComponent())
       .start();
+
+    // Patch the DaprClient inside grpcServer with the real container ports now that
+    // the container is running. The server app is already started; only the client
+    // (used in it() tests for publishing) needs the correct sidecar address.
+    (grpcServer as any).client = new DaprClient({
+      daprHost: daprContainer.getHost(),
+      daprPort: daprContainer.getGrpcPort().toString(),
+      communicationProtocol: CommunicationProtocolEnum.GRPC,
+    });
   }, 300 * 1000);
 
   beforeEach(() => {
