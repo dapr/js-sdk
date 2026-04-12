@@ -12,7 +12,40 @@ limitations under the License.
 */
 
 import { GenericContainer, StartedTestContainer, StartedNetwork, Wait } from "testcontainers";
-import { Component } from "@dapr/testcontainer-node";
+import { Component, DAPR_VERSION, DAPR_RUNTIME_IMAGE, DAPR_PLACEMENT_IMAGE, DAPR_SCHEDULER_IMAGE } from "@dapr/testcontainer-node";
+
+// ------------------------------------------------------------------
+// Version resolution
+//
+// Set the DAPR_RUNTIME_VER environment variable to test against a specific
+// Dapr version (e.g. an RC or N-1 stable).  When unset, the version pinned
+// in @dapr/testcontainer-node is used.
+//
+// Example:
+//   DAPR_RUNTIME_VER=1.15.0 npm run test:e2e:all
+//
+// NOTE: a companion PR to dapr/testcontainer-node is planned to expose a
+// first-class `withDaprVersion(version)` convenience method on DaprContainer
+// so callers don't need to set all three images individually.
+// ------------------------------------------------------------------
+
+const DAPR_TEST_VER: string = process.env.DAPR_RUNTIME_VER ?? DAPR_VERSION;
+const versionOverridden = !!process.env.DAPR_RUNTIME_VER;
+
+/** daprd image at the configured test version. */
+export const DAPR_TEST_RUNTIME_IMAGE: string = versionOverridden
+  ? `daprio/daprd:${DAPR_TEST_VER}`
+  : DAPR_RUNTIME_IMAGE;
+
+/** placement image at the configured test version. */
+export const DAPR_TEST_PLACEMENT_IMAGE: string = versionOverridden
+  ? `daprio/placement:${DAPR_TEST_VER}`
+  : DAPR_PLACEMENT_IMAGE;
+
+/** scheduler image at the configured test version. */
+export const DAPR_TEST_SCHEDULER_IMAGE: string = versionOverridden
+  ? `daprio/scheduler:${DAPR_TEST_VER}`
+  : DAPR_SCHEDULER_IMAGE;
 
 // ------------------------------------------------------------------
 // Container starters

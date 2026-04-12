@@ -32,12 +32,14 @@ import {
 } from "testcontainers";
 import {
   Component,
-  DAPR_PLACEMENT_IMAGE,
-  DAPR_RUNTIME_IMAGE,
-  DAPR_SCHEDULER_IMAGE,
   DaprPlacementContainer,
   DaprSchedulerContainer,
 } from "@dapr/testcontainer-node";
+import {
+  DAPR_TEST_RUNTIME_IMAGE,
+  DAPR_TEST_PLACEMENT_IMAGE,
+  DAPR_TEST_SCHEDULER_IMAGE,
+} from "./containers";
 
 const DAPRD_HTTP_PORT = 3500;
 const DAPRD_GRPC_PORT = 50001;
@@ -53,13 +55,13 @@ export class DaprGrpcAppContainer extends GenericContainer {
   private schedulerAlias = "scheduler-grpc";
   private startedNetwork?: StartedNetwork;
   private components: Component[] = [];
-  private environment: Record<string, string> = {};
+  private containerEnv: Record<string, string> = {};
 
   // Populated during start() before beforeContainerCreated() is called.
   private placementContainer?: DaprPlacementContainer;
   private schedulerContainer?: DaprSchedulerContainer;
 
-  constructor(image = DAPR_RUNTIME_IMAGE) {
+  constructor(image = DAPR_TEST_RUNTIME_IMAGE) {
     super(image);
     this.withExposedPorts(DAPRD_HTTP_PORT, DAPRD_GRPC_PORT)
       .withWaitStrategy(
@@ -112,7 +114,7 @@ export class DaprGrpcAppContainer extends GenericContainer {
   }
 
   withContainerEnvironment(env: Record<string, string>): this {
-    this.environment = { ...this.environment, ...env };
+    this.containerEnv = { ...this.containerEnv, ...env };
     return this;
   }
 
@@ -123,11 +125,11 @@ export class DaprGrpcAppContainer extends GenericContainer {
 
     // Start placement and scheduler before the main container so that
     // beforeContainerCreated() can reference their internal ports.
-    this.placementContainer = new DaprPlacementContainer(DAPR_PLACEMENT_IMAGE)
+    this.placementContainer = new DaprPlacementContainer(DAPR_TEST_PLACEMENT_IMAGE)
       .withNetwork(this.startedNetwork)
       .withNetworkAliases(this.placementAlias);
 
-    this.schedulerContainer = new DaprSchedulerContainer(DAPR_SCHEDULER_IMAGE)
+    this.schedulerContainer = new DaprSchedulerContainer(DAPR_TEST_SCHEDULER_IMAGE)
       .withNetwork(this.startedNetwork)
       .withNetworkAliases(this.schedulerAlias);
 
@@ -136,8 +138,8 @@ export class DaprGrpcAppContainer extends GenericContainer {
       this.schedulerContainer.start(),
     ]);
 
-    if (Object.keys(this.environment).length > 0) {
-      this.withEnvironment(this.environment);
+    if (Object.keys(this.containerEnv).length > 0) {
+      this.withEnvironment(this.containerEnv);
     }
 
     return new StartedGrpcDaprContainer(await super.start(), [startedPlacement, startedScheduler]);

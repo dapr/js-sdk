@@ -13,7 +13,7 @@ limitations under the License.
 
 import { randomUUID } from "crypto";
 import { Network, StartedNetwork, StartedTestContainer } from "testcontainers";
-import { DaprContainer, StartedDaprContainer, DAPR_RUNTIME_IMAGE } from "@dapr/testcontainer-node";
+import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
 import {
   CommunicationProtocolEnum,
   DaprClient,
@@ -30,6 +30,9 @@ import {
   buildPubSubRedisComponent,
   buildLockRedisComponent,
   buildStateMongoDbComponent,
+  DAPR_TEST_RUNTIME_IMAGE,
+  DAPR_TEST_PLACEMENT_IMAGE,
+  DAPR_TEST_SCHEDULER_IMAGE,
 } from "../helpers/containers";
 
 const loggerSettings = {
@@ -50,7 +53,9 @@ describe("common/client/http", () => {
       startMongoDbContainer(network),
     ]);
 
-    daprContainer = await new DaprContainer(DAPR_RUNTIME_IMAGE)
+    daprContainer = await new DaprContainer(DAPR_TEST_RUNTIME_IMAGE)
+      .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
+      .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE)
       .withNetwork(network)
       .withAppChannelAddress("host.testcontainers.internal")
       .withComponent(buildStateRedisComponent())
@@ -568,7 +573,9 @@ describe("common/client/grpc", () => {
       startMongoDbContainer(network),
     ]);
 
-    daprContainer = await new DaprContainer(DAPR_RUNTIME_IMAGE)
+    daprContainer = await new DaprContainer(DAPR_TEST_RUNTIME_IMAGE)
+      .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
+      .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE)
       .withNetwork(network)
       .withAppChannelAddress("host.testcontainers.internal")
       .withComponent(buildStateRedisComponent())

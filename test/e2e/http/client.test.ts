@@ -12,13 +12,16 @@ limitations under the License.
 */
 
 import { Network, StartedNetwork, StartedTestContainer } from "testcontainers";
-import { DaprContainer, StartedDaprContainer, DAPR_RUNTIME_IMAGE } from "@dapr/testcontainer-node";
+import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
 import { CommunicationProtocolEnum, DaprClient } from "../../../src";
 import {
   startRedisContainer,
   buildStateRedisComponent,
   buildSecretEnvvarsComponent,
   buildInMemoryPubSubComponent,
+  DAPR_TEST_RUNTIME_IMAGE,
+  DAPR_TEST_PLACEMENT_IMAGE,
+  DAPR_TEST_SCHEDULER_IMAGE,
 } from "../helpers/containers";
 
 describe("http/client", () => {
@@ -31,7 +34,9 @@ describe("http/client", () => {
     network = await new Network().start();
     redisContainer = await startRedisContainer(network);
 
-    daprContainer = await new DaprContainer(DAPR_RUNTIME_IMAGE)
+    daprContainer = await new DaprContainer(DAPR_TEST_RUNTIME_IMAGE)
+      .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
+      .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE)
       .withNetwork(network)
       .withAppChannelAddress("host.testcontainers.internal")
       .withComponent(buildStateRedisComponent())

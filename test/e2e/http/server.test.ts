@@ -14,7 +14,7 @@ limitations under the License.
 import express from "express";
 import fetch from "node-fetch";
 import { Network, StartedNetwork, StartedTestContainer, TestContainers } from "testcontainers";
-import { DaprContainer, StartedDaprContainer, DAPR_RUNTIME_IMAGE } from "@dapr/testcontainer-node";
+import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
 import { CommunicationProtocolEnum, DaprServer, HttpMethod } from "../../../src";
 import { DaprInvokerCallbackContent } from "../../../src/types/DaprInvokerCallback.type";
 import { KeyValueType } from "../../../src/types/KeyValue.type";
@@ -23,6 +23,9 @@ import {
   startMqttContainer,
   buildBindingMqttComponent,
   buildInMemoryPubSubComponent,
+  DAPR_TEST_RUNTIME_IMAGE,
+  DAPR_TEST_PLACEMENT_IMAGE,
+  DAPR_TEST_SCHEDULER_IMAGE,
 } from "../helpers/containers";
 
 const serverHost = "127.0.0.1";
@@ -49,7 +52,9 @@ describe("http/server", () => {
     // Allow the Dapr container to call back to the app server on the host.
     await TestContainers.exposeHostPorts(parseInt(serverPort));
 
-    daprContainer = await new DaprContainer(DAPR_RUNTIME_IMAGE)
+    daprContainer = await new DaprContainer(DAPR_TEST_RUNTIME_IMAGE)
+      .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
+      .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE)
       .withNetwork(network)
       .withAppPort(parseInt(serverPort))
       .withAppChannelAddress("host.testcontainers.internal")
@@ -102,8 +107,8 @@ describe("http/server", () => {
         communicationProtocol: CommunicationProtocolEnum.HTTP,
         serverHttp: myApp,
         clientOptions: {
-          daprHost,
-          daprPort,
+          daprHost: daprContainer.getHost(),
+          daprPort: daprContainer.getHttpPort().toString(),
         },
       });
 

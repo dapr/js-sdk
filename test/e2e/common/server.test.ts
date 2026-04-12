@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import { Network, StartedNetwork, StartedTestContainer, TestContainers } from "testcontainers";
-import { DaprContainer, StartedDaprContainer, DAPR_RUNTIME_IMAGE } from "@dapr/testcontainer-node";
+import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
 import { CommunicationProtocolEnum, DaprClient, DaprServer, DaprPubSubStatusEnum } from "../../../src";
 import * as NodeJSUtil from "../../../src/utils/NodeJS.util";
 import { DaprGrpcAppContainer, StartedGrpcDaprContainer } from "../helpers/DaprGrpcAppContainer";
@@ -20,6 +20,9 @@ import {
   startRedisContainer,
   startMqttContainer,
   buildPubSubMqttComponent,
+  DAPR_TEST_RUNTIME_IMAGE,
+  DAPR_TEST_PLACEMENT_IMAGE,
+  DAPR_TEST_SCHEDULER_IMAGE,
 } from "../helpers/containers";
 
 const pubSubName = "pubsub-mqtt"; // MQTT is required by the tests with wildcard routes
@@ -205,7 +208,9 @@ describe("common/server/http", () => {
     await httpServer.start();
     await NodeJSUtil.sleep(2000);
 
-    daprContainer = await new DaprContainer(DAPR_RUNTIME_IMAGE)
+    daprContainer = await new DaprContainer(DAPR_TEST_RUNTIME_IMAGE)
+      .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
+      .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE)
       .withNetwork(network)
       .withAppPort(appPort)
       .withAppChannelAddress("host.testcontainers.internal")

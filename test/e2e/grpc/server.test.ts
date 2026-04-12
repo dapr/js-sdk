@@ -20,6 +20,9 @@ import {
   buildBindingMqttComponent,
   buildBindingRedisComponent,
   buildConfigRedisComponent,
+  DAPR_TEST_RUNTIME_IMAGE,
+  DAPR_TEST_PLACEMENT_IMAGE,
+  DAPR_TEST_SCHEDULER_IMAGE,
 } from "../helpers/containers";
 
 const serverHost = "127.0.0.1";

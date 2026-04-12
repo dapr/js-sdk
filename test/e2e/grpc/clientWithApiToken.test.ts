@@ -13,12 +13,12 @@ limitations under the License.
 
 import * as grpc from "@grpc/grpc-js";
 import { Network, StartedNetwork } from "testcontainers";
-import { DaprContainer, StartedDaprContainer, DAPR_RUNTIME_IMAGE } from "@dapr/testcontainer-node";
+import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
 import { CommunicationProtocolEnum, DaprClient, LogLevel } from "../../../src";
 import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runtime/v1/dapr_grpc_pb";
 import { NextCall } from "@grpc/grpc-js/build/src/client-interceptors";
 import { GetMetadataRequest } from "../../../src/proto/dapr/proto/runtime/v1/metadata_pb";
-import { buildInMemoryPubSubComponent } from "../helpers/containers";
+import { buildInMemoryPubSubComponent, DAPR_TEST_RUNTIME_IMAGE, DAPR_TEST_PLACEMENT_IMAGE, DAPR_TEST_SCHEDULER_IMAGE } from "../helpers/containers";
 
 describe("grpc/client with api token", () => {
   let network: StartedNetwork;
@@ -28,7 +28,9 @@ describe("grpc/client with api token", () => {
     network = await new Network().start();
 
     // Configure the Dapr sidecar to require an API token.
-    daprContainer = await new DaprContainer(DAPR_RUNTIME_IMAGE)
+    daprContainer = await new DaprContainer(DAPR_TEST_RUNTIME_IMAGE)
+      .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
+      .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE)
       .withNetwork(network)
       .withAppChannelAddress("host.testcontainers.internal")
       .withComponent(buildInMemoryPubSubComponent())

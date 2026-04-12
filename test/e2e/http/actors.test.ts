@@ -14,7 +14,7 @@ limitations under the License.
 import { CommunicationProtocolEnum, DaprClient, DaprClientOptions, DaprServer } from "../../../src";
 import fetch from "node-fetch";
 import { Network, StartedNetwork, StartedTestContainer, TestContainers } from "testcontainers";
-import { DaprContainer, StartedDaprContainer, DAPR_RUNTIME_IMAGE } from "@dapr/testcontainer-node";
+import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
 
 import * as NodeJSUtil from "../../../src/utils/NodeJS.util";
 import ActorId from "../../../src/actors/ActorId";
@@ -35,7 +35,13 @@ import DemoActorTimerTtlImpl from "../../actor/DemoActorTimerTtlImpl";
 import DemoActorReminderTtlImpl from "../../actor/DemoActorReminderTtlImpl";
 import DemoActorDeleteStateImpl from "../../actor/DemoActorDeleteStateImpl";
 import DemoActorDeleteStateInterface from "../../actor/DemoActorDeleteStateInterface";
-import { startRedisContainer, buildStateRedisComponent } from "../helpers/containers";
+import {
+  startRedisContainer,
+  buildStateRedisComponent,
+  DAPR_TEST_RUNTIME_IMAGE,
+  DAPR_TEST_PLACEMENT_IMAGE,
+  DAPR_TEST_SCHEDULER_IMAGE,
+} from "../helpers/containers";
 
 const serverHost = "127.0.0.1";
 const serverPort = "50001";
@@ -55,7 +61,9 @@ describe("http/actors", () => {
     // Allow the Dapr container to call back to the app server on the host.
     await TestContainers.exposeHostPorts(parseInt(serverPort));
 
-    daprContainer = await new DaprContainer(DAPR_RUNTIME_IMAGE)
+    daprContainer = await new DaprContainer(DAPR_TEST_RUNTIME_IMAGE)
+      .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
+      .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE)
       .withNetwork(network)
       .withAppPort(parseInt(serverPort))
       .withAppChannelAddress("host.testcontainers.internal")
@@ -186,7 +194,7 @@ describe("http/actors", () => {
       const actorId = ActorId.createRandomId();
       builder.build(actorId);
 
-      const baseActorUrl = `http://${sidecarHost}:${sidecarPort}/v1.0/actors/DemoActorCounterImpl/${actorId.toString()}/method`;
+      const baseActorUrl = `http://${daprContainer.getHost()}:${daprContainer.getHttpPort()}/v1.0/actors/DemoActorCounterImpl/${actorId.toString()}/method`;
 
       const validFunc = await fetch(`${baseActorUrl}/getCounter`);
       expect(validFunc.status).toBe(200);

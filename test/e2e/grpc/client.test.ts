@@ -17,7 +17,7 @@ import { readFile } from "node:fs/promises";
 import { Readable } from "node:stream";
 import * as grpc from "@grpc/grpc-js";
 import { Network, StartedNetwork, StartedTestContainer } from "testcontainers";
-import { DaprContainer, StartedDaprContainer, DAPR_RUNTIME_IMAGE } from "@dapr/testcontainer-node";
+import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
 import { CommunicationProtocolEnum, DaprClient, LogLevel } from "../../../src";
 import { SubscribeConfigurationResponse } from "../../../src/types/configuration/SubscribeConfigurationResponse";
 import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runtime/v1/dapr_grpc_pb";
@@ -31,6 +31,9 @@ import {
   buildLockRedisComponent,
   buildSecretEnvvarsComponent,
   buildCryptoLocalComponent,
+  DAPR_TEST_RUNTIME_IMAGE,
+  DAPR_TEST_PLACEMENT_IMAGE,
+  DAPR_TEST_SCHEDULER_IMAGE,
 } from "../helpers/containers";
 
 describe("grpc/client", () => {
@@ -43,7 +46,9 @@ describe("grpc/client", () => {
     network = await new Network().start();
     redisContainer = await startRedisContainer(network);
 
-    daprContainer = await new DaprContainer(DAPR_RUNTIME_IMAGE)
+    daprContainer = await new DaprContainer(DAPR_TEST_RUNTIME_IMAGE)
+      .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
+      .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE)
       .withNetwork(network)
       .withAppChannelAddress("host.testcontainers.internal")
       .withComponent(buildStateRedisComponent())
