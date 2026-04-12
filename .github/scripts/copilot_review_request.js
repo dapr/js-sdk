@@ -83,7 +83,10 @@ module.exports = async ({ github, context }) => {
     });
     return;
   } catch (e) {
-    if (e.status !== 404) throw e;
+    if (e.status !== 404) {
+      console.log(`[copilot-review-request] Unexpected error checking branch: ${e.message}`);
+      throw e;
+    }
     // 404 means the branch doesn't exist yet — proceed
   }
 

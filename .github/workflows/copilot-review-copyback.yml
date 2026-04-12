@@ -28,6 +28,9 @@ on:
   issue_comment:
     types: [created]
 
+permissions:
+  contents: read
+
 jobs:
   copyback:
     name: copy-copilot-review

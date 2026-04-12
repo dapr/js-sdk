@@ -22,6 +22,9 @@ on:
   issue_comment:
     types: [created]
 
+permissions:
+  contents: read
+
 jobs:
   request-review:
     name: request-copilot-review

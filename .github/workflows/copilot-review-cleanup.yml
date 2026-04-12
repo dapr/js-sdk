@@ -22,6 +22,9 @@ on:
     - cron: '0 * * * *'  # Every hour
   workflow_dispatch: {}   # Allow manual trigger for testing
 
+permissions:
+  contents: read
+
 jobs:
   cleanup:
     name: cleanup-mirror-prs

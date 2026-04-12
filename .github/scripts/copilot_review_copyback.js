@@ -12,6 +12,13 @@
 //
 
 /**
+ * Escapes backticks in a string so it is safe to use inside a markdown code span.
+ */
+function escapeCodeSpan(str) {
+  return str.replace(/`/g, "\\`");
+}
+
+/**
  * Returns true when the given GitHub login belongs to Copilot.
  * Copilot's bot account name may vary (e.g. "copilot-pull-request-reviewer[bot]"),
  * so we use a case-insensitive substring match on "copilot".
@@ -70,7 +77,7 @@ module.exports = async ({ github, context }) => {
 
     mirrorPrNumber = pr.number;
     // Include the file path so the comment makes sense without diff context
-    copyBody = `**\`${comment.path}\`**\n\n${comment.body}`;
+    copyBody = `**\`${escapeCodeSpan(comment.path)}\`**\n\n${comment.body}`;
     sourceUrl = comment.html_url;
   } else if (eventName === "issue_comment") {
     // A regular (non-review) comment was posted on a PR
