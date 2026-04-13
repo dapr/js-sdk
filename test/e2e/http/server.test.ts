@@ -15,7 +15,7 @@ import express from "express";
 import fetch from "node-fetch";
 import { Network, StartedNetwork, StartedTestContainer, TestContainers } from "testcontainers";
 import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
-import { CommunicationProtocolEnum, DaprServer, HttpMethod } from "../../../src";
+import { CommunicationProtocolEnum, DaprClient, DaprServer, HttpMethod } from "../../../src";
 import { DaprInvokerCallbackContent } from "../../../src/types/DaprInvokerCallback.type";
 import { KeyValueType } from "../../../src/types/KeyValue.type";
 import {
@@ -52,23 +52,16 @@ describe("http/server", () => {
     // Allow the Dapr container to call back to the app server on the host.
     await TestContainers.exposeHostPorts(parseInt(serverPort));
 
-    daprContainer = await new DaprContainer(DAPR_TEST_RUNTIME_IMAGE)
-      .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
-      .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE)
-      .withNetwork(network)
-      .withAppPort(parseInt(serverPort))
-      .withAppChannelAddress("host.testcontainers.internal")
-      .withComponent(buildBindingMqttComponent())
-      .withComponent(buildInMemoryPubSubComponent())
-      .start();
-
+    // Start the app server BEFORE the Dapr container so that Dapr can probe the app's
+    // binding and invoker endpoints during its own initialization.
     server = new DaprServer({
       serverHost,
       serverPort,
       communicationProtocol: CommunicationProtocolEnum.HTTP,
       clientOptions: {
-        daprHost: daprContainer.getHost(),
-        daprPort: daprContainer.getHttpPort().toString(),
+        // Placeholder — replaced with real container ports after daprContainer starts below.
+        daprHost: "127.0.0.1",
+        daprPort: "3500",
         maxBodySizeMb: 20, // we set sending larger than receiving to test the error handling
       },
       maxBodySizeMb: 10,
@@ -76,8 +69,28 @@ describe("http/server", () => {
 
     await server.binding.receive("binding-mqtt", mockBindingReceive);
 
-    // Start server
+    // Start server so it is listening when the Dapr container probes it.
     await server.start();
+
+    daprContainer = await new DaprContainer(DAPR_TEST_RUNTIME_IMAGE)
+      .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
+      .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE)
+      .withNetwork(network)
+      .withAppName(daprAppId)
+      .withAppPort(parseInt(serverPort))
+      .withAppChannelAddress("host.testcontainers.internal")
+      .withComponent(buildBindingMqttComponent())
+      .withComponent(buildInMemoryPubSubComponent())
+      .start();
+
+    // Patch the DaprClient inside server with the real container ports now that
+    // the container is running.
+    (server as any).client = new DaprClient({
+      daprHost: daprContainer.getHost(),
+      daprPort: daprContainer.getHttpPort().toString(),
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
+      maxBodySizeMb: 20,
+    });
   }, 300 * 1000);
 
   beforeEach(() => {
