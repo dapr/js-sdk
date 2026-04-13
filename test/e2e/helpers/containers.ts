@@ -73,7 +73,7 @@ export async function startMongoDbContainer(network: StartedNetwork): Promise<St
  * Starts an EMQX MQTT broker on the given network with the alias "mqtt".
  */
 export async function startMqttContainer(network: StartedNetwork): Promise<StartedTestContainer> {
-  return new GenericContainer("emqx/emqx:5")
+  return new GenericContainer("emqx/emqx:5.10.3")
     .withNetwork(network)
     .withNetworkAliases("mqtt")
     .withExposedPorts(1883, 18083)
