@@ -13,56 +13,92 @@ limitations under the License.
 
 /**
  * Jest 27's jest-environment-node runs tests in a sandboxed VM context that
- * does NOT automatically expose Web API globals (Blob, fetch, ReadableStream,
- * AbortController, etc.) that Node.js 18+ added to the real globalThis.
+ * does NOT automatically expose all Web API globals (ReadableStream, fetch,
+ * Blob, DOMException, etc.) that Node.js 18+ added to the real globalThis.
  * testcontainers → undici references these at module-load time, so we must
  * inject them (via setupFiles) before any test module is imported.
  *
- * Strategy: `require('buffer').Buffer` is a built-in object created in the
- * OUTER (non-sandboxed) Node.js realm.  Its `.constructor` property is the
- * outer realm's `Function` constructor.  Calling that constructor with the
- * string `'return globalThis'` produces a function that, when invoked, returns
- * the outer Node.js `globalThis` — which has all the Web API globals we need.
- * We then copy each one into Jest's sandboxed `global` object.
+ * NOTE: jest-environment-node v27 already injects URL, URLSearchParams,
+ * TextEncoder, TextDecoder, AbortController, AbortSignal, Event, EventTarget,
+ * performance, Buffer, ArrayBuffer, and Uint8Array, so we skip those.
+ *
+ * Strategy: use require() against Node's built-in modules (stream/web, buffer,
+ * url, worker_threads, crypto, perf_hooks) and against the locally-installed
+ * undici package to get every remaining Web API.  We do NOT use the
+ * "outer-realm globalThis escape" trick (Buffer.constructor('return globalThis')())
+ * because in Node 24 that technique crashes the process with an assertion failure
+ * (isolate_data not set) when any property is read from the returned proxy.
  */
 
 /* eslint-disable @typescript-eslint/no-require-imports */
-const { Buffer: _Buffer } = require("buffer");
-/* eslint-enable @typescript-eslint/no-require-imports */
+const streamWeb = require("stream/web");
+const { Blob, File } = require("buffer");
+const { MessageChannel, MessagePort, BroadcastChannel } = require("worker_threads");
+const { webcrypto } = require("crypto");
 
-// Reach the outer Node.js globalThis through the built-in realm's Function.
-const outerGlobal = _Buffer.constructor("return globalThis")();
-
-const webApiNames = [
+// ── stream/web ──────────────────────────────────────────────────────────────
+// These MUST be set before requiring undici, which references ReadableStream
+// at module-load time.
+const streamWebNames = [
   "ReadableStream",
+  "ReadableStreamDefaultController",
+  "ReadableStreamDefaultReader",
+  "ReadableByteStreamController",
+  "ReadableStreamBYOBReader",
+  "ReadableStreamBYOBRequest",
   "WritableStream",
+  "WritableStreamDefaultController",
+  "WritableStreamDefaultWriter",
   "TransformStream",
-  "Blob",
-  "File",
-  "URL",
-  "URLSearchParams",
-  "TextEncoder",
-  "TextDecoder",
-  "fetch",
-  "Headers",
-  "Request",
-  "Response",
-  "FormData",
-  "AbortController",
-  "AbortSignal",
-  "Event",
-  "EventTarget",
-  "CustomEvent",
-  "MessageChannel",
-  "MessagePort",
-  "MessageEvent",
-  "crypto",
-  "performance",
+  "TransformStreamDefaultController",
+  "ByteLengthQueuingStrategy",
+  "CountQueuingStrategy",
+  "TextEncoderStream",
+  "TextDecoderStream",
+  "CompressionStream",
+  "DecompressionStream",
 ];
 
-for (const name of webApiNames) {
-  const outerVal = outerGlobal[name];
-  if (typeof outerVal !== "undefined" && typeof global[name] === "undefined") {
-    global[name] = outerVal;
+for (const name of streamWebNames) {
+  if (typeof global[name] === "undefined" && streamWeb[name] !== undefined) {
+    global[name] = streamWeb[name];
+  }
+}
+
+// ── buffer (before undici) ────────────────────────────────────────────────────
+if (typeof global.Blob === "undefined") global.Blob = Blob;
+if (typeof global.File === "undefined") global.File = File;
+
+// ── worker_threads (before undici) ───────────────────────────────────────────
+if (typeof global.MessageChannel === "undefined") global.MessageChannel = MessageChannel;
+if (typeof global.MessagePort === "undefined") global.MessagePort = MessagePort;
+if (typeof global.BroadcastChannel === "undefined") global.BroadcastChannel = BroadcastChannel;
+
+// ── crypto (before undici) ────────────────────────────────────────────────────
+if (typeof global.crypto === "undefined") global.crypto = webcrypto;
+
+// ── DOMException (before undici) ─────────────────────────────────────────────
+// DOMException is not exported by any Node.js built-in module.  Provide a
+// minimal standards-compliant shim so that undici's WebSocket implementation
+// (which uses `class X extends DOMException`) can load without crashing.
+if (typeof global.DOMException === "undefined") {
+  class DOMException extends Error {
+    constructor(message = "", name = "Error") {
+      super(message);
+      this.name = name;
+    }
+  }
+  global.DOMException = DOMException;
+}
+
+// Now it is safe to require undici — all required globals are defined.
+const undici = require("undici");
+/* eslint-enable @typescript-eslint/no-require-imports */
+
+// ── undici (fetch API + WebSocket) ───────────────────────────────────────────
+const undiciGlobals = ["fetch", "Headers", "Request", "Response", "FormData", "WebSocket", "CloseEvent", "MessageEvent"];
+for (const name of undiciGlobals) {
+  if (typeof global[name] === "undefined" && undici[name] !== undefined) {
+    global[name] = undici[name];
   }
 }
