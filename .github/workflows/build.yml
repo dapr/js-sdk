@@ -127,11 +127,12 @@ jobs:
 
       - name: Configure version
         run: |
-          # Version should be in the format of 0.0.0-dev-<timestamp>-<commit-hash>
-          # e.g. 0.0.0-dev-20220101000000-abcdef
+          # Version should be in the format of <latest>-dev-<timestamp>-<commit-hash>
+          # e.g. 3.2.0-dev-20220101000000-abcdef
+          BASE_VERSION=$(npm view @dapr/dapr version)
           TIMESTAMP=$(date -u +"%Y%m%d%H%M%S")
           COMMIT_HASH=$(git rev-parse --short HEAD)
-          npm version --no-git-tag-version "0.0.0-dev-$TIMESTAMP-$COMMIT_HASH"
+          npm version --no-git-tag-version "${BASE_VERSION}-dev-$TIMESTAMP-$COMMIT_HASH"
 
       - name: Install dependencies
         run: npm install
