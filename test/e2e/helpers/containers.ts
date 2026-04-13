@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import { GenericContainer, StartedTestContainer, StartedNetwork, Wait } from "testcontainers";
-import { Component, DAPR_VERSION } from "@dapr/testcontainer-node";
+import { Component, DaprContainer, DAPR_VERSION } from "@dapr/testcontainer-node";
 
 // ------------------------------------------------------------------
 // Version resolution
@@ -184,4 +184,28 @@ export function buildCryptoLocalComponent(): Component {
 /** pubsub.in-memory component — used as a fallback so Dapr starts cleanly. */
 export function buildInMemoryPubSubComponent(name = "pubsub"): Component {
   return new Component(name, "pubsub.in-memory", "v1", []);
+}
+
+/**
+ * DaprContainer extension that appends `--dapr-http-max-request-size <mb>` to
+ * the daprd command built by the base class.  Required for tests that send or
+ * receive payloads larger than Dapr's default 4 MB HTTP body limit.
+ */
+export class DaprContainerWithLargeBody extends DaprContainer {
+  private readonly maxRequestSizeMb: number;
+
+  constructor(image: string, maxRequestSizeMb: number) {
+    super(image);
+    this.maxRequestSizeMb = maxRequestSizeMb;
+  }
+
+  protected override async beforeContainerCreated(): Promise<void> {
+    await super.beforeContainerCreated();
+    // createOpts.Cmd is set by DaprContainer.beforeContainerCreated(); append our flag.
+    this.createOpts.Cmd = [
+      ...(this.createOpts.Cmd ?? []),
+      "--dapr-http-max-request-size",
+      this.maxRequestSizeMb.toString(),
+    ];
+  }
 }

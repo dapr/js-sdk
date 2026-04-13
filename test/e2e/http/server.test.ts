@@ -14,7 +14,7 @@ limitations under the License.
 import express from "express";
 import fetch from "node-fetch";
 import { Network, StartedNetwork, StartedTestContainer, TestContainers } from "testcontainers";
-import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
+import { StartedDaprContainer } from "@dapr/testcontainer-node";
 import { CommunicationProtocolEnum, DaprClient, DaprServer, HttpMethod } from "../../../src";
 import { DaprInvokerCallbackContent } from "../../../src/types/DaprInvokerCallback.type";
 import { KeyValueType } from "../../../src/types/KeyValue.type";
@@ -26,6 +26,7 @@ import {
   DAPR_TEST_RUNTIME_IMAGE,
   DAPR_TEST_PLACEMENT_IMAGE,
   DAPR_TEST_SCHEDULER_IMAGE,
+  DaprContainerWithLargeBody,
 } from "../helpers/containers";
 
 const serverHost = "127.0.0.1";
@@ -71,7 +72,7 @@ describe("http/server", () => {
     // listening when the Dapr container probes it during its own init.
     await server.daprServer.start(serverHost, serverPort);
 
-    daprContainer = await new DaprContainer(DAPR_TEST_RUNTIME_IMAGE)
+    daprContainer = await new DaprContainerWithLargeBody(DAPR_TEST_RUNTIME_IMAGE, 20)
       .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
       .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE)
       .withNetwork(network)
