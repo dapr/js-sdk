@@ -13,19 +13,49 @@ limitations under the License.
 
 /**
  * Jest 27's jest-environment-node does not automatically expose Web API
- * globals (ReadableStream, WritableStream, TransformStream) that were added
- * to Node.js 18+ into the sandboxed VM context.  testcontainers → undici
- * references these at module-load time, so we must assign them here
+ * globals (ReadableStream, Blob, URL, fetch, etc.) that Node.js 18+ added to
+ * globalThis into the sandboxed VM context.  testcontainers → undici
+ * references many of these at module-load time, so we must assign them here
  * (via setupFiles) before any test module is imported.
  */
+
+// Web Streams API (node:stream/web)
 const { ReadableStream, WritableStream, TransformStream } = require("stream/web");
 
-if (typeof global.ReadableStream === "undefined") {
-  global.ReadableStream = ReadableStream;
-}
-if (typeof global.WritableStream === "undefined") {
-  global.WritableStream = WritableStream;
-}
-if (typeof global.TransformStream === "undefined") {
-  global.TransformStream = TransformStream;
+const webGlobals = {
+  // Streams
+  ReadableStream,
+  WritableStream,
+  TransformStream,
+  // Encoding
+  TextEncoder: globalThis.TextEncoder,
+  TextDecoder: globalThis.TextDecoder,
+  // URL
+  URL: globalThis.URL,
+  URLSearchParams: globalThis.URLSearchParams,
+  // Blob / File
+  Blob: globalThis.Blob,
+  File: globalThis.File,
+  // Fetch API
+  fetch: globalThis.fetch,
+  Headers: globalThis.Headers,
+  Request: globalThis.Request,
+  Response: globalThis.Response,
+  FormData: globalThis.FormData,
+  // Abort
+  AbortController: globalThis.AbortController,
+  AbortSignal: globalThis.AbortSignal,
+  // Events
+  Event: globalThis.Event,
+  EventTarget: globalThis.EventTarget,
+  CustomEvent: globalThis.CustomEvent,
+  MessageChannel: globalThis.MessageChannel,
+  MessageEvent: globalThis.MessageEvent,
+  MessagePort: globalThis.MessagePort,
+};
+
+for (const [name, value] of Object.entries(webGlobals)) {
+  if (value !== undefined && typeof global[name] === "undefined") {
+    global[name] = value;
+  }
 }
