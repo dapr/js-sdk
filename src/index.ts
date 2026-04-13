@@ -39,6 +39,27 @@ import DaprPubSubStatusEnum from "./enum/DaprPubSubStatus.enum";
 import StateConcurrencyEnum from "./enum/StateConcurrency.enum";
 import StateConsistencyEnum from "./enum/StateConsistency.enum";
 import { StateGetBulkOptions } from "./types/state/StateGetBulkOptions.type";
+import { ConversationInput } from "./types/conversation/ConversationInput.type";
+import {
+  ConversationMessage,
+  ConversationMessageOfDeveloper,
+  ConversationMessageOfSystem,
+  ConversationMessageOfUser,
+  ConversationMessageOfAssistant,
+  ConversationMessageOfTool,
+  ConversationMessageContent,
+} from "./types/conversation/ConversationMessage.type";
+import { ConversationOptions, ConversationTool } from "./types/conversation/ConversationOptions.type";
+import {
+  ConversationResponse,
+  ConversationResult,
+  ConversationResultUsage,
+  ConversationResultChoice,
+  ConversationResultMessage,
+  ConversationResultCompletionTokensDetails,
+  ConversationResultPromptTokensDetails,
+} from "./types/conversation/ConversationResponse.type";
+import { ConversationToolCall, ConversationToolCallOfFunction } from "./types/conversation/ConversationMessage.type";
 
 import DaprWorkflowClient from "./workflow/client/DaprWorkflowClient";
 import WorkflowActivityContext from "./workflow/runtime/WorkflowActivityContext";
@@ -90,4 +111,23 @@ export {
   WorkflowRuntimeStatus,
   fromOrchestrationStatus,
   toOrchestrationStatus,
+  ConversationInput,
+  ConversationMessage,
+  ConversationMessageOfDeveloper,
+  ConversationMessageOfSystem,
+  ConversationMessageOfUser,
+  ConversationMessageOfAssistant,
+  ConversationMessageOfTool,
+  ConversationMessageContent,
+  ConversationOptions,
+  ConversationResponse,
+  ConversationResult,
+  ConversationResultUsage,
+  ConversationResultChoice,
+  ConversationResultMessage,
+  ConversationResultCompletionTokensDetails,
+  ConversationResultPromptTokensDetails,
+  ConversationTool,
+  ConversationToolCall,
+  ConversationToolCallOfFunction,
 };

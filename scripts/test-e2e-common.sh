@@ -61,6 +61,36 @@ dapr run --app-id test-suite-grpc --app-protocol grpc --app-port $TEST_SERVER_GR
 dapr run --app-id test-suite-http --app-protocol http --app-port $TEST_SERVER_HTTP_PORT\
  --dapr-http-port $TEST_DAPR_HTTP_PORT --components-path ./test/components/common > $HTTP_OUTPUT_FILE 2>&1 &
 
+echo "[SCRIPT] Waiting for Dapr sidecars to be ready..."
+
+# Wait for Dapr sidecars to be healthy by checking metadata endpoint
+MAX_RETRIES=60
+
+# Wait for HTTP sidecar
+RETRY_COUNT=0
+until curl -f -s http://127.0.0.1:$TEST_DAPR_HTTP_PORT/v1.0/metadata > /dev/null 2>&1; do
+  RETRY_COUNT=$((RETRY_COUNT + 1))
+  if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
+    echo "[SCRIPT] ERROR: HTTP Dapr sidecar failed to start within 60 seconds"
+    stop_dapr
+    exit 1
+  fi
+  sleep 1
+done
+echo "[SCRIPT] HTTP Dapr sidecar is ready"
+
+# Wait for gRPC sidecar (Dapr exposes HTTP API even when app protocol is gRPC)
+RETRY_COUNT=0
+until dapr list 2>/dev/null | grep -q "test-suite-grpc.*Running"; do
+  RETRY_COUNT=$((RETRY_COUNT + 1))
+  if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
+    echo "[SCRIPT] ERROR: gRPC Dapr sidecar failed to start within 60 seconds"
+    stop_dapr
+    exit 1
+  fi
+  sleep 1
+done
+echo "[SCRIPT] gRPC Dapr sidecar is ready"
 echo "[SCRIPT] Starting tests..."
 
 # Run tests 

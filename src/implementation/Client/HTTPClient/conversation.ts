@@ -1,0 +1,96 @@
+/*
+Copyright 2026 The Dapr Authors
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+import HTTPClient from "./HTTPClient";
+import IClientConversation from "../../../interfaces/Client/IClientConversation";
+import { ConversationInput } from "../../../types/conversation/ConversationInput.type";
+import { ConversationOptions } from "../../../types/conversation/ConversationOptions.type";
+import { ConversationResponse } from "../../../types/conversation/ConversationResponse.type";
+import { PropertyRequiredError } from "../../../errors/PropertyRequiredError";
+
+// https://docs.dapr.io/reference/api/conversation_api/
+export default class HTTPClientConversation implements IClientConversation {
+  client: HTTPClient;
+
+  constructor(client: HTTPClient) {
+    this.client = client;
+  }
+
+  async converse(name: string, inputs: ConversationInput[], options: ConversationOptions = {}): Promise<ConversationResponse> {
+    if (!name) {
+      throw new PropertyRequiredError("name");
+    }
+
+    // JS camelCase options are mapped to snake_case for the Dapr HTTP API.
+    // Only defined options are included in the body to avoid overriding component defaults.
+    const body: Record<string, any> = {
+      inputs: inputs.map((input) => ({
+        messages: input.messages,
+        ...(input.scrubPII !== undefined && { scrub_pii: input.scrubPII }),
+      })),
+    };
+
+    if (options.contextId !== undefined) body["context_id"] = options.contextId;
+    if (options.scrubPII !== undefined) body["scrub_pii"] = options.scrubPII;
+    if (options.temperature !== undefined) body["temperature"] = options.temperature;
+    if (options.metadata !== undefined) body["metadata"] = options.metadata;
+    if (options.parameters !== undefined) body["parameters"] = options.parameters;
+    if (options.tools !== undefined) body["tools"] = options.tools;
+    if (options.toolChoice !== undefined) body["tool_choice"] = options.toolChoice;
+    if (options.responseFormat !== undefined) body["response_format"] = options.responseFormat;
+    if (options.promptCacheRetention !== undefined) body["prompt_cache_retention"] = options.promptCacheRetention;
+
+    const result = (await this.client.executeWithApiVersion("v1.0-alpha2", `/conversation/${name}/converse`, {
+      method: "POST",
+      body,
+    })) as Record<string, any>;
+
+    return {
+      contextId: result["context_id"],
+      outputs: (result["outputs"] ?? []).map((output: Record<string, any>) => ({
+        choices: (output["choices"] ?? []).map((choice: Record<string, any>) => ({
+          finishReason: choice["finish_reason"],
+          index: choice["index"],
+          message: choice["message"]
+            ? {
+                content: choice["message"]["content"],
+                toolCalls: choice["message"]["tool_calls"],
+              }
+            : undefined,
+        })),
+        model: output["model"],
+        usage: output["usage"]
+          ? {
+              completionTokens: output["usage"]["completion_tokens"],
+              promptTokens: output["usage"]["prompt_tokens"],
+              totalTokens: output["usage"]["total_tokens"],
+              completionTokensDetails: output["usage"]["completion_tokens_details"]
+                ? {
+                    acceptedPredictionTokens: output["usage"]["completion_tokens_details"]["accepted_prediction_tokens"],
+                    audioTokens: output["usage"]["completion_tokens_details"]["audio_tokens"],
+                    reasoningTokens: output["usage"]["completion_tokens_details"]["reasoning_tokens"],
+                    rejectedPredictionTokens: output["usage"]["completion_tokens_details"]["rejected_prediction_tokens"],
+                  }
+                : undefined,
+              promptTokensDetails: output["usage"]["prompt_tokens_details"]
+                ? {
+                    audioTokens: output["usage"]["prompt_tokens_details"]["audio_tokens"],
+                    cachedTokens: output["usage"]["prompt_tokens_details"]["cached_tokens"],
+                  }
+                : undefined,
+            }
+          : undefined,
+      })),
+    };
+  }
+}

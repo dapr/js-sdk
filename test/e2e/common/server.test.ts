@@ -13,7 +13,6 @@ limitations under the License.
 
 import { CommunicationProtocolEnum, DaprServer, DaprPubSubStatusEnum } from "../../../src";
 import * as NodeJSUtil from "../../../src/utils/NodeJS.util";
-
 const serverHost = "127.0.0.1";
 const serverGrpcPort = "50001";
 const serverHttpPort = "3501";
