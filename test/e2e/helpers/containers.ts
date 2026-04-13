@@ -136,27 +136,25 @@ export function buildStateMongoDbComponent(): Component {
 }
 
 /**
- * bindings.mqtt component backed by the "mqtt" network alias.
+ * bindings.mqtt3 component backed by the "mqtt" network alias.
  * Uses the default EMQX credentials (admin/public).
  */
 export function buildBindingMqttComponent(): Component {
-  return new Component("binding-mqtt", "bindings.mqtt", "v1", [
+  return new Component("binding-mqtt", "bindings.mqtt3", "v1", [
     { name: "consumerID", value: "e2e" },
     { name: "url", value: "tcp://admin:public@mqtt:1883" },
     { name: "topic", value: "topic-testing" },
-    { name: "qos", value: "1" },
     { name: "retain", value: "false" },
     { name: "cleanSession", value: "false" },
-    { name: "direction", value: "input, output" },
   ]);
 }
 
 /**
- * pubsub.mqtt component backed by the "mqtt" network alias.
+ * pubsub.mqtt3 component backed by the "mqtt" network alias.
  * Uses the default EMQX credentials (admin/public).
  */
 export function buildPubSubMqttComponent(): Component {
-  return new Component("pubsub-mqtt", "pubsub.mqtt", "v1", [
+  return new Component("pubsub-mqtt", "pubsub.mqtt3", "v1", [
     { name: "url", value: "tcp://admin:public@mqtt:1883" },
     { name: "qos", value: "1" },
     { name: "cleanSession", value: "true" },

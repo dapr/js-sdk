@@ -20,7 +20,7 @@
 #
 # To test against a specific Dapr runtime version trigger this workflow
 # manually and supply `dapr_runtime_ver` (e.g. "1.17.0-rc.1").  When left
-# blank the version pinned inside @dapr/testcontainer-node is used.
+# blank the default version (1.16.12) is used.
 
 name: Test - E2E (testcontainers)
 
@@ -60,8 +60,8 @@ jobs:
     env:
       # Forwarded into test/e2e/helpers/containers.ts so that all three Dapr
       # images (daprd, placement, scheduler) are pulled at the requested version.
-      # Empty on push/PR – the testcontainer-node default is used instead.
-      DAPR_RUNTIME_VER: ${{ github.event.inputs.dapr_runtime_ver || '' }}
+      # Defaults to 1.16.12 on push/PR; can be overridden via workflow_dispatch input.
+      DAPR_RUNTIME_VER: ${{ github.event.inputs.dapr_runtime_ver || '1.16.12' }}
 
     steps:
       - name: Checkout JS-SDK
