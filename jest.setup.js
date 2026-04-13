@@ -12,50 +12,57 @@ limitations under the License.
 */
 
 /**
- * Jest 27's jest-environment-node does not automatically expose Web API
- * globals (ReadableStream, Blob, URL, fetch, etc.) that Node.js 18+ added to
- * globalThis into the sandboxed VM context.  testcontainers → undici
- * references many of these at module-load time, so we must assign them here
- * (via setupFiles) before any test module is imported.
+ * Jest 27's jest-environment-node runs tests in a sandboxed VM context that
+ * does NOT automatically expose Web API globals (Blob, fetch, ReadableStream,
+ * AbortController, etc.) that Node.js 18+ added to the real globalThis.
+ * testcontainers → undici references these at module-load time, so we must
+ * inject them (via setupFiles) before any test module is imported.
+ *
+ * Strategy: `require('buffer').Buffer` is a built-in object created in the
+ * OUTER (non-sandboxed) Node.js realm.  Its `.constructor` property is the
+ * outer realm's `Function` constructor.  Calling that constructor with the
+ * string `'return globalThis'` produces a function that, when invoked, returns
+ * the outer Node.js `globalThis` — which has all the Web API globals we need.
+ * We then copy each one into Jest's sandboxed `global` object.
  */
 
-// Web Streams API (node:stream/web)
-const { ReadableStream, WritableStream, TransformStream } = require("stream/web");
+/* eslint-disable @typescript-eslint/no-require-imports */
+const { Buffer: _Buffer } = require("buffer");
+/* eslint-enable @typescript-eslint/no-require-imports */
 
-const webGlobals = {
-  // Streams
-  ReadableStream,
-  WritableStream,
-  TransformStream,
-  // Encoding
-  TextEncoder: globalThis.TextEncoder,
-  TextDecoder: globalThis.TextDecoder,
-  // URL
-  URL: globalThis.URL,
-  URLSearchParams: globalThis.URLSearchParams,
-  // Blob / File
-  Blob: globalThis.Blob,
-  File: globalThis.File,
-  // Fetch API
-  fetch: globalThis.fetch,
-  Headers: globalThis.Headers,
-  Request: globalThis.Request,
-  Response: globalThis.Response,
-  FormData: globalThis.FormData,
-  // Abort
-  AbortController: globalThis.AbortController,
-  AbortSignal: globalThis.AbortSignal,
-  // Events
-  Event: globalThis.Event,
-  EventTarget: globalThis.EventTarget,
-  CustomEvent: globalThis.CustomEvent,
-  MessageChannel: globalThis.MessageChannel,
-  MessageEvent: globalThis.MessageEvent,
-  MessagePort: globalThis.MessagePort,
-};
+// Reach the outer Node.js globalThis through the built-in realm's Function.
+const outerGlobal = _Buffer.constructor("return globalThis")();
 
-for (const [name, value] of Object.entries(webGlobals)) {
-  if (value !== undefined && typeof global[name] === "undefined") {
-    global[name] = value;
+const webApiNames = [
+  "ReadableStream",
+  "WritableStream",
+  "TransformStream",
+  "Blob",
+  "File",
+  "URL",
+  "URLSearchParams",
+  "TextEncoder",
+  "TextDecoder",
+  "fetch",
+  "Headers",
+  "Request",
+  "Response",
+  "FormData",
+  "AbortController",
+  "AbortSignal",
+  "Event",
+  "EventTarget",
+  "CustomEvent",
+  "MessageChannel",
+  "MessagePort",
+  "MessageEvent",
+  "crypto",
+  "performance",
+];
+
+for (const name of webApiNames) {
+  const outerVal = outerGlobal[name];
+  if (typeof outerVal !== "undefined" && typeof global[name] === "undefined") {
+    global[name] = outerVal;
   }
 }
