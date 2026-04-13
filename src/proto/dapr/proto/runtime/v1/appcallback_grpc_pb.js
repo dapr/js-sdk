@@ -243,9 +243,21 @@ onBindingEvent: {
     responseSerialize: serialize_dapr_proto_runtime_v1_BindingEventResponse,
     responseDeserialize: deserialize_dapr_proto_runtime_v1_BindingEventResponse,
   },
+  // Subscribes bulk events from Pubsub
+onBulkTopicEvent: {
+    path: '/dapr.proto.runtime.v1.AppCallback/OnBulkTopicEvent',
+    requestStream: false,
+    responseStream: false,
+    requestType: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkRequest,
+    responseType: dapr_proto_runtime_v1_appcallback_pb.TopicEventBulkResponse,
+    requestSerialize: serialize_dapr_proto_runtime_v1_TopicEventBulkRequest,
+    requestDeserialize: deserialize_dapr_proto_runtime_v1_TopicEventBulkRequest,
+    responseSerialize: serialize_dapr_proto_runtime_v1_TopicEventBulkResponse,
+    responseDeserialize: deserialize_dapr_proto_runtime_v1_TopicEventBulkResponse,
+  },
 };
 
-exports.AppCallbackClient = grpc.makeGenericClientConstructor(AppCallbackService);
+exports.AppCallbackClient = grpc.makeGenericClientConstructor(AppCallbackService, 'AppCallback');
 // AppCallbackHealthCheck V1 is an optional extension to AppCallback V1 to implement
 // the HealthCheck method.
 var AppCallbackHealthCheckService = exports.AppCallbackHealthCheckService = {
@@ -263,7 +275,7 @@ healthCheck: {
   },
 };
 
-exports.AppCallbackHealthCheckClient = grpc.makeGenericClientConstructor(AppCallbackHealthCheckService);
+exports.AppCallbackHealthCheckClient = grpc.makeGenericClientConstructor(AppCallbackHealthCheckService, 'AppCallbackHealthCheck');
 // AppCallbackAlpha V1 is an optional extension to AppCallback V1 to opt
 // for Alpha RPCs.
 var AppCallbackAlphaService = exports.AppCallbackAlphaService = {
@@ -293,4 +305,4 @@ onJobEventAlpha1: {
   },
 };
 
-exports.AppCallbackAlphaClient = grpc.makeGenericClientConstructor(AppCallbackAlphaService);
+exports.AppCallbackAlphaClient = grpc.makeGenericClientConstructor(AppCallbackAlphaService, 'AppCallbackAlpha');
