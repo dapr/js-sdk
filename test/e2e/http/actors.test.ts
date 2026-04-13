@@ -19,6 +19,7 @@ import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
 import * as NodeJSUtil from "../../../src/utils/NodeJS.util";
 import ActorId from "../../../src/actors/ActorId";
 import ActorProxyBuilder from "../../../src/actors/client/ActorProxyBuilder";
+import ActorRuntime from "../../../src/actors/runtime/ActorRuntime";
 import DemoActorActivateImpl from "../../actor/DemoActorActivateImpl";
 import DemoActorCounterImpl from "../../actor/DemoActorCounterImpl";
 import DemoActorCounterInterface from "../../actor/DemoActorCounterInterface";
@@ -62,6 +63,21 @@ const actorOptions = {
   remindersStoragePartitions: 0,
 };
 
+// Actor implementations registered with every test-run server instance.
+const DEMO_ACTORS = [
+  DemoActorCounterImpl,
+  DemoActorSayImpl,
+  DemoActorReminderImpl,
+  DemoActorReminder2Impl,
+  DemoActorReminderOnceImpl,
+  DemoActorTimerImpl,
+  DemoActorTimerOnceImpl,
+  DemoActorActivateImpl,
+  DemoActorTimerTtlImpl,
+  DemoActorReminderTtlImpl,
+  DemoActorDeleteStateImpl,
+] as const;
+
 describe("http/actors", () => {
   let server: DaprServer;
   let client: DaprClient;
@@ -96,17 +112,7 @@ describe("http/actors", () => {
     // This will initialize the actor routes.
     // Actors themselves can be initialized later
     await server.actor.init();
-    await server.actor.registerActor(DemoActorCounterImpl);
-    await server.actor.registerActor(DemoActorSayImpl);
-    await server.actor.registerActor(DemoActorReminderImpl);
-    await server.actor.registerActor(DemoActorReminder2Impl);
-    await server.actor.registerActor(DemoActorReminderOnceImpl);
-    await server.actor.registerActor(DemoActorTimerImpl);
-    await server.actor.registerActor(DemoActorTimerOnceImpl);
-    await server.actor.registerActor(DemoActorActivateImpl);
-    await server.actor.registerActor(DemoActorTimerTtlImpl);
-    await server.actor.registerActor(DemoActorReminderTtlImpl);
-    await server.actor.registerActor(DemoActorDeleteStateImpl);
+    await Promise.all(DEMO_ACTORS.map((cls) => server.actor.registerActor(cls)));
 
     // Start ONLY the HTTP listener (no sidecar wait) so the app is already
     // listening when the Dapr container probes /dapr/config during its own init.
@@ -125,26 +131,41 @@ describe("http/actors", () => {
       .withComponent(buildStateRedisComponent(true))
       .start();
 
-    // Patch the server's internal DaprClient with the real container ports.
-    (server as any).client = new DaprClient({
+    // Build a DaprClient pointing at the real container ports.
+    const realClientOptions = {
       daprHost: daprContainer.getHost(),
       daprPort: daprContainer.getHttpPort().toString(),
       communicationProtocol: CommunicationProtocolEnum.HTTP,
       isKeepAlive: false,
       actor: actorOptions,
-    });
+    };
+
+    // Patch the server's DaprClient reference so server.client.start() connects to the
+    // real sidecar port and so that the server actor router uses the real Dapr HTTP port
+    // for the ActorRuntime singleton (used when actor methods call back to Dapr for
+    // timer/reminder registration and state operations).
+    const realServerClient = new DaprClient(realClientOptions);
+    (server as any).client = realServerClient;
+
+    // HTTPServerActor holds its own private `client` reference that was set in the
+    // constructor (before the container started).  Patch it so that calls to
+    // ActorRuntime.getInstance(this.client.daprClient) inside every actor HTTP handler
+    // pass the correct Dapr port.  Also reset the ActorRuntime singleton so it is
+    // re-created with the real DaprClient on the next getInstance() call.
+    (server.actor as any).client = realServerClient;
+    ActorRuntime.resetForTesting();
+
+    // Re-register all actors against the new singleton (which will be lazily created
+    // with realServerClient on the first registerActor / getInstance call).
+    await Promise.all(DEMO_ACTORS.map((cls) => server.actor.registerActor(cls)));
 
     // Create the standalone client used for actor proxy tests.
-    client = new DaprClient({
-      daprHost: daprContainer.getHost(),
-      daprPort: daprContainer.getHttpPort().toString(),
-      communicationProtocol: CommunicationProtocolEnum.HTTP,
-      isKeepAlive: false,
-      actor: actorOptions,
-    });
+    client = new DaprClient(realClientOptions);
 
-    // Wait for the sidecar (which is already running) to be fully ready.
+    // Explicitly start both clients so that the sidecar health check completes here
+    // rather than lazily inside individual tests (which would consume their timeout budget).
     await server.client.start();
+    await client.start();
 
     // Wait for actor placement tables to fully start up
     // TODO: Remove this once healthz is fixed (https://github.com/dapr/dapr/issues/3451)

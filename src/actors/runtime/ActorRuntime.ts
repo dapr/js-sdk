@@ -61,6 +61,15 @@ export default class ActorRuntime {
     return ActorRuntime.instance;
   }
 
+  /**
+   * Resets the singleton instance.  Call this in tests when you need to
+   * re-initialize the runtime with a different DaprClient (e.g. after a
+   * testcontainer has started and the real sidecar port is known).
+   */
+  static resetForTesting(): void {
+    ActorRuntime.instance = undefined as unknown as ActorRuntime;
+  }
+
   registerActor<T extends AbstractActor>(actorCls: Class<T>): void {
     // Create an ActorManager if it hasn't been registered yet
     if (!this.actorManagers.has(actorCls.name)) {
