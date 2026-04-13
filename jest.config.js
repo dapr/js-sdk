@@ -18,4 +18,6 @@ module.exports = {
   collectCoverage: true,
   coverageReporters: ["lcov"],
   collectCoverageFrom: ["src/**/*.ts", "!src/proto/**"],
+  // Load .github/scripts/*.js files as native CJS — they have no TypeScript syntax.
+  transformIgnorePatterns: ["/node_modules/", "/.github/"],
 };
