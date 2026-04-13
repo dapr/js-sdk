@@ -28,7 +28,7 @@ import { Component, DAPR_VERSION } from "@dapr/testcontainer-node";
 //   DAPR_RUNTIME_VER=1.15.0 npm run test:e2e:all
 // ------------------------------------------------------------------
 
-const DAPR_TEST_VERSION = process.env.DAPR_RUNTIME_VER ?? DAPR_VERSION;
+const DAPR_TEST_VERSION = process.env.DAPR_RUNTIME_VER || DAPR_VERSION;
 
 /** daprd image at the configured test version. */
 export const DAPR_TEST_RUNTIME_IMAGE = `daprio/daprd:${DAPR_TEST_VERSION}`;
