@@ -45,7 +45,10 @@ import {
 
 const serverHost = "127.0.0.1";
 const serverPort = "3001";
-const serverStartWaitTimeMs = 5 * 1000;
+// Dapr actor placement tables can take up to ~20 seconds to propagate in CI after the sidecar
+// reports healthy. We wait here (inside beforeAll which has a 300 second budget) to avoid
+// "actor.init()" hanging inside individual tests and consuming their timeout budget.
+const serverStartWaitTimeMs = 20 * 1000;
 
 const actorOptions = {
   actorIdleTimeout: "1h",
@@ -234,7 +237,7 @@ describe("http/actors", () => {
     it("should be able to delete actor state", async () => {
       const builder = new ActorProxyBuilder<DemoActorDeleteStateInterface>(DemoActorDeleteStateImpl, client);
       const actor = builder.build(ActorId.createRandomId());
-      await actor.init();
+      await actor.init(); // actor.init() can take a few seconds if placement tables are still propagating
 
       const res = await actor.tryGetState();
       expect(res).toEqual(true);
@@ -244,7 +247,7 @@ describe("http/actors", () => {
       const deletedRes = await actor.tryGetState();
       console.log(deletedRes);
       expect(deletedRes).toEqual(false);
-    });
+    }, 30000);
   });
   describe("invoke", () => {
     it("should register actors correctly", async () => {
@@ -333,7 +336,7 @@ describe("http/actors", () => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       const res4 = await actor.getCounter();
       expect(res4).toEqual(300);
-    }, 20000);
+    }, 60000);
 
     it("should apply the ttl when it is set (expected execution time > 5s)", async () => {
       const builder = new ActorProxyBuilder<DemoActorTimerInterface>(DemoActorTimerTtlImpl, client);
@@ -370,7 +373,7 @@ describe("http/actors", () => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       const res4 = await actor.getCounter();
       expect(res4).toEqual(200);
-    }, 20000);
+    }, 60000);
 
     it("should only fire once when period is not set to a timer", async () => {
       const builder = new ActorProxyBuilder<DemoActorTimerInterface>(DemoActorTimerOnceImpl, client);
@@ -396,7 +399,7 @@ describe("http/actors", () => {
       // Make sure the counter didn't change
       const res2 = await actor.getCounter();
       expect(res2).toEqual(100);
-    }, 10000);
+    }, 30000);
   });
 
   describe("reminders", () => {
@@ -427,7 +430,7 @@ describe("http/actors", () => {
       // Make sure the counter didn't change since we removed the reminder
       const res2 = await actor.getCounter();
       expect(res2).toEqual(res1);
-    }, 15000);
+    }, 30000);
 
     it("should fire a reminder but with a warning if it's not implemented correctly", async () => {
       const builder = new ActorProxyBuilder<DemoActorReminderInterface>(DemoActorReminder2Impl, client);
@@ -455,7 +458,7 @@ describe("http/actors", () => {
 
       // Unregister the reminder
       await actor.removeReminder();
-    }, 15000);
+    }, 30000);
 
     it("should apply the ttl when it is set to a reminder", async () => {
       const builder = new ActorProxyBuilder<DemoActorReminderInterface>(DemoActorReminderTtlImpl, client);
@@ -483,7 +486,7 @@ describe("http/actors", () => {
       // Make sure the counter didn't change
       const res2 = await actor.getCounter();
       expect(res2).toEqual(123);
-    }, 15000);
+    }, 30000);
 
     it("should only fire once when period is not set to a reminder", async () => {
       const builder = new ActorProxyBuilder<DemoActorReminderInterface>(DemoActorReminderOnceImpl, client);
@@ -509,6 +512,6 @@ describe("http/actors", () => {
       // Make sure the counter didn't change
       const res2 = await actor.getCounter();
       expect(res2).toEqual(100);
-    }, 15000);
+    }, 30000);
   });
 });

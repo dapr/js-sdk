@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import { Network, StartedNetwork, StartedTestContainer, TestContainers } from "testcontainers";
-import { CommunicationProtocolEnum, DaprServer, HttpMethod, LogLevel } from "../../../src";
+import { CommunicationProtocolEnum, DaprClient, DaprServer, HttpMethod, LogLevel } from "../../../src";
 import { DaprGrpcAppContainer, StartedGrpcDaprContainer } from "../helpers/DaprGrpcAppContainer";
 import {
   startRedisContainer,
@@ -46,24 +46,17 @@ describe("grpc/server", () => {
     // The Dapr container calls back to the gRPC app server on the host.
     await TestContainers.exposeHostPorts(parseInt(serverPort));
 
-    daprContainer = await new DaprGrpcAppContainer()
-      .withNetwork(network)
-      .withAppId(daprAppId)
-      .withAppPort(parseInt(serverPort))
-      .withAppChannelAddress("host.testcontainers.internal")
-      .withDaprLogLevel("info")
-      .withComponent(buildBindingMqttComponent())
-      .withComponent(buildBindingRedisComponent())
-      .withComponent(buildConfigRedisComponent())
-      .start();
-
+    // Create the server with placeholder Dapr client options (real ports patched after
+    // the container starts). Must be done BEFORE DaprContainer.start() so the gRPC app
+    // listener is already running when Dapr probes it for input binding subscriptions.
     server = new DaprServer({
       serverHost,
       serverPort,
       communicationProtocol: CommunicationProtocolEnum.GRPC,
       clientOptions: {
-        daprHost: daprContainer.getHost(),
-        daprPort: daprContainer.getGrpcPort().toString(),
+        daprHost: "127.0.0.1",
+        daprPort: "50001", // placeholder – patched below with the real mapped port
+        communicationProtocol: CommunicationProtocolEnum.GRPC,
         maxBodySizeMb: 20, // we set sending larger than receiving to test the error handling
         logger: {
           level: LogLevel.Debug,
@@ -75,8 +68,36 @@ describe("grpc/server", () => {
     await server.binding.receive("binding-mqtt", mockBindingReceive);
     await server.invoker.listen("test-invoker", mockInvoker, { method: HttpMethod.POST });
 
-    // Start server
-    await server.start();
+    // Start ONLY the gRPC listener (no sidecar wait) so the app is already listening
+    // when the Dapr container probes it for input binding subscriptions during its init.
+    await server.daprServer.start(serverHost, serverPort);
+
+    // Now start the Dapr container — it will call back to the running gRPC app and
+    // register the MQTT input binding.
+    daprContainer = await new DaprGrpcAppContainer()
+      .withNetwork(network)
+      .withAppId(daprAppId)
+      .withAppPort(parseInt(serverPort))
+      .withAppChannelAddress("host.testcontainers.internal")
+      .withDaprLogLevel("info")
+      .withComponent(buildBindingMqttComponent())
+      .withComponent(buildBindingRedisComponent())
+      .withComponent(buildConfigRedisComponent())
+      .start();
+
+    // Patch the server's internal DaprClient with the real container ports.
+    (server as any).client = new DaprClient({
+      daprHost: daprContainer.getHost(),
+      daprPort: daprContainer.getGrpcPort().toString(),
+      communicationProtocol: CommunicationProtocolEnum.GRPC,
+      maxBodySizeMb: 20,
+      logger: {
+        level: LogLevel.Debug,
+      },
+    });
+
+    // Wait for the sidecar (which is already running) to be fully ready.
+    await server.client.start();
 
     await new Promise((resolve, _reject) => setTimeout(resolve, 2500));
   }, 300 * 1000);
