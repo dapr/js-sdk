@@ -52,14 +52,12 @@ describe("http/server", () => {
     // Allow the Dapr container to call back to the app server on the host.
     await TestContainers.exposeHostPorts(parseInt(serverPort));
 
-    // Start the app server BEFORE the Dapr container so that Dapr can probe the app's
-    // binding and invoker endpoints during its own initialization.
+    // Create the server with placeholder dapr client options.
     server = new DaprServer({
       serverHost,
       serverPort,
       communicationProtocol: CommunicationProtocolEnum.HTTP,
       clientOptions: {
-        // Placeholder — replaced with real container ports after daprContainer starts below.
         daprHost: "127.0.0.1",
         daprPort: "3500",
         maxBodySizeMb: 20, // we set sending larger than receiving to test the error handling
@@ -69,8 +67,9 @@ describe("http/server", () => {
 
     await server.binding.receive("binding-mqtt", mockBindingReceive);
 
-    // Start server so it is listening when the Dapr container probes it.
-    await server.start();
+    // Start ONLY the HTTP listener (no sidecar wait) so the app is already
+    // listening when the Dapr container probes it during its own init.
+    await server.daprServer.start(serverHost, serverPort);
 
     daprContainer = await new DaprContainer(DAPR_TEST_RUNTIME_IMAGE)
       .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
@@ -83,14 +82,15 @@ describe("http/server", () => {
       .withComponent(buildInMemoryPubSubComponent())
       .start();
 
-    // Patch the DaprClient inside server with the real container ports now that
-    // the container is running.
+    // Patch the DaprClient with the real container ports, then wait for the
+    // sidecar (which is already running by this point).
     (server as any).client = new DaprClient({
       daprHost: daprContainer.getHost(),
       daprPort: daprContainer.getHttpPort().toString(),
       communicationProtocol: CommunicationProtocolEnum.HTTP,
       maxBodySizeMb: 20,
     });
+    await server.client.start();
   }, 300 * 1000);
 
   beforeEach(() => {

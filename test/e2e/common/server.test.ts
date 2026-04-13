@@ -14,7 +14,6 @@ limitations under the License.
 import { Network, StartedNetwork, StartedTestContainer, TestContainers } from "testcontainers";
 import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
 import { CommunicationProtocolEnum, DaprClient, DaprServer, DaprPubSubStatusEnum } from "../../../src";
-import * as NodeJSUtil from "../../../src/utils/NodeJS.util";
 import { DaprGrpcAppContainer, StartedGrpcDaprContainer } from "../helpers/DaprGrpcAppContainer";
 import {
   startRedisContainer,
@@ -205,8 +204,9 @@ describe("common/server/http", () => {
       callback: (_data, _headers) => mockSubscribeStatusHandler(_data as string, _headers),
     });
 
-    await httpServer.start();
-    await NodeJSUtil.sleep(2000);
+    // Start ONLY the HTTP listener (no sidecar wait) so the app is already
+    // listening when the Dapr container probes it during its own init.
+    await httpServer.daprServer.start("127.0.0.1", "3501");
 
     daprContainer = await new DaprContainer(DAPR_TEST_RUNTIME_IMAGE)
       .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
@@ -217,14 +217,13 @@ describe("common/server/http", () => {
       .withComponent(buildPubSubMqttComponent())
       .start();
 
-    // Patch the DaprClient inside httpServer with the real container ports now that
-    // the container is running. The server app is already started; only the client
-    // (used in it() tests for publishing) needs the correct sidecar address.
+    // Patch the DaprClient with real container ports, then wait for sidecar.
     (httpServer as any).client = new DaprClient({
       daprHost: daprContainer.getHost(),
       daprPort: daprContainer.getHttpPort().toString(),
       communicationProtocol: CommunicationProtocolEnum.HTTP,
     });
+    await httpServer.client.start();
   }, 300 * 1000);
 
   beforeEach(() => {
@@ -812,8 +811,9 @@ describe("common/server/grpc", () => {
       callback: (_data, _headers) => mockSubscribeStatusHandler(_data as string, _headers),
     });
 
-    await grpcServer.start();
-    await NodeJSUtil.sleep(2000);
+    // Start ONLY the gRPC listener (no sidecar wait) so the app is already
+    // listening when the Dapr container probes it during its own init.
+    await grpcServer.daprServer.start("127.0.0.1", "3001");
 
     daprContainer = await new DaprGrpcAppContainer()
       .withNetwork(network)
@@ -822,14 +822,13 @@ describe("common/server/grpc", () => {
       .withComponent(buildPubSubMqttComponent())
       .start();
 
-    // Patch the DaprClient inside grpcServer with the real container ports now that
-    // the container is running. The server app is already started; only the client
-    // (used in it() tests for publishing) needs the correct sidecar address.
+    // Patch the DaprClient with real container ports, then wait for sidecar.
     (grpcServer as any).client = new DaprClient({
       daprHost: daprContainer.getHost(),
       daprPort: daprContainer.getGrpcPort().toString(),
       communicationProtocol: CommunicationProtocolEnum.GRPC,
     });
+    await grpcServer.client.start();
   }, 300 * 1000);
 
   beforeEach(() => {
