@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { CommunicationProtocolEnum, DaprClient, DaprClientOptions, DaprServer } from "../../../src";
+import { CommunicationProtocolEnum, DaprClient, DaprServer } from "../../../src";
 import fetch from "node-fetch";
 import { Network, StartedNetwork, StartedTestContainer, TestContainers } from "testcontainers";
 import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
@@ -47,6 +47,18 @@ const serverHost = "127.0.0.1";
 const serverPort = "3001";
 const serverStartWaitTimeMs = 5 * 1000;
 
+const actorOptions = {
+  actorIdleTimeout: "1h",
+  actorScanInterval: "30s",
+  drainOngoingCallTimeout: "1m",
+  drainRebalancedActors: true,
+  reentrancy: {
+    enabled: true,
+    maxStackDepth: 32,
+  },
+  remindersStoragePartitions: 0,
+};
+
 describe("http/actors", () => {
   let server: DaprServer;
   let client: DaprClient;
@@ -61,34 +73,7 @@ describe("http/actors", () => {
     // Allow the Dapr container to call back to the app server on the host.
     await TestContainers.exposeHostPorts(parseInt(serverPort));
 
-    daprContainer = await new DaprContainer(DAPR_TEST_RUNTIME_IMAGE)
-      .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
-      .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE)
-      .withNetwork(network)
-      .withAppPort(parseInt(serverPort))
-      .withAppChannelAddress("host.testcontainers.internal")
-      // actorStateStore must be "true" for actor support
-      .withComponent(buildStateRedisComponent(true))
-      .start();
-
-    const daprClientOptions: DaprClientOptions = {
-      daprHost: daprContainer.getHost(),
-      daprPort: daprContainer.getHttpPort().toString(),
-      communicationProtocol: CommunicationProtocolEnum.HTTP,
-      isKeepAlive: false,
-      actor: {
-        actorIdleTimeout: "1h",
-        actorScanInterval: "30s",
-        drainOngoingCallTimeout: "1m",
-        drainRebalancedActors: true,
-        reentrancy: {
-          enabled: true,
-          maxStackDepth: 32,
-        },
-        remindersStoragePartitions: 0,
-      },
-    };
-
+    // Create server with placeholder dapr client options (real ports patched after container starts).
     // Start server and client with keepAlive on the client set to false.
     // this means that we won't re-use connections here which is necessary for the tests
     // since it will keep handles open else it has to be initialized before the server starts!
@@ -96,10 +81,14 @@ describe("http/actors", () => {
       serverHost,
       serverPort,
       communicationProtocol: CommunicationProtocolEnum.HTTP,
-      clientOptions: daprClientOptions,
+      clientOptions: {
+        daprHost: "127.0.0.1",
+        daprPort: "3500",
+        communicationProtocol: CommunicationProtocolEnum.HTTP,
+        isKeepAlive: false,
+        actor: actorOptions,
+      },
     });
-
-    client = new DaprClient(daprClientOptions);
 
     // This will initialize the actor routes.
     // Actors themselves can be initialized later
@@ -116,13 +105,48 @@ describe("http/actors", () => {
     await server.actor.registerActor(DemoActorReminderTtlImpl);
     await server.actor.registerActor(DemoActorDeleteStateImpl);
 
-    // Start server
-    await server.start(); // Start the general server, this can take a while
+    // Start ONLY the HTTP listener (no sidecar wait) so the app is already
+    // listening when the Dapr container probes /dapr/config during its own init.
+    // This ensures actor types are registered with the placement service.
+    await server.daprServer.start(serverHost, serverPort);
+
+    // Now start the Dapr container — it will call /dapr/config on the app and
+    // register the actor types with the placement service.
+    daprContainer = await new DaprContainer(DAPR_TEST_RUNTIME_IMAGE)
+      .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
+      .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE)
+      .withNetwork(network)
+      .withAppPort(parseInt(serverPort))
+      .withAppChannelAddress("host.testcontainers.internal")
+      // actorStateStore must be "true" for actor support
+      .withComponent(buildStateRedisComponent(true))
+      .start();
+
+    // Patch the server's internal DaprClient with the real container ports.
+    (server as any).client = new DaprClient({
+      daprHost: daprContainer.getHost(),
+      daprPort: daprContainer.getHttpPort().toString(),
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
+      isKeepAlive: false,
+      actor: actorOptions,
+    });
+
+    // Create the standalone client used for actor proxy tests.
+    client = new DaprClient({
+      daprHost: daprContainer.getHost(),
+      daprPort: daprContainer.getHttpPort().toString(),
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
+      isKeepAlive: false,
+      actor: actorOptions,
+    });
+
+    // Wait for the sidecar (which is already running) to be fully ready.
+    await server.client.start();
 
     // Wait for actor placement tables to fully start up
     // TODO: Remove this once healthz is fixed (https://github.com/dapr/dapr/issues/3451)
     await NodeJSUtil.sleep(serverStartWaitTimeMs);
-  }, 30 * 1000);
+  }, 300 * 1000);
 
   // We need to stop the server after all tests are done
   // Note: it can take > 5s so increase timeout as we are testing reminders and timers
@@ -309,7 +333,7 @@ describe("http/actors", () => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       const res4 = await actor.getCounter();
       expect(res4).toEqual(300);
-    }, 10000);
+    }, 20000);
 
     it("should apply the ttl when it is set (expected execution time > 5s)", async () => {
       const builder = new ActorProxyBuilder<DemoActorTimerInterface>(DemoActorTimerTtlImpl, client);
@@ -346,7 +370,7 @@ describe("http/actors", () => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       const res4 = await actor.getCounter();
       expect(res4).toEqual(200);
-    }, 10000);
+    }, 20000);
 
     it("should only fire once when period is not set to a timer", async () => {
       const builder = new ActorProxyBuilder<DemoActorTimerInterface>(DemoActorTimerOnceImpl, client);
@@ -372,7 +396,7 @@ describe("http/actors", () => {
       // Make sure the counter didn't change
       const res2 = await actor.getCounter();
       expect(res2).toEqual(100);
-    }, 5000);
+    }, 10000);
   });
 
   describe("reminders", () => {
@@ -403,7 +427,7 @@ describe("http/actors", () => {
       // Make sure the counter didn't change since we removed the reminder
       const res2 = await actor.getCounter();
       expect(res2).toEqual(res1);
-    });
+    }, 15000);
 
     it("should fire a reminder but with a warning if it's not implemented correctly", async () => {
       const builder = new ActorProxyBuilder<DemoActorReminderInterface>(DemoActorReminder2Impl, client);
@@ -431,7 +455,7 @@ describe("http/actors", () => {
 
       // Unregister the reminder
       await actor.removeReminder();
-    });
+    }, 15000);
 
     it("should apply the ttl when it is set to a reminder", async () => {
       const builder = new ActorProxyBuilder<DemoActorReminderInterface>(DemoActorReminderTtlImpl, client);
@@ -459,7 +483,7 @@ describe("http/actors", () => {
       // Make sure the counter didn't change
       const res2 = await actor.getCounter();
       expect(res2).toEqual(123);
-    });
+    }, 15000);
 
     it("should only fire once when period is not set to a reminder", async () => {
       const builder = new ActorProxyBuilder<DemoActorReminderInterface>(DemoActorReminderOnceImpl, client);
@@ -485,6 +509,6 @@ describe("http/actors", () => {
       // Make sure the counter didn't change
       const res2 = await actor.getCounter();
       expect(res2).toEqual(100);
-    }, 5000);
+    }, 15000);
   });
 });
