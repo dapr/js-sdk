@@ -680,7 +680,7 @@ describe("common/server/grpc", () => {
   let grpcServer: DaprServer;
 
   const protocol = "grpc";
-  const appPort = 50001;
+  const appPort = 3001;
   const getTopic = (topic: string) => protocol + "-" + topic;
 
   const mockSubscribeHandler = jest.fn(async (_data: object, _headers: object) => null);
@@ -720,7 +720,7 @@ describe("common/server/grpc", () => {
 
     grpcServer = new DaprServer({
       serverHost: "127.0.0.1",
-      serverPort: "50001",
+      serverPort: "3001",
       communicationProtocol: CommunicationProtocolEnum.GRPC,
       clientOptions: {
         // Placeholder — replaced with real container ports after daprContainer starts below.

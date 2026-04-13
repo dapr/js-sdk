@@ -23,7 +23,7 @@ import {
 } from "../helpers/containers";
 
 const serverHost = "127.0.0.1";
-const serverPort = "50001";
+const serverPort = "3001";
 const daprAppId = "test-suite-grpc-server";
 
 describe("grpc/server", () => {
