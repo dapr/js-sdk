@@ -13,7 +13,7 @@ limitations under the License.
 
 module.exports = {
   preset: "ts-jest",
-  testEnvironment: "node",
+  testEnvironment: "<rootDir>/test/e2e/helpers/CustomNodeEnvironment.cjs",
   setupFiles: ["<rootDir>/jest.setup.js"],
   collectCoverage: true,
   coverageReporters: ["lcov"],

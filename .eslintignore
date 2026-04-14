@@ -9,3 +9,4 @@ coverage
 proto
 # don't lint jest infrastructure files
 jest.setup.js
+test/e2e/helpers/CustomNodeEnvironment.cjs

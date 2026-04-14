@@ -103,56 +103,17 @@ for (const name of undiciGlobals) {
   }
 }
 
-// ── Suppress empty AggregateErrors from testcontainers/ssh2 GC ───────────────
-// testcontainers uses ssh2 which creates SubtleCrypto handles.  When those
-// handles are abruptly terminated during Jest's --forceExit shutdown or during
-// container teardown in afterAll, Node.js fires empty AggregateError unhandled
-// rejections.  Jest's circus runner captures those via
-// process.on('unhandledRejection') and reports them as "Test suite failed to
-// run" — even though every individual test passed.
+// ── AggregateError suppression ────────────────────────────────────────────────
+// Suppression of the empty AggregateErrors emitted by testcontainers/ssh2
+// SubtleCrypto handles during container teardown is handled by the custom
+// testEnvironment (test/e2e/helpers/CustomNodeEnvironment.cjs).
 //
-// In Node.js 22+, the unhandledRejection event is dispatched using primordials
-// (the original process.emit captured at Node.js startup), which bypasses any
-// user-space override of process.emit.  Overriding process.emit therefore has
-// no effect on the internal dispatch path.
+// This file (jest.setup.js) runs via runtime.requireModule() inside the VM
+// context created by jest-environment-node.  The `process` object visible here
+// is a deep COPY produced by jest-util's createProcessObject() — NOT the real
+// Node.js process.  Any modifications made to process.on here have no effect
+// on jest-circus, which always receives the real process as parentProcess.
 //
-// Instead, we intercept process.on / addListener / prependListener / once so
-// that any 'unhandledRejection' handler that is subsequently registered (e.g.
-// by jest-circus's jestAdapterInit, which runs after setupFiles) is silently
-// wrapped with a filter.  The wrapper drops empty-message AggregateErrors and
-// forwards everything else to the original handler unchanged.
-//
-// setupFiles runs before jest-circus initialises its test infrastructure, so
-// our process.on override is already in place when jest-circus calls
-// process.on('unhandledRejection', ...).
-
-function isEmptyAggregateError(reason) {
-  if (reason === null || typeof reason !== "object") return false;
-  return Array.isArray(reason.errors) && !reason.message;
-}
-
-function wrapUnhandledRejectionHandler(handler) {
-  return function filteredUnhandledRejectionHandler(reason, promise) {
-    if (!isEmptyAggregateError(reason)) {
-      return Reflect.apply(handler, this, [reason, promise]);
-    }
-  };
-}
-
-// Guard against double-wrapping when setupFiles runs once per test file in the
-// same --runInBand process (the process object is shared across all test files).
-// Use Symbol.for() so the same Symbol is retrieved across multiple invocations
-// of this file without polluting the process namespace with a string key.
-const FILTER_FLAG = Symbol.for("dapr.test.unhandledRejectionFiltered");
-if (!process[FILTER_FLAG]) {
-  process[FILTER_FLAG] = true;
-  ["on", "addListener", "prependListener", "once"].forEach(function (method) {
-    const original = process[method];
-    process[method] = function (event, listener, ...rest) {
-      if (event === "unhandledRejection") {
-        return original.call(this, event, wrapUnhandledRejectionHandler(listener), ...rest);
-      }
-      return original.call(this, event, listener, ...rest);
-    };
-  });
-}
+// The custom environment's setup() method runs in the outer Node.js context
+// and correctly patches the real process.on before jest-circus installs its
+// unhandledRejection handler.
