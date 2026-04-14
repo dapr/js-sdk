@@ -180,7 +180,7 @@ export class DaprGrpcAppContainer extends GenericContainer {
       cmds.push("--app-port", this.appPort.toString());
     }
     if (this.maxRequestSizeMb !== undefined) {
-      cmds.push("--dapr-grpc-max-request-size", this.maxRequestSizeMb.toString());
+      cmds.push("--dapr-http-max-request-size", this.maxRequestSizeMb.toString());
     }
 
     this.withCommand(cmds);
