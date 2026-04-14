@@ -13,6 +13,7 @@ limitations under the License.
 
 import { Network, StartedNetwork, StartedTestContainer, TestContainers } from "testcontainers";
 import { CommunicationProtocolEnum, DaprClient, DaprServer, HttpMethod, LogLevel } from "../../../src";
+import { DaprInvokerCallbackContent } from "../../../src/types/DaprInvokerCallback.type";
 import { DaprGrpcAppContainer, StartedGrpcDaprContainer } from "../helpers/DaprGrpcAppContainer";
 import {
   startRedisContainer,
@@ -187,6 +188,20 @@ describe("grpc/server", () => {
 
       expect(mock.mock.calls.length).toBe(1);
       expect(JSON.stringify(res)).toEqual(`{"hello":"world"}`);
+    });
+
+    it("should be able to listen and invoke a service with headers", async () => {
+      const mock = jest.fn(async (data: DaprInvokerCallbackContent) => data.headers);
+
+      await server.invoker.listen("hello-world-headers", mock, { method: HttpMethod.GET });
+      const res = await server.client.invoker.invoke(daprAppId, "hello-world-headers", HttpMethod.GET, undefined, {
+        headers: { "x-foo": "bar-baz" },
+      });
+
+      expect(mock.mock.calls.length).toBe(1);
+      // Headers are not forwarded to the gRPC app callback (documented in DaprInvokerCallbackContent).
+      // The handler receives undefined for headers, so the response is also undefined.
+      expect(res).toBeUndefined();
     });
   });
 });

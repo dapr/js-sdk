@@ -319,6 +319,40 @@ describe("workflow", () => {
     }
   }, 31000);
 
+  it("should be able to suspend and resume an orchestration", async () => {
+    const workflow: TWorkflow = async function* (ctx: WorkflowContext, _: any): any {
+      const res = yield ctx.waitForExternalEvent("my_event");
+      return res;
+    };
+
+    workflowRuntime.registerWorkflow(workflow);
+    await workflowRuntime.start();
+
+    const id = await workflowClient.scheduleNewWorkflow(workflow);
+    let state = await workflowClient.waitForWorkflowStart(id, undefined, 30);
+    expect(state).toBeDefined();
+    expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.RUNNING);
+
+    // Suspend the workflow and confirm it enters the SUSPENDED state.
+    await workflowClient.suspendWorkflow(id);
+    state = await workflowClient.getWorkflowState(id, false);
+    expect(state).toBeDefined();
+    expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.SUSPENDED);
+
+    // Resume the workflow and confirm it returns to the RUNNING state.
+    await workflowClient.resumeWorkflow(id);
+    state = await workflowClient.getWorkflowState(id, false);
+    expect(state).toBeDefined();
+    expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.RUNNING);
+
+    // Unblock the workflow by raising the awaited event.
+    await workflowClient.raiseEvent(id, "my_event", "hello");
+    state = await workflowClient.waitForWorkflowCompletion(id, undefined, 30);
+    expect(state).toBeDefined();
+    expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.COMPLETED);
+    expect(state?.serializedOutput).toEqual(JSON.stringify("hello"));
+  }, 31000);
+
   it("should be able to terminate an orchestration", async () => {
     const workflow: TWorkflow = async function* (ctx: WorkflowContext, _: any): any {
       const res = yield ctx.waitForExternalEvent("my_event");
