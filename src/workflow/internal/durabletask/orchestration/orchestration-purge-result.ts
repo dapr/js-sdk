@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
 /*
 Copyright 2026 The Dapr Authors
 Licensed under the Apache License, Version 2.0 (the "License");
