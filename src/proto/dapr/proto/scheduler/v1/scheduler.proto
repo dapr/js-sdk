@@ -1,0 +1,281 @@
+syntax = "proto3";
+
+package dapr.proto.scheduler.v1;
+
+import "dapr/proto/common/v1/common.proto";
+import "google/protobuf/any.proto";
+
+option go_package = "github.com/dapr/dapr/pkg/proto/scheduler/v1;scheduler";
+
+service Scheduler {
+  // ScheduleJob is used by the daprd sidecar to schedule a job.
+  rpc ScheduleJob(ScheduleJobRequest) returns (ScheduleJobResponse) {}
+  // Get a job
+  rpc GetJob(GetJobRequest) returns (GetJobResponse) {}
+  // DeleteJob is used by the daprd sidecar to delete a job.
+  rpc DeleteJob(DeleteJobRequest) returns (DeleteJobResponse) {}
+  // WatchJobs is used by the daprd sidecar to connect to the Scheduler
+  // service to watch for jobs triggering back.
+  rpc WatchJobs(stream WatchJobsRequest) returns (stream WatchJobsResponse) {}
+  // ListJobs is used by the daprd sidecar to list all jobs.
+  rpc ListJobs(ListJobsRequest) returns (ListJobsResponse) {}
+  // WatchHosts is used by the daprd sidecar to retrieve the list of active
+  // scheduler hosts so that it can connect to each. Receives an updated list
+  // on leadership changes.
+  rpc WatchHosts(WatchHostsRequest) returns (stream WatchHostsResponse) {}
+  // DeleteByMetadata is used by the daprd sidecar to delete jobs by a metadata
+  // target.
+  rpc DeleteByMetadata(DeleteByMetadataRequest) returns (DeleteByMetadataResponse) {}
+  // DeleteByNamePrefix is used by the daprd sidecar to delete jobs by name
+  // prefix. An empty prefix deletes all jobs from the target.
+  rpc DeleteByNamePrefix(DeleteByNamePrefixRequest) returns (DeleteByNamePrefixResponse) {}
+}
+
+message Job {
+  // The schedule for the job.
+  optional string schedule = 1;
+
+  // Optional: jobs with fixed repeat counts (accounting for Actor Reminders).
+  optional uint32 repeats = 2;
+
+  // Optional: sets time at which or time interval before the callback is invoked for the first time.
+  optional string due_time = 3;
+
+  // Optional: Time To Live to allow for auto deletes (accounting for Actor Reminders).
+  optional string ttl = 4;
+
+  // Job data.
+  google.protobuf.Any data = 5;
+
+  // failure_policy is the optional policy to apply when a job fails to
+  // trigger.
+  // By default, the failure policy is FailurePolicyConstant with a 1s interval
+  // and 3 maximum retries.
+  optional common.v1.JobFailurePolicy failure_policy = 6;
+}
+
+// TargetJob is the message used by the daprd sidecar to schedule a job
+// from an App.
+message TargetJob {}
+
+// TargetActorReminder is the message used by the daprd sidecar to
+// schedule a job from an Actor Reminder.
+message TargetActorReminder {
+  // id is the actor ID.
+  string id = 1;
+
+  // type is the actor type.
+  string type = 2;
+}
+
+// JobTargetType is the type of the job target.
+enum JobTargetType {
+  // JOB_TARGET_TYPE_JOB is the job target type.
+  JOB_TARGET_TYPE_JOB = 0;
+
+  // JOB_TARGET_TYPE_ACTOR_REMINDER is the actor reminder target type.
+  JOB_TARGET_TYPE_ACTOR_REMINDER = 1;
+}
+
+// JobTargetMetadata holds the typed metadata associated with the job for
+// different origins.
+message JobTargetMetadata {
+  oneof type {
+    TargetJob job = 1;
+    TargetActorReminder actor = 2;
+  }
+}
+
+// JobMetadata is the message used by the daprd sidecar to schedule/get/delete a
+// job.
+message JobMetadata {
+  // app_id is the App ID of the requester.
+  string app_id = 1;
+
+  // namespace is the namespace of the requester.
+  string namespace = 2;
+
+  // target is the type of the job.
+  JobTargetMetadata target = 3;
+}
+
+// WatchJobsRequest is the message used by the daprd sidecar to connect to the
+// Scheduler and send Job process results.
+message WatchJobsRequest {
+  oneof watch_job_request_type {
+    WatchJobsRequestInitial initial = 1;
+    WatchJobsRequestResult result = 2;
+  }
+}
+
+// WatchJobsRequestInitial is the initial request to start watching for jobs.
+message WatchJobsRequestInitial {
+  // app_id is the App ID of the requester.
+  string app_id = 1;
+
+  // namespace is the namespace of the requester.
+  string namespace = 2;
+
+  // actor_types is the optional list of actor types to watch for.
+  repeated string actor_types = 3;
+
+  // accept_job_types is the list of job types which the client will watch for
+  // and accept upon triggering accept.
+  repeated JobTargetType accept_job_types = 4;
+}
+
+// WatchJobsRequestResultStatus is sent by clients to signal where the job
+// triggering was sucessful or failed, in which case should be handled by the
+// failure policy of the job.
+enum WatchJobsRequestResultStatus {
+  // The job was processed successfully.
+  SUCCESS = 0;
+
+  // The job was processed with an error.
+  FAILED = 1;
+}
+
+// WatchJobsRequestResult is the result of a job execution to allow the job to
+// be marked as processed.
+message WatchJobsRequestResult {
+  // id is the id of the job that has finished processing, used as an incremental counter.
+  uint64 id = 1;
+
+  // status is the status of the job processing.
+  WatchJobsRequestResultStatus status = 2;
+}
+
+// WatchJobsResponse is the response message to convey the details of a job.
+message WatchJobsResponse {
+  // name is the name of the job which was triggered.
+  string name = 1;
+
+  // id is the id of the job trigger event which should be sent back from
+  // the client to be marked as processed, used as an incremental counter.
+  uint64 id = 2;
+
+  // Job data.
+  google.protobuf.Any data = 3;
+
+  // The metadata associated with the job.
+  JobMetadata metadata = 4;
+}
+
+message ScheduleJobRequest {
+  // name is the name of the job to create.
+  string name = 1;
+
+  // The job to be scheduled.
+  Job job = 2;
+
+  // The metadata associated with the job.
+  JobMetadata metadata = 3;
+
+  // If true, allows this job to overwrite an existing job with the same name.
+  bool overwrite = 4;
+}
+
+message ScheduleJobResponse {
+  // Empty
+}
+
+// GetJobRequest is the message used by the daprd sidecar to delete or get a job.
+message GetJobRequest {
+  // name is the name of the job.
+  string name = 1;
+
+  // The metadata associated with the job.
+  JobMetadata metadata = 2;
+}
+
+// GetJobResponse is the response message to convey the details of a job.
+message GetJobResponse {
+  // The job to be scheduled.
+  Job job = 1;
+}
+
+// DeleteJobRequest is the message used by the daprd sidecar to delete or get a job.
+message DeleteJobRequest {
+  string name = 1;
+
+  // The metadata associated with the job.
+  JobMetadata metadata = 2;
+}
+
+// DeleteJobRequest is the response message used by the daprd sidecar to delete or get a job.
+message DeleteJobResponse {
+  // Empty
+}
+
+// NamedJob is a job with a name.
+message NamedJob {
+ // name is the name of the job.
+  string name = 1;
+
+  // The metadata associated with the job.
+  JobMetadata metadata = 2;
+
+  // The job scheduled.
+  Job job = 3;
+}
+
+// ListJobsRequest is the message used by the daprd sidecar to list all jobs.
+message ListJobsRequest {
+  // The metadata associated with the job.
+  JobMetadata metadata = 1;
+}
+
+// ListJobsResponse is the response message to convey the details of a job.
+message ListJobsResponse {
+  // The list of jobs.
+  repeated NamedJob jobs = 1;
+}
+
+// WatchHostsRequest is the message used by the daprd sidecar to connect to the
+// Scheduler and watch for hosts.
+message WatchHostsRequest {}
+
+// WatchHostsResponse is the response message to convey the details of a host.
+message WatchHostsResponse {
+  // hosts is the list of current active scheduler hosts in the cluster.
+  repeated Host hosts = 1;
+}
+
+// Host is the message used to represent a host.
+message Host {
+  // address is the address of the host.
+  string address = 1;
+}
+
+// DeleteByMetadataRequest is the message used by the daprd sidecar to delete jobs by metadata.
+message DeleteByMetadataRequest {
+  // The metadata target to delete jobs by.
+  JobMetadata metadata = 1;
+
+  // id_prefix_match indicates whether to match by prefix for the ID field in
+  // Actor Reminders. When true, all jobs with IDs that start with the
+  // specified ID will be deleted. When false, only the ID/appID with the exact
+  // ID will be deleted.
+  // Default is false.
+  optional bool id_prefix_match = 2;
+}
+
+// DeleteByMetadataResponse is the response message used by the daprd sidecar to delete jobs by metadata.
+message DeleteByMetadataResponse {
+  // Empty
+}
+
+// DeleteByNamePrefixRequest is the message used by the daprd sidecar to delete jobs by name prefix.
+// An empty prefix deletes all jobs from the target.
+message DeleteByNamePrefixRequest {
+  // name_prefix is the name prefix to delete jobs by.
+  // An empty prefix deletes all jobs from the target.
+  string name_prefix = 1;
+
+  // The metadata associated with the job.
+  JobMetadata metadata = 2;
+}
+
+message DeleteByNamePrefixResponse {
+  // Empty
+}

@@ -16,7 +16,7 @@ import {
   GetMetadataRequest,
   GetMetadataResponse,
   SetMetadataRequest,
-} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+} from "../../../proto/dapr/proto/runtime/v1/metadata_pb";
 import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 import IClientMetadata from "../../../interfaces/Client/IClientMetadata";
 import { GetMetadataResponse as GetMetadataResponseResult } from "../../../types/metadata/GetMetadataResponse";

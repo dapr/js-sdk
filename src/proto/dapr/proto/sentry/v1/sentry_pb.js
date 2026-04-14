@@ -13,16 +13,18 @@
 
 var jspb = require('google-protobuf');
 var goog = jspb;
-var global =
-    (typeof globalThis !== 'undefined' && globalThis) ||
-    (typeof window !== 'undefined' && window) ||
-    (typeof global !== 'undefined' && global) ||
-    (typeof self !== 'undefined' && self) ||
-    (function () { return this; }).call(null) ||
-    Function('return this')();
+var global = (function() {
+  if (this) { return this; }
+  if (typeof window !== 'undefined') { return window; }
+  if (typeof global !== 'undefined') { return global; }
+  if (typeof self !== 'undefined') { return self; }
+  return Function('return this')();
+}.call(null));
 
 var google_protobuf_timestamp_pb = require('google-protobuf/google/protobuf/timestamp_pb.js');
 goog.object.extend(proto, google_protobuf_timestamp_pb);
+var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
+goog.object.extend(proto, google_protobuf_wrappers_pb);
 goog.exportSymbol('proto.dapr.proto.sentry.v1.SignCertificateRequest', null, global);
 goog.exportSymbol('proto.dapr.proto.sentry.v1.SignCertificateRequest.TokenValidator', null, global);
 goog.exportSymbol('proto.dapr.proto.sentry.v1.SignCertificateResponse', null, global);
@@ -37,7 +39,7 @@ goog.exportSymbol('proto.dapr.proto.sentry.v1.SignCertificateResponse', null, gl
  * @constructor
  */
 proto.dapr.proto.sentry.v1.SignCertificateRequest = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.dapr.proto.sentry.v1.SignCertificateRequest.repeatedFields_, null);
 };
 goog.inherits(proto.dapr.proto.sentry.v1.SignCertificateRequest, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
@@ -68,6 +70,13 @@ if (goog.DEBUG && !COMPILED) {
    */
   proto.dapr.proto.sentry.v1.SignCertificateResponse.displayName = 'proto.dapr.proto.sentry.v1.SignCertificateResponse';
 }
+
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.dapr.proto.sentry.v1.SignCertificateRequest.repeatedFields_ = [7];
 
 
 
@@ -105,7 +114,8 @@ proto.dapr.proto.sentry.v1.SignCertificateRequest.toObject = function(includeIns
     trustDomain: jspb.Message.getFieldWithDefault(msg, 3, ""),
     namespace: jspb.Message.getFieldWithDefault(msg, 4, ""),
     certificateSigningRequest: msg.getCertificateSigningRequest_asB64(),
-    tokenValidator: jspb.Message.getFieldWithDefault(msg, 6, 0)
+    tokenValidator: jspb.Message.getFieldWithDefault(msg, 6, 0),
+    jwtAudiencesList: (f = jspb.Message.getRepeatedField(msg, 7)) == null ? undefined : f
   };
 
   if (includeInstance) {
@@ -165,6 +175,10 @@ proto.dapr.proto.sentry.v1.SignCertificateRequest.deserializeBinaryFromReader = 
     case 6:
       var value = /** @type {!proto.dapr.proto.sentry.v1.SignCertificateRequest.TokenValidator} */ (reader.readEnum());
       msg.setTokenValidator(value);
+      break;
+    case 7:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addJwtAudiences(value);
       break;
     default:
       reader.skipField();
@@ -234,6 +248,13 @@ proto.dapr.proto.sentry.v1.SignCertificateRequest.serializeBinaryToWriter = func
   if (f !== 0.0) {
     writer.writeEnum(
       6,
+      f
+    );
+  }
+  f = message.getJwtAudiencesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      7,
       f
     );
   }
@@ -382,6 +403,43 @@ proto.dapr.proto.sentry.v1.SignCertificateRequest.prototype.setTokenValidator = 
 };
 
 
+/**
+ * repeated string jwt_audiences = 7;
+ * @return {!Array<string>}
+ */
+proto.dapr.proto.sentry.v1.SignCertificateRequest.prototype.getJwtAudiencesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 7));
+};
+
+
+/**
+ * @param {!Array<string>} value
+ * @return {!proto.dapr.proto.sentry.v1.SignCertificateRequest} returns this
+ */
+proto.dapr.proto.sentry.v1.SignCertificateRequest.prototype.setJwtAudiencesList = function(value) {
+  return jspb.Message.setField(this, 7, value || []);
+};
+
+
+/**
+ * @param {string} value
+ * @param {number=} opt_index
+ * @return {!proto.dapr.proto.sentry.v1.SignCertificateRequest} returns this
+ */
+proto.dapr.proto.sentry.v1.SignCertificateRequest.prototype.addJwtAudiences = function(value, opt_index) {
+  return jspb.Message.addToRepeatedField(this, 7, value, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.dapr.proto.sentry.v1.SignCertificateRequest} returns this
+ */
+proto.dapr.proto.sentry.v1.SignCertificateRequest.prototype.clearJwtAudiencesList = function() {
+  return this.setJwtAudiencesList([]);
+};
+
+
 
 /**
  * List of repeated fields within this message type.
@@ -423,7 +481,8 @@ proto.dapr.proto.sentry.v1.SignCertificateResponse.toObject = function(includeIn
   var f, obj = {
     workloadCertificate: msg.getWorkloadCertificate_asB64(),
     trustChainCertificatesList: msg.getTrustChainCertificatesList_asB64(),
-    validUntil: (f = msg.getValidUntil()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f)
+    validUntil: (f = msg.getValidUntil()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
+    jwt: (f = msg.getJwt()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -472,6 +531,11 @@ proto.dapr.proto.sentry.v1.SignCertificateResponse.deserializeBinaryFromReader =
       var value = new google_protobuf_timestamp_pb.Timestamp;
       reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
       msg.setValidUntil(value);
+      break;
+    case 4:
+      var value = new google_protobuf_wrappers_pb.StringValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
+      msg.setJwt(value);
       break;
     default:
       reader.skipField();
@@ -522,6 +586,14 @@ proto.dapr.proto.sentry.v1.SignCertificateResponse.serializeBinaryToWriter = fun
       3,
       f,
       google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
+    );
+  }
+  f = message.getJwt();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
     );
   }
 };
@@ -664,6 +736,43 @@ proto.dapr.proto.sentry.v1.SignCertificateResponse.prototype.clearValidUntil = f
  */
 proto.dapr.proto.sentry.v1.SignCertificateResponse.prototype.hasValidUntil = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional google.protobuf.StringValue jwt = 4;
+ * @return {?proto.google.protobuf.StringValue}
+ */
+proto.dapr.proto.sentry.v1.SignCertificateResponse.prototype.getJwt = function() {
+  return /** @type{?proto.google.protobuf.StringValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.StringValue, 4));
+};
+
+
+/**
+ * @param {?proto.google.protobuf.StringValue|undefined} value
+ * @return {!proto.dapr.proto.sentry.v1.SignCertificateResponse} returns this
+*/
+proto.dapr.proto.sentry.v1.SignCertificateResponse.prototype.setJwt = function(value) {
+  return jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.dapr.proto.sentry.v1.SignCertificateResponse} returns this
+ */
+proto.dapr.proto.sentry.v1.SignCertificateResponse.prototype.clearJwt = function() {
+  return this.setJwt(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dapr.proto.sentry.v1.SignCertificateResponse.prototype.hasJwt = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 

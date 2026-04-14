@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { OrchestrationStatus } from "@dapr/durabletask-js/orchestration/enum/orchestration-status.enum";
+import { OrchestrationStatus } from "../internal/durabletask/orchestration/enum/orchestration-status.enum";
 
 /**
  * Enum describing the runtime status of a workflow.
@@ -34,7 +34,7 @@ export enum WorkflowRuntimeStatus {
  */
 export function fromOrchestrationStatus(val: OrchestrationStatus): WorkflowRuntimeStatus {
   const values = Object.values(WorkflowRuntimeStatus);
-  const valIdx = values.findIndex((v) => v == (val as number));
+  const valIdx = values.findIndex((v) => v === (val as number));
 
   // Return the entry of the WorkflowRuntimeStatus enum at index
   const entries = Object.entries(WorkflowRuntimeStatus);
@@ -49,7 +49,7 @@ export function fromOrchestrationStatus(val: OrchestrationStatus): WorkflowRunti
  */
 export function toOrchestrationStatus(val: WorkflowRuntimeStatus): OrchestrationStatus {
   const values = Object.values(OrchestrationStatus);
-  const valIdx = values.findIndex((v) => v == (val as number));
+  const valIdx = values.findIndex((v) => v === (val as number));
 
   // Return the entry of the WorkflowRuntimeStatus enum at index
   const entries = Object.entries(OrchestrationStatus);

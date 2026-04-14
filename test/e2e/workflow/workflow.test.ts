@@ -11,6 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { Network, StartedNetwork, StartedTestContainer } from "testcontainers";
+import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
 import DaprWorkflowClient from "../../../src/workflow/client/DaprWorkflowClient";
 import WorkflowContext from "../../../src/workflow/runtime/WorkflowContext";
 import WorkflowRuntime from "../../../src/workflow/runtime/WorkflowRuntime";
@@ -18,30 +20,62 @@ import { TWorkflow } from "../../../src/types/workflow/Workflow.type";
 import { getFunctionName } from "../../../src/workflow/internal";
 import { WorkflowRuntimeStatus } from "../../../src/workflow/runtime/WorkflowRuntimeStatus";
 import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
-import { Task } from "@dapr/durabletask-js/task/task";
+import { Task } from "../../../src/workflow/internal/durabletask/task/task";
+import {
+  startRedisContainer,
+  buildStateRedisComponent,
+  DAPR_TEST_RUNTIME_IMAGE,
+  DAPR_TEST_PLACEMENT_IMAGE,
+  DAPR_TEST_SCHEDULER_IMAGE,
+  runWithCleanupErrorSuppression,
+} from "../helpers/containers";
 
-const clientHost = "localhost";
-const clientPort = "4001";
-
-describe("Workflow", () => {
+describe("workflow", () => {
+  let network: StartedNetwork;
+  let redisContainer: StartedTestContainer;
+  let daprContainer: StartedDaprContainer;
   let workflowClient: DaprWorkflowClient;
   let workflowRuntime: WorkflowRuntime;
 
+  beforeAll(async () => {
+    network = await new Network().start();
+    redisContainer = await startRedisContainer(network);
+
+    // Workflows require an actor state store (actorStateStore: true) and use the
+    // placement / scheduler services that DaprContainer starts automatically.
+    daprContainer = await new DaprContainer(DAPR_TEST_RUNTIME_IMAGE)
+      .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
+      .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE)
+      .withNetwork(network)
+      .withAppChannelAddress("host.testcontainers.internal")
+      .withComponent(buildStateRedisComponent(true /* actorStateStore */))
+      .start();
+  }, 180 * 1000);
+
   beforeEach(async () => {
-    // Start a worker, which will connect to the sidecar in a background thread
+    // Each test registers different workflows/activities so we create fresh
+    // client and runtime instances that connect to the shared Dapr container.
     workflowClient = new DaprWorkflowClient({
-      daprHost: clientHost,
-      daprPort: clientPort,
+      daprHost: daprContainer.getHost(),
+      daprPort: daprContainer.getGrpcPort().toString(),
     });
     workflowRuntime = new WorkflowRuntime({
-      daprHost: clientHost,
-      daprPort: clientPort,
+      daprHost: daprContainer.getHost(),
+      daprPort: daprContainer.getGrpcPort().toString(),
     });
   });
 
   afterEach(async () => {
     await workflowRuntime.stop();
     await workflowClient.stop();
+  });
+
+  afterAll(async () => {
+    await runWithCleanupErrorSuppression(async () => {
+      await daprContainer.stop();
+      await redisContainer.stop();
+      await network.stop();
+    });
   });
 
   it("should be able to run an empty orchestration", async () => {
@@ -283,6 +317,40 @@ describe("Workflow", () => {
     } else {
       expect(state?.serializedOutput).toEqual(JSON.stringify("timed out"));
     }
+  }, 31000);
+
+  it("should be able to suspend and resume an orchestration", async () => {
+    const workflow: TWorkflow = async function* (ctx: WorkflowContext, _: any): any {
+      const res = yield ctx.waitForExternalEvent("my_event");
+      return res;
+    };
+
+    workflowRuntime.registerWorkflow(workflow);
+    await workflowRuntime.start();
+
+    const id = await workflowClient.scheduleNewWorkflow(workflow);
+    let state = await workflowClient.waitForWorkflowStart(id, undefined, 30);
+    expect(state).toBeDefined();
+    expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.RUNNING);
+
+    // Suspend the workflow and confirm it enters the SUSPENDED state.
+    await workflowClient.suspendWorkflow(id);
+    state = await workflowClient.getWorkflowState(id, false);
+    expect(state).toBeDefined();
+    expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.SUSPENDED);
+
+    // Resume the workflow and confirm it returns to the RUNNING state.
+    await workflowClient.resumeWorkflow(id);
+    state = await workflowClient.getWorkflowState(id, false);
+    expect(state).toBeDefined();
+    expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.RUNNING);
+
+    // Unblock the workflow by raising the awaited event.
+    await workflowClient.raiseEvent(id, "my_event", "hello");
+    state = await workflowClient.waitForWorkflowCompletion(id, undefined, 30);
+    expect(state).toBeDefined();
+    expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.COMPLETED);
+    expect(state?.serializedOutput).toEqual(JSON.stringify("hello"));
   }, 31000);
 
   it("should be able to terminate an orchestration", async () => {
