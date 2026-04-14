@@ -141,16 +141,18 @@ function wrapUnhandledRejectionHandler(handler) {
 
 // Guard against double-wrapping when setupFiles runs once per test file in the
 // same --runInBand process (the process object is shared across all test files).
-if (!process["_daprTestUnhandledRejectionFiltered"]) {
-  process["_daprTestUnhandledRejectionFiltered"] = true;
+// Use Symbol.for() so the same Symbol is retrieved across multiple invocations
+// of this file without polluting the process namespace with a string key.
+const FILTER_FLAG = Symbol.for("dapr.test.unhandledRejectionFiltered");
+if (!process[FILTER_FLAG]) {
+  process[FILTER_FLAG] = true;
   ["on", "addListener", "prependListener", "once"].forEach(function (method) {
     const original = process[method];
-    process[method] = function (event, listener) {
-      const extraArgs = Array.prototype.slice.call(arguments, 2);
+    process[method] = function (event, listener, ...rest) {
       if (event === "unhandledRejection") {
-        return original.apply(this, [event, wrapUnhandledRejectionHandler(listener)].concat(extraArgs));
+        return original.call(this, event, wrapUnhandledRejectionHandler(listener), ...rest);
       }
-      return original.apply(this, arguments);
+      return original.call(this, event, listener, ...rest);
     };
   });
 }
