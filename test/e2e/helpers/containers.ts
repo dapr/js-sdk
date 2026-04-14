@@ -203,17 +203,29 @@ export function buildInMemoryPubSubComponent(name = "pubsub"): Component {
  * ```
  */
 
-/**
- * After all cleanup tasks complete, the event loop may still have pending
- * micro-tasks / timers from ssh2/testcontainers handle teardown.  We flush
- * for this duration to allow those tasks to run (and be suppressed by our
- * filtered handler) before we restore the original handlers.
- */
-const CLEANUP_ERROR_FLUSH_TIMEOUT_MS = 300;
+/** Used to ensure the filtered unhandledRejection handler is installed at most once. */
+let cleanupSuppressionInstalled = false;
 
-export async function runWithCleanupErrorSuppression(fn: () => Promise<void>): Promise<void> {
-  // Capture existing handlers (including Jest's jasmine unhandledRejection tracker)
-  // and replace them with a filtered proxy that swallows empty AggregateErrors.
+/**
+ * Installs a permanent process-level filter that suppresses empty-message
+ * AggregateErrors from ssh2 / testcontainers SubtleCrypto handle GC.
+ *
+ * These errors are fired during Jest's --forceExit shutdown phase — AFTER
+ * afterAll completes — so a temporary "window" approach (install then restore)
+ * is insufficient.  The filter must remain active through the end of the
+ * process lifecycle.
+ *
+ * Safe because:
+ *   - Each e2e test file runs in its own process (separate `jest` invocation).
+ *   - Non-empty / non-AggregateError rejections are forwarded to the original
+ *     handlers (including Jest's jasmine tracker) unchanged.
+ *   - The filter is idempotent — multiple calls only install it once.
+ */
+function installCleanupErrorSuppression(): void {
+  if (cleanupSuppressionInstalled) return;
+  cleanupSuppressionInstalled = true;
+
+  // Capture existing handlers (including Jest's jasmine unhandledRejection tracker).
   const handlers: NodeJS.UnhandledRejectionListener[] = process
     .rawListeners("unhandledRejection")
     .slice() as NodeJS.UnhandledRejectionListener[];
@@ -241,18 +253,16 @@ export async function runWithCleanupErrorSuppression(fn: () => Promise<void>): P
       }
     }
   });
+}
 
-  try {
-    await fn();
-    // Flush pending micro-tasks so that any deferred cleanup errors can be
-    // caught and suppressed by our handler before we restore the originals.
-    await new Promise<void>((resolve) => setTimeout(resolve, CLEANUP_ERROR_FLUSH_TIMEOUT_MS));
-  } finally {
-    process.removeAllListeners("unhandledRejection");
-    for (const h of handlers) {
-      process.on("unhandledRejection", h);
-    }
-  }
+export async function runWithCleanupErrorSuppression(fn: () => Promise<void>): Promise<void> {
+  // Install the permanent filter (no-op if already installed).
+  installCleanupErrorSuppression();
+
+  await fn();
+  // Brief yield so that any micro-tasks queued by cleanup can run (and be
+  // suppressed) before this function returns.
+  await new Promise<void>((resolve) => setTimeout(resolve, 300));
 }
 
 /**
