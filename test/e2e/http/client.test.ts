@@ -11,28 +11,56 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { Network, StartedNetwork, StartedTestContainer } from "testcontainers";
+import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
 import { CommunicationProtocolEnum, DaprClient } from "../../../src";
-
-const daprHost = "127.0.0.1";
-const daprPort = "50000"; // Dapr Sidecar Port of this Example Server
+import {
+  startRedisContainer,
+  buildStateRedisComponent,
+  buildSecretEnvvarsComponent,
+  buildInMemoryPubSubComponent,
+  DAPR_TEST_RUNTIME_IMAGE,
+  DAPR_TEST_PLACEMENT_IMAGE,
+  DAPR_TEST_SCHEDULER_IMAGE,
+  runWithCleanupErrorSuppression,
+} from "../helpers/containers";
 
 describe("http/client", () => {
   let client: DaprClient;
+  let network: StartedNetwork;
+  let redisContainer: StartedTestContainer;
+  let daprContainer: StartedDaprContainer;
 
-  // We need to start listening on some endpoints already
-  // this because Dapr is not dynamic and registers endpoints on boot
-  // we put a timeout of 10s since it takes around 4s for Dapr to boot up
   beforeAll(async () => {
+    network = await new Network().start();
+    redisContainer = await startRedisContainer(network);
+
+    daprContainer = await new DaprContainer(DAPR_TEST_RUNTIME_IMAGE)
+      .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
+      .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE)
+      .withNetwork(network)
+      .withAppChannelAddress("host.testcontainers.internal")
+      .withComponent(buildStateRedisComponent())
+      .withComponent(buildSecretEnvvarsComponent())
+      .withComponent(buildInMemoryPubSubComponent())
+      .withEnvironment({ TEST_SECRET_1: "secret_val_1", TEST_SECRET_2: "secret_val_2" })
+      .start();
+
     client = new DaprClient({
-      daprHost,
-      daprPort,
+      daprHost: daprContainer.getHost(),
+      daprPort: daprContainer.getHttpPort().toString(),
       communicationProtocol: CommunicationProtocolEnum.HTTP,
       isKeepAlive: false,
     });
-  }, 10 * 1000);
+  }, 180 * 1000);
 
   afterAll(async () => {
-    await client.stop();
+    await runWithCleanupErrorSuppression(async () => {
+      await client.stop();
+      await daprContainer.stop();
+      await redisContainer.stop();
+      await network.stop();
+    });
   });
 
   describe("sidecar", () => {

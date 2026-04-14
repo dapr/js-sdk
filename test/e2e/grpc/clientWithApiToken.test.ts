@@ -12,19 +12,43 @@ limitations under the License.
 */
 
 import * as grpc from "@grpc/grpc-js";
+import { Network, StartedNetwork } from "testcontainers";
+import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
 import { CommunicationProtocolEnum, DaprClient, LogLevel } from "../../../src";
 import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runtime/v1/dapr_grpc_pb";
 import { NextCall } from "@grpc/grpc-js/build/src/client-interceptors";
 import { GetMetadataRequest } from "../../../src/proto/dapr/proto/runtime/v1/metadata_pb";
-
-const daprHost = "localhost";
-const daprPort = "50000"; // Dapr Sidecar Port of this Example Server
+import { buildInMemoryPubSubComponent, DAPR_TEST_RUNTIME_IMAGE, DAPR_TEST_PLACEMENT_IMAGE, DAPR_TEST_SCHEDULER_IMAGE, runWithCleanupErrorSuppression } from "../helpers/containers";
 
 describe("grpc/client with api token", () => {
+  let network: StartedNetwork;
+  let daprContainer: StartedDaprContainer;
+
+  beforeAll(async () => {
+    network = await new Network().start();
+
+    // Configure the Dapr sidecar to require an API token.
+    daprContainer = await new DaprContainer(DAPR_TEST_RUNTIME_IMAGE)
+      .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
+      .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE)
+      .withNetwork(network)
+      .withAppChannelAddress("host.testcontainers.internal")
+      .withComponent(buildInMemoryPubSubComponent())
+      .withEnvironment({ DAPR_API_TOKEN: "test" })
+      .start();
+  }, 180 * 1000);
+
+  afterAll(async () => {
+    await runWithCleanupErrorSuppression(async () => {
+      await daprContainer.stop();
+      await network.stop();
+    });
+  });
+
   it("should send api token as metadata when present", async () => {
     const clientWithToken = new DaprClient({
-      daprHost,
-      daprPort,
+      daprHost: daprContainer.getHost(),
+      daprPort: daprContainer.getGrpcPort().toString(),
       communicationProtocol: CommunicationProtocolEnum.GRPC,
       daprApiToken: "test",
       logger: {

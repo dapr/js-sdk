@@ -13,32 +13,55 @@ limitations under the License.
 
 import express from "express";
 import fetch from "node-fetch";
-import { CommunicationProtocolEnum, DaprServer, HttpMethod } from "../../../src";
+import { Network, StartedNetwork, StartedTestContainer, TestContainers } from "testcontainers";
+import { StartedDaprContainer } from "@dapr/testcontainer-node";
+import { CommunicationProtocolEnum, DaprClient, DaprServer, HttpMethod } from "../../../src";
 import { DaprInvokerCallbackContent } from "../../../src/types/DaprInvokerCallback.type";
 import { KeyValueType } from "../../../src/types/KeyValue.type";
+import {
+  startRedisContainer,
+  startMqttContainer,
+  buildBindingMqttComponent,
+  buildInMemoryPubSubComponent,
+  DAPR_TEST_RUNTIME_IMAGE,
+  DAPR_TEST_PLACEMENT_IMAGE,
+  DAPR_TEST_SCHEDULER_IMAGE,
+  DaprContainerWithLargeBody,
+  runWithCleanupErrorSuppression,
+} from "../helpers/containers";
 
 const serverHost = "127.0.0.1";
-const serverPort = "50001";
-const daprHost = "127.0.0.1";
-const daprPort = "50000"; // Dapr Sidecar Port of this Example Server
-const daprAppId = "test-suite";
+const serverPort = "3001";
+const daprAppId = "test-suite-http-server";
 
 describe("http/server", () => {
   let server: DaprServer;
+  let network: StartedNetwork;
+  let redisContainer: StartedTestContainer;
+  let mqttContainer: StartedTestContainer;
+  let daprContainer: StartedDaprContainer;
+
   const mockBindingReceive = jest.fn(async (_data: object) => null);
   const mockInvoke = jest.fn(async (_data: object) => null);
 
-  // We need to start listening on some endpoints already
-  // this because Dapr is not dynamic and registers endpoints on boot
-  // we put a timeout of 10s since it takes around 4s for Dapr to boot up
   beforeAll(async () => {
+    network = await new Network().start();
+    [redisContainer, mqttContainer] = await Promise.all([
+      startRedisContainer(network),
+      startMqttContainer(network),
+    ]);
+
+    // Allow the Dapr container to call back to the app server on the host.
+    await TestContainers.exposeHostPorts(parseInt(serverPort));
+
+    // Create the server with placeholder dapr client options.
     server = new DaprServer({
       serverHost,
       serverPort,
       communicationProtocol: CommunicationProtocolEnum.HTTP,
       clientOptions: {
-        daprHost,
-        daprPort,
+        daprHost: "127.0.0.1",
+        daprPort: "3500",
         maxBodySizeMb: 20, // we set sending larger than receiving to test the error handling
       },
       maxBodySizeMb: 10,
@@ -46,9 +69,31 @@ describe("http/server", () => {
 
     await server.binding.receive("binding-mqtt", mockBindingReceive);
 
-    // Start server
-    await server.start();
-  }, 10 * 1000);
+    // Start ONLY the HTTP listener (no sidecar wait) so the app is already
+    // listening when the Dapr container probes it during its own init.
+    await server.daprServer.start(serverHost, serverPort);
+
+    daprContainer = await new DaprContainerWithLargeBody(DAPR_TEST_RUNTIME_IMAGE, 20)
+      .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
+      .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE)
+      .withNetwork(network)
+      .withAppName(daprAppId)
+      .withAppPort(parseInt(serverPort))
+      .withAppChannelAddress("host.testcontainers.internal")
+      .withComponent(buildBindingMqttComponent())
+      .withComponent(buildInMemoryPubSubComponent())
+      .start();
+
+    // Patch the DaprClient with the real container ports, then wait for the
+    // sidecar (which is already running by this point).
+    (server as any).client = new DaprClient({
+      daprHost: daprContainer.getHost(),
+      daprPort: daprContainer.getHttpPort().toString(),
+      communicationProtocol: CommunicationProtocolEnum.HTTP,
+      maxBodySizeMb: 20,
+    });
+    await server.client.start();
+  }, 300 * 1000);
 
   beforeEach(() => {
     mockBindingReceive.mockClear();
@@ -56,7 +101,13 @@ describe("http/server", () => {
   });
 
   afterAll(async () => {
-    await server.stop();
+    await runWithCleanupErrorSuppression(async () => {
+      await server.stop();
+      await daprContainer.stop();
+      await mqttContainer.stop();
+      await redisContainer.stop();
+      await network.stop();
+    });
   });
 
   describe("server", () => {
@@ -73,8 +124,8 @@ describe("http/server", () => {
         communicationProtocol: CommunicationProtocolEnum.HTTP,
         serverHttp: myApp,
         clientOptions: {
-          daprHost,
-          daprPort,
+          daprHost: daprContainer.getHost(),
+          daprPort: daprContainer.getHttpPort().toString(),
         },
       });
 
