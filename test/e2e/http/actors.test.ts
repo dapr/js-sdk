@@ -76,7 +76,7 @@ const DEMO_ACTORS = [
   DemoActorTimerTtlImpl,
   DemoActorReminderTtlImpl,
   DemoActorDeleteStateImpl,
-] as const;
+];
 
 describe("http/actors", () => {
   let server: DaprServer;
