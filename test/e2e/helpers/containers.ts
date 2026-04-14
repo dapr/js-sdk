@@ -202,11 +202,21 @@ export function buildInMemoryPubSubComponent(name = "pubsub"): Component {
  * }), 60_000);
  * ```
  */
+
+/**
+ * After all cleanup tasks complete, the event loop may still have pending
+ * micro-tasks / timers from ssh2/testcontainers handle teardown.  We flush
+ * for this duration to allow those tasks to run (and be suppressed by our
+ * filtered handler) before we restore the original handlers.
+ */
+const CLEANUP_ERROR_FLUSH_TIMEOUT_MS = 300;
+
 export async function runWithCleanupErrorSuppression(fn: () => Promise<void>): Promise<void> {
   // Capture existing handlers (including Jest's jasmine unhandledRejection tracker)
   // and replace them with a filtered proxy that swallows empty AggregateErrors.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handlers: any[] = (process as any).rawListeners("unhandledRejection").slice();
+  const handlers: NodeJS.UnhandledRejectionListener[] = process
+    .rawListeners("unhandledRejection")
+    .slice() as NodeJS.UnhandledRejectionListener[];
   process.removeAllListeners("unhandledRejection");
 
   process.on("unhandledRejection", (reason: unknown) => {
@@ -219,9 +229,7 @@ export async function runWithCleanupErrorSuppression(fn: () => Promise<void>): P
     for (const h of handlers) {
       try {
         if (typeof h === "function") {
-          h(reason);
-        } else if (h && typeof h.listener === "function") {
-          h.listener(reason);
+          h(reason, Promise.resolve());
         }
       } catch (_) {
         // ignore errors thrown by handlers
@@ -233,7 +241,7 @@ export async function runWithCleanupErrorSuppression(fn: () => Promise<void>): P
     await fn();
     // Flush pending micro-tasks so that any deferred cleanup errors can be
     // caught and suppressed by our handler before we restore the originals.
-    await new Promise<void>((resolve) => setTimeout(resolve, 300));
+    await new Promise<void>((resolve) => setTimeout(resolve, CLEANUP_ERROR_FLUSH_TIMEOUT_MS));
   } finally {
     process.removeAllListeners("unhandledRejection");
     for (const h of handlers) {
