@@ -256,12 +256,15 @@ describe("common/server/http", () => {
     it("should mark messages as retried (RETRY), and the same message should be received again until we send SUCCESS", async () => {
       const res = await httpServer.client.pubsub.publish(pubSubName, getTopic(topicWithStatusCb), "TEST_RETRY_TWICE");
       expect(res.error).toBeUndefined();
-      // Delay a bit for event to arrive and retry twice (each retry adds latency in CI)
-      await new Promise((resolve, _reject) => setTimeout(resolve, 10000));
+      // Poll until all 3 deliveries arrive (EMQX QoS1 retry interval is 3 s; poll up to 45 s for CI headroom)
+      const deadline = Date.now() + 45_000;
+      while (mockSubscribeStatusHandler.mock.calls.length < 3 && Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
       // 3 as we retry twice
       expect(mockSubscribeStatusHandler.mock.calls.length).toBe(3);
       expect(mockSubscribeDeadletterHandler.mock.calls.length).toBe(0);
-    });
+    }, 60_000);
 
     it("should mark messages as dropped (DROP), and the message should be deadlettered", async () => {
       const res = await httpServer.client.pubsub.publish(pubSubName, getTopic(topicWithStatusCb), "DROP");
@@ -862,12 +865,15 @@ describe("common/server/grpc", () => {
     it("should mark messages as retried (RETRY), and the same message should be received again until we send SUCCESS", async () => {
       const res = await grpcServer.client.pubsub.publish(pubSubName, getTopic(topicWithStatusCb), "TEST_RETRY_TWICE");
       expect(res.error).toBeUndefined();
-      // Delay a bit for event to arrive and retry twice (each retry adds latency in CI)
-      await new Promise((resolve, _reject) => setTimeout(resolve, 10000));
+      // Poll until all 3 deliveries arrive (EMQX QoS1 retry interval is 3 s; poll up to 45 s for CI headroom)
+      const deadline = Date.now() + 45_000;
+      while (mockSubscribeStatusHandler.mock.calls.length < 3 && Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
       // 3 as we retry twice
       expect(mockSubscribeStatusHandler.mock.calls.length).toBe(3);
       expect(mockSubscribeDeadletterHandler.mock.calls.length).toBe(0);
-    });
+    }, 60_000);
 
     it("should mark messages as dropped (DROP), and the message should be deadlettered", async () => {
       const res = await grpcServer.client.pubsub.publish(pubSubName, getTopic(topicWithStatusCb), "DROP");

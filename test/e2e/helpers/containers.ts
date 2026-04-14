@@ -77,6 +77,8 @@ export async function startMqttContainer(network: StartedNetwork): Promise<Start
     .withNetwork(network)
     .withNetworkAliases("mqtt")
     .withExposedPorts(1883, 18083)
+    // Shorten the QoS1 re-delivery interval so RETRY pubsub tests don't have to wait 30 s per retry
+    .withEnvironment({ EMQX_MQTT__RETRY_INTERVAL: "3s" })
     .withWaitStrategy(Wait.forLogMessage(/EMQX.*is running now/))
     .withStartupTimeout(120_000)
     .start();
