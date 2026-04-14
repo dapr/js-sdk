@@ -21,8 +21,8 @@ import { GrpcEndpoint } from "../../network/GrpcEndpoint";
 import { getName } from "./durabletask/task";
 
 /**
- * Gets the name of a function from its definition or string representation.
- * Delegates to the shared getName utility in durabletask/task.
+ * Gets the name of a function from its .name property.
+ * Throws if the function is null/undefined or anonymous (lambda).
  *
  * @param fn - The function for which the name is to be retrieved.
  * @returns The name of the function.
