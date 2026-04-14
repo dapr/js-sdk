@@ -84,7 +84,10 @@ function isSpuriousAggregateErrorSuite(suite) {
   // When jest-circus accumulates multiple AggregateErrors it joins them with "\n",
   // producing a truthy string — we must inspect line-by-line, not just !message.
   if (!isAggregateErrorOnlyContent(suite.testExecError.message)) return false;
-  // testExecError.stack must also contain only AggregateError lines (no real frames)
+  // testExecError.stack must be present and contain only AggregateError lines (no
+  // real "at ..." frames).  An absent/null stack is treated as non-spurious out of
+  // caution — it likely means jest-circus captured something other than a bare
+  // AggregateError from GC, and we should not silently suppress it.
   if (!suite.testExecError.stack) return false;
   if (!isAggregateErrorOnlyContent(suite.testExecError.stack)) return false;
   // All individual tests must have passed (no genuine test failures)
