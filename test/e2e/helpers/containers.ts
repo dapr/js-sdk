@@ -224,13 +224,11 @@ export async function runWithCleanupErrorSuppression(fn: () => Promise<void>): P
     // SubtleCrypto handle GC and carry no meaningful diagnostic information.
     // Use duck-typing (check for .errors array) instead of instanceof AggregateError
     // because AggregateError is an ES2021 type not available in our ES2020 tsconfig.
-    if (
-      reason !== null &&
-      typeof reason === "object" &&
-      Array.isArray((reason as { errors?: unknown }).errors) &&
-      (!(reason as { message?: string }).message || (reason as { message?: string }).message === "")
-    ) {
-      return;
+    if (reason !== null && typeof reason === "object") {
+      const err = reason as { errors?: unknown; message?: string };
+      if (Array.isArray(err.errors) && (!err.message || err.message === "")) {
+        return;
+      }
     }
     // Forward all other rejections to Jest's (and any other) original handlers.
     for (const h of handlers) {
