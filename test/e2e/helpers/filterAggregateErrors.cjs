@@ -57,7 +57,7 @@ limitations under the License.
  * @param {string|undefined} stack
  */
 function isAggregateErrorOnlyStack(stack) {
-  if (!stack && stack !== "") return false;
+  if (stack === null || stack === undefined) return false;
   const lines = stack.split("\n");
   return lines.every((line) => {
     const trimmed = line.trim();
