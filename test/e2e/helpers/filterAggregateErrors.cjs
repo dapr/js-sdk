@@ -40,8 +40,10 @@ limitations under the License.
  *     joins their `toString()` values with "\n", giving a TRUTHY multi-line
  *     string like "AggregateError\nAggregateError\n..." — the old check
  *     `if (message) return false` incorrectly rejected these suites.
- *  3. Every line in `suite.testExecError.stack` is blank or "AggregateError[:]"
- *     (no real JS stack frames).
+ *  3. Every line in `suite.testExecError.stack` is absent/blank/empty OR only
+ *     "AggregateError[:]" lines (no real JS stack frames).  The ssh2/SubtleCrypto
+ *     GC errors frequently have a null/empty stack — the CI output shows just
+ *     "AggregateError:" with no frames — so an absent stack must be allowed.
  *  4. `suite.numFailingTests === 0` — every individual test passed.
  *
  * ## What we fix
@@ -84,11 +86,11 @@ function isSpuriousAggregateErrorSuite(suite) {
   // When jest-circus accumulates multiple AggregateErrors it joins them with "\n",
   // producing a truthy string — we must inspect line-by-line, not just !message.
   if (!isAggregateErrorOnlyContent(suite.testExecError.message)) return false;
-  // testExecError.stack must be present and contain only AggregateError lines (no
-  // real "at ..." frames).  An absent/null stack is treated as non-spurious out of
-  // caution — it likely means jest-circus captured something other than a bare
-  // AggregateError from GC, and we should not silently suppress it.
-  if (!suite.testExecError.stack) return false;
+  // testExecError.stack must be absent/empty OR contain only AggregateError lines (no
+  // real "at ..." frames).  The ssh2/SubtleCrypto GC-triggered AggregateErrors
+  // often have a null/undefined/empty stack (as seen in the CI output which shows
+  // just "AggregateError:" with no stack frames), so we must allow an absent stack.
+  // isAggregateErrorOnlyContent already returns true for null/undefined/empty inputs.
   if (!isAggregateErrorOnlyContent(suite.testExecError.stack)) return false;
   // All individual tests must have passed (no genuine test failures)
   if (suite.numFailingTests !== 0) return false;
