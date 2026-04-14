@@ -11,9 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { OrchestrationStatus } from "@dapr/durabletask-js/orchestration/enum/orchestration-status.enum";
-import { OrchestrationState } from "@dapr/durabletask-js/orchestration/orchestration-state";
-import { FailureDetails } from "@dapr/durabletask-js/task/failure-details";
+import { OrchestrationStatus } from "../../../src/workflow/internal/durabletask/orchestration/enum/orchestration-status.enum";
+import { OrchestrationState } from "../../../src/workflow/internal/durabletask/orchestration/orchestration-state";
+import { FailureDetails } from "../../../src/workflow/internal/durabletask/task/failure-details";
 import { TWorkflow } from "../../../src/types/workflow/Workflow.type";
 import WorkflowContext from "../../../src/workflow/runtime/WorkflowContext";
 import { WorkflowRuntimeStatus } from "../../../src/workflow/runtime/WorkflowRuntimeStatus";
@@ -30,7 +30,7 @@ const mockSuspendOrchestration = jest.fn();
 const mockResumeOrchestration = jest.fn();
 const mockClientStop = jest.fn();
 
-jest.mock("@dapr/durabletask-js", () => ({
+jest.mock("../../../src/workflow/internal/durabletask", () => ({
   TaskHubGrpcClient: jest.fn().mockImplementation(() => ({
     scheduleNewOrchestration: mockScheduleNewOrchestration,
     getOrchestrationState: mockGetOrchestrationState,

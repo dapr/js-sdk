@@ -42,3 +42,8 @@ cp README.md build/
 
 # Copy Proto Files
 cp -R ./src/proto ./build
+
+# Copy vendored durabletask proto files
+mkdir -p ./build/workflow/internal/durabletask/proto
+cp -R ./src/workflow/internal/durabletask/proto/*.js ./build/workflow/internal/durabletask/proto/
+cp -R ./src/workflow/internal/durabletask/proto/*.d.ts ./build/workflow/internal/durabletask/proto/

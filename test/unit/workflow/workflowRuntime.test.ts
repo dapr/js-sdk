@@ -21,7 +21,7 @@ const mockAddNamedActivity = jest.fn().mockReturnValue("test");
 const mockStart = jest.fn().mockResolvedValue(undefined);
 const mockStop = jest.fn().mockResolvedValue(undefined);
 
-jest.mock("@dapr/durabletask-js", () => ({
+jest.mock("../../../src/workflow/internal/durabletask", () => ({
   TaskHubGrpcWorker: jest.fn().mockImplementation(() => ({
     addNamedOrchestrator: mockAddNamedOrchestrator,
     addNamedActivity: mockAddNamedActivity,

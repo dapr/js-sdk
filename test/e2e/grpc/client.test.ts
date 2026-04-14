@@ -16,34 +16,68 @@ import { createReadStream } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { Readable } from "node:stream";
 import * as grpc from "@grpc/grpc-js";
+import { Network, StartedNetwork, StartedTestContainer } from "testcontainers";
+import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
 import { CommunicationProtocolEnum, DaprClient, LogLevel } from "../../../src";
 import { SubscribeConfigurationResponse } from "../../../src/types/configuration/SubscribeConfigurationResponse";
-import * as DockerUtils from "../../utils/DockerUtil";
 import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runtime/v1/dapr_grpc_pb";
 import { NextCall } from "@grpc/grpc-js/build/src/client-interceptors";
 import { GetMetadataRequest } from "../../../src/proto/dapr/proto/runtime/v1/metadata_pb";
-
-const daprHost = "localhost";
-const daprPort = "50000"; // Dapr Sidecar Port of this Example Server
+import {
+  startRedisContainer,
+  buildStateRedisComponent,
+  buildPubSubRedisComponent,
+  buildConfigRedisComponent,
+  buildLockRedisComponent,
+  buildSecretEnvvarsComponent,
+  buildCryptoLocalComponent,
+  DAPR_TEST_RUNTIME_IMAGE,
+  DAPR_TEST_PLACEMENT_IMAGE,
+  DAPR_TEST_SCHEDULER_IMAGE,
+  runWithCleanupErrorSuppression,
+} from "../helpers/containers";
 
 describe("grpc/client", () => {
   let client: DaprClient;
+  let network: StartedNetwork;
+  let redisContainer: StartedTestContainer;
+  let daprContainer: StartedDaprContainer;
 
-  // We need to start listening on some endpoints already
-  // this because Dapr is not dynamic and registers endpoints on boot
   beforeAll(async () => {
+    network = await new Network().start();
+    redisContainer = await startRedisContainer(network);
+
+    daprContainer = await new DaprContainer(DAPR_TEST_RUNTIME_IMAGE)
+      .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
+      .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE)
+      .withNetwork(network)
+      .withAppChannelAddress("host.testcontainers.internal")
+      .withComponent(buildStateRedisComponent())
+      .withComponent(buildPubSubRedisComponent())
+      .withComponent(buildConfigRedisComponent())
+      .withComponent(buildLockRedisComponent())
+      .withComponent(buildSecretEnvvarsComponent())
+      .withComponent(buildCryptoLocalComponent())
+      .withEnvironment({ TEST_SECRET_1: "secret_val_1", TEST_SECRET_2: "secret_val_2" })
+      .start();
+
     client = new DaprClient({
-      daprHost,
-      daprPort,
+      daprHost: daprContainer.getHost(),
+      daprPort: daprContainer.getGrpcPort().toString(),
       communicationProtocol: CommunicationProtocolEnum.GRPC,
       logger: {
         level: LogLevel.Debug,
       },
     });
-  }, 10 * 1000);
+  }, 180 * 1000);
 
   afterAll(async () => {
-    await client.stop();
+    await runWithCleanupErrorSuppression(async () => {
+      await client.stop();
+      await daprContainer.stop();
+      await redisContainer.stop();
+      await network.stop();
+    });
   });
 
   describe("client", () => {
@@ -58,6 +92,9 @@ describe("grpc/client", () => {
 
   describe("proxy", () => {
     it("should allow to use a proxy builder to proxy a gRPC request", async () => {
+      const oldProcessAppId = process.env?.APP_ID;
+      process.env.APP_ID = "test-suite";
+
       let mockMetadataRes: grpc.Metadata = new grpc.Metadata();
       const mockInterceptor = jest.fn((options: grpc.InterceptorOptions, nextCall: NextCall): grpc.InterceptingCall => {
         return new grpc.InterceptingCall(nextCall(options), {
@@ -80,6 +117,8 @@ describe("grpc/client", () => {
 
       expect(mockInterceptor.mock.calls.length).toBe(1);
       expect(mockMetadataRes.get("dapr-app-id")[0]).toBe("test-suite");
+
+      process.env.APP_ID = oldProcessAppId;
     });
 
     it("should allow to use a proxy builder that uses daprAppId by setting custom env variable to proxy a gRPC request", async () => {
@@ -344,10 +383,10 @@ describe("grpc/client", () => {
 
   describe("configuration", () => {
     beforeEach(async () => {
-      // Reset the Configuration API
-      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_initialvalue||1");
-      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey2 key2_initialvalue||1");
-      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey3 key3_initialvalue||1");
+      // Reset the Configuration API by writing directly to the Redis container
+      await redisContainer.exec(["redis-cli", "MSET", "myconfigkey1", "key1_initialvalue||1"]);
+      await redisContainer.exec(["redis-cli", "MSET", "myconfigkey2", "key2_initialvalue||1"]);
+      await redisContainer.exec(["redis-cli", "MSET", "myconfigkey3", "key3_initialvalue||1"]);
     });
 
     it("should be able to get the configuration items", async () => {
@@ -378,7 +417,7 @@ describe("grpc/client", () => {
       const stream = await client.configuration.subscribe("config-redis", m);
 
       // Update the configuration item
-      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey3 mynewvalue||2");
+      await redisContainer.exec(["redis-cli", "MSET", "myconfigkey3", "mynewvalue||2"]);
 
       expect(Object.keys(m.mock.calls[0][0].items).length).toEqual(1);
       expect("myconfigkey3" in m.mock.calls[0][0].items);
@@ -393,7 +432,7 @@ describe("grpc/client", () => {
       });
 
       const stream = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1", "myconfigkey2"], m);
-      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
+      await redisContainer.exec(["redis-cli", "MSET", "myconfigkey1", "key1_mynewvalue||1"]);
 
       expect(Object.keys(m.mock.calls[0][0].items).length).toEqual(1);
       expect("myconfigkey1" in m.mock.calls[0][0].items);
@@ -413,7 +452,7 @@ describe("grpc/client", () => {
         { hello: "world" },
         m,
       );
-      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
+      await redisContainer.exec(["redis-cli", "MSET", "myconfigkey1", "key1_mynewvalue||1"]);
 
       expect(Object.keys(m.mock.calls[0][0].items).length).toEqual(1);
       expect("myconfigkey1" in m.mock.calls[0][0].items);
@@ -433,7 +472,7 @@ describe("grpc/client", () => {
         { hello: "world" },
         m,
       );
-      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
+      await redisContainer.exec(["redis-cli", "MSET", "myconfigkey1", "key1_mynewvalue||1"]);
 
       expect(Object.keys(m.mock.calls[0][0].items).length).toEqual(1);
       expect("myconfigkey1" in m.mock.calls[0][0].items);
@@ -441,7 +480,7 @@ describe("grpc/client", () => {
 
       stream.stop();
 
-      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue2||1");
+      await redisContainer.exec(["redis-cli", "MSET", "myconfigkey1", "key1_mynewvalue2||1"]);
 
       // Expect no change after stop
       expect(Object.keys(m.mock.calls[0][0].items).length).toEqual(1);
@@ -460,7 +499,7 @@ describe("grpc/client", () => {
       const stream1 = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1"], m1);
       const stream2 = await client.configuration.subscribeWithKeys("config-redis", ["myconfigkey1"], m2);
 
-      await DockerUtils.executeDockerCommand("dapr_redis redis-cli MSET myconfigkey1 key1_mynewvalue||1");
+      await redisContainer.exec(["redis-cli", "MSET", "myconfigkey1", "key1_mynewvalue||1"]);
 
       expect(Object.keys(m1.mock.calls[0][0].items).length).toEqual(1);
       expect("myconfigkey1" in m1.mock.calls[0][0].items);
