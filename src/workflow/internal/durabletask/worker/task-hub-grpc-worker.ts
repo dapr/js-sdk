@@ -281,7 +281,7 @@ export class TaskHubGrpcWorker {
     const drainPollIntervalMs = 100;
     const drainStart = Date.now();
     while (this._activeWorkItems > 0 && Date.now() - drainStart < drainTimeoutMs) {
-      this.logger.info(
+      this.logger.debug(
         `Waiting for ${this._activeWorkItems} active work item(s) to complete before shutdown...`,
       );
       await sleep(drainPollIntervalMs);
@@ -372,7 +372,7 @@ export class TaskHubGrpcWorker {
         instanceId,
         req.getName(),
         req.getTaskid(),
-        req.getInput()?.toString() ?? "",
+        req.getInput()?.getValue() ?? "",
       );
 
       const s = new StringValue();

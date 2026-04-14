@@ -37,7 +37,7 @@ export function newOrchestrationState(
     failureDetails = new FailureDetails(
       failureDetailsErrorMessage,
       failureDetailsErrorType,
-      state.getFailuredetails()?.getStacktrace()?.toString(),
+      state.getFailuredetails()?.getStacktrace()?.getValue(),
     );
   }
 
@@ -62,9 +62,9 @@ export function newOrchestrationState(
     fromProtobuf(state?.getOrchestrationstatus() ?? 0),
     new Date(tsCreatedParsed),
     new Date(tsUpdatedParsed),
-    state?.getInput()?.toString(),
-    state?.getOutput()?.toString(),
-    state?.getCustomstatus()?.toString(),
+    state?.getInput()?.getValue(),
+    state?.getOutput()?.getValue(),
+    state?.getCustomstatus()?.getValue(),
     failureDetails,
   );
 }

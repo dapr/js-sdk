@@ -133,7 +133,7 @@ export class OrchestrationExecutor {
             // Deserialize the input, if any
             let input = undefined;
 
-            const rawInput = executionStartedEvent?.getInput()?.toString();
+            const rawInput = executionStartedEvent?.getInput()?.getValue();
             if (rawInput != null && rawInput !== "") {
               input = JSON.parse(rawInput);
             }
@@ -249,7 +249,7 @@ export class OrchestrationExecutor {
             let result;
 
             if (!isEmpty(event.getTaskcompleted()?.getResult())) {
-              result = JSON.parse(event.getTaskcompleted()?.getResult()?.toString() || "");
+              result = JSON.parse(event.getTaskcompleted()?.getResult()?.getValue() || "");
             }
 
             activityTask.complete(result);
@@ -331,7 +331,7 @@ export class OrchestrationExecutor {
             let result;
 
             if (!isEmpty(event.getSuborchestrationinstancecompleted()?.getResult())) {
-              result = JSON.parse(event.getSuborchestrationinstancecompleted()?.getResult()?.toString() || "");
+              result = JSON.parse(event.getSuborchestrationinstancecompleted()?.getResult()?.getValue() || "");
             }
 
             if (subOrchTask) {
@@ -398,7 +398,7 @@ export class OrchestrationExecutor {
               const eventTask = taskList.shift();
 
               if (!isEmpty(event.getEventraised()?.getInput())) {
-                decodedResult = JSON.parse(event.getEventraised()?.getInput()?.toString() || "");
+                decodedResult = JSON.parse(event.getEventraised()?.getInput()?.getValue() || "");
               }
 
               if (eventTask) {
@@ -424,7 +424,7 @@ export class OrchestrationExecutor {
               }
 
               if (!isEmpty(event.getEventraised()?.getInput())) {
-                decodedResult = JSON.parse(event.getEventraised()?.getInput()?.toString() || "");
+                decodedResult = JSON.parse(event.getEventraised()?.getInput()?.getValue() || "");
               }
 
               eventList?.push(decodedResult);
