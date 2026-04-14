@@ -105,37 +105,52 @@ for (const name of undiciGlobals) {
 
 // ── Suppress empty AggregateErrors from testcontainers/ssh2 GC ───────────────
 // testcontainers uses ssh2 which creates SubtleCrypto handles.  When those
-// handles are abruptly terminated during Jest's --forceExit shutdown, Node.js
-// fires empty AggregateError unhandled rejections.  Jest's jasmine runner
-// captures those via process.on('unhandledRejection') and reports them as
-// "Test suite failed to run" — even though every individual test passed.
+// handles are abruptly terminated during Jest's --forceExit shutdown or during
+// container teardown in afterAll, Node.js fires empty AggregateError unhandled
+// rejections.  Jest's circus runner captures those via
+// process.on('unhandledRejection') and reports them as "Test suite failed to
+// run" — even though every individual test passed.
 //
-// Node.js dispatches unhandledRejection events via process.emit(), which IS a
-// regular JavaScript method (it inherits from EventEmitter).  By overriding
-// process.emit() here (in setupFiles, before jest-circus installs its own
-// listener), we intercept the event before any listener ever sees it.
+// In Node.js 22+, the unhandledRejection event is dispatched using primordials
+// (the original process.emit captured at Node.js startup), which bypasses any
+// user-space override of process.emit.  Overriding process.emit therefore has
+// no effect on the internal dispatch path.
 //
-// Only empty-message AggregateErrors (the ssh2 GC pattern) are suppressed; all
-// other rejections are forwarded normally.
-const _origEmit = process.emit.bind(process);
-process.emit = function emit(event, ...args) {
-  if (event === "unhandledRejection") {
-    const reason = args[0];
-    if (
-      reason !== null &&
-      typeof reason === "object" &&
-      Array.isArray(reason.errors) &&
-      !reason.message
-    ) {
-      // Return true so process.emit reports "there were listeners" for this event.
-      // Node.js checks the return value of emit('unhandledRejection') to decide
-      // whether to apply the default --unhandledRejections=throw behaviour:
-      //   • true  → at least one listener was invoked → no default throw
-      //   • false → no listeners → apply default (crash in Node 15+)
-      // Returning true here suppresses the empty AggregateError entirely and
-      // prevents the process from crashing or Jest marking the suite as failed.
-      return true;
+// Instead, we intercept process.on / addListener / prependListener / once so
+// that any 'unhandledRejection' handler that is subsequently registered (e.g.
+// by jest-circus's jestAdapterInit, which runs after setupFiles) is silently
+// wrapped with a filter.  The wrapper drops empty-message AggregateErrors and
+// forwards everything else to the original handler unchanged.
+//
+// setupFiles runs before jest-circus initialises its test infrastructure, so
+// our process.on override is already in place when jest-circus calls
+// process.on('unhandledRejection', ...).
+
+function isEmptyAggregateError(reason) {
+  if (reason === null || typeof reason !== "object") return false;
+  return Array.isArray(reason.errors) && !reason.message;
+}
+
+function wrapUnhandledRejectionHandler(handler) {
+  return function filteredUnhandledRejectionHandler(reason, promise) {
+    if (!isEmptyAggregateError(reason)) {
+      return Reflect.apply(handler, this, [reason, promise]);
     }
-  }
-  return _origEmit(event, ...args);
-};
+  };
+}
+
+// Guard against double-wrapping when setupFiles runs once per test file in the
+// same --runInBand process (the process object is shared across all test files).
+if (!process["_daprTestUnhandledRejectionFiltered"]) {
+  process["_daprTestUnhandledRejectionFiltered"] = true;
+  ["on", "addListener", "prependListener", "once"].forEach(function (method) {
+    const original = process[method];
+    process[method] = function (event, listener) {
+      const extraArgs = Array.prototype.slice.call(arguments, 2);
+      if (event === "unhandledRejection") {
+        return original.apply(this, [event, wrapUnhandledRejectionHandler(listener)].concat(extraArgs));
+      }
+      return original.apply(this, arguments);
+    };
+  });
+}
