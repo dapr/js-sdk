@@ -20,4 +20,9 @@ module.exports = {
   collectCoverageFrom: ["src/**/*.ts", "!src/proto/**"],
   // Load .github/scripts/*.js files as native CJS — they have no TypeScript syntax.
   transformIgnorePatterns: ["/node_modules/", "/.github/"],
+  // Post-process results to remove spurious "Test suite failed to run" entries
+  // caused by empty AggregateErrors from testcontainers/ssh2 SubtleCrypto handle
+  // GC during container teardown.  All individual tests pass; only the suite-level
+  // unhandledRejection handler catches these, so we strip them here.
+  testResultsProcessor: "<rootDir>/test/e2e/helpers/filterAggregateErrors.cjs",
 };
