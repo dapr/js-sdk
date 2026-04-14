@@ -15,32 +15,51 @@ limitations under the License.
 const NodeEnvironment = require("jest-environment-node");
 
 /**
- * Custom Jest test environment that installs a filter on the *real* Node.js
- * `process` object to suppress spurious empty AggregateErrors emitted by
+ * Custom Jest test environment that installs a filter on the process object
+ * used by jest-circus to suppress spurious empty AggregateErrors emitted by
  * testcontainers' ssh2/SubtleCrypto handles during container teardown.
  *
- * ## Why a custom environment is required
+ * ## Background
  *
- * `jest.setup.js` (configured via `setupFiles`) runs inside the VM context
- * that jest-environment-node creates.  The `process` object available in that
- * context is a **deep copy** produced by jest-util's `createProcessObject()`,
- * not the real Node.js `process`.  Modifying `process.on` in `jest.setup.js`
- * therefore has no effect on jest-circus, which always receives the *real*
- * Node.js `process` as its `parentProcess` argument.
+ * testcontainers uses ssh2 which creates SubtleCrypto key handles at
+ * module-load time.  When these handles are garbage-collected during container
+ * teardown they abort their pending operations and emit unhandled promise
+ * rejections in the form of empty-message AggregateErrors.  Jest-circus
+ * catches these via its `unhandledRejection` listener and surfaces them as
+ * "Test suite failed to run" even though every individual test passes.
  *
- * `environment.setup()` is called in the *outer* Node.js context — the same
- * context from which `testFramework()` (jest-circus) is invoked — so any
- * modifications made here to `process.on` are visible to jest-circus when it
- * subsequently calls `injectGlobalErrorHandlers(process)`.
+ * ## Why patching the real `process` doesn't help
+ *
+ * In Jest 27, `jest-circus/runner.js` is loaded by `runtime.requireModule()`
+ * inside the VM sandbox that jest-environment-node creates.  Inside that
+ * sandbox, `process` resolves to `this.global.process` — the object that
+ * jest-environment-node installed when it constructed the environment — which
+ * is a **copy** of the real process created by jest-util's
+ * `createProcessObject()`.  That copy may have its own `on` / `addListener`
+ * properties (bound to the real EventEmitter but as separate function
+ * references), so patching the real `process.on` has no effect on what
+ * jest-circus calls.
+ *
+ * `jest.setup.js` (via `setupFiles`) also runs inside the sandbox, so it
+ * suffers from the same problem.
  *
  * ## Mechanism
  *
- * jest-circus's `injectGlobalErrorHandlers` calls
- * `process.on('unhandledRejection', uncaught)` to install its error handler.
- * By overriding `process.on` (and its aliases) here, we ensure that the
- * handler jest-circus receives is a *wrapped* version that silently drops
- * empty-message `AggregateError`s (the signature of ssh2 SubtleCrypto GC
- * noise) while forwarding all other rejections unchanged.
+ * `environment.setup()` runs in the outer Node.js context *before*
+ * `testFramework()` is invoked, and `this.global` already holds the fully
+ * initialised VM sandbox global.  `this.global.process` is therefore the
+ * exact object that jest-circus/runner.js will see as its module-level
+ * `process` and pass as `parentProcess` to `injectGlobalErrorHandlers`.
+ *
+ * We patch `this.global.process.on` (and its EventEmitter aliases) here so
+ * that when jest-circus subsequently calls
+ * `parentProcess.on('unhandledRejection', uncaught)`, the registered handler
+ * is our *wrapped* version that silently drops empty-message AggregateErrors
+ * while forwarding everything else unchanged.
+ *
+ * We also patch the real Node.js `process` as a belt-and-suspenders measure
+ * for any listeners registered outside the VM sandbox (e.g. from
+ * globalSetup or from code that requires process directly).
  *
  * The `FILTER_FLAG` symbol guard prevents double-wrapping when multiple test
  * files share the same worker process (e.g. with `--runInBand`).
@@ -62,25 +81,36 @@ function wrapUnhandledRejectionHandler(handler) {
 
 const FILTER_FLAG = Symbol.for("dapr.test.unhandledRejectionFiltered");
 
+function patchProcessListeners(proc) {
+  if (proc[FILTER_FLAG]) return; // already patched
+  proc[FILTER_FLAG] = true;
+  for (const method of ["on", "addListener", "prependListener", "once"]) {
+    // Resolve the function to call — may be own property or inherited.
+    const fn = proc[method];
+    if (typeof fn !== "function") continue;
+    const original = fn.bind(proc);
+    proc[method] = function filteredProcessOn(event, listener, ...rest) {
+      if (event === "unhandledRejection") {
+        return original(event, wrapUnhandledRejectionHandler(listener), ...rest);
+      }
+      return original(event, listener, ...rest);
+    };
+  }
+}
+
 class CustomNodeEnvironment extends NodeEnvironment {
   async setup() {
     await super.setup();
 
-    // Install the filter on the REAL process.on (and its EventEmitter aliases).
-    // This must run before jest-circus's jestAdapterInit calls
-    // injectGlobalErrorHandlers(process), which happens inside testFramework().
-    if (!process[FILTER_FLAG]) {
-      process[FILTER_FLAG] = true;
-      for (const method of ["on", "addListener", "prependListener", "once"]) {
-        const original = process[method].bind(process);
-        process[method] = function filteredProcessOn(event, listener, ...rest) {
-          if (event === "unhandledRejection") {
-            return original(event, wrapUnhandledRejectionHandler(listener), ...rest);
-          }
-          return original(event, listener, ...rest);
-        };
-      }
-    }
+    // Patch the process object that jest-circus will use as parentProcess.
+    // In Jest 27's VM sandbox, this.global.process is the object injected by
+    // jest-environment-node (potentially a createProcessObject() copy), which
+    // is the exact object that jest-circus/runner.js sees as its module-level
+    // `process` variable when loaded via runtime.requireModule().
+    patchProcessListeners(this.global.process);
+
+    // Also patch the real Node.js process as a belt-and-suspenders measure.
+    patchProcessListeners(process);
   }
 }
 

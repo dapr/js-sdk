@@ -110,10 +110,11 @@ for (const name of undiciGlobals) {
 //
 // This file (jest.setup.js) runs via runtime.requireModule() inside the VM
 // context created by jest-environment-node.  The `process` object visible here
-// is a deep COPY produced by jest-util's createProcessObject() — NOT the real
-// Node.js process.  Any modifications made to process.on here have no effect
-// on jest-circus, which always receives the real process as parentProcess.
+// is a copy (createProcessObject()) whose `on` / `addListener` methods are
+// bound to the real EventEmitter.  Any modifications made to process.on here
+// would only shadow the copy's own `on` property, and jest-circus still uses
+// the underlying bound method — so filtering here has no effect.
 //
-// The custom environment's setup() method runs in the outer Node.js context
-// and correctly patches the real process.on before jest-circus installs its
-// unhandledRejection handler.
+// The custom environment's setup() method patches this.global.process.on (the
+// exact object that jest-circus receives as parentProcess) before jest-circus
+// installs its unhandledRejection handler, which is what actually works.
