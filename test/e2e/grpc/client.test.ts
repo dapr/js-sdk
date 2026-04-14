@@ -92,6 +92,9 @@ describe("grpc/client", () => {
 
   describe("proxy", () => {
     it("should allow to use a proxy builder to proxy a gRPC request", async () => {
+      const oldProcessAppId = process.env?.APP_ID;
+      process.env.APP_ID = "test-suite";
+
       let mockMetadataRes: grpc.Metadata = new grpc.Metadata();
       const mockInterceptor = jest.fn((options: grpc.InterceptorOptions, nextCall: NextCall): grpc.InterceptingCall => {
         return new grpc.InterceptingCall(nextCall(options), {
@@ -114,6 +117,8 @@ describe("grpc/client", () => {
 
       expect(mockInterceptor.mock.calls.length).toBe(1);
       expect(mockMetadataRes.get("dapr-app-id")[0]).toBe("test-suite");
+
+      process.env.APP_ID = oldProcessAppId;
     });
 
     it("should allow to use a proxy builder that uses daprAppId by setting custom env variable to proxy a gRPC request", async () => {
