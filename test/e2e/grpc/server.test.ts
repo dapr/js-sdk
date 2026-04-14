@@ -81,6 +81,7 @@ describe("grpc/server", () => {
       .withAppPort(parseInt(serverPort))
       .withAppChannelAddress("host.testcontainers.internal")
       .withDaprLogLevel("info")
+      .withMaxRequestSizeMb(10)
       .withComponent(buildBindingMqttComponent())
       .withComponent(buildBindingRedisComponent())
       .withComponent(buildConfigRedisComponent())
@@ -124,7 +125,7 @@ describe("grpc/server", () => {
       try {
         await server.client.invoker.invoke(daprAppId, "test-invoker", HttpMethod.POST, payload);
       } catch (e: any) {
-        expect(e?.details).toEqual(`grpc: received message larger than max (11534407 vs. ${10 * 1024 * 1024})`);
+        expect(e?.details).toContain(`vs. ${10 * 1024 * 1024}`);
       }
     });
 

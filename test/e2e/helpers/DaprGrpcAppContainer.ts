@@ -49,6 +49,7 @@ export class DaprGrpcAppContainer extends GenericContainer {
   private appId = "dapr-grpc-app";
   private appChannelAddress?: string;
   private appPort?: number;
+  private maxRequestSizeMb?: number;
   // Use distinct aliases so this container does not conflict with a DaprContainer
   // running on the same network (DaprContainer uses "placement" / "scheduler").
   private placementAlias = "placement-grpc";
@@ -118,6 +119,11 @@ export class DaprGrpcAppContainer extends GenericContainer {
     return this;
   }
 
+  withMaxRequestSizeMb(mb: number): this {
+    this.maxRequestSizeMb = mb;
+    return this;
+  }
+
   async start(): Promise<StartedGrpcDaprContainer> {
     if (!this.startedNetwork) {
       throw new Error("Network must be provided before starting DaprGrpcAppContainer");
@@ -172,6 +178,9 @@ export class DaprGrpcAppContainer extends GenericContainer {
     }
     if (this.appPort) {
       cmds.push("--app-port", this.appPort.toString());
+    }
+    if (this.maxRequestSizeMb !== undefined) {
+      cmds.push("--dapr-grpc-max-request-size", this.maxRequestSizeMb.toString());
     }
 
     this.withCommand(cmds);
