@@ -35,10 +35,13 @@ limitations under the License.
  * A suite result that was spoiled solely by ssh2/SubtleCrypto AggregateErrors
  * has ALL of the following characteristics:
  *  1. `suite.testExecError` is non-null (jest-circus set it from unhandled errors).
- *  2. `suite.testExecError.message` is empty / falsy.
- *  3. Every line in `suite.testExecError.stack` (the joined toString() of each
- *     AggregateError) is either blank or starts with "AggregateError"
- *     (no real message, no JavaScript stack frames).
+ *  2. Every line of `suite.testExecError.message` is blank or "AggregateError[:]".
+ *     IMPORTANT: when jest-circus accumulates N unhandled AggregateErrors it
+ *     joins their `toString()` values with "\n", giving a TRUTHY multi-line
+ *     string like "AggregateError\nAggregateError\n..." — the old check
+ *     `if (message) return false` incorrectly rejected these suites.
+ *  3. Every line in `suite.testExecError.stack` is blank or "AggregateError[:]"
+ *     (no real JS stack frames).
  *  4. `suite.numFailingTests === 0` — every individual test passed.
  *
  * ## What we fix
@@ -50,16 +53,19 @@ limitations under the License.
  */
 
 /**
- * Returns true when every line in `stack` is blank or is an AggregateError
- * header line (no real message, no "at ..." stack frames), i.e. this
- * testExecError came solely from empty-message AggregateErrors.
+ * Returns true when every non-empty line in `str` is "AggregateError" or
+ * "AggregateError:" — i.e. the string came solely from empty-message
+ * AggregateErrors with no real JS stack frames.
  *
- * @param {string|undefined} stack
+ * Accepts null/undefined/empty string (absent content is considered clean).
+ * Returns false when any line contains real content (a message or "at …" frame).
+ *
+ * @param {string|null|undefined} str
+ * @returns {boolean}
  */
-function isAggregateErrorOnlyStack(stack) {
-  if (stack === null || stack === undefined) return false;
-  const lines = stack.split("\n");
-  return lines.every((line) => {
+function isAggregateErrorOnlyContent(str) {
+  if (str === null || str === undefined || str === "") return true;
+  return str.split("\n").every((line) => {
     const trimmed = line.trim();
     return trimmed === "" || trimmed === "AggregateError" || trimmed === "AggregateError:";
   });
@@ -74,10 +80,13 @@ function isAggregateErrorOnlyStack(stack) {
 function isSpuriousAggregateErrorSuite(suite) {
   // Must have a testExecError (this is how jest-circus records unhandled errors)
   if (!suite.testExecError) return false;
-  // testExecError.message must be empty (no real error message)
-  if (suite.testExecError.message) return false;
-  // testExecError.stack must contain only AggregateError lines
-  if (!isAggregateErrorOnlyStack(suite.testExecError.stack)) return false;
+  // testExecError.message must be empty or contain only "AggregateError[:]" lines.
+  // When jest-circus accumulates multiple AggregateErrors it joins them with "\n",
+  // producing a truthy string — we must inspect line-by-line, not just !message.
+  if (!isAggregateErrorOnlyContent(suite.testExecError.message)) return false;
+  // testExecError.stack must also contain only AggregateError lines (no real frames)
+  if (!suite.testExecError.stack) return false;
+  if (!isAggregateErrorOnlyContent(suite.testExecError.stack)) return false;
   // All individual tests must have passed (no genuine test failures)
   if (suite.numFailingTests !== 0) return false;
   return true;
