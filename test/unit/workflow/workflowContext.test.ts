@@ -13,7 +13,7 @@ limitations under the License.
 
 import WorkflowContext from "../../../src/workflow/runtime/WorkflowContext";
 import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
-import { Task } from "@dapr/durabletask-js/task/task";
+import { Task } from "../../../src/workflow/internal/durabletask/task/task";
 
 describe("WorkflowContext", () => {
   let mockInnerContext: any;

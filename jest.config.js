@@ -18,6 +18,7 @@ module.exports = {
   collectCoverage: true,
   coverageReporters: ["lcov"],
   collectCoverageFrom: ["src/**/*.ts", "!src/proto/**"],
+  modulePathIgnorePatterns: ["<rootDir>/build/"],
   // Load .github/scripts/*.js files as native CJS — they have no TypeScript syntax.
   transformIgnorePatterns: ["/node_modules/", "/.github/"],
   // Post-process results to remove spurious "Test suite failed to run" entries

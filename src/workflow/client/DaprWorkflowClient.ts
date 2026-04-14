@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { TaskHubGrpcClient } from "@dapr/durabletask-js";
+import { TaskHubGrpcClient } from "../internal/durabletask";
 import { WorkflowState } from "./WorkflowState";
 import { generateApiTokenClientInterceptors, generateEndpoint, getDaprApiToken } from "../internal/index";
 import { TWorkflow } from "../../types/workflow/Workflow.type";
@@ -158,7 +158,7 @@ export default class DaprWorkflowClient {
       fetchPayloads,
       timeoutInSeconds,
     );
-    if (state != undefined) {
+    if (state !== undefined) {
       return new WorkflowState(state);
     }
   }
