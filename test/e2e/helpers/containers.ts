@@ -187,11 +187,9 @@ export function buildInMemoryPubSubComponent(name = "pubsub"): Component {
 }
 
 /**
- * Runs a cleanup function while suppressing `AggregateError` rejections that
- * testcontainers/ssh2 emit when SubtleCrypto handles are abruptly terminated
- * during container teardown.  Without this wrapper, those empty AggregateErrors
- * become unhandled rejections that Jest's jasmine runner captures and reports as
- * "Test suite failed to run" — even though every individual test passed.
+ * Runs a cleanup function, then briefly yields the microtask queue so that any
+ * lingering testcontainers/ssh2 AggregateErrors can be dispatched and suppressed
+ * by the global process.emit filter installed in jest.setup.js.
  *
  * Usage in `afterAll`:
  * ```ts
@@ -202,66 +200,11 @@ export function buildInMemoryPubSubComponent(name = "pubsub"): Component {
  * }), 60_000);
  * ```
  */
-
-/** Used to ensure the filtered unhandledRejection handler is installed at most once. */
-let cleanupSuppressionInstalled = false;
-
-/**
- * Installs a permanent process-level filter that suppresses empty-message
- * AggregateErrors from ssh2 / testcontainers SubtleCrypto handle GC.
- *
- * These errors are fired during Jest's --forceExit shutdown phase — AFTER
- * afterAll completes — so a temporary "window" approach (install then restore)
- * is insufficient.  The filter must remain active through the end of the
- * process lifecycle.
- *
- * Safe because:
- *   - Each e2e test file runs in its own process (separate `jest` invocation).
- *   - Non-empty / non-AggregateError rejections are forwarded to the original
- *     handlers (including Jest's jasmine tracker) unchanged.
- *   - The filter is idempotent — multiple calls only install it once.
- */
-function installCleanupErrorSuppression(): void {
-  if (cleanupSuppressionInstalled) return;
-  cleanupSuppressionInstalled = true;
-
-  // Capture existing handlers (including Jest's jasmine unhandledRejection tracker).
-  const handlers: NodeJS.UnhandledRejectionListener[] = process
-    .rawListeners("unhandledRejection")
-    .slice() as NodeJS.UnhandledRejectionListener[];
-  process.removeAllListeners("unhandledRejection");
-
-  process.on("unhandledRejection", (reason: unknown) => {
-    // Suppress empty-message AggregateErrors — these are from ssh2 / testcontainers
-    // SubtleCrypto handle GC and carry no meaningful diagnostic information.
-    // Use duck-typing (check for .errors array) instead of instanceof AggregateError
-    // because AggregateError is an ES2021 type not available in our ES2020 tsconfig.
-    if (reason !== null && typeof reason === "object") {
-      const err = reason as { errors?: unknown; message?: string };
-      if (Array.isArray(err.errors) && (!err.message || err.message === "")) {
-        return;
-      }
-    }
-    // Forward all other rejections to Jest's (and any other) original handlers.
-    for (const h of handlers) {
-      try {
-        if (typeof h === "function") {
-          h(reason, Promise.resolve());
-        }
-      } catch (_) {
-        // ignore errors thrown by handlers
-      }
-    }
-  });
-}
-
 export async function runWithCleanupErrorSuppression(fn: () => Promise<void>): Promise<void> {
-  // Install the permanent filter (no-op if already installed).
-  installCleanupErrorSuppression();
-
   await fn();
-  // Brief yield so that any micro-tasks queued by cleanup can run (and be
-  // suppressed) before this function returns.
+  // Brief yield so that any micro-tasks queued by cleanup can be dispatched and
+  // filtered by the global process.emit override in jest.setup.js before this
+  // function returns.
   await new Promise<void>((resolve) => setTimeout(resolve, 300));
 }
 

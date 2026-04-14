@@ -102,3 +102,40 @@ for (const name of undiciGlobals) {
     global[name] = undici[name];
   }
 }
+
+// ── Suppress empty AggregateErrors from testcontainers/ssh2 GC ───────────────
+// testcontainers uses ssh2 which creates SubtleCrypto handles.  When those
+// handles are abruptly terminated during Jest's --forceExit shutdown, Node.js
+// fires empty AggregateError unhandled rejections.  Jest's jasmine runner
+// captures those via process.on('unhandledRejection') and reports them as
+// "Test suite failed to run" — even though every individual test passed.
+//
+// Node.js dispatches unhandledRejection events via process.emit(), which IS a
+// regular JavaScript method (it inherits from EventEmitter).  By overriding
+// process.emit() here (in setupFiles, before jest-circus installs its own
+// listener), we intercept the event before any listener ever sees it.
+//
+// Only empty-message AggregateErrors (the ssh2 GC pattern) are suppressed; all
+// other rejections are forwarded normally.
+const _origEmit = process.emit.bind(process);
+process.emit = function emit(event, ...args) {
+  if (event === "unhandledRejection") {
+    const reason = args[0];
+    if (
+      reason !== null &&
+      typeof reason === "object" &&
+      Array.isArray(reason.errors) &&
+      !reason.message
+    ) {
+      // Return true so process.emit reports "there were listeners" for this event.
+      // Node.js checks the return value of emit('unhandledRejection') to decide
+      // whether to apply the default --unhandledRejections=throw behaviour:
+      //   • true  → at least one listener was invoked → no default throw
+      //   • false → no listeners → apply default (crash in Node 15+)
+      // Returning true here suppresses the empty AggregateError entirely and
+      // prevents the process from crashing or Jest marking the suite as failed.
+      return true;
+    }
+  }
+  return _origEmit(event, ...args);
+};
