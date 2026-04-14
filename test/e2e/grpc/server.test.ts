@@ -191,7 +191,9 @@ describe("grpc/server", () => {
     });
 
     it("should be able to listen and invoke a service with headers", async () => {
-      const mock = jest.fn(async (data: DaprInvokerCallbackContent) => data.headers);
+      // Return a serializable object so the gRPC response is not empty (an empty
+      // response body causes the gRPC client to throw COULD_NOT_PARSE_RESULT).
+      const mock = jest.fn(async (data: DaprInvokerCallbackContent) => ({ receivedHeaders: data.headers ?? null }));
 
       await server.invoker.listen("hello-world-headers", mock, { method: HttpMethod.GET });
       const res = await server.client.invoker.invoke(daprAppId, "hello-world-headers", HttpMethod.GET, undefined, {
@@ -199,9 +201,9 @@ describe("grpc/server", () => {
       });
 
       expect(mock.mock.calls.length).toBe(1);
-      // Headers are not forwarded to the gRPC app callback (documented in DaprInvokerCallbackContent).
-      // The handler receives undefined for headers, so the response is also undefined.
-      expect(res).toBeUndefined();
+      // Headers are NOT forwarded to the gRPC app callback (documented in DaprInvokerCallbackContent
+      // and noted in GRPCServerImpl: "@TODO add call.metadata").
+      expect(res).toEqual({ receivedHeaders: null });
     });
   });
 });
