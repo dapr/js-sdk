@@ -44,6 +44,7 @@ import {
   DAPR_TEST_RUNTIME_IMAGE,
   DAPR_TEST_PLACEMENT_IMAGE,
   DAPR_TEST_SCHEDULER_IMAGE,
+  runWithCleanupErrorSuppression,
 } from "../helpers/containers";
 
 const serverHost = "127.0.0.1";
@@ -177,10 +178,12 @@ describe("http/actors", () => {
   // We need to stop the server after all tests are done
   // Note: it can take > 5s so increase timeout as we are testing reminders and timers
   afterAll(async () => {
-    await server.stop();
-    await daprContainer.stop();
-    await redisContainer.stop();
-    await network.stop();
+    await runWithCleanupErrorSuppression(async () => {
+      await server.stop();
+      await daprContainer.stop();
+      await redisContainer.stop();
+      await network.stop();
+    });
   }, 60 * 1000);
 
   describe("configuration", () => {

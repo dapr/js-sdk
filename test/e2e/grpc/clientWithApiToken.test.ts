@@ -18,7 +18,7 @@ import { CommunicationProtocolEnum, DaprClient, LogLevel } from "../../../src";
 import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runtime/v1/dapr_grpc_pb";
 import { NextCall } from "@grpc/grpc-js/build/src/client-interceptors";
 import { GetMetadataRequest } from "../../../src/proto/dapr/proto/runtime/v1/metadata_pb";
-import { buildInMemoryPubSubComponent, DAPR_TEST_RUNTIME_IMAGE, DAPR_TEST_PLACEMENT_IMAGE, DAPR_TEST_SCHEDULER_IMAGE } from "../helpers/containers";
+import { buildInMemoryPubSubComponent, DAPR_TEST_RUNTIME_IMAGE, DAPR_TEST_PLACEMENT_IMAGE, DAPR_TEST_SCHEDULER_IMAGE, runWithCleanupErrorSuppression } from "../helpers/containers";
 
 describe("grpc/client with api token", () => {
   let network: StartedNetwork;
@@ -39,8 +39,10 @@ describe("grpc/client with api token", () => {
   }, 180 * 1000);
 
   afterAll(async () => {
-    await daprContainer.stop();
-    await network.stop();
+    await runWithCleanupErrorSuppression(async () => {
+      await daprContainer.stop();
+      await network.stop();
+    });
   });
 
   it("should send api token as metadata when present", async () => {

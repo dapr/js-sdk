@@ -22,6 +22,7 @@ import {
   DAPR_TEST_RUNTIME_IMAGE,
   DAPR_TEST_PLACEMENT_IMAGE,
   DAPR_TEST_SCHEDULER_IMAGE,
+  runWithCleanupErrorSuppression,
 } from "../helpers/containers";
 
 describe("http/client", () => {
@@ -54,10 +55,12 @@ describe("http/client", () => {
   }, 180 * 1000);
 
   afterAll(async () => {
-    await client.stop();
-    await daprContainer.stop();
-    await redisContainer.stop();
-    await network.stop();
+    await runWithCleanupErrorSuppression(async () => {
+      await client.stop();
+      await daprContainer.stop();
+      await redisContainer.stop();
+      await network.stop();
+    });
   });
 
   describe("sidecar", () => {

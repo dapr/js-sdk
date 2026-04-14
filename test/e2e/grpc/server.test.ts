@@ -20,6 +20,7 @@ import {
   buildBindingMqttComponent,
   buildBindingRedisComponent,
   buildConfigRedisComponent,
+  runWithCleanupErrorSuppression,
 } from "../helpers/containers";
 
 const serverHost = "127.0.0.1";
@@ -107,11 +108,13 @@ describe("grpc/server", () => {
   });
 
   afterAll(async () => {
-    await server.stop();
-    await daprContainer.stop();
-    await mqttContainer.stop();
-    await redisContainer.stop();
-    await network.stop();
+    await runWithCleanupErrorSuppression(async () => {
+      await server.stop();
+      await daprContainer.stop();
+      await mqttContainer.stop();
+      await redisContainer.stop();
+      await network.stop();
+    });
   });
 
   describe("server", () => {

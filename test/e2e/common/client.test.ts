@@ -33,6 +33,7 @@ import {
   DAPR_TEST_RUNTIME_IMAGE,
   DAPR_TEST_PLACEMENT_IMAGE,
   DAPR_TEST_SCHEDULER_IMAGE,
+  runWithCleanupErrorSuppression,
 } from "../helpers/containers";
 
 const loggerSettings = {
@@ -74,11 +75,13 @@ describe("common/client/http", () => {
   }, 180 * 1000);
 
   afterAll(async () => {
-    await client.stop();
-    await daprContainer.stop();
-    await mongoDbContainer.stop();
-    await redisContainer.stop();
-    await network.stop();
+    await runWithCleanupErrorSuppression(async () => {
+      await client.stop();
+      await daprContainer.stop();
+      await mongoDbContainer.stop();
+      await redisContainer.stop();
+      await network.stop();
+    });
   });
 
   describe("client", () => {
@@ -594,11 +597,13 @@ describe("common/client/grpc", () => {
   }, 180 * 1000);
 
   afterAll(async () => {
-    await client.stop();
-    await daprContainer.stop();
-    await mongoDbContainer.stop();
-    await redisContainer.stop();
-    await network.stop();
+    await runWithCleanupErrorSuppression(async () => {
+      await client.stop();
+      await daprContainer.stop();
+      await mongoDbContainer.stop();
+      await redisContainer.stop();
+      await network.stop();
+    });
   });
 
   describe("client", () => {

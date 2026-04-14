@@ -22,6 +22,7 @@ import {
   DAPR_TEST_RUNTIME_IMAGE,
   DAPR_TEST_PLACEMENT_IMAGE,
   DAPR_TEST_SCHEDULER_IMAGE,
+  runWithCleanupErrorSuppression,
 } from "../helpers/containers";
 
 const pubSubName = "pubsub-mqtt"; // MQTT is required by the tests with wildcard routes
@@ -231,11 +232,13 @@ describe("common/server/http", () => {
   });
 
   afterAll(async () => {
-    await httpServer.stop();
-    await daprContainer.stop();
-    await mqttContainer.stop();
-    await redisContainer.stop();
-    await network.stop();
+    await runWithCleanupErrorSuppression(async () => {
+      await httpServer.stop();
+      await daprContainer.stop();
+      await mqttContainer.stop();
+      await redisContainer.stop();
+      await network.stop();
+    });
   }, 60 * 1000);
 
 
@@ -836,11 +839,13 @@ describe("common/server/grpc", () => {
   });
 
   afterAll(async () => {
-    await grpcServer.stop();
-    await daprContainer.stop();
-    await mqttContainer.stop();
-    await redisContainer.stop();
-    await network.stop();
+    await runWithCleanupErrorSuppression(async () => {
+      await grpcServer.stop();
+      await daprContainer.stop();
+      await mqttContainer.stop();
+      await redisContainer.stop();
+      await network.stop();
+    });
   }, 60 * 1000);
 
   describe("pubsub", () => {

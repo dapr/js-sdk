@@ -187,6 +187,62 @@ export function buildInMemoryPubSubComponent(name = "pubsub"): Component {
 }
 
 /**
+ * Runs a cleanup function while suppressing `AggregateError` rejections that
+ * testcontainers/ssh2 emit when SubtleCrypto handles are abruptly terminated
+ * during container teardown.  Without this wrapper, those empty AggregateErrors
+ * become unhandled rejections that Jest's jasmine runner captures and reports as
+ * "Test suite failed to run" — even though every individual test passed.
+ *
+ * Usage in `afterAll`:
+ * ```ts
+ * afterAll(() => runWithCleanupErrorSuppression(async () => {
+ *   await server.stop();
+ *   await daprContainer.stop();
+ *   await network.stop();
+ * }), 60_000);
+ * ```
+ */
+export async function runWithCleanupErrorSuppression(fn: () => Promise<void>): Promise<void> {
+  // Capture existing handlers (including Jest's jasmine unhandledRejection tracker)
+  // and replace them with a filtered proxy that swallows empty AggregateErrors.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handlers: any[] = (process as any).rawListeners("unhandledRejection").slice();
+  process.removeAllListeners("unhandledRejection");
+
+  process.on("unhandledRejection", (reason: unknown) => {
+    // Suppress empty-message AggregateErrors — these are from ssh2 / testcontainers
+    // SubtleCrypto handle GC and carry no meaningful diagnostic information.
+    if (reason instanceof AggregateError && (!reason.message || reason.message === "")) {
+      return;
+    }
+    // Forward all other rejections to Jest's (and any other) original handlers.
+    for (const h of handlers) {
+      try {
+        if (typeof h === "function") {
+          h(reason);
+        } else if (h && typeof h.listener === "function") {
+          h.listener(reason);
+        }
+      } catch (_) {
+        // ignore errors thrown by handlers
+      }
+    }
+  });
+
+  try {
+    await fn();
+    // Flush pending micro-tasks so that any deferred cleanup errors can be
+    // caught and suppressed by our handler before we restore the originals.
+    await new Promise<void>((resolve) => setTimeout(resolve, 300));
+  } finally {
+    process.removeAllListeners("unhandledRejection");
+    for (const h of handlers) {
+      process.on("unhandledRejection", h);
+    }
+  }
+}
+
+/**
  * DaprContainer extension that appends `--dapr-http-max-request-size <mb>` to
  * the daprd command built by the base class.  Required for tests that send or
  * receive payloads larger than Dapr's default 4 MB HTTP body limit.

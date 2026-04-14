@@ -27,6 +27,7 @@ import {
   DAPR_TEST_PLACEMENT_IMAGE,
   DAPR_TEST_SCHEDULER_IMAGE,
   DaprContainerWithLargeBody,
+  runWithCleanupErrorSuppression,
 } from "../helpers/containers";
 
 const serverHost = "127.0.0.1";
@@ -100,11 +101,13 @@ describe("http/server", () => {
   });
 
   afterAll(async () => {
-    await server.stop();
-    await daprContainer.stop();
-    await mqttContainer.stop();
-    await redisContainer.stop();
-    await network.stop();
+    await runWithCleanupErrorSuppression(async () => {
+      await server.stop();
+      await daprContainer.stop();
+      await mqttContainer.stop();
+      await redisContainer.stop();
+      await network.stop();
+    });
   });
 
   describe("server", () => {

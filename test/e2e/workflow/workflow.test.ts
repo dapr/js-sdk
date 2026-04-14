@@ -27,6 +27,7 @@ import {
   DAPR_TEST_RUNTIME_IMAGE,
   DAPR_TEST_PLACEMENT_IMAGE,
   DAPR_TEST_SCHEDULER_IMAGE,
+  runWithCleanupErrorSuppression,
 } from "../helpers/containers";
 
 describe("workflow", () => {
@@ -70,9 +71,11 @@ describe("workflow", () => {
   });
 
   afterAll(async () => {
-    await daprContainer.stop();
-    await redisContainer.stop();
-    await network.stop();
+    await runWithCleanupErrorSuppression(async () => {
+      await daprContainer.stop();
+      await redisContainer.stop();
+      await network.stop();
+    });
   });
 
   it("should be able to run an empty orchestration", async () => {
