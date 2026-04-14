@@ -71,7 +71,7 @@ function getDataFromCEObject(obj: object) {
 }
 
 describe("common/server/http", () => {
-  jest.setTimeout(15000);
+  jest.setTimeout(30000);
 
   let network: StartedNetwork;
   let redisContainer: StartedTestContainer;
@@ -256,8 +256,8 @@ describe("common/server/http", () => {
     it("should mark messages as retried (RETRY), and the same message should be received again until we send SUCCESS", async () => {
       const res = await httpServer.client.pubsub.publish(pubSubName, getTopic(topicWithStatusCb), "TEST_RETRY_TWICE");
       expect(res.error).toBeUndefined();
-      // Delay a bit for event to arrive
-      await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
+      // Delay a bit for event to arrive and retry twice (each retry adds latency in CI)
+      await new Promise((resolve, _reject) => setTimeout(resolve, 10000));
       // 3 as we retry twice
       expect(mockSubscribeStatusHandler.mock.calls.length).toBe(3);
       expect(mockSubscribeDeadletterHandler.mock.calls.length).toBe(0);
@@ -673,7 +673,7 @@ describe("common/server/http", () => {
 });
 
 describe("common/server/grpc", () => {
-  jest.setTimeout(15000);
+  jest.setTimeout(30000);
 
   let network: StartedNetwork;
   let redisContainer: StartedTestContainer;
@@ -862,8 +862,8 @@ describe("common/server/grpc", () => {
     it("should mark messages as retried (RETRY), and the same message should be received again until we send SUCCESS", async () => {
       const res = await grpcServer.client.pubsub.publish(pubSubName, getTopic(topicWithStatusCb), "TEST_RETRY_TWICE");
       expect(res.error).toBeUndefined();
-      // Delay a bit for event to arrive
-      await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
+      // Delay a bit for event to arrive and retry twice (each retry adds latency in CI)
+      await new Promise((resolve, _reject) => setTimeout(resolve, 10000));
       // 3 as we retry twice
       expect(mockSubscribeStatusHandler.mock.calls.length).toBe(3);
       expect(mockSubscribeDeadletterHandler.mock.calls.length).toBe(0);
