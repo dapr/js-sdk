@@ -76,6 +76,12 @@ jobs:
           node-version: ${{ env.NODE_VER }}
           registry-url: "https://registry.npmjs.org"
 
+      - name: Set version from tag
+        run: |
+          # Strip the leading 'v' from the tag ref (e.g. refs/tags/v1.2.3 -> 1.2.3)
+          TAG="${GITHUB_REF#refs/tags/v}"
+          npm version --no-git-tag-version "$TAG"
+
       - name: Install dependencies
         run: npm install
 
@@ -124,13 +130,12 @@ jobs:
 
       - name: Configure version
         run: |
-          # Version should be in the format of <version>-<timestamp>-<commit-hash>
-          # e.g. 1.0.0-20220101000000-abcdef
-          VERSION=$(npm version | grep '@dapr/dapr' | awk -F':' '{print $2}' | tr -d "[:space:],'")
-          TIMESTAMP=$(date -u +"%Y%m%d%H%M%S")
+          # Version should be in the format of <latest>-dev.<date>.<commit-hash>
+          # e.g. 3.2.0-dev.20220101.abcdef
+          BASE_VERSION=$(npm view @dapr/dapr version)
+          DATE=$(date -u +"%Y%m%d")
           COMMIT_HASH=$(git rev-parse --short HEAD)
-
-          sed -i s#"\"version\": \"$VERSION\""#"\"version\": \"$VERSION-$TIMESTAMP-$COMMIT_HASH\""# package.json
+          npm version --no-git-tag-version "${BASE_VERSION}-dev.${DATE}.${COMMIT_HASH}"
 
       - name: Install dependencies
         run: npm install
