@@ -14,7 +14,7 @@ limitations under the License.
 
 const fs = require('fs-extra');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execSync, spawnSync } = require('child_process');
 const https = require('https');
 const os = require('os');
 
@@ -236,10 +236,9 @@ async function generateGrpc(protoPath, protoFile) {
   ];
 
   try {
-    const command = `protoc ${protocArgs.join(' ')}`;
-    console.log(`Executing: ${command}`);
+    console.log(`Executing: protoc ${protocArgs.join(' ')}`);
 
-    execSync(command, {
+    const result = spawnSync('protoc', protocArgs, {
       stdio: 'inherit',
       cwd: projectRoot,
       env: {
@@ -248,6 +247,9 @@ async function generateGrpc(protoPath, protoFile) {
         PATH: `${nodeModulesBinDir}${path.delimiter}${grpcToolsBinDir}${path.delimiter}${process.env.PATH}`
       }
     });
+    if (result.status !== 0) {
+      throw new Error(`protoc exited with status ${result.status}`);
+    }
   } catch (error) {
     // If the .exe fails due to DLL issues, try an alternative approach
     if (protocGenGrpcCmd.endsWith('.exe')) {
@@ -263,10 +265,9 @@ async function generateGrpc(protoPath, protoFile) {
       ];
 
       try {
-        const fallbackCommand = `protoc ${fallbackArgs.join(' ')}`;
-        console.log(`Executing fallback (without gRPC): ${fallbackCommand}`);
+        console.log(`Executing fallback (without gRPC): protoc ${fallbackArgs.join(' ')}`);
 
-        execSync(fallbackCommand, {
+        const fallbackResult = spawnSync('protoc', fallbackArgs, {
           stdio: 'inherit',
           cwd: projectRoot,
           env: {
@@ -274,6 +275,9 @@ async function generateGrpc(protoPath, protoFile) {
             PATH: `${nodeModulesBinDir}${path.delimiter}${process.env.PATH}`
           }
         });
+        if (fallbackResult.status !== 0) {
+          throw new Error(`protoc fallback exited with status ${fallbackResult.status}`);
+        }
 
         console.log(`Warning: Generated JS/TS files for ${protoFile} but skipped gRPC bindings due to Windows compatibility issues`);
         return; // Success with fallback
