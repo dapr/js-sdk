@@ -16,6 +16,7 @@ module.exports = {
   testEnvironment: "node",
   collectCoverage: true,
   coverageReporters: ["lcov"],
+  modulePathIgnorePatterns: ["<rootDir>/build/"],
   // Load .github/scripts/*.js files as native CJS — they have no TypeScript syntax.
   transformIgnorePatterns: ["/node_modules/", "/.github/"],
 };

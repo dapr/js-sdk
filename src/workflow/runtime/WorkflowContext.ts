@@ -11,14 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { OrchestrationContext } from "@dapr/durabletask-js";
-import { Task } from "@dapr/durabletask-js/task/task";
+import { OrchestrationContext } from "../internal/durabletask";
+import { Task } from "../internal/durabletask/task/task";
 import { TWorkflowActivity } from "../../types/workflow/Activity.type";
 import { TWorkflow } from "../../types/workflow/Workflow.type";
 import { getFunctionName } from "../internal";
-import { WhenAllTask } from "@dapr/durabletask-js/task/when-all-task";
-import { whenAll, whenAny } from "@dapr/durabletask-js/task";
-import { WhenAnyTask } from "@dapr/durabletask-js/task/when-any-task";
+import { WhenAllTask } from "../internal/durabletask/task/when-all-task";
+import { whenAll, whenAny } from "../internal/durabletask/task";
+import { WhenAnyTask } from "../internal/durabletask/task/when-any-task";
 import { TInput, TOutput } from "../../types/workflow/InputOutput.type";
 
 /**
