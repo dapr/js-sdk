@@ -12,19 +12,17 @@ limitations under the License.
 */
 
 import GRPCClientPubSub from "../../../../src/implementation/Client/GRPCClient/pubsub";
-import { PublishEventRequest } from "../../../../src/proto/dapr/proto/runtime/v1/pubsub_pb";
+import { PublishEventRequest } from "../../../../src/proto/dapr/proto/runtime/v1/dapr_pb";
 
 describe("grpc/pubsub", () => {
   describe("publish should call publishEvent with correct arguments", () => {
     const getMockClient = (requests: any[]) => {
-      const mockPublishEvent = (req: PublishEventRequest, callback: any) => {
+      const mockPublishEvent = async (req: PublishEventRequest) => {
         requests.push(req);
-        callback(null, {});
+        return {};
       };
       const mockClient = {
-        options: () => {
-          return { logger: undefined };
-        },
+        options: { logger: undefined },
         getClient: () => {
           return { publishEvent: mockPublishEvent };
         },
@@ -40,12 +38,11 @@ describe("grpc/pubsub", () => {
       // Check the request
       expect(requests.length).toBe(1);
       const pubsub = requests[0];
-      expect(pubsub.getPubsubName()).toBe("my-pubsub");
-      expect(pubsub.getTopic()).toBe("my-topic");
-      expect(pubsub.getData()).toStrictEqual(Buffer.from(JSON.stringify({ key: "value" })));
-      expect(pubsub.getDataContentType()).toBe("application/json");
-      expect(pubsub.getMetadataMap().getLength()).toBe(1);
-      expect(pubsub.getMetadataMap().get("mKey")).toBe("mValue");
+      expect(pubsub.pubsubName).toBe("my-pubsub");
+      expect(pubsub.topic).toBe("my-topic");
+      expect(pubsub.data).toStrictEqual(Buffer.from(JSON.stringify({ key: "value" })));
+      expect(pubsub.dataContentType).toBe("application/json");
+      expect(pubsub.metadata).toEqual({ mKey: "mValue" });
     });
 
     it("should skip data and content-type when data is not present", async () => {
@@ -56,12 +53,9 @@ describe("grpc/pubsub", () => {
       // Check the request
       expect(requests.length).toBe(1);
       const pubsub = requests[0];
-      expect(pubsub.getPubsubName()).toBe("my-pubsub");
-      expect(pubsub.getTopic()).toBe("my-topic");
-      expect(pubsub.getData()).toStrictEqual("");
-      expect(pubsub.getDataContentType()).toBe("");
-      expect(pubsub.getMetadataMap().getLength()).toBe(1);
-      expect(pubsub.getMetadataMap().get("mKey")).toBe("mValue");
+      expect(pubsub.pubsubName).toBe("my-pubsub");
+      expect(pubsub.topic).toBe("my-topic");
+      expect(pubsub.metadata).toEqual({ mKey: "mValue" });
     });
 
     it("should use the content-type when provided", async () => {
@@ -77,12 +71,10 @@ describe("grpc/pubsub", () => {
       // Check the request
       expect(requests.length).toBe(1);
       const pubsub = requests[0];
-      expect(pubsub.getPubsubName()).toBe("my-pubsub");
-      expect(pubsub.getTopic()).toBe("my-topic");
-      expect(pubsub.getData()).toStrictEqual(Buffer.from(inData.toString()));
-      expect(pubsub.getDataContentType()).toBe("text/plain");
-      expect(pubsub.getMetadataMap().getLength()).toBe(1);
-      expect(pubsub.getMetadataMap().get("mKey")).toBe("mValue");
+      expect(pubsub.pubsubName).toBe("my-pubsub");
+      expect(pubsub.topic).toBe("my-topic");
+      expect(pubsub.dataContentType).toBe("text/plain");
+      expect(pubsub.metadata).toEqual({ mKey: "mValue" });
     });
   });
 });
