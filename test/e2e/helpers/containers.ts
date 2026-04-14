@@ -222,7 +222,14 @@ export async function runWithCleanupErrorSuppression(fn: () => Promise<void>): P
   process.on("unhandledRejection", (reason: unknown) => {
     // Suppress empty-message AggregateErrors — these are from ssh2 / testcontainers
     // SubtleCrypto handle GC and carry no meaningful diagnostic information.
-    if (reason instanceof AggregateError && (!reason.message || reason.message === "")) {
+    // Use duck-typing (check for .errors array) instead of instanceof AggregateError
+    // because AggregateError is an ES2021 type not available in our ES2020 tsconfig.
+    if (
+      reason !== null &&
+      typeof reason === "object" &&
+      Array.isArray((reason as { errors?: unknown }).errors) &&
+      (!(reason as { message?: string }).message || (reason as { message?: string }).message === "")
+    ) {
       return;
     }
     // Forward all other rejections to Jest's (and any other) original handlers.
