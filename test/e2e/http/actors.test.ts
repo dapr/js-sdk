@@ -112,7 +112,7 @@ describe("http/actors", () => {
     // This will initialize the actor routes.
     // Actors themselves can be initialized later
     await server.actor.init();
-    await Promise.all(DEMO_ACTORS.map((cls) => server.actor.registerActor(cls)));
+    await Promise.all(DEMO_ACTORS.map((cls) => server.actor.registerActor(cls as any)));
 
     // Start ONLY the HTTP listener (no sidecar wait) so the app is already
     // listening when the Dapr container probes /dapr/config during its own init.
@@ -157,7 +157,7 @@ describe("http/actors", () => {
 
     // Re-register all actors against the new singleton (which will be lazily created
     // with realServerClient on the first registerActor / getInstance call).
-    await Promise.all(DEMO_ACTORS.map((cls) => server.actor.registerActor(cls)));
+    await Promise.all(DEMO_ACTORS.map((cls) => server.actor.registerActor(cls as any)));
 
     // Create the standalone client used for actor proxy tests.
     client = new DaprClient(realClientOptions);
