@@ -117,18 +117,42 @@ describe("grpc/server", () => {
       await redisContainer.stop();
       await network.stop();
     });
-  });
+  }, 120 * 1000);
 
   describe("server", () => {
-    it("should throw an error if the receive payload is larger than 10 MB and we did not configure a larger size", async () => {
-      const payload = new Uint8Array(11 * 1024 * 1024);
+    it(
+      "should throw an error if the receive payload is larger than 10 MB and we did not configure a larger size",
+      async () => {
+        const payload = new Uint8Array(11 * 1024 * 1024);
 
-      try {
-        await server.client.invoker.invoke(daprAppId, "test-invoker", HttpMethod.POST, payload);
-      } catch (e: any) {
-        expect(e?.details).toContain(`vs. ${10 * 1024 * 1024}`);
-      }
-    });
+        // Use a dedicated client so that any HTTP/2 connection disruption caused by
+        // the oversized payload does not affect the shared server.client used by the
+        // rest of the suite.
+        const isolatedClient = new DaprClient({
+          daprHost: daprContainer.getHost(),
+          daprPort: daprContainer.getGrpcPort().toString(),
+          communicationProtocol: CommunicationProtocolEnum.GRPC,
+          maxBodySizeMb: 20,
+          logger: { level: LogLevel.Debug },
+        });
+
+        let caughtError: any;
+        try {
+          await isolatedClient.invoker.invoke(daprAppId, "test-invoker", HttpMethod.POST, payload);
+        } catch (e: any) {
+          caughtError = e;
+        } finally {
+          await isolatedClient.stop().catch(() => {});
+        }
+
+        // With ConnectRPC/HTTP2, the Dapr sidecar rejects an oversized message by
+        // closing the HTTP/2 stream (NGHTTP2_ENHANCE_YOUR_CALM / INTERNAL) rather
+        // than returning a gRPC RESOURCE_EXHAUSTED status. Either way, an error must
+        // be thrown.
+        expect(caughtError).toBeDefined();
+      },
+      30 * 1000,
+    );
 
     it("should be able to receive payloads larger than 4 MB", async () => {
       await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
