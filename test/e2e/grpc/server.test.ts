@@ -59,12 +59,12 @@ describe("grpc/server", () => {
         daprHost: "127.0.0.1",
         daprPort: "50001", // placeholder – patched below with the real mapped port
         communicationProtocol: CommunicationProtocolEnum.GRPC,
-        maxBodySizeMb: 3, // larger than sidecar limit (1 MB) to allow the oversized test payload through the client
+        maxBodySizeMb: 20, // larger than the sidecar limit (10 MB) to let the oversized payload reach the sidecar
         logger: {
           level: LogLevel.Debug,
         },
       },
-      maxBodySizeMb: 1,
+      maxBodySizeMb: 10,
     });
 
     await server.binding.receive("binding-mqtt", mockBindingReceive);
@@ -82,7 +82,7 @@ describe("grpc/server", () => {
       .withAppPort(parseInt(serverPort))
       .withAppChannelAddress("host.testcontainers.internal")
       .withDaprLogLevel("info")
-      .withMaxRequestSizeMb(1)
+      .withMaxRequestSizeMb(10)
       .withComponent(buildBindingMqttComponent())
       .withComponent(buildBindingRedisComponent())
       .withComponent(buildConfigRedisComponent())
@@ -93,7 +93,7 @@ describe("grpc/server", () => {
       daprHost: daprContainer.getHost(),
       daprPort: daprContainer.getGrpcPort().toString(),
       communicationProtocol: CommunicationProtocolEnum.GRPC,
-      maxBodySizeMb: 3,
+      maxBodySizeMb: 20,
       logger: {
         level: LogLevel.Debug,
       },
@@ -121,22 +121,21 @@ describe("grpc/server", () => {
 
   describe("server", () => {
     it(
-      "should throw an error if the receive payload is larger than 1 MB and we did not configure a larger size",
+      "should throw an error if the receive payload is larger than 10 MB and we did not configure a larger size",
       async () => {
-        // Use a payload just over the 1 MB sidecar limit. The Dapr sidecar buffers the
-        // entire request body before checking the size limit, so we keep the payload small
-        // (1.5 MB) to avoid the >30s container-network transfer time that an 11 MB payload
-        // would require in CI.
-        const payload = new Uint8Array(Math.ceil(1.5 * 1024 * 1024));
+        // Use a payload just over the 10 MB sidecar limit. The Dapr sidecar buffers the
+        // entire gRPC message before checking the size limit; on a CI runner the 11 MB
+        // transfer takes ~30-35 s through Docker networking, so the timeout is set to 60s.
+        const payload = new Uint8Array(11 * 1024 * 1024);
 
         // Use a dedicated client so that any HTTP/2 connection disruption caused by
-        // the oversized payload does not affect the shared server.client used by the
-        // rest of the suite.
+        // the oversized payload (e.g. GOAWAY / NGHTTP2_ENHANCE_YOUR_CALM) does not
+        // affect the shared server.client used by the rest of the suite.
         const isolatedClient = new DaprClient({
           daprHost: daprContainer.getHost(),
           daprPort: daprContainer.getGrpcPort().toString(),
           communicationProtocol: CommunicationProtocolEnum.GRPC,
-          maxBodySizeMb: 3, // higher than sidecar limit so the client doesn't reject it first
+          maxBodySizeMb: 20, // higher than sidecar limit so the client doesn't reject it first
           logger: { level: LogLevel.Debug },
         });
 
@@ -149,17 +148,17 @@ describe("grpc/server", () => {
           await isolatedClient.stop().catch(() => {});
         }
 
-        // The Dapr sidecar returns RESOURCE_EXHAUSTED when the request body exceeds its
-        // configured max request size. Either way, an error must be thrown.
+        // With ConnectRPC, the Dapr sidecar returns RESOURCE_EXHAUSTED (code 8) when the
+        // request body exceeds --dapr-http-max-request-size. An error must be thrown.
         expect(caughtError).toBeDefined();
       },
-      15 * 1000,
+      60 * 1000,
     );
 
-    it("should be able to invoke with non-trivial payloads below the sidecar limit", async () => {
-      // 512 KB is comfortably below the 1 MB sidecar limit and verifies that the SDK
-      // does not impose an artificial lower bound on gRPC message sizes.
-      const payload = new Uint8Array(512 * 1024);
+    it("should be able to receive payloads larger than 4 MB", async () => {
+      await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
+      // 5 MB is above Dapr's default 4 MB limit but below our 10 MB sidecar limit.
+      const payload = new Uint8Array(5 * 1024 * 1024);
 
       try {
         const res = await server.client.invoker.invoke(daprAppId, "test-invoker", HttpMethod.POST, payload);
@@ -167,6 +166,9 @@ describe("grpc/server", () => {
       } catch (e) {
         console.log(e);
       }
+
+      // Delay a bit for event to arrive
+      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
     });
   });
 
