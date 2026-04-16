@@ -7,13 +7,13 @@ plugins:
     include_imports: true
     opt:
       - target=js+dts
-      - import_extension=none
+      - import_extension=.js
   - remote: buf.build/connectrpc/es
     out: ./src/proto
     include_imports: true
     opt:
       - target=js+dts
-      - import_extension=none
+      - import_extension=.js
 inputs:
   - directory: ./
     paths:

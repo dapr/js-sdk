@@ -16,8 +16,8 @@
 
 import { enumDesc, fileDesc, messageDesc, serviceDesc, tsEnum } from "@bufbuild/protobuf/codegenv2";
 import { file_google_protobuf_any, file_google_protobuf_empty, file_google_protobuf_struct, file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
-import { file_dapr_proto_common_v1_common } from "../../common/v1/common_pb";
-import { file_dapr_proto_runtime_v1_appcallback } from "./appcallback_pb";
+import { file_dapr_proto_common_v1_common } from "../../common/v1/common_pb.js";
+import { file_dapr_proto_runtime_v1_appcallback } from "./appcallback_pb.js";
 
 /**
  * Describes the file dapr/proto/runtime/v1/dapr.proto.

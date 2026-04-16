@@ -15,9 +15,9 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { InvokeRequest, InvokeResponse } from "../../common/v1/common_pb";
+import { InvokeRequest, InvokeResponse } from "../../common/v1/common_pb.js";
 import { Empty, MethodKind } from "@bufbuild/protobuf";
-import { BindingEventRequest, BindingEventResponse, HealthCheckResponse, JobEventRequest, JobEventResponse, ListInputBindingsResponse, ListTopicSubscriptionsResponse, TopicEventBulkRequest, TopicEventBulkResponse, TopicEventRequest, TopicEventResponse } from "./appcallback_pb";
+import { BindingEventRequest, BindingEventResponse, HealthCheckResponse, JobEventRequest, JobEventResponse, ListInputBindingsResponse, ListTopicSubscriptionsResponse, TopicEventBulkRequest, TopicEventBulkResponse, TopicEventRequest, TopicEventResponse } from "./appcallback_pb.js";
 
 /**
  * AppCallback V1 allows user application to interact with Dapr runtime.
