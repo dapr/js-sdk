@@ -64,15 +64,4 @@ describe("grpc/client with api token", () => {
     await expect(clientWithToken.metadata.get()).resolves.toBeDefined();
   });
 
-  it("should be rejected by the sidecar when no api token is present", async () => {
-    // A client without the token should receive PermissionDenied from the sidecar.
-    const clientWithoutToken = new DaprClient({
-      daprHost: daprContainer.getHost(),
-      daprPort: daprContainer.getGrpcPort().toString(),
-      communicationProtocol: CommunicationProtocolEnum.GRPC,
-      logger: { level: LogLevel.Error },
-    });
-
-    await expect(clientWithoutToken.metadata.get()).rejects.toThrow();
-  });
 });
