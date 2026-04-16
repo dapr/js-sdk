@@ -11,17 +11,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { create } from "@bufbuild/protobuf";
 import GRPCClient from "./GRPCClient";
 import {
-  BulkPublishRequest,
-  BulkPublishRequestEntry,
-  PublishEventRequest,
-} from "../../../proto/dapr/proto/runtime/v1/pubsub_pb";
+  BulkPublishRequestEntrySchema,
+  BulkPublishRequestSchema,
+  PublishEventRequestSchema,
+} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 import { Logger } from "../../../logger/Logger";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import { KeyValueType } from "../../../types/KeyValue.type";
-import { addMetadataToMap, getBulkPublishEntries, getBulkPublishResponse } from "../../../utils/Client.util";
+import { getBulkPublishEntries, getBulkPublishResponse } from "../../../utils/Client.util";
 import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
 import { PubSubBulkPublishResponse } from "../../../types/pubsub/PubSubBulkPublishResponse.type";
 import { PubSubBulkPublishMessage } from "../../../types/pubsub/PubSubBulkPublishMessage.type";
@@ -44,29 +45,27 @@ export default class GRPCClientPubSub implements IClientPubSub {
     data: object | string,
     options: PubSubPublishOptions = {},
   ): Promise<PubSubPublishResponseType> {
-    const msgService = new PublishEventRequest();
-    msgService.setPubsubName(pubSubName);
-    msgService.setTopic(topic);
+    const req: any = {
+      pubsubName: pubSubName,
+      topic,
+      metadata: options.metadata ?? {},
+    };
 
     if (data) {
       const serialized = SerializerUtil.serializeGrpc(data, options.contentType);
-      msgService.setData(serialized.serializedData);
-      msgService.setDataContentType(serialized.contentType);
+      req.data = serialized.serializedData;
+      req.dataContentType = serialized.contentType;
     }
 
-    addMetadataToMap(msgService.getMetadataMap(), options.metadata);
-
     const client = await this.client.getClient();
-    return new Promise((resolve, reject) => {
-      client.publishEvent(msgService, (err, _res) => {
-        if (err) {
-          this.logger.error(`publish failed: ${err}`);
-          return reject({ error: err });
-        }
 
-        return resolve({});
-      });
-    });
+    try {
+      await client.publishEvent(create(PublishEventRequestSchema, req));
+      return {};
+    } catch (err) {
+      this.logger.error(`publish failed: ${err}`);
+      throw { error: err };
+    }
   }
 
   async publishBulk(
@@ -75,47 +74,41 @@ export default class GRPCClientPubSub implements IClientPubSub {
     messages: PubSubBulkPublishMessage[],
     metadata?: KeyValueType | undefined,
   ): Promise<PubSubBulkPublishResponse> {
-    const bulkPublishRequest = new BulkPublishRequest();
-    bulkPublishRequest.setPubsubName(pubSubName);
-    bulkPublishRequest.setTopic(topic);
-
     const entries = getBulkPublishEntries(messages);
     const serializedEntries = entries.map((entry) => {
       const serialized = SerializerUtil.serializeGrpc(entry.event);
-      const bulkPublishEntry = new BulkPublishRequestEntry();
-      bulkPublishEntry.setEvent(serialized.serializedData);
-      bulkPublishEntry.setContentType(serialized.contentType);
-      bulkPublishEntry.setEntryId(entry.entryID);
-      return bulkPublishEntry;
-    });
-
-    bulkPublishRequest.setEntriesList(serializedEntries);
-    addMetadataToMap(bulkPublishRequest.getMetadataMap(), metadata);
-
-    const client = await this.client.getClient();
-    return new Promise((resolve, _reject) => {
-      client.bulkPublishEventAlpha1(bulkPublishRequest, (err, res) => {
-        if (err) {
-          return resolve(getBulkPublishResponse({ entries: entries, error: err }));
-        }
-
-        const failedEntries = res.getFailedentriesList();
-        if (failedEntries.length > 0) {
-          return resolve(
-            getBulkPublishResponse({
-              entries: entries,
-              response: {
-                failedEntries: failedEntries.map((entry) => ({
-                  entryID: entry.getEntryId(),
-                  error: entry.getError(),
-                })),
-              },
-            }),
-          );
-        }
-
-        return resolve({ failedMessages: [] });
+      return create(BulkPublishRequestEntrySchema, {
+        entryId: entry.entryID,
+        event: serialized.serializedData,
+        contentType: serialized.contentType,
       });
     });
+
+    const client = await this.client.getClient();
+
+    try {
+      const res = await client.bulkPublishEventAlpha1(create(BulkPublishRequestSchema, {
+        pubsubName: pubSubName,
+        topic,
+        entries: serializedEntries,
+        metadata: metadata ?? {},
+      }));
+
+      if (res.failedEntries.length > 0) {
+        return getBulkPublishResponse({
+          entries,
+          response: {
+            failedEntries: res.failedEntries.map((entry) => ({
+              entryID: entry.entryId,
+              error: entry.error,
+            })),
+          },
+        });
+      }
+
+      return { failedMessages: [] };
+    } catch (err) {
+      return getBulkPublishResponse({ entries, error: err as Error });
+    }
   }
 }

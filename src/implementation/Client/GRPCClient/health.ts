@@ -11,9 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { create } from "@bufbuild/protobuf";
 import GRPCClient from "./GRPCClient";
 import IClientHealth from "../../../interfaces/Client/IClientHealth";
-import { GetMetadataRequest, GetMetadataResponse } from "../../../proto/dapr/proto/runtime/v1/metadata_pb";
+import { GetMetadataRequestSchema } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 
 // https://docs.dapr.io/reference/api/health_api/
 export default class GRPCClientHealth implements IClientHealth {
@@ -27,18 +28,11 @@ export default class GRPCClientHealth implements IClientHealth {
   async isHealthy(): Promise<boolean> {
     const client = await this.client.getClient();
 
-    return new Promise((resolve, _reject) => {
-      try {
-        client.getMetadata(new GetMetadataRequest(), (err, _res: GetMetadataResponse) => {
-          if (err) {
-            return resolve(false);
-          }
-
-          return resolve(true);
-        });
-      } catch (e) {
-        return resolve(false);
-      }
-    });
+    try {
+      await client.getMetadata(create(GetMetadataRequestSchema));
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 }

@@ -11,11 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { create } from "@bufbuild/protobuf";
 import GRPCClient from "./GRPCClient";
-import { InvokeBindingRequest, InvokeBindingResponse } from "../../../proto/dapr/proto/runtime/v1/binding_pb";
+import { InvokeBindingRequestSchema } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import IClientBinding from "../../../interfaces/Client/IClientBinding";
 import * as SerializerUtil from "../../../utils/Serializer.util";
-import { addMetadataToMap } from "../../../utils/Client.util";
 import { KeyValueType } from "../../../types/KeyValue.type";
 
 // https://docs.dapr.io/reference/api/bindings_api/
@@ -26,35 +26,21 @@ export default class GRPCClientBinding implements IClientBinding {
     this.client = client;
   }
 
-  // Send an event to an external system
-  // @todo: should return a specific typed Promise<TypeBindingResponse> instead of Promise<object>
   async send(bindingName: string, operation: string, data: any, metadata: KeyValueType = {}): Promise<object> {
-    const msgService = new InvokeBindingRequest();
-    msgService.setName(bindingName);
-    msgService.setOperation(operation);
+    const req: any = { name: bindingName, operation, metadata: metadata ?? {} };
 
     if (data) {
       const serialized = SerializerUtil.serializeGrpc(data);
-      msgService.setData(serialized.serializedData);
+      req.data = serialized.serializedData;
     }
 
-    addMetadataToMap(msgService.getMetadataMap(), metadata);
-
     const client = await this.client.getClient();
+    const res = await client.invokeBinding(create(InvokeBindingRequestSchema, req));
 
-    return new Promise((resolve, reject) => {
-      client.invokeBinding(msgService, (err, res: InvokeBindingResponse) => {
-        if (err) {
-          return reject(err);
-        }
-
-        // https://docs.dapr.io/reference/api/bindings_api/#payload
-        return resolve({
-          data: res.getData(),
-          metadata: res.getMetadataMap(),
-          operation,
-        });
-      });
-    });
+    return {
+      data: res.data,
+      metadata: res.metadata,
+      operation,
+    };
   }
 }

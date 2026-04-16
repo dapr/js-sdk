@@ -11,15 +11,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { create } from "@bufbuild/protobuf";
 import GRPCClient from "./GRPCClient";
 import { LockResponse as LockResponseResult } from "../../../types/lock/LockResponse";
 import { UnlockResponse as UnLockResponseResult, LockStatus } from "../../../types/lock/UnlockResponse";
 import {
-  TryLockRequest,
-  TryLockResponse,
-  UnlockRequest,
-  UnlockResponse,
-} from "../../../proto/dapr/proto/runtime/v1/lock_pb";
+  TryLockRequestSchema,
+  UnlockRequestSchema,
+  UnlockResponse_Status,
+} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import IClientLock from "../../../interfaces/Client/IClientLock";
 
 export default class GRPCClientLock implements IClientLock {
@@ -35,54 +35,35 @@ export default class GRPCClientLock implements IClientLock {
     lockOwner: string,
     expiryInSeconds: number,
   ): Promise<LockResponseResult> {
-    const request = new TryLockRequest()
-      .setStoreName(storeName)
-      .setResourceId(resourceId)
-      .setLockOwner(lockOwner)
-      .setExpiryInSeconds(expiryInSeconds);
-
     const client = await this.client.getClient();
-    return new Promise((resolve, reject) => {
-      client.tryLockAlpha1(request, (err, res: TryLockResponse) => {
-        if (err) {
-          return reject(err);
-        }
+    const res = await client.tryLockAlpha1(create(TryLockRequestSchema, {
+      storeName,
+      resourceId,
+      lockOwner,
+      expiryInSeconds,
+    }));
 
-        const wrapped: LockResponseResult = {
-          success: res.getSuccess(),
-        };
-
-        return resolve(wrapped);
-      });
-    });
+    return { success: res.success };
   }
 
   async unlock(storeName: string, resourceId: string, lockOwner: string): Promise<UnLockResponseResult> {
-    const request = new UnlockRequest().setStoreName(storeName).setResourceId(resourceId).setLockOwner(lockOwner);
-
     const client = await this.client.getClient();
-    return new Promise((resolve, reject) => {
-      client.unlockAlpha1(request, (err, res: UnlockResponse) => {
-        if (err) {
-          return reject(err);
-        }
+    const res = await client.unlockAlpha1(create(UnlockRequestSchema, {
+      storeName,
+      resourceId,
+      lockOwner,
+    }));
 
-        const wrapped: UnLockResponseResult = {
-          status: this.getUnlockResponse(res),
-        };
-
-        return resolve(wrapped);
-      });
-    });
+    return { status: this.getUnlockResponse(res.status) };
   }
 
-  getUnlockResponse(res: UnlockResponse) {
-    switch (res.getStatus()) {
-      case UnlockResponse.Status.SUCCESS:
+  getUnlockResponse(status: UnlockResponse_Status) {
+    switch (status) {
+      case UnlockResponse_Status.SUCCESS:
         return LockStatus.Success;
-      case UnlockResponse.Status.LOCK_DOES_NOT_EXIST:
+      case UnlockResponse_Status.LOCK_DOES_NOT_EXIST:
         return LockStatus.LockDoesNotExist;
-      case UnlockResponse.Status.LOCK_BELONGS_TO_OTHERS:
+      case UnlockResponse_Status.LOCK_BELONGS_TO_OTHERS:
         return LockStatus.LockBelongsToOthers;
       default:
         return LockStatus.InternalError;
