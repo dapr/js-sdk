@@ -11,14 +11,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import * as grpc from "@grpc/grpc-js";
 import { Network, StartedNetwork } from "testcontainers";
 import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
 import { CommunicationProtocolEnum, DaprClient, LogLevel } from "../../../src";
-import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runtime/v1/dapr_grpc_pb";
-import { NextCall } from "@grpc/grpc-js/build/src/client-interceptors";
-import { GetMetadataRequest } from "../../../src/proto/dapr/proto/runtime/v1/metadata_pb";
-import { buildInMemoryPubSubComponent, DAPR_TEST_RUNTIME_IMAGE, DAPR_TEST_PLACEMENT_IMAGE, DAPR_TEST_SCHEDULER_IMAGE, runWithCleanupErrorSuppression } from "../helpers/containers";
+import {
+  buildInMemoryPubSubComponent,
+  DAPR_TEST_RUNTIME_IMAGE,
+  DAPR_TEST_PLACEMENT_IMAGE,
+  DAPR_TEST_SCHEDULER_IMAGE,
+  runWithCleanupErrorSuppression,
+} from "../helpers/containers";
 
 describe("grpc/client with api token", () => {
   let network: StartedNetwork;
@@ -45,36 +47,32 @@ describe("grpc/client with api token", () => {
     });
   });
 
-  it("should send api token as metadata when present", async () => {
+  it("should send api token as a header when present", async () => {
+    // With ConnectRPC the daprApiToken option installs a ConnectRPC interceptor
+    // that adds a "dapr-api-token" HTTP header to every outgoing request.
+    // The sidecar is configured with DAPR_API_TOKEN="test", so any API call
+    // will succeed only if the client correctly sends the header.
     const clientWithToken = new DaprClient({
       daprHost: daprContainer.getHost(),
       daprPort: daprContainer.getGrpcPort().toString(),
       communicationProtocol: CommunicationProtocolEnum.GRPC,
       daprApiToken: "test",
-      logger: {
-        level: LogLevel.Debug,
-      },
+      logger: { level: LogLevel.Error },
     });
 
-    let mockMetadataRes: grpc.Metadata = new grpc.Metadata();
-    const mockInterceptor = jest.fn((options: grpc.InterceptorOptions, nextCall: NextCall): grpc.InterceptingCall => {
-      return new grpc.InterceptingCall(nextCall(options), {
-        start: function (
-          metadata: grpc.Metadata,
-          listener: grpc.InterceptingListener,
-          next: (metadata: grpc.Metadata, listener: grpc.InterceptingListener | grpc.Listener) => void,
-        ) {
-          mockMetadataRes = metadata;
-          next(metadata, listener);
-        },
-      });
+    // A successful metadata call proves the token was included in the request.
+    await expect(clientWithToken.metadata.get()).resolves.toBeDefined();
+  });
+
+  it("should be rejected by the sidecar when no api token is present", async () => {
+    // A client without the token should receive PermissionDenied from the sidecar.
+    const clientWithoutToken = new DaprClient({
+      daprHost: daprContainer.getHost(),
+      daprPort: daprContainer.getGrpcPort().toString(),
+      communicationProtocol: CommunicationProtocolEnum.GRPC,
+      logger: { level: LogLevel.Error },
     });
 
-    const clientProxy = await clientWithToken.proxy.create<DaprClientGrpc>(DaprClientGrpc, {
-      interceptors: [mockInterceptor],
-    });
-
-    await new Promise((resolve) => clientProxy.getMetadata(new GetMetadataRequest(), resolve));
-    expect(mockMetadataRes.get("dapr-api-token")[0]).toBe("test");
+    await expect(clientWithoutToken.metadata.get()).rejects.toThrow();
   });
 });
