@@ -114,8 +114,15 @@ describe("grpc/server", () => {
 
   afterAll(async () => {
     await runWithCleanupErrorSuppression(async () => {
-      await server.stop();
+      // The Dapr sidecar maintains a persistent HTTP/2 session to the gRPC app server
+      // (port 3001). GRPCServer.stop() calls http2Server.close(), which waits for all
+      // sessions to close. If the sidecar is still running, its session never closes and
+      // server.stop() hangs indefinitely.
+      //
+      // Fix: stop the Dapr container FIRST (killing the sidecar closes its HTTP/2 session
+      // to the app), then stop the app server (no open sessions → closes immediately).
       await daprContainer.stop();
+      await server.stop();
       await mqttContainer.stop();
       await redisContainer.stop();
       await network.stop();
