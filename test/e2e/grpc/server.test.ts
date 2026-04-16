@@ -35,7 +35,10 @@ describe("grpc/server", () => {
   let mqttContainer: StartedTestContainer;
   let daprContainer: StartedGrpcDaprContainer;
 
-  const mockInvoker = jest.fn(async (_data: object) => _data);
+  // Return a small fixed response to avoid JSON-inflating large binary payloads:
+  // a Uint8Array body gets UTF-8 decoded and JSON.stringify'd by the gRPC server,
+  // turning 5 MB of binary into ~30 MB of escaped JSON — far exceeding sidecar limits.
+  const mockInvoker = jest.fn(async (_data: object) => ({ ok: true }));
   const mockBindingReceive = jest.fn(async (_data: object) => null);
 
   beforeAll(async () => {
@@ -59,7 +62,7 @@ describe("grpc/server", () => {
         daprHost: "127.0.0.1",
         daprPort: "50001", // placeholder – patched below with the real mapped port
         communicationProtocol: CommunicationProtocolEnum.GRPC,
-        maxBodySizeMb: 20, // larger than the sidecar limit (10 MB) to let the oversized payload reach the sidecar
+        maxBodySizeMb: 20, // larger than the sidecar limit (10 MB) to support the 5 MB payload test
         logger: {
           level: LogLevel.Debug,
         },
@@ -121,21 +124,22 @@ describe("grpc/server", () => {
 
   describe("server", () => {
     it(
-      "should throw an error if the receive payload is larger than 10 MB and we did not configure a larger size",
+      "should throw an error when sending a payload larger than the configured maxBodySizeMb limit",
       async () => {
-        // Use a payload just over the 10 MB sidecar limit. The Dapr sidecar buffers the
-        // entire gRPC message before checking the size limit; on a CI runner the 11 MB
-        // transfer takes ~30-35 s through Docker networking, so the timeout is set to 60s.
+        // The DaprClient's maxBodySizeMb sets both readMaxBytes and writeMaxBytes on the
+        // ConnectRPC gRPC transport. When the serialized message exceeds writeMaxBytes, the
+        // SDK fails immediately (before any data is transmitted) with ResourceExhausted.
+        // This avoids the multi-minute wait caused by Go's gRPC server needing to receive
+        // the full message body before it can reject it.
         const payload = new Uint8Array(11 * 1024 * 1024);
 
-        // Use a dedicated client so that any HTTP/2 connection disruption caused by
-        // the oversized payload (e.g. GOAWAY / NGHTTP2_ENHANCE_YOUR_CALM) does not
-        // affect the shared server.client used by the rest of the suite.
+        // Use a dedicated client with the same 10 MB limit as the sidecar so the SDK
+        // enforces the limit client-side for the 11 MB payload.
         const isolatedClient = new DaprClient({
           daprHost: daprContainer.getHost(),
           daprPort: daprContainer.getGrpcPort().toString(),
           communicationProtocol: CommunicationProtocolEnum.GRPC,
-          maxBodySizeMb: 20, // higher than sidecar limit so the client doesn't reject it first
+          maxBodySizeMb: 10, // same as sidecar — SDK rejects 11 MB before transmitting
           logger: { level: LogLevel.Debug },
         });
 
@@ -148,11 +152,11 @@ describe("grpc/server", () => {
           await isolatedClient.stop().catch(() => {});
         }
 
-        // With ConnectRPC, the Dapr sidecar returns RESOURCE_EXHAUSTED (code 8) when the
-        // request body exceeds --dapr-http-max-request-size. An error must be thrown.
+        // The ConnectRPC transport rejects the request immediately with ResourceExhausted
+        // (code 8) because the serialized message size exceeds writeMaxBytes (10 MB).
         expect(caughtError).toBeDefined();
       },
-      60 * 1000,
+      15 * 1000,
     );
 
     it("should be able to receive payloads larger than 4 MB", async () => {
