@@ -6,10 +6,11 @@
   "scripts": {
     "build-clean": "rimraf build",
     "build-compile": "tsc --outDir ./build/",
-    "build-copy-files": "npm run build-copy-package && npm run build-copy-readme && npm run build-copy-proto",
+    "build-copy-files": "npm run build-copy-package && npm run build-copy-readme && npm run build-copy-proto && npm run build-copy-workflow-proto",
     "build-copy-package": "cp package.json build/ || copy package.json build\\",
     "build-copy-readme": "cp README.md build/ || copy README.md build\\",
     "build-copy-proto": "cp -R ./src/proto ./build || xcopy /E /I .\\src\\proto .\\build\\proto",
+    "build-copy-workflow-proto": "mkdir -p ./build/workflow/internal/durabletask/proto && cp ./src/workflow/internal/durabletask/proto/*.js ./build/workflow/internal/durabletask/proto/ && cp ./src/workflow/internal/durabletask/proto/*.d.ts ./build/workflow/internal/durabletask/proto/ || xcopy /E /I .\\src\\workflow\\internal\\durabletask\\proto .\\build\\workflow\\internal\\durabletask\\proto",
     "build-generate-version": "node scripts/generate-version.js",
     "build": "npm run build-clean && npm run prebuild && npm run build-compile && npm run build-copy-files",
     "test": "npm run test:unit:all && npm run test:e2e:all",

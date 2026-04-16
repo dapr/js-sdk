@@ -81,6 +81,20 @@ async function main() {
       console.warn('Proto files not found, skipping...');
     }
 
+    // Copy vendored durabletask proto files (JS files are not compiled by tsc)
+    const durabletaskProtoSrc = path.join(projectRoot, 'src', 'workflow', 'internal', 'durabletask', 'proto');
+    const durabletaskProtoDest = path.join(buildDir, 'workflow', 'internal', 'durabletask', 'proto');
+    if (await fs.pathExists(durabletaskProtoSrc)) {
+      await fs.ensureDir(durabletaskProtoDest);
+      const files = await fs.readdir(durabletaskProtoSrc);
+      for (const file of files.filter(f => f.endsWith('.js') || f.endsWith('.d.ts'))) {
+        await fs.copy(path.join(durabletaskProtoSrc, file), path.join(durabletaskProtoDest, file));
+      }
+      console.log('Copied durabletask proto files');
+    } else {
+      console.warn('Durabletask proto files not found, skipping...');
+    }
+
     console.log('=======================================================');
     console.log('Build completed successfully!');
     console.log(`Output directory: ${buildDir}`);
