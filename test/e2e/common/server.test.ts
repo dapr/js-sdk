@@ -843,13 +843,17 @@ describe("common/server/grpc", () => {
 
   afterAll(async () => {
     await runWithCleanupErrorSuppression(async () => {
-      await grpcServer.stop();
+      // Stop the Dapr container FIRST so the sidecar's persistent HTTP/2
+      // session to the gRPC app server closes before we call grpcServer.stop().
+      // If we stop the gRPC server first, http2Server.close() waits indefinitely
+      // for the sidecar session to end, causing a deadlock.
       await daprContainer.stop();
+      await grpcServer.stop();
       await mqttContainer.stop();
       await redisContainer.stop();
       await network.stop();
     });
-  }, 60 * 1000);
+  }, 120 * 1000);
 
   describe("pubsub", () => {
     it("should mark messages as processed successfully (SUCCESS) by-default, and the same message should not be received anymore", async () => {
