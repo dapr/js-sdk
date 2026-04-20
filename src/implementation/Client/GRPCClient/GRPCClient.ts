@@ -76,16 +76,18 @@ export default class GRPCClient implements IClient {
   }
 
   private generateEndpoint(options: Partial<DaprClientOptions>): GrpcEndpoint {
-    const host = options?.daprHost ?? Settings.getDefaultHost();
-    const port = options?.daprPort ?? Settings.getDefaultGrpcPort();
-    let uri = `${host}:${port}`;
-
+    // Check for explicit endpoint first (highest priority)
     if (!(options?.daprHost || options?.daprPort)) {
       const endpoint = Settings.getDefaultGrpcEndpoint();
       if (endpoint != "") {
-        uri = endpoint;
+        return new GrpcEndpoint(endpoint);
       }
     }
+
+    // Use provided options or environment variable defaults
+    const host = options?.daprHost ?? Settings.getDefaultHost();
+    const port = options?.daprPort ?? Settings.getDefaultGrpcPort();
+    const uri = `${host}:${port}`;
 
     return new GrpcEndpoint(uri);
   }

@@ -23,6 +23,7 @@ describe("Settings", () => {
       expect(Settings.getDefaultPort(CommunicationProtocolEnum.HTTP)).toEqual(Settings.getDefaultHttpPort());
     });
   });
+
   describe("getDefaultAppPort returns the correct default when", () => {
     it("communication protocol is GRPC", () => {
       expect(Settings.getDefaultAppPort(CommunicationProtocolEnum.GRPC)).toEqual(Settings.getDefaultGrpcAppPort());
