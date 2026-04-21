@@ -34,13 +34,13 @@ import type { Job as ProtoJob } from "../../../proto/dapr/proto/runtime/v1/dapr_
 
 /**
  * Parse a duration string like "5s", "1m30s", "2h" into total seconds.
- * Supports h, m, s units.
+ * Supports h, m, s units. Throws on unrecognized formats.
  */
 function parseDurationSeconds(duration: string): number {
   let total = 0;
-  const pattern = /(\d+)(h|m|s)/g;
-  let match: RegExpExecArray | null;
-  while ((match = pattern.exec(duration)) !== null) {
+  let matched = false;
+  for (const match of duration.matchAll(/(\d+)(h|m|s)/g)) {
+    matched = true;
     const value = parseInt(match[1], 10);
     switch (match[2]) {
       case "h":
@@ -53,6 +53,9 @@ function parseDurationSeconds(duration: string): number {
         total += value;
         break;
     }
+  }
+  if (!matched) {
+    throw new Error(`Invalid duration format: "${duration}". Expected format like "5s", "1m30s", "2h".`);
   }
   return total;
 }
@@ -97,11 +100,11 @@ function fromProtoJob(protoJob: ProtoJob): Job {
     job.ttl = protoJob.ttl;
   }
 
-  if (protoJob.data !== undefined) {
+  if (protoJob.data !== undefined && protoJob.data.value?.length) {
     try {
       job.data = JSON.parse(Buffer.from(protoJob.data.value).toString("utf-8"));
     } catch {
-      job.data = protoJob.data.value;
+      job.data = Buffer.from(protoJob.data.value).toString("utf-8");
     }
   }
 
@@ -113,14 +116,7 @@ function fromProtoJob(protoJob: ProtoJob): Job {
       const constant = policy.value;
       const fp: JobFailurePolicy & { type: "constant" } = { type: "constant" };
       if (constant.interval !== undefined) {
-        const secs = Number(constant.interval.seconds);
-        if (secs % 3600 === 0) {
-          fp.interval = `${secs / 3600}h`;
-        } else if (secs % 60 === 0) {
-          fp.interval = `${secs / 60}m`;
-        } else {
-          fp.interval = `${secs}s`;
-        }
+        fp.interval = `${Number(constant.interval.seconds)}s`;
       }
       if (constant.maxRetries !== undefined) {
         fp.maxRetries = constant.maxRetries;
@@ -161,7 +157,6 @@ export default class GRPCClientJobs implements IClientJobs {
     if (job.data !== undefined) {
       protoJobFields.data = create(AnySchema, {
         value: Buffer.from(JSON.stringify(job.data), "utf-8"),
-        typeUrl: "type.googleapis.com/google.protobuf.Value",
       });
     }
     if (job.failurePolicy !== undefined) {
