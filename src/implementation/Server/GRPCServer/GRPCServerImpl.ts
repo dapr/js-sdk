@@ -69,6 +69,7 @@ export default class GRPCServerImpl {
 
   handlersInvoke: { [key: string]: DaprInvokerCallbackFunction };
   handlersBindings: { [key: string]: TypeDaprBindingCallback };
+  handlersJobs: { [key: string]: (data: unknown) => Promise<void> };
 
   constructor(_server: IServerType, loggerOptions?: LoggerOptions) {
     this.logger = new Logger("GRPCServer", "GRPCServerImpl", loggerOptions);
@@ -76,6 +77,7 @@ export default class GRPCServerImpl {
 
     this.handlersInvoke = {};
     this.handlersBindings = {};
+    this.handlersJobs = {};
   }
 
   createInputBindingHandlerKey(bindingName: string): string {
@@ -113,6 +115,10 @@ export default class GRPCServerImpl {
   registerInputBindingHandler(bindingName: string, cb: DaprInvokerCallbackFunction): void {
     const handlerKey = this.createInputBindingHandlerKey(bindingName);
     this.handlersBindings[handlerKey] = cb;
+  }
+
+  registerJobEventHandler(jobName: string, cb: (data: unknown) => Promise<void>): void {
+    this.handlersJobs[jobName] = cb;
   }
 
   getSubscriptions(): PubSubSubscriptionsType {
@@ -362,10 +368,12 @@ export default class GRPCServerImpl {
 
           if (daprConfig?.routes?.rules) {
             for (const ruleItem of daprConfig.routes.rules) {
-              routes.rules.push(create(TopicRuleSchema, {
-                match: ruleItem.match,
-                path: ruleItem.path,
-              }));
+              routes.rules.push(
+                create(TopicRuleSchema, {
+                  match: ruleItem.match,
+                  path: ruleItem.path,
+                }),
+              );
             }
           }
 
@@ -393,7 +401,32 @@ export default class GRPCServerImpl {
     return create(HealthCheckResponseSchema);
   }
 
-  async onJobEventAlpha1(_request: JobEventRequest, _context: HandlerContext): Promise<JobEventResponse> {
+  async onJobEventAlpha1(request: JobEventRequest, _context: HandlerContext): Promise<JobEventResponse> {
+    // Prefer method field (always "job/<name>" per Dapr spec); fall back to name field.
+    const jobName = request.method.startsWith("job/") ? request.method.slice("job/".length) : request.name;
+
+    if (!this.handlersJobs[jobName]) {
+      this.logger.warn(`Event for job: "${jobName}" was not handled`);
+      return create(JobEventResponseSchema);
+    }
+
+    // Deserialize Any data
+    let data: unknown;
+    if (request.data?.value?.length) {
+      try {
+        data = JSON.parse(Buffer.from(request.data.value).toString());
+      } catch {
+        data = Buffer.from(request.data.value).toString();
+      }
+    }
+
+    try {
+      await this.handlersJobs[jobName](data);
+    } catch (e) {
+      this.logger.error(`Job handler failed for job '${jobName}': ${e}`);
+      throw e;
+    }
+
     return create(JobEventResponseSchema);
   }
 }
