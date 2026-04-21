@@ -29,6 +29,10 @@ export default class HTTPServerJobs implements IServerJobs {
   async addJobEventHandler(name: string, handler: JobEventHandler): Promise<void> {
     const server = await this.server.getServer();
 
+    server.options(`/job/${name}`, async (_req, res) => {
+      return res.end();
+    });
+
     server.post(`/job/${name}`, async (req, res) => {
       req.setTimeout(60 * 1000);
 

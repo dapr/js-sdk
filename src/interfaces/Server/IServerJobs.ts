@@ -22,5 +22,5 @@ export default interface IServerJobs {
    * @param name The job name to handle.
    * @param handler Callback invoked when the job triggers.
    */
-  addJobEventHandler(name: string, handler: JobEventHandler): void;
+  addJobEventHandler(name: string, handler: JobEventHandler): Promise<void>;
 }

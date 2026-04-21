@@ -402,11 +402,8 @@ export default class GRPCServerImpl {
   }
 
   async onJobEventAlpha1(request: JobEventRequest, _context: HandlerContext): Promise<JobEventResponse> {
-    // Match Go SDK: parse job name from method field (strip "job/" prefix)
-    let jobName = request.name;
-    if (request.method.startsWith("job/")) {
-      jobName = request.method.slice(4);
-    }
+    // Prefer method field (always "job/<name>" per Dapr spec); fall back to name field.
+    const jobName = request.method.startsWith("job/") ? request.method.slice("job/".length) : request.name;
 
     if (!this.handlersJobs[jobName]) {
       this.logger.warn(`Event for job: "${jobName}" was not handled`);
@@ -415,15 +412,21 @@ export default class GRPCServerImpl {
 
     // Deserialize Any data
     let data: unknown;
-    if (request.data?.value) {
+    if (request.data?.value?.length) {
       try {
         data = JSON.parse(Buffer.from(request.data.value).toString());
       } catch {
-        data = request.data.value;
+        data = Buffer.from(request.data.value).toString();
       }
     }
 
-    await this.handlersJobs[jobName](data);
+    try {
+      await this.handlersJobs[jobName](data);
+    } catch (e) {
+      this.logger.error(`Job handler failed for job '${jobName}': ${e}`);
+      throw e;
+    }
+
     return create(JobEventResponseSchema);
   }
 }

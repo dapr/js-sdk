@@ -25,7 +25,7 @@ export default class GRPCServerJobs implements IServerJobs {
     this.logger = new Logger("GRPCServer", "Jobs", server.client.options.logger);
   }
 
-  addJobEventHandler(name: string, handler: JobEventHandler): void {
+  async addJobEventHandler(name: string, handler: JobEventHandler): Promise<void> {
     this.logger.info(`Registering gRPC onJobEvent Handler: Job = ${name}`);
     this.server.getServerImpl().registerJobEventHandler(name, async (data: unknown) => {
       await handler({ name, data });
