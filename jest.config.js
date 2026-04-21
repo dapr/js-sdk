@@ -12,7 +12,6 @@ limitations under the License.
 */
 
 module.exports = {
-  preset: "ts-jest",
   testEnvironment: "<rootDir>/test/e2e/helpers/CustomNodeEnvironment.cjs",
   setupFiles: ["<rootDir>/jest.setup.js"],
   collectCoverage: true,
@@ -36,14 +35,14 @@ module.exports = {
     "^@connectrpc/connect/protocol-grpc$": "<rootDir>/node_modules/@connectrpc/connect/dist/cjs/protocol-grpc/index.js",
     "^@connectrpc/connect/protocol-grpc-web$": "<rootDir>/node_modules/@connectrpc/connect/dist/cjs/protocol-grpc-web/index.js",
   },
-  globals: {
-    "ts-jest": {
-      tsconfig: {
-        allowJs: true,
-      },
-    },
-  },
   transform: {
-    "^.+\\.[jt]sx?$": "ts-jest",
+    "^.+\\.[jt]sx?$": [
+      "ts-jest",
+      {
+        tsconfig: {
+          allowJs: true,
+        },
+      },
+    ],
   },
 };
