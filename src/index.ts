@@ -44,6 +44,7 @@ import { Job } from "./types/jobs/Job";
 import { ScheduleJobRequest } from "./types/jobs/ScheduleJobRequest";
 import { JobFailurePolicy } from "./types/jobs/JobFailurePolicy";
 import { JobEvent } from "./types/jobs/JobEvent";
+import { JobEventHandler } from "./interfaces/Server/IServerJobs";
 
 import DaprWorkflowClient from "./workflow/client/DaprWorkflowClient";
 import WorkflowActivityContext from "./workflow/runtime/WorkflowActivityContext";
@@ -88,6 +89,7 @@ export {
   ScheduleJobRequest,
   JobFailurePolicy,
   JobEvent,
+  JobEventHandler,
   DaprWorkflowClient,
   WorkflowActivityContext,
   WorkflowContext,

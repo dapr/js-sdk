@@ -69,6 +69,7 @@ export default class GRPCServerImpl {
 
   handlersInvoke: { [key: string]: DaprInvokerCallbackFunction };
   handlersBindings: { [key: string]: TypeDaprBindingCallback };
+  handlersJobs: { [key: string]: (data: unknown) => Promise<void> };
 
   constructor(_server: IServerType, loggerOptions?: LoggerOptions) {
     this.logger = new Logger("GRPCServer", "GRPCServerImpl", loggerOptions);
@@ -76,6 +77,7 @@ export default class GRPCServerImpl {
 
     this.handlersInvoke = {};
     this.handlersBindings = {};
+    this.handlersJobs = {};
   }
 
   createInputBindingHandlerKey(bindingName: string): string {
@@ -113,6 +115,10 @@ export default class GRPCServerImpl {
   registerInputBindingHandler(bindingName: string, cb: DaprInvokerCallbackFunction): void {
     const handlerKey = this.createInputBindingHandlerKey(bindingName);
     this.handlersBindings[handlerKey] = cb;
+  }
+
+  registerJobEventHandler(jobName: string, cb: (data: unknown) => Promise<void>): void {
+    this.handlersJobs[jobName] = cb;
   }
 
   getSubscriptions(): PubSubSubscriptionsType {
@@ -362,10 +368,12 @@ export default class GRPCServerImpl {
 
           if (daprConfig?.routes?.rules) {
             for (const ruleItem of daprConfig.routes.rules) {
-              routes.rules.push(create(TopicRuleSchema, {
-                match: ruleItem.match,
-                path: ruleItem.path,
-              }));
+              routes.rules.push(
+                create(TopicRuleSchema, {
+                  match: ruleItem.match,
+                  path: ruleItem.path,
+                }),
+              );
             }
           }
 
@@ -393,7 +401,29 @@ export default class GRPCServerImpl {
     return create(HealthCheckResponseSchema);
   }
 
-  async onJobEventAlpha1(_request: JobEventRequest, _context: HandlerContext): Promise<JobEventResponse> {
+  async onJobEventAlpha1(request: JobEventRequest, _context: HandlerContext): Promise<JobEventResponse> {
+    // Match Go SDK: parse job name from method field (strip "job/" prefix)
+    let jobName = request.name;
+    if (request.method.startsWith("job/")) {
+      jobName = request.method.slice(4);
+    }
+
+    if (!this.handlersJobs[jobName]) {
+      this.logger.warn(`Event for job: "${jobName}" was not handled`);
+      return create(JobEventResponseSchema);
+    }
+
+    // Deserialize Any data
+    let data: unknown;
+    if (request.data?.value) {
+      try {
+        data = JSON.parse(Buffer.from(request.data.value).toString());
+      } catch {
+        data = request.data.value;
+      }
+    }
+
+    await this.handlersJobs[jobName](data);
     return create(JobEventResponseSchema);
   }
 }
