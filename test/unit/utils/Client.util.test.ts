@@ -11,7 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { ConfigurationItem } from "../../../src/proto/dapr/proto/common/v1/common_pb";
+import { create } from "@bufbuild/protobuf";
+import { ConfigurationItem, ConfigurationItemSchema } from "../../../src/proto/dapr/proto/common/v1/common_pb";
 import {
   addMetadataToMap,
   createConfigurationType,
@@ -21,7 +22,6 @@ import {
   getClientOptions,
   createHTTPQueryParam,
 } from "../../../src/utils/Client.util";
-import { Map } from "google-protobuf";
 import { PubSubBulkPublishEntry } from "../../../src/types/pubsub/PubSubBulkPublishEntry.type";
 import { PubSubBulkPublishApiResponse } from "../../../src/types/pubsub/PubSubBulkPublishApiResponse.type";
 import { CommunicationProtocolEnum, DaprClientOptions, LogLevel } from "../../../src";
@@ -114,20 +114,13 @@ describe("Client.util", () => {
 
   describe("createConfigurationType", () => {
     it("converts a dictionary to a configuration type", () => {
-      const item1 = new ConfigurationItem();
-      item1.setValue("value1");
-      item1.setVersion("v1");
-      item1.getMetadataMap().set("m1", "mv1");
+      const item1 = create(ConfigurationItemSchema, { value: "value1", version: "v1", metadata: { m1: "mv1" } });
+      const item2 = create(ConfigurationItemSchema, { value: "value2", version: "v2", metadata: { m2: "mv2" } });
 
-      const item2 = new ConfigurationItem();
-      item2.setValue("value2");
-      item2.setVersion("v2");
-      item2.getMetadataMap().set("m2", "mv2");
-
-      const m: Map<string, ConfigurationItem> = new Map([
-        ["key1", item1],
-        ["key2", item2],
-      ]);
+      const m: { [key: string]: ConfigurationItem } = {
+        key1: item1,
+        key2: item2,
+      };
 
       const config = createConfigurationType(m);
       expect(config).toEqual({

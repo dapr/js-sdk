@@ -11,13 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { create } from "@bufbuild/protobuf";
 import GRPCClient from "./GRPCClient";
-import {
-  GetMetadataRequest,
-  GetMetadataResponse,
-  SetMetadataRequest,
-} from "../../../proto/dapr/proto/runtime/v1/metadata_pb";
-import { Empty } from "google-protobuf/google/protobuf/empty_pb";
+import { GetMetadataRequestSchema, SetMetadataRequestSchema } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import IClientMetadata from "../../../interfaces/Client/IClientMetadata";
 import { GetMetadataResponse as GetMetadataResponseResult } from "../../../types/metadata/GetMetadataResponse";
 
@@ -29,58 +25,40 @@ export default class GRPCClientMetadata implements IClientMetadata {
     this.client = client;
   }
 
-  // There is no gRPC implementation of /healthz, so we try to fetch the metadata
   async get(): Promise<GetMetadataResponseResult> {
     const client = await this.client.getClient();
+    const res = await client.getMetadata(create(GetMetadataRequestSchema));
 
-    return new Promise((resolve, reject) => {
-      client.getMetadata(new GetMetadataRequest(), (err, res: GetMetadataResponse) => {
-        if (err) {
-          return reject(err);
-        }
+    const wrapped: GetMetadataResponseResult = {
+      id: res.id,
+      actors: res.activeActorsCount.map((a) => ({
+        type: a.type,
+        count: a.count,
+      })),
+      extended: Object.entries(res.extendedMetadata).reduce((result: object, [key, value]) => {
+        // @ts-ignore
+        result[key] = value;
+        return result;
+      }, {}),
+      components: res.registeredComponents.map((c) => ({
+        name: c.name,
+        type: c.type,
+        version: c.version,
+        capabilities: c.capabilities,
+      })),
+    };
 
-        const wrapped: GetMetadataResponseResult = {
-          id: res.getId(),
-          actors: res.getActiveActorsCountList().map((a) => ({
-            type: a.getType(),
-            count: a.getCount(),
-          })),
-          extended: res
-            .getExtendedMetadataMap()
-            .toObject()
-            .reduce((result: object, [key, value]) => {
-              // @ts-ignore
-              result[key] = value;
-              return result;
-            }, {}),
-          components: res.getRegisteredComponentsList().map((c) => ({
-            name: c.getName(),
-            type: c.getType(),
-            version: c.getVersion(),
-            capabilities: c.getCapabilitiesList(),
-          })),
-        };
-
-        return resolve(wrapped);
-      });
-    });
+    return wrapped;
   }
 
   async set(key: string, value: string): Promise<boolean> {
-    const msg = new SetMetadataRequest();
-    msg.setKey(key);
-    msg.setValue(value);
-
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
-      client.setMetadata(msg, (err, _res: Empty) => {
-        if (err) {
-          return reject(false);
-        }
-
-        return resolve(true);
-      });
-    });
+    try {
+      await client.setMetadata(create(SetMetadataRequestSchema, { key, value }));
+      return true;
+    } catch (_err) {
+      return false;
+    }
   }
 }

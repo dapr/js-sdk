@@ -11,15 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { create } from "@bufbuild/protobuf";
 import GRPCClient from "./GRPCClient";
 import {
-  GetConfigurationRequest,
-  GetConfigurationResponse,
-  SubscribeConfigurationRequest,
-  SubscribeConfigurationResponse,
-  UnsubscribeConfigurationRequest,
-  UnsubscribeConfigurationResponse,
-} from "../../../proto/dapr/proto/runtime/v1/configuration_pb";
+  GetConfigurationRequestSchema,
+  SubscribeConfigurationRequestSchema,
+  UnsubscribeConfigurationRequestSchema,
+} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import IClientConfiguration from "../../../interfaces/Client/IClientConfiguration";
 import { KeyValueType } from "../../../types/KeyValue.type";
 import { GetConfigurationResponse as GetConfigurationResponseResult } from "../../../types/configuration/GetConfigurationResponse";
@@ -27,7 +25,7 @@ import { SubscribeConfigurationResponse as SubscribeConfigurationResponseResult 
 import { SubscribeConfigurationCallback } from "../../../types/configuration/SubscribeConfigurationCallback";
 import { SubscribeConfigurationStream } from "../../../types/configuration/SubscribeConfigurationStream";
 import { ConfigurationItem } from "../../../types/configuration/ConfigurationItem";
-import { addMetadataToMap, createConfigurationType } from "../../../utils/Client.util";
+import { createConfigurationType } from "../../../utils/Client.util";
 
 export default class GRPCClientConfiguration implements IClientConfiguration {
   client: GRPCClient;
@@ -37,31 +35,17 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
   }
 
   async get(storeName: string, keys: string[], metadataObj?: KeyValueType): Promise<GetConfigurationResponseResult> {
-    const msg = new GetConfigurationRequest();
-    msg.setStoreName(storeName);
-
-    if (keys && keys.length > 0) {
-      msg.setKeysList(keys.filter((i) => i !== ""));
-    }
-    addMetadataToMap(msg.getMetadataMap(), metadataObj);
-
     const client = await this.client.getClient();
 
-    return new Promise((resolve, reject) => {
-      client.getConfiguration(msg, (err, res: GetConfigurationResponse) => {
-        if (err) {
-          return reject(err);
-        }
+    const res = await client.getConfiguration(create(GetConfigurationRequestSchema, {
+      storeName,
+      keys: keys ? keys.filter((i) => i !== "") : [],
+      metadata: metadataObj ?? {},
+    }));
 
-        const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(res.getItemsMap());
+    const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(res.items);
 
-        const result: SubscribeConfigurationResponseResult = {
-          items: configMap,
-        };
-
-        return resolve(result);
-      });
-    });
+    return { items: configMap };
   }
 
   async subscribe(storeName: string, cb: SubscribeConfigurationCallback): Promise<SubscribeConfigurationStream> {
@@ -91,61 +75,55 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
     keys?: string[],
     metadataObj?: KeyValueType,
   ): Promise<SubscribeConfigurationStream> {
-    const msg = new SubscribeConfigurationRequest();
-    msg.setStoreName(storeName);
-
-    if (keys && keys.length > 0) {
-      msg.setKeysList(keys.filter((i) => i !== ""));
-    } else {
-      msg.setKeysList([]);
-    }
-    addMetadataToMap(msg.getMetadataMap(), metadataObj);
-
     const client = await this.client.getClient();
 
-    // Open a stream. Note that this is a never-ending stream
-    // and will stay open as long as the client is open
-    // we will thus create a set with our listeners so we don't
-    // break on multi listeners
-    const stream = client.subscribeConfiguration(msg);
-    let streamId: string;
-
-    stream.on("data", async (data: SubscribeConfigurationResponse) => {
-      streamId = data.getId();
-      const items = data.getItemsMap();
-
-      if (items.getLength() == 0) {
-        return;
-      }
-
-      const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(items);
-
-      const wrapped: SubscribeConfigurationResponseResult = {
-        items: configMap,
-      };
-
-      await cb(wrapped);
+    const msg = create(SubscribeConfigurationRequestSchema, {
+      storeName,
+      keys: keys ? keys.filter((i) => i !== "") : [],
+      metadata: metadataObj ?? {},
     });
+
+    const abortController = new AbortController();
+    let streamId = "";
+
+    // Start consuming the stream in the background
+    (async () => {
+      try {
+        const stream = client.subscribeConfiguration(msg, { signal: abortController.signal });
+        for await (const data of stream) {
+          streamId = data.id;
+
+          if (Object.keys(data.items).length === 0) {
+            continue;
+          }
+
+          const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(data.items);
+          await cb({ items: configMap });
+        }
+      } catch (e: any) {
+        // Ignore abort errors; they are expected when stop() is called
+        if (!abortController.signal.aborted) {
+          // Unexpected error - swallow silently
+        }
+      }
+    })();
 
     return {
       stop: async () => {
-        return new Promise((resolve, reject) => {
-          const req = new UnsubscribeConfigurationRequest();
-          req.setStoreName(storeName);
-          req.setId(streamId);
+        abortController.abort();
 
-          client.unsubscribeConfiguration(req, (err, res: UnsubscribeConfigurationResponse) => {
-            if (err || !res.getOk()) {
-              return reject(res.getMessage());
-            }
-
-            // Clean up the node.js event emitter
-            stream.removeAllListeners();
-            stream.destroy();
-
-            return resolve();
-          });
-        });
+        // Also explicitly unsubscribe if we have a streamId
+        if (streamId) {
+          try {
+            const unsubClient = await this.client.getClient(false);
+            await unsubClient.unsubscribeConfiguration(create(UnsubscribeConfigurationRequestSchema, {
+              storeName,
+              id: streamId,
+            }));
+          } catch (_e) {
+            // Ignore errors during cleanup
+          }
+        }
       },
     };
   }

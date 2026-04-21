@@ -15,14 +15,11 @@ import { join } from "node:path";
 import { createReadStream } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { Readable } from "node:stream";
-import * as grpc from "@grpc/grpc-js";
 import { Network, StartedNetwork, StartedTestContainer } from "testcontainers";
 import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
 import { CommunicationProtocolEnum, DaprClient, LogLevel } from "../../../src";
 import { SubscribeConfigurationResponse } from "../../../src/types/configuration/SubscribeConfigurationResponse";
 import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runtime/v1/dapr_grpc_pb";
-import { NextCall } from "@grpc/grpc-js/build/src/client-interceptors";
-import { GetMetadataRequest } from "../../../src/proto/dapr/proto/runtime/v1/metadata_pb";
 import {
   startRedisContainer,
   buildStateRedisComponent,
@@ -91,62 +88,20 @@ describe("grpc/client", () => {
   });
 
   describe("proxy", () => {
-    it("should allow to use a proxy builder to proxy a gRPC request", async () => {
-      const oldProcessAppId = process.env?.APP_ID;
-      process.env.APP_ID = "test-suite";
-
-      let mockMetadataRes: grpc.Metadata = new grpc.Metadata();
-      const mockInterceptor = jest.fn((options: grpc.InterceptorOptions, nextCall: NextCall): grpc.InterceptingCall => {
-        return new grpc.InterceptingCall(nextCall(options), {
-          start: function (
-            metadata: grpc.Metadata,
-            listener: grpc.InterceptingListener,
-            next: (metadata: grpc.Metadata, listener: grpc.InterceptingListener | grpc.Listener) => void,
-          ) {
-            mockMetadataRes = metadata;
-            next(metadata, listener);
-          },
-        });
-      });
-
-      const clientProxy = await client.proxy.create<DaprClientGrpc>(DaprClientGrpc, {
-        interceptors: [mockInterceptor],
-      });
-
-      await new Promise((resolve) => clientProxy.getMetadata(new GetMetadataRequest(), resolve));
-
-      expect(mockInterceptor.mock.calls.length).toBe(1);
-      expect(mockMetadataRes.get("dapr-app-id")[0]).toBe("test-suite");
-
-      process.env.APP_ID = oldProcessAppId;
+    it("should throw when attempting to use proxy builder (not supported with ConnectRPC transport)", async () => {
+      await expect(
+        client.proxy.create<DaprClientGrpc>(DaprClientGrpc),
+      ).rejects.toThrow("GRPCClientProxy is not supported with the ConnectRPC transport.");
     });
 
-    it("should allow to use a proxy builder that uses daprAppId by setting custom env variable to proxy a gRPC request", async () => {
+    it("should throw when attempting to use proxy builder with custom env variable (not supported with ConnectRPC transport)", async () => {
       const oldProcessAppId = process.env?.APP_ID;
       process.env.APP_ID = "test-suite-proxy";
 
-      let mockMetadataRes: grpc.Metadata = new grpc.Metadata();
-      const mockInterceptor = jest.fn((options: grpc.InterceptorOptions, nextCall: NextCall): grpc.InterceptingCall => {
-        return new grpc.InterceptingCall(nextCall(options), {
-          start: function (
-            metadata: grpc.Metadata,
-            listener: grpc.InterceptingListener,
-            next: (metadata: grpc.Metadata, listener: grpc.InterceptingListener | grpc.Listener) => void,
-          ) {
-            mockMetadataRes = metadata;
-            next(metadata, listener);
-          },
-        });
-      });
+      await expect(
+        client.proxy.create<DaprClientGrpc>(DaprClientGrpc),
+      ).rejects.toThrow("GRPCClientProxy is not supported with the ConnectRPC transport.");
 
-      const clientProxy = await client.proxy.create<DaprClientGrpc>(DaprClientGrpc, {
-        interceptors: [mockInterceptor],
-      });
-
-      await new Promise((resolve) => clientProxy.getMetadata(new GetMetadataRequest(), resolve));
-
-      expect(mockInterceptor.mock.calls.length).toBe(1);
-      expect(mockMetadataRes.get("dapr-app-id")[0]).toBe(process.env.APP_ID);
       process.env.APP_ID = oldProcessAppId;
     });
   });

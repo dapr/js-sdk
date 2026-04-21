@@ -118,3 +118,11 @@ for (const name of undiciGlobals) {
 // The custom environment's setup() method patches this.global.process.on (the
 // exact object that jest-circus receives as parentProcess) before jest-circus
 // installs its unhandledRejection handler, which is what actually works.
+
+// Initialize the global proto namespace expected by jspb-generated files.
+// Some proto files (e.g. pubsub_pb.js) are still jspb-generated and call
+// goog.object.extend(proto, ...) which requires global.proto to exist.
+// Previously, importing the old jspb appcallback_pb.js would set this up
+// as a side effect, but now that appcallback_pb.js is Buf-generated it no
+// longer does so.
+global.proto = global.proto || {};

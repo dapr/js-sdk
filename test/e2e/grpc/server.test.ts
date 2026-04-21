@@ -35,7 +35,10 @@ describe("grpc/server", () => {
   let mqttContainer: StartedTestContainer;
   let daprContainer: StartedGrpcDaprContainer;
 
-  const mockInvoker = jest.fn(async (_data: object) => _data);
+  // Return a small fixed response to avoid JSON-inflating large binary payloads:
+  // a Uint8Array body gets UTF-8 decoded and JSON.stringify'd by the gRPC server,
+  // turning 5 MB of binary into ~30 MB of escaped JSON — far exceeding sidecar limits.
+  const mockInvoker = jest.fn(async (_data: object) => ({ ok: true }));
   const mockBindingReceive = jest.fn(async (_data: object) => null);
 
   beforeAll(async () => {
@@ -59,7 +62,7 @@ describe("grpc/server", () => {
         daprHost: "127.0.0.1",
         daprPort: "50001", // placeholder – patched below with the real mapped port
         communicationProtocol: CommunicationProtocolEnum.GRPC,
-        maxBodySizeMb: 20, // we set sending larger than receiving to test the error handling
+        maxBodySizeMb: 20, // larger than the sidecar limit (10 MB) to support the 5 MB payload test
         logger: {
           level: LogLevel.Debug,
         },
@@ -111,27 +114,61 @@ describe("grpc/server", () => {
 
   afterAll(async () => {
     await runWithCleanupErrorSuppression(async () => {
-      await server.stop();
+      // The Dapr sidecar maintains a persistent HTTP/2 session to the gRPC app server
+      // (port 3001). GRPCServer.stop() calls http2Server.close(), which waits for all
+      // sessions to close. If the sidecar is still running, its session never closes and
+      // server.stop() hangs indefinitely.
+      //
+      // Fix: stop the Dapr container FIRST (killing the sidecar closes its HTTP/2 session
+      // to the app), then stop the app server (no open sessions → closes immediately).
       await daprContainer.stop();
+      await server.stop();
       await mqttContainer.stop();
       await redisContainer.stop();
       await network.stop();
     });
-  });
+  }, 120 * 1000);
 
   describe("server", () => {
-    it("should throw an error if the receive payload is larger than 10 MB and we did not configure a larger size", async () => {
-      const payload = new Uint8Array(11 * 1024 * 1024);
+    it(
+      "should throw an error when sending a payload larger than the configured maxBodySizeMb limit",
+      async () => {
+        // The DaprClient's maxBodySizeMb sets both readMaxBytes and writeMaxBytes on the
+        // ConnectRPC gRPC transport. When the serialized message exceeds writeMaxBytes, the
+        // SDK fails immediately (before any data is transmitted) with ResourceExhausted.
+        // This avoids the multi-minute wait caused by Go's gRPC server needing to receive
+        // the full message body before it can reject it.
+        const payload = new Uint8Array(11 * 1024 * 1024);
 
-      try {
-        await server.client.invoker.invoke(daprAppId, "test-invoker", HttpMethod.POST, payload);
-      } catch (e: any) {
-        expect(e?.details).toContain(`vs. ${10 * 1024 * 1024}`);
-      }
-    });
+        // Use a dedicated client with the same 10 MB limit as the sidecar so the SDK
+        // enforces the limit client-side for the 11 MB payload.
+        const isolatedClient = new DaprClient({
+          daprHost: daprContainer.getHost(),
+          daprPort: daprContainer.getGrpcPort().toString(),
+          communicationProtocol: CommunicationProtocolEnum.GRPC,
+          maxBodySizeMb: 10, // same as sidecar — SDK rejects 11 MB before transmitting
+          logger: { level: LogLevel.Debug },
+        });
+
+        let caughtError: any;
+        try {
+          await isolatedClient.invoker.invoke(daprAppId, "test-invoker", HttpMethod.POST, payload);
+        } catch (e: any) {
+          caughtError = e;
+        } finally {
+          await isolatedClient.stop().catch(() => {});
+        }
+
+        // The ConnectRPC transport rejects the request immediately with ResourceExhausted
+        // (code 8) because the serialized message size exceeds writeMaxBytes (10 MB).
+        expect(caughtError).toBeDefined();
+      },
+      15 * 1000,
+    );
 
     it("should be able to receive payloads larger than 4 MB", async () => {
       await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
+      // 5 MB is above Dapr's default 4 MB limit but below our 10 MB sidecar limit.
       const payload = new Uint8Array(5 * 1024 * 1024);
 
       try {

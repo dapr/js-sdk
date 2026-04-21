@@ -12,125 +12,111 @@ limitations under the License.
 */
 
 import { Duplex } from "node:stream";
-import { ClientDuplexStream } from "@grpc/grpc-js";
 
 import { StreamPayload } from "../proto/dapr/proto/common/v1/common_pb";
 
-interface messageWithPayload {
-  getPayload(): StreamPayload | undefined;
-  setPayload(value?: StreamPayload): unknown;
+interface MessageWithPayload {
+  payload?: StreamPayload;
 }
 
 /**
- * DaprChunkedStream is a Readable stream that processes data sent from Dapr over a gRPC stream, chunked.
+ * DeferredAsyncIterable allows pushing values into an async iterable from outside.
  */
-export class DaprChunkedStream<T extends messageWithPayload, U extends messageWithPayload> extends Duplex {
-  private grpcStream: ClientDuplexStream<T, U>;
-  private reqFactory: { new (): T };
-  private setReqOptionsFn: (req: T) => void;
+export class DeferredAsyncIterable<T> implements AsyncIterable<T> {
+  private queue: T[] = [];
+  private resolve?: () => void;
+  private done = false;
+
+  push(value: T): void {
+    this.queue.push(value);
+    this.resolve?.();
+    this.resolve = undefined;
+  }
+
+  end(): void {
+    this.done = true;
+    this.resolve?.();
+    this.resolve = undefined;
+  }
+
+  async *[Symbol.asyncIterator](): AsyncGenerator<T> {
+    while (true) {
+      if (this.queue.length > 0) {
+        yield this.queue.shift()!;
+      } else if (this.done) {
+        return;
+      } else {
+        await new Promise<void>((r) => {
+          this.resolve = r;
+        });
+      }
+    }
+  }
+}
+
+/**
+ * DaprChunkedStream is a Duplex stream that bridges Node.js stream I/O to ConnectRPC
+ * bidi-streaming calls. Write data to it; read the encrypted/decrypted output back.
+ */
+export class DaprChunkedStream<T, U extends MessageWithPayload> extends Duplex {
+  private readonly pusher: DeferredAsyncIterable<T>;
   private writeSeq = 0;
-  private readSeq = 0;
+  private readonly createMessage: (data: Uint8Array, seq: number) => T;
 
-  constructor(grpcStream: ClientDuplexStream<T, U>, reqFactory: { new (): T }, setReqOptionsFn: (req: T) => void) {
-    super({
-      objectMode: false,
-      emitClose: true,
-    });
+  constructor(
+    pusher: DeferredAsyncIterable<T>,
+    responseIterable: AsyncIterable<U>,
+    createMessage: (data: Uint8Array, seq: number) => T,
+  ) {
+    super({ objectMode: false, emitClose: true });
 
-    this.grpcStream = grpcStream;
-    this.reqFactory = reqFactory;
-    this.setReqOptionsFn = setReqOptionsFn;
+    this.pusher = pusher;
+    this.createMessage = createMessage;
+
+    this._readResponseStream(responseIterable);
+  }
+
+  private async _readResponseStream(responseIterable: AsyncIterable<U>): Promise<void> {
+    try {
+      for await (const response of responseIterable) {
+        const data = response.payload?.data;
+        if (data?.length) {
+          this.push(Buffer.from(data));
+        }
+      }
+    } catch (e) {
+      this.destroy(e as Error);
+      return;
+    }
+    this.push(null);
   }
 
   _read(): void {
-    // Attach the handlers if they haven't been attached already
-    if (this.grpcStream.listenerCount("data") == 0) {
-      this.readGrpcStream();
-    } else if (this.grpcStream.isPaused()) {
-      // Resume the stream if it's paused
-      this.grpcStream.resume();
-    }
+    // Data is pushed by _readResponseStream; nothing to do here.
   }
 
   _write(chunk: Buffer | string, encoding: BufferEncoding, callback: (error?: Error | null) => void): void {
     if (!chunk?.length) {
-      // Nothing to process if there's no data
       callback();
       return;
     }
 
-    // Ensure chunk is a Buffer
-    if (typeof chunk == "string") {
+    if (typeof chunk === "string") {
       chunk = Buffer.from(chunk, encoding);
     }
 
-    // Read data from the input stream, in chunks of up to 2KB
-    // Send the data until we reach the end of the input stream
-    for (let n = 0; n < chunk.length; n += 2 << 10) {
-      const req = new this.reqFactory();
-
-      // If this is the first chunk, add the options
-      if (this.writeSeq == 0) {
-        this.setReqOptionsFn(req);
-      }
-
-      // Add the payload
-      const reqPayload = new StreamPayload();
-      // From the Node.js docs: "Specifying end greater than buf.length will return the same result as that of end equal to buf.length."
-      reqPayload.setData(chunk.subarray(n, n + (2 << 10)));
-      reqPayload.setSeq(this.writeSeq);
-      req.setPayload(reqPayload);
-      this.writeSeq++;
-
-      // Send the chunk
-      this.grpcStream.write(req);
+    // Send data in 2KB chunks
+    const chunkSize = 2 << 10;
+    for (let n = 0; n < chunk.length; n += chunkSize) {
+      const data = chunk.subarray(n, n + chunkSize);
+      this.pusher.push(this.createMessage(data, this.writeSeq++));
     }
 
     callback();
   }
 
   _final(callback: (error?: Error | null | undefined) => void): void {
-    // When the write part of the stream is done, signal that no more data will be sent to the server
-    this.grpcStream.end();
+    this.pusher.end();
     callback();
-  }
-
-  private readGrpcStream() {
-    let readSeq = 0;
-
-    this.grpcStream.on("data", (chunk: messageWithPayload) => {
-      const payload = chunk.getPayload();
-      if (!payload) {
-        return;
-      }
-
-      // Check sequence
-      if (payload.getSeq() != readSeq) {
-        this.closeWithError(new Error(`Invalid payload sequence: got ${payload.getSeq()} but expected ${readSeq}`));
-        return;
-      }
-      readSeq++;
-
-      // Push the data into the internal buffer
-      const data = payload.getData_asU8();
-      if (!this.push(data)) {
-        // If push() returns false, we need to pause reading the stream
-        this.grpcStream.pause();
-      }
-    });
-
-    this.grpcStream.on("end", () => {
-      // Push a null value to signal EOF
-      this.push(null);
-    });
-
-    this.grpcStream.on("error", (err) => {
-      this.closeWithError(err);
-    });
-  }
-
-  private closeWithError(err: Error) {
-    this.grpcStream.cancel();
-    this.destroy(err);
   }
 }
