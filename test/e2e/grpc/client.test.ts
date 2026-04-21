@@ -89,18 +89,18 @@ describe("grpc/client", () => {
 
   describe("proxy", () => {
     it("should throw when attempting to use proxy builder (not supported with ConnectRPC transport)", async () => {
-      await expect(
-        client.proxy.create<DaprClientGrpc>(DaprClientGrpc),
-      ).rejects.toThrow("GRPCClientProxy is not supported with the ConnectRPC transport.");
+      await expect(client.proxy.create<DaprClientGrpc>(DaprClientGrpc)).rejects.toThrow(
+        "GRPCClientProxy is not supported with the ConnectRPC transport.",
+      );
     });
 
     it("should throw when attempting to use proxy builder with custom env variable (not supported with ConnectRPC transport)", async () => {
       const oldProcessAppId = process.env?.APP_ID;
       process.env.APP_ID = "test-suite-proxy";
 
-      await expect(
-        client.proxy.create<DaprClientGrpc>(DaprClientGrpc),
-      ).rejects.toThrow("GRPCClientProxy is not supported with the ConnectRPC transport.");
+      await expect(client.proxy.create<DaprClientGrpc>(DaprClientGrpc)).rejects.toThrow(
+        "GRPCClientProxy is not supported with the ConnectRPC transport.",
+      );
 
       process.env.APP_ID = oldProcessAppId;
     });
@@ -305,7 +305,7 @@ describe("grpc/client", () => {
 
     it("should be able to encrypt and decrypt ArrayBuffer's", async () => {
       // Encrypt the data as an ArrayBuffer
-      const enc = await doEncrypt(plaintextFile.buffer);
+      const enc = await doEncrypt(plaintextFile.buffer as ArrayBuffer);
 
       // Basic assertions
       expect(Buffer.isBuffer(enc)).toBeTruthy();
@@ -313,7 +313,7 @@ describe("grpc/client", () => {
       expect(enc.slice(0, 15).toString("utf8")).toEqual("dapr.io/enc/v1\n");
 
       // Decrypt the data as an ArrayBuffer
-      const dec = await doDecrypt(enc.buffer);
+      const dec = await doDecrypt(enc.buffer as ArrayBuffer);
 
       // dec should be the same as the plaintext file
       expect(dec).toEqual(plaintextFile);
