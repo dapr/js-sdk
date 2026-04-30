@@ -43,10 +43,7 @@ describe("grpc/server", () => {
 
   beforeAll(async () => {
     network = await new Network().start();
-    [redisContainer, mqttContainer] = await Promise.all([
-      startRedisContainer(network),
-      startMqttContainer(network),
-    ]);
+    [redisContainer, mqttContainer] = await Promise.all([startRedisContainer(network), startMqttContainer(network)]);
 
     // The Dapr container calls back to the gRPC app server on the host.
     await TestContainers.exposeHostPorts(parseInt(serverPort));
@@ -83,7 +80,7 @@ describe("grpc/server", () => {
       .withNetwork(network)
       .withAppId(daprAppId)
       .withAppPort(parseInt(serverPort))
-      .withAppChannelAddress("host.testcontainers.internal")
+      .withAppChannelAddress("host.docker.internal")
       .withDaprLogLevel("info")
       .withMaxRequestSizeMb(10)
       .withComponent(buildBindingMqttComponent())
