@@ -25,7 +25,7 @@ import {
 } from "../helpers/containers";
 
 const serverHost = "127.0.0.1";
-const serverPort = "3001";
+const serverPort = "4001";
 const daprAppId = "test-suite-grpc-server";
 
 describe("grpc/server", () => {
@@ -43,10 +43,7 @@ describe("grpc/server", () => {
 
   beforeAll(async () => {
     network = await new Network().start();
-    [redisContainer, mqttContainer] = await Promise.all([
-      startRedisContainer(network),
-      startMqttContainer(network),
-    ]);
+    [redisContainer, mqttContainer] = await Promise.all([startRedisContainer(network), startMqttContainer(network)]);
 
     // The Dapr container calls back to the gRPC app server on the host.
     await TestContainers.exposeHostPorts(parseInt(serverPort));
@@ -83,7 +80,7 @@ describe("grpc/server", () => {
       .withNetwork(network)
       .withAppId(daprAppId)
       .withAppPort(parseInt(serverPort))
-      .withAppChannelAddress("host.testcontainers.internal")
+      .withAppChannelAddress(process.env.CI ? "localhost" : "host.docker.internal")
       .withDaprLogLevel("info")
       .withMaxRequestSizeMb(10)
       .withComponent(buildBindingMqttComponent())
@@ -167,20 +164,51 @@ describe("grpc/server", () => {
     );
 
     it("should be able to receive payloads larger than 4 MB", async () => {
-      await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
-      // 5 MB is above Dapr's default 4 MB limit but below our 10 MB sidecar limit.
       const payload = new Uint8Array(5 * 1024 * 1024);
 
+      const res = await server.client.invoker.invoke(daprAppId, "test-invoker", HttpMethod.POST, payload);
+
+      expect(res).toBeDefined();
+      expect(mockInvoker).toHaveBeenCalled();
+    });
+
+    it("should fail for payload > 4MB when maxBodySizeMb is NOT set (default behavior)", async () => {
+      // Create a NEW container WITHOUT override
+      const defaultDaprContainer = await new DaprGrpcAppContainer()
+        .withNetwork(network)
+        .withAppId(daprAppId)
+        .withAppPort(parseInt(serverPort))
+        .withAppChannelAddress("host.docker.internal")
+        .withDaprLogLevel("info")
+        // ❌ NO .withMaxRequestSizeMb()
+        .withComponent(buildBindingMqttComponent())
+        .withComponent(buildBindingRedisComponent())
+        .withComponent(buildConfigRedisComponent())
+        .start();
+
+      const client = new DaprClient({
+        daprHost: defaultDaprContainer.getHost(),
+        daprPort: defaultDaprContainer.getGrpcPort().toString(),
+        communicationProtocol: CommunicationProtocolEnum.GRPC,
+      });
+
+      await client.start();
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      const payload = new Uint8Array(5 * 1024 * 1024); // 5MB (>4MB default)
+
+      let error: any;
       try {
-        const res = await server.client.invoker.invoke(daprAppId, "test-invoker", HttpMethod.POST, payload);
-        console.log(res);
-      } catch (e) {
-        console.log(e);
+        await client.invoker.invoke(daprAppId, "test-invoker", HttpMethod.POST, payload);
+      } catch (e: any) {
+        error = e;
       }
 
-      // Delay a bit for event to arrive
-      await new Promise((resolve, _reject) => setTimeout(resolve, 250));
-    });
+      expect(error.message).toBeDefined();
+
+      await client.stop().catch(() => {});
+      await defaultDaprContainer.stop();
+    }, 20000);
   });
 
   describe("binding", () => {
