@@ -80,7 +80,7 @@ describe("grpc/server", () => {
       .withNetwork(network)
       .withAppId(daprAppId)
       .withAppPort(parseInt(serverPort))
-      .withAppChannelAddress("host.docker.internal")
+      .withAppChannelAddress(process.env.CI ? "localhost" : "host.docker.internal")
       .withDaprLogLevel("info")
       .withMaxRequestSizeMb(10)
       .withComponent(buildBindingMqttComponent())
