@@ -43,6 +43,13 @@ export default class GRPCClientInvoker implements IClientInvoker {
     });
 
     const { serializedData, contentType } = SerializerUtil.serializeGrpc(data);
+    const maxBytes = (this.client.options.maxBodySizeMb ?? 4) * 1024 * 1024;
+
+    const payloadSize = serializedData.length;
+
+    if (payloadSize > maxBytes) {
+      throw new Error(`Payload size ${payloadSize} exceeds maxBodySizeMb (${maxBytes})`);
+    }
     const msgSerialized = create(AnySchema, { value: serializedData });
 
     const msgInvoke = create(InvokeRequestSchema, {
