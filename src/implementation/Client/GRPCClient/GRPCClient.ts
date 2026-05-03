@@ -55,7 +55,9 @@ export default class GRPCClient implements IClient {
       interceptors.push(this.generateInterceptor());
     }
 
-    const baseUrl = `${this.daprEndpoint.tls ? "https" : "http"}://${this.daprEndpoint.hostname}:${this.daprEndpoint.port}`;
+    const baseUrl = `${this.daprEndpoint.tls ? "https" : "http"}://${this.daprEndpoint.hostname}:${
+      this.daprEndpoint.port
+    }`;
     this.logger.info(`Opening connection to ${this.options.daprHost}:${this.options.daprPort}`);
 
     const transport = createGrpcTransport({
