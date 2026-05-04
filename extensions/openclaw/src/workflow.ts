@@ -59,7 +59,11 @@ export const durableAgentLoop: TWorkflow = async function* (ctx: WorkflowContext
       toolNames: input.toolNames,
     } as LlmCallInput);
 
-    messages = [...messages, llmResult.assistantMessage];
+    // Steering messages were drained from the Agent's queue inside the activity
+    // and prepended to the LLM request; they must also be appended to workflow
+    // state (before the assistantMessage that replied to them) so they survive
+    // replay and propagate to later turns.
+    messages = [...messages, ...(llmResult.steeringMessages || []), llmResult.assistantMessage];
 
     // No tool calls → done
     if (!llmResult.toolCalls.length || llmResult.error) {
@@ -86,6 +90,9 @@ export const durableAgentLoop: TWorkflow = async function* (ctx: WorkflowContext
           toolName: tc.name,
           args: tc.arguments,
           assistantMessage: llmResult.assistantMessage,
+          messages,
+          systemPrompt: input.systemPrompt,
+          toolNames: input.toolNames,
         } as ToolCallInput),
       );
       toolResults = yield ctx.whenAll(tasks);
@@ -99,6 +106,9 @@ export const durableAgentLoop: TWorkflow = async function* (ctx: WorkflowContext
           toolName: tc.name,
           args: tc.arguments,
           assistantMessage: llmResult.assistantMessage,
+          messages,
+          systemPrompt: input.systemPrompt,
+          toolNames: input.toolNames,
         } as ToolCallInput);
         toolResults.push(result);
       }

@@ -35,8 +35,13 @@ export async function llmCall(_ctx: WorkflowActivityContext, input: LlmCallInput
   const rt = await getContextWithRetry(input.workflowId);
 
   const messages = [...input.messages];
+  const steeringMessages: any[] = [];
 
-  // Drain the Agent's steering queue (messages injected while the loop runs)
+  // Drain the Agent's steering queue (messages injected while the loop runs).
+  // We track these separately so we can return them in LlmCallOutput; the
+  // workflow appends them to its conversation history. Without that, they
+  // would influence only the current turn and disappear on the next iteration
+  // or on replay after a crash.
   if (rt.config.getSteeringMessages) {
     const steering: any[] = await rt.config.getSteeringMessages();
     if (steering?.length) {
@@ -44,6 +49,7 @@ export async function llmCall(_ctx: WorkflowActivityContext, input: LlmCallInput
         await rt.emit({ type: "message_start", message: msg });
         await rt.emit({ type: "message_end", message: msg });
         messages.push(msg);
+        steeringMessages.push(msg);
       }
     }
   }
@@ -103,6 +109,7 @@ export async function llmCall(_ctx: WorkflowActivityContext, input: LlmCallInput
       toolCalls: [],
       stopReason: "error",
       error: "No response from LLM",
+      steeringMessages,
     };
   }
 
@@ -119,6 +126,7 @@ export async function llmCall(_ctx: WorkflowActivityContext, input: LlmCallInput
     toolCalls,
     stopReason: assistantMessage.stopReason || "end_turn",
     error: assistantMessage.errorMessage,
+    steeringMessages,
   };
 }
 
@@ -143,6 +151,17 @@ export async function toolCall(_ctx: WorkflowActivityContext, input: ToolCallInp
   let details: any;
   let isError = false;
 
+  // Real prompt context for beforeToolCall / afterToolCall hooks.
+  // Without this, hooks that inspect conversation state to authorize/block or
+  // to rewrite results would see empty stubs and silently misbehave.
+  // input.toolNames is the set of tools available to the agent for this call;
+  // resolve to the live tool instances from the runtime registry.
+  const hookContext = {
+    systemPrompt: input.systemPrompt,
+    messages: input.messages,
+    tools: input.toolNames.map((n) => rt.tools.get(n)).filter(Boolean),
+  };
+
   if (!tool) {
     content = [{ type: "text", text: `Tool '${input.toolName}' not found` }];
     isError = true;
@@ -159,7 +178,7 @@ export async function toolCall(_ctx: WorkflowActivityContext, input: ToolCallInp
             arguments: input.args,
           },
           args: input.args,
-          context: { systemPrompt: "", messages: [], tools: [] },
+          context: hookContext,
         },
         rt.signal,
       );
@@ -203,7 +222,7 @@ export async function toolCall(_ctx: WorkflowActivityContext, input: ToolCallInp
           args: input.args,
           result: { content, details },
           isError,
-          context: { systemPrompt: "", messages: [], tools: [] },
+          context: hookContext,
         },
         rt.signal,
       );

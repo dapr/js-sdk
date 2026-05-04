@@ -12,9 +12,38 @@ limitations under the License.
 */
 
 import { DaprWorkflowClient, WorkflowRuntimeStatus } from "@dapr/dapr";
+import { createHash } from "node:crypto";
 import { registerContext, unregisterContext } from "./registry";
 import { AgentLoopWorkflowInput } from "./types";
 import { durableAgentLoop } from "./workflow";
+
+/**
+ * Build a deterministic per-prompt workflow ID.
+ *
+ * The ID must be:
+ *   - Stable across retries of the *same* prompt, so a process that crashed
+ *     mid-flight can re-attach to the running workflow on restart (resume).
+ *   - Distinct between different prompts in the same session, so two
+ *     overlapping prompts (or a retry whose message changed) don't collide on
+ *     a single workflow instance and return the wrong conversation.
+ *
+ * Hashing the new prompt messages plus the static prompt context (system
+ * prompt, available tool names) gives both properties: identical inputs hash
+ * to the same fingerprint regardless of when they're issued, and any change
+ * in the prompt produces a different fingerprint.
+ */
+function buildWorkflowId(sessionId: string, messages: any[], systemPrompt: string, toolNames: string[]): string {
+  // Strip volatile fields before hashing. Agent.normalizePromptInput in
+  // pi-agent-core stamps `timestamp: Date.now()` on every wrapped user
+  // message — including this in the hash would make every retry produce a
+  // different workflow ID, breaking crash recovery. The content + role
+  // identify the prompt; the timestamp does not.
+  const stable = JSON.stringify({ messages, systemPrompt, toolNames }, (key, value) =>
+    key === "timestamp" ? undefined : value,
+  );
+  const fingerprint = createHash("sha256").update(stable).digest("hex").slice(0, 16);
+  return `openclaw-${sessionId}-${fingerprint}`;
+}
 
 /** Symbol used to store the original method on the Agent prototype. */
 const ORIGINAL_RUN_PROMPT = Symbol("dapr:originalRunPromptMessages");
@@ -62,10 +91,10 @@ export function patchAgent(agentClass: any, workflowClient: DaprWorkflowClient, 
         toolMap.set(tool.name, tool);
       }
 
-      // Deterministic workflow ID so a restarted process can find and resume
-      // the same workflow after a crash.
+      // Deterministic per-prompt workflow ID — stable for retries of this
+      // exact prompt, distinct from other prompts in the same session.
       const sessionId = this.sessionId || "default";
-      const workflowId = `openclaw-${sessionId}`;
+      const workflowId = buildWorkflowId(sessionId, messages, context.systemPrompt, toolNames);
 
       // Register the runtime context so activities can look up in-memory resources.
       registerContext(workflowId, {
@@ -116,6 +145,18 @@ export function patchAgent(agentClass: any, workflowClient: DaprWorkflowClient, 
         console.log(`[dapr] Waiting for workflow ${instanceId} to complete...`);
         const state = await workflowClient.waitForWorkflowCompletion(instanceId, true);
         console.log(`[dapr] Workflow ${instanceId} finished (status=${state?.runtimeStatus})`);
+
+        // waitForWorkflowCompletion returns on any terminal state — COMPLETED,
+        // FAILED, TERMINATED, CANCELED. Only COMPLETED is success; for the
+        // others we must surface the failure rather than silently emit
+        // agent_end with stale state. runWithLifecycle catches this throw and
+        // routes it through the Agent's standard error path.
+        if (state?.runtimeStatus !== WorkflowRuntimeStatus.COMPLETED) {
+          const status = state?.runtimeStatus ?? "UNKNOWN";
+          const failureMsg = (state as any)?.failureDetails?.errorMessage;
+          const detail = failureMsg ? `: ${failureMsg}` : "";
+          throw new Error(`[dapr] Workflow ${instanceId} ended in non-COMPLETED state (${status})${detail}`);
+        }
 
         // Parse the workflow output and sync the Agent's message state
         if (state?.serializedOutput) {

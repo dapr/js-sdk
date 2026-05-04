@@ -55,6 +55,12 @@ export interface LlmCallOutput {
   stopReason: string;
   /** Error message if the LLM call failed */
   error?: string;
+  /**
+   * Steering messages drained from the Agent's queue at the start of this turn.
+   * The workflow appends these to its conversation history before the
+   * assistantMessage, so they survive replay and persist into later turns.
+   */
+  steeringMessages: any[];
 }
 
 export interface ToolCallDescriptor {
@@ -74,6 +80,16 @@ export interface ToolCallInput {
   args: Record<string, unknown>;
   /** The assistant message that requested this tool call (for hook context) */
   assistantMessage: any;
+  /**
+   * Conversation messages up to and including the assistant message that
+   * requested this tool call. Passed through so beforeToolCall/afterToolCall
+   * hooks receive a real ctx.context.messages instead of an empty array.
+   */
+  messages: any[];
+  /** System prompt — surfaced to tool hooks via ctx.context.systemPrompt. */
+  systemPrompt: string;
+  /** Tool names available to the agent — surfaced via ctx.context.tools. */
+  toolNames: string[];
 }
 
 export interface ToolCallOutput {
