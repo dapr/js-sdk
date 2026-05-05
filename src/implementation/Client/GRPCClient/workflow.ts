@@ -23,11 +23,11 @@ export default class GRPCClientWorkflow implements IClientWorkflow {
     this.client = client;
   }
 
-  get(_instanceId: string): Promise<WorkflowGetResponseType> {
+  getWorkflowState(_instanceId: string): Promise<WorkflowGetResponseType> {
     throw new GRPCNotSupportedError();
   }
 
-  start(
+  scheduleNewWorkflow(
     _workflowName: string,
     _input?: any,
     _instanceId?: string | undefined
@@ -51,7 +51,22 @@ export default class GRPCClientWorkflow implements IClientWorkflow {
     throw new GRPCNotSupportedError();
   }
 
-  raise(_instanceId: string, _eventName: string, _input?: any): Promise<any> {
+  raiseEvent(_instanceId: string, _eventName: string, _input?: any): Promise<any> {
     throw new GRPCNotSupportedError();
+  }
+
+  /** @deprecated Use {@link getWorkflowState} instead. Will be removed with the release of Dapr 1.20. */
+  get(_instanceId: string): Promise<WorkflowGetResponseType> {
+    return this.getWorkflowState(_instanceId);
+  }
+
+  /** @deprecated Use {@link scheduleNewWorkflow} instead. Will be removed with the release of Dapr 1.20. */
+  start(_workflowName: string, _input?: any, _instanceId?: string | undefined): Promise<string> {
+    return this.scheduleNewWorkflow(_workflowName, _input, _instanceId);
+  }
+
+  /** @deprecated Use {@link raiseEvent} instead. Will be removed with the release of Dapr 1.20. */
+  raise(_instanceId: string, _eventName: string, _input?: any): Promise<any> {
+    return this.raiseEvent(_instanceId, _eventName, _input);
   }
 }

@@ -18,7 +18,7 @@ export default interface IClientWorkflow {
    * Get information about a workflow instance.
    * @param instanceId The unique identifier for the workflow instance.
    */
-  get(instanceId: string): Promise<WorkflowGetResponseType>;
+  getWorkflowState(instanceId: string): Promise<WorkflowGetResponseType>;
 
   /**
    * Starts a new workflow instance.
@@ -26,7 +26,7 @@ export default interface IClientWorkflow {
    * @param input The input to pass to the workflow, should be JSON serializable.
    * @param instanceId The unique identifier for the workflow instance, if not provided one will be generated.
    */
-  start(workflowName: string, input?: any, instanceId?: string): Promise<string>;
+  scheduleNewWorkflow(workflowName: string, input?: any, instanceId?: string): Promise<string>;
 
   /**
    * Terminates a workflow instance.
@@ -57,6 +57,21 @@ export default interface IClientWorkflow {
    * @param instanceId The unique identifier for the workflow instance.
    * @param eventName The name of the event to raise.
    * @param eventData The data associated with the event, should be JSON serializable.
+   */
+  raiseEvent(instanceId: string, eventName: string, eventData?: any): Promise<void>;
+
+  /**
+   * @deprecated Use {@link getWorkflowState} instead. Will be removed with the release of Dapr 1.20.
+   */
+  get(instanceId: string): Promise<WorkflowGetResponseType>;
+
+  /**
+   * @deprecated Use {@link scheduleNewWorkflow} instead. Will be removed with the release of Dapr 1.20.
+   */
+  start(workflowName: string, input?: any, instanceId?: string): Promise<string>;
+
+  /**
+   * @deprecated Use {@link raiseEvent} instead. Will be removed with the release of Dapr 1.20.
    */
   raise(instanceId: string, eventName: string, eventData?: any): Promise<void>;
 }
