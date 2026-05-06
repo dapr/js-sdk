@@ -54,6 +54,21 @@ import {
   toOrchestrationStatus,
 } from "./workflow/runtime/WorkflowRuntimeStatus";
 
+import {
+  ConversationRequest,
+  ConversationResponse,
+  ConversationInput,
+  ConversationMessage,
+  ConversationTool,
+  ConversationToolFunction,
+  ConversationToolCall,
+  ConversationResult,
+  ConversationResultChoice,
+  ConversationResultMessage,
+  ConversationResultToolCall,
+  ConversationMessageContent,
+} from "./types/conversation/Conversation.type";
+
 export {
   DaprClient,
   DaprServer,
@@ -90,4 +105,16 @@ export {
   WorkflowRuntimeStatus,
   fromOrchestrationStatus,
   toOrchestrationStatus,
+  ConversationRequest,
+  ConversationResponse,
+  ConversationInput,
+  ConversationMessage,
+  ConversationTool,
+  ConversationToolFunction,
+  ConversationToolCall,
+  ConversationResult,
+  ConversationResultChoice,
+  ConversationResultMessage,
+  ConversationResultToolCall,
+  ConversationMessageContent,
 };
