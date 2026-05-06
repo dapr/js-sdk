@@ -67,6 +67,12 @@ export class OrchestrationExecutor {
 
       for (const oldEvent of oldEvents) {
         await this.processEvent(ctx, oldEvent);
+        // Stop replaying once the orchestration has completed (e.g. EVENTRAISED resolved a
+        // whenAny that caused the workflow to return).  Processing additional history events
+        // after completion can trigger spurious non-determinism errors (e.g. a TIMERCREATED
+        // confirmation that follows EVENTRAISED in the same batch) which would overwrite the
+        // correct COMPLETED status with a FAILED one and delay state visibility.
+        if (ctx._isComplete) break;
       }
 
       // Get new actions by executing newly received events into the orchestrator function
@@ -76,6 +82,11 @@ export class OrchestrationExecutor {
 
       for (const newEvent of newEvents) {
         await this.processEvent(ctx, newEvent);
+        // Same guard for new events: once complete, don't process further events in this
+        // batch.  This is the primary fix for issue #734 where TIMERCREATED arrives in the
+        // same new-events batch as EVENTRAISED and (when ordered after it) incorrectly fails
+        // the already-completed orchestration.
+        if (ctx._isComplete) break;
       }
     } catch (e: any) {
       ctx.setFailed(e);
