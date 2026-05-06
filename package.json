@@ -2,7 +2,7 @@
   "name": "@dapr/dapr",
   "version": "0.0.0",
   "description": "The official Dapr (https://dapr.io) SDK for Node.js",
-  "types": "./build/index.d.ts",
+  "types": "./index.d.ts",
   "scripts": {
     "build-clean": "rimraf build",
     "build-compile": "tsc --outDir ./build/",
@@ -59,6 +59,8 @@
     "@connectrpc/connect": "^2.1.0",
     "@connectrpc/connect-node": "^2.1.1",
     "@connectrpc/connect-web": "^2.1.0",
+    "@dapr/dapr": "^3.17.0",
+    "@dapr/dapr-dev": "^3.6.1-20250924062712-1d40fb9",
     "@dapr/durabletask-js": "^1.0.0",
     "@grpc/grpc-js": "^1.12.5",
     "@js-temporal/polyfill": "^0.3.0",
@@ -105,5 +107,13 @@
     "type": "git",
     "url": "https://github.com/dapr/js-sdk.git",
     "directory": ""
-  }
+  },
+  "files": [
+    "**/*.js",
+    "**/*.d.ts",
+    "**/*.d.ts.map",
+    "proto/",
+    "README.md",
+    "package.json"
+  ]
 }
