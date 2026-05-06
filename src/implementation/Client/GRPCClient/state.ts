@@ -14,6 +14,7 @@ limitations under the License.
 import { create } from "@bufbuild/protobuf";
 import GRPCClient from "./GRPCClient";
 import {
+  DeleteBulkStateRequestSchema,
   DeleteStateRequestSchema,
   ExecuteStateTransactionRequestSchema,
   GetBulkStateRequestSchema,
@@ -35,6 +36,7 @@ import { Settings } from "../../../utils/Settings.util";
 import { StateSaveResponseType } from "../../../types/state/StateSaveResponseType";
 import { StateSaveOptions } from "../../../types/state/StateSaveOptions.type";
 import { StateDeleteOptions } from "../../../types/state/StateDeleteOptions.type";
+import { StateDeleteBulkOptions } from "../../../types/state/StateDeleteBulkOptions.type";
 import { StateGetOptions } from "../../../types/state/StateGetOptions.type";
 import { IStateOptions } from "../../../types/state/StateOptions.type";
 
@@ -126,6 +128,29 @@ export default class GRPCClientState implements IClientState {
       etag: options?.etag ? create(EtagSchema, { value: options.etag }) : undefined,
       options: this._configureStateOptions(options),
     }));
+
+    return {};
+  }
+
+  async deleteBulk(
+    storeName: string,
+    items: KeyValuePairType[],
+    _options: StateDeleteBulkOptions = {},
+  ): Promise<StateSaveResponseType> {
+    const states: StateItem[] = [];
+
+    for (const item of items) {
+      const si = create(StateItemSchema, {
+        key: item.key,
+        etag: item?.etag ? create(EtagSchema, { value: item.etag }) : undefined,
+        options: this._configureStateOptions(item?.options),
+        metadata: item.metadata ?? {},
+      });
+      states.push(si);
+    }
+
+    const client = await this.client.getClient();
+    await client.deleteBulkState(create(DeleteBulkStateRequestSchema, { storeName, states }));
 
     return {};
   }

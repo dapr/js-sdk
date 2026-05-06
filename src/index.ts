@@ -39,6 +39,7 @@ import DaprPubSubStatusEnum from "./enum/DaprPubSubStatus.enum";
 import StateConcurrencyEnum from "./enum/StateConcurrency.enum";
 import StateConsistencyEnum from "./enum/StateConsistency.enum";
 import { StateGetBulkOptions } from "./types/state/StateGetBulkOptions.type";
+import { StateDeleteBulkOptions } from "./types/state/StateDeleteBulkOptions.type";
 
 import DaprWorkflowClient from "./workflow/client/DaprWorkflowClient";
 import WorkflowActivityContext from "./workflow/runtime/WorkflowActivityContext";
@@ -79,6 +80,7 @@ export {
   StateConsistencyEnum,
   PubSubBulkPublishResponse,
   StateGetBulkOptions,
+  StateDeleteBulkOptions,
   DaprWorkflowClient,
   WorkflowActivityContext,
   WorkflowContext,
