@@ -81,7 +81,7 @@ export default class HTTPClientPubSub implements IClientPubSub {
 
     try {
       await this.client.executeWithApiVersion(
-        "v1.0-alpha1",
+        "v1.0",
         `/publish/bulk/${pubSubName}/${topic}?${queryParams}`,
         params,
       );
