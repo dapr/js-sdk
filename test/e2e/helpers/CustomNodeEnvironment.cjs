@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { TestEnvironment: NodeEnvironment } = require("jest-environment-node");
+const NodeEnvironment = require("jest-environment-node");
 
 /**
  * Custom Jest test environment that installs a filter on the process object
