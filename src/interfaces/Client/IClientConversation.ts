@@ -11,13 +11,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { ConversationRequest, ConversationResponse } from "../../types/conversation/Conversation.type";
+import { ConversationInput, ConversationOptions, ConversationResponse } from "../../types/conversation/Conversation.type";
 
 export default interface IClientConversation {
   /**
    * Converse with a LLM service using the Alpha2 Conversation API.
-   * @param request - The conversation request parameters
+   * @param conversationComponentName - The name of the Conversation component to use
+   * @param inputs - The conversation inputs (required)
+   * @param options - Optional conversation parameters
    * @returns The conversation response containing the LLM outputs
    */
-  converse(request: ConversationRequest): Promise<ConversationResponse>;
+  converse(
+    conversationComponentName: string,
+    inputs: ConversationInput[],
+    options?: ConversationOptions,
+  ): Promise<ConversationResponse>;
 }

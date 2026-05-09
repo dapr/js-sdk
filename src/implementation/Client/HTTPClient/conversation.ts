@@ -14,8 +14,9 @@ limitations under the License.
 import HTTPClient from "./HTTPClient";
 import IClientConversation from "../../../interfaces/Client/IClientConversation";
 import {
-  ConversationRequest,
+  ConversationOptions,
   ConversationResponse,
+  ConversationInput,
   ConversationResult,
   ConversationResultChoice,
   ConversationResultToolCall,
@@ -32,13 +33,17 @@ export default class HTTPClientConversation implements IClientConversation {
     this.logger = new Logger("HTTPClient", "Conversation", client.options.logger);
   }
 
-  async converse(request: ConversationRequest): Promise<ConversationResponse> {
-    const body = this.buildRequestBody(request);
+  async converse(
+    conversationComponentName: string,
+    inputs: ConversationInput[],
+    options?: ConversationOptions,
+  ): Promise<ConversationResponse> {
+    const body = this.buildRequestBody(inputs, options);
 
     try {
       const result = await this.client.executeWithApiVersion(
         "v1.0-alpha2",
-        `/conversation/${request.name}/converse`,
+        `/conversation/${conversationComponentName}/converse`,
         {
           method: "POST",
           body,
@@ -53,14 +58,14 @@ export default class HTTPClientConversation implements IClientConversation {
     }
   }
 
-  private buildRequestBody(request: ConversationRequest): object {
+  private buildRequestBody(inputs: ConversationInput[], options?: ConversationOptions): object {
     const body: Record<string, unknown> = {};
 
-    if (request.contextId) {
-      body.contextID = request.contextId;
+    if (options?.contextId) {
+      body.contextID = options.contextId;
     }
 
-    body.inputs = request.inputs.map((input) => ({
+    body.inputs = inputs.map((input) => ({
       messages: input.messages.map((msg) => {
         switch (msg.role) {
           case "developer":
@@ -87,20 +92,20 @@ export default class HTTPClientConversation implements IClientConversation {
       scrubPII: input.scrubPii,
     }));
 
-    if (request.metadata) {
-      body.metadata = request.metadata;
+    if (options?.metadata) {
+      body.metadata = options.metadata;
     }
 
-    if (request.scrubPii !== undefined) {
-      body.scrubPII = request.scrubPii;
+    if (options?.scrubPii !== undefined) {
+      body.scrubPII = options.scrubPii;
     }
 
-    if (request.temperature !== undefined) {
-      body.temperature = request.temperature;
+    if (options?.temperature !== undefined) {
+      body.temperature = options.temperature;
     }
 
-    if (request.tools?.length) {
-      body.tools = request.tools.map((tool) => ({
+    if (options?.tools?.length) {
+      body.tools = options.tools.map((tool) => ({
         function: {
           name: tool.function.name,
           description: tool.function.description,
@@ -109,8 +114,16 @@ export default class HTTPClientConversation implements IClientConversation {
       }));
     }
 
-    if (request.toolChoice) {
-      body.toolChoice = request.toolChoice;
+    if (options?.toolChoice) {
+      body.toolChoice = options.toolChoice;
+    }
+
+    if (options?.promptCacheRetention) {
+      body.promptCacheRetention = options.promptCacheRetention;
+    }
+
+    if (options?.responseFormat) {
+      body.responseFormat = options.responseFormat;
     }
 
     return body;

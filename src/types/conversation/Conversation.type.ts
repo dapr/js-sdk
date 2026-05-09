@@ -111,15 +111,11 @@ export interface ConversationTool {
 }
 
 /**
- * Request for the Alpha2 Conversation API.
+ * Options for the Alpha2 Conversation API.
  */
-export interface ConversationRequest {
-  /** The name of the Conversation component */
-  name: string;
+export interface ConversationOptions {
   /** The ID of an existing chat context */
   contextId?: string;
-  /** Inputs for the conversation */
-  inputs: ConversationInput[];
   /** Metadata key-value pairs */
   metadata?: Record<string, string>;
   /** Scrub PII data that comes back from the LLM */
@@ -130,6 +126,10 @@ export interface ConversationRequest {
   tools?: ConversationTool[];
   /** Controls which tool is called by the model (none, auto, required, or specific tool name) */
   toolChoice?: string;
+  /** Duration for prompt cache retention (e.g. "5m", "1h") */
+  promptCacheRetention?: string;
+  /** Expected response format from the LLM */
+  responseFormat?: Record<string, unknown>;
 }
 
 /**

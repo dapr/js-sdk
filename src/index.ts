@@ -55,7 +55,7 @@ import {
 } from "./workflow/runtime/WorkflowRuntimeStatus";
 
 import {
-  ConversationRequest,
+  ConversationOptions,
   ConversationResponse,
   ConversationInput,
   ConversationMessage,
@@ -105,7 +105,7 @@ export {
   WorkflowRuntimeStatus,
   fromOrchestrationStatus,
   toOrchestrationStatus,
-  ConversationRequest,
+  ConversationOptions,
   ConversationResponse,
   ConversationInput,
   ConversationMessage,

@@ -37,7 +37,7 @@ import type {
   ConversationResponseAlpha2,
 } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import {
-  ConversationRequest,
+  ConversationOptions,
   ConversationResponse,
   ConversationInput,
   ConversationMessage,
@@ -55,21 +55,25 @@ export default class GRPCClientConversation implements IClientConversation {
     this.client = client;
   }
 
-  async converse(request: ConversationRequest): Promise<ConversationResponse> {
+  async converse(
+    conversationComponentName: string,
+    inputs: ConversationInput[],
+    options?: ConversationOptions,
+  ): Promise<ConversationResponse> {
     const client = await this.client.getClient();
 
-    const protoInputs = request.inputs.map((input) => this.buildInput(input));
-    const protoTools = (request.tools ?? []).map((tool) => this.buildTool(tool));
+    const protoInputs = inputs.map((input) => this.buildInput(input));
+    const protoTools = (options?.tools ?? []).map((tool) => this.buildTool(tool));
 
     const protoRequest = create(ConversationRequestAlpha2Schema, {
-      name: request.name,
-      contextId: request.contextId,
+      name: conversationComponentName,
+      contextId: options?.contextId,
       inputs: protoInputs,
-      metadata: request.metadata ?? {},
-      scrubPii: request.scrubPii,
-      temperature: request.temperature,
+      metadata: options?.metadata ?? {},
+      scrubPii: options?.scrubPii,
+      temperature: options?.temperature,
       tools: protoTools,
-      toolChoice: request.toolChoice,
+      toolChoice: options?.toolChoice,
     });
 
     const res: ConversationResponseAlpha2 = await client.converseAlpha2(protoRequest);
