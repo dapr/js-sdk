@@ -87,7 +87,7 @@ export default class GRPCClientPubSub implements IClientPubSub {
     const client = await this.client.getClient();
 
     try {
-      const res = await client.bulkPublishEventAlpha1(create(BulkPublishRequestSchema, {
+      const res = await client.bulkPublishEvent(create(BulkPublishRequestSchema, {
         pubsubName: pubSubName,
         topic,
         entries: serializedEntries,
