@@ -26,6 +26,7 @@ import { Logger } from "../../../logger/Logger";
 import { StateSaveResponseType } from "../../../types/state/StateSaveResponseType";
 import { StateSaveOptions } from "../../../types/state/StateSaveOptions.type";
 import { StateDeleteOptions } from "../../../types/state/StateDeleteOptions.type";
+import { StateDeleteBulkOptions } from "../../../types/state/StateDeleteBulkOptions.type";
 import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type";
 import { StateGetOptions } from "../../../types/state/StateGetOptions.type";
 
@@ -114,6 +115,31 @@ export default class HTTPClientState implements IClientState {
       });
     } catch (e: any) {
       this.logger.error(`Error deleting state from store ${storeName}, error: ${e}`);
+      return { error: e };
+    }
+
+    return {};
+  }
+
+  async deleteBulk(
+    storeName: string,
+    items: KeyValuePairType[],
+    _options: StateDeleteBulkOptions = {},
+  ): Promise<StateSaveResponseType> {
+    // The Dapr HTTP API does not expose a dedicated bulk-delete endpoint.
+    // Perform individual DELETE requests for each item.
+    try {
+      await Promise.all(
+        items.map((item) =>
+          this.delete(storeName, item.key, {
+            etag: item.etag,
+            concurrency: item.options?.concurrency,
+            consistency: item.options?.consistency,
+          }),
+        ),
+      );
+    } catch (e: any) {
+      this.logger.error(`Error bulk deleting state from store ${storeName}, error: ${e}`);
       return { error: e };
     }
 

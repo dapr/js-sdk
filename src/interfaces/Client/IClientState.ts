@@ -21,6 +21,7 @@ import { StateGetBulkOptions } from "../../types/state/StateGetBulkOptions.type"
 import { StateSaveResponseType } from "../../types/state/StateSaveResponseType";
 import { StateSaveOptions } from "../../types/state/StateSaveOptions.type";
 import { StateDeleteOptions } from "../../types/state/StateDeleteOptions.type";
+import { StateDeleteBulkOptions } from "../../types/state/StateDeleteBulkOptions.type";
 import { StateGetOptions } from "../../types/state/StateGetOptions.type";
 
 export default interface IClientState {
@@ -28,6 +29,11 @@ export default interface IClientState {
   get(storeName: string, key: string, options?: Partial<StateGetOptions>): Promise<KeyValueType | string>;
   getBulk(storeName: string, keys: string[], options?: StateGetBulkOptions): Promise<KeyValueType[]>;
   delete(storeName: string, key: string, options?: Partial<StateDeleteOptions>): Promise<StateSaveResponseType>;
+  deleteBulk(
+    storeName: string,
+    items: KeyValuePairType[],
+    options?: StateDeleteBulkOptions,
+  ): Promise<StateSaveResponseType>;
   transaction(storeName: string, operations?: OperationType[], metadata?: IRequestMetadata | null): Promise<void>;
   query(storeName: string, query: StateQueryType): Promise<StateQueryResponseType>;
 }
