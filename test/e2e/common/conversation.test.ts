@@ -20,8 +20,6 @@ import {
   ConversationResponse,
 } from "../../../src/types/conversation/Conversation.type";
 import {
-  DAPR_TEST_PLACEMENT_IMAGE,
-  DAPR_TEST_SCHEDULER_IMAGE,
   buildConversationEchoComponent,
   runWithCleanupErrorSuppression,
 } from "../helpers/containers";
