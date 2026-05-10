@@ -1,0 +1,10 @@
+{
+  "id": "dapr-durable-execution",
+  "name": "Dapr Durable Execution",
+  "description": "Durable agent execution powered by Dapr Workflows",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}
