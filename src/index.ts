@@ -40,6 +40,11 @@ import StateConcurrencyEnum from "./enum/StateConcurrency.enum";
 import StateConsistencyEnum from "./enum/StateConsistency.enum";
 import { StateGetBulkOptions } from "./types/state/StateGetBulkOptions.type";
 
+import { Job } from "./types/jobs/Job";
+import { ScheduleJobRequest } from "./types/jobs/ScheduleJobRequest";
+import { JobFailurePolicy } from "./types/jobs/JobFailurePolicy";
+import { JobEvent } from "./types/jobs/JobEvent";
+
 import DaprWorkflowClient from "./workflow/client/DaprWorkflowClient";
 import WorkflowActivityContext from "./workflow/runtime/WorkflowActivityContext";
 import WorkflowContext from "./workflow/runtime/WorkflowContext";
@@ -79,6 +84,10 @@ export {
   StateConsistencyEnum,
   PubSubBulkPublishResponse,
   StateGetBulkOptions,
+  Job,
+  ScheduleJobRequest,
+  JobFailurePolicy,
+  JobEvent,
   DaprWorkflowClient,
   WorkflowActivityContext,
   WorkflowContext,

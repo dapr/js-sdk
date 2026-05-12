@@ -25,6 +25,7 @@ import IClientPubSub from "../../interfaces/Client/IClientPubSub";
 import IClientSecret from "../../interfaces/Client/IClientSecret";
 import IClientSidecar from "../../interfaces/Client/IClientSidecar";
 import IClientState from "../../interfaces/Client/IClientState";
+import IClientJobs from "../../interfaces/Client/IClientJobs";
 import IClientWorkflow from "../../interfaces/Client/IClientWorkflow";
 
 import GRPCClient from "./GRPCClient/GRPCClient";
@@ -40,6 +41,7 @@ import GRPCClientPubSub from "./GRPCClient/pubsub";
 import GRPCClientSecret from "./GRPCClient/secret";
 import GRPCClientSidecar from "./GRPCClient/sidecar";
 import GRPCClientState from "./GRPCClient/state";
+import GRPCClientJobs from "./GRPCClient/jobs";
 import GRPCClientWorkflow from "./GRPCClient/workflow";
 
 import HTTPClient from "./HTTPClient/HTTPClient";
@@ -56,6 +58,7 @@ import HTTPClientPubSub from "./HTTPClient/pubsub";
 import HTTPClientSecret from "./HTTPClient/secret";
 import HTTPClientSidecar from "./HTTPClient/sidecar";
 import HTTPClientState from "./HTTPClient/state";
+import HTTPClientJobs from "./HTTPClient/jobs";
 import HTTPClientWorkflow from "./HTTPClient/workflow";
 
 import CommunicationProtocolEnum from "../../enum/CommunicationProtocol.enum";
@@ -75,6 +78,7 @@ export default class DaprClient {
   readonly crypto: IClientCrypto;
   readonly health: IClientHealth;
   readonly invoker: IClientInvoker;
+  readonly jobs: IClientJobs;
   readonly lock: IClientLock;
   readonly metadata: IClientMetadata;
   readonly proxy: IClientProxy;
@@ -115,6 +119,7 @@ export default class DaprClient {
         this.sidecar = new GRPCClientSidecar(client);
         this.proxy = new GRPCClientProxy(client);
         this.configuration = new GRPCClientConfiguration(client);
+        this.jobs = new GRPCClientJobs(client);
         this.lock = new GRPCClientLock(client);
         this.crypto = new GRPCClientCrypto(client);
         this.actor = new GRPCClientActor(client); // we use an abstractor here since we interface through a builder with the Actor Runtime
@@ -132,6 +137,7 @@ export default class DaprClient {
         this.crypto = new HTTPClientCrypto(client);
         this.health = new HTTPClientHealth(client);
         this.invoker = new HTTPClientInvoker(client);
+        this.jobs = new HTTPClientJobs(client);
         this.lock = new HTTPClientLock(client);
         this.metadata = new HTTPClientMetadata(client);
         this.proxy = new HTTPClientProxy(client);
