@@ -586,6 +586,113 @@ function conversationTestSuite(protocol: "HTTP" | "GRPC") {
       expect(response.outputs).toBeDefined();
       expect(response.outputs.length).toBeGreaterThan(0);
     });
+
+    // ---------------------------------------------------------------
+    // Additional options coverage
+    // ---------------------------------------------------------------
+
+    it("should pass contextId in options", async () => {
+      const inputs: ConversationInput[] = [
+        {
+          messages: [{ role: "user", content: [{ text: "continue chat" }] }],
+        },
+      ];
+
+      const options: ConversationOptions = {
+        contextId: "test-ctx-001",
+      };
+
+      const response = await client.conversation.converse("echo", inputs, options);
+
+      expect(response).toBeDefined();
+      expect(response.outputs).toBeDefined();
+      expect(response.outputs.length).toBeGreaterThan(0);
+    });
+
+    it("should pass scrubPii at request level", async () => {
+      const inputs: ConversationInput[] = [
+        {
+          messages: [{ role: "user", content: [{ text: "My SSN is 123-45-6789" }] }],
+        },
+      ];
+
+      const options: ConversationOptions = {
+        scrubPii: true,
+      };
+
+      const response = await client.conversation.converse("echo", inputs, options);
+
+      expect(response).toBeDefined();
+      expect(response.outputs).toBeDefined();
+      expect(response.outputs.length).toBeGreaterThan(0);
+    });
+
+    it("should pass scrubPii at input level", async () => {
+      const inputs: ConversationInput[] = [
+        {
+          messages: [{ role: "user", content: [{ text: "My email is test@example.com" }] }],
+          scrubPii: true,
+        },
+      ];
+
+      const response = await client.conversation.converse("echo", inputs);
+
+      expect(response).toBeDefined();
+      expect(response.outputs).toBeDefined();
+      expect(response.outputs.length).toBeGreaterThan(0);
+    });
+
+    it("should accept named messages", async () => {
+      const inputs: ConversationInput[] = [
+        {
+          messages: [
+            {
+              role: "developer",
+              name: "config-agent",
+              content: [{ text: "Respond in JSON." }],
+            },
+            {
+              role: "system",
+              name: "system-prompt",
+              content: [{ text: "You are a helpful assistant." }],
+            },
+            {
+              role: "user",
+              name: "alice",
+              content: [{ text: "Hello!" }],
+            },
+          ],
+        },
+      ];
+
+      const response = await client.conversation.converse("echo", inputs);
+
+      expect(response).toBeDefined();
+      expect(response.outputs).toBeDefined();
+      expect(response.outputs.length).toBeGreaterThan(0);
+      expect(response.outputs[0].choices.length).toBeGreaterThan(0);
+    });
+
+    it("should combine contextId, metadata, temperature, and scrubPii in one request", async () => {
+      const inputs: ConversationInput[] = [
+        {
+          messages: [{ role: "user", content: [{ text: "combined options test" }] }],
+        },
+      ];
+
+      const options: ConversationOptions = {
+        contextId: "ctx-combined",
+        metadata: { "test-key": "test-value" },
+        temperature: 0.5,
+        scrubPii: false,
+      };
+
+      const response = await client.conversation.converse("echo", inputs, options);
+
+      expect(response).toBeDefined();
+      expect(response.outputs).toBeDefined();
+      expect(response.outputs.length).toBeGreaterThan(0);
+    });
   });
 }
 

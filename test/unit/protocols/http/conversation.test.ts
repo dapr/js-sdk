@@ -572,6 +572,49 @@ describe("http/conversation", () => {
     });
   });
 
+  describe("assistant message without tool calls", () => {
+    it("should handle assistant without toolCalls property", async () => {
+      const inputs: ConversationInput[] = [
+        {
+          messages: [
+            { role: "assistant", content: [{ text: "plain response" }] },
+          ],
+        },
+      ];
+
+      await conversation.converse("my-llm", inputs);
+
+      const body = executeSpy.mock.calls[0][2].body;
+      expect(body.inputs[0].messages[0]).toEqual({
+        ofAssistant: { name: undefined, content: [{ text: "plain response" }], toolCalls: undefined },
+      });
+    });
+  });
+
+  describe("multiple content items", () => {
+    it("should handle messages with multiple content items", async () => {
+      const inputs: ConversationInput[] = [
+        {
+          messages: [
+            {
+              role: "user",
+              content: [{ text: "part1" }, { text: "part2" }, { text: "part3" }],
+            },
+          ],
+        },
+      ];
+
+      await conversation.converse("my-llm", inputs);
+
+      const body = executeSpy.mock.calls[0][2].body;
+      const content = body.inputs[0].messages[0].ofUser.content;
+      expect(content).toHaveLength(3);
+      expect(content[0].text).toBe("part1");
+      expect(content[1].text).toBe("part2");
+      expect(content[2].text).toBe("part3");
+    });
+  });
+
   describe("error handling", () => {
     it("should propagate errors from executeWithApiVersion", async () => {
       const error = new Error("network error");

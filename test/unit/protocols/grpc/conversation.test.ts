@@ -669,4 +669,42 @@ describe("grpc/conversation", () => {
       expect(msg.messageTypes.value.content[2].text).toBe("part3");
     });
   });
+
+  describe("error handling", () => {
+    it("should propagate errors from converseAlpha2", async () => {
+      const error = new Error("gRPC unavailable");
+      const mockClient = {
+        getClient: () => ({
+          converseAlpha2: async () => {
+            throw error;
+          },
+        }),
+      } as any;
+      const conversation = new GRPCClientConversation(mockClient);
+
+      const inputs: ConversationInput[] = [
+        { messages: [{ role: "user", content: [{ text: "hi" }] }] },
+      ];
+
+      await expect(conversation.converse("my-llm", inputs)).rejects.toThrow("gRPC unavailable");
+    });
+
+    it("should propagate the original error object", async () => {
+      const error = new Error("connection refused");
+      const mockClient = {
+        getClient: () => ({
+          converseAlpha2: async () => {
+            throw error;
+          },
+        }),
+      } as any;
+      const conversation = new GRPCClientConversation(mockClient);
+
+      const inputs: ConversationInput[] = [
+        { messages: [{ role: "user", content: [{ text: "hi" }] }] },
+      ];
+
+      await expect(conversation.converse("my-llm", inputs)).rejects.toBe(error);
+    });
+  });
 });
