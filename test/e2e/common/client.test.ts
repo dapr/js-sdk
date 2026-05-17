@@ -386,6 +386,35 @@ describe("common/client/http", () => {
       expect(res).toEqual("");
     });
 
+    it("should be able to delete multiple keys in bulk from the state store", async () => {
+      await client.state.save(stateStoreName, [
+        {
+          key: "key-1",
+          value: "value-1",
+        },
+        {
+          key: "key-2",
+          value: "value-2",
+        },
+        {
+          key: "key-3",
+          value: "value-3",
+        },
+      ]);
+
+      await client.state.deleteBulk(stateStoreName, [
+        { key: "key-1", value: "" },
+        { key: "key-3", value: "" },
+      ]);
+
+      const res1 = await client.state.get(stateStoreName, "key-1");
+      const res2 = await client.state.get(stateStoreName, "key-2");
+      const res3 = await client.state.get(stateStoreName, "key-3");
+      expect(res1).toBeFalsy();
+      expect(res2).toEqual("value-2");
+      expect(res3).toBeFalsy();
+    });
+
     it("should be able to perform a transaction that replaces a key and deletes another", async () => {
       await client.state.transaction(stateStoreName, [
         {
@@ -905,6 +934,35 @@ describe("common/client/grpc", () => {
       await client.state.delete(stateStoreName, "key-2");
       const res = await client.state.get(stateStoreName, "key-2");
       expect(res).toEqual("");
+    });
+
+    it("should be able to delete multiple keys in bulk from the state store", async () => {
+      await client.state.save(stateStoreName, [
+        {
+          key: "key-1",
+          value: "value-1",
+        },
+        {
+          key: "key-2",
+          value: "value-2",
+        },
+        {
+          key: "key-3",
+          value: "value-3",
+        },
+      ]);
+
+      await client.state.deleteBulk(stateStoreName, [
+        { key: "key-1", value: "" },
+        { key: "key-3", value: "" },
+      ]);
+
+      const res1 = await client.state.get(stateStoreName, "key-1");
+      const res2 = await client.state.get(stateStoreName, "key-2");
+      const res3 = await client.state.get(stateStoreName, "key-3");
+      expect(res1).toEqual("");
+      expect(res2).toEqual("value-2");
+      expect(res3).toEqual("");
     });
 
     it("should be able to perform a transaction that replaces a key and deletes another", async () => {
