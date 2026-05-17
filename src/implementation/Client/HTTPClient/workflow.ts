@@ -31,7 +31,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     this.logger = new Logger("HTTPClient", "Workflow", client.options.logger);
   }
 
-  async get(instanceID: string): Promise<WorkflowGetResponseType> {
+  async getWorkflowState(instanceID: string): Promise<WorkflowGetResponseType> {
     if (!instanceID) {
       throw new PropertyRequiredError("instanceID");
     }
@@ -65,7 +65,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     }
   }
 
-  async start(
+  async scheduleNewWorkflow(
     workflowName: string,
     input?: any,
     instanceId?: string | undefined,
@@ -106,7 +106,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     }
   }
 
-  async raise(
+  async raiseEvent(
     instanceId: string,
     eventName: string,
     eventData?: any,
@@ -157,6 +157,31 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
 
   async purge(instanceId: string): Promise<void> {
     await this._invokeMethod(instanceId, "purge");
+  }
+
+  /** @deprecated Use {@link getWorkflowState} instead. Will be removed with the release of Dapr 1.20. */
+  async get(instanceID: string): Promise<WorkflowGetResponseType> {
+    return this.getWorkflowState(instanceID);
+  }
+
+  /** @deprecated Use {@link scheduleNewWorkflow} instead. Will be removed with the release of Dapr 1.20. */
+  async start(
+    workflowName: string,
+    input?: any,
+    instanceId?: string | undefined,
+    options: WorkflowStartOptions = {},
+  ): Promise<string> {
+    return this.scheduleNewWorkflow(workflowName, input, instanceId, options);
+  }
+
+  /** @deprecated Use {@link raiseEvent} instead. Will be removed with the release of Dapr 1.20. */
+  async raise(
+    instanceId: string,
+    eventName: string,
+    eventData?: any,
+    options: WorkflowRaiseOptions = {},
+  ): Promise<void> {
+    return this.raiseEvent(instanceId, eventName, eventData, options);
   }
 
   async _invokeMethod(instanceId: string, method: string): Promise<any> {

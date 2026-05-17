@@ -93,21 +93,6 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # dapr-client is deprecated, but we still want to publish it for a while.
-      - name: "[dapr-client] Configure to publish to dapr-client for deprecation notice reasons"
-        run: |
-          sed -i s#"@dapr/dapr"#"dapr-client"# package.json
-          echo "This has been deprecated and will not be updated anymore, please use https://www.npmjs.com/package/@dapr/dapr" > README.md
-
-      - name: "[dapr-client] Install dependencies"
-        run: npm install
-
-      - name: "[dapr-client] Build Package"
-        run: npm run build-ci
-
-      - name: "[dapr-client] Publish to npm (dapr-client)"
-        run: npm publish build/ --access public
-
   publish-dev:
     needs: build
     if: startsWith(github.ref, 'refs/heads/main')
