@@ -14,12 +14,42 @@ limitations under the License.
 import { KeyValueType } from "./KeyValue.type";
 
 /**
- * Options related to service invocation.
+ * Configuration options for service-to-service invocation.
+ *
+ * When invoking methods on other services, these options control request behavior
+ * such as headers and HTTP verb customization. These options apply to HTTP invocations;
+ * they are ignored when using the gRPC protocol.
+ *
+ * @see {@link https://dapr.io/docs/developing-applications/building-blocks/service-invocation/ | Dapr Service Invocation}
+ *
+ * @example
+ * ```typescript
+ * const options: InvokerOptions = {
+ *   headers: {
+ *     "x-correlation-id": "req-123",
+ *     "x-request-source": "order-service"
+ *   }
+ * };
+ * const result = await client.invoker.invoke("payment-service", "ProcessPayment", {
+ *   body: { orderId: "ORD-001", amount: 99.99 },
+ *   httpMethod: "POST",
+ *   metadata: options.headers
+ * });
+ * ```
  */
 export type InvokerOptions = {
   /**
-   * Headers to include in the service invocation request.
-   * Note, this is ignored when using the gRPC protocol.
+   * Custom HTTP headers to include in the service invocation request.
+   * These headers are passed through to the invoked service method.
+   * Ignored when using the gRPC communication protocol.
+   *
+   * @example
+   * ```typescript
+   * {
+   *   "x-correlation-id": "abc-123",
+   *   "authorization": "Bearer token-xyz"
+   * }
+   * ```
    */
   headers?: KeyValueType;
 };

@@ -14,9 +14,43 @@ limitations under the License.
 import { IRequestMetadata } from "../RequestMetadata.type";
 import { IStateOptions } from "./StateOptions.type";
 
+/**
+ * Options for state retrieval operations.
+ *
+ * Specifies consistency requirements and optional metadata when reading state values
+ * from a Dapr state store.
+ *
+ * @see {@link https://dapr.io/docs/developing-applications/building-blocks/state-management/ | Dapr State Management}
+ *
+ * @example
+ * ```typescript
+ * // Get state with strong consistency
+ * const options: StateGetOptions = {
+ *   consistency: StateConsistencyEnum.Strong,
+ *   metadata: { "timeout": "5000" }
+ * };
+ * const value = await client.state.get("my-store", "key", options);
+ *
+ * // Get state with eventual consistency
+ * const eventualOptions: StateGetOptions = {
+ *   consistency: StateConsistencyEnum.Eventual,
+ *   metadata: {}
+ * };
+ * ```
+ */
 export type StateGetOptions = Pick<IStateOptions, "consistency"> & {
   /**
-   * Metadata to be passed to the operation.
+   * Component-specific metadata to pass to the state store during retrieval.
+   * The exact metadata accepted depends on the configured state store component
+   * (e.g., Redis, CosmosDB, PostgreSQL, etc.).
+   *
+   * @example
+   * ```typescript
+   * {
+   *   "timeout": "5000",
+   *   "region": "us-east-1"
+   * }
+   * ```
    */
   metadata: IRequestMetadata;
 };
