@@ -14,6 +14,35 @@ limitations under the License.
 import { DaprInvokerCallbackFunction } from "../../types/DaprInvokerCallback.type";
 import { InvokerListenOptionsType } from "../../types/InvokerListenOptions.type";
 
+/**
+ * Dapr server interface for Service Invocation.
+ * Provides methods to register method handlers for incoming service-to-service invocations.
+ *
+ * @see https://docs.dapr.io/developing-applications/building-blocks/service-invocation/
+ */
 export default interface IServerInvoker {
+  /**
+   * Registers a handler for incoming method invocations from other services.
+   *
+   * @param methodName - The method name that will be invoked by remote services.
+   * This corresponds to the methodName parameter used in client.invoker.invoke().
+   * @param cb - Callback function to handle the method invocation.
+   * Receives request data and should return a response.
+   * @param options - Optional listener options (e.g., HTTP verb, response type).
+   * @returns A promise that resolves when the method handler is registered.
+   *
+   * @example
+   * ```ts
+   * await server.invoker.listen(
+   *   "getUserById",
+   *   async (request) => {
+   *     const userId = request.userId;
+   *     return { id: userId, name: "John Doe" };
+   *   }
+   * );
+   * ```
+   *
+   * @see https://docs.dapr.io/reference/api/service_invocation_api/
+   */
   listen(methodName: string, cb: DaprInvokerCallbackFunction, options?: InvokerListenOptionsType): Promise<any>;
 }
