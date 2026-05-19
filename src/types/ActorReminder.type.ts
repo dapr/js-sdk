@@ -28,8 +28,8 @@ import { Temporal } from "@js-temporal/polyfill";
  * ```typescript
  * import { Temporal } from "@js-temporal/polyfill";
  *
- * // Remind every 30 seconds, starting immediately
- * const everySecond: ActorReminderType = {
+ * // Recurring reminder every 30 seconds, starting immediately
+ * const periodicReminder: ActorReminderType = {
  *   period: Temporal.Duration.from({ seconds: 30 })
  * };
  *
