@@ -16,14 +16,48 @@ import GRPCClient from "./GRPCClient";
 import IClientSidecar from "../../../interfaces/Client/IClientSidecar";
 import { GetMetadataRequestSchema, ShutdownRequestSchema } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 
-// https://docs.dapr.io/reference/api/secrets_api/
+/**
+ * gRPC-based sidecar control building block.
+ *
+ * Provides control operations for the Dapr sidecar lifecycle management.
+ * Allows graceful shutdown of the sidecar process.
+ *
+ * @implements {IClientSidecar}
+ * @see {@link DaprClient.sidecar} for unified API
+ *
+ * @internal
+ */
 export default class GRPCClientSidecar implements IClientSidecar {
+  /**
+   * Reference to the underlying gRPC client.
+   */
   client: GRPCClient;
 
+  /**
+   * Creates a gRPC sidecar control building block.
+   *
+   * @param client - The gRPC client instance
+   */
   constructor(client: GRPCClient) {
     this.client = client;
   }
 
+  /**
+   * Gracefully shuts down the Dapr sidecar process.
+   *
+   * Initiates sidecar shutdown with graceful termination of connections.
+   * The sidecar process will exit after all in-flight operations complete.
+   *
+   * @returns Promise resolving when shutdown request is sent
+   *
+   * @throws Rejects if shutdown request fails
+   *
+   * @example
+   * ```typescript
+   * // Shutdown the sidecar
+   * await client.sidecar.shutdown();
+   * ```
+   */
   async shutdown(): Promise<void> {
     const client = await this.client.getClient();
     await client.shutdown(create(ShutdownRequestSchema));
