@@ -14,32 +14,74 @@ limitations under the License.
 import * as grpc from "@grpc/grpc-js";
 import { LoggerOptions } from "../logger/LoggerOptions";
 
+/**
+ * Configuration options for {@link DaprWorkflowClient} and {@link WorkflowRuntime}.
+ *
+ * Specifies how to connect to the Dapr sidecar for workflow management and orchestration.
+ * Settings include host/port for sidecar communication, authentication, and logging configuration.
+ *
+ * @example
+ * ```typescript
+ * const options: Partial<WorkflowClientOptions> = {
+ *   daprHost: "localhost",
+ *   daprPort: "50001",
+ *   daprApiToken: process.env.DAPR_API_TOKEN,
+ *   logger: { level: "info" }
+ * };
+ *
+ * const client = new DaprWorkflowClient(options);
+ * const runtime = new WorkflowRuntime(options);
+ * ```
+ *
+ * @see {@link DaprWorkflowClient} Workflow client for instance management
+ * @see {@link WorkflowRuntime} Workflow runtime for orchestration
+ */
 export type WorkflowClientOptions = {
   /**
-   * Host location of the Dapr sidecar.
-   * Default is 127.0.0.1.
+   * Hostname of the Dapr sidecar running the workflow engine.
+   *
+   * @default "127.0.0.1" (localhost)
+   * @env DAPR_HOST
    */
   daprHost: string;
 
   /**
-   * Port of the Dapr sidecar running a gRPC server.
-   * Default is 50001.
+   * Port number of the gRPC server exposed by the Dapr sidecar.
+   * This is the port used for all workflow and orchestration RPC calls.
+   *
+   * @default "50001"
+   * @env DAPR_GRPC_PORT
    */
   daprPort: string;
 
   /**
-   * Options related to logging.
+   * Logging configuration for the client and runtime.
+   *
+   * Controls verbosity level, log format, and output destination.
+   * Optional; defaults to INFO level logging.
+   *
+   * @see {@link LoggerOptions}
    */
   logger?: LoggerOptions;
 
   /**
-   * API token to authenticate with Dapr.
-   * See https://docs.dapr.io/operations/security/api-token/.
+   * API token for authenticating with the Dapr sidecar (mTLS alternative).
+   *
+   * When set, this token is included in request metadata for API authentication.
+   * Requires the sidecar to be configured with API token validation enabled.
+   *
+   * @env DAPR_API_TOKEN
+   * @see {@link https://docs.dapr.io/operations/security/api-token/}
    */
   daprApiToken?: string;
 
   /**
-   * options used when initializing a grpc Channel instance.
+   * gRPC channel options for customizing the underlying gRPC connection.
+   *
+   * Allows fine-tuning connection pooling, keep-alive settings, compression,
+   * TLS configuration, and other gRPC-level transport options.
+   *
+   * @see {@link https://grpc.io/docs/guides/performance-best-practices/}
    */
   grpcOptions?: grpc.ChannelOptions;
 };

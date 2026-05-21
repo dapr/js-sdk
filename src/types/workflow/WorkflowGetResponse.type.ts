@@ -15,37 +15,74 @@ import { KeyValueType } from "../KeyValue.type";
 import { WorkflowRuntimeStatus } from "./WorkflowRuntimeStatus.type";
 
 /**
- * WorkflowGetResponseType defines the response from a get request for a workflow.
+ * Response data from workflow instance metadata queries.
+ *
+ * Contains summary information about a workflow instance including its identity,
+ * lifecycle status, timestamps, and custom metadata. This type is returned by
+ * query operations like {@link DaprWorkflowClient.getWorkflowState}.
+ *
+ * @example
+ * ```typescript
+ * const client = new DaprWorkflowClient();
+ * const response = await client.getWorkflowState("order-123", true);
+ * if (response && response.runtimeStatus === WorkflowRuntimeStatus.Completed) {
+ *   console.log("Order processed at:", response.lastUpdatedAt);
+ *   console.log("Properties:", response.properties);
+ * }
+ * ```
+ *
+ * @see {@link DaprWorkflowClient.getWorkflowState}
+ * @see {@link WorkflowRuntimeStatus}
  */
 export type WorkflowGetResponseType = {
   /**
-   * instanceID is the unique identifier for the workflow instance.
+   * Unique identifier for the workflow instance.
+   *
+   * This ID is generated or provided when the workflow was started and uniquely
+   * identifies this execution within the workflow store.
    */
   instanceID: string;
 
   /**
-   * workflowName is the name of the workflow.
-   * This is the name of the workflow as defined in the workflow definition.
+   * Name of the workflow definition.
+   *
+   * The name specified during workflow registration with {@link WorkflowRuntime.registerWorkflow}.
+   * Used to determine which orchestrator function to execute for this instance.
    */
   workflowName: string;
 
   /**
-   * createdAt is the time the workflow instance was created.
+   * Creation timestamp of the workflow instance (UTC).
+   *
+   * Indicates when the workflow was first scheduled or started.
+   * Useful for tracking workflow age and lifecycle analysis.
    */
   createdAt: Date;
 
   /**
-   * lastUpdatedAt is the time the workflow instance was last updated.
+   * Last modification timestamp of the workflow instance (UTC).
+   *
+   * Updated whenever the workflow transitions states or completes tasks.
+   * Indicates the most recent activity on this workflow instance.
    */
   lastUpdatedAt: Date;
 
   /**
-   * runtimeStatus is the current status of the workflow instance.
+   * Current execution status of the workflow instance.
+   *
+   * Indicates whether the workflow is Running, Completed, Failed, Terminated,
+   * Pending, Suspended, or continued as a new instance.
+   *
+   * @see {@link WorkflowRuntimeStatus}
    */
   runtimeStatus: WorkflowRuntimeStatus;
 
   /**
-   * properties is a collection of key/value pairs that are associated with the workflow instance.
+   * Custom key-value metadata associated with the workflow instance.
+   *
+   * Application-defined properties passed via start options or set during execution.
+   * Useful for storing workflow context and custom state that persists in the store.
    */
   properties: KeyValueType;
 };
+

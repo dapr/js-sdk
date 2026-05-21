@@ -13,16 +13,54 @@ limitations under the License.
 
 import { KeyValueType } from "../KeyValue.type";
 
+/**
+ * Options for scheduling workflow instances.
+ *
+ * Controls how workflow input is serialized and specifies additional
+ * workflow-specific options when starting orchestrations via
+ * {@link DaprWorkflowClient.scheduleNewWorkflow}.
+ *
+ * @example
+ * ```typescript
+ * const client = new DaprWorkflowClient();
+ * const instanceId = await client.scheduleNewWorkflow(
+ *   orderWorkflow,
+ *   { orderId: "order-123", amount: 99.99 },
+ *   "order-instance-123",
+ *   undefined,
+ *   { contentType: "application/json", workflowOptions: { priority: "high" } }
+ * );
+ * ```
+ *
+ * @see {@link DaprWorkflowClient.scheduleNewWorkflow}
+ */
 export type WorkflowStartOptions = {
   /**
-   * The content type of the message.
-   * This is optional and will be inferred from the payload if not provided.
+   * MIME type of the workflow input payload.
+   *
+   * Specifies how the input data should be serialized and deserialized.
+   * Common values:
+   * - "application/json" - JSON serialization (default, auto-detected)
+   * - "text/plain" - Plain text
+   * - "application/octet-stream" - Binary data
+   *
+   * If omitted, the content type is automatically inferred from the input value.
+   *
+   * @default undefined (auto-detected from input)
    */
   contentType?: string;
 
   /**
-   * Options to be passed to the workflow.
-   * Only applicable for gRPC.
+   * gRPC-specific workflow options.
+   *
+   * Custom key-value metadata passed to the workflow orchestration.
+   * Only applicable when using gRPC communication with the sidecar.
+   * HTTP communication ignores this field.
+   *
+   * Useful for passing runtime configuration, feature flags, or priority information
+   * to the workflow orchestrator.
+   *
+   * @default undefined
    */
   workflowOptions?: KeyValueType;
 };
