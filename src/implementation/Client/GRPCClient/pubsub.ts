@@ -28,6 +28,21 @@ import { PubSubBulkPublishResponse } from "../../../types/pubsub/PubSubBulkPubli
 import { PubSubBulkPublishMessage } from "../../../types/pubsub/PubSubBulkPublishMessage.type";
 import { PubSubPublishOptions } from "../../../types/pubsub/PubSubPublishOptions.type";
 
+/**
+ * gRPC-based pub/sub building block implementation.
+ *
+ * Provides publish and bulk publish operations for event-driven messaging patterns.
+ * Uses gRPC for efficient communication with pub/sub brokers configured in Dapr.
+ *
+ * Supports multiple pub/sub components (Redis, RabbitMQ, Kafka, NATS, etc.)
+ * and batch operations for improved throughput.
+ *
+ * @implements {IClientPubSub}
+ * @see {@link https://docs.dapr.io/reference/api/pubsub_api/} Dapr Pub/Sub API
+ * @see {@link DaprClient.pubsub} for unified API
+ *
+ * @internal
+ */
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class GRPCClientPubSub implements IClientPubSub {
   client: GRPCClient;
