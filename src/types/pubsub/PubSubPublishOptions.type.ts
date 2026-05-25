@@ -13,15 +13,64 @@ limitations under the License.
 
 import { KeyValueType } from "../KeyValue.type";
 
+/**
+ * Options for publishing messages to Pub/Sub topics.
+ *
+ * Specifies optional metadata and content type information when publishing messages.
+ * These options allow control over message encoding and component-specific behavior.
+ *
+ * @see {@link https://dapr.io/docs/developing-applications/building-blocks/pubsub/ | Dapr Pub/Sub}
+ *
+ * @example
+ * ```typescript
+ * // Publish with explicit content type
+ * const options: PubSubPublishOptions = {
+ *   contentType: "application/json",
+ *   metadata: { "correlation-id": "msg-123" }
+ * };
+ * await client.pubsub.publish("kafka-pubsub", "orders", {
+ *   orderId: "ORD-001",
+ *   amount: 99.99
+ * }, options);
+ *
+ * // Publish with minimal options
+ * await client.pubsub.publish("redis-pubsub", "events", eventData);
+ * ```
+ */
 export type PubSubPublishOptions = {
   /**
-   * The content type of the message.
-   * This is optional and will be inferred from the payload if not provided.
+   * MIME type of the message content.
+   * If not provided, the SDK typically infers the type from the payload
+   * (e.g., "application/json" for objects, "text/plain" for strings).
+   * Explicitly set if you need to override auto-detection.
+   *
+   * @example
+   * ```typescript
+   * contentType: "application/json"
+   * contentType: "application/xml"
+   * contentType: "text/plain"
+   * ```
    */
   contentType?: string;
 
   /**
-   * Metadata to be passed to the publish operation.
+   * Component-specific metadata to accompany the published message.
+   * Can be used for routing hints, partition keys, custom headers, or other
+   * Pub/Sub component-specific configuration.
+   *
+   * Common uses:
+   * - "partition-key": For partitioned topics (Kafka, Event Hubs)
+   * - "x-correlation-id": For request tracing
+   * - Component-specific configuration options
+   *
+   * @example
+   * ```typescript
+   * {
+   *   "partition-key": "user-123",
+   *   "x-correlation-id": "req-456",
+   *   "x-trace-id": "trace-789"
+   * }
+   * ```
    */
   metadata?: KeyValueType;
 };

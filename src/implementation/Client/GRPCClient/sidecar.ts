@@ -16,19 +16,53 @@ import GRPCClient from "./GRPCClient";
 import IClientSidecar from "../../../interfaces/Client/IClientSidecar";
 import { GetMetadataRequestSchema, ShutdownRequestSchema } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 
-// https://docs.dapr.io/reference/api/secrets_api/
+/**
+ * gRPC control for sending signals to the Dapr runtime.
+ *
+ * Internal utility for lifecycle management operations like graceful shutdown.
+ * Sends control signals directly to the Dapr sidecar process.
+ *
+ * @internal
+ */
 export default class GRPCClientSidecar implements IClientSidecar {
+  /**
+   * Reference to the underlying gRPC client.
+   */
   client: GRPCClient;
 
+  /**
+   * Creates a gRPC sidecar control instance.
+   *
+   * @param client - The gRPC client instance
+   *
+   * @internal
+   */
   constructor(client: GRPCClient) {
     this.client = client;
   }
 
+  /**
+   * Sends a graceful shutdown signal to the Dapr sidecar.
+   *
+   * @returns Promise resolving when shutdown signal is sent
+   *
+   * @throws Rejects if shutdown signal fails
+   *
+   * @internal
+   */
   async shutdown(): Promise<void> {
     const client = await this.client.getClient();
     await client.shutdown(create(ShutdownRequestSchema));
   }
 
+  /**
+   * Checks if the Dapr sidecar is running and responsive.
+   *
+   * @param client - The gRPC client to use for the check
+   * @returns Promise resolving to true if sidecar is running, false otherwise
+   *
+   * @internal
+   */
   static async isStarted(client: GRPCClient): Promise<boolean> {
     const callClient = await client.getClient(false);
 

@@ -14,9 +14,46 @@ limitations under the License.
 import { PubSubSubscriptionTopicType } from "./PubSubSubscriptionTopic.type";
 
 /**
- * This defines the pubsubName object
+ * PubSub subscriptions grouped by Pub/Sub component name.
+ *
+ * A map where each key is a Pub/Sub component name (e.g., "kafka", "redis", "azure-servicebus")
+ * and the value contains all topic subscriptions for that component.
+ * Used by the Dapr server to declare all Pub/Sub subscriptions in a declarative/programmatic way.
+ *
+ * @see {@link https://dapr.io/docs/developing-applications/building-blocks/pubsub/ | Dapr Pub/Sub}
+ * @see {@link https://dapr.io/docs/developing-applications/building-blocks/pubsub/subscription-methods/ | Subscription Methods}
+ *
+ * @example
+ * ```typescript
+ * // Register subscriptions for multiple Pub/Sub components
+ * const subscriptions: PubSubSubscriptionType = {
+ *   "kafka-pubsub": {
+ *     "orders": {
+ *       callback: handleOrderMessages,
+ *       route: "/subscribe/orders"
+ *     },
+ *     "payments": {
+ *       callback: handlePaymentMessages,
+ *       route: "/subscribe/payments"
+ *     }
+ *   },
+ *   "redis-pubsub": {
+ *     "notifications": {
+ *       callback: handleNotifications,
+ *       route: "/subscribe/notifications"
+ *     }
+ *   }
+ * };
+ *
+ * // Or programmatic subscription
+ * await server.pubsub.subscribe("kafka-pubsub", "orders", handleOrderMessages);
+ * ```
  */
 export type PubSubSubscriptionType = {
-  // Key of the topic
-  [key: string]: PubSubSubscriptionTopicType;
+  /**
+   * Subscriptions for a specific Pub/Sub component.
+   * The key is the name of the Pub/Sub component configured in Dapr.
+   * The value contains all topic subscriptions for that component.
+   */
+  [pubSubComponentName: string]: PubSubSubscriptionTopicType;
 };

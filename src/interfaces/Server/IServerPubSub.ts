@@ -18,16 +18,39 @@ import { DaprPubSubRouteType } from "../../types/pubsub/DaprPubSubRouteType.type
 import { PubSubSubscriptionOptionsType } from "../../types/pubsub/PubSubSubscriptionOptions.type";
 import { PubSubSubscriptionsType } from "../../types/pubsub/PubSubSubscriptions.type";
 
+/**
+ * Dapr server interface for Pub/Sub messaging.
+ * Provides methods to subscribe to topics and register message handlers.
+ *
+ * @see https://docs.dapr.io/developing-applications/building-blocks/pubsub/
+ */
 export default interface IServerPubSub {
   /**
-   * Subscribe to a topic.
+   * Subscribes to a topic with a message handler callback.
    *
-   * @param pubSubName name of the pubsub
-   * @param topic name of the topic
-   * @param cb callback function to handle messages
-   * @param route The HTTP route override to register for the event subscription.
-   * Default value is `/route-${pubsubName}-${topic}`. Ignored if gRPC is used.
-   * @param metadata metadata for the subscription
+   * @param pubSubName - The name of the pub/sub component to subscribe to.
+   * @param topic - The topic to subscribe to.
+   * @param cb - Callback function invoked when messages arrive.
+   * Should return a response indicating success or failure.
+   * @param route - Optional HTTP route override for the subscription endpoint.
+   * Defaults to `/route-${pubsubName}-${topic}`. Ignored if gRPC transport is used.
+   * @param metadata - Optional component-specific metadata for the subscription.
+   * @returns A promise that resolves when the subscription is established.
+   *
+   * @example
+   * ```ts
+   * await server.pubsub.subscribe(
+   *   "orders-pubsub",
+   *   "orders.created",
+   *   async (message) => {
+   *     console.log("Order received:", message);
+   *     return { status: "success" };
+   *   },
+   *   "/orders/created"
+   * );
+   * ```
+   *
+   * @see https://docs.dapr.io/reference/api/pubsub_api/
    */
   subscribe(
     pubSubName: string,
@@ -38,21 +61,27 @@ export default interface IServerPubSub {
   ): Promise<void>;
 
   /**
-   * Subscribe to a topic with options.
+   * Subscribes to a topic with advanced subscription options.
    *
-   * @param pubSubName name of the pubsub
-   * @param topic name of the topic
-   * @param options options
+   * @param pubsubName - The name of the pub/sub component to subscribe to.
+   * @param topic - The topic to subscribe to.
+   * @param options - Subscription configuration including callback, route, metadata, and dead-letter topics.
+   * @returns A promise that resolves when the subscription is established.
+   *
+   * @see https://docs.dapr.io/reference/api/pubsub_api/
    */
   subscribeWithOptions(pubsubName: string, topic: string, options: PubSubSubscriptionOptionsType): Promise<void>;
 
   /**
-   * Subscribe to events on a specific topic that was subscribed to already.
+   * Registers a message handler for a specific route within an already-subscribed topic.
+   * Allows multiple routes to share the same topic subscription with different handlers.
    *
-   * @param pubSubName name of the pubsub
-   * @param topic name of the topic
-   * @param route The Dapr route representing how messages should be routed to
-   * @param cb callback function to handle messages
+   * @param pubsubName - The name of the pub/sub component.
+   * @param topic - The topic already subscribed to.
+   * @param route - The Dapr route (HTTP path or gRPC method) for routing messages to this handler.
+   * @param cb - Callback function to handle messages routed to this endpoint.
+   *
+   * @see https://docs.dapr.io/reference/api/pubsub_api/
    */
   subscribeToRoute(
     pubsubName: string,
@@ -62,18 +91,18 @@ export default interface IServerPubSub {
   ): void;
 
   /**
-   * Bulk Subscribe to a topic with providing configurations for bulk subscribe.
-   * If maxMessagesCount or/and maxAwaitDurationMs not provided, default values
-   * for related component will be used.
+   * Subscribes to a topic using bulk subscribe mode.
+   * Allows the handler to receive multiple messages in a single callback invocation.
    *
-   * @param pubSubName name of the pubsub
-   * @param topic name of the topic
-   * @param cb callback function to handle messages
-   * @param maxMessagesCount max messages count
-   * @param maxAwaitDurationMs max await duration in milliseconds
-   * @param route The HTTP route override to register for the event subscription.
-   * Default value is `/route-${pubsubName}-${topic}`. Ignored if gRPC is used.
-   * @param metadata metadata for the subscription
+   * @param pubSubName - The name of the pub/sub component to subscribe to.
+   * @param topic - The topic to subscribe to.
+   * @param cb - Callback function to handle bulk messages.
+   * Receives an array of messages and should return success/failure status for each.
+   * @param bulkSubscribeOptions - Optional bulk subscribe configuration including
+   * maxMessagesCount, maxAwaitDurationMs, and route settings.
+   * @returns A promise that resolves when the bulk subscription is established.
+   *
+   * @see https://docs.dapr.io/reference/api/pubsub_api/
    */
   subscribeBulk(
     pubSubName: string,
@@ -83,7 +112,12 @@ export default interface IServerPubSub {
   ): Promise<void>;
 
   /**
-   * Get a list of the registered subscriptions
+   * Retrieves a list of all registered pub/sub subscriptions.
+   * Useful for debugging and monitoring active subscriptions.
+   *
+   * @returns An object containing all registered subscriptions organized by pub/sub component and topic.
+   *
+   * @see https://docs.dapr.io/reference/api/pubsub_api/
    */
   getSubscriptions(): PubSubSubscriptionsType;
 }
