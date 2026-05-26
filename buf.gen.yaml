@@ -8,12 +8,14 @@ plugins:
     opt:
       - target=js+dts
       - import_extension=.js
+      - js_import_style=legacy_commonjs
   - remote: buf.build/connectrpc/es
     out: ./src/proto
     include_imports: true
     opt:
       - target=js+dts
       - import_extension=.js
+      - js_import_style=legacy_commonjs
 inputs:
   - directory: ./
     paths:
