@@ -1,0 +1,47 @@
+{
+  "name": "@dapr/openclaw",
+  "version": "0.1.0",
+  "description": "Dapr Workflows integration for durable OpenClaw agent execution",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "dapr",
+    "openclaw",
+    "workflows",
+    "durable-execution",
+    "agent",
+    "ai"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dapr/js-sdk.git",
+    "directory": "extensions/openclaw"
+  },
+  "homepage": "https://github.com/dapr/js-sdk/tree/main/extensions/openclaw#readme",
+  "bugs": {
+    "url": "https://github.com/dapr/js-sdk/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@dapr/dapr": "^3.6.1"
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-agent-core": ">=0.65.0 <0.70.0"
+  },
+  "license": "Apache-2.0"
+}
