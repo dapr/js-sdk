@@ -20,6 +20,24 @@ npm install --save @dapr/dapr-dev
 
 Visit [https://docs.dapr.io/developing-applications/sdks/js/](https://docs.dapr.io/developing-applications/sdks/js/) to view the full documentation.
 
+## Installation Analytics
+
+`@dapr/dapr` includes [`@scarf/scarf`](https://github.com/scarf-sh/scarf-js), which reports basic, anonymized install information (operating system, package name and version) to help Dapr maintainers understand SDK adoption. It only runs at install time — there is no runtime footprint and no data collection after installation. Scarf uses the request IP for company-level aggregation and does not store it.
+
+To opt out, set either environment variable before installing:
+
+```bash
+export SCARF_ANALYTICS=false
+# or
+export DO_NOT_TRACK=1
+```
+
+or add the following to your project's `package.json`:
+
+```json
+"scarfSettings": { "enabled": false }
+```
+
 ## Community
 
 There are multiple ways to get involved with the SDK community, please see [wiki/Community-engagement](https://github.com/dapr/js-sdk/wiki/Community-engagement) for more information.

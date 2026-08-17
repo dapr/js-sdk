@@ -54,6 +54,10 @@
   "keywords": [],
   "author": "Dapr Authors",
   "license": "apache-2.0",
+  "scarfSettings": {
+    "defaultOptIn": true,
+    "allowTopLevel": false
+  },
   "dependencies": {
     "@bufbuild/protobuf": "^2.9.0",
     "@connectrpc/connect": "^2.1.0",
@@ -62,6 +66,7 @@
     "@dapr/durabletask-js": "^1.0.0",
     "@grpc/grpc-js": "^1.12.5",
     "@js-temporal/polyfill": "^0.3.0",
+    "@scarf/scarf": "^1.4.0",
     "@types/google-protobuf": "^3.15.5",
     "@types/node-fetch": "^2.6.2",
     "body-parser": "^1.19.0",
