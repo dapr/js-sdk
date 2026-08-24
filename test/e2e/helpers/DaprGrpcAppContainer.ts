@@ -30,16 +30,8 @@ import {
   StoppedTestContainer,
   Wait,
 } from "testcontainers";
-import {
-  Component,
-  DaprPlacementContainer,
-  DaprSchedulerContainer,
-} from "@dapr/testcontainer-node";
-import {
-  DAPR_TEST_RUNTIME_IMAGE,
-  DAPR_TEST_PLACEMENT_IMAGE,
-  DAPR_TEST_SCHEDULER_IMAGE,
-} from "./containers";
+import { Component, DaprPlacementContainer, DaprSchedulerContainer } from "@dapr/testcontainer-node";
+import { DAPR_TEST_RUNTIME_IMAGE, DAPR_TEST_PLACEMENT_IMAGE, DAPR_TEST_SCHEDULER_IMAGE } from "./containers";
 
 const DAPRD_HTTP_PORT = 3500;
 const DAPRD_GRPC_PORT = 50001;
@@ -180,7 +172,12 @@ export class DaprGrpcAppContainer extends GenericContainer {
       cmds.push("--app-port", this.appPort.toString());
     }
     if (this.maxRequestSizeMb !== undefined) {
-      cmds.push("--dapr-http-max-request-size", this.maxRequestSizeMb.toString());
+      const size = `${this.maxRequestSizeMb}Mi`;
+
+      // Only override when explicitly requested
+      cmds.push("--max-body-size", size);
+    } else {
+      // DO NOTHING → let Dapr default (4MB) remain
     }
 
     this.withCommand(cmds);
