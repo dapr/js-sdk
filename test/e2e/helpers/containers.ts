@@ -183,6 +183,11 @@ export function buildCryptoLocalComponent(): Component {
   ]);
 }
 
+/** conversation.echo component — echoes back the input for testing. */
+export function buildConversationEchoComponent(): Component {
+  return new Component("echo", "conversation.echo", "v1", []);
+}
+
 /** pubsub.in-memory component — used as a fallback so Dapr starts cleanly. */
 export function buildInMemoryPubSubComponent(name = "pubsub"): Component {
   return new Component(name, "pubsub.in-memory", "v1", []);
