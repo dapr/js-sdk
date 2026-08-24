@@ -14,6 +14,8 @@ obj/
 # Common node modules locations
 /node_modules
 /wwwroot/node_modules
+/src/proto/dapr/proto/**/*.d.ts
+/src/proto/dapr/proto/**/*.js
 
 ### Node ###
 # Logs
