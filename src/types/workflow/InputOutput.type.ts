@@ -12,11 +12,23 @@ limitations under the License.
 */
 
 /**
- * The type of the input for the workflow activity
+ * Input parameter type for workflow activities.
+ *
+ * Activities receive input from orchestrator functions via this type.
+ * The value is JSON-deserialized from the orchestrator's call.
+ *
+ * @see {@link TWorkflowActivity}
+ * @see {@link WorkflowContext.callActivity}
  */
 export type TInput = any;
 
 /**
- * The type of the output for the workflow and workflow activity
+ * Return value type for workflows and activities.
+ *
+ * Both orchestrator functions and activities return values of this type.
+ * The value must be JSON-serializable for durability and state persistence.
+ *
+ * @see {@link TWorkflow}
+ * @see {@link TWorkflowActivity}
  */
 export type TOutput = any;
