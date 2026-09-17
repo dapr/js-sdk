@@ -128,12 +128,24 @@ export declare const Dapr: {
       readonly kind: MethodKind.Unary,
     },
     /**
-     * Bulk Publishes multiple events to the specified topic.
+     * Deprecated: Bulk Publishes multiple events to the specified topic.
      *
      * @generated from rpc dapr.proto.runtime.v1.Dapr.BulkPublishEventAlpha1
+     * @deprecated
      */
     readonly bulkPublishEventAlpha1: {
       readonly name: "BulkPublishEventAlpha1",
+      readonly I: typeof BulkPublishRequest,
+      readonly O: typeof BulkPublishResponse,
+      readonly kind: MethodKind.Unary,
+    },
+    /**
+     * Bulk Publishes multiple events to the specified topic.
+     *
+     * @generated from rpc dapr.proto.runtime.v1.Dapr.BulkPublishEvent
+     */
+    readonly bulkPublishEvent: {
+      readonly name: "BulkPublishEvent",
       readonly I: typeof BulkPublishRequest,
       readonly O: typeof BulkPublishResponse,
       readonly kind: MethodKind.Unary,

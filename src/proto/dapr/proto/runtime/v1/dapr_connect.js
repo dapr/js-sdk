@@ -128,12 +128,24 @@ export const Dapr = {
       kind: MethodKind.Unary,
     },
     /**
-     * Bulk Publishes multiple events to the specified topic.
+     * Deprecated: Bulk Publishes multiple events to the specified topic.
      *
      * @generated from rpc dapr.proto.runtime.v1.Dapr.BulkPublishEventAlpha1
+     * @deprecated
      */
     bulkPublishEventAlpha1: {
       name: "BulkPublishEventAlpha1",
+      I: BulkPublishRequest,
+      O: BulkPublishResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Bulk Publishes multiple events to the specified topic.
+     *
+     * @generated from rpc dapr.proto.runtime.v1.Dapr.BulkPublishEvent
+     */
+    bulkPublishEvent: {
+      name: "BulkPublishEvent",
       I: BulkPublishRequest,
       O: BulkPublishResponse,
       kind: MethodKind.Unary,

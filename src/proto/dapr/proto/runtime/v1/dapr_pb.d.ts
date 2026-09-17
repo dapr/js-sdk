@@ -4255,11 +4255,22 @@ export declare const Dapr: GenService<{
     output: typeof EmptySchema;
   },
   /**
-   * Bulk Publishes multiple events to the specified topic.
+   * Deprecated: Bulk Publishes multiple events to the specified topic.
    *
    * @generated from rpc dapr.proto.runtime.v1.Dapr.BulkPublishEventAlpha1
+   * @deprecated
    */
   bulkPublishEventAlpha1: {
+    methodKind: "unary";
+    input: typeof BulkPublishRequestSchema;
+    output: typeof BulkPublishResponseSchema;
+  },
+  /**
+   * Bulk Publishes multiple events to the specified topic.
+   *
+   * @generated from rpc dapr.proto.runtime.v1.Dapr.BulkPublishEvent
+   */
+  bulkPublishEvent: {
     methodKind: "unary";
     input: typeof BulkPublishRequestSchema;
     output: typeof BulkPublishResponseSchema;
