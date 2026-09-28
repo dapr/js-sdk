@@ -12,9 +12,34 @@ limitations under the License.
 */
 
 /**
- * StateSaveResponseType defines the response from a save request.
+ * Response from a state save/upsert operation.
+ *
+ * Contains success/error information for a save request.
+ * If the save succeeded, the error field is undefined.
+ * If the save failed, error contains details about what went wrong.
+ *
+ * @see {@link https://dapr.io/docs/developing-applications/building-blocks/state-management/ | Dapr State Management}
+ *
+ * @example
+ * ```typescript
+ * const response: StateSaveResponseType = await client.state.save("my-store", [{
+ *   key: "key-123",
+ *   value: { data: "value" }
+ * }]);
+ *
+ * if (response.error) {
+ *   console.error("Save failed:", response.error.message);
+ * } else {
+ *   console.log("Save succeeded");
+ * }
+ * ```
  */
 export type StateSaveResponseType = {
-  // error contains the error if the save request failed.
+  /**
+   * Error encountered during the save operation, if any.
+   * Undefined if the save succeeded.
+   * When present, contains error details about why the operation failed
+   * (e.g., ETag mismatch, store unavailable, etc.).
+   */
   error?: Error;
 };

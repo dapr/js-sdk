@@ -11,6 +11,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/**
+ * Dapr client interface for sidecar management.
+ * Provides methods to control the Dapr sidecar process.
+ *
+ * @see https://docs.dapr.io/concepts/dapr-services/sidecar/
+ */
 export default interface IClientSidecar {
+  /**
+   * Gracefully shuts down the Dapr sidecar.
+   * Allows the sidecar to complete in-flight requests before terminating.
+   *
+   * @returns A promise that resolves when the sidecar has been shut down.
+   *
+   * @see https://docs.dapr.io/concepts/dapr-services/sidecar/
+   */
   shutdown(): Promise<void>;
 }

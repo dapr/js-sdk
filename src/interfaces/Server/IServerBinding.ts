@@ -13,6 +13,33 @@ limitations under the License.
 
 import { TypeDaprBindingCallback } from "../../types/DaprBindingCallback.type";
 
+/**
+ * Dapr server interface for Input Bindings.
+ * Provides methods to subscribe to events from external systems via Dapr input bindings.
+ *
+ * @see https://docs.dapr.io/developing-applications/building-blocks/bindings/
+ */
 export default interface IServerBinding {
+  /**
+   * Registers a handler for incoming messages from an input binding.
+   *
+   * @param bindingName - The name of the input binding component to listen to.
+   * @param cb - Callback function to handle messages from the binding.
+   * The callback receives the incoming message data and should return a response.
+   * @returns A promise that resolves when the binding handler is registered.
+   *
+   * @example
+   * ```ts
+   * await server.binding.receive(
+   *   "myKafkaBinding",
+   *   (message) => {
+   *     console.log("Received:", message);
+   *     return { status: "processed" };
+   *   }
+   * );
+   * ```
+   *
+   * @see https://docs.dapr.io/reference/api/bindings_api/
+   */
   receive(bindingName: string, cb: TypeDaprBindingCallback): Promise<any>;
 }

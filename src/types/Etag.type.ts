@@ -11,6 +11,34 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/**
+ * Represents an entity tag (ETag) for optimistic concurrency control in state operations.
+ *
+ * ETags are used to prevent lost updates when multiple clients attempt to modify the same state.
+ * When retrieving state, the ETag identifies the specific version. When updating state, providing
+ * an ETag ensures the update only succeeds if the state version matches.
+ *
+ * @see {@link https://dapr.io/docs/developing-applications/building-blocks/state-management/ | Dapr State Management}
+ *
+ * @example
+ * ```typescript
+ * // Retrieve state with ETag
+ * const state = await client.state.get("order-service", "order-123");
+ * // state.etag contains the current version identifier
+ *
+ * // Update state with ETag for concurrency control
+ * await client.state.save("order-service", [{
+ *   key: "order-123",
+ *   value: updatedOrder,
+ *   etag: state.etag  // Ensures this version is being updated
+ * }]);
+ * ```
+ */
 export type IEtag = {
+  /**
+   * The version identifier for the state value.
+   * This opaque string uniquely identifies a specific version of state.
+   * Use this value in concurrent updates to ensure the expected version is being modified.
+   */
   value: string;
 };

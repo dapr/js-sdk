@@ -34,17 +34,133 @@ import { DaprServerOptions } from "../../types/DaprServerOptions";
 import DaprClient from "../Client/DaprClient";
 import { getClientOptions } from "../../utils/Client.util";
 
+/**
+ * Dapr server for receiving messages and requests from the Dapr sidecar.
+ *
+ * DaprServer hosts an HTTP or gRPC server that receives pub/sub messages, input bindings,
+ * service invocation requests, and actor method calls from the Dapr sidecar. It automatically
+ * selects the appropriate protocol based on configuration and manages both the server
+ * (for receiving) and an embedded client (for sending to sidecar).
+ *
+ * @see {@link https://dapr.io/docs/developing-applications/building-blocks/ | Dapr Building Blocks}
+ *
+ * @example
+ * ```typescript
+ * import { DaprServer, HttpMethod } from "@dapr/dapr";
+ *
+ * const server = new DaprServer();
+ *
+ * // Handle Pub/Sub messages
+ * await server.pubsub.subscribe("pubsub-name", "topic-name", async (data: any) => {
+ *   console.log("Received message:", data);
+ * });
+ *
+ * // Handle input bindings
+ * await server.binding.subscribe("kafka-binding", async (data: any) => {
+ *   console.log("Received binding data:", data);
+ * });
+ *
+ * // Register service invocation handler
+ * server.invoker.handle("MyMethod", async (data: any) => {
+ *   return { result: "success", data };
+ * });
+ *
+ * // Start server (listens on localhost:3001 by default)
+ * await server.start();
+ *
+ * // Graceful shutdown
+ * await server.stop();
+ * ```
+ */
 export default class DaprServer {
-  // App details
+  /**
+   * Server configuration (host, port, protocol, etc.).
+   *
+   * @internal
+   */
   private readonly serverOptions: DaprServerOptions;
 
+  /**
+   * Underlying protocol-specific server (HTTP or gRPC).
+   * Typically accessed indirectly through the building block properties.
+   *
+   * @internal
+   */
   readonly daprServer: IServer;
+
+  /**
+   * Pub/Sub topic subscription handler.
+   * Register handlers for receiving pub/sub messages from topics.
+   *
+   * @see {@link https://dapr.io/docs/developing-applications/building-blocks/pubsub/ | Dapr Pub/Sub}
+   */
   readonly pubsub: IServerPubSub;
+
+  /**
+   * Input bindings handler.
+   * Register handlers for receiving events from input bindings.
+   *
+   * @see {@link https://dapr.io/docs/developing-applications/building-blocks/bindings/ | Dapr Bindings}
+   */
   readonly binding: IServerBinding;
+
+  /**
+   * Service invocation handler.
+   * Register handlers for methods that other services can call.
+   *
+   * @see {@link https://dapr.io/docs/developing-applications/building-blocks/service-invocation/ | Dapr Service Invocation}
+   */
   readonly invoker: IServerInvoker;
+
+  /**
+   * Actor method handler.
+   * Register handlers for actor state and methods.
+   *
+   * @see {@link https://dapr.io/docs/developing-applications/building-blocks/actors/ | Dapr Actors}
+   */
   readonly actor: IServerActor;
+
+  /**
+   * Dapr client for making calls to the sidecar.
+   * Embedded within the server for accessing state, pub/sub, invocation, etc.
+   *
+   * @see {@link DaprClient}
+   */
   readonly client: DaprClient;
 
+  /**
+   * Creates a new Dapr server instance.
+   *
+   * Initializes the appropriate protocol-specific server (HTTP or gRPC) and embeds
+   * a DaprClient for sidecar communication. The server will listen on the specified
+   * host/port and automatically wire up all building block handlers.
+   *
+   * @param serverOptions - Optional server configuration
+   * @param serverOptions.serverHost - Server listen address (default: localhost, env: DAPR_HOST)
+   * @param serverOptions.serverPort - Server listen port (default: 3001 for HTTP, 50000 for gRPC, env: DAPR_SERVER_PORT)
+   * @param serverOptions.communicationProtocol - HTTP or gRPC (default: HTTP, env: DAPR_PROTOCOL)
+   * @param serverOptions.maxBodySizeMb - Maximum request body size (default: 4)
+   * @param serverOptions.serverHttp - Additional Express/HTTP server options
+   * @param serverOptions.clientOptions - Options for embedded client (host, port, etc.)
+   * @param serverOptions.logger - Custom logger instance
+   *
+   * @throws {Error} When serverPort or client daprPort is invalid
+   *
+   * @example
+   * ```typescript
+   * // Use defaults (HTTP, listen on localhost:3001, connect to localhost:3500)
+   * const server = new DaprServer();
+   *
+   * // Use gRPC with custom port
+   * const server = new DaprServer({
+   *   communicationProtocol: CommunicationProtocolEnum.GRPC,
+   *   serverPort: "50000",
+   *   clientOptions: {
+   *     daprPort: "50001"
+   *   }
+   * });
+   * ```
+   */
   constructor(serverOptions: Partial<DaprServerOptions> = {}) {
     const communicationProtocol = serverOptions.communicationProtocol ?? Settings.getDefaultCommunicationProtocol();
     const clientOptions = getClientOptions(serverOptions.clientOptions, communicationProtocol, serverOptions?.logger);
@@ -106,6 +222,24 @@ export default class DaprServer {
     }
   }
 
+  /**
+   * Starts the Dapr server and client.
+   *
+   * Initializes and starts the HTTP or gRPC server on the configured host/port,
+   * then starts the embedded client to connect to the Dapr sidecar. Must be called
+   * before the server can receive messages from the sidecar or send API calls to it.
+   *
+   * @returns Promise that resolves when both server and client are started
+   *
+   * @throws {Error} If server or client startup fails
+   *
+   * @example
+   * ```typescript
+   * const server = new DaprServer();
+   * await server.start();
+   * console.log("Server listening...");
+   * ```
+   */
   async start(): Promise<void> {
     // First start the server as we need to initialize routes for PubSub, Bindings, ...
     await this.daprServer.start(this.serverOptions.serverHost, this.serverOptions.serverPort.toString());
@@ -114,10 +248,37 @@ export default class DaprServer {
     await this.client.start();
   }
 
+  /**
+   * Stops the Dapr server.
+   *
+   * Gracefully shuts down the HTTP or gRPC server, stopping it from receiving
+   * messages from the sidecar. The embedded client remains available for use
+   * if needed after server shutdown.
+   *
+   * @returns Promise that resolves when the server is stopped
+   *
+   * @example
+   * ```typescript
+   * const server = new DaprServer();
+   * await server.start();
+   * // ... handle requests ...
+   * await server.stop();
+   * ```
+   */
   async stop(): Promise<void> {
     await this.daprServer.stop();
   }
 
+  /**
+   * Returns the underlying protocol-specific server instance.
+   *
+   * Provides access to low-level server details. Most applications should use
+   * the building block properties (pubsub, binding, invoker, actor) instead.
+   *
+   * @returns The IServer implementation (HTTP or gRPC)
+   *
+   * @internal
+   */
   getDaprClient(): IServer {
     return this.daprServer;
   }

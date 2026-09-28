@@ -16,14 +16,54 @@ import GRPCClient from "./GRPCClient";
 import { GetBulkSecretRequestSchema, GetSecretRequestSchema } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 import IClientSecret from "../../../interfaces/Client/IClientSecret";
 
-// https://docs.dapr.io/reference/api/secrets_api/
+/**
+ * gRPC-based secrets management building block implementation.
+ *
+ * Provides secure access to secrets stored in external secret management systems.
+ * Supports retrieving individual secrets and bulk operations for efficiency.
+ *
+ * Configured secret stores may include HashiCorp Vault, Azure Key Vault, AWS Secrets Manager, etc.
+ *
+ * @implements {IClientSecret}
+ * @see {@link https://docs.dapr.io/reference/api/secrets_api/} Dapr Secrets API
+ * @see {@link DaprClient.secret} for unified API
+ *
+ * @internal
+ */
 export default class GRPCClientSecret implements IClientSecret {
+  /**
+   * Reference to the underlying gRPC client.
+   */
   client: GRPCClient;
 
+  /**
+   * Creates a gRPC secrets building block.
+   *
+   * @param client - The gRPC client instance
+   */
   constructor(client: GRPCClient) {
     this.client = client;
   }
 
+  /**
+   * Retrieves a single secret from the secret store.
+   *
+   * @param secretStoreName - Name of the configured secret store
+   * @param key - Key of the secret to retrieve
+   * @param _metadata - Optional store-specific metadata (unused for most stores)
+   *
+   * @returns Promise resolving to object with secret key-value pairs
+   *
+   * @throws Rejects if secret store is unavailable or key does not exist
+   *
+   * @example
+   * ```typescript
+   * const secret = await client.secret.get("vault", "database-password");
+   * // secret: { "database-password": "p@ssw0rd" }
+   * ```
+   *
+   * @see {@link getSecret}
+   */
   async get(secretStoreName: string, key: string, _metadata = ""): Promise<object> {
     const client = await this.client.getClient();
 

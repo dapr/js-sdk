@@ -15,14 +15,52 @@ import { IRequestMetadata } from "../RequestMetadata.type";
 import { IStateOptions } from "./StateOptions.type";
 import { KeyValuePairType } from "../KeyValuePair.type";
 
+/**
+ * Options for state delete operations.
+ *
+ * Specifies consistency, concurrency, and ETag requirements when deleting state.
+ * The ETag field enables optimistic concurrency control—the delete only succeeds
+ * if the stored ETag matches, preventing deletions of unexpectedly-modified state.
+ *
+ * @see {@link https://dapr.io/docs/developing-applications/building-blocks/state-management/ | Dapr State Management}
+ *
+ * @example
+ * ```typescript
+ * // Delete with strong consistency and first-write-wins
+ * const options: StateDeleteOptions = {
+ *   consistency: StateConsistencyEnum.Strong,
+ *   concurrency: StateConcurrencyEnum.FirstWrite,
+ *   etag: "v5",
+ *   metadata: {}
+ * };
+ * await client.state.delete("my-store", "key-123", options);
+ *
+ * // Delete with eventual consistency and last-write-wins
+ * const simpleDelete: StateDeleteOptions = {
+ *   consistency: StateConsistencyEnum.Eventual,
+ *   concurrency: StateConcurrencyEnum.LastWrite,
+ *   etag: undefined,
+ *   metadata: {}
+ * };
+ * ```
+ */
 export type StateDeleteOptions = IStateOptions & {
   /**
-   * Metadata to be passed to the operation.
+   * Component-specific metadata to pass to the state store during delete operations.
+   * Can include delete-specific configuration or hints for the store component.
    */
   metadata: IRequestMetadata;
 
   /**
-   * Optional Etag for Optimistic Concurrency Control
+   * The ETag (entity tag) for optimistic concurrency control.
+   * When provided, the delete only succeeds if the current state's ETag matches this value.
+   * Helps prevent accidental deletion of state that was modified by another client.
+   * Can be undefined for last-write-wins semantics without concurrency checks.
+   *
+   * @example
+   * ```typescript
+   * etag: "v5"  // Delete only if current version is v5
+   * ```
    */
   etag: KeyValuePairType["etag"];
 };

@@ -17,18 +17,37 @@ import { PubSubBulkPublishResponse } from "../../types/pubsub/PubSubBulkPublishR
 import { PubSubPublishOptions } from "../../types/pubsub/PubSubPublishOptions.type";
 import { PubSubPublishResponseType } from "../../types/pubsub/PubSubPublishResponse.type";
 
+/**
+ * Dapr client interface for Pub/Sub messaging.
+ * Provides methods to publish messages to topics using Dapr pub/sub building block.
+ *
+ * @see https://docs.dapr.io/developing-applications/building-blocks/pubsub/
+ */
 export default interface IClientPubSub {
   /**
-   * Publish data to a topic.
-   * If the data is a valid cloud event, it will be published with Content-Type: application/cloudevents+json.
-   * Otherwise, if it's a JSON object, it will be published with Content-Type: application/json.
-   * Otherwise, it will be published with Content-Type: text/plain.
-   * @param pubSubName name of the pubsub component
-   * @param topic name of the topic
-   * @param data data to publish
-   * @param metadata metadata for the message
+   * Publishes a message to a topic.
    *
-   * @returns response from the publish
+   * Content-Type is automatically determined:
+   * - "application/cloudevents+json" if data is a valid CloudEvent
+   * - "application/json" if data is a JSON object
+   * - "text/plain" otherwise
+   *
+   * @param pubSubName - The name of the pub/sub component to use.
+   * @param topic - The topic to publish the message to.
+   * @param data - The message payload. Objects are JSON serialized automatically.
+   * @param options - Optional publish options (metadata, content-type override, etc.).
+   * @returns A promise that resolves to a publish response from the component.
+   *
+   * @example
+   * ```ts
+   * await client.pubsub.publish(
+   *   "orders-pubsub",
+   *   "orders.created",
+   *   { orderId: "123", total: 99.99 }
+   * );
+   * ```
+   *
+   * @see https://docs.dapr.io/reference/api/pubsub_api/
    */
   publish(
     pubSubName: string,
@@ -38,16 +57,34 @@ export default interface IClientPubSub {
   ): Promise<PubSubPublishResponseType>;
 
   /**
-   * Publish data to a topic in bulk.
-   * If the data is a valid cloud event, it will be published with Content-Type: application/cloudevents+json.
-   * Otherwise, if it's a JSON object, it will be published with Content-Type: application/json.
-   * Otherwise, it will be published with Content-Type: text/plain.
-   * @param pubSubName name of the pubsub component
-   * @param topic name of the topic
-   * @param messages array of messages to publish
-   * @param metadata metadata for the request
+   * Publishes multiple messages to a topic in a single batch request.
    *
-   * @returns list of failed entries if any
+   * Content-Type for each message is automatically determined:
+   * - "application/cloudevents+json" if data is a valid CloudEvent
+   * - "application/json" if data is a JSON object
+   * - "text/plain" otherwise
+   *
+   * @param pubSubName - The name of the pub/sub component to use.
+   * @param topic - The topic to publish the messages to.
+   * @param messages - Array of messages to publish in bulk.
+   * @param metadata - Optional component-specific metadata for the bulk publish request.
+   * @returns A promise that resolves to a response containing any failed entries.
+   * A successful bulk publish may still have individual failed messages.
+   *
+   * @example
+   * ```ts
+   * const response = await client.pubsub.publishBulk(
+   *   "orders-pubsub",
+   *   "orders.created",
+   *   [
+   *     { data: { orderId: "123" } },
+   *     { data: { orderId: "124" } },
+   *     { data: { orderId: "125" } }
+   *   ]
+   * );
+   * ```
+   *
+   * @see https://docs.dapr.io/reference/api/pubsub_api/
    */
   publishBulk(
     pubSubName: string,

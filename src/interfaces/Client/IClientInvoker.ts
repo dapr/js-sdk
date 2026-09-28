@@ -14,7 +14,36 @@ limitations under the License.
 import { HttpMethod } from "../../enum/HttpMethod.enum";
 import { InvokerOptions } from "../../types/InvokerOptions.type";
 
+/**
+ * Dapr client interface for Service-to-Service invocation.
+ * Provides methods to invoke methods on other services via Dapr service invocation building block.
+ *
+ * @see https://docs.dapr.io/developing-applications/building-blocks/service-invocation/
+ */
 export default interface IClientInvoker {
+  /**
+   * Invokes a method on a remote service.
+   *
+   * @param appId - The Dapr app ID of the target service.
+   * @param methodName - The name or path of the method to invoke on the target service.
+   * @param method - The HTTP method to use for the invocation (GET, POST, PUT, DELETE, etc.).
+   * @param data - Optional request payload. Objects are JSON serialized automatically.
+   * @param options - Optional invocation options (timeout, metadata, etc.).
+   * @returns A promise that resolves to the response from the remote service.
+   *
+   * @example
+   * ```ts
+   * const result = await client.invoker.invoke(
+   *   "user-service",
+   *   "getUserById",
+   *   HttpMethod.GET,
+   *   undefined,
+   *   { timeout: 5000 }
+   * );
+   * ```
+   *
+   * @see https://docs.dapr.io/reference/api/service_invocation_api/
+   */
   invoke(
     appId: string,
     methodName: string,

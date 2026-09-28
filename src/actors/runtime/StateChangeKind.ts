@@ -12,17 +12,48 @@ limitations under the License.
 */
 
 /**
- * A enumeration that represents the kind of state change for an actor state
- * when saves change is called to a set of actor states.
+ * Discriminates the type of modification made to an actor state item.
+ *
+ * The actor state manager tracks modifications to actor state through transactional
+ * state batches. Each change is tagged with its kind to determine how the state
+ * persistence layer should handle it when `saveState()` is called.
+ *
+ * State changes are staged locally and only persisted when {@link ActorStateManager#saveState}
+ * is explicitly called (typically at the end of each actor method invocation).
  */
 enum StateChangeKind {
-  // No change in state
+  /**
+   * No pending modification for this state item.
+   *
+   * The state item exists in persistent storage but has not been modified during
+   * this invocation. No action is required on persistence.
+   */
   NONE = 0,
-  // The state needs to be added
+
+  /**
+   * State item is newly added and must be persisted.
+   *
+   * This state key did not exist before this invocation and has been created through
+   * `addState()` or `getOrAddState()`. Will be persisted as an "upsert" (insert or update)
+   * operation to the state provider.
+   */
   ADD = 1,
-  // The state needs to be updated
+
+  /**
+   * State item has been modified and must be updated in persistent storage.
+   *
+   * The state key existed prior to this invocation (or was marked for removal) and has been
+   * modified through `setState()` or `addOrUpdateState()`. Will be persisted as an "upsert"
+   * operation to the state provider.
+   */
   UPDATE = 2,
-  // The state needs to be removed
+
+  /**
+   * State item must be removed from persistent storage.
+   *
+   * This state key is marked for deletion through `removeState()` or `tryRemoveState()`.
+   * Will be persisted as a "delete" operation to the state provider.
+   */
   REMOVE = 3,
 }
 
