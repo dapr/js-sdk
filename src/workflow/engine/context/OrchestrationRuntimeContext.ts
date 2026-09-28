@@ -129,8 +129,9 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
             );
           }
 
-          const prevResult = this._previousTask._result;
-          const { done, value }: IteratorResult<Task<unknown>, unknown> = await this._generator.next(prevResult);
+          const prevResult: unknown = this._previousTask._result;
+          const nextResult: IteratorResult<Task<unknown>, unknown> = await this._generator.next(prevResult);
+          const { done, value } = nextResult;
 
           if (done) {
             throw new StopIterationError(value);

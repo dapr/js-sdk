@@ -63,20 +63,23 @@ export default class WorkflowRuntime {
     return this.registerWorkflowByName(name, workflow);
   }
 
-  public registerActivity(fn: TWorkflowActivity<unknown, unknown>): WorkflowRuntime {
+  public registerActivity<TInput, TOutput>(fn: TWorkflowActivity<TInput, TOutput>): WorkflowRuntime {
     const name = getFunctionName(fn as never);
     const activityWrapper = (ctx: unknown, input: unknown) => {
       const wfActivityContext = new WorkflowActivityContext(ctx as never);
-      return fn(wfActivityContext, input);
+      return fn(wfActivityContext, input as TInput);
     };
     this.worker.registry.addNamedActivity(name, activityWrapper as never);
     return this;
   }
 
-  public registerActivityWithName(name: string, fn: TWorkflowActivity<unknown, unknown>): WorkflowRuntime {
+  public registerActivityWithName<TInput, TOutput>(
+    name: string,
+    fn: TWorkflowActivity<TInput, TOutput>,
+  ): WorkflowRuntime {
     const activityWrapper = (ctx: unknown, input: unknown) => {
       const wfActivityContext = new WorkflowActivityContext(ctx as never);
-      return fn(wfActivityContext, input);
+      return fn(wfActivityContext, input as TInput);
     };
     this.worker.registry.addNamedActivity(name, activityWrapper as never);
     return this;
