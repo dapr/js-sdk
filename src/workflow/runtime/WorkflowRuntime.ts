@@ -26,7 +26,7 @@ export default class WorkflowRuntime {
     const grpcEndpoint = generateEndpoint(options);
     const daprApiToken = getDaprApiToken(options);
     this.worker = new TaskHubWorker(
-      grpcEndpoint.endpoint,
+      `${grpcEndpoint.hostname}:${grpcEndpoint.port}`,
       daprApiToken,
       grpcEndpoint.tls,
       128 * 1024 * 1024,

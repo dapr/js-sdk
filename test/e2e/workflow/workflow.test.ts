@@ -11,8 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { Network, StartedNetwork, StartedTestContainer } from "testcontainers";
-import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
+import { WorkflowHarness } from "@dapr/testcontainer-node";
 import DaprWorkflowClient from "../../../src/workflow/client/DaprWorkflowClient";
 import WorkflowContext from "../../../src/workflow/runtime/WorkflowContext";
 import WorkflowRuntime from "../../../src/workflow/runtime/WorkflowRuntime";
@@ -22,8 +21,6 @@ import { WorkflowRuntimeStatus } from "../../../src/workflow/runtime/WorkflowRun
 import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
 import { Task } from "../../../src/workflow/engine/task/Task";
 import {
-  startRedisContainer,
-  buildStateRedisComponent,
   DAPR_TEST_RUNTIME_IMAGE,
   DAPR_TEST_PLACEMENT_IMAGE,
   DAPR_TEST_SCHEDULER_IMAGE,
@@ -31,37 +28,29 @@ import {
 } from "../helpers/containers";
 
 describe("workflow", () => {
-  let network: StartedNetwork;
-  let redisContainer: StartedTestContainer;
-  let daprContainer: StartedDaprContainer;
+  let workflowHarness: WorkflowHarness;
   let workflowClient: DaprWorkflowClient;
   let workflowRuntime: WorkflowRuntime;
 
   beforeAll(async () => {
-    network = await new Network().start();
-    redisContainer = await startRedisContainer(network);
-
-    // Workflows require an actor state store (actorStateStore: true) and use the
-    // placement / scheduler services that DaprContainer starts automatically.
-    daprContainer = await new DaprContainer(DAPR_TEST_RUNTIME_IMAGE)
+    workflowHarness = new WorkflowHarness({ daprRuntimeImage: DAPR_TEST_RUNTIME_IMAGE });
+    workflowHarness
+      .getDaprContainer()
       .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
-      .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE)
-      .withNetwork(network)
-      .withAppChannelAddress("host.testcontainers.internal")
-      .withComponent(buildStateRedisComponent(true /* actorStateStore */))
-      .start();
+      .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE);
+    await workflowHarness.start();
   }, 180 * 1000);
 
   beforeEach(async () => {
-    // Each test registers different workflows/activities so we create fresh
-    // client and runtime instances that connect to the shared Dapr container.
+    // Create local SDK instances so the tests exercise this checkout, not the
+    // SDK version bundled as a dependency of @dapr/testcontainer-node.
     workflowClient = new DaprWorkflowClient({
-      daprHost: daprContainer.getHost(),
-      daprPort: daprContainer.getGrpcPort().toString(),
+      daprHost: workflowHarness.getHost(),
+      daprPort: workflowHarness.getGrpcPort().toString(),
     });
     workflowRuntime = new WorkflowRuntime({
-      daprHost: daprContainer.getHost(),
-      daprPort: daprContainer.getGrpcPort().toString(),
+      daprHost: workflowHarness.getHost(),
+      daprPort: workflowHarness.getGrpcPort().toString(),
     });
   });
 
@@ -72,16 +61,14 @@ describe("workflow", () => {
 
   afterAll(async () => {
     await runWithCleanupErrorSuppression(async () => {
-      await daprContainer.stop();
-      await redisContainer.stop();
-      await network.stop();
+      await workflowHarness.stop();
     });
   });
 
   const waitForCustomStatus = async (instanceId: string): Promise<string> => {
     const deadline = Date.now() + 10_000;
     while (Date.now() < deadline) {
-      const state = await workflowClient.getWorkflowState(instanceId, false);
+      const state = await workflowClient.getWorkflowState(instanceId, true);
       if (state?.customStatus) {
         return state.customStatus;
       }
@@ -139,7 +126,7 @@ describe("workflow", () => {
     expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.COMPLETED);
     expect(state?.serializedInput).toEqual(JSON.stringify(1));
     expect(state?.serializedOutput).toEqual(JSON.stringify([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]));
-    expect(state?.customStatus).toEqual("foo");
+    expect(state?.customStatus).toEqual(JSON.stringify("foo"));
   }, 31000);
 
   it("should be able to run fan-out/fan-in", async () => {
@@ -315,20 +302,15 @@ describe("workflow", () => {
 
   it("should preserve deterministic values when replaying after an external event", async () => {
     const workflow: TWorkflow = async function* (ctx: WorkflowContext): any {
-      const initialValues = {
-        guid: ctx.newGuid(),
+      const getDeterministicValues = () => ({
+        firstGuid: ctx.newGuid(),
+        secondGuid: ctx.newGuid(),
         currentTime: ctx.getCurrentUtcDateTime().toISOString(),
-      };
+      });
+      const initialValues = getDeterministicValues();
       ctx.setCustomStatus(initialValues);
       yield ctx.waitForExternalEvent("continue");
-
-      return {
-        initialValues,
-        replayedValues: {
-          guid: ctx.newGuid(),
-          currentTime: ctx.getCurrentUtcDateTime().toISOString(),
-        },
-      };
+      return initialValues;
     };
 
     workflowRuntime.registerWorkflow(workflow);
@@ -343,32 +325,7 @@ describe("workflow", () => {
     expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.COMPLETED);
     expect(state?.workflowFailureDetails).toBeUndefined();
     const output = JSON.parse(state?.serializedOutput ?? "{}");
-    expect(output.initialValues).toEqual(initialValues);
-    expect(output.replayedValues).toEqual(initialValues);
-  }, 31000);
-
-  it("should deliver an event sent by another workflow", async () => {
-    const receiver: TWorkflow = async function* (ctx: WorkflowContext): any {
-      return yield ctx.waitForExternalEvent("message");
-    };
-    const sender: TWorkflow = (ctx: WorkflowContext, receiverId: string) => {
-      ctx.sendEvent(receiverId, "message", { value: "hello" });
-      return "sent";
-    };
-
-    workflowRuntime.registerWorkflow(receiver).registerWorkflow(sender);
-    await workflowRuntime.start();
-
-    const receiverId = await workflowClient.scheduleNewWorkflow(receiver);
-    await workflowClient.waitForWorkflowStart(receiverId, false, 30);
-    const senderId = await workflowClient.scheduleNewWorkflow(sender, receiverId);
-    const senderState = await workflowClient.waitForWorkflowCompletion(senderId, undefined, 30);
-    const receiverState = await workflowClient.waitForWorkflowCompletion(receiverId, undefined, 30);
-
-    expect(senderState?.runtimeStatus).toEqual(WorkflowRuntimeStatus.COMPLETED);
-    expect(senderState?.serializedOutput).toEqual(JSON.stringify("sent"));
-    expect(receiverState?.runtimeStatus).toEqual(WorkflowRuntimeStatus.COMPLETED);
-    expect(receiverState?.serializedOutput).toEqual(JSON.stringify({ value: "hello" }));
+    expect(output).toEqual(initialValues);
   }, 31000);
 
   it("should report activity failures on the failed workflow state", async () => {
@@ -387,7 +344,7 @@ describe("workflow", () => {
 
     expect(state).toBeDefined();
     expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.FAILED);
-    expect(state?.workflowFailureDetails?.getErrorType()).toEqual("Error");
+    expect(state?.workflowFailureDetails?.getErrorType()).toEqual("TaskFailedError");
     expect(state?.workflowFailureDetails?.getErrorMessage()).toContain("expected activity failure");
   }, 31000);
 

@@ -24,7 +24,7 @@ export default class DaprWorkflowClient {
     const grpcEndpoint = generateEndpoint(options);
     const daprApiToken = getDaprApiToken(options);
     this._innerClient = new TaskHubClient(
-      grpcEndpoint.endpoint,
+      `${grpcEndpoint.hostname}:${grpcEndpoint.port}`,
       daprApiToken,
       grpcEndpoint.tls,
       128 * 1024 * 1024,
