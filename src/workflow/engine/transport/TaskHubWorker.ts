@@ -241,7 +241,9 @@ export class TaskHubWorker {
     }
 
     try {
-      await this.client.completeWorkflowTask(res);
+      // CompleteWorkflowTask only exists in Dapr >= 1.18; older runtimes route unknown
+      // methods to the service-invocation proxy. CompleteOrchestratorTask works on all.
+      await this.client.completeOrchestratorTask(res);
     } catch (e: unknown) {
       this.logger.error(
         `An error occurred while trying to complete instance '${instanceId}': ${(e as Error)?.message}`,
