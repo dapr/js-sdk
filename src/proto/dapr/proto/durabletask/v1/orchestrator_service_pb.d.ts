@@ -711,6 +711,12 @@ export declare type WorkItem = Message<"WorkItem"> & {
      */
     value: ActivityRequest;
     case: "activityRequest";
+  } | {
+    /**
+     * @generated from field: HealthPing healthPing = 6;
+     */
+    value: HealthPing;
+    case: "healthPing";
   } | { case: undefined; value?: undefined };
 
   /**
@@ -724,6 +730,18 @@ export declare type WorkItem = Message<"WorkItem"> & {
  * Use `create(WorkItemSchema)` to create a new message.
  */
 export declare const WorkItemSchema: GenMessage<WorkItem>;
+
+/**
+ * @generated from message HealthPing
+ */
+export declare type HealthPing = Message<"HealthPing"> & {
+};
+
+/**
+ * Describes the message HealthPing.
+ * Use `create(HealthPingSchema)` to create a new message.
+ */
+export declare const HealthPingSchema: GenMessage<HealthPing>;
 
 /**
  * No payload
@@ -948,6 +966,16 @@ export enum WorkerCapability {
    * @generated from enum value: WORKER_CAPABILITY_STATEFUL_HISTORY = 2;
    */
   STATEFUL_HISTORY = 2,
+
+  /**
+   * Indicates that the worker accepts and discards WorkItem.healthPing. The
+   * service then sends one periodically on the work-item stream so that
+   * proxies with a stream idle timeout do not close the stream while no work
+   * is due. Workers that do not advertise this never receive a health ping.
+   *
+   * @generated from enum value: WORKER_CAPABILITY_HEALTH_PING = 3;
+   */
+  HEALTH_PING = 3,
 }
 
 /**
