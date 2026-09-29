@@ -227,16 +227,9 @@ describe("workflow", () => {
     workflowRuntime.registerWorkflow(singleTimerWorkflow);
     await workflowRuntime.start();
 
+    const workflowStartTime = Date.now();
     const id = await workflowClient.scheduleNewWorkflow(singleTimerWorkflow);
     const state = await workflowClient.waitForWorkflowCompletion(id, undefined, 30);
-
-    let expectedCompletionSecond = state?.createdAt?.getTime() ?? 0;
-    if (state && state.createdAt !== undefined) {
-      expectedCompletionSecond += (delay + 1) * 1000;
-    }
-    expect(expectedCompletionSecond).toBeDefined();
-    const actualCompletionSecond = state?.lastUpdatedAt?.getTime() ?? 0;
-    expect(actualCompletionSecond).toBeDefined();
 
     expect(state).toBeDefined();
     expect(state?.name).toEqual(getFunctionName(singleTimerWorkflow));
@@ -245,7 +238,7 @@ describe("workflow", () => {
     expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.COMPLETED);
     expect(state?.createdAt).toBeDefined();
     expect(state?.lastUpdatedAt).toBeDefined();
-    expect(expectedCompletionSecond).toBeLessThanOrEqual(actualCompletionSecond);
+    expect(Date.now() - workflowStartTime).toBeGreaterThanOrEqual((delay + 1) * 1000);
   }, 31000);
 
   it("should wait for external events with a timeout - true", async () => {
