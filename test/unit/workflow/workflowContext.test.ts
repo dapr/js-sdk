@@ -13,7 +13,7 @@ limitations under the License.
 
 import WorkflowContext from "../../../src/workflow/runtime/WorkflowContext";
 import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
-import { Task } from "../../../src/workflow/internal/durabletask/task/task";
+import { Task } from "../../../src/workflow/engine/task/Task";
 
 describe("WorkflowContext", () => {
   let mockInnerContext: any;
@@ -30,17 +30,19 @@ describe("WorkflowContext", () => {
       waitForExternalEvent: jest.fn().mockReturnValue({ isCompleted: false } as Partial<Task<any>>),
       continueAsNew: jest.fn(),
       setCustomStatus: jest.fn(),
+      sendEvent: jest.fn(),
+      newGuid: jest.fn().mockReturnValue("00000000-0000-5000-8000-000000000000"),
     };
     ctx = new WorkflowContext(mockInnerContext);
   });
 
   describe("constructor", () => {
     it("should throw if innerContext is undefined", () => {
-      expect(() => new WorkflowContext(undefined as any)).toThrow("ActivityContext cannot be undefined");
+      expect(() => new WorkflowContext(undefined as any)).toThrow("WorkflowContext cannot be undefined");
     });
 
     it("should throw if innerContext is null", () => {
-      expect(() => new WorkflowContext(null as any)).toThrow("ActivityContext cannot be undefined");
+      expect(() => new WorkflowContext(null as any)).toThrow("WorkflowContext cannot be undefined");
     });
   });
 
@@ -86,7 +88,7 @@ describe("WorkflowContext", () => {
     it("should call activity by function reference", () => {
       const myActivity = async (_ctx: WorkflowActivityContext, input: number) => input + 1;
 
-      ctx.callActivity(myActivity, 5);
+      ctx.callActivity(myActivity as any, 5);
 
       expect(mockInnerContext.callActivity).toHaveBeenCalledWith("myActivity", 5);
     });
@@ -100,7 +102,7 @@ describe("WorkflowContext", () => {
     it("should call activity without input", () => {
       const myActivity = async (_ctx: WorkflowActivityContext) => "done";
 
-      ctx.callActivity(myActivity);
+      ctx.callActivity(myActivity as any);
 
       expect(mockInnerContext.callActivity).toHaveBeenCalledWith("myActivity", undefined);
     });

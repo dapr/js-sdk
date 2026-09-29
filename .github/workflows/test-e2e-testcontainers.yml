@@ -61,7 +61,7 @@ jobs:
       # Forwarded into test/e2e/helpers/containers.ts so that all three Dapr
       # images (daprd, placement, scheduler) are pulled at the requested version.
       # Defaults to 1.16.12 on push/PR; can be overridden via workflow_dispatch input.
-      DAPR_RUNTIME_VER: ${{ github.event.inputs.dapr_runtime_ver || '1.16.12' }}
+      DAPR_RUNTIME_VER: ${{ github.event.inputs.dapr_runtime_ver || '1.18.4' }}
 
     steps:
       - name: Checkout JS-SDK

@@ -17,18 +17,18 @@ import { Component, DaprContainer, DAPR_VERSION } from "@dapr/testcontainer-node
 // ------------------------------------------------------------------
 // Version resolution
 //
-// Set the DAPR_RUNTIME_VER environment variable to test against a specific
-// Dapr version (e.g. an RC or N-1 stable).  When unset, the version pinned
-// in @dapr/testcontainer-node is used.
+// Set DAPR_RUNTIME_VERSION to test against a specific Dapr version (e.g. an
+// RC or N-1 stable). DAPR_RUNTIME_VER remains supported for older workflows.
+// When unset, the version pinned in @dapr/testcontainer-node is used.
 //
 // All three images (daprd, placement, scheduler) always use the same version
 // so that the sidecar and its supporting services are always in sync.
 //
 // Example:
-//   DAPR_RUNTIME_VER=1.15.0 npm run test:e2e:all
+//   DAPR_RUNTIME_VERSION=1.18.0 npm run test:e2e:all
 // ------------------------------------------------------------------
 
-const DAPR_TEST_VERSION = process.env.DAPR_RUNTIME_VER || DAPR_VERSION;
+const DAPR_TEST_VERSION = process.env.DAPR_RUNTIME_VERSION || process.env.DAPR_RUNTIME_VER || DAPR_VERSION;
 
 /** daprd image at the configured test version. */
 export const DAPR_TEST_RUNTIME_IMAGE = `daprio/daprd:${DAPR_TEST_VERSION}`;
