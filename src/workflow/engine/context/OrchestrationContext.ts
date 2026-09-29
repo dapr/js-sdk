@@ -13,6 +13,8 @@ limitations under the License.
 
 import type { Task } from "../task/Task";
 import type { ActivityContext } from "./ActivityContext";
+import type { ActivityOptions } from "../../../types/workflow/ActivityOptions.type";
+import type { ChildWorkflowOptions } from "../../../types/workflow/ChildWorkflowOptions.type";
 
 export type AnyGenerator<T> = AsyncGenerator<T, unknown, unknown> | Generator<T, unknown, unknown>;
 export type TOrchestrator = (context: OrchestrationContext, input: unknown) => AnyGenerator<Task<unknown>> | unknown;
@@ -24,11 +26,16 @@ export abstract class OrchestrationContext {
   abstract get isReplaying(): boolean;
 
   abstract createTimer(fireAt: Date | number): Task<unknown>;
-  abstract callActivity<TInput, TOutput>(activity: TActivity<TInput, TOutput> | string, input?: TInput): Task<TOutput>;
+  abstract callActivity<TInput, TOutput>(
+    activity: TActivity<TInput, TOutput> | string,
+    input?: TInput,
+    options?: ActivityOptions,
+  ): Task<TOutput>;
   abstract callSubOrchestrator<TInput, TOutput>(
     orchestrator: TOrchestrator | string,
     input?: TInput,
     instanceId?: string,
+    options?: ChildWorkflowOptions,
   ): Task<TOutput>;
   abstract waitForExternalEvent(name: string): Task<unknown>;
   abstract continueAsNew(newInput: unknown, saveEvents: boolean): void;

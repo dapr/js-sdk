@@ -14,6 +14,7 @@ limitations under the License.
 import type { HistoryEvent } from "../../../proto/dapr/proto/durabletask/v1/history_events_pb";
 import type { WorkflowAction } from "../../../proto/dapr/proto/durabletask/v1/orchestrator_actions_pb";
 import type { OrchestrationStatus } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
+import type { TaskFailureDetails } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import { OrchestrationStatus as OrchestrationStatusEnum } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import { CompletableTask } from "../task/CompletableTask";
 import { Task } from "../task/Task";
@@ -22,6 +23,9 @@ import type { TActivity, TOrchestrator, AnyGenerator } from "./OrchestrationCont
 import { OrchestrationContext } from "./OrchestrationContext";
 import { getName } from "../task";
 import { newDeterministicGuid } from "../guid/deterministicGuid";
+import type { RetryPolicy } from "../../../types/workflow/RetryPolicy.type";
+import type { ActivityOptions } from "../../../types/workflow/ActivityOptions.type";
+import type { ChildWorkflowOptions } from "../../../types/workflow/ChildWorkflowOptions.type";
 import {
   newCompleteWorkflowAction,
   newCreateTimerAction,
@@ -121,7 +125,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
       if (this._previousTask.isComplete) {
         const MAX_ITERATIONS = 100_000;
         let iterations = 0;
-        while (true) {
+        for (;;) {
           if (++iterations > MAX_ITERATIONS) {
             throw new Error(
               `Orchestrator exceeded maximum iteration limit (${MAX_ITERATIONS}). ` +
@@ -238,10 +242,21 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     return timerTask;
   }
 
-  callActivity<TInput, TOutput>(activity: TActivity<TInput, TOutput> | string, input?: TInput): Task<TOutput> {
-    const id = this.nextSequenceNumber();
+  callActivity<TInput, TOutput>(
+    activity: TActivity<TInput, TOutput> | string,
+    input?: TInput,
+    options?: ActivityOptions,
+  ): Task<TOutput> {
     const name = typeof activity === "string" ? activity : getName(activity);
     const encodedInput = input != null ? JSON.stringify(input) : undefined;
+    if (options?.retryPolicy) {
+      return this.callWithRetry(options.retryPolicy, (id) => {
+        const action = newScheduleTaskAction(id, name, encodedInput);
+        this._pendingActions[action.id] = action;
+      });
+    }
+
+    const id = this.nextSequenceNumber();
     const action = newScheduleTaskAction(id, name, encodedInput);
     this._pendingActions[action.id] = action;
 
@@ -254,16 +269,28 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     orchestrator: TOrchestrator | string,
     input?: TInput,
     instanceId?: string,
+    options?: ChildWorkflowOptions,
   ): Task<TOutput> {
     const name = typeof orchestrator === "string" ? orchestrator : getName(orchestrator);
-    const id = this.nextSequenceNumber();
+    const encodedInput = input != null ? JSON.stringify(input) : undefined;
+    if (options?.retryPolicy) {
+      const firstInstanceId = instanceId;
+      return this.callWithRetry(options.retryPolicy, (id, attempt) => {
+        const childInstanceId =
+          attempt === 1 && firstInstanceId
+            ? firstInstanceId
+            : `${this._instanceId}:${id.toString(16).padStart(4, "0")}`;
+        const action = newCreateChildWorkflowAction(id, name, childInstanceId, encodedInput);
+        this._pendingActions[action.id] = action;
+      });
+    }
 
+    const id = this.nextSequenceNumber();
     if (!instanceId) {
       const suffix = id.toString(16).padStart(4, "0");
       instanceId = `${this._instanceId}:${suffix}`;
     }
 
-    const encodedInput = input != null ? JSON.stringify(input) : undefined;
     const action = newCreateChildWorkflowAction(id, name, instanceId, encodedInput);
     this._pendingActions[action.id] = action;
 
@@ -313,5 +340,105 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
   newGuid(): string {
     const counter = this._guidCounter++;
     return newDeterministicGuid(this._instanceId, counter.toString());
+  }
+
+  private callWithRetry<T>(retryPolicy: RetryPolicy, scheduleAttempt: (id: number, attempt: number) => void): Task<T> {
+    const policy = validateRetryPolicy(retryPolicy);
+    const retryTask = new CompletableTask<T>();
+    const startedAt = this._currentUtcDatetime.getTime();
+    let attempt = 0;
+
+    const runAttempt = (): void => {
+      attempt++;
+      const id = this.nextSequenceNumber();
+      scheduleAttempt(id, attempt);
+      const attemptTask = new RetryAttemptTask<T>(
+        (result) => retryTask.complete(result),
+        (message, details) => {
+          const interval = Math.min(
+            policy.firstRetryInterval * Math.pow(policy.backoffCoefficient, attempt - 1),
+            policy.maxRetryInterval ?? Number.POSITIVE_INFINITY,
+          );
+          const retryAt = this._currentUtcDatetime.getTime() + interval * 1000;
+          const timedOut = policy.retryTimeout !== undefined && retryAt - startedAt > policy.retryTimeout * 1000;
+
+          if (attempt >= policy.maxNumberOfAttempts || details?.isNonRetriable || timedOut) {
+            retryTask.fail(message, details);
+            return;
+          }
+
+          const timerId = this.nextSequenceNumber();
+          const fireAt = new Date(retryAt);
+          const timerAction = newCreateTimerAction(timerId, fireAt);
+          this._pendingActions[timerAction.id] = timerAction;
+          this._pendingTasks[timerId] = new RetryDelayTask(runAttempt);
+        },
+      );
+      this._pendingTasks[id] = attemptTask;
+    };
+
+    runAttempt();
+    return retryTask;
+  }
+}
+
+function validateRetryPolicy(
+  retryPolicy: RetryPolicy,
+): Required<Pick<RetryPolicy, "firstRetryInterval" | "maxNumberOfAttempts">> &
+  Pick<RetryPolicy, "retryTimeout" | "maxRetryInterval"> & { backoffCoefficient: number } {
+  if (!retryPolicy || typeof retryPolicy !== "object") {
+    throw new TypeError("A retry policy must be provided");
+  }
+
+  const { firstRetryInterval, maxNumberOfAttempts } = retryPolicy;
+  const backoffCoefficient = retryPolicy.backoffCoefficient ?? 1;
+  const { maxRetryInterval, retryTimeout } = retryPolicy;
+
+  if (!Number.isFinite(firstRetryInterval) || firstRetryInterval <= 0) {
+    throw new RangeError("firstRetryInterval must be a finite number greater than 0 seconds");
+  }
+  if (!Number.isInteger(maxNumberOfAttempts) || maxNumberOfAttempts < 1) {
+    throw new RangeError("maxNumberOfAttempts must be an integer greater than or equal to 1");
+  }
+  if (!Number.isFinite(backoffCoefficient) || backoffCoefficient < 1) {
+    throw new RangeError("backoffCoefficient must be a finite number greater than or equal to 1");
+  }
+  if (maxRetryInterval !== undefined && (!Number.isFinite(maxRetryInterval) || maxRetryInterval <= 0)) {
+    throw new RangeError("maxRetryInterval must be a finite number greater than 0 seconds");
+  }
+  if (retryTimeout !== undefined && (!Number.isFinite(retryTimeout) || retryTimeout <= 0)) {
+    throw new RangeError("retryTimeout must be a finite number greater than 0 seconds");
+  }
+
+  return { firstRetryInterval, maxNumberOfAttempts, backoffCoefficient, maxRetryInterval, retryTimeout };
+}
+
+class RetryAttemptTask<T> extends CompletableTask<T> {
+  constructor(
+    private readonly _onComplete: (result: T) => void,
+    private readonly _onFailure: (message: string, details?: TaskFailureDetails) => void,
+  ) {
+    super();
+  }
+
+  override complete(result: T): void {
+    super.complete(result);
+    this._onComplete(result);
+  }
+
+  override fail(message: string, details?: TaskFailureDetails): void {
+    super.fail(message, details);
+    this._onFailure(message, details);
+  }
+}
+
+class RetryDelayTask extends CompletableTask<unknown> {
+  constructor(private readonly _onComplete: () => void) {
+    super();
+  }
+
+  override complete(result: unknown): void {
+    super.complete(result);
+    this._onComplete();
   }
 }

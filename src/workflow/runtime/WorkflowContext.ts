@@ -18,6 +18,8 @@ import type { WhenAnyTask } from "../engine/task/WhenAnyTask";
 import { whenAll, whenAny, getName } from "../engine/task";
 import type { TWorkflowActivity } from "../../types/workflow/Activity.type";
 import type { TWorkflow } from "../../types/workflow/Workflow.type";
+import type { ActivityOptions } from "../../types/workflow/ActivityOptions.type";
+import type { ChildWorkflowOptions } from "../../types/workflow/ChildWorkflowOptions.type";
 
 export default class WorkflowContext {
   constructor(private readonly _innerContext: OrchestrationContext) {
@@ -42,33 +44,39 @@ export default class WorkflowContext {
     return this._innerContext.createTimer(fireAt) as Task<void>;
   }
 
-  public callActivity<T = any>(activity: TWorkflowActivity<any, any> | string, input?: any): Task<T> {
+  public callActivity<T = any>(
+    activity: TWorkflowActivity<any, any> | string,
+    input?: any,
+    options?: ActivityOptions,
+  ): Task<T> {
     if (typeof activity === "string") {
-      return this._innerContext.callActivity(activity, input) as Task<T>;
+      return this._innerContext.callActivity(activity, input, options) as Task<T>;
     }
-    return this._innerContext.callActivity(getName(activity), input) as Task<T>;
+    return this._innerContext.callActivity(getName(activity), input, options) as Task<T>;
   }
 
   public callSubWorkflow<TInput = any, TOutput = any>(
     orchestrator: TWorkflow | string,
     input?: TInput,
     instanceId?: string,
+    options?: ChildWorkflowOptions,
   ): Task<TOutput> {
     if (typeof orchestrator === "string") {
-      return this._innerContext.callSubOrchestrator(orchestrator, input, instanceId) as Task<TOutput>;
+      return this._innerContext.callSubOrchestrator(orchestrator, input, instanceId, options) as Task<TOutput>;
     }
-    return this._innerContext.callSubOrchestrator(getName(orchestrator), input, instanceId) as Task<TOutput>;
+    return this._innerContext.callSubOrchestrator(getName(orchestrator), input, instanceId, options) as Task<TOutput>;
   }
 
   public callChildWorkflow<TInput = any, TOutput = any>(
     orchestrator: TWorkflow | string,
     input?: TInput,
     instanceId?: string,
+    options?: ChildWorkflowOptions,
   ): Task<TOutput> {
     if (typeof orchestrator === "string") {
-      return this._innerContext.callSubOrchestrator(orchestrator, input, instanceId) as Task<TOutput>;
+      return this._innerContext.callSubOrchestrator(orchestrator, input, instanceId, options) as Task<TOutput>;
     }
-    return this._innerContext.callSubOrchestrator(getName(orchestrator), input, instanceId) as Task<TOutput>;
+    return this._innerContext.callSubOrchestrator(getName(orchestrator), input, instanceId, options) as Task<TOutput>;
   }
 
   public waitForExternalEvent<T = any>(name: string): Task<T> {

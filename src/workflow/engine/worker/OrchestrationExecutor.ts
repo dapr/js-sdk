@@ -20,7 +20,7 @@ import { NonDeterminismError } from "../task/NonDeterminismError";
 import { StopIterationError } from "../task/StopIterationError";
 import { Registry } from "./Registry";
 import { OrchestrationExecuteResult } from "./OrchestrationExecuteResult";
-import { isEmpty, getOrchestrationStatusStr, newFailureDetails, newCompleteWorkflowAction } from "./protoHelpers";
+import { isEmpty, getOrchestrationStatusStr } from "./protoHelpers";
 import { Logger } from "../../../logger/Logger";
 
 export class OrchestrationExecutor {
@@ -82,6 +82,9 @@ export class OrchestrationExecutor {
     }
 
     const eventType = event.eventType;
+    if (event.timestamp) {
+      ctx.currentUtcDateTime = new Date(Number(event.timestamp.seconds) * 1000 + event.timestamp.nanos / 1_000_000);
+    }
     if (!eventType) {
       this.logger.info(`Unknown history event type, skipping...`);
       return;
@@ -310,7 +313,9 @@ export class OrchestrationExecutor {
 
           const failureDetails = subFailedEvent.failureDetails;
           subOrchTask.fail(
-            `${ctx.instanceId}: Sub-orchestration task #${taskId} failed: ${failureDetails?.errorMessage ?? "Unknown error"}`,
+            `${ctx.instanceId}: Sub-orchestration task #${taskId} failed: ${
+              failureDetails?.errorMessage ?? "Unknown error"
+            }`,
             failureDetails,
           );
 
