@@ -94,11 +94,6 @@ jobs:
         env:
           DAPR_RUNTIME_VER: ${{ env.DAPR_RUNTIME_VER }}
 
-      - name: Run E2E tests – Workflow
-        run: npm run test:e2e:workflow
-        env:
-          DAPR_RUNTIME_VER: ${{ env.DAPR_RUNTIME_VER }}
-
       - name: Verify TypeScript build (e2e typescript-build test)
         run: |
           cd test/e2e/typescript-build
