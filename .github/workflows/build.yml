@@ -54,7 +54,6 @@ jobs:
       - name: Build package (lint, prettier, build)
         run: npm run build
 
-      # @TODO: add a depend on the test-e2e pipeline?
       - name: Run unit tests
         id: tests
         run: npm run test:unit:all
@@ -62,8 +61,50 @@ jobs:
       - name: Upload test coverage
         uses: codecov/codecov-action@ad3126e916f78f00edff4ed0317cf185271ccc2d # v5.4.2
 
+  get-dapr-versions:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix_json: ${{ steps.select.outputs.matrix_json }}
+    steps:
+      - id: select
+        name: Select supported Dapr versions
+        uses: dapr/dotnet-sdk/.github/tools/tag-selector@dd2d9deba4dd7e94502052f87e6013bb900f010a
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag_prefix: "v"
+          stable_count: "3"
+          rc_count: "1"
+          rc_identifier: "rc"
+
+  workflow-e2e:
+    name: Workflow E2E (Dapr ${{ matrix.dapr_runtime.version }})
+    needs: get-dapr-versions
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dapr_runtime: ${{ fromJson(needs.get-dapr-versions.outputs.matrix_json) }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node ${{ env.NODE_VER }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VER }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build package
+        run: npm run build
+
+      - name: Run workflow E2E suite
+        run: npm run test:e2e:workflow
+        env:
+          DAPR_RUNTIME_VER: ${{ matrix.dapr_runtime.version }}
+
   publish:
-    needs: build
+    needs: [build, workflow-e2e]
     if: startswith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     environment: production
