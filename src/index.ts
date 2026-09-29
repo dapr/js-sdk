@@ -45,7 +45,10 @@ import WorkflowActivityContext from "./workflow/runtime/WorkflowActivityContext"
 import WorkflowContext from "./workflow/runtime/WorkflowContext";
 import WorkflowRuntime from "./workflow/runtime/WorkflowRuntime";
 import { TWorkflow } from "./types/workflow/Workflow.type";
-import { Task } from "./workflow/internal/durabletask/task/task";
+import { RetryPolicy } from "./types/workflow/RetryPolicy.type";
+import { ActivityOptions } from "./types/workflow/ActivityOptions.type";
+import { ChildWorkflowOptions } from "./types/workflow/ChildWorkflowOptions.type";
+import { Task } from "./workflow/engine/task/Task";
 import { WorkflowFailureDetails } from "./workflow/client/WorkflowFailureDetails";
 import { WorkflowState } from "./workflow/client/WorkflowState";
 import {
@@ -84,6 +87,9 @@ export {
   WorkflowContext,
   WorkflowRuntime,
   TWorkflow,
+  RetryPolicy,
+  ActivityOptions,
+  ChildWorkflowOptions,
   Task,
   WorkflowFailureDetails,
   WorkflowState,

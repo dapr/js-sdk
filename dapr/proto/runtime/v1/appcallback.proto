@@ -46,6 +46,9 @@ service AppCallback {
   // User application can save the states or send the events to the output
   // bindings optionally by returning BindingEventResponse.
   rpc OnBindingEvent(BindingEventRequest) returns (BindingEventResponse) {}
+
+  // Subscribes bulk events from Pubsub
+  rpc OnBulkTopicEvent(TopicEventBulkRequest) returns (TopicEventBulkResponse) {}
 }
 
 // AppCallbackHealthCheck V1 is an optional extension to AppCallback V1 to implement
