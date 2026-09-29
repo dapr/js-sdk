@@ -1,5 +1,5 @@
 /*
-Copyright 2022 The Dapr Authors
+Copyright 2026 The Dapr Authors
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -11,8 +11,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import * as grpc from "@grpc/grpc-js";
 import { LoggerOptions } from "../logger/LoggerOptions";
+import type { Interceptor } from "@connectrpc/connect";
+
+/**
+ * Options for configuring the workflow gRPC transport.
+ * Compatible with legacy @grpc/grpc-js ChannelOptions.
+ */
+export type GrpcChannelOptions = {
+  "grpc.max_receive_message_length"?: number;
+  "grpc.max_send_message_length"?: number;
+  "grpc.primary_user_agent"?: string;
+  interceptors?: Interceptor[] | any[];
+  [key: string]: any;
+};
 
 export type WorkflowClientOptions = {
   /**
@@ -39,7 +51,27 @@ export type WorkflowClientOptions = {
   daprApiToken?: string;
 
   /**
-   * options used when initializing a grpc Channel instance.
+   * Options used when initializing the gRPC channel.
+   * Compatible with legacy @grpc/grpc-js ChannelOptions.
    */
-  grpcOptions?: grpc.ChannelOptions;
+  grpcOptions?: GrpcChannelOptions | Record<string, any>;
 };
+
+/**
+ * Maps legacy @grpc/grpc-js channel options to the equivalent
+ * @connectrpc/connect-node transport options.
+ */
+export function mapGrpcOptions(opts?: GrpcChannelOptions): {
+  readMaxBytes?: number;
+  writeMaxBytes?: number;
+} {
+  if (!opts) return {};
+  const result: { readMaxBytes?: number; writeMaxBytes?: number } = {};
+  if (typeof opts["grpc.max_receive_message_length"] === "number") {
+    result.readMaxBytes = opts["grpc.max_receive_message_length"];
+  }
+  if (typeof opts["grpc.max_send_message_length"] === "number") {
+    result.writeMaxBytes = opts["grpc.max_send_message_length"];
+  }
+  return result;
+}
