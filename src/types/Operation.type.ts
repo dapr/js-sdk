@@ -13,7 +13,43 @@ limitations under the License.
 
 import { IRequest } from "./Request.type";
 
+/**
+ * Represents a single operation in a batch state operation.
+ *
+ * Used when performing transactional state modifications where multiple operations
+ * (create, update, delete) are applied atomically as a single transaction.
+ *
+ * @see {@link https://dapr.io/docs/developing-applications/building-blocks/state-management/ | Dapr State Management}
+ *
+ * @example
+ * ```typescript
+ * const operations: OperationType[] = [
+ *   {
+ *     operation: "upsert",
+ *     request: {
+ *       key: "order-123",
+ *       value: { status: "shipped", trackingId: "TRK123" }
+ *     }
+ *   },
+ *   {
+ *     operation: "delete",
+ *     request: { key: "temp-order-456" }
+ *   }
+ * ];
+ * await client.state.transact("order-service", operations);
+ * ```
+ */
 export type OperationType = {
+  /**
+   * The operation type to perform.
+   * Valid values: "upsert" (create or update), "delete" (remove state), "upsert", etc.
+   * Exact valid operations depend on the state store implementation.
+   */
   operation: string;
+
+  /**
+   * The request details for this operation, including key, value, ETag, and options.
+   * For delete operations, typically only the key and etag are used.
+   */
   request: IRequest;
 };

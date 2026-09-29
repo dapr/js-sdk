@@ -11,6 +11,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/**
+ * A simple dictionary type for storing string keys with any values.
+ *
+ * Used for flexible key-value storage where the exact structure isn't known at compile time,
+ * such as metadata, headers, and state values.
+ *
+ * @example
+ * ```typescript
+ * const headers: KeyValueType = {
+ *   "content-type": "application/json",
+ *   "x-correlation-id": "abc-123"
+ * };
+ *
+ * const metadata: KeyValueType = {
+ *   "userId": "user-456",
+ *   "timestamp": "2023-01-15T10:30:00Z"
+ * };
+ * ```
+ */
 export type KeyValueType = {
   [key: string]: any;
 };

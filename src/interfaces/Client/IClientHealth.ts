@@ -11,6 +11,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/**
+ * Dapr client interface for health checks.
+ * Provides methods to check the health and readiness of the Dapr sidecar.
+ *
+ * @see https://docs.dapr.io/concepts/dapr-services/sidecar/
+ */
 export default interface IClientHealth {
+  /**
+   * Checks if the Dapr sidecar is healthy and ready to handle requests.
+   *
+   * @returns A promise that resolves to true if the sidecar is healthy; false otherwise.
+   *
+   * @see https://docs.dapr.io/reference/api/
+   */
   isHealthy(): Promise<boolean>;
 }

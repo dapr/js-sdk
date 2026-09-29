@@ -23,14 +23,77 @@ import IClientInvoker from "../../../interfaces/Client/IClientInvoker";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import { InvokerOptions } from "../../../types/InvokerOptions.type";
 
-// https://docs.dapr.io/reference/api/service_invocation_api/
+/**
+ * gRPC-based service invocation building block implementation.
+ *
+ * Enables service-to-service invocation (often called remote procedure calls).
+ * Routes calls through the Dapr sidecar for service discovery, routing, and retry logic.
+ *
+ * Supports both gRPC and HTTP method semantics through HTTP extension headers.
+ *
+ * @implements {IClientInvoker}
+ * @see {@link https://docs.dapr.io/reference/api/service_invocation_api/} Dapr Service Invocation API
+ * @see {@link DaprClient.invoker} for unified API
+ *
+ * @internal
+ */
 export default class GRPCClientInvoker implements IClientInvoker {
+  /**
+   * Reference to the underlying gRPC client.
+   */
   client: GRPCClient;
 
+  /**
+   * Creates a gRPC service invocation building block.
+   *
+   * @param client - The gRPC client instance
+   */
   constructor(client: GRPCClient) {
     this.client = client;
   }
 
+  /**
+   * Invokes a method on a remote service.
+   *
+   * Sends an invoke request through the Dapr sidecar to another service.
+   * The sidecar handles service discovery and routing based on the app ID.
+   * Automatically serializes/deserializes request and response data.
+   *
+   * @param appId - ID of the target service (as configured in Dapr)
+   * @param methodName - Name of the method to invoke
+   * @param method - HTTP method (GET, POST, PUT, DELETE, etc.) (default: GET)
+   * @param data - Request data to send to the method (default: {})
+   * @param _options - Optional invocation options (reserved for future use)
+   *
+   * @returns Promise resolving to the parsed JSON response from the remote service
+   *
+   * @throws Rejects if:
+   *   - Service with appId does not exist
+   *   - Method invocation fails
+   *   - Response cannot be parsed as JSON
+   *
+   * @example
+   * ```typescript
+   * // Invoke another service
+   * const result = await client.invoker.invoke(
+   *   "order-service",
+   *   "getOrder",
+   *   HttpMethod.GET,
+   *   { orderId: 123 }
+   * );
+   * // result: { orderId: 123, total: 99.99, items: [...] }
+   *
+   * // Simple POST with data
+   * await client.invoker.invoke(
+   *   "notification-service",
+   *   "sendEmail",
+   *   HttpMethod.POST,
+   *   { to: "user@example.com", subject: "Hello" }
+   * );
+   * ```
+   *
+   * @see {@link https://docs.dapr.io/reference/api/service_invocation_api/#invoking-a-service}
+   */
   async invoke(
     appId: string,
     methodName: string,
@@ -78,3 +141,4 @@ export default class GRPCClientInvoker implements IClientInvoker {
     }
   }
 }
+
