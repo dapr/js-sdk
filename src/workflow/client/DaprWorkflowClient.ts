@@ -12,6 +12,7 @@ limitations under the License.
 */
 
 import { TaskHubClient } from "../engine/transport/TaskHubClient";
+import { Code, ConnectError } from "@connectrpc/connect";
 import { WorkflowState } from "./WorkflowState";
 import { generateEndpoint, getDaprApiToken, getFunctionName } from "../internal";
 import type { TWorkflow } from "../../types/workflow/Workflow.type";
@@ -52,9 +53,16 @@ export default class DaprWorkflowClient {
     workflowInstanceId: string,
     getInputsAndOutputs: boolean,
   ): Promise<WorkflowState | undefined> {
-    const state = await this._innerClient.getOrchestrationState(workflowInstanceId, getInputsAndOutputs);
-    if (state !== undefined) {
-      return new WorkflowState(state);
+    try {
+      const state = await this._innerClient.getOrchestrationState(workflowInstanceId, getInputsAndOutputs);
+      if (state !== undefined) {
+        return new WorkflowState(state);
+      }
+    } catch (error) {
+      if (isWorkflowInstanceNotFound(error)) {
+        return undefined;
+      }
+      throw error;
     }
   }
 
@@ -111,4 +119,14 @@ export default class DaprWorkflowClient {
   public async stop(): Promise<void> {
     await this._innerClient.stop();
   }
+}
+
+function isWorkflowInstanceNotFound(error: unknown): boolean {
+  if (!(error instanceof ConnectError)) {
+    return false;
+  }
+
+  return (
+    error.code === Code.NotFound || (error.code === Code.Unknown && /no such instance exists/i.test(error.message))
+  );
 }
