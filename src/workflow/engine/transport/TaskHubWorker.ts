@@ -19,6 +19,7 @@ import { ConnectError } from "@connectrpc/connect";
 import {
   TaskHubSidecarService,
   GetWorkItemsRequestSchema,
+  WorkerCapability,
   type WorkItem,
   type WorkflowRequest,
   type ActivityRequest,
@@ -110,14 +111,18 @@ export class TaskHubWorker {
 
         const streamController = new AbortController();
         this._workItemStreamController = streamController;
-        const stream = this.client.getWorkItems(create(GetWorkItemsRequestSchema), {
-          signal: streamController.signal,
-        });
+        const stream = this.client.getWorkItems(
+          create(GetWorkItemsRequestSchema, { capabilities: [WorkerCapability.HEALTH_PING] }),
+          { signal: streamController.signal },
+        );
         retryCount = 0;
 
         try {
           for await (const workItem of stream) {
             if (this._stopWorker) break;
+
+            // Checked before the queue so pings never take slots from real work items.
+            if (workItem.request.case === "healthPing") continue;
 
             if (this._activeWorkItems >= this._maxConcurrentWorkItems) {
               if (this._workItemQueue.length < 100) {
