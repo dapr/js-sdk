@@ -1,5 +1,5 @@
 /*
-Copyright 2024 The Dapr Authors
+Copyright 2026 The Dapr Authors
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -11,176 +11,98 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { OrchestrationContext } from "../internal/durabletask";
-import { Task } from "../internal/durabletask/task/task";
-import { TWorkflowActivity } from "../../types/workflow/Activity.type";
-import { TWorkflow } from "../../types/workflow/Workflow.type";
-import { getFunctionName } from "../internal";
-import { WhenAllTask } from "../internal/durabletask/task/when-all-task";
-import { whenAll, whenAny } from "../internal/durabletask/task";
-import { WhenAnyTask } from "../internal/durabletask/task/when-any-task";
-import { TInput, TOutput } from "../../types/workflow/InputOutput.type";
+import type { OrchestrationContext } from "../engine/context/OrchestrationContext";
+import type { Task } from "../engine/task/Task";
+import type { WhenAllTask } from "../engine/task/WhenAllTask";
+import type { WhenAnyTask } from "../engine/task/WhenAnyTask";
+import { whenAll, whenAny, getName } from "../engine/task";
+import type { TWorkflowActivity } from "../../types/workflow/Activity.type";
+import type { TWorkflow } from "../../types/workflow/Workflow.type";
+import type { ActivityOptions } from "../../types/workflow/ActivityOptions.type";
+import type { ChildWorkflowOptions } from "../../types/workflow/ChildWorkflowOptions.type";
 
-/**
- * Used by workflow to perform actions such as scheduling tasks, durable timers, waiting for external events,
- * and for getting basic information about the current workflow.
- */
 export default class WorkflowContext {
-  private readonly _innerContext: OrchestrationContext;
-  constructor(innerContext: OrchestrationContext) {
-    if (!innerContext) {
-      throw new Error("ActivityContext cannot be undefined");
+  constructor(private readonly _innerContext: OrchestrationContext) {
+    if (!_innerContext) {
+      throw new Error("WorkflowContext cannot be undefined");
     }
-    this._innerContext = innerContext;
   }
 
-  /**
-   * Gets the unique ID of the current orchestration instance.
-   * @returns {string} The unique ID of the current orchestration instance
-   */
   public getWorkflowInstanceId(): string {
     return this._innerContext.instanceId;
   }
 
-  /**
-   * Get the current date/time as UTC
-   *
-   * @returns {Date} The current timestamp in a way that is safe for use by orchestrator functions
-   */
   public getCurrentUtcDateTime(): Date {
     return this._innerContext.currentUtcDateTime;
   }
 
-  /**
-   * Get the value indicating whether the orchestrator is replaying from history.
-   *
-   * This property is useful when there is logic that needs to run only when
-   * the orchestrator function is _not_ replaying. For example, certain
-   * types of application logging may become too noisy when duplicated as
-   * part of orchestrator function replay. The orchestrator code could check
-   * to see whether the function is being replayed and then issue the log
-   * statements when this value is `false`.
-   *
-   * @returns {boolean} `true` if the orchestrator function is replaying from history; otherwise, `false`.
-   */
   public isReplaying(): boolean {
     return this._innerContext.isReplaying;
   }
 
-  /**
-   * Create a timer task that will fire at a specified time.
-   *
-   * @param {Date | number} fireAt The time at which the timer should fire.
-   * @returns {Task} A Durable Timer task that schedules the timer to wake up the orchestrator
-   */
-  public createTimer(fireAt: Date | number): Task<any> {
-    return this._innerContext.createTimer(fireAt);
+  public createTimer(fireAt: Date | number): Task<void> {
+    return this._innerContext.createTimer(fireAt) as Task<void>;
   }
 
-  /**
-   * Schedules an activity for execution within the orchestrator.
-   *
-   * @param {TWorkflowActivity<TInput, TOutput> | string} activity - The activity function or its name to call.
-   * @param {TInput} [input] - The JSON-serializable input value for the activity function.
-   * @returns {Task<TOutput>} - A Durable Task that completes when the activity function completes.
-   *
-   * @typeparam TWorkflowActivity - The type of the activity function.
-   * @typeparam TInput - The type of the input for the activity.
-   * @typeparam TOutput - The type of the output for the activity.
-   */
-  public callActivity(activity: TWorkflowActivity<TInput, TOutput> | string, input?: TInput): Task<TOutput> {
+  public callActivity<T = any>(
+    activity: TWorkflowActivity<any, any> | string,
+    input?: any,
+    options?: ActivityOptions,
+  ): Task<T> {
     if (typeof activity === "string") {
-      return this._innerContext.callActivity(activity, input);
+      return this._innerContext.callActivity(activity, input, options) as Task<T>;
     }
-    return this._innerContext.callActivity(getFunctionName(activity), input);
+    return this._innerContext.callActivity(getName(activity), input, options) as Task<T>;
   }
 
-  /**
-   * Deprecated, use callChildWorkflow
-   * Schedule sub-orchestrator function for execution.
-   *
-   * @param orchestrator A reference to the orchestrator function call
-   * @param input The JSON-serializable input value for the orchestrator function.
-   * @param instanceId A unique ID to use for the sub-orchestration instance. If not provided, a new GUID will be used.
-   *
-   * @returns {Task<TOutput>} A Durable Task that completes when the sub-orchestrator function completes.
-   */
-  public callSubWorkflow<TInput, TOutput>(
+  public callSubWorkflow<TInput = any, TOutput = any>(
     orchestrator: TWorkflow | string,
     input?: TInput,
     instanceId?: string,
+    options?: ChildWorkflowOptions,
   ): Task<TOutput> {
     if (typeof orchestrator === "string") {
-      return this._innerContext.callSubOrchestrator(orchestrator, input, instanceId);
+      return this._innerContext.callSubOrchestrator(orchestrator, input, instanceId, options) as Task<TOutput>;
     }
-    return this._innerContext.callSubOrchestrator(getFunctionName(orchestrator), input, instanceId);
+    return this._innerContext.callSubOrchestrator(getName(orchestrator), input, instanceId, options) as Task<TOutput>;
   }
 
-  /**
-   * Schedule child workflow for execution.
-   *
-   * @param orchestrator A reference to the orchestrator function call
-   * @param input The JSON-serializable input value for the orchestrator function.
-   * @param instanceId A unique ID to use for the sub-orchestration instance. If not provided, a new GUID will be used.
-   *
-   * @returns {Task<TOutput>} A Durable Task that completes when the sub-orchestrator function completes.
-   */
-  public callChildWorkflow<TInput, TOutput>(
+  public callChildWorkflow<TInput = any, TOutput = any>(
     orchestrator: TWorkflow | string,
     input?: TInput,
     instanceId?: string,
+    options?: ChildWorkflowOptions,
   ): Task<TOutput> {
     if (typeof orchestrator === "string") {
-      return this._innerContext.callSubOrchestrator(orchestrator, input, instanceId);
+      return this._innerContext.callSubOrchestrator(orchestrator, input, instanceId, options) as Task<TOutput>;
     }
-    return this._innerContext.callSubOrchestrator(getFunctionName(orchestrator), input, instanceId);
+    return this._innerContext.callSubOrchestrator(getName(orchestrator), input, instanceId, options) as Task<TOutput>;
   }
 
-  /**
-   * Wait for an event to be raised with the name "name"
-   *
-   * @param name The name of the event to wait for
-   * @returns {Task} A Durable Task that completes when the event is received
-   */
-  public waitForExternalEvent(name: string): Task<any> {
-    return this._innerContext.waitForExternalEvent(name);
+  public waitForExternalEvent<T = any>(name: string): Task<T> {
+    return this._innerContext.waitForExternalEvent(name) as Task<T>;
   }
 
-  /**
-   * Continue the orchestration execution as a new instance
-   *
-   * @param newInput {any} The new input to use for the new orchestration instance.
-   * @param saveEvents {boolean} A flag indicating whether to add any unprocessed external events in the new orchestration history.
-   */
-  public continueAsNew(newInput: any, saveEvents: boolean): void {
+  public continueAsNew(newInput: any, saveEvents = false): void {
     this._innerContext.continueAsNew(newInput, saveEvents);
   }
 
-  /**
-   * Sets the custom status
-   *
-   * @param status {string} The new custom status
-   */
-  public setCustomStatus(status: string): void {
+  public setCustomStatus(status: any): void {
     this._innerContext.setCustomStatus(status);
   }
 
-  /**
-   * Returns a task that completes when all of the provided tasks complete or when one of the tasks fail
-   *
-   * @param tasks the tasks to wait for
-   * @returns {WhenAllTask} a task that completes when all of the provided tasks complete or when one of the tasks fail
-   */
+  public sendEvent(instanceId: string, eventName: string, payload: any): void {
+    this._innerContext.sendEvent(instanceId, eventName, payload);
+  }
+
+  public newGuid(): string {
+    return this._innerContext.newGuid();
+  }
+
   public whenAll<T>(tasks: Task<T>[]): WhenAllTask<T> {
     return whenAll(tasks);
   }
 
-  /**
-   * Returns a task that completes when any of the provided tasks complete or fail
-   *
-   * @param tasks the tasks to wait for
-   * @returns {WhenAnyTask} a task that completes when one of the provided tasks complete or when one of the tasks fail
-   */
   public whenAny(tasks: Task<any>[]): WhenAnyTask {
     return whenAny(tasks);
   }

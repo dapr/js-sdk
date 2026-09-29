@@ -11,14 +11,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { OrchestrationStatus } from "../../../src/workflow/internal/durabletask/orchestration/enum/orchestration-status.enum";
-import { OrchestrationState } from "../../../src/workflow/internal/durabletask/orchestration/orchestration-state";
-import { FailureDetails } from "../../../src/workflow/internal/durabletask/task/failure-details";
+import { OrchestrationStatus } from "../../../src/proto/dapr/proto/durabletask/v1/orchestration_pb";
+import { create } from "@bufbuild/protobuf";
+import { TaskFailureDetailsSchema } from "../../../src/proto/dapr/proto/durabletask/v1/orchestration_pb";
+import { OrchestrationState } from "../../../src/workflow/engine/transport/TaskHubClient";
 import { TWorkflow } from "../../../src/types/workflow/Workflow.type";
 import WorkflowContext from "../../../src/workflow/runtime/WorkflowContext";
 import { WorkflowRuntimeStatus } from "../../../src/workflow/runtime/WorkflowRuntimeStatus";
+import { Code, ConnectError } from "@connectrpc/connect";
 
-// Mock functions
 const mockScheduleNewOrchestration = jest.fn();
 const mockGetOrchestrationState = jest.fn();
 const mockWaitForOrchestrationStart = jest.fn();
@@ -30,20 +31,24 @@ const mockSuspendOrchestration = jest.fn();
 const mockResumeOrchestration = jest.fn();
 const mockClientStop = jest.fn();
 
-jest.mock("../../../src/workflow/internal/durabletask", () => ({
-  TaskHubGrpcClient: jest.fn().mockImplementation(() => ({
-    scheduleNewOrchestration: mockScheduleNewOrchestration,
-    getOrchestrationState: mockGetOrchestrationState,
-    waitForOrchestrationStart: mockWaitForOrchestrationStart,
-    waitForOrchestrationCompletion: mockWaitForOrchestrationCompletion,
-    terminateOrchestration: mockTerminateOrchestration,
-    raiseOrchestrationEvent: mockRaiseOrchestrationEvent,
-    purgeOrchestration: mockPurgeOrchestration,
-    suspendOrchestration: mockSuspendOrchestration,
-    resumeOrchestration: mockResumeOrchestration,
-    stop: mockClientStop,
-  })),
-}));
+jest.mock("../../../src/workflow/engine/transport/TaskHubClient", () => {
+  const actual = jest.requireActual("../../../src/workflow/engine/transport/TaskHubClient");
+  return {
+    ...actual,
+    TaskHubClient: jest.fn().mockImplementation(() => ({
+      scheduleNewOrchestration: mockScheduleNewOrchestration,
+      getOrchestrationState: mockGetOrchestrationState,
+      waitForOrchestrationStart: mockWaitForOrchestrationStart,
+      waitForOrchestrationCompletion: mockWaitForOrchestrationCompletion,
+      terminateOrchestration: mockTerminateOrchestration,
+      raiseOrchestrationEvent: mockRaiseOrchestrationEvent,
+      purgeOrchestration: mockPurgeOrchestration,
+      suspendOrchestration: mockSuspendOrchestration,
+      resumeOrchestration: mockResumeOrchestration,
+      stop: mockClientStop,
+    })),
+  };
+});
 
 import DaprWorkflowClient from "../../../src/workflow/client/DaprWorkflowClient";
 
@@ -125,9 +130,31 @@ describe("DaprWorkflowClient", () => {
       expect(state).toBeUndefined();
     });
 
+    it("should return undefined for a not-found RPC error", async () => {
+      mockGetOrchestrationState.mockRejectedValue(new ConnectError("instance not found", Code.NotFound));
+
+      await expect(client.getWorkflowState("nonexistent", true)).resolves.toBeUndefined();
+    });
+
+    it("should return undefined for the legacy Dapr missing-instance error", async () => {
+      mockGetOrchestrationState.mockRejectedValue(new ConnectError("no such instance exists", Code.Unknown));
+
+      await expect(client.getWorkflowState("nonexistent", true)).resolves.toBeUndefined();
+    });
+
+    it("should propagate unrelated RPC errors", async () => {
+      mockGetOrchestrationState.mockRejectedValue(new ConnectError("sidecar unavailable", Code.Unavailable));
+
+      await expect(client.getWorkflowState("instance-1", true)).rejects.toThrow("sidecar unavailable");
+    });
+
     it("should include failure details for failed workflows", async () => {
       const now = new Date();
-      const failureDetails = new FailureDetails("Something went wrong", "Error", "stack trace here");
+      const failureDetails = create(TaskFailureDetailsSchema, {
+        errorMessage: "Something went wrong",
+        errorType: "Error",
+        stackTrace: "stack trace here",
+      });
       const orchState = new OrchestrationState(
         "instance-failed",
         "failingWorkflow",
@@ -155,13 +182,7 @@ describe("DaprWorkflowClient", () => {
   describe("waitForWorkflowStart", () => {
     it("should return WorkflowState when workflow starts", async () => {
       const now = new Date();
-      const orchState = new OrchestrationState(
-        "instance-1",
-        "myWorkflow",
-        OrchestrationStatus.RUNNING,
-        now,
-        now,
-      );
+      const orchState = new OrchestrationState("instance-1", "myWorkflow", OrchestrationStatus.RUNNING, now, now);
       mockWaitForOrchestrationStart.mockResolvedValue(orchState);
 
       const state = await client.waitForWorkflowStart("instance-1", true, 30);
@@ -272,7 +293,7 @@ describe("DaprWorkflowClient", () => {
 
       await client.suspendWorkflow("instance-1");
 
-      expect(mockSuspendOrchestration).toHaveBeenCalledWith("instance-1");
+      expect(mockSuspendOrchestration).toHaveBeenCalledWith("instance-1", undefined);
     });
   });
 
@@ -282,7 +303,7 @@ describe("DaprWorkflowClient", () => {
 
       await client.resumeWorkflow("instance-1");
 
-      expect(mockResumeOrchestration).toHaveBeenCalledWith("instance-1");
+      expect(mockResumeOrchestration).toHaveBeenCalledWith("instance-1", undefined);
     });
   });
 
