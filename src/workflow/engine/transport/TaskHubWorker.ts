@@ -35,6 +35,31 @@ import { newCompleteWorkflowAction, newFailureDetails } from "../worker/protoHel
 import { Logger } from "../../../logger/Logger";
 import { type GrpcChannelOptions, mapGrpcOptions } from "../../../types/workflow/WorkflowClientOption";
 
+/** Default number of work items of each kind (workflow, activity) the worker executes at once. */
+export const DEFAULT_MAX_CONCURRENT_WORK_ITEMS = 10;
+
+export type WorkerConcurrencyOptions = {
+  /** Maximum number of workflow work items executed at once (default 10). */
+  maxConcurrentWorkflowWorkItems?: number;
+  /** Maximum number of activity work items executed at once (default 10). */
+  maxConcurrentActivityWorkItems?: number;
+};
+
+type WorkItemKind = "workflow" | "activity";
+
+/**
+ * Admission state for one kind of work item. Items beyond `max` wait in `queue` and are never
+ * dropped: the sidecar keeps an undelivered work item registered as in flight on this stream, so a
+ * dropped item would stall its workflow until the stream reconnects. The sidecar's own concurrency
+ * limits bound how many items can be outstanding. Workflow turns and activities are admitted
+ * separately so long-running activities cannot hold back workflow turns.
+ */
+type WorkItemLane = {
+  active: number;
+  readonly max: number;
+  readonly queue: WorkItem[];
+};
+
 export class TaskHubWorker {
   private readonly logger = new Logger("Workflow", "TaskHubWorker");
   private readonly client: Client<typeof TaskHubSidecarService>;
@@ -42,9 +67,7 @@ export class TaskHubWorker {
 
   private _isRunning = false;
   private _stopWorker = false;
-  private _activeWorkItems = 0;
-  private readonly _maxConcurrentWorkItems = 10;
-  private readonly _workItemQueue: WorkItem[] = [];
+  private readonly _lanes: Record<WorkItemKind, WorkItemLane>;
   private _workItemStreamController?: AbortController;
 
   constructor(
@@ -53,8 +76,21 @@ export class TaskHubWorker {
     useTLS = false,
     maxMessageSize = 128 * 1024 * 1024,
     grpcOptions?: GrpcChannelOptions,
+    concurrency: WorkerConcurrencyOptions = {},
   ) {
     this._registry = new Registry();
+    this._lanes = {
+      workflow: {
+        active: 0,
+        max: resolveLimit("maxConcurrentWorkflowWorkItems", concurrency.maxConcurrentWorkflowWorkItems),
+        queue: [],
+      },
+      activity: {
+        active: 0,
+        max: resolveLimit("maxConcurrentActivityWorkItems", concurrency.maxConcurrentActivityWorkItems),
+        queue: [],
+      },
+    };
 
     const interceptors: Interceptor[] = [...(grpcOptions?.interceptors ?? [])];
     if (daprApiToken) {
@@ -118,20 +154,10 @@ export class TaskHubWorker {
         try {
           for await (const workItem of stream) {
             if (this._stopWorker) break;
-
-            if (this._activeWorkItems >= this._maxConcurrentWorkItems) {
-              if (this._workItemQueue.length < 100) {
-                this._workItemQueue.push(workItem);
-                this.logger.debug(`Queued work item (${this._workItemQueue.length} queued)`);
-              } else {
-                this.logger.warn("Work item queue full (100), dropping work item");
-              }
-              continue;
-            }
-
-            this.dispatchWorkItem(workItem);
+            this.admitWorkItem(workItem);
           }
         } finally {
+          this.discardQueuedWorkItems();
           if (this._workItemStreamController === streamController) {
             this._workItemStreamController = undefined;
           }
@@ -164,6 +190,41 @@ export class TaskHubWorker {
     }
   }
 
+  private get activeWorkItems(): number {
+    return this._lanes.workflow.active + this._lanes.activity.active;
+  }
+
+  /** Executes the work item now if its kind has a free slot, otherwise queues it (never drops it). */
+  private admitWorkItem(workItem: WorkItem): void {
+    const kind = workItemKind(workItem);
+    if (!kind) {
+      this.dispatchWorkItem(workItem);
+      return;
+    }
+    const lane = this._lanes[kind];
+    if (lane.active >= lane.max) {
+      lane.queue.push(workItem);
+      this.logger.debug(`Queued ${kind} work item (${lane.queue.length} queued)`);
+      return;
+    }
+    this.dispatchWorkItem(workItem);
+  }
+
+  /**
+   * Drops the work items still queued when their stream ends. The sidecar re-dispatches every work
+   * item it delivered on a stream once that stream is gone, so executing them afterwards would only
+   * duplicate work.
+   */
+  private discardQueuedWorkItems(): void {
+    for (const kind of ["workflow", "activity"] as const) {
+      const queue = this._lanes[kind].queue;
+      if (queue.length > 0) {
+        this.logger.debug(`Discarding ${queue.length} queued ${kind} work item(s); the sidecar re-dispatches them`);
+        queue.length = 0;
+      }
+    }
+  }
+
   private dispatchWorkItem(workItem: WorkItem): void {
     const requestType = workItem.request;
     if (!requestType) {
@@ -174,30 +235,31 @@ export class TaskHubWorker {
     if (requestType.case === "workflowRequest") {
       const req = requestType.value;
       this.logger.info(`Received "Orchestrator Request" work item with instance id '${req.instanceId}'`);
-      this.trackWorkItem(this.executeOrchestrator(req, workItem.completionToken));
+      this.trackWorkItem("workflow", this.executeOrchestrator(req, workItem.completionToken));
     } else if (requestType.case === "activityRequest") {
       this.logger.info(`Received "Activity Request" work item`);
-      this.trackWorkItem(this.executeActivity(requestType.value, workItem.completionToken));
+      this.trackWorkItem("activity", this.executeActivity(requestType.value, workItem.completionToken));
     } else {
       this.logger.warn(`Received unknown work item type`);
     }
   }
 
-  private trackWorkItem(workPromise: Promise<void>): void {
-    this._activeWorkItems++;
+  private trackWorkItem(kind: WorkItemKind, workPromise: Promise<void>): void {
+    const lane = this._lanes[kind];
+    lane.active++;
     workPromise
       .catch((err) => {
         this.logger.error("Unhandled error in work item execution:", err);
       })
       .finally(() => {
-        this._activeWorkItems--;
-        this.drainQueue();
+        lane.active--;
+        this.drainQueue(lane);
       });
   }
 
-  private drainQueue(): void {
-    while (this._workItemQueue.length > 0 && this._activeWorkItems < this._maxConcurrentWorkItems) {
-      const queued = this._workItemQueue.shift();
+  private drainQueue(lane: WorkItemLane): void {
+    while (lane.queue.length > 0 && lane.active < lane.max) {
+      const queued = lane.queue.shift();
       if (queued) {
         this.dispatchWorkItem(queued);
       }
@@ -301,19 +363,40 @@ export class TaskHubWorker {
     const drainTimeoutMs = 30000;
     const drainPollIntervalMs = 100;
     const drainStart = Date.now();
-    while (this._activeWorkItems > 0 && Date.now() - drainStart < drainTimeoutMs) {
-      this.logger.debug(`Waiting for ${this._activeWorkItems} active work item(s) to complete before shutdown...`);
+    while (this.activeWorkItems > 0 && Date.now() - drainStart < drainTimeoutMs) {
+      this.logger.debug(`Waiting for ${this.activeWorkItems} active work item(s) to complete before shutdown...`);
       await sleep(drainPollIntervalMs);
     }
 
-    if (this._activeWorkItems > 0) {
+    if (this.activeWorkItems > 0) {
       this.logger.warn(
-        `Shutdown timeout reached with ${this._activeWorkItems} work item(s) still active. Proceeding with shutdown.`,
+        `Shutdown timeout reached with ${this.activeWorkItems} work item(s) still active. Proceeding with shutdown.`,
       );
     }
 
     this._isRunning = false;
   }
+}
+
+function workItemKind(workItem: WorkItem): WorkItemKind | undefined {
+  switch (workItem.request?.case) {
+    case "workflowRequest":
+      return "workflow";
+    case "activityRequest":
+      return "activity";
+    default:
+      return undefined;
+  }
+}
+
+function resolveLimit(name: string, value: number | undefined): number {
+  if (value === undefined) {
+    return DEFAULT_MAX_CONCURRENT_WORK_ITEMS;
+  }
+  if (value === Number.POSITIVE_INFINITY || (Number.isInteger(value) && value > 0)) {
+    return value;
+  }
+  throw new Error(`${name} must be a positive integer or Infinity, got ${value}`);
 }
 
 function sleep(ms: number): Promise<void> {

@@ -17,12 +17,12 @@ import type { TWorkflowActivity } from "../../types/workflow/Activity.type";
 import WorkflowActivityContext from "./WorkflowActivityContext";
 import WorkflowContext from "./WorkflowContext";
 import { generateEndpoint, getDaprApiToken, getFunctionName } from "../internal";
-import type { WorkflowClientOptions } from "../../types/workflow/WorkflowClientOption";
+import type { WorkflowRuntimeOptions } from "../../types/workflow/WorkflowRuntimeOption";
 
 export default class WorkflowRuntime {
   private readonly worker: TaskHubWorker;
 
-  constructor(options: Partial<WorkflowClientOptions> = {}) {
+  constructor(options: Partial<WorkflowRuntimeOptions> = {}) {
     const grpcEndpoint = generateEndpoint(options);
     const daprApiToken = getDaprApiToken(options);
     this.worker = new TaskHubWorker(
@@ -31,6 +31,10 @@ export default class WorkflowRuntime {
       grpcEndpoint.tls,
       128 * 1024 * 1024,
       options.grpcOptions,
+      {
+        maxConcurrentWorkflowWorkItems: options.maxConcurrentWorkflowWorkItems,
+        maxConcurrentActivityWorkItems: options.maxConcurrentActivityWorkItems,
+      },
     );
   }
 
