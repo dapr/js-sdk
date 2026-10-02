@@ -32,10 +32,27 @@ jest.mock("../../../src/workflow/engine/transport/TaskHubWorker", () => ({
 }));
 
 import WorkflowRuntime from "../../../src/workflow/runtime/WorkflowRuntime";
+import { TaskHubWorker } from "../../../src/workflow/engine/transport/TaskHubWorker";
 
 describe("WorkflowRuntime", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe("constructor", () => {
+    it("passes the work-item concurrency limits to the worker", () => {
+      new WorkflowRuntime({ maxConcurrentWorkflowWorkItems: 5, maxConcurrentActivityWorkItems: 7 });
+
+      const args = (TaskHubWorker as unknown as jest.Mock).mock.calls[0];
+      expect(args[5]).toEqual({ maxConcurrentWorkflowWorkItems: 5, maxConcurrentActivityWorkItems: 7 });
+    });
+
+    it("leaves the limits to the worker's defaults when not set", () => {
+      new WorkflowRuntime();
+
+      const args = (TaskHubWorker as unknown as jest.Mock).mock.calls[0];
+      expect(args[5]).toEqual({ maxConcurrentWorkflowWorkItems: undefined, maxConcurrentActivityWorkItems: undefined });
+    });
   });
 
   describe("registerWorkflow", () => {
