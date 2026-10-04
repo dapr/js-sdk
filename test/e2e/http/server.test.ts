@@ -46,10 +46,7 @@ describe("http/server", () => {
 
   beforeAll(async () => {
     network = await new Network().start();
-    [redisContainer, mqttContainer] = await Promise.all([
-      startRedisContainer(network),
-      startMqttContainer(network),
-    ]);
+    [redisContainer, mqttContainer] = await Promise.all([startRedisContainer(network), startMqttContainer(network)]);
 
     // Allow the Dapr container to call back to the app server on the host.
     await TestContainers.exposeHostPorts(parseInt(serverPort));
