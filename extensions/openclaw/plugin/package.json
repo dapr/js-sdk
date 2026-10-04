@@ -1,0 +1,47 @@
+{
+  "name": "@dapr/openclaw-plugin",
+  "version": "0.1.0",
+  "description": "OpenClaw plugin that enables Dapr-backed durable execution for agent runs (crash recovery, replay, per-step checkpointing).",
+  "type": "module",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "openclaw.plugin.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "openclaw": {
+    "extensions": [
+      "./index.js"
+    ]
+  },
+  "keywords": [
+    "dapr",
+    "openclaw",
+    "openclaw-plugin",
+    "workflows",
+    "durable-execution"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dapr/js-sdk.git",
+    "directory": "extensions/openclaw/plugin"
+  },
+  "homepage": "https://github.com/dapr/js-sdk/tree/main/extensions/openclaw#readme",
+  "bugs": {
+    "url": "https://github.com/dapr/js-sdk/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@dapr/openclaw": "^0.1.0"
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-agent-core": ">=0.65.0 <0.70.0"
+  },
+  "license": "Apache-2.0"
+}

@@ -1,0 +1,212 @@
+#
+# Copyright 2026 The Dapr Authors
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#     http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Build and publish the @dapr/openclaw extension and its OpenClaw plugin.
+#
+# Versioning is independent of @dapr/dapr — tag releases with `openclaw-v<semver>`
+# (e.g. `openclaw-v0.1.0`). The tag is the source of truth: the publish job
+# stamps both package.json files with the tag's version (matching the upstream
+# `@dapr/dapr` pattern of `npm version --no-git-tag-version <tag>`).
+#
+# The runtime package (@dapr/openclaw) is published first so the plugin's
+# `"@dapr/openclaw": "^x.y.z"` dependency resolves once consumers install
+# @dapr/openclaw-plugin.
+#
+# Dev publishes (on every push to main) follow the upstream format
+# `<latest>-dev.<date>.<commit>`, where `<latest>` is the most recently
+# published version on npm. On the bootstrap run before any stable publish
+# exists, falls back to the version in package.json.
+#
+name: openclaw
+
+on:
+  push:
+    branches:
+      - main
+      - release-*
+    tags:
+      - 'openclaw-v*'
+    paths:
+      - 'extensions/openclaw/**'
+      - '.github/workflows/openclaw.yml'
+  pull_request:
+    branches:
+      - main
+      - release-*
+    paths:
+      - 'extensions/openclaw/**'
+      - '.github/workflows/openclaw.yml'
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write # Required for OIDC trusted publishing
+  contents: read
+
+env:
+  NODE_VER: 24
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node_version: [22.16.0]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node ${{ matrix.node_version }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node_version }}
+
+      - name: Install runtime dependencies
+        working-directory: extensions/openclaw
+        run: npm install
+
+      - name: Build runtime
+        working-directory: extensions/openclaw
+        run: npm run build
+
+      - name: Pack smoke test (@dapr/openclaw)
+        working-directory: extensions/openclaw
+        run: npm pack --dry-run
+
+      - name: Pack smoke test (@dapr/openclaw-plugin)
+        working-directory: extensions/openclaw/plugin
+        run: npm pack --dry-run
+
+  publish:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/openclaw-v')
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node ${{ env.NODE_VER }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VER }}
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Set version from tag
+        run: |
+          # Strip the leading 'openclaw-v' from the tag ref
+          # (e.g. refs/tags/openclaw-v0.1.0 -> 0.1.0). Stamp both package.json
+          # files and pin the plugin's runtime dep to the exact same version
+          # (no caret — keeps the published plugin reproducibly tied to one
+          # runtime version per release).
+          TAG="${GITHUB_REF#refs/tags/openclaw-v}"
+          echo "Releasing openclaw-v$TAG"
+          (cd extensions/openclaw && npm version --no-git-tag-version --allow-same-version "$TAG")
+          (cd extensions/openclaw/plugin && npm version --no-git-tag-version --allow-same-version "$TAG")
+          node -e "
+            const fs = require('fs');
+            const p = require('./extensions/openclaw/plugin/package.json');
+            p.dependencies['@dapr/openclaw'] = '$TAG';
+            fs.writeFileSync('./extensions/openclaw/plugin/package.json', JSON.stringify(p, null, 2) + '\n');
+          "
+
+      - name: Install runtime dependencies
+        working-directory: extensions/openclaw
+        run: npm install
+
+      - name: Build runtime
+        working-directory: extensions/openclaw
+        run: npm run build
+
+      - name: Publish @dapr/openclaw
+        working-directory: extensions/openclaw
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @dapr/openclaw-plugin
+        working-directory: extensions/openclaw/plugin
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-dev:
+    needs: build
+    if: startsWith(github.ref, 'refs/heads/main')
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node ${{ env.NODE_VER }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VER }}
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Configure dev package names and versions
+        run: |
+          # Mirror @dapr/dapr-dev publish:
+          #   1. Rename both packages to their `-dev` variants.
+          #   2. Stamp `<latest>-dev.<date>.<commit>` on each, where `<latest>` is
+          #      the most recently published runtime version on npm. Falls back
+          #      to the package.json version on the bootstrap run before any
+          #      stable publish exists.
+          #   3. Pin the plugin's runtime-dep to the same exact dev version.
+          DATE=$(date -u +"%Y%m%d")
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          BASE_VERSION=$(npm view @dapr/openclaw version 2>/dev/null \
+            || node -p "require('./extensions/openclaw/package.json').version")
+          DEV_VERSION="${BASE_VERSION}-dev.${DATE}.${COMMIT_HASH}"
+          echo "Publishing dev version: $DEV_VERSION"
+
+          # Step 1: rename @dapr/openclaw → @dapr/openclaw-dev wherever it
+          # appears (own name in runtime package.json; dep key in plugin
+          # package.json). Then rename @dapr/openclaw-plugin → @dapr/openclaw-plugin-dev
+          # (only the plugin's own name; trailing-quote anchor prevents
+          # matching the runtime).
+          sed -i 's#"@dapr/openclaw"#"@dapr/openclaw-dev"#g' \
+            extensions/openclaw/package.json \
+            extensions/openclaw/plugin/package.json
+          sed -i 's#"@dapr/openclaw-plugin"#"@dapr/openclaw-plugin-dev"#g' \
+            extensions/openclaw/plugin/package.json
+
+          # Step 2: stamp dev version on both packages.
+          (cd extensions/openclaw && npm version --no-git-tag-version --allow-same-version "$DEV_VERSION")
+          (cd extensions/openclaw/plugin && npm version --no-git-tag-version --allow-same-version "$DEV_VERSION")
+
+          # Step 3: pin plugin → runtime dep to the exact dev version (sed
+          # left it at the original '^0.1.0' range under the renamed key).
+          node -e "
+            const fs = require('fs');
+            const p = require('./extensions/openclaw/plugin/package.json');
+            p.dependencies['@dapr/openclaw-dev'] = '$DEV_VERSION';
+            fs.writeFileSync('./extensions/openclaw/plugin/package.json', JSON.stringify(p, null, 2) + '\n');
+          "
+
+      - name: Install runtime dependencies
+        working-directory: extensions/openclaw
+        run: npm install
+
+      - name: Build runtime
+        working-directory: extensions/openclaw
+        run: npm run build
+
+      - name: Publish @dapr/openclaw-dev
+        working-directory: extensions/openclaw
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @dapr/openclaw-plugin-dev
+        working-directory: extensions/openclaw/plugin
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
