@@ -105,6 +105,9 @@ export class TaskHubWorker {
     while (!this._stopWorker) {
       try {
         await this.client.hello(create(EmptySchema));
+        // Only an unreachable sidecar on startup is fatal. Once connected,
+        // stream errors (a sidecar restart) must be retried.
+        isFirstAttempt = false;
 
         this.logger.info("Connected to sidecar. Waiting for work items...");
 
@@ -154,8 +157,6 @@ export class TaskHubWorker {
         }
         this.logger.info("Connection will be retried...");
       }
-
-      isFirstAttempt = false;
 
       const delay = Math.min(BASE_DELAY_MS * Math.pow(2, retryCount), MAX_DELAY_MS);
       const jitter = delay * 0.5 * Math.random();
