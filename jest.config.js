@@ -26,10 +26,10 @@ module.exports = {
   // unhandledRejection handler catches these, so we strip them here.
   testResultsProcessor: "<rootDir>/test/e2e/helpers/filterAggregateErrors.cjs",
   moduleNameMapper: {
-    "^@bufbuild/protobuf/wkt$": "<rootDir>/node_modules/@bufbuild/protobuf/dist/cjs/wkt/index.js",
-    "^@bufbuild/protobuf/codegenv2$": "<rootDir>/node_modules/@bufbuild/protobuf/dist/cjs/codegenv2/index.js",
-    "^@bufbuild/protobuf/codegenv1$": "<rootDir>/node_modules/@bufbuild/protobuf/dist/cjs/codegenv1/index.js",
-    "^@bufbuild/protobuf/wire$": "<rootDir>/node_modules/@bufbuild/protobuf/dist/cjs/wire/index.js",
+    "^@bufbuild/protobuf/wkt$": "<rootDir>/node_modules/@bufbuild/protobuf/dist/commonjs/wkt/index.js",
+    "^@bufbuild/protobuf/codegenv2$": "<rootDir>/node_modules/@bufbuild/protobuf/dist/commonjs/codegenv2/index.js",
+    "^@bufbuild/protobuf/codegenv1$": "<rootDir>/node_modules/@bufbuild/protobuf/dist/commonjs/codegenv1/index.js",
+    "^@bufbuild/protobuf/wire$": "<rootDir>/node_modules/@bufbuild/protobuf/dist/commonjs/wire/index.js",
     "^@connectrpc/connect/protocol$": "<rootDir>/node_modules/@connectrpc/connect/dist/cjs/protocol/index.js",
     "^@connectrpc/connect/protocol-connect$": "<rootDir>/node_modules/@connectrpc/connect/dist/cjs/protocol-connect/index.js",
     "^@connectrpc/connect/protocol-grpc$": "<rootDir>/node_modules/@connectrpc/connect/dist/cjs/protocol-grpc/index.js",

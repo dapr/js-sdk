@@ -1,5 +1,5 @@
 /*
-Copyright 2024 The Dapr Authors
+Copyright 2026 The Dapr Authors
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -11,47 +11,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { OrchestrationStatus } from "../internal/durabletask/orchestration/enum/orchestration-status.enum";
+import { OrchestrationStatus } from "../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 
-/**
- * Enum describing the runtime status of a workflow.
- */
 export enum WorkflowRuntimeStatus {
   RUNNING = OrchestrationStatus.RUNNING,
   COMPLETED = OrchestrationStatus.COMPLETED,
-  FAILED = OrchestrationStatus.FAILED,
-  TERMINATED = OrchestrationStatus.TERMINATED,
   CONTINUED_AS_NEW = OrchestrationStatus.CONTINUED_AS_NEW,
+  FAILED = OrchestrationStatus.FAILED,
+  CANCELED = OrchestrationStatus.CANCELED,
+  TERMINATED = OrchestrationStatus.TERMINATED,
   PENDING = OrchestrationStatus.PENDING,
   SUSPENDED = OrchestrationStatus.SUSPENDED,
+  STALLED = OrchestrationStatus.STALLED,
 }
 
-/**
- * Converts an OrchestrationStatus value to the corresponding WorkflowRuntimeStatus enum value.
- *
- * @param {OrchestrationStatus} val - The OrchestrationStatus value to be converted.
- * @returns {WorkflowRuntimeStatus} - The equivalent WorkflowRuntimeStatus enum value.
- */
 export function fromOrchestrationStatus(val: OrchestrationStatus): WorkflowRuntimeStatus {
-  const values = Object.values(WorkflowRuntimeStatus);
-  const valIdx = values.findIndex((v) => v === (val as number));
-
-  // Return the entry of the WorkflowRuntimeStatus enum at index
-  const entries = Object.entries(WorkflowRuntimeStatus);
-  return entries[valIdx][1] as WorkflowRuntimeStatus;
+  return val as unknown as WorkflowRuntimeStatus;
 }
 
-/**
- * Converts an WorkflowRuntimeStatus value to the corresponding OrchestrationStatus enum value.
- *
- * @param {WorkflowRuntimeStatus} val - The WorkflowRuntimeStatus value to be converted.
- * @returns {OrchestrationStatus} - The equivalent OrchestrationStatus enum value.
- */
 export function toOrchestrationStatus(val: WorkflowRuntimeStatus): OrchestrationStatus {
-  const values = Object.values(OrchestrationStatus);
-  const valIdx = values.findIndex((v) => v === (val as number));
-
-  // Return the entry of the WorkflowRuntimeStatus enum at index
-  const entries = Object.entries(OrchestrationStatus);
-  return entries[valIdx][1] as OrchestrationStatus;
+  return val as unknown as OrchestrationStatus;
 }

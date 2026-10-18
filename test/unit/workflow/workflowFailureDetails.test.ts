@@ -18,7 +18,7 @@ describe("WorkflowFailureDetails", () => {
     it("should return the error type", () => {
       const mockFailureDetails = {
         errorType: "TypeError",
-        message: "Something went wrong",
+        errorMessage: "Something went wrong",
         stackTrace: "at line 1",
       };
 
@@ -31,7 +31,7 @@ describe("WorkflowFailureDetails", () => {
     it("should return the error message", () => {
       const mockFailureDetails = {
         errorType: "Error",
-        message: "Connection refused",
+        errorMessage: "Connection refused",
         stackTrace: undefined,
       };
 
@@ -45,7 +45,7 @@ describe("WorkflowFailureDetails", () => {
       const stackTrace = "Error: test\n    at Object.<anonymous> (test.ts:1:1)";
       const mockFailureDetails = {
         errorType: "Error",
-        message: "test",
+        errorMessage: "test",
         stackTrace: stackTrace,
       };
 
@@ -56,7 +56,7 @@ describe("WorkflowFailureDetails", () => {
     it("should return undefined when stack trace is not available", () => {
       const mockFailureDetails = {
         errorType: "Error",
-        message: "test",
+        errorMessage: "test",
         stackTrace: undefined,
       };
 

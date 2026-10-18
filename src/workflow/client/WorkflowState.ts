@@ -1,5 +1,5 @@
 /*
-Copyright 2024 The Dapr Authors
+Copyright 2026 The Dapr Authors
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -11,106 +11,59 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { OrchestrationState } from "../internal/durabletask/orchestration/orchestration-state";
+import type { OrchestrationState } from "../engine/transport/TaskHubClient";
 import { WorkflowFailureDetails } from "./WorkflowFailureDetails";
 import { WorkflowRuntimeStatus, fromOrchestrationStatus } from "../runtime/WorkflowRuntimeStatus";
 
-/**
- * Represents the state of a workflow instance.
- */
 export class WorkflowState {
-  private readonly _orchestrationState: OrchestrationState;
-  private readonly _workflowFailureDetails?: WorkflowFailureDetails;
+  private readonly _state: OrchestrationState;
+  private readonly _failureDetails?: WorkflowFailureDetails;
 
-  /**
-   * Creates an instance of WorkflowState.
-   * @param {OrchestrationState} orchestrationState - The state of the orchestration.
-   * @throws {Error} Throws an error if orchestrationState is null.
-   */
-  constructor(orchestrationState: OrchestrationState) {
-    if (!orchestrationState) {
-      throw new Error("OrchestrationMetadata cannot be null");
+  constructor(state: OrchestrationState) {
+    if (!state) {
+      throw new Error("WorkflowState cannot be null");
     }
+    this._state = state;
 
-    this._orchestrationState = orchestrationState;
-
-    const failureDetails = orchestrationState.failureDetails;
-    if (failureDetails) {
-      this._workflowFailureDetails = new WorkflowFailureDetails(failureDetails);
+    if (state.failureDetails) {
+      this._failureDetails = new WorkflowFailureDetails(state.failureDetails);
     }
   }
 
-  /**
-   * Gets the name of the workflow.
-   * @returns {string} The name of the workflow.
-   */
-  public get name(): string {
-    return this._orchestrationState.name;
+  get name(): string {
+    return this._state.name;
   }
 
-  /**
-   * Gets the unique ID of the workflow instance.
-   * @returns {string} The unique ID of the workflow instance.
-   */
-  public get instanceId(): string {
-    return this._orchestrationState.instanceId;
+  get instanceId(): string {
+    return this._state.instanceId;
   }
 
-  /**
-   * Gets the current runtime status of the workflow instance.
-   * @returns {WorkflowRuntimeStatus} The current runtime status.
-   */
-  public get runtimeStatus(): WorkflowRuntimeStatus {
-    return fromOrchestrationStatus(this._orchestrationState.runtimeStatus);
+  get runtimeStatus(): WorkflowRuntimeStatus {
+    return fromOrchestrationStatus(this._state.runtimeStatus);
   }
 
-  /**
-   * Gets the workflow instance's creation time in UTC.
-   * @returns {Date} The workflow instance's creation time in UTC.
-   */
-  public get createdAt(): Date {
-    return this._orchestrationState.createdAt;
+  get createdAt(): Date {
+    return this._state.createdAt;
   }
 
-  /**
-   * Gets the workflow instance's last updated time in UTC.
-   * @returns {Date} The workflow instance's last updated time in UTC.
-   */
-  public get lastUpdatedAt(): Date {
-    return this._orchestrationState.lastUpdatedAt;
+  get lastUpdatedAt(): Date {
+    return this._state.lastUpdatedAt;
   }
 
-  /**
-   * Gets the workflow instance's serialized input, if any, as a string value.
-   * @returns {string | undefined} The workflow instance's serialized input or undefined.
-   */
-  public get serializedInput(): string | undefined {
-    return this._orchestrationState.serializedInput;
+  get serializedInput(): string | undefined {
+    return this._state.serializedInput;
   }
 
-  /**
-   * Gets the workflow instance's serialized output, if any, as a string value.
-   * @returns {string | undefined} The workflow instance's serialized output or undefined.
-   */
-  public get serializedOutput(): string | undefined {
-    return this._orchestrationState.serializedOutput;
+  get serializedOutput(): string | undefined {
+    return this._state.serializedOutput;
   }
 
-  /**
-   * Gets the failure details, if any, for the failed workflow instance.
-   * This method returns data only if the workflow is in the FAILED state and
-   * only if this instance metadata was fetched with the option to include output data.
-   * @returns {WorkflowFailureDetails | undefined} The failure details of the failed workflow instance or undefined.
-   */
-  public get workflowFailureDetails(): WorkflowFailureDetails | undefined {
-    return this._workflowFailureDetails;
+  get workflowFailureDetails(): WorkflowFailureDetails | undefined {
+    return this._failureDetails;
   }
 
-  /**
-   * Gets the workflow instance's custom status, if any, as a string value.
-   * @returns {string | undefined} The workflow instance's custom status or undefined.
-   */
-  public get customStatus(): string | undefined {
-    return this._orchestrationState.serializedCustomStatus;
+  get customStatus(): string | undefined {
+    const cs = this._state.serializedCustomStatus;
+    return cs;
   }
 }
