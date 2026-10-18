@@ -43,8 +43,6 @@ export class TaskHubWorker {
   private _isRunning = false;
   private _stopWorker = false;
   private _activeWorkItems = 0;
-  private readonly _maxConcurrentWorkItems = 10;
-  private readonly _workItemQueue: WorkItem[] = [];
   private _workItemStreamController?: AbortController;
 
   constructor(
@@ -118,17 +116,9 @@ export class TaskHubWorker {
         try {
           for await (const workItem of stream) {
             if (this._stopWorker) break;
-
-            if (this._activeWorkItems >= this._maxConcurrentWorkItems) {
-              if (this._workItemQueue.length < 100) {
-                this._workItemQueue.push(workItem);
-                this.logger.debug(`Queued work item (${this._workItemQueue.length} queued)`);
-              } else {
-                this.logger.warn("Work item queue full (100), dropping work item");
-              }
-              continue;
-            }
-
+            // Concurrency is admitted by the Dapr runtime (workflow.maxConcurrent*Invocations), so every
+            // work item is dispatched as it arrives. A work item that is not executed stays registered
+            // as in flight on this stream, stalling its workflow until the stream reconnects.
             this.dispatchWorkItem(workItem);
           }
         } finally {
@@ -191,17 +181,7 @@ export class TaskHubWorker {
       })
       .finally(() => {
         this._activeWorkItems--;
-        this.drainQueue();
       });
-  }
-
-  private drainQueue(): void {
-    while (this._workItemQueue.length > 0 && this._activeWorkItems < this._maxConcurrentWorkItems) {
-      const queued = this._workItemQueue.shift();
-      if (queued) {
-        this.dispatchWorkItem(queued);
-      }
-    }
   }
 
   private async executeOrchestrator(req: WorkflowRequest, completionToken: string): Promise<void> {
