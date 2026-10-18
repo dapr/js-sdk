@@ -12,7 +12,8 @@ limitations under the License.
 */
 
 import { GenericContainer, StartedTestContainer, StartedNetwork, Wait } from "testcontainers";
-import { Component, DaprContainer, DAPR_VERSION } from "@dapr/testcontainer-node";
+import { Component, DaprContainer } from "@dapr/testcontainer-node";
+import { DAPR_TEST_VERSION } from "./runtimeVersion";
 
 // ------------------------------------------------------------------
 // Version resolution
@@ -27,8 +28,6 @@ import { Component, DaprContainer, DAPR_VERSION } from "@dapr/testcontainer-node
 // Example:
 //   DAPR_RUNTIME_VERSION=1.18.0 npm run test:e2e:all
 // ------------------------------------------------------------------
-
-const DAPR_TEST_VERSION = process.env.DAPR_RUNTIME_VERSION || process.env.DAPR_RUNTIME_VER || DAPR_VERSION;
 
 /** daprd image at the configured test version. */
 export const DAPR_TEST_RUNTIME_IMAGE = `daprio/daprd:${DAPR_TEST_VERSION}`;

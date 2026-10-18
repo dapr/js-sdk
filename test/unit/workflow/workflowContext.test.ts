@@ -90,13 +90,31 @@ describe("WorkflowContext", () => {
 
       ctx.callActivity(myActivity as any, 5);
 
-      expect(mockInnerContext.callActivity).toHaveBeenCalledWith("myActivity", 5);
+      expect(mockInnerContext.callActivity).toHaveBeenCalledWith("myActivity", 5, undefined);
+    });
+
+    describe("with options", () => {
+      it("should pass options by function reference", () => {
+        const myActivity = async (_ctx: WorkflowActivityContext, input: number) => input + 1;
+        const options = { retryPolicy: { firstRetryInterval: 1, maxNumberOfAttempts: 3 } };
+
+        ctx.callActivity(myActivity as any, 5, options);
+
+        expect(mockInnerContext.callActivity).toHaveBeenCalledWith("myActivity", 5, options);
+      });
+
+      it("should pass options by activity name", () => {
+        const options = { retryPolicy: { firstRetryInterval: 1, maxNumberOfAttempts: 3 } };
+        ctx.callActivity("remoteActivity", "input", options);
+
+        expect(mockInnerContext.callActivity).toHaveBeenCalledWith("remoteActivity", "input", options);
+      });
     });
 
     it("should call activity by string name", () => {
       ctx.callActivity("remoteActivity", "input-data");
 
-      expect(mockInnerContext.callActivity).toHaveBeenCalledWith("remoteActivity", "input-data");
+      expect(mockInnerContext.callActivity).toHaveBeenCalledWith("remoteActivity", "input-data", undefined);
     });
 
     it("should call activity without input", () => {
@@ -104,7 +122,7 @@ describe("WorkflowContext", () => {
 
       ctx.callActivity(myActivity as any);
 
-      expect(mockInnerContext.callActivity).toHaveBeenCalledWith("myActivity", undefined);
+      expect(mockInnerContext.callActivity).toHaveBeenCalledWith("myActivity", undefined, undefined);
     });
   });
 
@@ -117,13 +135,54 @@ describe("WorkflowContext", () => {
 
       ctx.callChildWorkflow(childWorkflow, "input", "child-id");
 
-      expect(mockInnerContext.callSubOrchestrator).toHaveBeenCalledWith("childWorkflow", "input", "child-id");
+      expect(mockInnerContext.callSubOrchestrator).toHaveBeenCalledWith(
+        "childWorkflow",
+        "input",
+        "child-id",
+        undefined,
+      );
+    });
+
+    describe("with options", () => {
+      it("should pass options by workflow reference", () => {
+        // eslint-disable-next-line require-yield
+        const childWorkflow = async function* (_ctx: WorkflowContext): any {
+          return "child-result";
+        };
+        const options = { retryPolicy: { firstRetryInterval: 1, maxNumberOfAttempts: 3 } };
+
+        ctx.callChildWorkflow(childWorkflow, "input", "child-id", options);
+
+        expect(mockInnerContext.callSubOrchestrator).toHaveBeenCalledWith(
+          "childWorkflow",
+          "input",
+          "child-id",
+          options,
+        );
+      });
+
+      it("should pass options by workflow name", () => {
+        const options = { retryPolicy: { firstRetryInterval: 1, maxNumberOfAttempts: 3 } };
+        ctx.callChildWorkflow("remoteWorkflow", "input", undefined, options);
+
+        expect(mockInnerContext.callSubOrchestrator).toHaveBeenCalledWith(
+          "remoteWorkflow",
+          "input",
+          undefined,
+          options,
+        );
+      });
     });
 
     it("should call child workflow by string name", () => {
       ctx.callChildWorkflow("remoteWorkflow", "input", "child-id");
 
-      expect(mockInnerContext.callSubOrchestrator).toHaveBeenCalledWith("remoteWorkflow", "input", "child-id");
+      expect(mockInnerContext.callSubOrchestrator).toHaveBeenCalledWith(
+        "remoteWorkflow",
+        "input",
+        "child-id",
+        undefined,
+      );
     });
 
     it("should call child workflow without optional params", () => {
@@ -134,7 +193,12 @@ describe("WorkflowContext", () => {
 
       ctx.callChildWorkflow(childWorkflow);
 
-      expect(mockInnerContext.callSubOrchestrator).toHaveBeenCalledWith("childWorkflow", undefined, undefined);
+      expect(mockInnerContext.callSubOrchestrator).toHaveBeenCalledWith(
+        "childWorkflow",
+        undefined,
+        undefined,
+        undefined,
+      );
     });
   });
 
@@ -147,13 +211,18 @@ describe("WorkflowContext", () => {
 
       ctx.callSubWorkflow(subWorkflow, "input", "sub-id");
 
-      expect(mockInnerContext.callSubOrchestrator).toHaveBeenCalledWith("subWorkflow", "input", "sub-id");
+      expect(mockInnerContext.callSubOrchestrator).toHaveBeenCalledWith("subWorkflow", "input", "sub-id", undefined);
     });
 
     it("should delegate to callSubOrchestrator by string name", () => {
       ctx.callSubWorkflow("remoteOrchestrator", "input");
 
-      expect(mockInnerContext.callSubOrchestrator).toHaveBeenCalledWith("remoteOrchestrator", "input", undefined);
+      expect(mockInnerContext.callSubOrchestrator).toHaveBeenCalledWith(
+        "remoteOrchestrator",
+        "input",
+        undefined,
+        undefined,
+      );
     });
   });
 

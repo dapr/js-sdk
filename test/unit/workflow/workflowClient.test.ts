@@ -18,6 +18,7 @@ import { OrchestrationState } from "../../../src/workflow/engine/transport/TaskH
 import { TWorkflow } from "../../../src/types/workflow/Workflow.type";
 import WorkflowContext from "../../../src/workflow/runtime/WorkflowContext";
 import { WorkflowRuntimeStatus } from "../../../src/workflow/runtime/WorkflowRuntimeStatus";
+import { Code, ConnectError } from "@connectrpc/connect";
 
 const mockScheduleNewOrchestration = jest.fn();
 const mockGetOrchestrationState = jest.fn();
@@ -129,6 +130,24 @@ describe("DaprWorkflowClient", () => {
       expect(state).toBeUndefined();
     });
 
+    it("should return undefined for a not-found RPC error", async () => {
+      mockGetOrchestrationState.mockRejectedValue(new ConnectError("instance not found", Code.NotFound));
+
+      await expect(client.getWorkflowState("nonexistent", true)).resolves.toBeUndefined();
+    });
+
+    it("should return undefined for the legacy Dapr missing-instance error", async () => {
+      mockGetOrchestrationState.mockRejectedValue(new ConnectError("no such instance exists", Code.Unknown));
+
+      await expect(client.getWorkflowState("nonexistent", true)).resolves.toBeUndefined();
+    });
+
+    it("should propagate unrelated RPC errors", async () => {
+      mockGetOrchestrationState.mockRejectedValue(new ConnectError("sidecar unavailable", Code.Unavailable));
+
+      await expect(client.getWorkflowState("instance-1", true)).rejects.toThrow("sidecar unavailable");
+    });
+
     it("should include failure details for failed workflows", async () => {
       const now = new Date();
       const failureDetails = create(TaskFailureDetailsSchema, {
@@ -163,13 +182,7 @@ describe("DaprWorkflowClient", () => {
   describe("waitForWorkflowStart", () => {
     it("should return WorkflowState when workflow starts", async () => {
       const now = new Date();
-      const orchState = new OrchestrationState(
-        "instance-1",
-        "myWorkflow",
-        OrchestrationStatus.RUNNING,
-        now,
-        now,
-      );
+      const orchState = new OrchestrationState("instance-1", "myWorkflow", OrchestrationStatus.RUNNING, now, now);
       mockWaitForOrchestrationStart.mockResolvedValue(orchState);
 
       const state = await client.waitForWorkflowStart("instance-1", true, 30);
