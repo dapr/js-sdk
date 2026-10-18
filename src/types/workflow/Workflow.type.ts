@@ -1,5 +1,5 @@
 /*
-Copyright 2024 The Dapr Authors
+Copyright 2026 The Dapr Authors
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -12,10 +12,13 @@ limitations under the License.
 */
 
 import WorkflowContext from "../../workflow/runtime/WorkflowContext";
-import { Task } from "../../workflow/internal/durabletask/task/task";
-import { TOutput } from "./InputOutput.type";
+import type { Task } from "../../workflow/engine/task/Task";
+import type { TOutput } from "./InputOutput.type";
 
 /**
- * The type of the workflow.
+ * The type of the workflow function.
  */
-export type TWorkflow = (context: WorkflowContext, input: any) => Generator<Task<any>, any, any> | TOutput;
+export type TWorkflow = (
+  context: WorkflowContext,
+  input: any,
+) => Generator<Task<any>, any, any> | AsyncGenerator<Task<any>, any, any> | TOutput;

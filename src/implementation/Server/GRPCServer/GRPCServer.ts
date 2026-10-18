@@ -51,6 +51,7 @@ export default class GRPCServer implements IServer {
           onInvoke: (req, ctx) => impl.onInvoke(req, ctx),
           listTopicSubscriptions: (req, ctx) => impl.listTopicSubscriptions(req, ctx),
           onTopicEvent: (req, ctx) => impl.onTopicEvent(req, ctx),
+          onBulkTopicEvent: (req, ctx) => impl.onBulkTopicEventAlpha1(req, ctx),
           listInputBindings: (req, ctx) => impl.listInputBindings(req, ctx),
           onBindingEvent: (req, ctx) => impl.onBindingEvent(req, ctx),
         });

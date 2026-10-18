@@ -1,5 +1,5 @@
 /*
-Copyright 2024 The Dapr Authors
+Copyright 2026 The Dapr Authors
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -16,4 +16,7 @@ import WorkflowActivityContext from "../../workflow/runtime/WorkflowActivityCont
 /**
  * The type of the activity function.
  */
-export type TWorkflowActivity<TInput, TOutput> = (context: WorkflowActivityContext, input: TInput) => TOutput;
+export type TWorkflowActivity<TInput = any, TOutput = any> = (
+  context: WorkflowActivityContext,
+  input: TInput,
+) => TOutput | Promise<TOutput>;

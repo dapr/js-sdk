@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { OrchestrationStatus } from "../../../src/workflow/internal/durabletask/orchestration/enum/orchestration-status.enum";
+import { OrchestrationStatus } from "../../../src/proto/dapr/proto/durabletask/v1/orchestration_pb";
 import {
   WorkflowRuntimeStatus,
   fromOrchestrationStatus,

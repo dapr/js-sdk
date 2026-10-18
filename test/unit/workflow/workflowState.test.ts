@@ -11,9 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { OrchestrationStatus } from "../../../src/workflow/internal/durabletask/orchestration/enum/orchestration-status.enum";
-import { OrchestrationState } from "../../../src/workflow/internal/durabletask/orchestration/orchestration-state";
-import { FailureDetails } from "../../../src/workflow/internal/durabletask/task/failure-details";
+import { OrchestrationStatus } from "../../../src/proto/dapr/proto/durabletask/v1/orchestration_pb";
+import { create } from "@bufbuild/protobuf";
+import { TaskFailureDetailsSchema } from "../../../src/proto/dapr/proto/durabletask/v1/orchestration_pb";
+import { OrchestrationState } from "../../../src/workflow/engine/transport/TaskHubClient";
 import { WorkflowState } from "../../../src/workflow/client/WorkflowState";
 import { WorkflowRuntimeStatus } from "../../../src/workflow/runtime/WorkflowRuntimeStatus";
 
@@ -23,11 +24,11 @@ describe("WorkflowState", () => {
 
   describe("constructor", () => {
     it("should throw if orchestrationState is null", () => {
-      expect(() => new WorkflowState(null as any)).toThrow("OrchestrationMetadata cannot be null");
+      expect(() => new WorkflowState(null as any)).toThrow("WorkflowState cannot be null");
     });
 
     it("should throw if orchestrationState is undefined", () => {
-      expect(() => new WorkflowState(undefined as any)).toThrow("OrchestrationMetadata cannot be null");
+      expect(() => new WorkflowState(undefined as any)).toThrow("WorkflowState cannot be null");
     });
   });
 
@@ -95,7 +96,11 @@ describe("WorkflowState", () => {
 
   describe("workflowFailureDetails", () => {
     it("should populate failure details for failed workflows", () => {
-      const failureDetails = new FailureDetails("Something broke", "TypeError", "Error: Something broke\n    at ...");
+      const failureDetails = create(TaskFailureDetailsSchema, {
+        errorType: "TypeError",
+        errorMessage: "Something broke",
+        stackTrace: "Error: Something broke\n    at ...",
+      });
       const orchState = new OrchestrationState(
         "instance-failed",
         "failWorkflow",

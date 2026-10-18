@@ -23,47 +23,139 @@ on:
     branches:
       - main
       - release-*
-  # Manual trigger
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      dapr_runtime_version:
+        description: >
+          Dapr runtime version to test against (for example, 1.16.4 or 1.17.0-rc.1).
+          Leave blank to test the dynamically selected supported versions.
+        required: false
+        default: ""
 
 permissions:
   id-token: write # Required for OIDC
   contents: read
 
 env:
-  NODE_VER: 24
+  NODE_VER: 22.16.0
+  NPM_CONFIG_MIN_RELEASE_AGE: ""
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        node_version: [22.16.0]
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup Node ${{ matrix.node_version }}
+      - name: Setup Node ${{ env.NODE_VER }}
         uses: actions/setup-node@v6
         with:
-          node-version: ${{ matrix.node_version }}
+          node-version: ${{ env.NODE_VER }}
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Build package (lint, prettier, build)
+      - name: Build package
         run: npm run build
 
-      # @TODO: add a depend on the test-e2e pipeline?
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-build
+          path: build
+
+  unit-tests:
+    name: Unit tests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node ${{ env.NODE_VER }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VER }}
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Run unit tests
         id: tests
         run: npm run test:unit:all
 
       - name: Upload test coverage
         uses: codecov/codecov-action@ad3126e916f78f00edff4ed0317cf185271ccc2d # v5.4.2
+        with:
+          name: unit-tests
+          flags: unit
+
+  get-dapr-versions:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix_json: ${{ steps.manual.outputs.matrix_json || steps.select.outputs.matrix_json }}
+    steps:
+      - id: select
+        name: Select supported Dapr versions
+        if: inputs.dapr_runtime_version == ''
+        uses: dapr/dotnet-sdk/.github/tools/tag-selector@dd2d9deba4dd7e94502052f87e6013bb900f010a
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag_prefix: "v"
+          stable_count: "3"
+          rc_count: "1"
+          rc_identifier: "rc"
+
+      - id: manual
+        name: Select requested Dapr version
+        if: inputs.dapr_runtime_version != ''
+        env:
+          DAPR_RUNTIME_VERSION: ${{ inputs.dapr_runtime_version }}
+        run: |
+          node -e 'const fs = require("fs"); fs.appendFileSync(process.env.GITHUB_OUTPUT, "matrix_json=" + JSON.stringify([{ version: process.env.DAPR_RUNTIME_VERSION }]) + "\n");'
+
+  e2e:
+    name: E2E (Dapr ${{ matrix.dapr_runtime.version }})
+    needs: [build, get-dapr-versions]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dapr_runtime: ${{ fromJson(needs.get-dapr-versions.outputs.matrix_json) }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node ${{ env.NODE_VER }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VER }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download package
+        uses: actions/download-artifact@v4
+        with:
+          name: sdk-build
+          path: build
+
+      - name: Run E2E tests
+        run: npm run test:e2e:all
+        env:
+          DAPR_RUNTIME_VERSION: ${{ matrix.dapr_runtime.version }}
+
+      - name: Verify TypeScript package consumption
+        working-directory: test/e2e/typescript-build
+        run: |
+          npm install
+          npm run start
+
+      - name: Upload test coverage
+        uses: codecov/codecov-action@ad3126e916f78f00edff4ed0317cf185271ccc2d # v5.4.2
+        with:
+          name: e2e-dapr-${{ matrix.dapr_runtime.version }}
+          flags: e2e
 
   publish:
-    needs: build
+    needs: [build, unit-tests, e2e]
     if: startswith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     environment: production
@@ -83,7 +175,7 @@ jobs:
           npm version --no-git-tag-version "$TAG"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build package
         run: npm run build-ci
@@ -92,41 +184,3 @@ jobs:
         run: npm publish build/ --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-  publish-dev:
-    needs: build
-    if: startsWith(github.ref, 'refs/heads/main')
-    runs-on: ubuntu-latest
-    environment: development
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Setup Node ${{ env.NODE_VER }}
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.NODE_VER }}
-          registry-url: "https://registry.npmjs.org"
-
-      - name: Configure package name
-        run: |
-          sed -i s#"@dapr/dapr"#"@dapr/dapr-dev"# package.json
-          cat <(echo "WARNING: This is a development version of the SDK. It is not recommended to use this version in production.\n") README.md > README.md.tmp
-          mv README.md.tmp README.md
-
-      - name: Configure version
-        run: |
-          # Version should be in the format of <latest>-dev.<date>.<commit-hash>
-          # e.g. 3.2.0-dev.20220101.abcdef
-          BASE_VERSION=$(npm view @dapr/dapr version)
-          DATE=$(date -u +"%Y%m%d")
-          COMMIT_HASH=$(git rev-parse --short HEAD)
-          npm version --no-git-tag-version "${BASE_VERSION}-dev.${DATE}.${COMMIT_HASH}"
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build package
-        run: npm run build-ci
-
-      - name: Publish to npm (@dapr/dapr-dev)
-        run: npm publish build/ --access public
