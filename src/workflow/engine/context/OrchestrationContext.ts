@@ -17,6 +17,7 @@ import type { ExternalEventOptions } from "../../../types/workflow/ExternalEvent
 import type { ActivityContext } from "./ActivityContext";
 import type { ActivityOptions } from "../../../types/workflow/ActivityOptions.type";
 import type { ChildWorkflowOptions } from "../../../types/workflow/ChildWorkflowOptions.type";
+import type { DetachedWorkflowOptions } from "../../../types/workflow/DetachedWorkflowOptions.type";
 import type { PropagatedHistory } from "../../runtime/PropagatedHistory";
 
 export type AnyGenerator<T> = AsyncGenerator<T, unknown, unknown> | Generator<T, unknown, unknown>;
@@ -48,6 +49,15 @@ export abstract class OrchestrationContext {
     instanceId?: string,
     options?: ChildWorkflowOptions,
   ): Task<TOutput>;
+  scheduleNewDetachedWorkflow<TInput>(
+    _workflow: TOrchestrator | string,
+    _input?: TInput,
+    _instanceId?: string,
+    _startAt?: Date,
+    _options?: DetachedWorkflowOptions,
+  ): Task<string> {
+    throw new Error("This orchestration context does not support detached workflows");
+  }
   abstract waitForExternalEvent(name: string, options?: ExternalEventOptions): CancellableTask<unknown>;
   abstract continueAsNew(newInput: unknown, saveEvents: boolean): void;
   abstract setCustomStatus(status: unknown): void;
