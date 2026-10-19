@@ -73,6 +73,7 @@ describe("actor reminder retrieval", () => {
 
   describe("gRPC", () => {
     const client = new GRPCClient({ daprHost: "127.0.0.1", daprPort: "50001" });
+    client.setIsInitialized(true);
     const actor = new ActorClientGRPC(client);
 
     async function mockResponse(response = create(GetActorReminderResponseSchema)) {
