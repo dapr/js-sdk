@@ -218,7 +218,13 @@ export class TaskHubWorker {
 
     try {
       const executor = new OrchestrationExecutor(this._registry);
-      const result = await executor.execute(instanceId, req.pastEvents, req.newEvents);
+      const result = await executor.execute(
+        instanceId,
+        req.pastEvents,
+        req.newEvents,
+        req.router,
+        req.propagatedHistory,
+      );
 
       res = create(WorkflowResponseSchema, {
         instanceId,
@@ -265,7 +271,7 @@ export class TaskHubWorker {
 
     try {
       const executor = new ActivityExecutor(this._registry);
-      const result = await executor.execute(instanceId, req.name, req.taskId, req.input);
+      const result = await executor.execute(instanceId, req.name, req.taskId, req.input, req.propagatedHistory);
 
       res = create(ActivityResponseSchema, {
         instanceId,
@@ -288,7 +294,9 @@ export class TaskHubWorker {
       await this.client.completeActivityTask(res);
     } catch (e: unknown) {
       this.logger.error(
-        `Failed to deliver activity response for '${req.name}#${req.taskId}' of orchestration ID '${instanceId}': ${(e as Error)?.message}`,
+        `Failed to deliver activity response for '${req.name}#${req.taskId}' of orchestration ID '${instanceId}': ${
+          (e as Error)?.message
+        }`,
       );
     }
   }
