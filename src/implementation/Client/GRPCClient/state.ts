@@ -21,8 +21,8 @@ import {
   QueryStateRequestSchema,
   SaveStateRequestSchema,
   TransactionalStateOperationSchema,
-} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
-import { Etag, EtagSchema, StateItem, StateItemSchema, StateOptions, StateOptionsSchema } from "../../../proto/dapr/proto/common/v1/common_pb";
+} from "../../../proto/dapr/proto/runtime/v1/state_pb";
+import { EtagSchema, StateItem, StateItemSchema, StateOptions, StateOptionsSchema } from "../../../proto/dapr/proto/common/v1/common_pb";
 import { KeyValuePairType } from "../../../types/KeyValuePair.type";
 import { OperationType } from "../../../types/Operation.type";
 import { IRequestMetadata } from "../../../types/RequestMetadata.type";

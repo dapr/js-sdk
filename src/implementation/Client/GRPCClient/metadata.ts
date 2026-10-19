@@ -13,7 +13,7 @@ limitations under the License.
 
 import { create } from "@bufbuild/protobuf";
 import GRPCClient from "./GRPCClient";
-import { GetMetadataRequestSchema, SetMetadataRequestSchema } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import { GetMetadataRequestSchema, SetMetadataRequestSchema } from "../../../proto/dapr/proto/runtime/v1/metadata_pb";
 import IClientMetadata from "../../../interfaces/Client/IClientMetadata";
 import { GetMetadataResponse as GetMetadataResponseResult } from "../../../types/metadata/GetMetadataResponse";
 
@@ -126,4 +126,3 @@ export default class GRPCClientMetadata implements IClientMetadata {
     }
   }
 }
-

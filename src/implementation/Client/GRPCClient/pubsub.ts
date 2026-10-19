@@ -17,7 +17,7 @@ import {
   BulkPublishRequestEntrySchema,
   BulkPublishRequestSchema,
   PublishEventRequestSchema,
-} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+} from "../../../proto/dapr/proto/runtime/v1/pubsub_pb";
 import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 import { Logger } from "../../../logger/Logger";
 import * as SerializerUtil from "../../../utils/Serializer.util";
