@@ -13,12 +13,14 @@ limitations under the License.
 
 import { Network, StartedNetwork, StartedTestContainer, TestContainers } from "testcontainers";
 import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
-import { CommunicationProtocolEnum, DaprClient, DaprServer, DaprPubSubStatusEnum } from "../../../src";
+import { CommunicationProtocolEnum, DaprClient, DaprServer, DaprPubSubStatusEnum, HttpMethod } from "../../../src";
+import { CustomSerializer, CustomJsonSerializer, CustomBinarySerializer } from "../../fixtures/CustomSerializer";
 import { DaprGrpcAppContainer, StartedGrpcDaprContainer } from "../helpers/DaprGrpcAppContainer";
 import {
   startRedisContainer,
   startMqttContainer,
   buildPubSubMqttComponent,
+  buildInMemoryPubSubComponent,
   DAPR_TEST_RUNTIME_IMAGE,
   DAPR_TEST_PLACEMENT_IMAGE,
   DAPR_TEST_SCHEDULER_IMAGE,
@@ -26,6 +28,134 @@ import {
 } from "../helpers/containers";
 
 const pubSubName = "pubsub-mqtt"; // MQTT is required by the tests with wildcard routes
+
+describe.each([
+  { communicationProtocol: CommunicationProtocolEnum.HTTP, serializer: new CustomSerializer() },
+  { communicationProtocol: CommunicationProtocolEnum.GRPC, serializer: new CustomSerializer() },
+  { communicationProtocol: CommunicationProtocolEnum.HTTP, serializer: new CustomJsonSerializer() },
+  { communicationProtocol: CommunicationProtocolEnum.GRPC, serializer: new CustomJsonSerializer() },
+  { communicationProtocol: CommunicationProtocolEnum.HTTP, serializer: new CustomBinarySerializer() },
+  { communicationProtocol: CommunicationProtocolEnum.GRPC, serializer: new CustomBinarySerializer() },
+])(
+  "custom serialization server/$communicationProtocol/$serializer.contentType",
+  ({ communicationProtocol, serializer }) => {
+    const appPort = communicationProtocol === CommunicationProtocolEnum.HTTP ? 3523 : 3524;
+    const appId = `serialization-${communicationProtocol}`;
+    let server: DaprServer;
+    let network: StartedNetwork;
+    let sidecar: StartedDaprContainer | StartedGrpcDaprContainer;
+    const received: unknown[] = [];
+    const bulkReceived: unknown[] = [];
+
+    beforeAll(async () => {
+      network = await new Network().start();
+      await TestContainers.exposeHostPorts(appPort);
+      server = new DaprServer({
+        communicationProtocol,
+        serverHost: "127.0.0.1",
+        serverPort: appPort.toString(),
+        clientOptions: { serializer },
+      });
+      await server.invoker.listen("echo", async (request) => serializer.deserialize<object>(request.body ?? ""), {
+        method: HttpMethod.POST,
+      });
+      await server.invoker.listen("false", async () => false, { method: HttpMethod.POST });
+      await server.pubsub.subscribe("pubsub", "custom", async (value) => {
+        received.push(value);
+      });
+      await server.pubsub.subscribeBulk(
+        "pubsub",
+        "custom-bulk",
+        async (value) => {
+          bulkReceived.push(value);
+        },
+        serializer.contentType === "application/octet-stream" ? { metadata: { rawPayload: true } } : {},
+      );
+      await server.daprServer.start("127.0.0.1", appPort.toString());
+      sidecar =
+        communicationProtocol === CommunicationProtocolEnum.HTTP
+          ? await new DaprContainer(DAPR_TEST_RUNTIME_IMAGE)
+              .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
+              .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE)
+              .withNetwork(network)
+              .withAppName(appId)
+              .withAppPort(appPort)
+              .withAppChannelAddress("host.testcontainers.internal")
+              .withComponent(buildInMemoryPubSubComponent())
+              .start()
+          : await new DaprGrpcAppContainer()
+              .withNetwork(network)
+              .withAppId(appId)
+              .withAppPort(appPort)
+              .withAppChannelAddress("host.testcontainers.internal")
+              .withComponent(buildInMemoryPubSubComponent())
+              .start();
+    }, 180000);
+
+    afterAll(async () => {
+      await runWithCleanupErrorSuppression(async () => {
+        await server.stop();
+        await sidecar.stop();
+        await network.stop();
+      });
+    });
+
+    it.each([CommunicationProtocolEnum.HTTP, CommunicationProtocolEnum.GRPC])(
+      "round-trips invocation and single/bulk publishing from %s",
+      async (senderProtocol) => {
+        const client = new DaprClient({
+          communicationProtocol: senderProtocol,
+          daprHost: sidecar.getHost(),
+          daprPort: (senderProtocol === CommunicationProtocolEnum.HTTP
+            ? sidecar.getHttpPort()
+            : sidecar.getGrpcPort()
+          ).toString(),
+          serializer,
+        });
+        const value = { protocol: senderProtocol, count: 9007199254740993n };
+        try {
+          expect(await client.invoker.invoke(appId, "echo", HttpMethod.POST, value)).toEqual(value);
+          expect(await client.invoker.invoke(appId, "false", HttpMethod.POST, {})).toBe(false);
+          expect(await client.pubsub.publish("pubsub", "custom", value)).toEqual({});
+          expect(
+            await client.pubsub.publishBulk(
+              "pubsub",
+              "custom-bulk",
+              [value],
+              serializer.contentType === "application/octet-stream" ? { rawPayload: "true" } : undefined,
+            ),
+          ).toEqual({ failedMessages: [] });
+          const explicit = { ...value, count: value.count + 1n };
+          expect(
+            await client.pubsub.publishBulk(
+              "pubsub",
+              "custom-bulk",
+              [{ entryID: "explicit", event: explicit, contentType: "text/plain" }],
+              serializer.contentType === "application/octet-stream" ? { rawPayload: "true" } : undefined,
+            ),
+          ).toEqual({ failedMessages: [] });
+          const deadline = Date.now() + 10000;
+          while (
+            Date.now() < deadline &&
+            (!received.some((item) => serializer.serialize(item) === serializer.serialize(value)) ||
+              ![value, explicit].every((expected) =>
+                bulkReceived.some((item) => serializer.serialize(item) === serializer.serialize(expected)),
+              ))
+          ) {
+            await new Promise((resolve) => setTimeout(resolve, 50));
+          }
+          expect(received).toContainEqual(value);
+          expect(bulkReceived).toContainEqual(value);
+          expect(bulkReceived).toContainEqual(explicit);
+        } finally {
+          await client.stop();
+        }
+      },
+      30000,
+    );
+  },
+);
+
 const topicDefault = "test-topic";
 const topicRawPayload = "test-topic-raw";
 const topicOptionsWithCallback = "test-topic-options-callback";
@@ -132,11 +262,20 @@ describe("common/server/http", () => {
     // Register all subscriptions before starting the server
     await httpServer.pubsub.subscribe(pubSubName, getTopic(topicDefault), mockSubscribeHandler);
 
-    await httpServer.pubsub.subscribeBulk(pubSubName, getTopic(bulkSubscribeTopic), mockBulkSubscribeRawPayloadHandler, {
-      metadata: { rawPayload: true },
-    });
+    await httpServer.pubsub.subscribeBulk(
+      pubSubName,
+      getTopic(bulkSubscribeTopic),
+      mockBulkSubscribeRawPayloadHandler,
+      {
+        metadata: { rawPayload: true },
+      },
+    );
 
-    await httpServer.pubsub.subscribeBulk(pubSubName, getTopic(bulkSubscribeClodEventTopic), mockBulkSubscribeCEHandler);
+    await httpServer.pubsub.subscribeBulk(
+      pubSubName,
+      getTopic(bulkSubscribeClodEventTopic),
+      mockBulkSubscribeCEHandler,
+    );
 
     await httpServer.pubsub.subscribeBulk(
       pubSubName,
@@ -240,7 +379,6 @@ describe("common/server/http", () => {
       await network.stop();
     });
   }, 60 * 1000);
-
 
   describe("pubsub", () => {
     it("should mark messages as processed successfully (SUCCESS) by-default, and the same message should not be received anymore", async () => {

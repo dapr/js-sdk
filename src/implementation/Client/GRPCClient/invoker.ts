@@ -105,7 +105,11 @@ export default class GRPCClientInvoker implements IClientInvoker {
       verb: HttpVerbUtil.convertHttpVerbStringToNumber(method),
     });
 
-    const { serializedData, contentType } = SerializerUtil.serializeGrpc(data);
+    const { serializedData, contentType } = SerializerUtil.serializeGrpc(
+      data,
+      this.client.options.serializer ? _options.headers?.["Content-Type"] : undefined,
+      this.client.options.serializer,
+    );
     const msgSerialized = create(AnySchema, { value: serializedData });
 
     const msgInvoke = create(InvokeRequestSchema, {
@@ -129,6 +133,10 @@ export default class GRPCClientInvoker implements IClientInvoker {
       resData = Buffer.from(res.data.value).toString();
     }
 
+    if (this.client.options.serializer) {
+      return this.client.options.serializer.deserialize<object>(resData);
+    }
+
     try {
       return JSON.parse(resData);
     } catch (e) {
@@ -141,4 +149,3 @@ export default class GRPCClientInvoker implements IClientInvoker {
     }
   }
 }
-

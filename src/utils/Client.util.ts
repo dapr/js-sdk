@@ -166,14 +166,17 @@ export function getContentType(data: any): string {
  * @param messages pubsub bulk publish messages
  * @returns configured entries
  */
-export function getBulkPublishEntries(messages: PubSubBulkPublishMessage[]): PubSubBulkPublishEntry[] {
+export function getBulkPublishEntries(
+  messages: PubSubBulkPublishMessage[],
+  defaultContentType?: string,
+): PubSubBulkPublishEntry[] {
   return messages.map((message) => {
     // If message is a PubSubBulkPublishEntry, use it directly
     if (typeof message !== "string" && "event" in message) {
       return {
         entryID: message.entryID ? message.entryID : randomUUID(),
         event: message.event,
-        contentType: message.contentType ? message.contentType : getContentType(message.event),
+        contentType: message.contentType ? message.contentType : defaultContentType ?? getContentType(message.event),
         metadata: message.metadata ? message.metadata : {},
       };
     }
@@ -181,7 +184,7 @@ export function getBulkPublishEntries(messages: PubSubBulkPublishMessage[]): Pub
     return {
       entryID: randomUUID(),
       event: message,
-      contentType: getContentType(message),
+      contentType: defaultContentType ?? getContentType(message),
       metadata: {},
     };
   });
@@ -265,5 +268,6 @@ export function getClientOptions(
     actor: clientOptions?.actor,
     daprApiToken: clientOptions?.daprApiToken ?? Settings.getDefaultApiToken(),
     maxBodySizeMb: clientOptions?.maxBodySizeMb,
+    serializer: clientOptions?.serializer,
   };
 }

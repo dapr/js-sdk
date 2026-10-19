@@ -26,6 +26,7 @@ import {
   runWithCleanupErrorSuppression,
 } from "../helpers/containers";
 import { minimumDaprRuntime } from "../helpers/runtimeVersion";
+import { CustomSerializer } from "../../fixtures/CustomSerializer";
 
 describe("workflow", () => {
   let workflowHarness: WorkflowHarness;
@@ -76,6 +77,80 @@ describe("workflow", () => {
     }
     throw new Error(`Workflow ${instanceId} did not publish custom status before timeout`);
   };
+
+  it("round-trips custom payloads through replay, events, continue-as-new, activities and child workflows", async () => {
+    const serializer = new CustomSerializer();
+    const options = {
+      daprHost: workflowHarness.getHost(),
+      daprPort: workflowHarness.getGrpcPort().toString(),
+      serializer,
+    };
+    await workflowClient.stop();
+    workflowClient = new DaprWorkflowClient(options);
+    workflowRuntime = new WorkflowRuntime(options);
+    const echo = (_ctx: WorkflowActivityContext, input: bigint) => {
+      expect(typeof input).toBe("bigint");
+      return input;
+    };
+    const child: TWorkflow = async (_ctx: WorkflowContext, input: bigint) => {
+      expect(typeof input).toBe("bigint");
+      return input + 1n;
+    };
+    const workflow: TWorkflow = function* (
+      ctx: WorkflowContext,
+      input: { count: bigint; restarted: boolean },
+    ): Generator<Task<unknown>, unknown, unknown> {
+      expect(typeof input.count).toBe("bigint");
+      if (!input.restarted) {
+        ctx.setCustomStatus({ waiting: true, count: input.count });
+        const delta = (yield ctx.waitForExternalEvent<bigint>("add")) as bigint;
+        ctx.continueAsNew({ count: input.count + delta, restarted: true });
+        return;
+      }
+      const count = (yield ctx.callActivity(echo, input.count)) as bigint;
+      const result = yield ctx.callChildWorkflow(child, count);
+      ctx.setCustomStatus({ result });
+      return result;
+    };
+    workflowRuntime.registerWorkflow(workflow).registerWorkflow(child).registerActivity(echo);
+    await workflowRuntime.start();
+    const input = { count: 9007199254740993n, restarted: false };
+    const id = await workflowClient.scheduleNewWorkflow(workflow, input);
+    const started = await workflowClient.waitForWorkflowStart(id, true, 30);
+    expect(started?.getInput()).toEqual(input);
+    await workflowClient.raiseEvent(id, "add", 2n);
+    const state = await workflowClient.waitForWorkflowCompletion(id, true, 30);
+    expect(state?.runtimeStatus).toBe(WorkflowRuntimeStatus.COMPLETED);
+    expect(state?.workflowFailureDetails).toBeUndefined();
+    expect(state?.getOutput<bigint>()).toBe(input.count + 3n);
+    expect(state?.serializedOutput).toBe(serializer.serialize(input.count + 3n));
+    expect(state?.getCustomStatus()).toEqual({ result: input.count + 3n });
+    const fetched = await workflowClient.getWorkflowState(id, true);
+    expect(fetched?.getOutput<bigint>()).toBe(input.count + 3n);
+  }, 60000);
+
+  it("preserves default JSON omission across workflow inputs, activities, results and custom status", async () => {
+    const omitted = { toJSON: () => undefined };
+    const activity = () => omitted;
+    const workflow: TWorkflow = function* (
+      ctx: WorkflowContext,
+      input: unknown,
+    ): Generator<Task<unknown>, unknown, unknown> {
+      expect(input).toBeUndefined();
+      ctx.setCustomStatus(omitted);
+      expect(yield ctx.callActivity(activity)).toBeUndefined();
+      return omitted;
+    };
+    workflowRuntime.registerWorkflow(workflow).registerActivity(activity);
+    await workflowRuntime.start();
+    const id = await workflowClient.scheduleNewWorkflow(workflow, omitted);
+    const state = await workflowClient.waitForWorkflowCompletion(id, true, 30);
+    expect(state?.runtimeStatus).toBe(WorkflowRuntimeStatus.COMPLETED);
+    expect(state?.workflowFailureDetails).toBeUndefined();
+    expect(state?.getInput()).toBeUndefined();
+    expect(state?.getOutput()).toBeUndefined();
+    expect(state?.getCustomStatus()).toBeUndefined();
+  }, 31000);
 
   it("should be able to run an empty orchestration", async () => {
     let invoked = false;

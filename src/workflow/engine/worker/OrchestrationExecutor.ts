@@ -24,13 +24,15 @@ import { Registry } from "./Registry";
 import { OrchestrationExecuteResult } from "./OrchestrationExecuteResult";
 import { isEmpty, getOrchestrationStatusStr, decodePropagatedHistory } from "./protoHelpers";
 import { Logger } from "../../../logger/Logger";
+import { IDaprSerializer } from "../../../serialization/IDaprSerializer";
+import { deserializeWorkflowValue } from "../../../serialization/Serialization.util";
 
 export class OrchestrationExecutor {
   private readonly logger = new Logger("Workflow", "OrchestrationExecutor");
   private _isSuspended = false;
   private _suspendedEvents: HistoryEvent[] = [];
 
-  constructor(private readonly _registry: Registry) {}
+  constructor(private readonly _registry: Registry, private readonly serializer?: IDaprSerializer) {}
 
   async execute(
     instanceId: string,
@@ -47,10 +49,10 @@ export class OrchestrationExecutor {
     const appRouter = startEvent?.router ?? router;
     const appId = appRouter?.targetAppID || appRouter?.sourceAppID;
 
-    let ctx = new OrchestrationRuntimeContext(instanceId, appId);
+    let ctx = new OrchestrationRuntimeContext(instanceId, appId, undefined, this.serializer);
     try {
       const history = decodePropagatedHistory(propagatedHistory);
-      ctx = new OrchestrationRuntimeContext(instanceId, appId, history);
+      ctx = new OrchestrationRuntimeContext(instanceId, appId, history, this.serializer);
       this.logger.debug(`${instanceId}: Rebuilding local state with ${oldEvents.length} history event...`);
       ctx._isReplaying = true;
 
@@ -132,7 +134,7 @@ export class OrchestrationExecutor {
         let input: unknown = undefined;
         const rawInput = executionStartedEvent.input;
         if (rawInput != null && rawInput !== "") {
-          input = JSON.parse(rawInput);
+          input = deserializeWorkflowValue(rawInput, this.serializer);
         }
 
         const result = await fn(ctx, input);
@@ -236,7 +238,7 @@ export class OrchestrationExecutor {
 
         let result: unknown;
         if (!isEmpty(taskCompletedEvent.result)) {
-          result = JSON.parse(taskCompletedEvent.result ?? "");
+          result = deserializeWorkflowValue(taskCompletedEvent.result ?? "", this.serializer);
         }
 
         activityTask.complete(result);
@@ -307,7 +309,7 @@ export class OrchestrationExecutor {
 
         let result: unknown;
         if (!isEmpty(subCompletedEvent.result)) {
-          result = JSON.parse(subCompletedEvent.result ?? "");
+          result = deserializeWorkflowValue(subCompletedEvent.result ?? "", this.serializer);
         }
 
         if (subOrchTask) {
@@ -367,7 +369,7 @@ export class OrchestrationExecutor {
           const eventTask = taskList.shift();
 
           if (!isEmpty(eventType.value.input)) {
-            decodedResult = JSON.parse(eventType.value.input ?? "");
+            decodedResult = deserializeWorkflowValue(eventType.value.input ?? "", this.serializer);
           }
 
           if (eventTask) {
@@ -391,7 +393,7 @@ export class OrchestrationExecutor {
           }
 
           if (!isEmpty(eventType.value.input)) {
-            decodedResult = JSON.parse(eventType.value.input ?? "");
+            decodedResult = deserializeWorkflowValue(eventType.value.input ?? "", this.serializer);
           }
 
           eventList?.push(decodedResult);

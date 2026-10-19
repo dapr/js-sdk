@@ -33,6 +33,8 @@ import { OrchestrationExecutor } from "../worker/OrchestrationExecutor";
 import { ActivityExecutor } from "../worker/ActivityExecutor";
 import { newCompleteWorkflowAction, newFailureDetails } from "../worker/protoHelpers";
 import { Logger } from "../../../logger/Logger";
+import { IDaprSerializer } from "../../../serialization/IDaprSerializer";
+import { serializeWorkflowValue } from "../../../serialization/Serialization.util";
 import { type GrpcChannelOptions, mapGrpcOptions } from "../../../types/workflow/WorkflowClientOption";
 
 export class TaskHubWorker {
@@ -54,6 +56,7 @@ export class TaskHubWorker {
     useTLS = false,
     maxMessageSize = 128 * 1024 * 1024,
     grpcOptions?: GrpcChannelOptions,
+    private readonly serializer?: IDaprSerializer,
   ) {
     this._registry = new Registry();
 
@@ -217,7 +220,7 @@ export class TaskHubWorker {
     let res: WorkflowResponse;
 
     try {
-      const executor = new OrchestrationExecutor(this._registry);
+      const executor = new OrchestrationExecutor(this._registry, this.serializer);
       const result = await executor.execute(
         instanceId,
         req.pastEvents,
@@ -229,7 +232,8 @@ export class TaskHubWorker {
       res = create(WorkflowResponseSchema, {
         instanceId,
         actions: result.actions,
-        customStatus: result.customStatus != null ? JSON.stringify(result.customStatus) : undefined,
+        customStatus:
+          result.customStatus != null ? serializeWorkflowValue(result.customStatus, this.serializer) : undefined,
         completionToken,
       });
     } catch (e: unknown) {
@@ -270,7 +274,7 @@ export class TaskHubWorker {
     let res: ActivityResponse;
 
     try {
-      const executor = new ActivityExecutor(this._registry);
+      const executor = new ActivityExecutor(this._registry, this.serializer);
       const result = await executor.execute(instanceId, req.name, req.taskId, req.input, req.propagatedHistory);
 
       res = create(ActivityResponseSchema, {

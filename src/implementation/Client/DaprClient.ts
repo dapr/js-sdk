@@ -331,6 +331,7 @@ export default class DaprClient {
       actor: options.actor,
       daprApiToken: options.daprApiToken,
       maxBodySizeMb: options.maxBodySizeMb,
+      serializer: options.serializer,
     };
   }
 
