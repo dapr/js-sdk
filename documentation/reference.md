@@ -234,6 +234,80 @@ the outstanding RPC on expiry instead of leaving it running. They reject with
 
 ## State Management
 
+## Binary Store
+
+`client.binaryStore` implements the Dapr Binary Store alpha API over HTTP and
+gRPC, following the .NET SDK's binary file operations. It requires Dapr 1.19
+or later (for prereleases, use 1.19.0-rc.3 or later) and a configured binary
+store component, for example:
+
+```yaml
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: binarystore
+spec:
+  type: binarystore.in-memory
+  version: v1
+  metadata:
+    - name: maxSize
+      value: "8Mi"
+    - name: maxTotalSize
+      value: "32Mi"
+```
+
+The in-memory component loses its files when the sidecar stops. Its per-file
+and total-capacity limits apply independently of SDK upload chunk sizes.
+
+```typescript
+import { createReadStream, createWriteStream } from "node:fs";
+import { DaprClient } from "@dapr/dapr";
+
+const client = new DaprClient(); // HTTP; gRPC is also supported
+await client.binaryStore.setBinaryFile("binarystore", "document.bin", Buffer.from([0, 128, 255]));
+const bytes = await client.binaryStore.getBinaryFileBytes("binarystore", "document.bin");
+
+await client.binaryStore.setBinaryFile("binarystore", "document.bin", createReadStream("document.bin"), {
+  overwrite: true,
+  chunkSize: 32 * 1024,
+});
+await client.binaryStore.getBinaryFile("binarystore", "document.bin", createWriteStream("download.bin"));
+
+for await (const chunk of client.binaryStore.getBinaryFileChunks("binarystore", "document.bin")) {
+  // Process each Buffer without loading the complete file into memory.
+}
+await client.binaryStore.deleteBinaryFile("binarystore", "document.bin");
+await client.stop();
+```
+
+Uploads accept `Uint8Array` (including `Buffer`) or a binary Node.js `Readable`.
+Empty files are supported. Upload chunks default to 32 KiB; `chunkSize` must be
+a positive safe integer. Files are **not** overwritten unless `overwrite: true`
+is supplied. Downloads expose ordered `Buffer` chunks, buffer the complete file
+with `getBinaryFileBytes`, or write with backpressure using `getBinaryFile`.
+The destination is ended on success and destroyed on failure; upload streams
+are consumed and may be destroyed on cancellation or failure.
+
+All methods accept an options object with `signal: AbortSignal` for cancellation.
+Breaking out of a chunk download closes the response stream. Runtime failures,
+including duplicate files, missing files or stores, and size limits, reject
+instead of returning empty content. gRPC preserves `ConnectError` codes; HTTP
+errors include the status and runtime response body.
+
+Nested names such as `folder/document.bin` are supported. Empty names, leading
+or trailing slashes, empty segments, `.` or `..` segments, and the characters
+`\ * ? [ ] #` are rejected. Names are URL-encoded for HTTP, not treated as URLs.
+
+Run the Docker-backed integration suite with a compatible runtime:
+
+```powershell
+$env:DAPR_RUNTIME_VERSION = "1.19.0-rc.4"
+npm run test:e2e:binarystore
+```
+
+The suite exercises both protocols and cross-protocol reads using an authenticated
+sidecar. It is included in `test:e2e:all` and skipped on runtimes older than 1.19.
+
 ## Workflow history and rerun
 
 Use `DaprWorkflowClient` to retrieve typed execution history and rerun a workflow from a history event. These operations require Dapr runtime 1.17 or later.
