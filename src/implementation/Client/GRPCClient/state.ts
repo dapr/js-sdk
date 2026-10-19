@@ -14,6 +14,7 @@ limitations under the License.
 import { create } from "@bufbuild/protobuf";
 import GRPCClient from "./GRPCClient";
 import {
+  DeleteBulkStateRequestSchema,
   DeleteStateRequestSchema,
   ExecuteStateTransactionRequestSchema,
   GetBulkStateRequestSchema,
@@ -158,6 +159,28 @@ export default class GRPCClientState implements IClientState {
       }),
     );
 
+    return {};
+  }
+
+  async deleteBulk(
+    storeName: string,
+    items: readonly Omit<KeyValuePairType, "value">[],
+    options: StateSaveOptions = {},
+  ): Promise<StateSaveResponseType> {
+    if (items.length === 0) {
+      return {};
+    }
+
+    const states = items.map((item) =>
+      create(StateItemSchema, {
+        key: item.key,
+        etag: item.etag ? create(EtagSchema, { value: item.etag }) : undefined,
+        options: this._configureStateOptions(item.options),
+        metadata: { ...item.metadata, ...options.metadata },
+      }),
+    );
+    const client = await this.client.getClient();
+    await client.deleteBulkState(create(DeleteBulkStateRequestSchema, { storeName, states }));
     return {};
   }
 
