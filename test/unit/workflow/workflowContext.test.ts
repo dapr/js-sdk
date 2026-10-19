@@ -254,6 +254,12 @@ describe("WorkflowContext", () => {
 
       expect(mockInnerContext.continueAsNew).toHaveBeenCalledWith("new-input", true);
     });
+
+    it("should preserve events by default", () => {
+      ctx.continueAsNew("new-input");
+
+      expect(mockInnerContext.continueAsNew).toHaveBeenCalledWith("new-input", true);
+    });
   });
 
   describe("setCustomStatus", () => {

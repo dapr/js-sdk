@@ -22,6 +22,10 @@ import {
   GetInstanceRequestSchema,
   type GetInstanceResponse,
   PurgeInstancesRequestSchema,
+  ListInstanceIDsRequestSchema,
+  GetInstanceHistoryRequestSchema,
+  type GetInstanceHistoryResponse,
+  RerunWorkflowFromEventRequestSchema,
   RaiseEventRequestSchema,
   TerminateRequestSchema,
   SuspendRequestSchema,
@@ -31,10 +35,15 @@ import type {
   OrchestrationStatus,
   TaskFailureDetails,
 } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
+import type { HistoryEvent } from "../../../proto/dapr/proto/durabletask/v1/history_events_pb";
 import { OrchestrationStatus as OrchestrationStatusEnum } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import { timestampToDate } from "../worker/protoHelpers";
 import { Logger } from "../../../logger/Logger";
 import { type GrpcChannelOptions, mapGrpcOptions } from "../../../types/workflow/WorkflowClientOption";
+import type {
+  RerunWorkflowFromEventOptions,
+  WorkflowInstanceIdPage,
+} from "../../../types/workflow/WorkflowManagement.types";
 
 export class OrchestrationState {
   constructor(
@@ -149,6 +158,46 @@ export class TaskHubClient {
 
     const res = await this.client.getInstance(req, this.callOptions(signal));
     return OrchestrationState.fromGetInstanceResponse(instanceId, res);
+  }
+
+  async listWorkflowInstanceIds(continuationToken?: string, pageSize?: number): Promise<WorkflowInstanceIdPage> {
+    const req = create(ListInstanceIDsRequestSchema, {
+      continuationToken,
+      pageSize,
+    });
+    const res = await this.client.listInstanceIDs(req);
+    return {
+      instanceIds: res.instanceIds,
+      continuationToken: res.continuationToken,
+    };
+  }
+
+  async getWorkflowHistory(instanceId: string): Promise<HistoryEvent[]> {
+    const req = create(GetInstanceHistoryRequestSchema, { instanceId });
+    const res: GetInstanceHistoryResponse = await this.client.getInstanceHistory(req);
+    return res.events;
+  }
+
+  async rerunWorkflowFromEvent(
+    sourceInstanceId: string,
+    eventId: number,
+    options: RerunWorkflowFromEventOptions = {},
+  ): Promise<string> {
+    const req = create(RerunWorkflowFromEventRequestSchema, {
+      sourceInstanceID: sourceInstanceId,
+      eventID: eventId,
+      overwriteInput: options.overwriteInput ?? options.input !== undefined,
+    });
+
+    if (options.newInstanceId !== undefined) {
+      req.newInstanceID = options.newInstanceId;
+    }
+    if (options.input !== undefined) {
+      req.input = JSON.stringify(options.input);
+    }
+
+    const res = await this.client.rerunWorkflowFromEvent(req);
+    return res.newInstanceID;
   }
 
   async waitForOrchestrationStart(

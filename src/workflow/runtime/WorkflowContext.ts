@@ -87,7 +87,7 @@ export default class WorkflowContext {
     return this._innerContext.waitForExternalEvent(name, options) as CancellableTask<T>;
   }
 
-  public continueAsNew(newInput: any, saveEvents = false): void {
+  public continueAsNew(newInput: any, saveEvents = true): void {
     this._innerContext.continueAsNew(newInput, saveEvents);
   }
 

@@ -26,6 +26,7 @@ import {
   DAPR_TEST_SCHEDULER_IMAGE,
   runWithCleanupErrorSuppression,
 } from "../helpers/containers";
+import { minimumDaprRuntime } from "../helpers/runtimeVersion";
 
 describe("workflow", () => {
   let workflowHarness: WorkflowHarness;
@@ -94,6 +95,23 @@ describe("workflow", () => {
     expect(state?.instanceId).toEqual(id);
     expect(state?.workflowFailureDetails).toBeUndefined();
     expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.COMPLETED);
+  }, 31000);
+
+  it("should signal readiness after connecting and process immediately scheduled work", async () => {
+    const echo = (_: WorkflowActivityContext, input: string) => input;
+    const workflow: TWorkflow = function* (ctx: WorkflowContext, input: string): any {
+      return yield ctx.callActivity(echo, input);
+    };
+    workflowRuntime.registerWorkflow(workflow).registerActivity(echo);
+
+    await workflowRuntime.start();
+    expect(workflowRuntime.isReady).toBe(true);
+
+    const id = await workflowClient.scheduleNewWorkflow(workflow, "ready");
+    const state = await workflowClient.waitForWorkflowCompletion(id, undefined, 30);
+
+    expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.COMPLETED);
+    expect(state?.serializedOutput).toEqual(JSON.stringify("ready"));
   }, 31000);
 
   it("should be able to run an activity sequence", async () => {
@@ -414,6 +432,30 @@ describe("workflow", () => {
     expect(state?.serializedOutput).toEqual(JSON.stringify(10));
   }, 31000);
 
+  it("should preserve buffered external events when continuing as new by default", async () => {
+    const workflow: TWorkflow = async function* (ctx: WorkflowContext, step: number): any {
+      if (step === 0) {
+        yield ctx.waitForExternalEvent("continue");
+        ctx.continueAsNew(1);
+        return;
+      }
+
+      return yield ctx.waitForExternalEvent("buffered");
+    };
+
+    workflowRuntime.registerWorkflow(workflow);
+    await workflowRuntime.start();
+
+    const id = await workflowClient.scheduleNewWorkflow(workflow, 0);
+    await workflowClient.raiseEvent(id, "buffered", "preserved");
+    await workflowClient.raiseEvent(id, "continue", "continue");
+
+    const state = await workflowClient.waitForWorkflowCompletion(id, undefined, 30);
+    expect(state).toBeDefined();
+    expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.COMPLETED);
+    expect(state?.serializedOutput).toEqual(JSON.stringify("preserved"));
+  }, 31000);
+
   it("should be able to run an single orchestration without activity", async () => {
     const workflow: TWorkflow = async (_: WorkflowContext, startVal: number) => {
       return startVal + 1;
@@ -433,6 +475,49 @@ describe("workflow", () => {
     expect(state?.serializedInput).toEqual(JSON.stringify(15));
     expect(state?.serializedOutput).toEqual(JSON.stringify(16));
   }, 31000);
+
+  minimumDaprRuntime("1.17.0", "should list instances, return history, and rerun from an event", async () => {
+    const echoActivity = (_: WorkflowActivityContext, input: { value: string }) => input;
+    const workflow: TWorkflow = async function* (ctx: WorkflowContext, input: { value: string }): any {
+      return yield ctx.callActivity(echoActivity, input);
+    };
+    const instanceId = `management-source-${Date.now()}`;
+    const rerunInstanceId = `management-rerun-${Date.now()}`;
+
+    workflowRuntime.registerWorkflow(workflow).registerActivity(echoActivity);
+    await workflowRuntime.start();
+
+    const startedId = await workflowClient.scheduleNewWorkflow(workflow, { value: "original" }, instanceId);
+    const completedState = await workflowClient.waitForWorkflowCompletion(startedId, undefined, 30);
+    expect(completedState?.runtimeStatus).toEqual(WorkflowRuntimeStatus.COMPLETED);
+    expect(completedState?.serializedOutput).toEqual(JSON.stringify({ value: "original" }));
+
+    const history = await workflowClient.getWorkflowHistory(instanceId);
+    const scheduledEvent = history.find((event) => event.eventType.case === "taskScheduled");
+    expect(history.length).toBeGreaterThan(0);
+    expect(scheduledEvent).toBeDefined();
+
+    const rerunId = await workflowClient.rerunWorkflowFromEvent(instanceId, scheduledEvent!.eventId, {
+      newInstanceId: rerunInstanceId,
+      input: { value: "rerun" },
+    });
+    expect(rerunId).toEqual(rerunInstanceId);
+
+    const rerunState = await workflowClient.waitForWorkflowCompletion(rerunId, undefined, 30);
+    expect(rerunState?.runtimeStatus).toEqual(WorkflowRuntimeStatus.COMPLETED);
+    expect(rerunState?.serializedOutput).toEqual(JSON.stringify({ value: "rerun" }));
+
+    const listedIds: string[] = [];
+    let continuationToken: string | undefined;
+    do {
+      const page = await workflowClient.listWorkflowInstanceIds(continuationToken, 1);
+      listedIds.push(...page.instanceIds);
+      continuationToken = page.continuationToken;
+    } while (continuationToken);
+
+    expect(listedIds).toContain(instanceId);
+    expect(listedIds).toContain(rerunInstanceId);
+  }, 65000);
 
   it("should support explicitly named workflows and activities", async () => {
     const plusOne = (_: WorkflowActivityContext, input: number) => input + 1;

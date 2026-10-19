@@ -342,7 +342,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     return externalEventTask;
   }
 
-  continueAsNew(newInput: unknown, saveEvents = false): void {
+  continueAsNew(newInput: unknown, saveEvents = true): void {
     this.setContinuedAsNew(newInput, saveEvents);
   }
 

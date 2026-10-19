@@ -17,6 +17,11 @@ import { WorkflowState } from "./WorkflowState";
 import { generateEndpoint, getDaprApiToken, getFunctionName } from "../internal";
 import type { TWorkflow } from "../../types/workflow/Workflow.type";
 import type { WorkflowClientOptions } from "../../types/workflow/WorkflowClientOption";
+import type { HistoryEvent } from "../../proto/dapr/proto/durabletask/v1/history_events_pb";
+import type {
+  RerunWorkflowFromEventOptions,
+  WorkflowInstanceIdPage,
+} from "../../types/workflow/WorkflowManagement.types";
 
 export default class DaprWorkflowClient {
   private readonly _innerClient: TaskHubClient;
@@ -72,6 +77,42 @@ export default class DaprWorkflowClient {
       }
       throw error;
     }
+  }
+
+  /**
+   * Lists workflow instance IDs, optionally requesting a page using a continuation token.
+   */
+  public async listWorkflowInstanceIds(continuationToken?: string, pageSize?: number): Promise<WorkflowInstanceIdPage> {
+    if (pageSize !== undefined && (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 0xffffffff)) {
+      throw new RangeError("pageSize must be an integer between 1 and 4294967295");
+    }
+
+    return await this._innerClient.listWorkflowInstanceIds(continuationToken, pageSize);
+  }
+
+  /**
+   * Gets the complete execution history for a workflow instance.
+   */
+  public async getWorkflowHistory(workflowInstanceId: string): Promise<HistoryEvent[]> {
+    return await this._innerClient.getWorkflowHistory(workflowInstanceId);
+  }
+
+  /**
+   * Creates a new workflow instance by rerunning from an event in an existing instance's history.
+   */
+  public async rerunWorkflowFromEvent(
+    sourceInstanceId: string,
+    eventId: number,
+    options: RerunWorkflowFromEventOptions = {},
+  ): Promise<string> {
+    if (!Number.isInteger(eventId) || eventId < 0 || eventId > 0xffffffff) {
+      throw new RangeError("eventId must be an integer between 0 and 4294967295");
+    }
+    if (options.newInstanceId !== undefined && options.newInstanceId.length === 0) {
+      throw new TypeError("newInstanceId must not be empty");
+    }
+
+    return await this._innerClient.rerunWorkflowFromEvent(sourceInstanceId, eventId, options);
   }
 
   public async waitForWorkflowStart(

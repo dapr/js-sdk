@@ -53,6 +53,8 @@ import { Task, TaskCanceledError, TaskTimeoutError } from "./workflow/engine/tas
 import { ExternalEventOptions } from "./types/workflow/ExternalEventOptions.type";
 import { WorkflowFailureDetails } from "./workflow/client/WorkflowFailureDetails";
 import { WorkflowState } from "./workflow/client/WorkflowState";
+import { RerunWorkflowFromEventOptions, WorkflowInstanceIdPage } from "./types/workflow/WorkflowManagement.types";
+import type { HistoryEvent } from "./proto/dapr/proto/durabletask/v1/history_events_pb";
 import {
   WorkflowRuntimeStatus,
   fromOrchestrationStatus,
@@ -99,6 +101,9 @@ export {
   ExternalEventOptions,
   WorkflowFailureDetails,
   WorkflowState,
+  RerunWorkflowFromEventOptions,
+  WorkflowInstanceIdPage,
+  HistoryEvent,
   WorkflowRuntimeStatus,
   fromOrchestrationStatus,
   toOrchestrationStatus,
