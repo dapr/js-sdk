@@ -14,11 +14,11 @@ limitations under the License.
 import { OrchestrationStatus } from "../../../src/proto/dapr/proto/durabletask/v1/orchestration_pb";
 import { create } from "@bufbuild/protobuf";
 import { TaskFailureDetailsSchema } from "../../../src/proto/dapr/proto/durabletask/v1/orchestration_pb";
-import { OrchestrationState } from "../../../src/workflow/engine/transport/TaskHubClient";
-import { TWorkflow } from "../../../src/types/workflow/Workflow.type";
+import { OrchestrationState } from "../../../src/workflow/engine";
 import WorkflowContext from "../../../src/workflow/runtime/WorkflowContext";
-import { WorkflowRuntimeStatus } from "../../../src/workflow/runtime/WorkflowRuntimeStatus";
 import { Code, ConnectError } from "@connectrpc/connect";
+import { HistoryEventSchema } from "../../../src/proto/dapr/proto/durabletask/v1/history_events_pb";
+import { type HistoryEvent, type TWorkflow, WorkflowRuntimeStatus } from "../../../src";
 
 const mockScheduleNewOrchestration = jest.fn();
 const mockGetOrchestrationState = jest.fn();
@@ -209,11 +209,21 @@ describe("DaprWorkflowClient", () => {
 
   describe("getWorkflowHistory", () => {
     it("should return the workflow's execution history", async () => {
-      const history = [{ eventId: 1 }, { eventId: 2 }];
+      const history: HistoryEvent[] = [
+        create(HistoryEventSchema, { eventId: 1 }),
+        create(HistoryEventSchema, { eventId: 2 }),
+      ];
       mockGetWorkflowHistory.mockResolvedValue(history);
 
       await expect(client.getWorkflowHistory("instance-1")).resolves.toBe(history);
       expect(mockGetWorkflowHistory).toHaveBeenCalledWith("instance-1");
+    });
+
+    it.each([Code.NotFound, Code.Unknown, Code.Unavailable])("should propagate RPC error code %s", async (code) => {
+      const error = new ConnectError("history retrieval failed", code);
+      mockGetWorkflowHistory.mockRejectedValueOnce(error);
+
+      await expect(client.getWorkflowHistory("missing-instance")).rejects.toBe(error);
     });
   });
 
@@ -232,9 +242,31 @@ describe("DaprWorkflowClient", () => {
       await expect(client.rerunWorkflowFromEvent("source-instance", 0)).resolves.toBe("new-instance");
     });
 
-    it.each([-1, 1.5, 0x1_0000_0000])("should reject invalid event ID %s", async (eventId) => {
-      await expect(client.rerunWorkflowFromEvent("source-instance", eventId)).rejects.toThrow(RangeError);
-      expect(mockRerunWorkflowFromEvent).not.toHaveBeenCalled();
+    it.each([-1, 1.5, 0x1_0000_0000, NaN, Infinity, -Infinity])(
+      "should reject invalid event ID %s",
+      async (eventId) => {
+        await expect(client.rerunWorkflowFromEvent("source-instance", eventId)).rejects.toThrow(RangeError);
+        expect(mockRerunWorkflowFromEvent).not.toHaveBeenCalled();
+      },
+    );
+
+    it("should forward the maximum uint32 event ID for runtime validation", async () => {
+      mockRerunWorkflowFromEvent.mockResolvedValueOnce("new-instance");
+
+      await expect(client.rerunWorkflowFromEvent("source-instance", 0xffffffff)).resolves.toBe("new-instance");
+      expect(mockRerunWorkflowFromEvent).toHaveBeenCalledWith("source-instance", 0xffffffff, {});
+    });
+
+    it.each([
+      [Code.NotFound, "source instance not found"],
+      [Code.InvalidArgument, "event does not exist"],
+      [Code.Unknown, "no such instance exists"],
+      [Code.Unavailable, "sidecar unavailable"],
+    ])("should propagate rerun RPC error %s: %s", async (code, message) => {
+      const error = new ConnectError(message, code);
+      mockRerunWorkflowFromEvent.mockRejectedValueOnce(error);
+
+      await expect(client.rerunWorkflowFromEvent("source-instance", 42)).rejects.toBe(error);
     });
 
     it("should reject an empty new instance ID", async () => {

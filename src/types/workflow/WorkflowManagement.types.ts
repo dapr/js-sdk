@@ -17,7 +17,10 @@ export interface WorkflowInstanceIdPage {
 }
 
 export interface RerunWorkflowFromEventOptions {
+  /** Omit to let the runtime generate the new workflow instance ID. */
   newInstanceId?: string;
+  /** JSON-serializable replacement input for the activity targeted by the event. */
   input?: unknown;
+  /** Defaults to true when input is provided. Set false to preserve the original activity input. */
   overwriteInput?: boolean;
 }
