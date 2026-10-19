@@ -75,6 +75,11 @@ export class OrchestrationExecutor {
   }
 
   private async processEvent(ctx: OrchestrationRuntimeContext, event: HistoryEvent): Promise<void> {
+    // Ignore late events after terminal completion, but retain continue-as-new carryover events.
+    if (ctx._isComplete && ctx._completionStatus !== OrchestrationStatus.CONTINUED_AS_NEW) {
+      return;
+    }
+
     if (this._isSuspended && this.isSuspendable(event)) {
       this.logger.info("Suspended, buffering event");
       this._suspendedEvents.push(event);

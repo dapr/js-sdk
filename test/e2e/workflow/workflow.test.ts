@@ -309,6 +309,53 @@ describe("workflow", () => {
     expect(state?.serializedOutput).toEqual(JSON.stringify("timed out"));
   }, 31000);
 
+  it.each(["event", "timer"])(
+    "should expose COMPLETED through getWorkflowState after an activity and whenAny resolves via %s",
+    async (winner) => {
+      const setupActivity = (_: WorkflowActivityContext, jobName: string) => jobName;
+      const workflow: TWorkflow = async function* (
+        ctx: WorkflowContext,
+        jobName: string,
+      ): AsyncGenerator<Task<unknown>, string, unknown> {
+        yield ctx.callActivity(setupActivity, jobName);
+        const eventTask = ctx.waitForExternalEvent(`job-done:${jobName}`);
+        const timerTask = ctx.createTimer(winner === "event" ? 30 : 1);
+        ctx.setCustomStatus("waiting");
+        const completedTask = yield ctx.whenAny([eventTask, timerTask]);
+        return completedTask === eventTask ? "completed" : "timeout";
+      };
+
+      workflowRuntime.registerWorkflow(workflow).registerActivity(setupActivity);
+      await workflowRuntime.start();
+      const id = await workflowClient.scheduleNewWorkflow(workflow, "test-job-734");
+
+      const readyDeadline = Date.now() + 10_000;
+      let state = await workflowClient.getWorkflowState(id, true);
+      while (state?.customStatus !== JSON.stringify("waiting") && Date.now() < readyDeadline) {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        state = await workflowClient.getWorkflowState(id, true);
+      }
+      expect(state?.customStatus).toEqual(JSON.stringify("waiting"));
+
+      const completionDeadline = Date.now() + 2000;
+      if (winner === "event") {
+        await workflowClient.raiseEvent(id, "job-done:test-job-734", { success: true });
+      }
+      do {
+        state = await workflowClient.getWorkflowState(id, true);
+        if (state?.runtimeStatus === WorkflowRuntimeStatus.COMPLETED) {
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      } while (Date.now() < completionDeadline);
+
+      expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.COMPLETED);
+      expect(state?.serializedOutput).toEqual(JSON.stringify(winner === "event" ? "completed" : "timeout"));
+      expect(Date.now()).toBeLessThanOrEqual(completionDeadline);
+    },
+    15_000,
+  );
+
   it("should preserve deterministic values when replaying after an external event", async () => {
     const workflow: TWorkflow = async function* (ctx: WorkflowContext): any {
       const getDeterministicValues = () => ({

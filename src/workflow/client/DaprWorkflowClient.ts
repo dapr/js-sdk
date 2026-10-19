@@ -54,6 +54,10 @@ export default class DaprWorkflowClient {
     await this._innerClient.terminateOrchestration(workflowInstanceId, output);
   }
 
+  /**
+   * Gets a snapshot of the current workflow state, or undefined if the instance does not exist.
+   * Compare runtimeStatus with WorkflowRuntimeStatus members, not hard-coded numbers or strings.
+   */
   public async getWorkflowState(
     workflowInstanceId: string,
     getInputsAndOutputs: boolean,
