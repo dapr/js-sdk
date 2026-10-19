@@ -135,8 +135,17 @@ async function start() {
   console.log(`[Dapr-JS][Example][State] Fetched State Bulk: ${JSON.stringify(resStateBulk)}`);
 
   await client.state.delete("state-redis", "key-2");
+
   const resStateDelete = await client.state.get("state-redis", "key-2");
-  console.log(`[Dapr-JS][Example][State] Deleted State "key-2" ${JSON.stringify(resStateDelete)}`);
+
+  if (resStateDelete === "") {
+    console.log("[Dapr-JS][Example][State] State 'key-2' does not exist");
+  } else {
+    console.log(
+      "[Dapr-JS][Example][State] State 'key-2' retrieved:",
+      resStateDelete,
+    );
+  }
 
   // After the above we have key-1 and key-3 left. Let's change key-1 to my-new-data-1 and delete key-3
   await client.state.transaction("state-redis", [
