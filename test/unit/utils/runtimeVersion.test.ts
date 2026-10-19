@@ -18,6 +18,9 @@ describe("Dapr runtime version gate", () => {
     ["1.16.0", "1.16.0"],
     ["1.16.0", "1.16.1"],
     ["1.16.0", "1.17.0"],
+    ["1.17.0", "1.17.0"],
+    ["1.17.0", "1.17.1"],
+    ["1.17.0", "1.18.0"],
     ["1.16.0", "v1.16.0"],
     ["1.16.0", "1.16.0-rc.1"],
     ["1.16.0", "1.16.0+build.1"],
@@ -27,9 +30,9 @@ describe("Dapr runtime version gate", () => {
   });
 
   it("skips a test when the runtime is older than its minimum", () => {
-    expect(evaluateMinimumDaprRuntime("1.16.0", "1.15.14")).toEqual({
+    expect(evaluateMinimumDaprRuntime("1.17.0", "1.16.9")).toEqual({
       supported: false,
-      reason: "requires Dapr runtime >= 1.16.0; current: 1.15.14",
+      reason: "requires Dapr runtime >= 1.17.0; current: 1.16.9",
     });
   });
 

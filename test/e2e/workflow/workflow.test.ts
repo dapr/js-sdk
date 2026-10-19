@@ -26,6 +26,7 @@ import {
   DAPR_TEST_SCHEDULER_IMAGE,
   runWithCleanupErrorSuppression,
 } from "../helpers/containers";
+import { minimumDaprRuntime } from "../helpers/runtimeVersion";
 
 describe("workflow", () => {
   let workflowHarness: WorkflowHarness;
@@ -434,7 +435,7 @@ describe("workflow", () => {
     expect(state?.serializedOutput).toEqual(JSON.stringify(16));
   }, 31000);
 
-  it("should list instances, return history, and rerun from an event", async () => {
+  minimumDaprRuntime("1.17.0", "should list instances, return history, and rerun from an event", async () => {
     const echoActivity = (_: WorkflowActivityContext, input: { value: string }) => input;
     const workflow: TWorkflow = async function* (ctx: WorkflowContext, input: { value: string }): any {
       return yield ctx.callActivity(echoActivity, input);
