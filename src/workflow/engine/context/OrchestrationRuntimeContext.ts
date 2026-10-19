@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { randomUUID } from "crypto";
 import type { HistoryEvent } from "../../../proto/dapr/proto/durabletask/v1/history_events_pb";
 import type { WorkflowAction } from "../../../proto/dapr/proto/durabletask/v1/orchestrator_actions_pb";
 import type { OrchestrationStatus } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
@@ -25,12 +26,14 @@ import { newDeterministicGuid } from "../guid/deterministicGuid";
 import type { RetryPolicy } from "../../../types/workflow/RetryPolicy.type";
 import type { ActivityOptions } from "../../../types/workflow/ActivityOptions.type";
 import type { ChildWorkflowOptions } from "../../../types/workflow/ChildWorkflowOptions.type";
+import type { DetachedWorkflowOptions } from "../../../types/workflow/DetachedWorkflowOptions.type";
 import { HistoryPropagationScope } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import type { PropagatedHistory } from "../../runtime/PropagatedHistory";
 import {
   newCompleteWorkflowAction,
   newCreateTimerAction,
   newCreateChildWorkflowAction,
+  newCreateDetachedWorkflowAction,
   newScheduleTaskAction,
   newSendEventAction,
   newEventRaisedEvent,
@@ -61,6 +64,8 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     instanceId: string,
     private readonly _appId?: string,
     private readonly _propagatedHistory?: PropagatedHistory,
+    private readonly _name = "",
+    private readonly _taskExecutionIds: ReadonlyMap<number, string> = new Map(),
   ) {
     super();
     this._isReplaying = true;
@@ -82,6 +87,10 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
 
   get instanceId(): string {
     return this._instanceId;
+  }
+
+  override get name(): string {
+    return this._name;
   }
 
   override get propagatedHistory(): PropagatedHistory | undefined {
@@ -146,7 +155,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
 
     this._isComplete = true;
     this._completionStatus = status;
-    this._pendingActions = {};
+    this._pendingActions = status === OrchestrationStatusEnum.COMPLETED ? this.getPendingDetachedActions() : {};
     this._result = result;
 
     let resultJson: string | undefined;
@@ -213,6 +222,14 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     return ++this._sequenceNumber;
   }
 
+  private getPendingDetachedActions(): Record<number, WorkflowAction> {
+    return Object.fromEntries(
+      Object.entries(this._pendingActions).filter(
+        ([, action]) => action.workflowActionType.case === "createDetachedWorkflow",
+      ),
+    );
+  }
+
   createTimer(fireAt: Date | number): CancellableCompletableTask<void> {
     return this.scheduleTimer(fireAt);
   }
@@ -241,17 +258,21 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     const encodedInput = input != null ? JSON.stringify(input) : undefined;
     const routing = this.getRoutingOptions(options);
     if (options?.retryPolicy) {
+      let executionId: string | undefined;
       return this.callWithRetry(options.retryPolicy, (id) => {
-        const action = newScheduleTaskAction(id, name, encodedInput, undefined, routing);
+        executionId = this.getTaskExecutionId(id, executionId);
+        const action = newScheduleTaskAction(id, name, encodedInput, executionId, routing);
         this._pendingActions[action.id] = action;
+        return executionId;
       });
     }
 
     const id = this.nextSequenceNumber();
-    const action = newScheduleTaskAction(id, name, encodedInput, undefined, routing);
+    const executionId = this.getTaskExecutionId(id);
+    const action = newScheduleTaskAction(id, name, encodedInput, executionId, routing);
     this._pendingActions[action.id] = action;
 
-    const task = new CompletableTask<TOutput>();
+    const task = new CompletableTask<TOutput>(executionId);
     this._pendingTasks[id] = task;
     return task;
   }
@@ -274,6 +295,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
             : `${this._instanceId}:${id.toString(16).padStart(4, "0")}`;
         const action = newCreateChildWorkflowAction(id, name, childInstanceId, encodedInput, routing);
         this._pendingActions[action.id] = action;
+        return undefined;
       });
     }
 
@@ -288,6 +310,58 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
 
     const task = new CompletableTask<TOutput>();
     this._pendingTasks[id] = task;
+    return task;
+  }
+
+  override scheduleNewDetachedWorkflow<TInput>(
+    workflow: TOrchestrator | string,
+    input?: TInput,
+    instanceId?: string,
+    startAt?: Date,
+    options?: DetachedWorkflowOptions,
+  ): Task<string> {
+    const name = typeof workflow === "string" ? workflow : getName(workflow);
+    if (typeof name !== "string" || !name.trim()) {
+      throw new TypeError("workflow must have a non-empty name");
+    }
+    if (instanceId !== undefined && (typeof instanceId !== "string" || !instanceId.trim())) {
+      throw new TypeError("instanceId must be a non-empty string");
+    }
+    if (startAt !== undefined && (!(startAt instanceof Date) || !Number.isFinite(startAt.getTime()))) {
+      throw new RangeError("startAt must be a valid date");
+    }
+    if (
+      options &&
+      (("retryPolicy" in options && options.retryPolicy != null) ||
+        ("propagationScope" in options &&
+          options.propagationScope != null &&
+          options.propagationScope !== HistoryPropagationScope.NONE))
+    ) {
+      throw new TypeError("Detached workflows do not support retries or history propagation");
+    }
+    const routing = this.getRoutingOptions(options);
+    const encodedInput = input === undefined ? undefined : JSON.stringify(input);
+    const detachedInstanceId = instanceId ?? this.newGuid();
+    if (
+      Object.values(this._pendingActions).some(
+        (action) =>
+          action.workflowActionType.case === "createDetachedWorkflow" &&
+          action.workflowActionType.value.instanceId === detachedInstanceId,
+      )
+    ) {
+      throw new Error(`A detached workflow with instance ID '${detachedInstanceId}' has already been scheduled`);
+    }
+    const action = newCreateDetachedWorkflowAction(
+      this.nextSequenceNumber(),
+      name,
+      detachedInstanceId,
+      encodedInput,
+      startAt,
+      routing,
+    );
+    this._pendingActions[action.id] = action;
+    const task = new CompletableTask<string>();
+    task.complete(detachedInstanceId);
     return task;
   }
 
@@ -384,7 +458,18 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     return { sourceAppId: this._appId, targetAppId, propagationScope };
   }
 
-  private callWithRetry<T>(retryPolicy: RetryPolicy, scheduleAttempt: (id: number, attempt: number) => void): Task<T> {
+  private getTaskExecutionId(id: number, previousId?: string): string | undefined {
+    // An empty historical key must stay empty when replaying pre-execution-ID workflows.
+    if (this._taskExecutionIds.has(id)) {
+      return this._taskExecutionIds.get(id) || undefined;
+    }
+    return previousId ?? randomUUID();
+  }
+
+  private callWithRetry<T>(
+    retryPolicy: RetryPolicy,
+    scheduleAttempt: (id: number, attempt: number) => string | undefined,
+  ): Task<T> {
     const policy = validateRetryPolicy(retryPolicy);
     const retryTask = new CompletableTask<T>();
     const startedAt = this._currentUtcDatetime.getTime();
@@ -393,8 +478,9 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     const runAttempt = (): void => {
       attempt++;
       const id = this.nextSequenceNumber();
-      scheduleAttempt(id, attempt);
-      this._pendingTasks[id] = new RetryAttemptTask<T>(
+      const executionId = scheduleAttempt(id, attempt);
+      retryTask._executionId = executionId;
+      const attemptTask = new RetryAttemptTask<T>(
         (result) => retryTask.complete(result),
         (message, details) => {
           const interval = Math.min(
@@ -416,6 +502,8 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
           this._pendingTasks[timerId] = new RetryDelayTask(runAttempt);
         },
       );
+      attemptTask._executionId = executionId;
+      this._pendingTasks[id] = attemptTask;
     };
 
     runAttempt();

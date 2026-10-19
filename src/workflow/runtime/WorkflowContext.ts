@@ -19,6 +19,7 @@ import type { TWorkflowActivity } from "../../types/workflow/Activity.type";
 import type { TWorkflow } from "../../types/workflow/Workflow.type";
 import type { ActivityOptions } from "../../types/workflow/ActivityOptions.type";
 import type { ChildWorkflowOptions } from "../../types/workflow/ChildWorkflowOptions.type";
+import type { DetachedWorkflowOptions } from "../../types/workflow/DetachedWorkflowOptions.type";
 import type { PropagatedHistory } from "./PropagatedHistory";
 
 export default class WorkflowContext {
@@ -30,6 +31,10 @@ export default class WorkflowContext {
 
   public getWorkflowInstanceId(): string {
     return this._innerContext.instanceId;
+  }
+
+  public getWorkflowName(): string {
+    return this._innerContext.name;
   }
 
   public getPropagatedHistory(): PropagatedHistory | undefined {
@@ -81,6 +86,26 @@ export default class WorkflowContext {
       return this._innerContext.callSubOrchestrator(orchestrator, input, instanceId, options) as Task<TOutput>;
     }
     return this._innerContext.callSubOrchestrator(getName(orchestrator), input, instanceId, options) as Task<TOutput>;
+  }
+
+  /**
+   * Schedules an independent workflow (Dapr 1.19+). The completed task contains its
+   * instance ID, not its output; completion and failure do not flow back to this workflow.
+   */
+  public scheduleNewDetachedWorkflow<TInput = unknown>(
+    workflow: TWorkflow | string,
+    input?: TInput,
+    instanceId?: string,
+    startAt?: Date,
+    options?: DetachedWorkflowOptions,
+  ): Task<string> {
+    return this._innerContext.scheduleNewDetachedWorkflow(
+      typeof workflow === "string" ? workflow : getName(workflow),
+      input,
+      instanceId,
+      startAt,
+      options,
+    );
   }
 
   public waitForExternalEvent<T = any>(name: string, options?: ExternalEventOptions): CancellableTask<T> {

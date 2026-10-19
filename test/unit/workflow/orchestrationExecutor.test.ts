@@ -14,11 +14,12 @@ limitations under the License.
 import { create } from "@bufbuild/protobuf";
 import { HistoryEventSchema } from "../../../src/proto/dapr/proto/durabletask/v1/history_events_pb";
 import { OrchestrationStatus } from "../../../src/proto/dapr/proto/durabletask/v1/orchestration_pb";
-import type { HistoryEvent } from "../../../src/proto/dapr/proto/durabletask/v1/history_events_pb";
-import { StopIterationError, whenAny } from "../../../src/workflow/engine/task";
-import type { Task } from "../../../src/workflow/engine/task/Task";
-import { OrchestrationExecutor } from "../../../src/workflow/engine/worker/OrchestrationExecutor";
-import { Registry } from "../../../src/workflow/engine/worker/Registry";
+import type { HistoryEvent } from "../../../src";
+import { StopIterationError, whenAny } from "../../../src/workflow/engine";
+import type { Task } from "../../../src";
+import { OrchestrationExecutor } from "../../../src/workflow/engine";
+import { Registry } from "../../../src/workflow/engine";
+import WorkflowContext from "../../../src/workflow/runtime/WorkflowContext";
 import {
   newEventRaisedEvent,
   newExecutionStartedEvent,
@@ -30,6 +31,31 @@ import {
 } from "../../../src/workflow/engine/worker/protoHelpers";
 
 describe("OrchestrationExecutor completion", () => {
+  it("exposes the history's registered name before and after yielding, including replay", async () => {
+    const registry = new Registry();
+    const observed: { name: string; replaying: boolean }[] = [];
+    registry.addNamedOrchestrator("registered-alias", function* differentFunctionName(inner) {
+      const ctx = new WorkflowContext(inner);
+      observed.push({ name: ctx.getWorkflowName(), replaying: ctx.isReplaying() });
+      yield ctx.callActivity("echo");
+      observed.push({ name: ctx.getWorkflowName(), replaying: ctx.isReplaying() });
+      return ctx.getWorkflowName();
+    });
+    const start = newExecutionStartedEvent("registered-alias", "id");
+    await new OrchestrationExecutor(registry).execute("id", [], [start]);
+    const result = await new OrchestrationExecutor(registry).execute(
+      "id",
+      [start, newTaskScheduledEvent(1, "echo")],
+      [newTaskCompletedEvent(1)],
+    );
+    expect(observed).toEqual([
+      { name: "registered-alias", replaying: false },
+      { name: "registered-alias", replaying: true },
+      { name: "registered-alias", replaying: false },
+    ]);
+    expect(result.actions[0].workflowActionType.value).toMatchObject({ result: '"registered-alias"' });
+  });
+
   const instanceId = "workflow-id";
   const fireAt = new Date("2026-01-01T00:00:30Z");
 

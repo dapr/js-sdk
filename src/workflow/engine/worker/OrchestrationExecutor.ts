@@ -20,6 +20,7 @@ import type { AnyGenerator } from "../context/OrchestrationContext";
 import { OrchestrationStatus } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import { OrchestrationRuntimeContext } from "../context/OrchestrationRuntimeContext";
 import { Task, NonDeterminismError, StopIterationError } from "../task";
+import type { CompletableTask } from "../task";
 import { Registry } from "./Registry";
 import { OrchestrationExecuteResult } from "./OrchestrationExecuteResult";
 import { isEmpty, getOrchestrationStatusStr, decodePropagatedHistory } from "./protoHelpers";
@@ -46,11 +47,18 @@ export class OrchestrationExecutor {
     const startEvent = [...oldEvents, ...newEvents].find((event) => event.eventType.case === "executionStarted");
     const appRouter = startEvent?.router ?? router;
     const appId = appRouter?.targetAppID || appRouter?.sourceAppID;
+    const workflowName = startEvent?.eventType.case === "executionStarted" ? startEvent.eventType.value.name : "";
+    const taskExecutionIds = new Map<number, string>();
+    for (const event of [...oldEvents, ...newEvents]) {
+      if (event.eventType.case === "taskScheduled") {
+        taskExecutionIds.set(event.eventId, event.eventType.value.taskExecutionId);
+      }
+    }
 
-    let ctx = new OrchestrationRuntimeContext(instanceId, appId);
+    let ctx = new OrchestrationRuntimeContext(instanceId, appId, undefined, workflowName);
     try {
       const history = decodePropagatedHistory(propagatedHistory);
-      ctx = new OrchestrationRuntimeContext(instanceId, appId, history);
+      ctx = new OrchestrationRuntimeContext(instanceId, appId, history, workflowName, taskExecutionIds);
       this.logger.debug(`${instanceId}: Rebuilding local state with ${oldEvents.length} history event...`);
       ctx._isReplaying = true;
 
@@ -84,8 +92,13 @@ export class OrchestrationExecutor {
   }
 
   private async processEvent(ctx: OrchestrationRuntimeContext, event: HistoryEvent): Promise<void> {
-    // Ignore late events after terminal completion, but retain continue-as-new carryover events.
-    if (ctx._isComplete && ctx._completionStatus !== OrchestrationStatus.CONTINUED_AS_NEW) {
+    // Successful completion can still have detached creation confirmations to consume on replay.
+    if (
+      ctx._isComplete &&
+      ctx._completionStatus !== OrchestrationStatus.CONTINUED_AS_NEW &&
+      (ctx._completionStatus !== OrchestrationStatus.COMPLETED ||
+        event.eventType.case !== "detachedWorkflowInstanceCreated")
+    ) {
       return;
     }
 
@@ -226,16 +239,8 @@ export class OrchestrationExecutor {
         const taskCompletedEvent = eventType.value;
         const taskId = taskCompletedEvent.taskScheduledId;
 
-        let activityTask;
-        if (taskId !== undefined) {
-          activityTask = ctx._pendingTasks[taskId];
-          delete ctx._pendingTasks[taskId];
-        }
-
+        const activityTask = this.takeActivityTask(ctx, taskId, taskCompletedEvent.taskExecutionId, "taskCompleted");
         if (!activityTask) {
-          if (!ctx._isReplaying) {
-            this.logger.warn(`${ctx.instanceId}: Ignoring unexpected taskCompleted event with ID = ${taskId}`);
-          }
           return;
         }
 
@@ -253,16 +258,8 @@ export class OrchestrationExecutor {
         const taskFailedEvent = eventType.value;
         const taskId = taskFailedEvent.taskScheduledId;
 
-        let activityTask;
-        if (taskId !== undefined) {
-          activityTask = ctx._pendingTasks[taskId];
-          delete ctx._pendingTasks[taskId];
-        }
-
+        const activityTask = this.takeActivityTask(ctx, taskId, taskFailedEvent.taskExecutionId, "taskFailed");
         if (!activityTask) {
-          if (!ctx._isReplaying) {
-            this.logger.warn(`${ctx.instanceId}: Ignoring unexpected taskFailed event with ID = ${taskId}`);
-          }
           return;
         }
 
@@ -297,6 +294,22 @@ export class OrchestrationExecutor {
             `Failed to restore orchestration state: A previous execution called callSubOrchestrator with name='${eventType.value.name}' and sequence number ${taskId}, but the current execution is instead trying to call ${actionType.value.name}.`,
           );
         }
+        break;
+      }
+
+      case "detachedWorkflowInstanceCreated": {
+        const instanceId = eventType.value.instanceId;
+        const action = Object.values(ctx._pendingActions).find(
+          (pending) =>
+            pending.workflowActionType.case === "createDetachedWorkflow" &&
+            pending.workflowActionType.value.instanceId === instanceId,
+        );
+        if (!action) {
+          throw new NonDeterminismError(
+            `A previous execution scheduled a detached workflow with instanceId='${instanceId}', but the current execution doesn't have a matching detached workflow action.`,
+          );
+        }
+        delete ctx._pendingActions[action.id];
         break;
       }
 
@@ -450,6 +463,29 @@ export class OrchestrationExecutor {
       default:
         this.logger.info(`Unknown history event type: ${eventType.case}, skipping...`);
     }
+  }
+
+  private takeActivityTask(
+    ctx: OrchestrationRuntimeContext,
+    taskId: number,
+    executionId: string,
+    eventType: "taskCompleted" | "taskFailed",
+  ): CompletableTask<unknown> | undefined {
+    const task = ctx._pendingTasks[taskId];
+    if (!task) {
+      if (!ctx._isReplaying) {
+        this.logger.warn(`${ctx.instanceId}: Ignoring unexpected ${eventType} event with ID = ${taskId}`);
+      }
+      return undefined;
+    }
+    if (executionId && task.executionId && executionId !== task.executionId) {
+      this.logger.warn(
+        `${ctx.instanceId}: Ignoring ${eventType} event with ID = ${taskId}: task execution ID does not match the pending task`,
+      );
+      return undefined;
+    }
+    delete ctx._pendingTasks[taskId];
+    return task;
   }
 
   private isSuspendable(event: HistoryEvent): boolean {

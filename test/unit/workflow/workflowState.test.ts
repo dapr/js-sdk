@@ -14,9 +14,9 @@ limitations under the License.
 import { OrchestrationStatus } from "../../../src/proto/dapr/proto/durabletask/v1/orchestration_pb";
 import { create } from "@bufbuild/protobuf";
 import { TaskFailureDetailsSchema } from "../../../src/proto/dapr/proto/durabletask/v1/orchestration_pb";
-import { OrchestrationState } from "../../../src/workflow/engine/transport/TaskHubClient";
-import { WorkflowState } from "../../../src/workflow/client/WorkflowState";
-import { WorkflowRuntimeStatus } from "../../../src/workflow/runtime/WorkflowRuntimeStatus";
+import { OrchestrationState } from "../../../src/workflow/engine";
+import { WorkflowState } from "../../../src";
+import { WorkflowRuntimeStatus } from "../../../src";
 
 describe("WorkflowState", () => {
   const now = new Date("2025-06-15T10:30:00Z");
@@ -73,17 +73,64 @@ describe("WorkflowState", () => {
         const orchState = new OrchestrationState("id", "name", orch, now, later);
         const state = new WorkflowState(orchState);
         expect(state.runtimeStatus).toBe(wf);
+        expect(state.exists).toBe(true);
       }
     });
 
+    describe("typed accessors", () => {
+      function stateWithPayload(payload?: string): WorkflowState {
+        return new WorkflowState(
+          new OrchestrationState("id", "name", OrchestrationStatus.COMPLETED, now, later, payload, payload, payload),
+        );
+      }
+
+      it.each([
+        { value: { nested: { items: [1, "two", null] } } },
+        { value: [1, 2] },
+        { value: "text" },
+        { value: "" },
+        { value: false },
+        { value: 0 },
+        { value: null },
+      ])("deserializes $value without changing legacy serialized properties", ({ value }) => {
+        const payload = JSON.stringify(value);
+        const state = stateWithPayload(payload);
+        const input: typeof value | undefined = state.getInput<typeof value>();
+        const output: typeof value | undefined = state.getOutput<typeof value>();
+        const status: typeof value | undefined = state.getCustomStatus<typeof value>();
+        expect(input).toEqual(value);
+        expect(output).toEqual(value);
+        expect(status).toEqual(value);
+        expect(state.serializedInput).toBe(payload);
+        expect(state.serializedOutput).toBe(payload);
+        expect(state.customStatus).toBe(payload);
+      });
+
+      it.each([undefined, ""])("returns undefined for absent payload %s", (payload) => {
+        const state = stateWithPayload(payload);
+        expect(state.getInput()).toBeUndefined();
+        expect(state.getOutput()).toBeUndefined();
+        expect(state.getCustomStatus()).toBeUndefined();
+        expect(state.exists).toBe(true);
+      });
+
+      it("propagates malformed JSON instead of hiding errors", () => {
+        const state = stateWithPayload("not JSON");
+        expect(() => state.getInput()).toThrow(SyntaxError);
+        expect(() => state.getOutput()).toThrow(SyntaxError);
+        expect(() => state.getCustomStatus()).toThrow(SyntaxError);
+        expect(state.serializedInput).toBe("not JSON");
+      });
+
+      it("returns a fresh deserialized value on each access", () => {
+        const state = stateWithPayload('{"items":[]}');
+        state.getInput<{ items: number[] }>()!.items.push(1);
+        expect(state.getInput()).toEqual({ items: [] });
+      });
+    });
+
     it("should handle undefined optional fields", () => {
-      const orchState = new OrchestrationState(
-        "instance-1",
-        "myWorkflow",
-        OrchestrationStatus.RUNNING,
-        now,
-        later,
-      );
+      const orchState = new OrchestrationState("instance-1", "myWorkflow", OrchestrationStatus.RUNNING, now, later);
 
       const state = new WorkflowState(orchState);
 

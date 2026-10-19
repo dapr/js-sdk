@@ -12,13 +12,13 @@ limitations under the License.
 */
 
 import { create, fromBinary } from "@bufbuild/protobuf";
+import { TaskFailedError } from "../task";
 import type { ActivityOptions } from "../../../types/workflow/ActivityOptions.type";
 import type { PropagatedHistory } from "../../runtime/PropagatedHistory";
 import { timestampFromDate, timestampDate, type Timestamp } from "@bufbuild/protobuf/wkt";
 import type {
   OrchestrationStatus,
-  TaskFailureDetails,
-  WorkflowInstance,
+  TaskFailureDetails
 } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import {
   OrchestrationStatus as OrchestrationStatusEnum,
@@ -28,18 +28,7 @@ import {
 } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import type {
   HistoryEvent,
-  PropagatedHistory as HistoryMessage,
-  ExecutionStartedEvent,
-  TaskScheduledEvent,
-  TaskCompletedEvent,
-  TaskFailedEvent,
-  TimerCreatedEvent,
-  TimerFiredEvent,
-  EventRaisedEvent,
-  ExecutionTerminatedEvent,
-  ExecutionSuspendedEvent,
-  ExecutionResumedEvent,
-  WorkflowStartedEvent,
+  PropagatedHistory as HistoryMessage
 } from "../../../proto/dapr/proto/durabletask/v1/history_events_pb";
 import {
   HistoryEventSchema,
@@ -57,18 +46,14 @@ import {
   TimerOriginCreateTimerSchema,
 } from "../../../proto/dapr/proto/durabletask/v1/history_events_pb";
 import type {
-  WorkflowAction,
-  ScheduleTaskAction,
-  CreateTimerAction,
-  CreateChildWorkflowAction,
-  CompleteWorkflowAction,
-  SendEventAction,
+  WorkflowAction
 } from "../../../proto/dapr/proto/durabletask/v1/orchestrator_actions_pb";
 import {
   WorkflowActionSchema,
   ScheduleTaskActionSchema,
   CreateTimerActionSchema,
   CreateChildWorkflowActionSchema,
+  CreateDetachedWorkflowActionSchema,
   CompleteWorkflowActionSchema,
   SendEventActionSchema,
 } from "../../../proto/dapr/proto/durabletask/v1/orchestrator_actions_pb";
@@ -108,6 +93,7 @@ export function newFailureDetails(e: Error): TaskFailureDetails {
     errorMessage: e.message,
     stackTrace: e.stack?.toString() ?? "",
     isNonRetriable: false,
+    innerFailure: e instanceof TaskFailedError ? e.failureDetails : undefined,
   });
 }
 
@@ -330,6 +316,31 @@ export function newCreateChildWorkflowAction(
         instanceId,
         input: encodedInput,
         historyPropagationScope: options?.propagationScope || undefined,
+      }),
+    },
+  });
+}
+
+export function newCreateDetachedWorkflowAction(
+  id: number,
+  name: string,
+  instanceId: string,
+  encodedInput?: string,
+  startAt?: Date,
+  options?: RoutingOptions,
+): WorkflowAction {
+  return create(WorkflowActionSchema, {
+    id,
+    router: options?.targetAppId
+      ? create(TaskRouterSchema, { sourceAppID: options.sourceAppId, targetAppID: options.targetAppId })
+      : undefined,
+    workflowActionType: {
+      case: "createDetachedWorkflow",
+      value: create(CreateDetachedWorkflowActionSchema, {
+        name,
+        instanceId,
+        input: encodedInput,
+        scheduledStartTimestamp: startAt === undefined ? undefined : dateToTimestamp(startAt),
       }),
     },
   });

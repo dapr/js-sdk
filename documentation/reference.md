@@ -23,6 +23,37 @@ const invokerListen = (req: IRequest, res: IResponse) => {
 await client.invoker.listen("method", invokerListen.bind(this), options);
 ```
 
+## Workflow context and state
+
+`WorkflowContext.getWorkflowName()` returns the registered workflow name, including
+an explicit name supplied to `registerWorkflowByName`, and stays the same during replay.
+`WorkflowActivityContext.getTaskExecutionId()` exposes Dapr's activity task execution
+key (`taskExecutionId`). It returns `undefined` when the runtime supplies no key;
+the SDK does not synthesize a key or change how activities are scheduled.
+The existing `getWorkflowActivityId()` still returns the numeric task ID.
+
+`WorkflowState.getInput<T>()`, `getOutput<T>()`, and `getCustomStatus<T>()`
+deserialize JSON into the requested type (default `unknown`), without runtime type
+validation. Missing or empty serialized payloads return `undefined`; serialized
+JSON `null`, `false`, `0`, and `""` are preserved. Malformed JSON throws
+`SyntaxError`. The engine's existing omission of `null` workflow output and custom
+status is unchanged: omitted values deserialize as `undefined`.
+Request payloads with `getWorkflowState(id, true)` or the existing `fetchPayloads`
+argument on wait methods. The existing `serializedInput`, `serializedOutput`, and
+`customStatus` properties remain serialized strings.
+
+Every returned `WorkflowState` has `exists === true`, including pending, failed,
+terminated, and completed instances. Missing or purged instances still return
+`undefined`, not a placeholder state; use `state?.exists ?? false` to check
+existence. State is a snapshot, so purging an instance does not mutate old snapshots.
+
+`state.workflowFailureDetails?.getInnerFailure()` returns another
+`WorkflowFailureDetails`. Call it recursively to inspect nested failures using
+`getErrorType()`, `getErrorMessage()`, `getStackTrace()`, and `isNonRetriable`.
+It returns `undefined` at the end of the chain. Nested details are preserved when
+failed activities or child workflows fail their callers. The existing
+`innerFailure` property still exposes the raw protobuf details for compatibility.
+
 ## Cross-application workflow tasks
 
 `WorkflowContext.callActivity`, `callChildWorkflow`, and its alias `callSubWorkflow`
@@ -68,6 +99,44 @@ and decoded protobuf `events`. Payload fields such as `input` and `result` remai
 serialized JSON. The original `rawEvents`, `rawSignatures`, and
 `signingCertChains` are also available; the SDK does **not** verify signatures.
 Received history is informational context, never replayed as the callee's own history.
+
+## Detached workflows
+
+With Dapr runtime 1.19 or later, `WorkflowContext.scheduleNewDetachedWorkflow`
+schedules a workflow with no parent relationship. Unlike `callChildWorkflow`,
+yielding its already-completed `Task<string>` returns the scheduled instance ID,
+not the workflow's result. The caller does not wait for execution or receive
+completion or failure notifications. Recursive termination of the caller does not
+terminate the detached instance.
+
+```typescript
+function* orderWorkflow(ctx: WorkflowContext, order: unknown): any {
+  const instanceId = yield ctx.scheduleNewDetachedWorkflow("shipOrder", order);
+  return { shipmentWorkflowId: instanceId };
+}
+```
+
+Arguments follow `DaprWorkflowClient.scheduleNewWorkflow`: workflow name or
+function reference, optional input, optional instance ID, and optional `startAt`
+date. The final `DetachedWorkflowOptions` argument supports `targetAppId` for
+cross-application scheduling. Retries and history propagation are not supported.
+Omitted IDs are generated deterministically; do not use random IDs or wall-clock
+dates inside workflow code. For a delay, derive `startAt` from
+`ctx.getCurrentUtcDateTime()`. Explicit IDs must be non-empty and must not be
+scheduled twice in the same execution turn.
+
+Creation is committed with the caller's workflow actions, including when the
+caller completes in that turn. As with activities and child workflows,
+`continueAsNew` discards uncommitted actions from the current turn; schedule the
+detached workflow in the new generation or yield a durable task before continuing
+as new. Replay consumes the recorded `detachedWorkflowInstanceCreated` event without
+scheduling another instance. The returned ID is not confirmation that the runtime
+has started the workflow. Use `DaprWorkflowClient` outside the workflow to inspect
+or manage it independently.
+
+Existing custom engine contexts do not need to implement the new method unless
+they support detached scheduling; the base implementation throws an explicit
+unsupported-operation error.
 
 ## Workflow cancellation and timeouts
 
