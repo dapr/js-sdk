@@ -94,11 +94,12 @@ describe.each([
 
     afterAll(async () => {
       await runWithCleanupErrorSuppression(async () => {
-        await server.stop();
+        // Close the sidecar's persistent gRPC session before stopping the app server.
         await sidecar.stop();
+        await server.stop();
         await network.stop();
       });
-    });
+    }, 120 * 1000);
 
     it.each([CommunicationProtocolEnum.HTTP, CommunicationProtocolEnum.GRPC])(
       "round-trips invocation and single/bulk publishing from %s",
