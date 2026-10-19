@@ -92,6 +92,7 @@ export default class DaprWorkflowClient {
 
   /**
    * Gets the complete execution history for a workflow instance.
+   * Runtime errors, including missing instances, are propagated to the caller.
    */
   public async getWorkflowHistory(workflowInstanceId: string): Promise<HistoryEvent[]> {
     return await this._innerClient.getWorkflowHistory(workflowInstanceId);
@@ -99,6 +100,8 @@ export default class DaprWorkflowClient {
 
   /**
    * Creates a new workflow instance by rerunning from an event in an existing instance's history.
+   * Replacement input applies to the activity targeted by the event, not the workflow's original input.
+   * Runtime errors, including missing instances and nonexistent events, are propagated to the caller.
    */
   public async rerunWorkflowFromEvent(
     sourceInstanceId: string,
