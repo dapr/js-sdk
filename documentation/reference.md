@@ -23,6 +23,36 @@ const invokerListen = (req: IRequest, res: IResponse) => {
 await client.invoker.listen("method", invokerListen.bind(this), options);
 ```
 
+## Bulk actor reminder cleanup
+
+`ActorClient.actor.unregisterActorRemindersByType(actorType, actorId?)` removes
+reminders for an exact actor instance, or for every instance of an actor type.
+It requires gRPC and Dapr runtime 1.17 or later. The runtime does not expose an
+equivalent HTTP endpoint; HTTP clients reject with `HTTPNotSupportedError`
+without sending a request.
+
+**Warning:** Omitting `actorId` deletes all reminders for all instances of the
+specified actor type. Deleted reminders cannot be recovered. Other actor types
+are unaffected, and repeating cleanup when no matching reminders remain succeeds.
+Sidecar and RPC errors propagate to the caller.
+
+```typescript
+import { ActorId, CommunicationProtocolEnum } from "@dapr/dapr";
+import ActorClient from "@dapr/dapr/actors/client/ActorClient/ActorClient";
+
+const options = {
+  daprHost: "127.0.0.1",
+  daprPort: "50001",
+  communicationProtocol: CommunicationProtocolEnum.GRPC,
+};
+const client = new ActorClient(options.daprHost, options.daprPort, options.communicationProtocol, options);
+
+await client.actor.unregisterActorRemindersByType("OrderActor", new ActorId("order-123"));
+
+// Destructive: removes reminders for every OrderActor instance.
+await client.actor.unregisterActorRemindersByType("OrderActor");
+```
+
 ## Listing actor reminders
 
 Use `listActorReminders(actorType, actorId?)` on the existing `ActorClient.actor`
