@@ -179,8 +179,9 @@ describe("http/actors", () => {
   // Note: it can take > 5s so increase timeout as we are testing reminders and timers
   afterAll(async () => {
     await runWithCleanupErrorSuppression(async () => {
-      await server.stop();
+      // Keep the app available for actor callbacks until the sidecar has stopped.
       await daprContainer.stop();
+      await server.stop();
       await redisContainer.stop();
       await network.stop();
     });
@@ -212,7 +213,7 @@ describe("http/actors", () => {
     });
 
     it("should not be able to create an actorId with an empty string", () => {
-      expect(() => new ActorId("")).toThrowError("ActorId cannot be empty");
+      expect(() => new ActorId("")).toThrow("ActorId cannot be empty");
     });
 
     it("should be able to create an actorId with url unsafe characters like '/'", () => {
