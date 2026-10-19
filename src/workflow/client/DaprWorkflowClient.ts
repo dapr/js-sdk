@@ -43,28 +43,36 @@ export default class DaprWorkflowClient {
     input?: unknown,
     instanceId?: string,
     startAt?: Date,
+    signal?: AbortSignal,
   ): Promise<string> {
     if (typeof workflow === "string") {
-      return await this._innerClient.scheduleNewOrchestration(workflow, input, instanceId, startAt);
+      return await this._innerClient.scheduleNewOrchestration(workflow, input, instanceId, startAt, signal);
     }
-    return await this._innerClient.scheduleNewOrchestration(getFunctionName(workflow), input, instanceId, startAt);
+    return await this._innerClient.scheduleNewOrchestration(
+      getFunctionName(workflow),
+      input,
+      instanceId,
+      startAt,
+      signal,
+    );
   }
 
-  public async terminateWorkflow(workflowInstanceId: string, output?: unknown): Promise<void> {
-    await this._innerClient.terminateOrchestration(workflowInstanceId, output);
+  public async terminateWorkflow(workflowInstanceId: string, output?: unknown, signal?: AbortSignal): Promise<void> {
+    await this._innerClient.terminateOrchestration(workflowInstanceId, output, signal);
   }
 
   public async getWorkflowState(
     workflowInstanceId: string,
     getInputsAndOutputs: boolean,
+    signal?: AbortSignal,
   ): Promise<WorkflowState | undefined> {
     try {
-      const state = await this._innerClient.getOrchestrationState(workflowInstanceId, getInputsAndOutputs);
+      const state = await this._innerClient.getOrchestrationState(workflowInstanceId, getInputsAndOutputs, signal);
       if (state !== undefined) {
         return new WorkflowState(state);
       }
     } catch (error) {
-      if (isWorkflowInstanceNotFound(error)) {
+      if (!signal?.aborted && isWorkflowInstanceNotFound(error)) {
         return undefined;
       }
       throw error;
@@ -114,11 +122,13 @@ export default class DaprWorkflowClient {
     workflowInstanceId: string,
     fetchPayloads = true,
     timeoutInSeconds = 60,
+    signal?: AbortSignal,
   ): Promise<WorkflowState | undefined> {
     const state = await this._innerClient.waitForOrchestrationStart(
       workflowInstanceId,
       fetchPayloads,
       timeoutInSeconds,
+      signal,
     );
     if (state !== undefined) {
       return new WorkflowState(state);
@@ -129,35 +139,42 @@ export default class DaprWorkflowClient {
     workflowInstanceId: string,
     fetchPayloads = true,
     timeoutInSeconds = 60,
+    signal?: AbortSignal,
   ): Promise<WorkflowState | undefined> {
     const state = await this._innerClient.waitForOrchestrationCompletion(
       workflowInstanceId,
       fetchPayloads,
       timeoutInSeconds,
+      signal,
     );
     if (state !== undefined) {
       return new WorkflowState(state);
     }
   }
 
-  public async raiseEvent(workflowInstanceId: string, eventName: string, eventPayload?: unknown): Promise<void> {
-    await this._innerClient.raiseOrchestrationEvent(workflowInstanceId, eventName, eventPayload);
+  public async raiseEvent(
+    workflowInstanceId: string,
+    eventName: string,
+    eventPayload?: unknown,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    await this._innerClient.raiseOrchestrationEvent(workflowInstanceId, eventName, eventPayload, signal);
   }
 
-  public async purgeWorkflow(workflowInstanceId: string): Promise<boolean> {
-    const purgeResult = await this._innerClient.purgeOrchestration(workflowInstanceId);
+  public async purgeWorkflow(workflowInstanceId: string, signal?: AbortSignal): Promise<boolean> {
+    const purgeResult = await this._innerClient.purgeOrchestration(workflowInstanceId, signal);
     if (purgeResult !== undefined) {
       return purgeResult.deletedInstanceCount > 0;
     }
     return false;
   }
 
-  public async suspendWorkflow(workflowInstanceId: string, reason?: string): Promise<void> {
-    await this._innerClient.suspendOrchestration(workflowInstanceId, reason);
+  public async suspendWorkflow(workflowInstanceId: string, reason?: string, signal?: AbortSignal): Promise<void> {
+    await this._innerClient.suspendOrchestration(workflowInstanceId, reason, signal);
   }
 
-  public async resumeWorkflow(workflowInstanceId: string, reason?: string): Promise<void> {
-    await this._innerClient.resumeOrchestration(workflowInstanceId, reason);
+  public async resumeWorkflow(workflowInstanceId: string, reason?: string, signal?: AbortSignal): Promise<void> {
+    await this._innerClient.resumeOrchestration(workflowInstanceId, reason, signal);
   }
 
   public async stop(): Promise<void> {

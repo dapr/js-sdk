@@ -14,6 +14,8 @@ limitations under the License.
 import { isPromise } from "util/types";
 import { ActivityContext } from "../context/ActivityContext";
 import { Registry } from "./Registry";
+import type { PropagatedHistory as HistoryMessage } from "../../../proto/dapr/proto/durabletask/v1/history_events_pb";
+import { decodePropagatedHistory } from "./protoHelpers";
 
 export class ActivityExecutor {
   constructor(private readonly _registry: Registry) {}
@@ -23,6 +25,7 @@ export class ActivityExecutor {
     name: string,
     taskId: number,
     encodedInput?: string,
+    propagatedHistory?: HistoryMessage,
   ): Promise<string | undefined> {
     const fn = this._registry.getActivity(name);
 
@@ -31,7 +34,8 @@ export class ActivityExecutor {
     }
 
     const activityInput = encodedInput ? JSON.parse(encodedInput) : undefined;
-    const ctx = new ActivityContext(orchestrationId, taskId);
+    const history = decodePropagatedHistory(propagatedHistory);
+    const ctx = new ActivityContext(orchestrationId, taskId, history);
 
     let activityOutput = fn(ctx, activityInput);
 

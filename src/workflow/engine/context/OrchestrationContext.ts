@@ -11,21 +11,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import type { Task } from "../task/Task";
+import type { Task } from "../task";
+import type { CancellableTask } from "../../../types/workflow/CancellableTask.type";
+import type { ExternalEventOptions } from "../../../types/workflow/ExternalEventOptions.type";
 import type { ActivityContext } from "./ActivityContext";
 import type { ActivityOptions } from "../../../types/workflow/ActivityOptions.type";
 import type { ChildWorkflowOptions } from "../../../types/workflow/ChildWorkflowOptions.type";
+import type { PropagatedHistory } from "../../runtime/PropagatedHistory";
 
 export type AnyGenerator<T> = AsyncGenerator<T, unknown, unknown> | Generator<T, unknown, unknown>;
 export type TOrchestrator = (context: OrchestrationContext, input: unknown) => AnyGenerator<Task<unknown>> | unknown;
 export type TActivity<TInput, TOutput> = (context: ActivityContext, input: TInput) => TOutput | Promise<TOutput>;
 
 export abstract class OrchestrationContext {
+  get propagatedHistory(): PropagatedHistory | undefined {
+    return undefined;
+  }
+
   abstract get instanceId(): string;
   abstract get currentUtcDateTime(): Date;
   abstract get isReplaying(): boolean;
 
-  abstract createTimer(fireAt: Date | number): Task<unknown>;
+  abstract createTimer(fireAt: Date | number): CancellableTask<void>;
   abstract callActivity<TInput, TOutput>(
     activity: TActivity<TInput, TOutput> | string,
     input?: TInput,
@@ -37,7 +44,7 @@ export abstract class OrchestrationContext {
     instanceId?: string,
     options?: ChildWorkflowOptions,
   ): Task<TOutput>;
-  abstract waitForExternalEvent(name: string): Task<unknown>;
+  abstract waitForExternalEvent(name: string, options?: ExternalEventOptions): CancellableTask<unknown>;
   abstract continueAsNew(newInput: unknown, saveEvents: boolean): void;
   abstract setCustomStatus(status: unknown): void;
   abstract sendEvent(instanceId: string, eventName: string, payload: unknown): void;
