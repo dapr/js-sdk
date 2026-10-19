@@ -146,6 +146,149 @@ describe("workflow", () => {
     );
   }
 
+  minimumDaprRuntime(
+    "1.17.0",
+    "persists nonempty activity execution IDs across fan-out, replay, activity requests and completions",
+    async () => {
+      const observed: { replaying: boolean; keys: (string | undefined)[] }[] = [];
+      const inspectExecution = (ctx: WorkflowActivityContext, input: number) => ({
+        input,
+        taskId: ctx.getWorkflowActivityId(),
+        key: ctx.getTaskExecutionId(),
+      });
+      const workflow: TWorkflow = function* (ctx: WorkflowContext): any {
+        const tasks = [ctx.callActivity(inspectExecution, 1), ctx.callActivity(inspectExecution, 2)];
+        const before = tasks.map((task) => task.executionId);
+        observed.push({ replaying: ctx.isReplaying(), keys: before });
+        const results = yield ctx.whenAll(tasks);
+        return { before, after: tasks.map((task) => task.executionId), results };
+      };
+      workflowRuntime.registerWorkflow(workflow).registerActivity(inspectExecution);
+      await workflowRuntime.start();
+      const id = await workflowClient.scheduleNewWorkflow(workflow);
+      const state = await workflowClient.waitForWorkflowCompletion(id, true, 30);
+      expect(state?.runtimeStatus).toBe(WorkflowRuntimeStatus.COMPLETED);
+      const output = state?.getOutput<{
+        before: string[];
+        after: string[];
+        results: ReturnType<typeof inspectExecution>[];
+      }>();
+      expect(output).toBeDefined();
+      expect(output!.before).toHaveLength(2);
+      expect(new Set(output!.before).size).toBe(2);
+      for (const key of output!.before) {
+        expect(key).toMatch(/^[0-9a-f-]{36}$/);
+      }
+      expect(output!.after).toEqual(output!.before);
+      expect(output!.results.map((value) => value.input)).toEqual([1, 2]);
+      expect(output!.results.map((value) => value.key)).toEqual(output!.before);
+      expect(observed.some((value) => value.replaying)).toBe(true);
+      for (const observation of observed) {
+        expect(observation.keys).toEqual(output!.before);
+      }
+      const history = await workflowClient.getWorkflowHistory(id);
+      for (const [index, activity] of output!.results.entries()) {
+        const scheduled = history.find(
+          (event) => event.eventType.case === "taskScheduled" && event.eventId === activity.taskId,
+        );
+        const completed = history.find(
+          (event) =>
+            event.eventType.case === "taskCompleted" && event.eventType.value.taskScheduledId === activity.taskId,
+        );
+        expect(scheduled?.eventType.value).toMatchObject({ taskExecutionId: output!.before[index] });
+        expect(completed?.eventType.value).toMatchObject({ taskExecutionId: output!.before[index] });
+      }
+    },
+    31000,
+  );
+
+  minimumDaprRuntime(
+    "1.17.0",
+    "preserves one activity execution ID across failed and successful retry attempts",
+    async () => {
+      const attempts: { taskId: number; key: string | undefined }[] = [];
+      const flakyActivity = (ctx: WorkflowActivityContext) => {
+        attempts.push({ taskId: ctx.getWorkflowActivityId(), key: ctx.getTaskExecutionId() });
+        if (attempts.length === 1) throw new Error("transient execution-ID test failure");
+        return ctx.getTaskExecutionId();
+      };
+      const workflow: TWorkflow = function* (ctx: WorkflowContext): any {
+        const task = ctx.callActivity(flakyActivity, undefined, {
+          retryPolicy: { firstRetryInterval: 1, maxNumberOfAttempts: 2 },
+        });
+        const before = task.executionId;
+        const activityKey = yield task;
+        return { before, after: task.executionId, activityKey };
+      };
+      workflowRuntime.registerWorkflow(workflow).registerActivity(flakyActivity);
+      await workflowRuntime.start();
+      const id = await workflowClient.scheduleNewWorkflow(workflow);
+      const state = await workflowClient.waitForWorkflowCompletion(id, true, 30);
+      expect(state?.runtimeStatus).toBe(WorkflowRuntimeStatus.COMPLETED);
+      const output = state?.getOutput<{ before: string; after: string; activityKey: string }>();
+      expect(output?.before).toMatch(/^[0-9a-f-]{36}$/);
+      expect(output).toEqual({ before: output!.before, after: output!.before, activityKey: output!.before });
+      expect(attempts).toHaveLength(2);
+      expect(attempts[0].taskId).not.toBe(attempts[1].taskId);
+      expect(attempts.map((attempt) => attempt.key)).toEqual([output!.before, output!.before]);
+      const history = await workflowClient.getWorkflowHistory(id);
+      const activityEvents = history.filter(
+        (event) =>
+          event.eventType.case === "taskScheduled" ||
+          event.eventType.case === "taskCompleted" ||
+          event.eventType.case === "taskFailed",
+      );
+      expect(activityEvents.map((event) => event.eventType.case).sort()).toEqual([
+        "taskCompleted",
+        "taskFailed",
+        "taskScheduled",
+        "taskScheduled",
+      ]);
+      for (const event of activityEvents) {
+        expect(event.eventType.value).toMatchObject({ taskExecutionId: output!.before });
+      }
+    },
+    31000,
+  );
+
+  minimumDaprRuntime(
+    "1.17.0",
+    "assigns different activity execution IDs across continue-as-new with the same instance and task IDs",
+    async () => {
+      const inspectGeneration = (ctx: WorkflowActivityContext) => ({
+        instanceId: ctx.getWorkflowInstanceId(),
+        taskId: ctx.getWorkflowActivityId(),
+        key: ctx.getTaskExecutionId(),
+      });
+      type Generation = ReturnType<typeof inspectGeneration>;
+      const workflow: TWorkflow = function* (ctx: WorkflowContext, previous?: Generation): any {
+        const task = ctx.callActivity(inspectGeneration);
+        const before = task.executionId;
+        const current: Generation = yield task;
+        if (!previous) {
+          ctx.continueAsNew(current);
+          return;
+        }
+        return { previous, current, before, after: task.executionId };
+      };
+      workflowRuntime.registerWorkflow(workflow).registerActivity(inspectGeneration);
+      await workflowRuntime.start();
+      const id = await workflowClient.scheduleNewWorkflow(workflow);
+      const state = await workflowClient.waitForWorkflowCompletion(id, true, 30);
+      expect(state?.runtimeStatus).toBe(WorkflowRuntimeStatus.COMPLETED);
+      const output = state?.getOutput<{ previous: Generation; current: Generation; before: string; after: string }>();
+      expect(output?.previous.instanceId).toBe(id);
+      expect(output?.current.instanceId).toBe(id);
+      expect(output?.previous.taskId).toBe(output?.current.taskId);
+      expect(output?.previous.key).toMatch(/^[0-9a-f-]{36}$/);
+      expect(output?.current.key).toMatch(/^[0-9a-f-]{36}$/);
+      expect(output?.current.key).not.toBe(output?.previous.key);
+      expect(output?.before).toBe(output?.current.key);
+      expect(output?.after).toBe(output?.current.key);
+    },
+    31000,
+  );
+
   it.each([false, 0, "", null])(
     "preserves falsy JSON values in typed state accessors (%s)",
     async (value) => {
