@@ -11,8 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { TaskHubWorker } from "../../../src/workflow/engine/transport/TaskHubWorker";
-import type { WorkItem } from "../../../src/proto/dapr/proto/durabletask/v1/orchestrator_service_pb";
+import { TaskHubWorker } from "../../../src/workflow/engine";
+import { create } from "@bufbuild/protobuf";
+import { WorkItemSchema, type WorkItem } from "../../../src/proto/dapr/proto/durabletask/v1/orchestrator_service_pb";
+import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
 
 /** A work-item stream the test feeds item by item; it ends when aborted or ended. */
 class FakeWorkItemStream {
@@ -105,6 +107,47 @@ async function startWorker() {
 }
 
 describe("TaskHubWorker work-item dispatch", () => {
+  it("passes execution keys from work items to activities without synthesizing or changing them", async () => {
+    const worker = new TaskHubWorker("localhost:50001");
+    const stream = new FakeWorkItemStream();
+    const completeActivityTask = jest.fn().mockResolvedValue({});
+    (worker as unknown as { client: unknown }).client = {
+      hello: jest.fn().mockResolvedValue({}),
+      getWorkItems: jest.fn((_req: unknown, opts?: { signal?: AbortSignal }) => stream.iterate(opts?.signal)),
+      completeActivityTask,
+    };
+    const received: (string | undefined)[] = [];
+    worker.registry.addNamedActivity("activity", (inner) => {
+      const ctx = new WorkflowActivityContext(inner);
+      received.push(ctx.getTaskExecutionId());
+      expect(ctx.getWorkflowActivityId()).toBe(0);
+      expect(ctx.getWorkflowInstanceId()).toBe("wf");
+      return "done";
+    });
+    await worker.start();
+    try {
+      for (const taskExecutionId of ["opaque-key", "opaque-key", "different-key", ""]) {
+        stream.push(
+          create(WorkItemSchema, {
+            request: {
+              case: "activityRequest",
+              value: { name: "activity", taskId: 0, workflowInstance: { instanceId: "wf" }, taskExecutionId },
+            },
+          }),
+        );
+      }
+      await settle();
+      expect(received).toEqual(["opaque-key", "opaque-key", "different-key", undefined]);
+      expect(completeActivityTask).toHaveBeenCalledTimes(4);
+      for (const [response] of completeActivityTask.mock.calls) {
+        expect(response).toMatchObject({ instanceId: "wf", taskId: 0, result: '"done"' });
+        expect(response.failureDetails).toBeUndefined();
+      }
+    } finally {
+      await worker.stop();
+    }
+  });
+
   it("executes every work item as it arrives, without dropping any", async () => {
     const run = await startWorker();
 

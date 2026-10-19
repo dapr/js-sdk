@@ -23,6 +23,37 @@ const invokerListen = (req: IRequest, res: IResponse) => {
 await client.invoker.listen("method", invokerListen.bind(this), options);
 ```
 
+## Workflow context and state
+
+`WorkflowContext.getWorkflowName()` returns the registered workflow name, including
+an explicit name supplied to `registerWorkflowByName`, and stays the same during replay.
+`WorkflowActivityContext.getTaskExecutionId()` exposes Dapr's activity task execution
+key (`taskExecutionId`). It returns `undefined` when the runtime supplies no key;
+the SDK does not synthesize a key or change how activities are scheduled.
+The existing `getWorkflowActivityId()` still returns the numeric task ID.
+
+`WorkflowState.getInput<T>()`, `getOutput<T>()`, and `getCustomStatus<T>()`
+deserialize JSON into the requested type (default `unknown`), without runtime type
+validation. Missing or empty serialized payloads return `undefined`; serialized
+JSON `null`, `false`, `0`, and `""` are preserved. Malformed JSON throws
+`SyntaxError`. The engine's existing omission of `null` workflow output and custom
+status is unchanged: omitted values deserialize as `undefined`.
+Request payloads with `getWorkflowState(id, true)` or the existing `fetchPayloads`
+argument on wait methods. The existing `serializedInput`, `serializedOutput`, and
+`customStatus` properties remain serialized strings.
+
+Every returned `WorkflowState` has `exists === true`, including pending, failed,
+terminated, and completed instances. Missing or purged instances still return
+`undefined`, not a placeholder state; use `state?.exists ?? false` to check
+existence. State is a snapshot, so purging an instance does not mutate old snapshots.
+
+`state.workflowFailureDetails?.getInnerFailure()` returns another
+`WorkflowFailureDetails`. Call it recursively to inspect nested failures using
+`getErrorType()`, `getErrorMessage()`, `getStackTrace()`, and `isNonRetriable`.
+It returns `undefined` at the end of the chain. Nested details are preserved when
+failed activities or child workflows fail their callers. The existing
+`innerFailure` property still exposes the raw protobuf details for compatibility.
+
 ## Cross-application workflow tasks
 
 `WorkflowContext.callActivity`, `callChildWorkflow`, and its alias `callSubWorkflow`

@@ -11,9 +11,68 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { WorkflowFailureDetails } from "../../../src/workflow/client/WorkflowFailureDetails";
+import { WorkflowFailureDetails } from "../../../src";
+import { create } from "@bufbuild/protobuf";
+import { TaskFailureDetailsSchema } from "../../../src/proto/dapr/proto/durabletask/v1/orchestration_pb";
+import { TaskFailedError } from "../../../src/workflow/engine";
+import { newFailureDetails } from "../../../src/workflow/engine/worker/protoHelpers";
 
 describe("WorkflowFailureDetails", () => {
+  it("recursively wraps nested failures while preserving the raw protobuf API", () => {
+    const raw = create(TaskFailureDetailsSchema, {
+      errorType: "ParentError",
+      errorMessage: "parent",
+      innerFailure: {
+        errorType: "ChildError",
+        errorMessage: "child",
+        stackTrace: "child stack",
+        innerFailure: {
+          errorType: "RootError",
+          errorMessage: "root",
+          isNonRetriable: true,
+        },
+      },
+    });
+    const details = new WorkflowFailureDetails(raw);
+    const child = details.getInnerFailure()!;
+    const root = child.getInnerFailure()!;
+    expect(child).toBeInstanceOf(WorkflowFailureDetails);
+    expect(child.getErrorType()).toBe("ChildError");
+    expect(child.getErrorMessage()).toBe("child");
+    expect(child.getStackTrace()).toBe("child stack");
+    expect(child.isNonRetriable).toBe(false);
+    expect(root).toBeInstanceOf(WorkflowFailureDetails);
+    expect(root.getErrorType()).toBe("RootError");
+    expect(root.getErrorMessage()).toBe("root");
+    expect(root.isNonRetriable).toBe(true);
+    expect(root.getInnerFailure()).toBeUndefined();
+    expect(details.innerFailure).toBe(raw.innerFailure);
+    expect(child.innerFailure).toBe(raw.innerFailure?.innerFailure);
+  });
+
+  it("preserves task failure chains when a failed activity or child fails its caller", () => {
+    const raw = create(TaskFailureDetailsSchema, {
+      errorType: "TypeError",
+      errorMessage: "original error",
+      stackTrace: "original stack",
+      isNonRetriable: true,
+    });
+    const error = TaskFailedError.fromFailureDetails("activity failed", raw);
+    const child = newFailureDetails(error);
+    const parent = newFailureDetails(TaskFailedError.fromFailureDetails("child failed", child));
+    const root = new WorkflowFailureDetails(parent).getInnerFailure()!.getInnerFailure()!;
+    expect(root.getErrorMessage()).toBe("original error");
+    expect(root.getStackTrace()).toBe("original stack");
+    expect(root.isNonRetriable).toBe(true);
+    expect(error.details).toEqual({
+      message: "activity failed",
+      errorType: "TypeError",
+      stackTrace: "original stack",
+    });
+    expect(new WorkflowFailureDetails(newFailureDetails(new Error("plain"))).getInnerFailure()).toBeUndefined();
+    expect(newFailureDetails(new TaskFailedError("legacy", "Error")).innerFailure).toBeUndefined();
+  });
+
   describe("getErrorType", () => {
     it("should return the error type", () => {
       const mockFailureDetails = {

@@ -26,6 +26,7 @@ export class ActivityExecutor {
     taskId: number,
     encodedInput?: string,
     propagatedHistory?: HistoryMessage,
+    taskExecutionId?: string,
   ): Promise<string | undefined> {
     const fn = this._registry.getActivity(name);
 
@@ -35,7 +36,7 @@ export class ActivityExecutor {
 
     const activityInput = encodedInput ? JSON.parse(encodedInput) : undefined;
     const history = decodePropagatedHistory(propagatedHistory);
-    const ctx = new ActivityContext(orchestrationId, taskId, history);
+    const ctx = new ActivityContext(orchestrationId, taskId, history, taskExecutionId);
 
     let activityOutput = fn(ctx, activityInput);
 
@@ -43,7 +44,6 @@ export class ActivityExecutor {
       activityOutput = await activityOutput;
     }
 
-    const encodedOutput = activityOutput != null ? JSON.stringify(activityOutput) : undefined;
-    return encodedOutput;
+    return activityOutput != null ? JSON.stringify(activityOutput) : undefined;
   }
 }

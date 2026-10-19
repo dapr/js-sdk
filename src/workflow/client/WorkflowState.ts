@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import type { OrchestrationState } from "../engine/transport/TaskHubClient";
+import type { OrchestrationState } from "../engine";
 import { WorkflowFailureDetails } from "./WorkflowFailureDetails";
 import { WorkflowRuntimeStatus, fromOrchestrationStatus } from "../runtime/WorkflowRuntimeStatus";
 
@@ -32,6 +32,11 @@ export class WorkflowState {
 
   get name(): string {
     return this._state.name;
+  }
+
+  /** A returned state represents an existing instance, regardless of its runtime status. */
+  get exists(): boolean {
+    return true;
   }
 
   get instanceId(): string {
@@ -63,7 +68,24 @@ export class WorkflowState {
   }
 
   get customStatus(): string | undefined {
-    const cs = this._state.serializedCustomStatus;
-    return cs;
+    return this._state.serializedCustomStatus;
+  }
+
+  /** Deserializes JSON without runtime type validation. Invalid JSON throws SyntaxError. */
+  getInput<T = unknown>(): T | undefined {
+    const input = this.serializedInput;
+    return input === undefined || input === "" ? undefined : JSON.parse(input);
+  }
+
+  /** Deserializes JSON without runtime type validation. Invalid JSON throws SyntaxError. */
+  getOutput<T = unknown>(): T | undefined {
+    const output = this.serializedOutput;
+    return output === undefined || output === "" ? undefined : JSON.parse(output);
+  }
+
+  /** Deserializes JSON without runtime type validation. Invalid JSON throws SyntaxError. */
+  getCustomStatus<T = unknown>(): T | undefined {
+    const status = this.customStatus;
+    return status === undefined || status === "" ? undefined : JSON.parse(status);
   }
 }

@@ -16,7 +16,7 @@ import { ConnectError } from "@connectrpc/connect";
 import DaprWorkflowClient from "../../../src/workflow/client/DaprWorkflowClient";
 import WorkflowContext from "../../../src/workflow/runtime/WorkflowContext";
 import WorkflowRuntime from "../../../src/workflow/runtime/WorkflowRuntime";
-import { type TWorkflow, WorkflowRuntimeStatus, Task } from "../../../src";
+import { type TWorkflow, WorkflowRuntimeStatus, Task, WorkflowFailureDetails } from "../../../src";
 import { getFunctionName } from "../../../src/workflow/internal";
 import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
 import {
@@ -76,6 +76,126 @@ describe("workflow", () => {
     }
     throw new Error(`Workflow ${instanceId} did not publish custom status before timeout`);
   };
+
+  for (const explicitName of [false, true]) {
+    minimumDaprRuntime(
+      "1.17.0",
+      `exposes workflow names and activity execution keys through real execution and replay (explicit name: ${explicitName})`,
+      async () => {
+        const inspect = (ctx: WorkflowActivityContext) => ({
+          instanceId: ctx.getWorkflowInstanceId(),
+          taskId: ctx.getWorkflowActivityId(),
+          executionKey: ctx.getTaskExecutionId(),
+        });
+        const workflow: TWorkflow = function* contextWorkflow(ctx: WorkflowContext, input: unknown): any {
+          const nameBefore = ctx.getWorkflowName();
+          const first = yield ctx.callActivity(inspect);
+          const nameAfter = ctx.getWorkflowName();
+          const second = yield ctx.callActivity(inspect);
+          ctx.setCustomStatus({ phase: "done", name: ctx.getWorkflowName() });
+          return { input, nameBefore, nameAfter, nameAtEnd: ctx.getWorkflowName(), first, second };
+        };
+        const name = explicitName ? "explicit-context-name" : getFunctionName(workflow);
+        if (explicitName) workflowRuntime.registerWorkflowByName(name, workflow);
+        else workflowRuntime.registerWorkflow(workflow);
+        workflowRuntime.registerActivity(inspect);
+        await workflowRuntime.start();
+
+        const input = { items: [1, false, null, ""] };
+        const id = await workflowClient.scheduleNewWorkflow(name, input);
+        const state = await workflowClient.waitForWorkflowCompletion(id, true, 30);
+        expect(state?.exists).toBe(true);
+        expect(state?.runtimeStatus).toBe(WorkflowRuntimeStatus.COMPLETED);
+        expect(state?.getInput<typeof input>()).toEqual(input);
+        const output = state?.getOutput<{
+          input: typeof input;
+          nameBefore: string;
+          nameAfter: string;
+          nameAtEnd: string;
+          first: ReturnType<typeof inspect>;
+          second: ReturnType<typeof inspect>;
+        }>();
+        expect(output).toMatchObject({ input, nameBefore: name, nameAfter: name, nameAtEnd: name });
+        expect(output?.first.instanceId).toBe(id);
+        expect(output?.second.instanceId).toBe(id);
+        expect(output?.first.taskId).not.toBe(output?.second.taskId);
+        const history = await workflowClient.getWorkflowHistory(id);
+        const scheduledKeys = new Map<number, string | undefined>();
+        for (const event of history) {
+          if (event.eventType.case === "taskScheduled") {
+            scheduledKeys.set(event.eventId, event.eventType.value.taskExecutionId || undefined);
+          }
+        }
+        expect(scheduledKeys.size).toBe(2);
+        expect(scheduledKeys.has(output!.first.taskId)).toBe(true);
+        expect(scheduledKeys.has(output!.second.taskId)).toBe(true);
+        expect(output?.first.executionKey).toBe(scheduledKeys.get(output!.first.taskId));
+        expect(output?.second.executionKey).toBe(scheduledKeys.get(output!.second.taskId));
+        expect(state?.getCustomStatus<{ phase: string; name: string }>()).toEqual({ phase: "done", name });
+        expect(state?.serializedInput).toBe(JSON.stringify(input));
+        expect(state?.serializedOutput).toBe(JSON.stringify(output));
+        expect(state?.customStatus).toBe(JSON.stringify({ phase: "done", name }));
+
+        expect(await workflowClient.purgeWorkflow(id)).toBe(true);
+        const missing = await workflowClient.getWorkflowState(id, true);
+        expect(missing).toBeUndefined();
+        expect(missing?.exists ?? false).toBe(false);
+        expect(state?.exists).toBe(true);
+      },
+      31000,
+    );
+  }
+
+  it.each([false, 0, "", null])(
+    "preserves falsy JSON values in typed state accessors (%s)",
+    async (value) => {
+      const echo = (_ctx: WorkflowActivityContext, input: unknown) => ({ value: input });
+      const workflow: TWorkflow = function* (ctx: WorkflowContext, input: unknown): any {
+        yield ctx.callActivity(echo, input);
+        ctx.setCustomStatus(input);
+        return input;
+      };
+      workflowRuntime.registerWorkflow(workflow).registerActivity(echo);
+      await workflowRuntime.start();
+      const id = await workflowClient.scheduleNewWorkflow(workflow, value);
+      const state = await workflowClient.waitForWorkflowCompletion(id, true, 30);
+      expect(state?.runtimeStatus).toBe(WorkflowRuntimeStatus.COMPLETED);
+      expect(state?.getInput()).toBe(value);
+      // Preserve the engine's existing omission of null output and custom status.
+      expect(state?.getOutput()).toBe(value === null ? undefined : value);
+      expect(state?.getCustomStatus()).toBe(value === null ? undefined : value);
+    },
+    31000,
+  );
+
+  it("preserves recursively wrapped activity failures through a child and parent workflow", async () => {
+    const fail = () => {
+      throw new TypeError("nested activity failure");
+    };
+    const child: TWorkflow = function* (ctx: WorkflowContext): any {
+      return yield ctx.callActivity(fail);
+    };
+    const parent: TWorkflow = function* (ctx: WorkflowContext): any {
+      return yield ctx.callChildWorkflow(child);
+    };
+    workflowRuntime.registerWorkflow(parent).registerWorkflow(child).registerActivity(fail);
+    await workflowRuntime.start();
+    const id = await workflowClient.scheduleNewWorkflow(parent);
+    const state = await workflowClient.waitForWorkflowCompletion(id, true, 30);
+    expect(state?.runtimeStatus).toBe(WorkflowRuntimeStatus.FAILED);
+    expect(state?.exists).toBe(true);
+    const outer = state?.workflowFailureDetails;
+    expect(outer).toBeInstanceOf(WorkflowFailureDetails);
+    const childFailure = outer?.getInnerFailure();
+    expect(childFailure).toBeInstanceOf(WorkflowFailureDetails);
+    const root = childFailure?.getInnerFailure();
+    expect(root).toBeInstanceOf(WorkflowFailureDetails);
+    expect(root?.getErrorType()).toBe("TypeError");
+    expect(root?.getErrorMessage()).toBe("nested activity failure");
+    expect(root?.getStackTrace()).toContain("nested activity failure");
+    expect(root?.getInnerFailure()).toBeUndefined();
+    expect(outer?.innerFailure?.innerFailure?.errorMessage).toBe("nested activity failure");
+  }, 31000);
 
   it("should be able to run an empty orchestration", async () => {
     let invoked = false;
@@ -405,8 +525,7 @@ describe("workflow", () => {
 
   it("should be able to suspend and resume an orchestration", async () => {
     const workflow: TWorkflow = async function* (ctx: WorkflowContext, _: any): any {
-      const res = yield ctx.waitForExternalEvent("my_event");
-      return res;
+      return yield ctx.waitForExternalEvent("my_event");
     };
 
     workflowRuntime.registerWorkflow(workflow);
@@ -439,8 +558,7 @@ describe("workflow", () => {
 
   it("should be able to terminate an orchestration", async () => {
     const workflow: TWorkflow = async function* (ctx: WorkflowContext, _: any): any {
-      const res = yield ctx.waitForExternalEvent("my_event");
-      return res;
+      return yield ctx.waitForExternalEvent("my_event");
     };
 
     workflowRuntime.registerWorkflow(workflow);
