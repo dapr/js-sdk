@@ -19,6 +19,7 @@ import IClientActor from "../../../interfaces/Client/IClientActor";
 import { KeyValueType } from "../../../types/KeyValue.type";
 import ActorId from "../../ActorId";
 import { parseActorReminder } from "../../../utils/Actors.util";
+import { HTTPNotSupportedError } from "../../../errors/HTTPNotSupportedError";
 
 // https://docs.dapr.io/reference/api/actors_api/
 export default class ActorClientHTTP implements IClientActor {
@@ -88,6 +89,11 @@ export default class ActorClientHTTP implements IClientActor {
     await this.client.execute(`/actors/${actorType}/${actorId.getURLSafeId()}/reminders/${name}`, {
       method: "DELETE",
     });
+  }
+
+  /** The Dapr runtime exposes bulk reminder deletion only over gRPC. */
+  async unregisterActorRemindersByType(_actorType: string, _actorId?: ActorId): Promise<void> {
+    throw new HTTPNotSupportedError();
   }
 
   async registerActorTimer(actorType: string, actorId: ActorId, name: string, timer: ActorTimerType): Promise<void> {

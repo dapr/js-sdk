@@ -130,6 +130,22 @@ export default interface IClientActor {
   unregisterActorReminder(actorType: string, actorId: ActorId, name: string): Promise<void>;
 
   /**
+   * Unregisters all reminders for an actor type, optionally limited to one actor instance.
+   * Requires gRPC and Dapr runtime 1.17 or later; the runtime has no equivalent HTTP endpoint.
+   *
+   * @remarks
+   * WARNING: Omitting actorId deletes ALL reminders for ALL instances of the actor type.
+   * This operation is destructive; deleted reminders cannot be recovered.
+   *
+   * @param actorType - The actor type registered in the Dapr runtime.
+   * @param actorId - Optional exact actor ID. When provided, other actor instances are unaffected.
+   * @returns A promise that resolves when the matching reminders are unregistered.
+   * @throws HTTPNotSupportedError when using the HTTP transport.
+   * @throws Rejects on sidecar or RPC errors.
+   */
+  unregisterActorRemindersByType(actorType: string, actorId?: ActorId): Promise<void>;
+
+  /**
    * Registers a timer for an actor.
    * The timer will trigger the actor's timer handler at the specified interval.
    *

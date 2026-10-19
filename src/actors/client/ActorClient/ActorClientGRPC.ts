@@ -22,6 +22,7 @@ import {
   RegisterActorTimerRequestSchema,
   TransactionalActorStateOperationSchema,
   UnregisterActorReminderRequestSchema,
+  UnregisterActorRemindersByTypeRequestSchema,
   UnregisterActorTimerRequestSchema,
 } from "../../../proto/dapr/proto/runtime/v1/actors_pb";
 import { GetMetadataRequestSchema } from "../../../proto/dapr/proto/runtime/v1/metadata_pb";
@@ -144,6 +145,16 @@ export default class ActorClientGRPC implements IClientActor {
       actorId: actorId.getId(),
       name,
     }));
+  }
+
+  async unregisterActorRemindersByType(actorType: string, actorId?: ActorId): Promise<void> {
+    const client = await this.client.getClient();
+    await client.unregisterActorRemindersByType(
+      create(UnregisterActorRemindersByTypeRequestSchema, {
+        actorType,
+        actorId: actorId === undefined ? undefined : actorId.getId(),
+      }),
+    );
   }
 
   async registerActorTimer(actorType: string, actorId: ActorId, name: string, timer: ActorTimerType): Promise<void> {

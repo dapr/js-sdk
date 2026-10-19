@@ -22,6 +22,7 @@ import ActorProxyBuilder from "../../../src/actors/client/ActorProxyBuilder";
 import ActorClient from "../../../src/actors/client/ActorClient/ActorClient";
 import { Temporal } from "@js-temporal/polyfill";
 import { Code } from "@connectrpc/connect";
+import { HTTPNotSupportedError } from "../../../src/errors/HTTPNotSupportedError";
 import ActorRuntime from "../../../src/actors/runtime/ActorRuntime";
 import AbstractActor from "../../../src/actors/runtime/AbstractActor";
 import Class from "../../../src/types/Class";
@@ -533,6 +534,101 @@ describe("http/actors", () => {
         });
       },
     );
+
+    const describeBulkReminders = gate.supported ? describe : describe.skip;
+    describeBulkReminders(`bulk actor reminder cleanup (${gate.reason ?? DAPR_TEST_VERSION})`, () => {
+      let http: ActorClient;
+      let grpc: ActorClient;
+
+      beforeAll(() => {
+        const httpOptions = {
+          daprHost: daprContainer.getHost(),
+          daprPort: daprContainer.getHttpPort().toString(),
+          communicationProtocol: CommunicationProtocolEnum.HTTP,
+          isKeepAlive: false,
+        };
+        http = new ActorClient(httpOptions.daprHost, httpOptions.daprPort, CommunicationProtocolEnum.HTTP, httpOptions);
+        const grpcOptions = {
+          ...httpOptions,
+          daprPort: daprContainer.getGrpcPort().toString(),
+          communicationProtocol: CommunicationProtocolEnum.GRPC,
+        };
+        grpc = new ActorClient(grpcOptions.daprHost, grpcOptions.daprPort, CommunicationProtocolEnum.GRPC, grpcOptions);
+      });
+
+      it.each([true, false])("deletes only matching reminders over gRPC (instance-scoped: %s)", async (scoped) => {
+        const actorType = DemoActorSayImpl.name;
+        const actorId = ActorId.createRandomId();
+        const siblingId = new ActorId(`${actorId.getId()}-sibling`);
+        const reminders = [
+          { actorType, actorId, name: "bulk-first" },
+          { actorType, actorId, name: "bulk-second" },
+          { actorType, actorId: siblingId, name: "bulk-first" },
+          { actorType, actorId: siblingId, name: "bulk-second" },
+          { actorType: DemoActorCounterImpl.name, actorId, name: "bulk-first" },
+        ];
+        const configuration = {
+          dueTime: Temporal.Duration.from({ hours: 1 }),
+          period: Temporal.Duration.from({ hours: 1 }),
+          data: { marker: actorId.getId() },
+        };
+        const getReminder = (reminder: (typeof reminders)[number]) =>
+          fetch(
+            `http://${daprContainer.getHost()}:${daprContainer.getHttpPort()}/v1.0/actors/${reminder.actorType}/${reminder.actorId.getURLSafeId()}/reminders/${reminder.name}`,
+          );
+
+        try {
+          for (const reminder of reminders) {
+            await http.actor.registerActorReminder(reminder.actorType, reminder.actorId, reminder.name, configuration);
+            const response = await getReminder(reminder);
+            expect(response.status).toBe(200);
+            expect(await response.json()).toMatchObject({ data: configuration.data });
+          }
+
+          await expect(
+            grpc.actor.unregisterActorRemindersByType(actorType, scoped ? actorId : undefined),
+          ).resolves.toBeUndefined();
+          // Repeating the operation must succeed even when there are no remaining matches.
+          await expect(
+            grpc.actor.unregisterActorRemindersByType(actorType, scoped ? actorId : undefined),
+          ).resolves.toBeUndefined();
+
+          for (const reminder of reminders) {
+            const deleted = reminder.actorType === actorType && (!scoped || reminder.actorId === actorId);
+            const response = await getReminder(reminder);
+            expect(response.status).toBe(deleted ? 404 : 200);
+            const body = await response.json();
+            if (!deleted) {
+              expect(body).toMatchObject({ data: configuration.data });
+            }
+          }
+        } finally {
+          await Promise.all(
+            reminders.map((reminder) =>
+              http.actor.unregisterActorReminder(reminder.actorType, reminder.actorId, reminder.name),
+            ),
+          );
+        }
+      });
+
+      it.each([true, false])("rejects HTTP cleanup without deleting reminders (instance-scoped: %s)", async (scoped) => {
+        const actorType = DemoActorSayImpl.name;
+        const actorId = ActorId.createRandomId();
+        const name = "bulk-http-unsupported";
+        await http.actor.registerActorReminder(actorType, actorId, name, {
+          dueTime: Temporal.Duration.from({ hours: 1 }),
+        });
+        try {
+          await expect(
+            http.actor.unregisterActorRemindersByType(actorType, scoped ? actorId : undefined),
+          ).rejects.toBeInstanceOf(HTTPNotSupportedError);
+          const reminder = await http.actor.getActorReminder(actorType, actorId, name);
+          expect(reminder.dueTime?.total("seconds")).toBe(3600);
+        } finally {
+          await http.actor.unregisterActorReminder(actorType, actorId, name);
+        }
+      });
+    });
 
     it("should be able to unregister a reminder", async () => {
       const builder = new ActorProxyBuilder<DemoActorReminderInterface>(DemoActorReminderImpl, client);
