@@ -25,6 +25,7 @@ import {
   newEventRaisedEvent,
   newScheduleTaskAction,
   newCreateChildWorkflowAction,
+  newCreateDetachedWorkflowAction,
   newSendEventAction,
   newCompleteWorkflowAction,
 } from "../../../src/workflow/engine/worker/protoHelpers";
@@ -87,16 +88,23 @@ describe("workflow serialization", () => {
     expect(complete.getActions()).toEqual([newCompleteWorkflowAction(1, OrchestrationStatus.COMPLETED, encoded)]);
 
     const ctx = new OrchestrationRuntimeContext("id");
-    ctx.callActivity("echo", value);
+    const activityTask = ctx.callActivity("echo", value);
     ctx.callSubOrchestrator("child", value, "child-id");
     ctx.sendEvent("other", "event", value);
+    ctx.scheduleNewDetachedWorkflow("detached", value, "detached-id");
     expect(ctx.getActions()).toEqual([
-      newScheduleTaskAction(1, "echo", encoded),
+      newScheduleTaskAction(1, "echo", encoded, activityTask.executionId),
       newCreateChildWorkflowAction(2, "child", "child-id", encoded),
       newSendEventAction(3, "other", "event", encoded),
+      newCreateDetachedWorkflowAction(
+        4,
+        "detached",
+        "detached-id",
+        value === undefined ? undefined : JSON.stringify(value),
+      ),
     ]);
     ctx.continueAsNew(value);
-    expect(ctx.getActions()).toEqual([newCompleteWorkflowAction(4, OrchestrationStatus.CONTINUED_AS_NEW, encoded)]);
+    expect(ctx.getActions()).toEqual([newCompleteWorkflowAction(5, OrchestrationStatus.CONTINUED_AS_NEW, encoded)]);
   });
 
   it("keeps strict JSON validation opt-in and does not fall back after provider errors", async () => {
@@ -153,12 +161,15 @@ describe("workflow serialization", () => {
     const first = await executor.execute("id", [], [started]);
     expect(first.actions[0].workflowActionType).toMatchObject({
       case: "scheduleTask",
-      value: { input: encoded },
+      value: { input: encoded, taskExecutionId: expect.any(String) },
     });
+    const scheduledAction = first.actions[0].workflowActionType;
+    if (scheduledAction.case !== "scheduleTask") throw new Error("Expected an activity");
+    const executionId = scheduledAction.value.taskExecutionId;
     const replay = await executor.execute(
       "id",
-      [started, newTaskScheduledEvent(1, "echo", encoded)],
-      [newTaskCompletedEvent(1, encoded)],
+      [started, newTaskScheduledEvent(1, "echo", encoded, executionId)],
+      [newTaskCompletedEvent(1, "invalid", "stale-execution-id"), newTaskCompletedEvent(1, encoded, executionId)],
     );
     expect(replay.actions[0].workflowActionType).toMatchObject({
       case: "completeWorkflow",
@@ -185,10 +196,11 @@ describe("workflow serialization", () => {
     });
   });
 
-  it("uses the provider for child workflows, inter-workflow events and continue-as-new carryover", () => {
+  it("uses the provider for child and detached workflows, inter-workflow events and continue-as-new carryover", () => {
     const ctx = new OrchestrationRuntimeContext("id", undefined, undefined, "", serializer);
     ctx.callSubOrchestrator("child", value);
     ctx.sendEvent("other", "event", value);
+    ctx.scheduleNewDetachedWorkflow("detached", value);
     expect(ctx.getActions().map((action) => action.workflowActionType)).toEqual([
       expect.objectContaining({
         case: "createChildWorkflow",
@@ -197,6 +209,10 @@ describe("workflow serialization", () => {
       expect.objectContaining({
         case: "sendEvent",
         value: expect.objectContaining({ data: serializer.serialize(value) }),
+      }),
+      expect.objectContaining({
+        case: "createDetachedWorkflow",
+        value: expect.objectContaining({ input: serializer.serialize(value) }),
       }),
     ]);
     ctx._receivedEvents.event = [value];

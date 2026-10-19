@@ -53,6 +53,7 @@ import {
   ScheduleTaskActionSchema,
   CreateTimerActionSchema,
   CreateChildWorkflowActionSchema,
+  CreateDetachedWorkflowActionSchema,
   CompleteWorkflowActionSchema,
   SendEventActionSchema,
 } from "../../../proto/dapr/proto/durabletask/v1/orchestrator_actions_pb";
@@ -315,6 +316,31 @@ export function newCreateChildWorkflowAction(
         instanceId,
         input: encodedInput,
         historyPropagationScope: options?.propagationScope || undefined,
+      }),
+    },
+  });
+}
+
+export function newCreateDetachedWorkflowAction(
+  id: number,
+  name: string,
+  instanceId: string,
+  encodedInput?: string,
+  startAt?: Date,
+  options?: RoutingOptions,
+): WorkflowAction {
+  return create(WorkflowActionSchema, {
+    id,
+    router: options?.targetAppId
+      ? create(TaskRouterSchema, { sourceAppID: options.sourceAppId, targetAppID: options.targetAppId })
+      : undefined,
+    workflowActionType: {
+      case: "createDetachedWorkflow",
+      value: create(CreateDetachedWorkflowActionSchema, {
+        name,
+        instanceId,
+        input: encodedInput,
+        scheduledStartTimestamp: startAt === undefined ? undefined : dateToTimestamp(startAt),
       }),
     },
   });
