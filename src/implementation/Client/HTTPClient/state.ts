@@ -142,6 +142,24 @@ export default class HTTPClientState implements IClientState {
     return {};
   }
 
+  async deleteBulk(
+    storeName: string,
+    items: readonly Omit<KeyValuePairType, "value">[],
+    options: StateSaveOptions = {},
+  ): Promise<StateSaveResponseType> {
+    // Dapr has no HTTP bulk-delete endpoint; retain delete()'s error response contract.
+    const results = await Promise.all(
+      items.map((item) =>
+        this.delete(storeName, encodeURIComponent(item.key), {
+          ...item.options,
+          etag: item.etag,
+          metadata: { ...item.metadata, ...options.metadata },
+        }),
+      ),
+    );
+    return results.find((result) => result.error !== undefined) ?? {};
+  }
+
   async transaction(
     storeName: string,
     operations: OperationType[] = [],
