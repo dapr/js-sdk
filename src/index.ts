@@ -121,3 +121,4 @@ export type { IDaprSerializer } from "./serialization/IDaprSerializer";
 export { JsonSerializer } from "./serialization/JsonSerializer";
 export type { default as IClientBinaryStore } from "./interfaces/Client/IClientBinaryStore";
 export type { BinaryStoreOptions, BinaryStoreSetOptions } from "./types/binarystore/BinaryStoreOptions";
+export { withBaggage } from "./utils/Baggage.util";
