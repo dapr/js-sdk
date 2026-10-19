@@ -98,6 +98,32 @@ npm run test:e2e:binarystore
 They are part of `npm run test:e2e:all` and skip older runtime versions.
 The Binary Store unit tests are included in `test:unit:http` and `test:unit:grpc`.
 
+Workflow payload-reference tests are part of the existing workflow unit and E2E
+suites. The integration tests require Docker, Dapr 1.19 or later, Git, and the
+.NET 10 SDK. They run real JS and .NET workflow workers and exchange stored
+references in both directions, not just hand-written envelope fixtures.
+Coverage includes primitive JSON values, Unicode and escaped strings, optional
+stage metadata, and byte-size/hash verification. A pass-through workflow in
+each SDK forwards an oversized, staged reference to a nonexistent store,
+proving that explicit reference contracts need neither payload access nor
+JS-specific envelope fields. Both SDKs also reject corrupt and deleted payloads
+originally written by either implementation.
+
+```powershell
+$env:DAPR_RUNTIME_VERSION = "1.19.0-rc.4"
+node .\node_modules\jest\bin\jest.js --runTestsByPath test\e2e\workflow\payloads.test.ts --runInBand
+```
+
+The .NET fixture builds against the exact source commit from
+dapr/dotnet-sdk#1934 (`5ae2908a059a25c9793a60fc3f45a8be1c22c522`), because
+the published `1.19.0-rc.3` workflow package lacks the payload APIs. The test
+fetches that revision into a temporary directory, builds the fixture, and removes
+the source checkout. GitHub and NuGet access are needed for the first build.
+Set `DAPR_DOTNET_SDK_PATH` to an existing checkout of that revision to reuse local
+sources; the test does not modify or remove that checkout. The fixture's `bin`
+and `obj` outputs are ignored. CI installs .NET automatically; older Dapr runtime
+matrix entries skip this suite without requiring a .NET build.
+
 ## Setup GitHub actions
 
 1. Fork the [js-sdk](https://github.com/dapr/js-sdk) repo to your GitHub account.

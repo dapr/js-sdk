@@ -13,8 +13,15 @@ limitations under the License.
 
 import type { ActivityContext } from "../engine";
 import { createPropagatedHistoryView, type PropagatedHistoryView } from "./PropagatedHistory";
+import type { BinaryStoreWorkflowPayloadResolver } from "../payloads/BinaryStoreWorkflowPayloadResolver";
+import { PayloadNotResolvableError } from "../payloads/PayloadErrors";
 
 export default class WorkflowActivityContext {
+  /** Activities may explicitly store, resolve, or stream payloads. */
+  public get payloads(): BinaryStoreWorkflowPayloadResolver {
+    if (!this._innerContext.payloads) throw new PayloadNotResolvableError();
+    return this._innerContext.payloads;
+  }
   constructor(private readonly _innerContext: ActivityContext) {
     if (!_innerContext) {
       throw new Error("ActivityContext cannot be undefined");

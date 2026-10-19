@@ -35,7 +35,8 @@ export default class DaprWorkflowClient {
       grpcEndpoint.tls,
       128 * 1024 * 1024,
       options.grpcOptions,
-      options.serializer,
+      options.serializer ?? options.payloads?.serializer,
+      options.payloads,
     );
   }
 
@@ -74,7 +75,12 @@ export default class DaprWorkflowClient {
     try {
       const state = await this._innerClient.getOrchestrationState(workflowInstanceId, getInputsAndOutputs, signal);
       if (state !== undefined) {
-        return new WorkflowState(state, this._innerClient.serializer);
+        return await WorkflowState.prepare(
+          state,
+          this._innerClient.serializer,
+          this._innerClient.payloadHandler,
+          signal,
+        );
       }
     } catch (error) {
       if (!signal?.aborted && isWorkflowInstanceNotFound(error)) {
@@ -136,7 +142,7 @@ export default class DaprWorkflowClient {
       signal,
     );
     if (state !== undefined) {
-      return new WorkflowState(state, this._innerClient.serializer);
+      return await WorkflowState.prepare(state, this._innerClient.serializer, this._innerClient.payloadHandler, signal);
     }
   }
 
@@ -153,7 +159,7 @@ export default class DaprWorkflowClient {
       signal,
     );
     if (state !== undefined) {
-      return new WorkflowState(state, this._innerClient.serializer);
+      return await WorkflowState.prepare(state, this._innerClient.serializer, this._innerClient.payloadHandler, signal);
     }
   }
 
