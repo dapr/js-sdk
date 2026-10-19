@@ -20,6 +20,79 @@ jest.mock("@connectrpc/connect", () => ({
 }));
 
 describe("TaskHubWorker", () => {
+  it("waits for the sidecar connection before resolving start", async () => {
+    let resolveHello!: () => void;
+    const hello = jest.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveHello = resolve;
+        }),
+    );
+    const getWorkItems = jest.fn((_req: unknown, opts: { signal: AbortSignal }) => ({
+      [Symbol.asyncIterator]: () => ({
+        next: () =>
+          new Promise<IteratorResult<never>>((resolve) =>
+            opts.signal.addEventListener("abort", () => resolve({ done: true, value: undefined as never })),
+          ),
+      }),
+    }));
+    (createClient as jest.Mock).mockReturnValue({ hello, getWorkItems });
+
+    const worker = new TaskHubWorker("localhost:50001");
+    let startResolved = false;
+    const starting = worker.start().then(() => {
+      startResolved = true;
+    });
+
+    await Promise.resolve();
+    expect(startResolved).toBe(false);
+    expect(worker.isReady).toBe(false);
+
+    resolveHello();
+    await starting;
+
+    expect(getWorkItems).toHaveBeenCalledTimes(1);
+    expect(startResolved).toBe(true);
+    expect(worker.isReady).toBe(true);
+
+    await worker.stop();
+    expect(worker.isReady).toBe(false);
+  });
+
+  it("rejects start when the initial sidecar connection fails", async () => {
+    const error = new Error("sidecar unavailable");
+    (createClient as jest.Mock).mockReturnValue({ hello: jest.fn().mockRejectedValue(error) });
+
+    const worker = new TaskHubWorker("localhost:50001");
+
+    await expect(worker.start()).rejects.toBe(error);
+    expect(worker.isReady).toBe(false);
+  });
+
+  it("does not start the work stream if stopped before the initial connection completes", async () => {
+    let resolveHello!: () => void;
+    const hello = jest.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveHello = resolve;
+        }),
+    );
+    const getWorkItems = jest.fn();
+    (createClient as jest.Mock).mockReturnValue({ hello, getWorkItems });
+
+    const worker = new TaskHubWorker("localhost:50001");
+    const starting = worker.start();
+    await Promise.resolve();
+
+    await worker.stop();
+    await expect(starting).rejects.toThrow("The worker stopped before becoming ready.");
+    resolveHello();
+    await Promise.resolve();
+
+    expect(getWorkItems).not.toHaveBeenCalled();
+    expect(worker.isReady).toBe(false);
+  });
+
   it("reconnects when an established work item stream fails", async () => {
     const stream = (next: () => Promise<IteratorResult<never>>) => ({ [Symbol.asyncIterator]: () => ({ next }) });
     const getWorkItems = jest.fn((_req: unknown, opts: { signal: AbortSignal }) => {
@@ -47,6 +120,8 @@ describe("TaskHubWorker", () => {
     }
 
     expect(getWorkItems).toHaveBeenCalledTimes(2);
+    expect(worker.isReady).toBe(true);
     await worker.stop();
+    expect(worker.isReady).toBe(false);
   }, 10000);
 });

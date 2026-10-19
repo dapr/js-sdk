@@ -19,6 +19,7 @@ const mockAddNamedOrchestrator = jest.fn();
 const mockAddNamedActivity = jest.fn();
 const mockStart = jest.fn().mockResolvedValue(undefined);
 const mockStop = jest.fn().mockResolvedValue(undefined);
+const mockIsReady = jest.fn().mockReturnValue(false);
 
 jest.mock("../../../src/workflow/engine/transport/TaskHubWorker", () => ({
   TaskHubWorker: jest.fn().mockImplementation(() => ({
@@ -28,6 +29,9 @@ jest.mock("../../../src/workflow/engine/transport/TaskHubWorker", () => ({
     },
     start: mockStart,
     stop: mockStop,
+    get isReady() {
+      return mockIsReady();
+    },
   })),
 }));
 
@@ -36,12 +40,14 @@ import WorkflowRuntime from "../../../src/workflow/runtime/WorkflowRuntime";
 describe("WorkflowRuntime", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsReady.mockReturnValue(false);
   });
 
   describe("registerWorkflow", () => {
     it("should allow synchronous generator functions (function*)", () => {
       const runtime = new WorkflowRuntime();
       const syncGenWorkflow: TWorkflow = function* (_ctx: WorkflowContext, _input: any) {
+        yield "step";
         return "result";
       };
       runtime.registerWorkflow(syncGenWorkflow);
@@ -218,6 +224,14 @@ describe("WorkflowRuntime", () => {
       await runtime.start();
 
       expect(mockStart).toHaveBeenCalledTimes(1);
+    });
+
+    it("exposes whether the worker is ready", () => {
+      const runtime = new WorkflowRuntime();
+      mockIsReady.mockReturnValue(true);
+
+      expect(runtime.isReady).toBe(true);
+      expect(mockIsReady).toHaveBeenCalledTimes(1);
     });
   });
 

@@ -41,9 +41,12 @@ export class TaskHubWorker {
   private readonly _registry: Registry;
 
   private _isRunning = false;
+  private _isReady = false;
   private _stopWorker = false;
   private _activeWorkItems = 0;
   private _workItemStreamController?: AbortController;
+  private _resolveReady?: () => void;
+  private _rejectReady?: (error: unknown) => void;
 
   constructor(
     hostAddress: string,
@@ -80,18 +83,34 @@ export class TaskHubWorker {
     return this._registry;
   }
 
+  get isReady(): boolean {
+    return this._isReady;
+  }
+
   async start(): Promise<void> {
     if (this._isRunning) {
       throw new Error("The worker is already running.");
     }
 
     this._isRunning = true;
+    this._isReady = false;
     this._stopWorker = false;
+
+    const ready = new Promise<void>((resolve, reject) => {
+      this._resolveReady = resolve;
+      this._rejectReady = reject;
+    });
 
     this.internalRunWorker().catch((err) => {
       this.logger.error("Worker failed:", err);
       this._isRunning = false;
+      this._isReady = false;
+      this._rejectReady?.(err);
+      this._resolveReady = undefined;
+      this._rejectReady = undefined;
     });
+
+    await ready;
   }
 
   private async internalRunWorker(): Promise<void> {
@@ -103,6 +122,7 @@ export class TaskHubWorker {
     while (!this._stopWorker) {
       try {
         await this.client.hello(create(EmptySchema));
+        if (this._stopWorker) return;
         // Only an unreachable sidecar on startup is fatal. Once connected,
         // stream errors (a sidecar restart) must be retried.
         isFirstAttempt = false;
@@ -114,6 +134,7 @@ export class TaskHubWorker {
         const stream = this.client.getWorkItems(create(GetWorkItemsRequestSchema), {
           signal: streamController.signal,
         });
+        this.markReady();
         retryCount = 0;
 
         try {
@@ -125,6 +146,7 @@ export class TaskHubWorker {
             this.dispatchWorkItem(workItem);
           }
         } finally {
+          this._isReady = false;
           if (this._workItemStreamController === streamController) {
             this._workItemStreamController = undefined;
           }
@@ -277,6 +299,10 @@ export class TaskHubWorker {
     }
 
     this._stopWorker = true;
+    this._isReady = false;
+    this._rejectReady?.(new Error("The worker stopped before becoming ready."));
+    this._resolveReady = undefined;
+    this._rejectReady = undefined;
     this._workItemStreamController?.abort();
 
     const drainTimeoutMs = 30000;
@@ -294,6 +320,13 @@ export class TaskHubWorker {
     }
 
     this._isRunning = false;
+  }
+
+  private markReady(): void {
+    this._isReady = true;
+    this._resolveReady?.();
+    this._resolveReady = undefined;
+    this._rejectReady = undefined;
   }
 }
 

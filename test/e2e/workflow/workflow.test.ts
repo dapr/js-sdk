@@ -96,6 +96,23 @@ describe("workflow", () => {
     expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.COMPLETED);
   }, 31000);
 
+  it("should signal readiness after connecting and process immediately scheduled work", async () => {
+    const echo = (_: WorkflowActivityContext, input: string) => input;
+    const workflow: TWorkflow = function* (ctx: WorkflowContext, input: string): any {
+      return yield ctx.callActivity(echo, input);
+    };
+    workflowRuntime.registerWorkflow(workflow).registerActivity(echo);
+
+    await workflowRuntime.start();
+    expect(workflowRuntime.isReady).toBe(true);
+
+    const id = await workflowClient.scheduleNewWorkflow(workflow, "ready");
+    const state = await workflowClient.waitForWorkflowCompletion(id, undefined, 30);
+
+    expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.COMPLETED);
+    expect(state?.serializedOutput).toEqual(JSON.stringify("ready"));
+  }, 31000);
+
   it("should be able to run an activity sequence", async () => {
     const plusOne = async (_: WorkflowActivityContext, input: number) => {
       return input + 1;
