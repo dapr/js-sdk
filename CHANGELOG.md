@@ -2,6 +2,24 @@
 
 ## 3.x release
 
+### Unreleased
+
+#### PubSub: Bulk publish now uses the stable Dapr API
+
+`client.pubsub.publishBulk(...)` now targets the stable bulk publish API that Dapr promoted out of alpha in
+runtime version 1.17: the `BulkPublishEvent` gRPC RPC, and the `v1.0/publish/bulk/{pubsubName}/{topic}` HTTP
+endpoint. Previously the SDK always called the alpha1 variants.
+
+This is not a breaking change. The method name, parameters, and return type are unchanged, and no consumer code
+needs to be updated. The SDK selects the stable or deprecated alpha1 API based on the sidecar's runtime version.
+For HTTP, it reads the sidecar's metadata before publishing, rather than probing with a POST that could be
+mistaken for a regular publish by older runtimes. For gRPC, the SDK probes the stable RPC; Dapr's catch-all
+handler reports `UNKNOWN` with a `failed to proxy request` message on runtimes that do not recognize the RPC.
+Concurrent first publishes share the same version check or RPC probe.
+
+Dapr 1.17 and newer still serve the alpha1 API, so the fallback remains valid for every currently supported
+runtime.
+
 ### v3.0.0
 
 #### Breaking Changes

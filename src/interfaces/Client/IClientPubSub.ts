@@ -71,6 +71,15 @@ export default interface IClientPubSub {
    * @returns A promise that resolves to a response containing any failed entries.
    * A successful bulk publish may still have individual failed messages.
    *
+   * @remarks
+   * Bulk publish targets the stable bulk publish API introduced in Dapr 1.17
+   * (`BulkPublishEvent` over gRPC, `v1.0/publish/bulk` over HTTP). When the
+   * sidecar does not implement it, the SDK transparently uses the deprecated
+   * alpha1 API, so runtimes older than 1.17 keep working without any change to
+   * this method's signature. For HTTP, the runtime version is read from the
+   * sidecar metadata before publishing to avoid probing with a request that
+   * could be routed as a regular publish by older runtimes.
+   *
    * @example
    * ```ts
    * const response = await client.pubsub.publishBulk(
