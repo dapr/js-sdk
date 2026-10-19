@@ -83,7 +83,7 @@ export default class WorkflowContext {
     return this._innerContext.waitForExternalEvent(name) as Task<T>;
   }
 
-  public continueAsNew(newInput: any, saveEvents = false): void {
+  public continueAsNew(newInput: any, saveEvents = true): void {
     this._innerContext.continueAsNew(newInput, saveEvents);
   }
 

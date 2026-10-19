@@ -414,6 +414,30 @@ describe("workflow", () => {
     expect(state?.serializedOutput).toEqual(JSON.stringify(10));
   }, 31000);
 
+  it("should preserve buffered external events when continuing as new by default", async () => {
+    const workflow: TWorkflow = async function* (ctx: WorkflowContext, step: number): any {
+      if (step === 0) {
+        yield ctx.waitForExternalEvent("continue");
+        ctx.continueAsNew(1);
+        return;
+      }
+
+      return yield ctx.waitForExternalEvent("buffered");
+    };
+
+    workflowRuntime.registerWorkflow(workflow);
+    await workflowRuntime.start();
+
+    const id = await workflowClient.scheduleNewWorkflow(workflow, 0);
+    await workflowClient.raiseEvent(id, "buffered", "preserved");
+    await workflowClient.raiseEvent(id, "continue", "continue");
+
+    const state = await workflowClient.waitForWorkflowCompletion(id, undefined, 30);
+    expect(state).toBeDefined();
+    expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.COMPLETED);
+    expect(state?.serializedOutput).toEqual(JSON.stringify("preserved"));
+  }, 31000);
+
   it("should be able to run an single orchestration without activity", async () => {
     const workflow: TWorkflow = async (_: WorkflowContext, startVal: number) => {
       return startVal + 1;
