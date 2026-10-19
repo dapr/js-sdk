@@ -14,14 +14,18 @@ limitations under the License.
 import { create } from "@bufbuild/protobuf";
 import { anyPack, BytesValueSchema, StringValueSchema } from "@bufbuild/protobuf/wkt";
 import { Temporal } from "@js-temporal/polyfill";
+import { Code, ConnectError } from "@connectrpc/connect";
 import ActorId from "../../../src/actors/ActorId";
 import ActorClientHTTP from "../../../src/actors/client/ActorClient/ActorClientHTTP";
 import ActorClientGRPC from "../../../src/actors/client/ActorClient/ActorClientGRPC";
 import HTTPClient from "../../../src/implementation/Client/HTTPClient/HTTPClient";
 import GRPCClient from "../../../src/implementation/Client/GRPCClient/GRPCClient";
+import { HTTPNotSupportedError } from "../../../src/errors/HTTPNotSupportedError";
 import {
   GetActorReminderRequestSchema,
   GetActorReminderResponseSchema,
+  UnregisterActorRemindersByTypeRequestSchema,
+  UnregisterActorRemindersByTypeResponseSchema,
 } from "../../../src/proto/dapr/proto/runtime/v1/actors_pb";
 
 describe("actor reminder retrieval", () => {
@@ -166,6 +170,81 @@ describe("actor reminder retrieval", () => {
       const error = new Error("sidecar unavailable");
       jest.spyOn(client, "getClient").mockRejectedValue(error);
       await expect(actor.getActorReminder("type", new ActorId("id"), "name")).rejects.toBe(error);
+    });
+  });
+});
+
+describe("bulk actor reminder cleanup", () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  describe("HTTP", () => {
+    it.each([undefined, new ActorId("id/name")])("rejects without sending a request (actorId: %s)", async (actorId) => {
+      const client = new HTTPClient({ daprHost: "127.0.0.1", daprPort: "3500" });
+      const execute = jest.spyOn(client, "execute").mockResolvedValue("");
+      const actor = new ActorClientHTTP(client);
+
+      await expect(actor.unregisterActorRemindersByType("type", actorId)).rejects.toBeInstanceOf(HTTPNotSupportedError);
+      expect(execute).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("gRPC", () => {
+    const client = new GRPCClient({ daprHost: "127.0.0.1", daprPort: "50001" });
+    client.setIsInitialized(true);
+    const actor = new ActorClientGRPC(client);
+
+    async function mockResponse() {
+      const rpc = await client.getClient(false);
+      return jest
+        .spyOn(rpc, "unregisterActorRemindersByType")
+        .mockResolvedValue(create(UnregisterActorRemindersByTypeResponseSchema));
+    }
+
+    it("omits the optional actor ID for type-wide cleanup and returns void", async () => {
+      const rpc = await mockResponse();
+
+      await expect(actor.unregisterActorRemindersByType("type/name")).resolves.toBeUndefined();
+      expect(rpc).toHaveBeenCalledTimes(1);
+      expect(rpc).toHaveBeenCalledWith(create(UnregisterActorRemindersByTypeRequestSchema, { actorType: "type/name" }));
+      expect(rpc.mock.calls[0][0].actorId).toBeUndefined();
+    });
+
+    it("passes the exact unencoded actor ID for instance-scoped cleanup", async () => {
+      const rpc = await mockResponse();
+      const actorId = new ActorId("id/name #?&+%");
+
+      await expect(actor.unregisterActorRemindersByType("type/name", actorId)).resolves.toBeUndefined();
+      expect(rpc).toHaveBeenCalledTimes(1);
+      expect(rpc).toHaveBeenCalledWith(
+        create(UnregisterActorRemindersByTypeRequestSchema, {
+          actorType: "type/name",
+          actorId: actorId.getId(),
+        }),
+      );
+    });
+
+    it("does not interpret a null actor ID as permission to delete the entire type", async () => {
+      const rpc = await mockResponse();
+
+      // JavaScript callers can bypass the optional ActorId type.
+      // @ts-expect-error null is not a valid actor ID
+      await expect(actor.unregisterActorRemindersByType("type", null)).rejects.toThrow(TypeError);
+      expect(rpc).not.toHaveBeenCalled();
+    });
+
+    it.each([Code.Unimplemented, Code.Unavailable, Code.PermissionDenied])("propagates RPC error code %s", async (code) => {
+      const rpc = await mockResponse();
+      const error = new ConnectError("bulk cleanup failed", code);
+      rpc.mockRejectedValue(error);
+
+      await expect(actor.unregisterActorRemindersByType("type", new ActorId("id"))).rejects.toBe(error);
+    });
+
+    it("propagates client initialization errors", async () => {
+      const error = new Error("sidecar unavailable");
+      jest.spyOn(client, "getClient").mockRejectedValue(error);
+
+      await expect(actor.unregisterActorRemindersByType("type")).rejects.toBe(error);
     });
   });
 });
