@@ -93,10 +93,33 @@ jobs:
     outputs:
       matrix_json: ${{ steps.manual.outputs.matrix_json || steps.select.outputs.matrix_json }}
     steps:
+      - name: Checkout Dapr version selector
+        if: inputs.dapr_runtime_version == ''
+        uses: actions/checkout@v6
+        with:
+          repository: dapr/dotnet-sdk
+          ref: dd2d9deba4dd7e94502052f87e6013bb900f010a
+          path: dapr-version-selector
+          sparse-checkout: .github/tools/tag-selector
+          persist-credentials: false
+
+      - name: Setup Node ${{ env.NODE_VER }}
+        if: inputs.dapr_runtime_version == ''
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VER }}
+
+      - name: Build Dapr version selector
+        if: inputs.dapr_runtime_version == ''
+        working-directory: dapr-version-selector/.github/tools/tag-selector
+        run: |
+          npm ci
+          npm run build
+
       - id: select
         name: Select supported Dapr versions
         if: inputs.dapr_runtime_version == ''
-        uses: dapr/dotnet-sdk/.github/tools/tag-selector@dd2d9deba4dd7e94502052f87e6013bb900f010a
+        uses: ./dapr-version-selector/.github/tools/tag-selector
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tag_prefix: "v"
