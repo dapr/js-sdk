@@ -98,6 +98,20 @@ npm run test:e2e:binarystore
 They are part of `npm run test:e2e:all` and skip older runtime versions.
 The Binary Store unit tests are included in `test:unit:http` and `test:unit:grpc`.
 
+Actor reminder listing tests are included in the actor unit and HTTP actor E2E
+suites (the latter exercises both HTTP and gRPC clients). The E2E test registers
+multiple reminders across two actors and another actor type, verifies exact
+actor-ID filtering, type-wide gRPC listing, data/timing conversion, and empty
+results after cleanup. HTTP listing requires Dapr 1.19+ (tested with
+1.19.0-rc.4); gRPC listing requires 1.17+. Older runtimes skip only the
+unsupported transport's listing test.
+
+```powershell
+node .\node_modules\jest\bin\jest.js --runTestsByPath test\unit\actor\actorClientReminderList.test.ts --runInBand
+$env:DAPR_RUNTIME_VERSION = "1.19.0-rc.4"
+node .\node_modules\jest\bin\jest.js --runTestsByPath test\e2e\http\actors.test.ts --testNamePattern "lists all reminders" --runInBand
+```
+
 Workflow payload-reference tests are part of the existing workflow unit and E2E
 suites. The integration tests require Docker, Dapr 1.19 or later, Git, and the
 .NET 10 SDK. They run real JS and .NET workflow workers and exchange stored
