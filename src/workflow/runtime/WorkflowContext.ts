@@ -11,15 +11,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import type { OrchestrationContext } from "../engine/context/OrchestrationContext";
-import type { Task } from "../engine/task/Task";
-import type { WhenAllTask } from "../engine/task/WhenAllTask";
-import type { WhenAnyTask } from "../engine/task/WhenAnyTask";
-import { whenAll, whenAny, getName } from "../engine/task";
+import type { OrchestrationContext, Task, WhenAllTask, WhenAnyTask } from "../engine";
+import type { CancellableTask } from "../../types/workflow/CancellableTask.type";
+import type { ExternalEventOptions } from "../../types/workflow/ExternalEventOptions.type";
+import { whenAll, whenAny, getName } from "../engine";
 import type { TWorkflowActivity } from "../../types/workflow/Activity.type";
 import type { TWorkflow } from "../../types/workflow/Workflow.type";
 import type { ActivityOptions } from "../../types/workflow/ActivityOptions.type";
 import type { ChildWorkflowOptions } from "../../types/workflow/ChildWorkflowOptions.type";
+import type { PropagatedHistory } from "./PropagatedHistory";
 
 export default class WorkflowContext {
   constructor(private readonly _innerContext: OrchestrationContext) {
@@ -32,6 +32,10 @@ export default class WorkflowContext {
     return this._innerContext.instanceId;
   }
 
+  public getPropagatedHistory(): PropagatedHistory | undefined {
+    return this._innerContext.propagatedHistory;
+  }
+
   public getCurrentUtcDateTime(): Date {
     return this._innerContext.currentUtcDateTime;
   }
@@ -40,8 +44,8 @@ export default class WorkflowContext {
     return this._innerContext.isReplaying;
   }
 
-  public createTimer(fireAt: Date | number): Task<void> {
-    return this._innerContext.createTimer(fireAt) as Task<void>;
+  public createTimer(fireAt: Date | number): CancellableTask<void> {
+    return this._innerContext.createTimer(fireAt);
   }
 
   public callActivity<T = any>(
@@ -79,8 +83,8 @@ export default class WorkflowContext {
     return this._innerContext.callSubOrchestrator(getName(orchestrator), input, instanceId, options) as Task<TOutput>;
   }
 
-  public waitForExternalEvent<T = any>(name: string): Task<T> {
-    return this._innerContext.waitForExternalEvent(name) as Task<T>;
+  public waitForExternalEvent<T = any>(name: string, options?: ExternalEventOptions): CancellableTask<T> {
+    return this._innerContext.waitForExternalEvent(name, options) as CancellableTask<T>;
   }
 
   public continueAsNew(newInput: any, saveEvents = true): void {

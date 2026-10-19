@@ -12,6 +12,7 @@ limitations under the License.
 */
 
 import type { ActivityContext } from "../engine/context/ActivityContext";
+import type { PropagatedHistory } from "./PropagatedHistory";
 
 export default class WorkflowActivityContext {
   constructor(private readonly _innerContext: ActivityContext) {
@@ -22,6 +23,10 @@ export default class WorkflowActivityContext {
 
   public getWorkflowInstanceId(): string {
     return this._innerContext.orchestrationId;
+  }
+
+  public getPropagatedHistory(): PropagatedHistory | undefined {
+    return this._innerContext.propagatedHistory;
   }
 
   public getWorkflowActivityId(): number {

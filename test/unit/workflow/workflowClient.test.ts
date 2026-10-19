@@ -14,11 +14,11 @@ limitations under the License.
 import { OrchestrationStatus } from "../../../src/proto/dapr/proto/durabletask/v1/orchestration_pb";
 import { create } from "@bufbuild/protobuf";
 import { TaskFailureDetailsSchema } from "../../../src/proto/dapr/proto/durabletask/v1/orchestration_pb";
-import { OrchestrationState } from "../../../src/workflow/engine/transport/TaskHubClient";
-import { TWorkflow } from "../../../src/types/workflow/Workflow.type";
+import { OrchestrationState } from "../../../src/workflow/engine";
 import WorkflowContext from "../../../src/workflow/runtime/WorkflowContext";
-import { WorkflowRuntimeStatus } from "../../../src/workflow/runtime/WorkflowRuntimeStatus";
 import { Code, ConnectError } from "@connectrpc/connect";
+import { HistoryEventSchema } from "../../../src/proto/dapr/proto/durabletask/v1/history_events_pb";
+import { type HistoryEvent, type TWorkflow, WorkflowRuntimeStatus } from "../../../src";
 
 const mockScheduleNewOrchestration = jest.fn();
 const mockGetOrchestrationState = jest.fn();
@@ -73,7 +73,13 @@ describe("DaprWorkflowClient", () => {
       const myWorkflow: TWorkflow = async (_ctx: WorkflowContext, _input: any) => "result";
       const id = await client.scheduleNewWorkflow(myWorkflow, "input-data", "my-id");
 
-      expect(mockScheduleNewOrchestration).toHaveBeenCalledWith("myWorkflow", "input-data", "my-id", undefined);
+      expect(mockScheduleNewOrchestration).toHaveBeenCalledWith(
+        "myWorkflow",
+        "input-data",
+        "my-id",
+        undefined,
+        undefined,
+      );
       expect(id).toBe("instance-123");
     });
 
@@ -87,6 +93,7 @@ describe("DaprWorkflowClient", () => {
         "input",
         "id-1",
         new Date("2025-01-01"),
+        undefined,
       );
       expect(id).toBe("instance-456");
     });
@@ -96,7 +103,13 @@ describe("DaprWorkflowClient", () => {
 
       const id = await client.scheduleNewWorkflow("myWorkflow");
 
-      expect(mockScheduleNewOrchestration).toHaveBeenCalledWith("myWorkflow", undefined, undefined, undefined);
+      expect(mockScheduleNewOrchestration).toHaveBeenCalledWith(
+        "myWorkflow",
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      );
       expect(id).toBe("auto-id");
     });
   });
@@ -118,7 +131,7 @@ describe("DaprWorkflowClient", () => {
 
       const state = await client.getWorkflowState("instance-1", true);
 
-      expect(mockGetOrchestrationState).toHaveBeenCalledWith("instance-1", true);
+      expect(mockGetOrchestrationState).toHaveBeenCalledWith("instance-1", true, undefined);
       expect(state).toBeDefined();
       expect(state?.instanceId).toBe("instance-1");
       expect(state?.name).toBe("myWorkflow");
@@ -209,11 +222,21 @@ describe("DaprWorkflowClient", () => {
 
   describe("getWorkflowHistory", () => {
     it("should return the workflow's execution history", async () => {
-      const history = [{ eventId: 1 }, { eventId: 2 }];
+      const history: HistoryEvent[] = [
+        create(HistoryEventSchema, { eventId: 1 }),
+        create(HistoryEventSchema, { eventId: 2 }),
+      ];
       mockGetWorkflowHistory.mockResolvedValue(history);
 
       await expect(client.getWorkflowHistory("instance-1")).resolves.toBe(history);
       expect(mockGetWorkflowHistory).toHaveBeenCalledWith("instance-1");
+    });
+
+    it.each([Code.NotFound, Code.Unknown, Code.Unavailable])("should propagate RPC error code %s", async (code) => {
+      const error = new ConnectError("history retrieval failed", code);
+      mockGetWorkflowHistory.mockRejectedValueOnce(error);
+
+      await expect(client.getWorkflowHistory("missing-instance")).rejects.toBe(error);
     });
   });
 
@@ -232,9 +255,31 @@ describe("DaprWorkflowClient", () => {
       await expect(client.rerunWorkflowFromEvent("source-instance", 0)).resolves.toBe("new-instance");
     });
 
-    it.each([-1, 1.5, 0x1_0000_0000])("should reject invalid event ID %s", async (eventId) => {
-      await expect(client.rerunWorkflowFromEvent("source-instance", eventId)).rejects.toThrow(RangeError);
-      expect(mockRerunWorkflowFromEvent).not.toHaveBeenCalled();
+    it.each([-1, 1.5, 0x1_0000_0000, NaN, Infinity, -Infinity])(
+      "should reject invalid event ID %s",
+      async (eventId) => {
+        await expect(client.rerunWorkflowFromEvent("source-instance", eventId)).rejects.toThrow(RangeError);
+        expect(mockRerunWorkflowFromEvent).not.toHaveBeenCalled();
+      },
+    );
+
+    it("should forward the maximum uint32 event ID for runtime validation", async () => {
+      mockRerunWorkflowFromEvent.mockResolvedValueOnce("new-instance");
+
+      await expect(client.rerunWorkflowFromEvent("source-instance", 0xffffffff)).resolves.toBe("new-instance");
+      expect(mockRerunWorkflowFromEvent).toHaveBeenCalledWith("source-instance", 0xffffffff, {});
+    });
+
+    it.each([
+      [Code.NotFound, "source instance not found"],
+      [Code.InvalidArgument, "event does not exist"],
+      [Code.Unknown, "no such instance exists"],
+      [Code.Unavailable, "sidecar unavailable"],
+    ])("should propagate rerun RPC error %s: %s", async (code, message) => {
+      const error = new ConnectError(message, code);
+      mockRerunWorkflowFromEvent.mockRejectedValueOnce(error);
+
+      await expect(client.rerunWorkflowFromEvent("source-instance", 42)).rejects.toBe(error);
     });
 
     it("should reject an empty new instance ID", async () => {
@@ -253,7 +298,7 @@ describe("DaprWorkflowClient", () => {
 
       const state = await client.waitForWorkflowStart("instance-1", true, 30);
 
-      expect(mockWaitForOrchestrationStart).toHaveBeenCalledWith("instance-1", true, 30);
+      expect(mockWaitForOrchestrationStart).toHaveBeenCalledWith("instance-1", true, 30, undefined);
       expect(state).toBeDefined();
       expect(state?.runtimeStatus).toBe(WorkflowRuntimeStatus.RUNNING);
     });
@@ -283,7 +328,7 @@ describe("DaprWorkflowClient", () => {
 
       const state = await client.waitForWorkflowCompletion("instance-1", true, 60);
 
-      expect(mockWaitForOrchestrationCompletion).toHaveBeenCalledWith("instance-1", true, 60);
+      expect(mockWaitForOrchestrationCompletion).toHaveBeenCalledWith("instance-1", true, 60, undefined);
       expect(state).toBeDefined();
       expect(state?.runtimeStatus).toBe(WorkflowRuntimeStatus.COMPLETED);
       expect(state?.serializedOutput).toBe('"done"');
@@ -304,7 +349,7 @@ describe("DaprWorkflowClient", () => {
 
       await client.terminateWorkflow("instance-1", "termination reason");
 
-      expect(mockTerminateOrchestration).toHaveBeenCalledWith("instance-1", "termination reason");
+      expect(mockTerminateOrchestration).toHaveBeenCalledWith("instance-1", "termination reason", undefined);
     });
   });
 
@@ -314,7 +359,7 @@ describe("DaprWorkflowClient", () => {
 
       await client.raiseEvent("instance-1", "myEvent", { key: "value" });
 
-      expect(mockRaiseOrchestrationEvent).toHaveBeenCalledWith("instance-1", "myEvent", { key: "value" });
+      expect(mockRaiseOrchestrationEvent).toHaveBeenCalledWith("instance-1", "myEvent", { key: "value" }, undefined);
     });
 
     it("should raise an event without payload", async () => {
@@ -322,7 +367,7 @@ describe("DaprWorkflowClient", () => {
 
       await client.raiseEvent("instance-1", "myEvent");
 
-      expect(mockRaiseOrchestrationEvent).toHaveBeenCalledWith("instance-1", "myEvent", undefined);
+      expect(mockRaiseOrchestrationEvent).toHaveBeenCalledWith("instance-1", "myEvent", undefined, undefined);
     });
   });
 
@@ -332,7 +377,7 @@ describe("DaprWorkflowClient", () => {
 
       const result = await client.purgeWorkflow("instance-1");
 
-      expect(mockPurgeOrchestration).toHaveBeenCalledWith("instance-1");
+      expect(mockPurgeOrchestration).toHaveBeenCalledWith("instance-1", undefined);
       expect(result).toBe(true);
     });
 
@@ -359,7 +404,7 @@ describe("DaprWorkflowClient", () => {
 
       await client.suspendWorkflow("instance-1");
 
-      expect(mockSuspendOrchestration).toHaveBeenCalledWith("instance-1", undefined);
+      expect(mockSuspendOrchestration).toHaveBeenCalledWith("instance-1", undefined, undefined);
     });
   });
 
@@ -369,7 +414,7 @@ describe("DaprWorkflowClient", () => {
 
       await client.resumeWorkflow("instance-1");
 
-      expect(mockResumeOrchestration).toHaveBeenCalledWith("instance-1", undefined);
+      expect(mockResumeOrchestration).toHaveBeenCalledWith("instance-1", undefined, undefined);
     });
   });
 
@@ -380,6 +425,62 @@ describe("DaprWorkflowClient", () => {
       await client.stop();
 
       expect(mockClientStop).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("AbortSignal", () => {
+    it("forwards AbortSignal to every workflow RPC, including function references and waits", async () => {
+      const signal = new AbortController().signal;
+      const workflow: TWorkflow = async () => undefined;
+      await client.scheduleNewWorkflow("workflow", undefined, undefined, undefined, signal);
+      expect(mockScheduleNewOrchestration).toHaveBeenLastCalledWith(
+        "workflow",
+        undefined,
+        undefined,
+        undefined,
+        signal,
+      );
+      await client.scheduleNewWorkflow(workflow, undefined, undefined, undefined, signal);
+      expect(mockScheduleNewOrchestration).toHaveBeenLastCalledWith(
+        "workflow",
+        undefined,
+        undefined,
+        undefined,
+        signal,
+      );
+      await client.getWorkflowState("id", true, signal);
+      expect(mockGetOrchestrationState).toHaveBeenLastCalledWith("id", true, signal);
+      await client.waitForWorkflowStart("id", true, 30, signal);
+      expect(mockWaitForOrchestrationStart).toHaveBeenLastCalledWith("id", true, 30, signal);
+      await client.waitForWorkflowCompletion("id", true, 30, signal);
+      expect(mockWaitForOrchestrationCompletion).toHaveBeenLastCalledWith("id", true, 30, signal);
+      await client.terminateWorkflow("id", undefined, signal);
+      expect(mockTerminateOrchestration).toHaveBeenLastCalledWith("id", undefined, signal);
+      await client.raiseEvent("id", "event", undefined, signal);
+      expect(mockRaiseOrchestrationEvent).toHaveBeenLastCalledWith("id", "event", undefined, signal);
+      await client.purgeWorkflow("id", signal);
+      expect(mockPurgeOrchestration).toHaveBeenLastCalledWith("id", signal);
+      await client.suspendWorkflow("id", undefined, signal);
+      expect(mockSuspendOrchestration).toHaveBeenLastCalledWith("id", undefined, signal);
+      await client.resumeWorkflow("id", undefined, signal);
+      expect(mockResumeOrchestration).toHaveBeenLastCalledWith("id", undefined, signal);
+    });
+
+    it("does not treat cancellation as a missing workflow", async () => {
+      mockGetOrchestrationState.mockRejectedValue(new ConnectError("canceled", Code.Canceled));
+      await expect(client.getWorkflowState("id", true, new AbortController().signal)).rejects.toMatchObject({
+        code: Code.Canceled,
+      });
+    });
+
+    it("does not swallow a custom abort reason with a not-found error code", async () => {
+      const controller = new AbortController();
+      const reason = new ConnectError("custom cancellation", Code.NotFound);
+      mockGetOrchestrationState.mockImplementationOnce(async () => {
+        controller.abort(reason);
+        throw reason;
+      });
+      await expect(client.getWorkflowState("id", true, controller.signal)).rejects.toBe(reason);
     });
   });
 });

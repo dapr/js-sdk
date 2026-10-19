@@ -11,16 +11,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import type { HistoryEvent } from "../../../proto/dapr/proto/durabletask/v1/history_events_pb";
+import type {
+  HistoryEvent,
+  PropagatedHistory as HistoryMessage,
+} from "../../../proto/dapr/proto/durabletask/v1/history_events_pb";
+import type { TaskRouter } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import type { AnyGenerator } from "../context/OrchestrationContext";
 import { OrchestrationStatus } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import { OrchestrationRuntimeContext } from "../context/OrchestrationRuntimeContext";
-import { Task } from "../task/Task";
-import { NonDeterminismError } from "../task/NonDeterminismError";
-import { StopIterationError } from "../task/StopIterationError";
+import { Task, NonDeterminismError, StopIterationError } from "../task";
 import { Registry } from "./Registry";
 import { OrchestrationExecuteResult } from "./OrchestrationExecuteResult";
-import { isEmpty, getOrchestrationStatusStr } from "./protoHelpers";
+import { isEmpty, getOrchestrationStatusStr, decodePropagatedHistory } from "./protoHelpers";
 import { Logger } from "../../../logger/Logger";
 
 export class OrchestrationExecutor {
@@ -34,14 +36,21 @@ export class OrchestrationExecutor {
     instanceId: string,
     oldEvents: HistoryEvent[],
     newEvents: HistoryEvent[],
+    router?: TaskRouter,
+    propagatedHistory?: HistoryMessage,
   ): Promise<OrchestrationExecuteResult> {
     if (!newEvents?.length) {
       throw new Error("The new history event list must have at least one event in it");
     }
 
-    const ctx = new OrchestrationRuntimeContext(instanceId);
+    const startEvent = [...oldEvents, ...newEvents].find((event) => event.eventType.case === "executionStarted");
+    const appRouter = startEvent?.router ?? router;
+    const appId = appRouter?.targetAppID || appRouter?.sourceAppID;
 
+    let ctx = new OrchestrationRuntimeContext(instanceId, appId);
     try {
+      const history = decodePropagatedHistory(propagatedHistory);
+      ctx = new OrchestrationRuntimeContext(instanceId, appId, history);
       this.logger.debug(`${instanceId}: Rebuilding local state with ${oldEvents.length} history event...`);
       ctx._isReplaying = true;
 
@@ -96,334 +105,7 @@ export class OrchestrationExecutor {
     }
 
     try {
-      switch (eventType.case) {
-        case "workflowStarted":
-          ctx.currentUtcDateTime = event.timestamp
-            ? new Date(Number(event.timestamp.seconds) * 1000 + event.timestamp.nanos / 1_000_000)
-            : ctx.currentUtcDateTime;
-          break;
-
-        case "executionStarted": {
-          const executionStartedEvent = eventType.value;
-          const fn = this._registry.getOrchestrator(executionStartedEvent.name);
-
-          if (!fn) {
-            throw new Error(`Orchestrator '${executionStartedEvent.name}' is not registered.`);
-          }
-
-          let input: unknown = undefined;
-          const rawInput = executionStartedEvent.input;
-          if (rawInput != null && rawInput !== "") {
-            input = JSON.parse(rawInput);
-          }
-
-          const result = await fn(ctx, input);
-          const isGenerator =
-            typeof (result as AsyncGenerator)?.[Symbol.asyncIterator] === "function" ||
-            typeof (result as Generator)?.[Symbol.iterator] === "function";
-
-          if (isGenerator) {
-            await ctx.run(result as AnyGenerator<Task<unknown>>);
-          } else {
-            ctx.setComplete(result, OrchestrationStatus.COMPLETED);
-          }
-          break;
-        }
-
-        case "timerCreated": {
-          const timerId = event.eventId;
-          const action = ctx._pendingActions[timerId];
-          delete ctx._pendingActions[timerId];
-
-          if (!action) {
-            throw new NonDeterminismError(
-              `A previous execution called createTimer with ID=${timerId} but the current execution doesn't have this action with this ID.`,
-            );
-          }
-
-          const actionType = action.workflowActionType;
-          if (actionType.case !== "createTimer") {
-            throw new NonDeterminismError(
-              `Failed to restore orchestration state: A previous execution called createTimer with ID=${timerId}, but the current execution is instead trying to call a different action.`,
-            );
-          }
-          break;
-        }
-
-        case "timerFired": {
-          const timerFiredEvent = eventType.value;
-          const timerId = timerFiredEvent.timerId;
-
-          let timerTask;
-          if (timerId !== undefined) {
-            timerTask = ctx._pendingTasks[timerId];
-            delete ctx._pendingTasks[timerId];
-          }
-
-          if (!timerTask) {
-            if (!ctx._isReplaying) {
-              this.logger.warn(`${ctx.instanceId}: Ignoring unexpected timerFired event with ID = ${timerId}`);
-            }
-            return;
-          }
-
-          timerTask.complete(undefined);
-          await ctx.resume();
-          break;
-        }
-
-        case "taskScheduled": {
-          const taskId = event.eventId;
-          const action = ctx._pendingActions[taskId];
-          delete ctx._pendingActions[taskId];
-
-          const actionType = action?.workflowActionType;
-          if (!action) {
-            throw new NonDeterminismError(
-              `A previous execution called callActivity with ID=${taskId} but the current execution doesn't have this action with this ID.`,
-            );
-          }
-          if (actionType.case !== "scheduleTask") {
-            throw new NonDeterminismError(
-              `Failed to restore orchestration state: A previous execution called callActivity with ID=${taskId}, but the current execution is instead trying to call a different action.`,
-            );
-          }
-          if (actionType.value.name !== eventType.value.name) {
-            throw new NonDeterminismError(
-              `Failed to restore orchestration state: A previous execution called callActivity with name='${eventType.value.name}' and sequence number ${taskId}, but the current execution is instead trying to call ${actionType.value.name}.`,
-            );
-          }
-          break;
-        }
-
-        case "taskCompleted": {
-          const taskCompletedEvent = eventType.value;
-          const taskId = taskCompletedEvent.taskScheduledId;
-
-          let activityTask;
-          if (taskId !== undefined) {
-            activityTask = ctx._pendingTasks[taskId];
-            delete ctx._pendingTasks[taskId];
-          }
-
-          if (!activityTask) {
-            if (!ctx._isReplaying) {
-              this.logger.warn(`${ctx.instanceId}: Ignoring unexpected taskCompleted event with ID = ${taskId}`);
-            }
-            return;
-          }
-
-          let result: unknown;
-          if (!isEmpty(taskCompletedEvent.result)) {
-            result = JSON.parse(taskCompletedEvent.result ?? "");
-          }
-
-          activityTask.complete(result);
-          await ctx.resume();
-          break;
-        }
-
-        case "taskFailed": {
-          const taskFailedEvent = eventType.value;
-          const taskId = taskFailedEvent.taskScheduledId;
-
-          let activityTask;
-          if (taskId !== undefined) {
-            activityTask = ctx._pendingTasks[taskId];
-            delete ctx._pendingTasks[taskId];
-          }
-
-          if (!activityTask) {
-            if (!ctx._isReplaying) {
-              this.logger.warn(`${ctx.instanceId}: Ignoring unexpected taskFailed event with ID = ${taskId}`);
-            }
-            return;
-          }
-
-          const failureDetails = taskFailedEvent.failureDetails;
-          activityTask.fail(
-            `${ctx.instanceId}: Activity task #${taskId} failed: ${failureDetails?.errorMessage ?? "Unknown error"}`,
-            failureDetails,
-          );
-
-          await ctx.resume();
-          break;
-        }
-
-        case "childWorkflowInstanceCreated": {
-          const taskId = event.eventId;
-          const action = ctx._pendingActions[taskId];
-          delete ctx._pendingActions[taskId];
-
-          const actionType = action?.workflowActionType;
-          if (!action) {
-            throw new NonDeterminismError(
-              `A previous execution called callSubOrchestrator with ID=${taskId} but the current execution doesn't have this action with this ID.`,
-            );
-          }
-          if (actionType.case !== "createChildWorkflow") {
-            throw new NonDeterminismError(
-              `Failed to restore orchestration state: A previous execution called callSubOrchestrator with ID=${taskId}, but the current execution is instead trying to call a different action.`,
-            );
-          }
-          if (actionType.value.name !== eventType.value.name) {
-            throw new NonDeterminismError(
-              `Failed to restore orchestration state: A previous execution called callSubOrchestrator with name='${eventType.value.name}' and sequence number ${taskId}, but the current execution is instead trying to call ${actionType.value.name}.`,
-            );
-          }
-          break;
-        }
-
-        case "childWorkflowInstanceCompleted": {
-          const subCompletedEvent = eventType.value;
-          const taskId = subCompletedEvent.taskScheduledId;
-
-          let subOrchTask;
-          if (taskId !== undefined) {
-            subOrchTask = ctx._pendingTasks[taskId];
-            delete ctx._pendingTasks[taskId];
-          }
-
-          let result: unknown;
-          if (!isEmpty(subCompletedEvent.result)) {
-            result = JSON.parse(subCompletedEvent.result ?? "");
-          }
-
-          if (subOrchTask) {
-            subOrchTask.complete(result);
-          }
-
-          await ctx.resume();
-          break;
-        }
-
-        case "childWorkflowInstanceFailed": {
-          const subFailedEvent = eventType.value;
-          const taskId = subFailedEvent.taskScheduledId;
-
-          let subOrchTask;
-          if (taskId !== undefined) {
-            subOrchTask = ctx._pendingTasks[taskId];
-            delete ctx._pendingTasks[taskId];
-          }
-
-          if (!subOrchTask) {
-            if (!ctx._isReplaying) {
-              this.logger.warn(
-                `${ctx.instanceId}: Ignoring unexpected childWorkflowInstanceFailed event with ID = ${taskId}`,
-              );
-            }
-            return;
-          }
-
-          const failureDetails = subFailedEvent.failureDetails;
-          subOrchTask.fail(
-            `${ctx.instanceId}: Sub-orchestration task #${taskId} failed: ${
-              failureDetails?.errorMessage ?? "Unknown error"
-            }`,
-            failureDetails,
-          );
-
-          await ctx.resume();
-          break;
-        }
-
-        case "eventRaised": {
-          const eventName = eventType.value.name?.toLowerCase();
-
-          if (!ctx._isReplaying) {
-            this.logger.info(`${ctx.instanceId}: Event raised: ${eventName}`);
-          }
-
-          let taskList;
-          if (eventName) {
-            taskList = ctx._pendingEvents[eventName];
-          }
-
-          let decodedResult: unknown;
-
-          if (taskList) {
-            const eventTask = taskList.shift();
-
-            if (!isEmpty(eventType.value.input)) {
-              decodedResult = JSON.parse(eventType.value.input ?? "");
-            }
-
-            if (eventTask) {
-              eventTask.complete(decodedResult);
-            }
-
-            if (taskList.length === 0 && eventName) {
-              delete ctx._pendingEvents[eventName];
-            }
-
-            await ctx.resume();
-          } else {
-            let eventList: unknown[] | undefined = [];
-
-            if (eventName) {
-              eventList = ctx._receivedEvents[eventName];
-              if (!eventList?.length) {
-                eventList = [];
-                ctx._receivedEvents[eventName] = eventList;
-              }
-            }
-
-            if (!isEmpty(eventType.value.input)) {
-              decodedResult = JSON.parse(eventType.value.input ?? "");
-            }
-
-            eventList?.push(decodedResult);
-
-            if (!ctx._isReplaying) {
-              this.logger.info(
-                `${ctx.instanceId}: Event ${eventName} has been buffered as there are no tasks waiting for it.`,
-              );
-            }
-          }
-          break;
-        }
-
-        case "executionSuspended": {
-          if (!this._isSuspended && !ctx._isReplaying) {
-            this.logger.info(`${ctx.instanceId}: Execution suspended`);
-          }
-          this._isSuspended = true;
-          break;
-        }
-
-        case "executionResumed": {
-          if (!this._isSuspended) {
-            return;
-          }
-
-          this._isSuspended = false;
-
-          for (const e of this._suspendedEvents) {
-            await this.processEvent(ctx, e);
-          }
-
-          this._suspendedEvents = [];
-          break;
-        }
-
-        case "executionTerminated": {
-          if (!ctx._isReplaying) {
-            this.logger.info(`${ctx.instanceId}: Execution terminated`);
-          }
-
-          let encodedOutput: string | undefined;
-          if (!isEmpty(eventType.value.input)) {
-            encodedOutput = eventType.value.input;
-          }
-
-          ctx.setComplete(encodedOutput, OrchestrationStatus.TERMINATED, true);
-          break;
-        }
-
-        default:
-          this.logger.info(`Unknown history event type: ${eventType.case}, skipping...`);
-      }
+      await this.dispatchEvent(ctx, event);
     } catch (e: unknown) {
       if (e instanceof StopIterationError) {
         ctx.setComplete(e.value, OrchestrationStatus.COMPLETED);
@@ -432,6 +114,341 @@ export class OrchestrationExecutor {
 
       this.logger.error(`Could not process the event ${eventType.case} due to error ${(e as Error).message}`);
       throw e;
+    }
+  }
+
+  private async dispatchEvent(ctx: OrchestrationRuntimeContext, event: HistoryEvent): Promise<void> {
+    const eventType = event.eventType;
+    switch (eventType.case) {
+      case "workflowStarted":
+        ctx.currentUtcDateTime = event.timestamp
+          ? new Date(Number(event.timestamp.seconds) * 1000 + event.timestamp.nanos / 1_000_000)
+          : ctx.currentUtcDateTime;
+        break;
+
+      case "executionStarted": {
+        const executionStartedEvent = eventType.value;
+        const fn = this._registry.getOrchestrator(executionStartedEvent.name);
+
+        if (!fn) {
+          throw new Error(`Orchestrator '${executionStartedEvent.name}' is not registered.`);
+        }
+
+        let input: unknown = undefined;
+        const rawInput = executionStartedEvent.input;
+        if (rawInput != null && rawInput !== "") {
+          input = JSON.parse(rawInput);
+        }
+
+        const result = await fn(ctx, input);
+        const isGenerator =
+          typeof (result as AsyncGenerator)?.[Symbol.asyncIterator] === "function" ||
+          typeof (result as Generator)?.[Symbol.iterator] === "function";
+
+        if (isGenerator) {
+          await ctx.run(result as AnyGenerator<Task<unknown>>);
+        } else {
+          ctx.setComplete(result, OrchestrationStatus.COMPLETED);
+        }
+        break;
+      }
+
+      case "timerCreated": {
+        const timerId = event.eventId;
+        const action = ctx._pendingActions[timerId];
+        delete ctx._pendingActions[timerId];
+
+        if (!action) {
+          throw new NonDeterminismError(
+            `A previous execution called createTimer with ID=${timerId} but the current execution doesn't have this action with this ID.`,
+          );
+        }
+
+        const actionType = action.workflowActionType;
+        if (actionType.case !== "createTimer") {
+          throw new NonDeterminismError(
+            `Failed to restore orchestration state: A previous execution called createTimer with ID=${timerId}, but the current execution is instead trying to call a different action.`,
+          );
+        }
+        break;
+      }
+
+      case "timerFired": {
+        const timerFiredEvent = eventType.value;
+        const timerId = timerFiredEvent.timerId;
+
+        let timerTask;
+        if (timerId !== undefined) {
+          timerTask = ctx._pendingTasks[timerId];
+          delete ctx._pendingTasks[timerId];
+        }
+
+        if (timerTask?.isComplete) {
+          return;
+        }
+        if (!timerTask) {
+          if (!ctx._isReplaying) {
+            this.logger.warn(`${ctx.instanceId}: Ignoring unexpected timerFired event with ID = ${timerId}`);
+          }
+          return;
+        }
+
+        timerTask.complete(undefined);
+        await ctx.resume();
+        break;
+      }
+
+      case "taskScheduled": {
+        const taskId = event.eventId;
+        const action = ctx._pendingActions[taskId];
+        delete ctx._pendingActions[taskId];
+
+        const actionType = action?.workflowActionType;
+        if (!action) {
+          throw new NonDeterminismError(
+            `A previous execution called callActivity with ID=${taskId} but the current execution doesn't have this action with this ID.`,
+          );
+        }
+        if (actionType.case !== "scheduleTask") {
+          throw new NonDeterminismError(
+            `Failed to restore orchestration state: A previous execution called callActivity with ID=${taskId}, but the current execution is instead trying to call a different action.`,
+          );
+        }
+        if (actionType.value.name !== eventType.value.name) {
+          throw new NonDeterminismError(
+            `Failed to restore orchestration state: A previous execution called callActivity with name='${eventType.value.name}' and sequence number ${taskId}, but the current execution is instead trying to call ${actionType.value.name}.`,
+          );
+        }
+        break;
+      }
+
+      case "taskCompleted": {
+        const taskCompletedEvent = eventType.value;
+        const taskId = taskCompletedEvent.taskScheduledId;
+
+        let activityTask;
+        if (taskId !== undefined) {
+          activityTask = ctx._pendingTasks[taskId];
+          delete ctx._pendingTasks[taskId];
+        }
+
+        if (!activityTask) {
+          if (!ctx._isReplaying) {
+            this.logger.warn(`${ctx.instanceId}: Ignoring unexpected taskCompleted event with ID = ${taskId}`);
+          }
+          return;
+        }
+
+        let result: unknown;
+        if (!isEmpty(taskCompletedEvent.result)) {
+          result = JSON.parse(taskCompletedEvent.result ?? "");
+        }
+
+        activityTask.complete(result);
+        await ctx.resume();
+        break;
+      }
+
+      case "taskFailed": {
+        const taskFailedEvent = eventType.value;
+        const taskId = taskFailedEvent.taskScheduledId;
+
+        let activityTask;
+        if (taskId !== undefined) {
+          activityTask = ctx._pendingTasks[taskId];
+          delete ctx._pendingTasks[taskId];
+        }
+
+        if (!activityTask) {
+          if (!ctx._isReplaying) {
+            this.logger.warn(`${ctx.instanceId}: Ignoring unexpected taskFailed event with ID = ${taskId}`);
+          }
+          return;
+        }
+
+        const failureDetails = taskFailedEvent.failureDetails;
+        activityTask.fail(
+          `${ctx.instanceId}: Activity task #${taskId} failed: ${failureDetails?.errorMessage ?? "Unknown error"}`,
+          failureDetails,
+        );
+
+        await ctx.resume();
+        break;
+      }
+
+      case "childWorkflowInstanceCreated": {
+        const taskId = event.eventId;
+        const action = ctx._pendingActions[taskId];
+        delete ctx._pendingActions[taskId];
+
+        const actionType = action?.workflowActionType;
+        if (!action) {
+          throw new NonDeterminismError(
+            `A previous execution called callSubOrchestrator with ID=${taskId} but the current execution doesn't have this action with this ID.`,
+          );
+        }
+        if (actionType.case !== "createChildWorkflow") {
+          throw new NonDeterminismError(
+            `Failed to restore orchestration state: A previous execution called callSubOrchestrator with ID=${taskId}, but the current execution is instead trying to call a different action.`,
+          );
+        }
+        if (actionType.value.name !== eventType.value.name) {
+          throw new NonDeterminismError(
+            `Failed to restore orchestration state: A previous execution called callSubOrchestrator with name='${eventType.value.name}' and sequence number ${taskId}, but the current execution is instead trying to call ${actionType.value.name}.`,
+          );
+        }
+        break;
+      }
+
+      case "childWorkflowInstanceCompleted": {
+        const subCompletedEvent = eventType.value;
+        const taskId = subCompletedEvent.taskScheduledId;
+
+        let subOrchTask;
+        if (taskId !== undefined) {
+          subOrchTask = ctx._pendingTasks[taskId];
+          delete ctx._pendingTasks[taskId];
+        }
+
+        let result: unknown;
+        if (!isEmpty(subCompletedEvent.result)) {
+          result = JSON.parse(subCompletedEvent.result ?? "");
+        }
+
+        if (subOrchTask) {
+          subOrchTask.complete(result);
+        }
+
+        await ctx.resume();
+        break;
+      }
+
+      case "childWorkflowInstanceFailed": {
+        const subFailedEvent = eventType.value;
+        const taskId = subFailedEvent.taskScheduledId;
+
+        let subOrchTask;
+        if (taskId !== undefined) {
+          subOrchTask = ctx._pendingTasks[taskId];
+          delete ctx._pendingTasks[taskId];
+        }
+
+        if (!subOrchTask) {
+          if (!ctx._isReplaying) {
+            this.logger.warn(
+              `${ctx.instanceId}: Ignoring unexpected childWorkflowInstanceFailed event with ID = ${taskId}`,
+            );
+          }
+          return;
+        }
+
+        const failureDetails = subFailedEvent.failureDetails;
+        subOrchTask.fail(
+          `${ctx.instanceId}: Sub-orchestration task #${taskId} failed: ${
+            failureDetails?.errorMessage ?? "Unknown error"
+          }`,
+          failureDetails,
+        );
+
+        await ctx.resume();
+        break;
+      }
+
+      case "eventRaised": {
+        const eventName = eventType.value.name?.toLowerCase();
+
+        if (!ctx._isReplaying) {
+          this.logger.info(`${ctx.instanceId}: Event raised: ${eventName}`);
+        }
+
+        let taskList;
+        if (eventName) {
+          taskList = ctx._pendingEvents[eventName];
+        }
+
+        let decodedResult: unknown;
+
+        if (taskList) {
+          const eventTask = taskList.shift();
+
+          if (!isEmpty(eventType.value.input)) {
+            decodedResult = JSON.parse(eventType.value.input ?? "");
+          }
+
+          if (eventTask) {
+            eventTask.complete(decodedResult);
+          }
+
+          if (taskList.length === 0 && eventName) {
+            delete ctx._pendingEvents[eventName];
+          }
+
+          await ctx.resume();
+        } else {
+          let eventList: unknown[] | undefined = [];
+
+          if (eventName) {
+            eventList = ctx._receivedEvents[eventName];
+            if (!eventList?.length) {
+              eventList = [];
+              ctx._receivedEvents[eventName] = eventList;
+            }
+          }
+
+          if (!isEmpty(eventType.value.input)) {
+            decodedResult = JSON.parse(eventType.value.input ?? "");
+          }
+
+          eventList?.push(decodedResult);
+
+          if (!ctx._isReplaying) {
+            this.logger.info(
+              `${ctx.instanceId}: Event ${eventName} has been buffered as there are no tasks waiting for it.`,
+            );
+          }
+        }
+        break;
+      }
+
+      case "executionSuspended": {
+        if (!this._isSuspended && !ctx._isReplaying) {
+          this.logger.info(`${ctx.instanceId}: Execution suspended`);
+        }
+        this._isSuspended = true;
+        break;
+      }
+
+      case "executionResumed": {
+        if (!this._isSuspended) {
+          return;
+        }
+
+        this._isSuspended = false;
+
+        for (const e of this._suspendedEvents) {
+          await this.processEvent(ctx, e);
+        }
+
+        this._suspendedEvents = [];
+        break;
+      }
+
+      case "executionTerminated": {
+        if (!ctx._isReplaying) {
+          this.logger.info(`${ctx.instanceId}: Execution terminated`);
+        }
+
+        let encodedOutput: string | undefined;
+        if (!isEmpty(eventType.value.input)) {
+          encodedOutput = eventType.value.input;
+        }
+
+        ctx.setComplete(encodedOutput, OrchestrationStatus.TERMINATED, true);
+        break;
+      }
+
+      default:
+        this.logger.info(`Unknown history event type: ${eventType.case}, skipping...`);
     }
   }
 
