@@ -23,6 +23,46 @@ const invokerListen = (req: IRequest, res: IResponse) => {
 await client.invoker.listen("method", invokerListen.bind(this), options);
 ```
 
+## Listing actor reminders
+
+Use `listActorReminders(actorType, actorId?)` on the existing `ActorClient.actor`
+interface. It returns `NamedActorReminderType[]`, with `name`, `actorType`,
+`actorId`, optional `data`, and optional `Temporal.Duration` values for
+`dueTime`, `period`, and `ttl`.
+
+```typescript
+import { ActorId, CommunicationProtocolEnum } from "@dapr/dapr";
+import ActorClient from "@dapr/dapr/actors/client/ActorClient/ActorClient";
+
+const options = {
+  daprHost: "127.0.0.1",
+  daprPort: "50001",
+  communicationProtocol: CommunicationProtocolEnum.GRPC,
+};
+const client = new ActorClient(
+  options.daprHost,
+  options.daprPort,
+  options.communicationProtocol,
+  options,
+);
+const all = await client.actor.listActorReminders("OrderActor");
+const filtered = await client.actor.listActorReminders("OrderActor", new ActorId("order-123"));
+```
+
+gRPC supports listing the entire actor type or filtering by an exact actor ID
+(Dapr 1.17+). HTTP supports only the actor-ID form, using
+`GET /v1.0/actors/{actorType}/{actorId}/reminders` (Dapr 1.19+, including
+1.19.0-rc.4). Omitting `actorId` over HTTP rejects explicitly; the SDK does not
+silently switch transports. Older runtimes' endpoint/RPC errors propagate.
+
+No matches returns an empty array; ordering is unspecified. As with
+`getActorReminder`, absolute due times and expiration timestamps are converted
+relative to retrieval time: `ttl` is the remaining lifetime, not the original
+TTL. Fields omitted by the runtime remain undefined. Invalid responses,
+unsupported data envelopes, and schedules that cannot be represented as
+`Temporal.Duration` (such as cron or repetition-count periods) reject rather than
+returning a partial list.
+
 ## Workflow context and state
 
 ### Workflow tracing

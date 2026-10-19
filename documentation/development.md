@@ -81,6 +81,17 @@ npm run test:e2e:grpc
 npm run test:e2e:http
 ```
 
+Bulk state deletion tests cover HTTP and gRPC request mapping, metadata, ETags,
+empty batches, and failure reporting. Integration tests use a real Dapr sidecar
+and Redis via Docker, including stale ETags, escaped keys, and preservation of
+unselected state. They run as part of the existing common unit and E2E suites.
+To run just these tests:
+
+```powershell
+node .\node_modules\jest\bin\jest.js --runTestsByPath test\unit\protocols\common\state.test.ts --runInBand
+node .\node_modules\jest\bin\jest.js --runTestsByPath test\e2e\common\client.test.ts --testNamePattern "bulk state deletion" --runInBand
+```
+
 Binary Store integration tests cover HTTP and gRPC against an authenticated
 sidecar and the `BinaryStoreHarness` from `@dapr/testcontainer-node`. The harness
 manages its own sidecar and in-memory component; its independent HTTP helpers
@@ -116,6 +127,20 @@ and workflow isolation, timer/event replay, continue-as-new, and W3C tracestate.
 Unit tests additionally cover invalid/missing context, sampling, operation without
 a tracer provider, and restoration of the caller's context. Set
 `DAPR_RUNTIME_VERSION` to run against another supported runtime.
+
+Actor reminder listing tests are included in the actor unit and HTTP actor E2E
+suites (the latter exercises both HTTP and gRPC clients). The E2E test registers
+multiple reminders across two actors and another actor type, verifies exact
+actor-ID filtering, type-wide gRPC listing, data/timing conversion, and empty
+results after cleanup. HTTP listing requires Dapr 1.19+ (tested with
+1.19.0-rc.4); gRPC listing requires 1.17+. Older runtimes skip only the
+unsupported transport's listing test.
+
+```powershell
+node .\node_modules\jest\bin\jest.js --runTestsByPath test\unit\actor\actorClientReminderList.test.ts --runInBand
+$env:DAPR_RUNTIME_VERSION = "1.19.0-rc.4"
+node .\node_modules\jest\bin\jest.js --runTestsByPath test\e2e\http\actors.test.ts --testNamePattern "lists all reminders" --runInBand
+```
 
 Workflow payload-reference tests are part of the existing workflow unit and E2E
 suites. The integration tests require Docker, Dapr 1.19 or later, Git, and the
