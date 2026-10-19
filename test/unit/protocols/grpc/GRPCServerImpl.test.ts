@@ -46,7 +46,7 @@ describe("GRPCServerImpl", () => {
         mockContext,
       );
 
-      expect(mockLogWarn).toBeCalledTimes(1);
+      expect(mockLogWarn).toHaveBeenCalledTimes(1);
       expect(mockLogWarn.mock.calls[0][0]).toContain("PubSub 'pubsub' has not been registered, ignoring event.");
     });
 
@@ -69,7 +69,7 @@ describe("GRPCServerImpl", () => {
         mockContext,
       );
 
-      expect(mockLogWarn).toBeCalledTimes(1);
+      expect(mockLogWarn).toHaveBeenCalledTimes(1);
       expect(mockLogWarn.mock.calls[0][0]).toContain(
         "Topic '' has not been subscribed to pubsub 'pubsub', ignoring event.",
       );
@@ -87,7 +87,7 @@ describe("GRPCServerImpl", () => {
         mockContext,
       );
 
-      expect(mockLogWarn).toBeCalledTimes(1);
+      expect(mockLogWarn).toHaveBeenCalledTimes(1);
       expect(mockLogWarn.mock.calls[0][0]).toContain("PubSub 'pubsub' has not been registered, ignoring bulk event.");
     });
 
@@ -110,7 +110,7 @@ describe("GRPCServerImpl", () => {
         mockContext,
       );
 
-      expect(mockLogWarn).toBeCalledTimes(1);
+      expect(mockLogWarn).toHaveBeenCalledTimes(1);
       expect(mockLogWarn.mock.calls[0][0]).toContain(
         "Topic '' has not been subscribed to pubsub 'pubsub', ignoring bulk event.",
       );
