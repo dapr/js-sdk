@@ -98,6 +98,31 @@ Both `WorkflowContext` and `WorkflowActivityContext` provide
 received. Otherwise, `history.chunks` is ordered oldest ancestor first and
 immediate parent last. `PropagatedHistory` and `PropagatedHistoryEntry` are
 type-only exports; the SDK creates and decodes these views internally.
+The returned `PropagatedHistoryView` extends the original `PropagatedHistory`
+interface without changing its `scope` or `chunks` contract. It adds:
+
+- `events`: all decoded events in ancestor/chunk order, without deduplicating event IDs.
+- `workflows`: chunks with `startEventIndex` and `eventCount` indexing that flattened array.
+- `appIDs`: distinct app IDs in first-occurrence order.
+- `getWorkflowByName(name)`: the oldest matching workflow chunk with offsets, or `null`.
+- `getEventsByAppID(appId)`, `getEventsByInstanceID(id)`, and
+  `getEventsByWorkflowName(name)`: events from all matching chunks, in order, or an empty array.
+
+Workflow names can repeat across instances. Use the instance-ID filter to select
+one instance; the workflow-name filter includes all matching instances.
+These helpers do not deserialize payload JSON or change the original signed bytes.
+The existing `propagationScope` options and enum values are the scheduling API;
+no separate scope factories or chainable builders are needed.
+
+```typescript
+const history = ctx.getPropagatedHistory();
+if (history) {
+  const ancestor = history.getWorkflowByName("payment");
+  const events = ancestor ? history.getEventsByInstanceID(ancestor.instanceId) : [];
+  console.log(history.appIDs, events);
+}
+```
+
 Each chunk exposes `appId`, `instanceId`, `workflowName`,
 and decoded protobuf `events`. Payload fields such as `input` and `result` remain
 serialized JSON. The original `rawEvents`, `rawSignatures`, and

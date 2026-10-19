@@ -111,7 +111,11 @@ export {
   toOrchestrationStatus,
 };
 
-export type { PropagatedHistory, PropagatedHistoryEntry } from "./workflow/runtime/PropagatedHistory";
+export type {
+  PropagatedHistory,
+  PropagatedHistoryEntry,
+  PropagatedHistoryView,
+} from "./workflow/runtime/PropagatedHistory";
 export type { CancellableTask } from "./types/workflow/CancellableTask.type";
 export type { IDaprSerializer } from "./serialization/IDaprSerializer";
 export { JsonSerializer } from "./serialization/JsonSerializer";
