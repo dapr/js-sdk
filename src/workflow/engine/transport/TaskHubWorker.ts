@@ -15,6 +15,7 @@ import { createClient, type Client, type Interceptor } from "@connectrpc/connect
 import { createGrpcTransport } from "@connectrpc/connect-node";
 import { create } from "@bufbuild/protobuf";
 import { EmptySchema } from "@bufbuild/protobuf/wkt";
+import { context } from "@opentelemetry/api";
 import { ConnectError } from "@connectrpc/connect";
 import {
   TaskHubSidecarService,
@@ -37,6 +38,7 @@ import { Logger } from "../../../logger/Logger";
 import { IDaprSerializer } from "../../../serialization/IDaprSerializer";
 import { type GrpcChannelOptions, mapGrpcOptions } from "../../../types/workflow/WorkflowClientOption";
 import type { BinaryStoreWorkflowPayloadResolver } from "../../payloads/BinaryStoreWorkflowPayloadResolver";
+import { getOrchestrationTraceContext, runWithActivityTrace } from "../worker/WorkflowTrace";
 
 export class TaskHubWorker {
   private readonly logger = new Logger("Workflow", "TaskHubWorker");
@@ -227,12 +229,9 @@ export class TaskHubWorker {
 
     try {
       const executor = new OrchestrationExecutor(this._registry, this.serializer, this.payloads);
-      const result = await executor.execute(
-        instanceId,
-        req.pastEvents,
-        req.newEvents,
-        req.router,
-        req.propagatedHistory,
+      // Restore context without emitting a span for every replayed workflow turn.
+      const result = await context.with(getOrchestrationTraceContext([...req.pastEvents, ...req.newEvents]), () =>
+        executor.execute(instanceId, req.pastEvents, req.newEvents, req.router, req.propagatedHistory),
       );
 
       res = create(WorkflowResponseSchema, {
@@ -280,13 +279,8 @@ export class TaskHubWorker {
 
     try {
       const executor = new ActivityExecutor(this._registry, this.serializer, this.payloads);
-      const result = await executor.execute(
-        instanceId,
-        req.name,
-        req.taskId,
-        req.input,
-        req.propagatedHistory,
-        req.taskExecutionId,
+      const result = await runWithActivityTrace(req.name, req.parentTraceContext, () =>
+        executor.execute(instanceId, req.name, req.taskId, req.input, req.propagatedHistory, req.taskExecutionId),
       );
 
       res = create(ActivityResponseSchema, {

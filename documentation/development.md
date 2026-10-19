@@ -98,6 +98,25 @@ npm run test:e2e:binarystore
 They are part of `npm run test:e2e:all` and skip older runtime versions.
 The Binary Store unit tests are included in `test:unit:http` and `test:unit:grpc`.
 
+Workflow tracing tests use `@dapr/testcontainer-node` **1.0.5** and its in-process
+Zipkin v2 collector. They capture both real Dapr runtime spans and SDK spans
+exported with OpenTelemetry; no separate Zipkin installation is needed. Docker
+and Dapr 1.17 or later are required. The tests use the SDK in this checkout, not
+the published SDK bundled with the harness.
+
+```powershell
+node .\node_modules\jest\bin\jest.js --runTestsByPath test\unit\workflow\workflowTracing.test.ts --runInBand
+node .\node_modules\jest\bin\jest.js --runTestsByPath test\e2e\workflow\tracing.test.ts --runInBand
+```
+
+These are also included in `test:unit:workflow` and `test:e2e:workflow`, respectively.
+Coverage includes caller-to-runtime-to-SDK-to-downstream parent relationships,
+failures, retries, child workflows, cross-application execution, parallel activity
+and workflow isolation, timer/event replay, continue-as-new, and W3C tracestate.
+Unit tests additionally cover invalid/missing context, sampling, operation without
+a tracer provider, and restoration of the caller's context. Set
+`DAPR_RUNTIME_VERSION` to run against another supported runtime.
+
 Workflow payload-reference tests are part of the existing workflow unit and E2E
 suites. The integration tests require Docker, Dapr 1.19 or later, Git, and the
 .NET 10 SDK. They run real JS and .NET workflow workers and exchange stored

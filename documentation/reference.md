@@ -25,6 +25,68 @@ await client.invoker.listen("method", invokerListen.bind(this), options);
 
 ## Workflow context and state
 
+### Workflow tracing
+
+Workflow tracing uses the application's OpenTelemetry configuration. Register a
+Node tracer provider (including its async context manager) before starting the
+workflow client or runtime, and configure tracing on the Dapr sidecar as well.
+The SDK does not install a global provider, context manager, exporter, or sampler.
+
+For example, using OpenTelemetry JS 2.x and its Zipkin exporter:
+
+```typescript
+import { trace } from "@opentelemetry/api";
+import { ZipkinExporter } from "@opentelemetry/exporter-zipkin";
+import { resourceFromAttributes } from "@opentelemetry/resources";
+import { NodeTracerProvider, SimpleSpanProcessor } from "@opentelemetry/sdk-trace-node";
+import { DaprWorkflowClient } from "@dapr/dapr";
+
+const provider = new NodeTracerProvider({
+  resource: resourceFromAttributes({ "service.name": "orders" }),
+  spanProcessors: [new SimpleSpanProcessor(new ZipkinExporter({ url: "http://localhost:9411/api/v2/spans" }))],
+});
+provider.register();
+
+const client = new DaprWorkflowClient();
+await trace.getTracer("orders").startActiveSpan("submit-order", async (span) => {
+  try {
+    await client.scheduleNewWorkflow("orderWorkflow", { orderId: "123" });
+  } finally {
+    span.end();
+  }
+});
+// On application shutdown, stop workflow clients/runtimes before shutting down the provider.
+await client.stop();
+await provider.shutdown();
+```
+
+Install the OpenTelemetry provider/exporter packages in the application; they are
+not installed as SDK runtime dependencies. Use a batching processor in production.
+Configure Dapr's Zipkin endpoint to reach the same collector from the sidecar.
+
+Scheduling forwards the active W3C `traceparent`, sampling flags, and `tracestate`
+through the workflow protocol. Each activity invocation emits an internal
+`WorkflowActivity <registered name>` span from the `Dapr.Workflow` instrumentation
+scope, parented to the runtime's activity span. Instrumented downstream work uses
+that SDK activity span as its parent. Failures mark the span as an error and record
+the exception without changing workflow failure/retry behavior. Each retry attempt
+has its own span.
+
+Workflow turns restore the context from execution history without emitting new
+SDK spans during replay. `trace.getSpan(context.active())` is therefore available
+in workflows and activities when the runtime supplies valid context and an
+OpenTelemetry context manager is configured. Avoid creating spans or performing
+other side effects inside replaying workflow code; put instrumented I/O in
+activities instead. Child workflows and remote activities use the context supplied
+by their runtime. Continue-as-new can start a new runtime trace; the SDK adopts
+the new execution's context rather than retaining the previous trace.
+
+Without a tracer provider, no SDK spans are exported. With only a context manager,
+valid remote context remains available for propagation. Missing or invalid remote
+context does not inherit the worker's ambient span. Sampling is controlled by
+Dapr and the application's OpenTelemetry sampler. The workflow protocol carries
+trace context, not OpenTelemetry baggage.
+
 ### Replay-safe workflow logging
 
 Use `ctx.logger` inside workflows to log without repeating application messages
