@@ -65,11 +65,11 @@ describe("workflow", () => {
     });
   });
 
-  const waitForCustomStatus = async (instanceId: string): Promise<string> => {
+  const waitForCustomStatus = async (instanceId: string, expected?: string): Promise<string> => {
     const deadline = Date.now() + 10_000;
     while (Date.now() < deadline) {
       const state = await workflowClient.getWorkflowState(instanceId, true);
-      if (state?.customStatus) {
+      if (state?.customStatus && (expected === undefined || state.customStatus === expected)) {
         return state.customStatus;
       }
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -923,6 +923,158 @@ describe("workflow", () => {
     expect(state?.serializedInput).toEqual(JSON.stringify(41));
     expect(state?.serializedOutput).toEqual(JSON.stringify(42));
   }, 31000);
+
+  minimumDaprRuntime(
+    "1.19.0",
+    "detached workflow survives replay and recursive caller termination while an ordinary child is terminated",
+    async () => {
+      const independent: TWorkflow = function* independent(ctx: WorkflowContext, input: unknown): any {
+        ctx.setCustomStatus("ready");
+        const result = yield ctx.waitForExternalEvent("complete");
+        return { input, result };
+      };
+      const caller: TWorkflow = function* caller(
+        ctx: WorkflowContext,
+        input: { detachedId: string; childId: string },
+      ): any {
+        const id = yield ctx.scheduleNewDetachedWorkflow(independent, { value: 42 }, input.detachedId);
+        ctx.callChildWorkflow(independent, "ordinary-child", input.childId);
+        yield ctx.waitForExternalEvent("continue");
+        ctx.setCustomStatus({ replayed: true, detachedId: id });
+        yield ctx.waitForExternalEvent("never");
+      };
+      workflowRuntime.registerWorkflow(caller).registerWorkflow(independent);
+      await workflowRuntime.start();
+      const detachedId = `detached-${Date.now()}`;
+      const childId = `ordinary-child-${Date.now()}`;
+      const callerId = await workflowClient.scheduleNewWorkflow(caller, { detachedId, childId });
+      expect(await waitForCustomStatus(detachedId)).toBe('"ready"');
+      expect(await waitForCustomStatus(childId)).toBe('"ready"');
+
+      const detachedHistory = await workflowClient.getWorkflowHistory(detachedId);
+      const start = detachedHistory.find((event) => event.eventType.case === "executionStarted");
+      expect(start?.eventType.case).toBe("executionStarted");
+      if (start?.eventType.case === "executionStarted") {
+        expect(start.eventType.value.parentInstance).toBeUndefined();
+      }
+      await workflowClient.raiseEvent(callerId, "continue");
+      const expectedStatus = { replayed: true, detachedId };
+      expect(JSON.parse(await waitForCustomStatus(callerId, JSON.stringify(expectedStatus)))).toEqual(expectedStatus);
+      const history = await workflowClient.getWorkflowHistory(callerId);
+      const creations = history.filter((event) => event.eventType.case === "detachedWorkflowInstanceCreated");
+      expect(creations).toHaveLength(1);
+      expect(creations[0].eventType.value).toMatchObject({ instanceId: detachedId });
+
+      await workflowClient.terminateWorkflow(callerId);
+      expect((await workflowClient.waitForWorkflowCompletion(callerId, true, 30))?.runtimeStatus).toBe(
+        WorkflowRuntimeStatus.TERMINATED,
+      );
+      expect((await workflowClient.waitForWorkflowCompletion(childId, true, 30))?.runtimeStatus).toBe(
+        WorkflowRuntimeStatus.TERMINATED,
+      );
+      expect((await workflowClient.getWorkflowState(detachedId, true))?.runtimeStatus).toBe(
+        WorkflowRuntimeStatus.RUNNING,
+      );
+      await workflowClient.raiseEvent(detachedId, "complete", "independent-result");
+      const completed = await workflowClient.waitForWorkflowCompletion(detachedId, true, 30);
+      expect(completed?.runtimeStatus).toBe(WorkflowRuntimeStatus.COMPLETED);
+      expect(completed?.getOutput()).toEqual({ input: { value: 42 }, result: "independent-result" });
+    },
+    100000,
+  );
+
+  for (const continueFirst of [false, true]) {
+    minimumDaprRuntime(
+      "1.19.0",
+      `schedules a detached workflow and completes its caller (after continue-as-new: ${continueFirst})`,
+      async () => {
+        const independent: TWorkflow = function* independent(ctx: WorkflowContext, input: unknown): any {
+          yield ctx.waitForExternalEvent("complete");
+          return input;
+        };
+        const caller: TWorkflow = function* caller(ctx: WorkflowContext, input: { continued?: boolean }): any {
+          if (continueFirst && !input.continued) {
+            ctx.continueAsNew({ continued: true });
+            return;
+          }
+          return yield ctx.scheduleNewDetachedWorkflow("independent", false);
+        };
+        workflowRuntime.registerWorkflow(caller).registerWorkflow(independent);
+        await workflowRuntime.start();
+        const callerId = await workflowClient.scheduleNewWorkflow(caller, {});
+        const callerState = await workflowClient.waitForWorkflowCompletion(callerId, true, 30);
+        expect(callerState?.runtimeStatus).toBe(WorkflowRuntimeStatus.COMPLETED);
+        const detachedId = callerState!.getOutput<string>()!;
+        expect(detachedId).not.toBe("");
+        await workflowClient.waitForWorkflowStart(detachedId, false, 30);
+        await workflowClient.raiseEvent(detachedId, "complete");
+        const state = await workflowClient.waitForWorkflowCompletion(detachedId, true, 30);
+        expect(state?.runtimeStatus).toBe(WorkflowRuntimeStatus.COMPLETED);
+        expect(state?.getOutput()).toBe(false);
+      },
+      100000,
+    );
+  }
+
+  minimumDaprRuntime(
+    "1.19.0",
+    "detached workflow failure does not fail or unblock its caller",
+    async () => {
+      const failing: TWorkflow = function* failing(ctx: WorkflowContext): any {
+        yield ctx.waitForExternalEvent("fail");
+        throw new Error("independent failure");
+      };
+      const caller: TWorkflow = function* caller(ctx: WorkflowContext, detachedId: string): any {
+        yield ctx.scheduleNewDetachedWorkflow(failing, undefined, detachedId);
+        return yield ctx.waitForExternalEvent("complete");
+      };
+      workflowRuntime.registerWorkflow(caller).registerWorkflow(failing);
+      await workflowRuntime.start();
+      const detachedId = `failing-detached-${Date.now()}`;
+      const callerId = await workflowClient.scheduleNewWorkflow(caller, detachedId);
+      await workflowClient.waitForWorkflowStart(detachedId, false, 30);
+      await workflowClient.raiseEvent(detachedId, "fail");
+      const failed = await workflowClient.waitForWorkflowCompletion(detachedId, true, 30);
+      expect(failed?.runtimeStatus).toBe(WorkflowRuntimeStatus.FAILED);
+      expect(failed?.workflowFailureDetails?.getErrorMessage()).toContain("independent failure");
+      expect((await workflowClient.getWorkflowState(callerId, true))?.runtimeStatus).toBe(
+        WorkflowRuntimeStatus.RUNNING,
+      );
+      await workflowClient.raiseEvent(callerId, "complete", "caller-result");
+      const completed = await workflowClient.waitForWorkflowCompletion(callerId, true, 30);
+      expect(completed?.runtimeStatus).toBe(WorkflowRuntimeStatus.COMPLETED);
+      expect(completed?.getOutput()).toBe("caller-result");
+    },
+    100000,
+  );
+
+  minimumDaprRuntime(
+    "1.19.0",
+    "honors the scheduled start time of a detached workflow",
+    async () => {
+      const independent: TWorkflow = function* independent(ctx: WorkflowContext, startAt: string): any {
+        return yield ctx.callActivity("measureDetachedStart", startAt);
+      };
+      const caller: TWorkflow = function* caller(ctx: WorkflowContext): any {
+        const startAt = new Date(ctx.getCurrentUtcDateTime().getTime() + 5000);
+        return yield ctx.scheduleNewDetachedWorkflow(independent, startAt.toISOString(), undefined, startAt);
+      };
+      workflowRuntime.registerWorkflow(caller).registerWorkflow(independent);
+      workflowRuntime.registerActivityWithName("measureDetachedStart", (_ctx, startAt: string) => ({
+        startAt,
+        actualStart: new Date().toISOString(),
+      }));
+      await workflowRuntime.start();
+      const callerId = await workflowClient.scheduleNewWorkflow(caller);
+      const callerState = await workflowClient.waitForWorkflowCompletion(callerId, true, 30);
+      expect(callerState?.runtimeStatus).toBe(WorkflowRuntimeStatus.COMPLETED);
+      const state = await workflowClient.waitForWorkflowCompletion(callerState!.getOutput<string>()!, true, 30);
+      expect(state?.runtimeStatus).toBe(WorkflowRuntimeStatus.COMPLETED);
+      const output = state!.getOutput<{ startAt: string; actualStart: string }>()!;
+      expect(Date.parse(output.actualStart)).toBeGreaterThanOrEqual(Date.parse(output.startAt));
+    },
+    65000,
+  );
 
   it("should be able to purge orchestration by id", async () => {
     const plusOneActivity = async (_: WorkflowActivityContext, input: number) => {

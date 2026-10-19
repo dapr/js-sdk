@@ -100,6 +100,44 @@ serialized JSON. The original `rawEvents`, `rawSignatures`, and
 `signingCertChains` are also available; the SDK does **not** verify signatures.
 Received history is informational context, never replayed as the callee's own history.
 
+## Detached workflows
+
+With Dapr runtime 1.19 or later, `WorkflowContext.scheduleNewDetachedWorkflow`
+schedules a workflow with no parent relationship. Unlike `callChildWorkflow`,
+yielding its already-completed `Task<string>` returns the scheduled instance ID,
+not the workflow's result. The caller does not wait for execution or receive
+completion or failure notifications. Recursive termination of the caller does not
+terminate the detached instance.
+
+```typescript
+function* orderWorkflow(ctx: WorkflowContext, order: unknown): any {
+  const instanceId = yield ctx.scheduleNewDetachedWorkflow("shipOrder", order);
+  return { shipmentWorkflowId: instanceId };
+}
+```
+
+Arguments follow `DaprWorkflowClient.scheduleNewWorkflow`: workflow name or
+function reference, optional input, optional instance ID, and optional `startAt`
+date. The final `DetachedWorkflowOptions` argument supports `targetAppId` for
+cross-application scheduling. Retries and history propagation are not supported.
+Omitted IDs are generated deterministically; do not use random IDs or wall-clock
+dates inside workflow code. For a delay, derive `startAt` from
+`ctx.getCurrentUtcDateTime()`. Explicit IDs must be non-empty and must not be
+scheduled twice in the same execution turn.
+
+Creation is committed with the caller's workflow actions, including when the
+caller completes in that turn. As with activities and child workflows,
+`continueAsNew` discards uncommitted actions from the current turn; schedule the
+detached workflow in the new generation or yield a durable task before continuing
+as new. Replay consumes the recorded `detachedWorkflowInstanceCreated` event without
+scheduling another instance. The returned ID is not confirmation that the runtime
+has started the workflow. Use `DaprWorkflowClient` outside the workflow to inspect
+or manage it independently.
+
+Existing custom engine contexts do not need to implement the new method unless
+they support detached scheduling; the base implementation throws an explicit
+unsupported-operation error.
+
 ## Workflow cancellation and timeouts
 
 `WorkflowContext.createTimer` and `waitForExternalEvent` return a `CancellableTask`.

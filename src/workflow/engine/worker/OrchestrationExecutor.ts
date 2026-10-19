@@ -92,8 +92,13 @@ export class OrchestrationExecutor {
   }
 
   private async processEvent(ctx: OrchestrationRuntimeContext, event: HistoryEvent): Promise<void> {
-    // Ignore late events after terminal completion, but retain continue-as-new carryover events.
-    if (ctx._isComplete && ctx._completionStatus !== OrchestrationStatus.CONTINUED_AS_NEW) {
+    // Successful completion can still have detached creation confirmations to consume on replay.
+    if (
+      ctx._isComplete &&
+      ctx._completionStatus !== OrchestrationStatus.CONTINUED_AS_NEW &&
+      (ctx._completionStatus !== OrchestrationStatus.COMPLETED ||
+        event.eventType.case !== "detachedWorkflowInstanceCreated")
+    ) {
       return;
     }
 
@@ -289,6 +294,22 @@ export class OrchestrationExecutor {
             `Failed to restore orchestration state: A previous execution called callSubOrchestrator with name='${eventType.value.name}' and sequence number ${taskId}, but the current execution is instead trying to call ${actionType.value.name}.`,
           );
         }
+        break;
+      }
+
+      case "detachedWorkflowInstanceCreated": {
+        const instanceId = eventType.value.instanceId;
+        const action = Object.values(ctx._pendingActions).find(
+          (pending) =>
+            pending.workflowActionType.case === "createDetachedWorkflow" &&
+            pending.workflowActionType.value.instanceId === instanceId,
+        );
+        if (!action) {
+          throw new NonDeterminismError(
+            `A previous execution scheduled a detached workflow with instanceId='${instanceId}', but the current execution doesn't have a matching detached workflow action.`,
+          );
+        }
+        delete ctx._pendingActions[action.id];
         break;
       }
 

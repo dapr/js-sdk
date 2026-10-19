@@ -26,12 +26,14 @@ import { newDeterministicGuid } from "../guid/deterministicGuid";
 import type { RetryPolicy } from "../../../types/workflow/RetryPolicy.type";
 import type { ActivityOptions } from "../../../types/workflow/ActivityOptions.type";
 import type { ChildWorkflowOptions } from "../../../types/workflow/ChildWorkflowOptions.type";
+import type { DetachedWorkflowOptions } from "../../../types/workflow/DetachedWorkflowOptions.type";
 import { HistoryPropagationScope } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import type { PropagatedHistory } from "../../runtime/PropagatedHistory";
 import {
   newCompleteWorkflowAction,
   newCreateTimerAction,
   newCreateChildWorkflowAction,
+  newCreateDetachedWorkflowAction,
   newScheduleTaskAction,
   newSendEventAction,
   newEventRaisedEvent,
@@ -153,7 +155,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
 
     this._isComplete = true;
     this._completionStatus = status;
-    this._pendingActions = {};
+    this._pendingActions = status === OrchestrationStatusEnum.COMPLETED ? this.getPendingDetachedActions() : {};
     this._result = result;
 
     let resultJson: string | undefined;
@@ -218,6 +220,14 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
 
   nextSequenceNumber(): number {
     return ++this._sequenceNumber;
+  }
+
+  private getPendingDetachedActions(): Record<number, WorkflowAction> {
+    return Object.fromEntries(
+      Object.entries(this._pendingActions).filter(
+        ([, action]) => action.workflowActionType.case === "createDetachedWorkflow",
+      ),
+    );
   }
 
   createTimer(fireAt: Date | number): CancellableCompletableTask<void> {
@@ -300,6 +310,58 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
 
     const task = new CompletableTask<TOutput>();
     this._pendingTasks[id] = task;
+    return task;
+  }
+
+  override scheduleNewDetachedWorkflow<TInput>(
+    workflow: TOrchestrator | string,
+    input?: TInput,
+    instanceId?: string,
+    startAt?: Date,
+    options?: DetachedWorkflowOptions,
+  ): Task<string> {
+    const name = typeof workflow === "string" ? workflow : getName(workflow);
+    if (typeof name !== "string" || !name.trim()) {
+      throw new TypeError("workflow must have a non-empty name");
+    }
+    if (instanceId !== undefined && (typeof instanceId !== "string" || !instanceId.trim())) {
+      throw new TypeError("instanceId must be a non-empty string");
+    }
+    if (startAt !== undefined && (!(startAt instanceof Date) || !Number.isFinite(startAt.getTime()))) {
+      throw new RangeError("startAt must be a valid date");
+    }
+    if (
+      options &&
+      (("retryPolicy" in options && options.retryPolicy != null) ||
+        ("propagationScope" in options &&
+          options.propagationScope != null &&
+          options.propagationScope !== HistoryPropagationScope.NONE))
+    ) {
+      throw new TypeError("Detached workflows do not support retries or history propagation");
+    }
+    const routing = this.getRoutingOptions(options);
+    const encodedInput = input === undefined ? undefined : JSON.stringify(input);
+    const detachedInstanceId = instanceId ?? this.newGuid();
+    if (
+      Object.values(this._pendingActions).some(
+        (action) =>
+          action.workflowActionType.case === "createDetachedWorkflow" &&
+          action.workflowActionType.value.instanceId === detachedInstanceId,
+      )
+    ) {
+      throw new Error(`A detached workflow with instance ID '${detachedInstanceId}' has already been scheduled`);
+    }
+    const action = newCreateDetachedWorkflowAction(
+      this.nextSequenceNumber(),
+      name,
+      detachedInstanceId,
+      encodedInput,
+      startAt,
+      routing,
+    );
+    this._pendingActions[action.id] = action;
+    const task = new CompletableTask<string>();
+    task.complete(detachedInstanceId);
     return task;
   }
 

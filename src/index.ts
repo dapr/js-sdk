@@ -48,6 +48,7 @@ import { TWorkflow } from "./types/workflow/Workflow.type";
 import { RetryPolicy } from "./types/workflow/RetryPolicy.type";
 import { ActivityOptions } from "./types/workflow/ActivityOptions.type";
 import { ChildWorkflowOptions } from "./types/workflow/ChildWorkflowOptions.type";
+import { DetachedWorkflowOptions } from "./types/workflow/DetachedWorkflowOptions.type";
 import { HistoryPropagationScope } from "./proto/dapr/proto/durabletask/v1/orchestration_pb";
 import { Task, TaskCanceledError, TaskTimeoutError } from "./workflow/engine/task";
 import { ExternalEventOptions } from "./types/workflow/ExternalEventOptions.type";
@@ -94,6 +95,7 @@ export {
   RetryPolicy,
   ActivityOptions,
   ChildWorkflowOptions,
+  DetachedWorkflowOptions,
   HistoryPropagationScope,
   Task,
   TaskCanceledError,

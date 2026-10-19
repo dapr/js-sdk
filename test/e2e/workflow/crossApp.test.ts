@@ -208,6 +208,47 @@ describe("cross-application workflow execution", () => {
   }
 
   minimumDaprRuntime(
+    "1.19.0",
+    "schedules an independent detached workflow in another application without propagating history",
+    async () => {
+      const detached: TWorkflow = function* detached(ctx: WorkflowContext, input: unknown): any {
+        const history = summarize(ctx.getPropagatedHistory());
+        yield ctx.waitForExternalEvent("complete");
+        return { input, history };
+      };
+      const caller: TWorkflow = function* caller(ctx: WorkflowContext, input: unknown): any {
+        yield ctx.callActivity("parentSeed");
+        return yield ctx.scheduleNewDetachedWorkflow("remoteDetached", input, undefined, undefined, {
+          targetAppId: "cross-app-child",
+        });
+      };
+      runtimes[0].registerWorkflowByName("detachedCaller", caller);
+      runtimes[1].registerWorkflowByName("remoteDetached", detached);
+      const input = { value: "remote-input" };
+      const callerId = await clients[0].scheduleNewWorkflow("detachedCaller", input);
+      const callerState = await clients[0].waitForWorkflowCompletion(callerId, true, 30);
+      expect(callerState?.runtimeStatus).toBe(WorkflowRuntimeStatus.COMPLETED);
+      const detachedId = callerState!.getOutput<string>()!;
+      await clients[1].waitForWorkflowStart(detachedId, false, 30);
+      const history = await clients[1].getWorkflowHistory(detachedId);
+      const start = history.find((event) => event.eventType.case === "executionStarted");
+      expect(start?.eventType.case).toBe("executionStarted");
+      if (start?.eventType.case === "executionStarted") {
+        expect(start.eventType.value.parentInstance).toBeUndefined();
+      }
+      await clients[1].raiseEvent(detachedId, "complete");
+      const state = await clients[1].waitForWorkflowCompletion(detachedId, true, 30);
+      expect(state?.runtimeStatus).toBe(WorkflowRuntimeStatus.COMPLETED);
+      expect(state?.getOutput()).toEqual({ input, history: [] });
+      const callerHistory = await clients[0].getWorkflowHistory(callerId);
+      expect(callerHistory.filter((event) => event.eventType.case === "detachedWorkflowInstanceCreated")).toHaveLength(
+        1,
+      );
+    },
+    100000,
+  );
+
+  minimumDaprRuntime(
     "1.18",
     "does not forward inherited history across a NONE trust boundary",
     async () => {
