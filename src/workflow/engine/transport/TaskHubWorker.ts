@@ -19,6 +19,7 @@ import { ConnectError } from "@connectrpc/connect";
 import {
   TaskHubSidecarService,
   GetWorkItemsRequestSchema,
+  WorkerCapability,
   type WorkItem,
   type WorkflowRequest,
   type ActivityRequest,
@@ -134,15 +135,19 @@ export class TaskHubWorker {
 
         const streamController = new AbortController();
         this._workItemStreamController = streamController;
-        const stream = this.client.getWorkItems(create(GetWorkItemsRequestSchema), {
-          signal: streamController.signal,
-        });
+        const stream = this.client.getWorkItems(
+          create(GetWorkItemsRequestSchema, { capabilities: [WorkerCapability.HEALTH_PING] }),
+          { signal: streamController.signal },
+        );
         this.markReady();
         retryCount = 0;
 
         try {
           for await (const workItem of stream) {
             if (this._stopWorker) break;
+            // Health pings only keep the stream alive through idle proxies; they carry no work.
+            if (workItem.request.case === "healthPing") continue;
+
             // Concurrency is admitted by the Dapr runtime (workflow.maxConcurrent*Invocations), so every
             // work item is dispatched as it arrives. A work item that is not executed stays registered
             // as in flight on this stream, stalling its workflow until the stream reconnects.
