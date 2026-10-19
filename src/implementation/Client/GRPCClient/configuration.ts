@@ -17,11 +17,10 @@ import {
   GetConfigurationRequestSchema,
   SubscribeConfigurationRequestSchema,
   UnsubscribeConfigurationRequestSchema,
-} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+} from "../../../proto/dapr/proto/runtime/v1/configuration_pb";
 import IClientConfiguration from "../../../interfaces/Client/IClientConfiguration";
 import { KeyValueType } from "../../../types/KeyValue.type";
 import { GetConfigurationResponse as GetConfigurationResponseResult } from "../../../types/configuration/GetConfigurationResponse";
-import { SubscribeConfigurationResponse as SubscribeConfigurationResponseResult } from "../../../types/configuration/SubscribeConfigurationResponse";
 import { SubscribeConfigurationCallback } from "../../../types/configuration/SubscribeConfigurationCallback";
 import { SubscribeConfigurationStream } from "../../../types/configuration/SubscribeConfigurationStream";
 import { ConfigurationItem } from "../../../types/configuration/ConfigurationItem";

@@ -123,7 +123,7 @@ message ChildWorkflowInstanceCompletedEvent {
 
     // Companion: DER-encoded X.509 certificate chain of the child's signing
     // identity (leaf first, intermediates concatenated; same format as
-    // backend_service.proto: SigningCertificate.certificate). Wire-only;
+    // SigningCertificate.certificate in backend_service.proto). Wire-only;
     // stripped by the receiver before the event is written to
     // history-NNNNNN. The certificate lives once in ext-sigcert-NNNNNN,
     // referenced by attestation payload's signerCertDigest.

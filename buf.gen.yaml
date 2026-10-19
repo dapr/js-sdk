@@ -2,14 +2,7 @@ version: v2
 managed:
   enabled: true
 plugins:
-  - remote: buf.build/bufbuild/es
-    out: ./src/proto
-    include_imports: true
-    opt:
-      - target=js+dts
-      - import_extension=.js
-      - js_import_style=legacy_commonjs
-  - remote: buf.build/connectrpc/es
+  - remote: buf.build/bufbuild/es:v2.16.0
     out: ./src/proto
     include_imports: true
     opt:
@@ -19,4 +12,6 @@ plugins:
 inputs:
   - directory: ./
     paths:
-      - dapr/proto
+      - dapr/proto/common/v1/common.proto
+      - dapr/proto/durabletask/v1
+      - dapr/proto/runtime/v1

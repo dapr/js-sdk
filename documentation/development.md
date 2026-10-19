@@ -28,11 +28,23 @@ For **building** a new version, we:
 
 - update the version in `package.json` in the repo root, e.g. `3.4.0` for a final releaes or `3.4.0-rc.1` for a pre-release
 - run `npm install` again to refresh lock file (it should now be dirty and part of the change list)
-- verify the dapr runtime and versions in [./scripts/fetch-proto.sh](./scripts/fetch-proto.sh) and update if necessary
-- run `./scripts/fetch-proto.sh` from the repo root to regenerate protos to match runtime
+- verify the Dapr revision in [scripts/fetch-proto.js](../scripts/fetch-proto.js) and update if necessary
+- run `node scripts/fetch-proto.js` from the repo root to sync the common, external runtime, and durabletask protos, then `npx buf generate` to regenerate bindings
 - verify [.github/workflows/test-e2e.yml](.github/workflows/test-e2e.yml) env variables, especially the Dapr and Node versions to test against
 
 PR this change into the right release branch, e.g. `release-3.4.0`. Merging to `master` branch should happen last.
+
+The proto snapshots are pinned to dapr/dapr commit `6801e6d54e908e0f7625e2a467d40359c3eb77d6`
+and dapr/durabletask-protobuf commit `89e5df3ffbbac9ac043997b109718db2c2b182b6`.
+To fetch another tag, branch, or commit, set `DAPR_VERSION` before running the fetcher
+(for example, `$env:DAPR_VERSION = "master"` in PowerShell).
+The fetcher updates both `dapr/proto` and the packaged sources in `src/proto/dapr/proto`,
+and only retrieves Dapr's `common/v1/common.proto`, `runtime/v1/*.proto`, and
+the durabletask definitions from `dapr/durabletask-protobuf`. Set `DURABLETASK_VERSION`
+to override the durabletask revision. Durabletask imports are rewritten to the local
+`dapr/proto/durabletask/v1` path.
+Bindings are generated with Protobuf-ES v2, which includes the service descriptors
+used by ConnectRPC v2; separate legacy gRPC and ConnectRPC v1 bindings are not needed.
 
 A custom script is utilized here since we have 2 libraries in one for HTTP and gRPC
 
