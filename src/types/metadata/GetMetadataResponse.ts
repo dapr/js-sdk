@@ -15,6 +15,7 @@ import { KeyValueType } from "../KeyValue.type";
 
 export type GetMetadataResponse = {
   id: string;
+  runtimeVersion?: string;
   actors: MetadataRegisteredActor[];
   extended: KeyValueType;
   components: MetadataComponent[];

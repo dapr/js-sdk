@@ -11,16 +11,11 @@ runtime version 1.17: the `BulkPublishEvent` gRPC RPC, and the `v1.0/publish/bul
 endpoint. Previously the SDK always called the alpha1 variants.
 
 This is not a breaking change. The method name, parameters, and return type are unchanged, and no consumer code
-needs to be updated. When the SDK detects a sidecar that does not serve the stable API it transparently retries
-against the deprecated `BulkPublishEventAlpha1` / `v1.0-alpha1` API and logs a warning suggesting an upgrade.
-The downgrade is remembered per client, and bulk publishes that start while the first one is still in flight
-wait for its outcome rather than each probing the sidecar, so a pre-1.17 sidecar normally costs one extra round
-trip and one warning per client.
-
-Detecting an unsupported sidecar differs per transport. Over HTTP the sidecar answers `404`. Over gRPC it does
-_not_ answer `UNIMPLEMENTED` as you might expect: Dapr installs a catch-all handler that forwards unrecognised
-methods to service invocation, so a pre-1.17 sidecar reports `UNKNOWN` with a `failed to proxy request`
-message. Both shapes are recognised.
+needs to be updated. The SDK selects the stable or deprecated alpha1 API based on the sidecar's runtime version.
+For HTTP, it reads the sidecar's metadata before publishing, rather than probing with a POST that could be
+mistaken for a regular publish by older runtimes. For gRPC, the SDK probes the stable RPC; Dapr's catch-all
+handler reports `UNKNOWN` with a `failed to proxy request` message on runtimes that do not recognize the RPC.
+Concurrent first publishes share the same version check or RPC probe.
 
 Dapr 1.17 and newer still serve the alpha1 API, so the fallback remains valid for every currently supported
 runtime.
