@@ -20,7 +20,7 @@ import type { TWorkflow } from "../../types/workflow/Workflow.type";
 import type { ActivityOptions } from "../../types/workflow/ActivityOptions.type";
 import type { ChildWorkflowOptions } from "../../types/workflow/ChildWorkflowOptions.type";
 import type { DetachedWorkflowOptions } from "../../types/workflow/DetachedWorkflowOptions.type";
-import type { PropagatedHistory } from "./PropagatedHistory";
+import { createPropagatedHistoryView, type PropagatedHistoryView } from "./PropagatedHistory";
 
 export default class WorkflowContext {
   constructor(private readonly _innerContext: OrchestrationContext) {
@@ -37,8 +37,8 @@ export default class WorkflowContext {
     return this._innerContext.name;
   }
 
-  public getPropagatedHistory(): PropagatedHistory | undefined {
-    return this._innerContext.propagatedHistory;
+  public getPropagatedHistory(): PropagatedHistoryView | undefined {
+    return createPropagatedHistoryView(this._innerContext.propagatedHistory);
   }
 
   public getCurrentUtcDateTime(): Date {

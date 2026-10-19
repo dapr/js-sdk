@@ -20,7 +20,7 @@ import {
   WorkflowActivityContext,
   WorkflowRuntimeStatus,
   HistoryPropagationScope,
-  type PropagatedHistory,
+  type PropagatedHistoryView,
   type TWorkflow,
 } from "../../../src";
 import {
@@ -38,9 +38,31 @@ interface Input {
   activityScope: HistoryPropagationScope;
   retry: boolean;
   alias: boolean;
+  grandchildScope?: HistoryPropagationScope;
 }
 
-function summarize(history?: PropagatedHistory) {
+function summarize(history?: PropagatedHistoryView) {
+  if (history) {
+    expect(history.events).toEqual(history.chunks.flatMap((chunk) => chunk.events));
+    expect(history.appIDs).toEqual([...new Set(history.chunks.map((chunk) => chunk.appId))]);
+    for (const workflow of history.workflows) {
+      expect(history.events.slice(workflow.startEventIndex, workflow.startEventIndex + workflow.eventCount)).toEqual(
+        workflow.events,
+      );
+      expect(history.getWorkflowByName(workflow.workflowName)).toMatchObject({ workflowName: workflow.workflowName });
+      expect(history.getEventsByAppID(workflow.appId)).toEqual(
+        history.chunks.filter((chunk) => chunk.appId === workflow.appId).flatMap((chunk) => chunk.events),
+      );
+      expect(history.getEventsByInstanceID(workflow.instanceId)).toEqual(
+        history.chunks.filter((chunk) => chunk.instanceId === workflow.instanceId).flatMap((chunk) => chunk.events),
+      );
+      expect(history.getEventsByWorkflowName(workflow.workflowName)).toEqual(
+        history.chunks.filter((chunk) => chunk.workflowName === workflow.workflowName).flatMap((chunk) => chunk.events),
+      );
+    }
+    expect(history.getWorkflowByName("nonexistent")).toBeNull();
+    expect(history.getEventsByWorkflowName("nonexistent")).toEqual([]);
+  }
   return (
     history?.chunks.map((chunk) => ({
       appId: chunk.appId,
@@ -86,7 +108,14 @@ describe("cross-application workflow execution", () => {
       propagationScope: input.activityScope,
       retryPolicy: input.retry ? { firstRetryInterval: 1, maxNumberOfAttempts: 2 } : undefined,
     });
-    return { childHistory, activityHistory, childInstanceId: ctx.getWorkflowInstanceId() };
+    const grandchildHistory =
+      input.grandchildScope === undefined
+        ? undefined
+        : yield ctx.callChildWorkflow("remoteGrandchild", undefined, undefined, {
+            targetAppId: "cross-app-activity",
+            propagationScope: input.grandchildScope,
+          });
+    return { childHistory, activityHistory, grandchildHistory, childInstanceId: ctx.getWorkflowInstanceId() };
   };
 
   beforeAll(async () => {
@@ -149,6 +178,14 @@ describe("cross-application workflow execution", () => {
       if (input.retry && activityAttempts === 1) throw new Error("transient remote activity failure");
       return summarize(ctx.getPropagatedHistory());
     });
+    runtimes[2].registerWorkflow(function* remoteGrandchild(ctx: WorkflowContext): any {
+      const history = summarize(ctx.getPropagatedHistory());
+      yield ctx.callActivity("grandchildSeed");
+      return history;
+    });
+    runtimes[2].registerActivity(async function grandchildSeed() {
+      return "grandchild-output";
+    });
     await Promise.all(runtimes.map((runtime) => runtime.start()));
   }, 240_000);
 
@@ -202,6 +239,56 @@ describe("cross-application workflow execution", () => {
         }
         expect(childInstances.size).toBe(retry ? 2 : 1);
         expect(activityAttempts).toBe(retry ? 2 : 1);
+      },
+      65_000,
+    );
+  }
+
+  for (const scope of [
+    HistoryPropagationScope.NONE,
+    HistoryPropagationScope.OWN_HISTORY,
+    HistoryPropagationScope.LINEAGE,
+  ]) {
+    minimumDaprRuntime(
+      "1.18",
+      `filters inherited lineage at activity and grandchild workflow boundaries (scope=${scope})`,
+      async () => {
+        const id = await clients[0].scheduleNewWorkflow(parent, {
+          childScope: HistoryPropagationScope.LINEAGE,
+          activityScope: scope,
+          grandchildScope: scope,
+          retry: false,
+          alias: false,
+        });
+        const state = await clients[0].waitForWorkflowCompletion(id, undefined, 60);
+        expect(state?.runtimeStatus).toBe(WorkflowRuntimeStatus.COMPLETED);
+        expect(state?.workflowFailureDetails).toBeUndefined();
+        const result = state!.getOutput<{
+          childHistory: { instanceId: string }[];
+          activityHistory: { instanceId: string; workflowName: string; outputs: string[] }[];
+          grandchildHistory: { instanceId: string; workflowName: string; outputs: string[] }[];
+          childInstanceId: string;
+        }>()!;
+        expect(result.childHistory.map((entry) => entry.instanceId)).toEqual([id]);
+        const expected =
+          scope === HistoryPropagationScope.NONE
+            ? []
+            : scope === HistoryPropagationScope.OWN_HISTORY
+            ? [result.childInstanceId]
+            : [id, result.childInstanceId];
+        for (const received of [result.activityHistory, result.grandchildHistory]) {
+          expect(received.map((entry) => entry.instanceId)).toEqual(expected);
+          if (scope !== HistoryPropagationScope.NONE) {
+            expect(received[received.length - 1].outputs).toContain('"child-output"');
+          }
+          if (scope === HistoryPropagationScope.OWN_HISTORY) {
+            expect(received.some((entry) => entry.workflowName === "parent")).toBe(false);
+            expect(received.flatMap((entry) => entry.outputs)).not.toContain('"parent-output"');
+          }
+          if (scope === HistoryPropagationScope.LINEAGE) {
+            expect(received[0].outputs).toContain('"parent-output"');
+          }
+        }
       },
       65_000,
     );

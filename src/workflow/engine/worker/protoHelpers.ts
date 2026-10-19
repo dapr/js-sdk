@@ -14,11 +14,11 @@ limitations under the License.
 import { create, fromBinary } from "@bufbuild/protobuf";
 import { TaskFailedError } from "../task";
 import type { ActivityOptions } from "../../../types/workflow/ActivityOptions.type";
-import type { PropagatedHistory } from "../../runtime/PropagatedHistory";
+import { createPropagatedHistoryView, type PropagatedHistoryView } from "../../runtime/PropagatedHistory";
 import { timestampFromDate, timestampDate, type Timestamp } from "@bufbuild/protobuf/wkt";
 import type {
   OrchestrationStatus,
-  TaskFailureDetails
+  TaskFailureDetails,
 } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import {
   OrchestrationStatus as OrchestrationStatusEnum,
@@ -28,7 +28,7 @@ import {
 } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import type {
   HistoryEvent,
-  PropagatedHistory as HistoryMessage
+  PropagatedHistory as HistoryMessage,
 } from "../../../proto/dapr/proto/durabletask/v1/history_events_pb";
 import {
   HistoryEventSchema,
@@ -45,9 +45,7 @@ import {
   WorkflowStartedEventSchema,
   TimerOriginCreateTimerSchema,
 } from "../../../proto/dapr/proto/durabletask/v1/history_events_pb";
-import type {
-  WorkflowAction
-} from "../../../proto/dapr/proto/durabletask/v1/orchestrator_actions_pb";
+import type { WorkflowAction } from "../../../proto/dapr/proto/durabletask/v1/orchestrator_actions_pb";
 import {
   WorkflowActionSchema,
   ScheduleTaskActionSchema,
@@ -60,11 +58,11 @@ import {
 
 type RoutingOptions = Pick<ActivityOptions, "targetAppId" | "propagationScope"> & { sourceAppId?: string };
 
-export function decodePropagatedHistory(history?: HistoryMessage): PropagatedHistory | undefined {
+export function decodePropagatedHistory(history?: HistoryMessage): PropagatedHistoryView | undefined {
   if (!history?.chunks.length) {
     return undefined;
   }
-  return {
+  return createPropagatedHistoryView({
     scope: history.scope,
     chunks: history.chunks.map((chunk) => ({
       appId: chunk.appId,
@@ -75,7 +73,7 @@ export function decodePropagatedHistory(history?: HistoryMessage): PropagatedHis
       rawSignatures: chunk.rawSignatures,
       signingCertChains: chunk.signingCertChains,
     })),
-  };
+  });
 }
 
 export function dateToTimestamp(date: Date): Timestamp {
