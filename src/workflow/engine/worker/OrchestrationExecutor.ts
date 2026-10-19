@@ -11,7 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import type { HistoryEvent } from "../../../proto/dapr/proto/durabletask/v1/history_events_pb";
+import type {
+  HistoryEvent,
+  PropagatedHistory as HistoryMessage,
+} from "../../../proto/dapr/proto/durabletask/v1/history_events_pb";
+import type { TaskRouter } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import type { AnyGenerator } from "../context/OrchestrationContext";
 import { OrchestrationStatus } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import { OrchestrationRuntimeContext } from "../context/OrchestrationRuntimeContext";
@@ -20,7 +24,7 @@ import { NonDeterminismError } from "../task/NonDeterminismError";
 import { StopIterationError } from "../task/StopIterationError";
 import { Registry } from "./Registry";
 import { OrchestrationExecuteResult } from "./OrchestrationExecuteResult";
-import { isEmpty, getOrchestrationStatusStr } from "./protoHelpers";
+import { isEmpty, getOrchestrationStatusStr, decodePropagatedHistory } from "./protoHelpers";
 import { Logger } from "../../../logger/Logger";
 
 export class OrchestrationExecutor {
@@ -34,14 +38,21 @@ export class OrchestrationExecutor {
     instanceId: string,
     oldEvents: HistoryEvent[],
     newEvents: HistoryEvent[],
+    router?: TaskRouter,
+    propagatedHistory?: HistoryMessage,
   ): Promise<OrchestrationExecuteResult> {
     if (!newEvents?.length) {
       throw new Error("The new history event list must have at least one event in it");
     }
 
-    const ctx = new OrchestrationRuntimeContext(instanceId);
+    const startEvent = [...oldEvents, ...newEvents].find((event) => event.eventType.case === "executionStarted");
+    const appRouter = startEvent?.router ?? router;
+    const appId = appRouter?.targetAppID || appRouter?.sourceAppID;
 
+    let ctx = new OrchestrationRuntimeContext(instanceId, appId);
     try {
+      const history = decodePropagatedHistory(propagatedHistory);
+      ctx = new OrchestrationRuntimeContext(instanceId, appId, history);
       this.logger.debug(`${instanceId}: Rebuilding local state with ${oldEvents.length} history event...`);
       ctx._isReplaying = true;
 

@@ -12,7 +12,12 @@ limitations under the License.
 */
 
 import type { RetryPolicy } from "./RetryPolicy.type";
+import type { HistoryPropagationScope } from "../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 
 export interface ActivityOptions {
   retryPolicy?: RetryPolicy;
+  /** Destination Dapr app ID. Omit to run in the calling application. */
+  targetAppId?: string;
+  /** Ancestor history to share with the callee. Defaults to NONE. */
+  propagationScope?: HistoryPropagationScope;
 }

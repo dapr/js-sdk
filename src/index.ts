@@ -48,6 +48,7 @@ import { TWorkflow } from "./types/workflow/Workflow.type";
 import { RetryPolicy } from "./types/workflow/RetryPolicy.type";
 import { ActivityOptions } from "./types/workflow/ActivityOptions.type";
 import { ChildWorkflowOptions } from "./types/workflow/ChildWorkflowOptions.type";
+import { HistoryPropagationScope } from "./proto/dapr/proto/durabletask/v1/orchestration_pb";
 import { Task } from "./workflow/engine/task/Task";
 import { WorkflowFailureDetails } from "./workflow/client/WorkflowFailureDetails";
 import { WorkflowState } from "./workflow/client/WorkflowState";
@@ -90,6 +91,7 @@ export {
   RetryPolicy,
   ActivityOptions,
   ChildWorkflowOptions,
+  HistoryPropagationScope,
   Task,
   WorkflowFailureDetails,
   WorkflowState,
@@ -97,3 +99,5 @@ export {
   fromOrchestrationStatus,
   toOrchestrationStatus,
 };
+
+export type { PropagatedHistory, PropagatedHistoryEntry } from "./workflow/runtime/PropagatedHistory";

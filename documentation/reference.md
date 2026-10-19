@@ -23,6 +23,52 @@ const invokerListen = (req: IRequest, res: IResponse) => {
 await client.invoker.listen("method", invokerListen.bind(this), options);
 ```
 
+## Cross-application workflow tasks
+
+`WorkflowContext.callActivity`, `callChildWorkflow`, and its alias `callSubWorkflow`
+accept `targetAppId` and `propagationScope` in their existing options argument.
+Register the named activity or workflow in the destination application's runtime.
+Omitting `targetAppId` preserves local execution; omitting `propagationScope` shares
+no history. These options are preserved on retries.
+
+```typescript
+import { HistoryPropagationScope, WorkflowContext } from "@dapr/dapr";
+
+function* orderWorkflow(ctx: WorkflowContext): any {
+  const stock = yield ctx.callActivity(
+    "checkStock",
+    { sku: "123" },
+    {
+      targetAppId: "inventory",
+      propagationScope: HistoryPropagationScope.OWN_HISTORY,
+    },
+  );
+  return yield ctx.callChildWorkflow("shipOrder", stock, undefined, {
+    targetAppId: "shipping",
+    propagationScope: HistoryPropagationScope.LINEAGE,
+    retryPolicy: { firstRetryInterval: 1, maxNumberOfAttempts: 3 },
+  });
+}
+```
+
+With a supporting Dapr runtime (1.18 or later), `OWN_HISTORY` shares only the
+calling workflow's history; `LINEAGE` also forwards its received ancestral
+history. `NONE` is the default and does not forward inherited history.
+History can contain sensitive inputs and outputs: opt in only for trusted callees.
+Routing requires the calling app ID supplied by Dapr's workflow routing metadata;
+if it is missing, a cross-app call fails explicitly instead of executing locally.
+
+Both `WorkflowContext` and `WorkflowActivityContext` provide
+`getPropagatedHistory()`, returning `undefined` when no ancestor history was
+received. Otherwise, `history.chunks` is ordered oldest ancestor first and
+immediate parent last. `PropagatedHistory` and `PropagatedHistoryEntry` are
+type-only exports; the SDK creates and decodes these views internally.
+Each chunk exposes `appId`, `instanceId`, `workflowName`,
+and decoded protobuf `events`. Payload fields such as `input` and `result` remain
+serialized JSON. The original `rawEvents`, `rawSignatures`, and
+`signingCertChains` are also available; the SDK does **not** verify signatures.
+Received history is informational context, never replayed as the callee's own history.
+
 ## State Management
 
 ## Pub/Sub

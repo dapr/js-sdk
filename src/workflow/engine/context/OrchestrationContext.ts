@@ -15,12 +15,17 @@ import type { Task } from "../task/Task";
 import type { ActivityContext } from "./ActivityContext";
 import type { ActivityOptions } from "../../../types/workflow/ActivityOptions.type";
 import type { ChildWorkflowOptions } from "../../../types/workflow/ChildWorkflowOptions.type";
+import type { PropagatedHistory } from "../../runtime/PropagatedHistory";
 
 export type AnyGenerator<T> = AsyncGenerator<T, unknown, unknown> | Generator<T, unknown, unknown>;
 export type TOrchestrator = (context: OrchestrationContext, input: unknown) => AnyGenerator<Task<unknown>> | unknown;
 export type TActivity<TInput, TOutput> = (context: ActivityContext, input: TInput) => TOutput | Promise<TOutput>;
 
 export abstract class OrchestrationContext {
+  get propagatedHistory(): PropagatedHistory | undefined {
+    return undefined;
+  }
+
   abstract get instanceId(): string;
   abstract get currentUtcDateTime(): Date;
   abstract get isReplaying(): boolean;

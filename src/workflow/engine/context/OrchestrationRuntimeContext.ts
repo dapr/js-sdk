@@ -26,6 +26,8 @@ import { newDeterministicGuid } from "../guid/deterministicGuid";
 import type { RetryPolicy } from "../../../types/workflow/RetryPolicy.type";
 import type { ActivityOptions } from "../../../types/workflow/ActivityOptions.type";
 import type { ChildWorkflowOptions } from "../../../types/workflow/ChildWorkflowOptions.type";
+import { HistoryPropagationScope } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
+import type { PropagatedHistory } from "../../runtime/PropagatedHistory";
 import {
   newCompleteWorkflowAction,
   newCreateTimerAction,
@@ -56,7 +58,11 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
   _customStatus: unknown;
   private _guidCounter: number;
 
-  constructor(instanceId: string) {
+  constructor(
+    instanceId: string,
+    private readonly _appId?: string,
+    private readonly _propagatedHistory?: PropagatedHistory,
+  ) {
     super();
     this._isReplaying = true;
     this._isComplete = false;
@@ -77,6 +83,10 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
 
   get instanceId(): string {
     return this._instanceId;
+  }
+
+  override get propagatedHistory(): PropagatedHistory | undefined {
+    return this._propagatedHistory;
   }
 
   get currentUtcDateTime(): Date {
@@ -249,15 +259,16 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
   ): Task<TOutput> {
     const name = typeof activity === "string" ? activity : getName(activity);
     const encodedInput = input != null ? JSON.stringify(input) : undefined;
+    const routing = this.getRoutingOptions(options);
     if (options?.retryPolicy) {
       return this.callWithRetry(options.retryPolicy, (id) => {
-        const action = newScheduleTaskAction(id, name, encodedInput);
+        const action = newScheduleTaskAction(id, name, encodedInput, undefined, routing);
         this._pendingActions[action.id] = action;
       });
     }
 
     const id = this.nextSequenceNumber();
-    const action = newScheduleTaskAction(id, name, encodedInput);
+    const action = newScheduleTaskAction(id, name, encodedInput, undefined, routing);
     this._pendingActions[action.id] = action;
 
     const task = new CompletableTask<TOutput>();
@@ -273,6 +284,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
   ): Task<TOutput> {
     const name = typeof orchestrator === "string" ? orchestrator : getName(orchestrator);
     const encodedInput = input != null ? JSON.stringify(input) : undefined;
+    const routing = this.getRoutingOptions(options);
     if (options?.retryPolicy) {
       const firstInstanceId = instanceId;
       return this.callWithRetry(options.retryPolicy, (id, attempt) => {
@@ -280,7 +292,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
           attempt === 1 && firstInstanceId
             ? firstInstanceId
             : `${this._instanceId}:${id.toString(16).padStart(4, "0")}`;
-        const action = newCreateChildWorkflowAction(id, name, childInstanceId, encodedInput);
+        const action = newCreateChildWorkflowAction(id, name, childInstanceId, encodedInput, routing);
         this._pendingActions[action.id] = action;
       });
     }
@@ -291,7 +303,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
       instanceId = `${this._instanceId}:${suffix}`;
     }
 
-    const action = newCreateChildWorkflowAction(id, name, instanceId, encodedInput);
+    const action = newCreateChildWorkflowAction(id, name, instanceId, encodedInput, routing);
     this._pendingActions[action.id] = action;
 
     const task = new CompletableTask<TOutput>();
@@ -340,6 +352,28 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
   newGuid(): string {
     const counter = this._guidCounter++;
     return newDeterministicGuid(this._instanceId, counter.toString());
+  }
+
+  private getRoutingOptions(options?: ActivityOptions) {
+    const targetAppId = options?.targetAppId;
+    const propagationScope = options?.propagationScope;
+    if (targetAppId !== undefined) {
+      if (typeof targetAppId !== "string" || !targetAppId.trim()) {
+        throw new TypeError("targetAppId must be a non-empty app ID");
+      }
+      if (!this._appId?.trim()) {
+        throw new Error("Cannot schedule a cross-app task without the calling app ID in workflow routing metadata");
+      }
+    }
+    if (
+      propagationScope !== undefined &&
+      propagationScope !== HistoryPropagationScope.NONE &&
+      propagationScope !== HistoryPropagationScope.OWN_HISTORY &&
+      propagationScope !== HistoryPropagationScope.LINEAGE
+    ) {
+      throw new RangeError("propagationScope must be a valid HistoryPropagationScope");
+    }
+    return { sourceAppId: this._appId, targetAppId, propagationScope };
   }
 
   private callWithRetry<T>(retryPolicy: RetryPolicy, scheduleAttempt: (id: number, attempt: number) => void): Task<T> {
