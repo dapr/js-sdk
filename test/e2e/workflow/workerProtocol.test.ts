@@ -14,6 +14,8 @@ limitations under the License.
 import { createServer, type ServerHttp2Session } from "node:http2";
 import { create } from "@bufbuild/protobuf";
 import { connectNodeAdapter } from "@connectrpc/connect-node";
+import { Code, ConnectError } from "@connectrpc/connect";
+import { Dapr } from "../../../src/proto/dapr/proto/runtime/v1/dapr_pb";
 import WorkflowRuntime from "../../../src/workflow/runtime/WorkflowRuntime";
 import {
   TaskHubSidecarService,
@@ -22,10 +24,124 @@ import {
 } from "../../../src/proto/dapr/proto/durabletask/v1/orchestrator_service_pb";
 import { HistoryEventSchema } from "../../../src/proto/dapr/proto/durabletask/v1/history_events_pb";
 import { OrchestrationStatus } from "../../../src/proto/dapr/proto/durabletask/v1/orchestration_pb";
-import { newEventRaisedEvent, newExecutionStartedEvent } from "../../../src/workflow/engine/worker/protoHelpers";
+import {
+  dateToTimestamp,
+  newEventRaisedEvent,
+  newExecutionStartedEvent,
+} from "../../../src/workflow/engine/worker/protoHelpers";
 
 // Exercise the real HTTP/2 transport independently of sidecars that reject outbound eventSent messages.
 describe("workflow worker gRPC protocol", () => {
+  it.each([
+    ["1.16.20", false],
+    ["1.17.0", true],
+    ["1.18.4", true],
+    ["unrecognized", false],
+    ["denied", false],
+  ])(
+    "preserves initial and legacy execution semantics over the wire (runtime: %s)",
+    async (version, patched) => {
+      const responses: WorkflowResponse[] = [];
+      const completed = Array.from({ length: 3 }, () => {
+        let resolve!: () => void;
+        const promise = new Promise<void>((done) => {
+          resolve = done;
+        });
+        return { promise, resolve };
+      });
+      const start = newExecutionStartedEvent("identity", "order-A");
+      start.timestamp = dateToTimestamp(new Date(1000));
+      const sessions = new Set<ServerHttp2Session>();
+      let metadataCalls = 0;
+      const server = createServer(
+        connectNodeAdapter({
+          routes(router) {
+            router.service(Dapr, {
+              getMetadata() {
+                metadataCalls++;
+                if (version === "denied") throw new ConnectError("metadata denied", Code.PermissionDenied);
+                return { runtimeVersion: String(version) };
+              },
+            });
+            router.service(TaskHubSidecarService, {
+              hello: () => ({}),
+              async *getWorkItems(_request, context) {
+                for (let index = 0; index < 3; index++) {
+                  const turn = create(HistoryEventSchema, {
+                    timestamp: dateToTimestamp(new Date(10000)),
+                    eventType: {
+                      case: "workflowStarted",
+                      value: { version: index === 1 ? responses[0].version : undefined },
+                    },
+                  });
+                  yield create(WorkItemSchema, {
+                    completionToken: String(index),
+                    request: {
+                      case: "workflowRequest",
+                      value: {
+                        instanceId: "order-A",
+                        pastEvents: index === 0 ? [] : [turn, start],
+                        newEvents: index === 0 ? [turn, start] : [newEventRaisedEvent("finish")],
+                      },
+                    },
+                  });
+                  await completed[index].promise;
+                }
+                await new Promise<void>((resolve) => {
+                  if (context.signal.aborted) resolve();
+                  else context.signal.addEventListener("abort", () => resolve(), { once: true });
+                });
+              },
+              completeOrchestratorTask(request) {
+                responses.push(request);
+                completed[responses.length - 1].resolve();
+                return {};
+              },
+            });
+          },
+        }),
+      );
+      server.on("session", (session) => {
+        sessions.add(session);
+        session.once("close", () => sessions.delete(session));
+      });
+      await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+      const address = server.address();
+      if (!address || typeof address === "string") throw new Error("Expected a TCP listener");
+      const runtime = new WorkflowRuntime({ daprHost: "127.0.0.1", daprPort: String(address.port) });
+      runtime.registerWorkflowByName("identity", function* (ctx) {
+        const value = { guid: ctx.newGuid(), clock: ctx.getCurrentUtcDateTime().getTime() };
+        ctx.setCustomStatus(value);
+        yield ctx.waitForExternalEvent("finish");
+        return value;
+      });
+      let started = false;
+      try {
+        await runtime.start();
+        started = true;
+        await completed[2].promise;
+        expect(metadataCalls).toBe(1);
+        expect(responses[0].version?.patches.includes("dapr-js:workflow-semantics-v2") ?? false).toBe(patched);
+        expect(JSON.parse(responses[0].customStatus!).clock).toBe(patched ? 10000 : 1000);
+        expect(responses[1].actions[0].workflowActionType.value).toMatchObject({
+          workflowStatus: OrchestrationStatus.COMPLETED,
+          result: responses[0].customStatus,
+        });
+        expect(responses[2].version).toBeUndefined();
+        expect(responses[2].actions[0].workflowActionType.value).toMatchObject({
+          workflowStatus: OrchestrationStatus.COMPLETED,
+          result: JSON.stringify({ guid: "b6589fc6-ab0d-582c-b120-99d1c2d40ab9", clock: 1000 }),
+        });
+      } finally {
+        completed.forEach(({ resolve }) => resolve());
+        if (started) await runtime.stop();
+        for (const session of sessions) session.destroy();
+        await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
+      }
+    },
+    15000,
+  );
+
   it.each(["return", "continue", "wait"])(
     "transmits a pending send on %s and does not resend after a history acknowledgment",
     async (mode) => {

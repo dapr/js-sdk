@@ -15,7 +15,12 @@ import type {
   HistoryEvent,
   PropagatedHistory as HistoryMessage,
 } from "../../../proto/dapr/proto/durabletask/v1/history_events_pb";
-import type { TaskRouter } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
+import { create } from "@bufbuild/protobuf";
+import {
+  WorkflowVersionSchema,
+  type WorkflowVersion,
+  type TaskRouter,
+} from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import type { AnyGenerator } from "../context/OrchestrationContext";
 import { OrchestrationStatus } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import { OrchestrationRuntimeContext } from "../context/OrchestrationRuntimeContext";
@@ -23,17 +28,38 @@ import { Task, NonDeterminismError, StopIterationError } from "../task";
 import type { CompletableTask } from "../task";
 import { Registry } from "./Registry";
 import { OrchestrationExecuteResult } from "./OrchestrationExecuteResult";
-import { isEmpty, getOrchestrationStatusStr, decodePropagatedHistory } from "./protoHelpers";
+import { isEmpty, getOrchestrationStatusStr, decodePropagatedHistory, toError } from "./protoHelpers";
 import { Logger } from "../../../logger/Logger";
 import { IDaprSerializer } from "../../../serialization/IDaprSerializer";
 import { deserializeWorkflowValue } from "../../../serialization/Serialization.util";
+
+const WORKFLOW_SEMANTICS_PATCH = "dapr-js:workflow-semantics-v2";
+
+function isWorkflowGenerator(value: unknown): value is AnyGenerator<Task<unknown>> {
+  return (
+    value !== null &&
+    (typeof value === "object" || typeof value === "function") &&
+    "next" in value &&
+    typeof value.next === "function" &&
+    "throw" in value &&
+    typeof value.throw === "function" &&
+    ((Symbol.iterator in value && typeof value[Symbol.iterator] === "function") ||
+      (Symbol.asyncIterator in value && typeof value[Symbol.asyncIterator] === "function"))
+  );
+}
 
 export class OrchestrationExecutor {
   private readonly logger = new Logger("Workflow", "OrchestrationExecutor");
   private _isSuspended = false;
   private _suspendedEvents: HistoryEvent[] = [];
+  private _useTurnClock = true;
+  private _hasTurnClock = false;
 
-  constructor(private readonly _registry: Registry, private readonly serializer?: IDaprSerializer) {}
+  constructor(
+    private readonly _registry: Registry,
+    private readonly serializer?: IDaprSerializer,
+    private readonly _supportsWorkflowPatches = true,
+  ) {}
 
   async execute(
     instanceId: string,
@@ -46,12 +72,38 @@ export class OrchestrationExecutor {
       throw new Error("The new history event list must have at least one event in it");
     }
 
-    const startEvent = [...oldEvents, ...newEvents].find((event) => event.eventType.case === "executionStarted");
+    const events = [...oldEvents, ...newEvents];
+    const startEvent = events.find((event) => event.eventType.case === "executionStarted");
+    const patches = new Set<string>();
+    let historyVersion: WorkflowVersion | undefined;
+    for (const event of events) {
+      if (event.eventType.case === "workflowStarted" && event.eventType.value.version) {
+        historyVersion = event.eventType.value.version;
+        for (const patch of historyVersion.patches) patches.add(patch);
+      }
+    }
+    // Unmarked committed histories must retain their original clock and GUID values on replay.
+    const legacy =
+      !patches.has(WORKFLOW_SEMANTICS_PATCH) &&
+      (!this._supportsWorkflowPatches || oldEvents.some((event) => event.eventType.case === "workflowStarted"));
+    this._useTurnClock = !legacy;
+    this._hasTurnClock = false;
+    if (!legacy) patches.add(WORKFLOW_SEMANTICS_PATCH);
+    const version = legacy
+      ? historyVersion
+      : create(WorkflowVersionSchema, { ...historyVersion, patches: [...patches] });
+    const executionId =
+      startEvent?.eventType.case === "executionStarted"
+        ? startEvent.eventType.value.workflowInstance?.executionId
+        : undefined;
+    const executionIdentity = startEvent?.timestamp
+      ? JSON.stringify([executionId ?? "", startEvent.timestamp.seconds.toString(), startEvent.timestamp.nanos])
+      : executionId;
     const appRouter = startEvent?.router ?? router;
     const appId = appRouter?.targetAppID || appRouter?.sourceAppID;
     const workflowName = startEvent?.eventType.case === "executionStarted" ? startEvent.eventType.value.name : "";
     const taskExecutionIds = new Map<number, string>();
-    for (const event of [...oldEvents, ...newEvents]) {
+    for (const event of events) {
       if (event.eventType.case === "taskScheduled") {
         taskExecutionIds.set(event.eventId, event.eventType.value.taskExecutionId);
       }
@@ -67,6 +119,8 @@ export class OrchestrationExecutor {
         workflowName,
         this.serializer,
         taskExecutionIds,
+        executionIdentity,
+        legacy,
       );
       this.logger.debug(`${instanceId}: Rebuilding local state with ${oldEvents.length} history event...`);
       ctx._isReplaying = true;
@@ -82,7 +136,7 @@ export class OrchestrationExecutor {
         await this.processEvent(ctx, newEvent);
       }
     } catch (e: unknown) {
-      ctx.setFailed(e as Error);
+      ctx.setFailed(toError(e));
     }
 
     if (!ctx._isComplete) {
@@ -97,7 +151,7 @@ export class OrchestrationExecutor {
     const actions = ctx.getActions();
     this.logger.info(`${instanceId}: Returning ${actions.length} action(s)`);
 
-    return new OrchestrationExecuteResult(actions, ctx._customStatus);
+    return new OrchestrationExecuteResult(actions, ctx._customStatus, version);
   }
 
   private async processEvent(ctx: OrchestrationRuntimeContext, event: HistoryEvent): Promise<void> {
@@ -119,8 +173,14 @@ export class OrchestrationExecutor {
     }
 
     const eventType = event.eventType;
-    if (event.timestamp) {
+    if (
+      event.timestamp &&
+      (!this._useTurnClock ||
+        eventType.case === "workflowStarted" ||
+        (!this._hasTurnClock && eventType.case === "executionStarted"))
+    ) {
       ctx.currentUtcDateTime = new Date(Number(event.timestamp.seconds) * 1000 + event.timestamp.nanos / 1_000_000);
+      if (eventType.case === "workflowStarted") this._hasTurnClock = true;
     }
     if (!eventType) {
       this.logger.info(`Unknown history event type, skipping...`);
@@ -135,7 +195,7 @@ export class OrchestrationExecutor {
         return;
       }
 
-      this.logger.error(`Could not process the event ${eventType.case} due to error ${(e as Error).message}`);
+      this.logger.error(`Could not process the event ${eventType.case} due to error ${toError(e).message}`);
       throw e;
     }
   }
@@ -144,9 +204,6 @@ export class OrchestrationExecutor {
     const eventType = event.eventType;
     switch (eventType.case) {
       case "workflowStarted":
-        ctx.currentUtcDateTime = event.timestamp
-          ? new Date(Number(event.timestamp.seconds) * 1000 + event.timestamp.nanos / 1_000_000)
-          : ctx.currentUtcDateTime;
         break;
 
       case "executionStarted": {
@@ -164,15 +221,12 @@ export class OrchestrationExecutor {
         }
 
         const result = await fn(ctx, input);
-        const isGenerator =
-          typeof (result as AsyncGenerator)?.[Symbol.asyncIterator] === "function" ||
-          typeof (result as Generator)?.[Symbol.iterator] === "function";
-
-        if (isGenerator) {
-          await ctx.run(result as AnyGenerator<Task<unknown>>);
+        if (isWorkflowGenerator(result)) {
+          await ctx.run(result);
         } else {
           ctx.setComplete(result, OrchestrationStatus.COMPLETED);
         }
+
         break;
       }
 
@@ -517,6 +571,10 @@ export class OrchestrationExecutor {
   private isSuspendable(event: HistoryEvent): boolean {
     const eventType = event.eventType;
     if (!eventType) return true;
-    return eventType.case !== "executionResumed" && eventType.case !== "executionTerminated";
+    return (
+      eventType.case !== "executionResumed" &&
+      eventType.case !== "executionTerminated" &&
+      (!this._useTurnClock || eventType.case !== "workflowStarted")
+    );
   }
 }

@@ -15,8 +15,8 @@ import { getName } from "../task";
 import type { TActivity, TOrchestrator } from "../context/OrchestrationContext";
 
 export class Registry {
-  private _orchestrators: Record<string, TOrchestrator> = {};
-  private _activities: Record<string, TActivity<unknown, unknown>> = {};
+  private _orchestrators: Record<string, TOrchestrator> = Object.create(null);
+  private _activities: Record<string, TActivity<unknown, unknown>> = Object.create(null);
 
   addOrchestrator(fn: TOrchestrator): string {
     if (!fn) {

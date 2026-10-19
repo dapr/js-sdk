@@ -13,6 +13,7 @@ limitations under the License.
 
 import { TaskHubWorker } from "../../../src/workflow/engine";
 import { create } from "@bufbuild/protobuf";
+import { Code, ConnectError } from "@connectrpc/connect";
 import {
   type GetWorkItemsRequest,
   WorkItemSchema,
@@ -21,7 +22,7 @@ import {
 } from "../../../src/proto/dapr/proto/durabletask/v1/orchestrator_service_pb";
 import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
 import { CustomSerializer } from "../../fixtures/CustomSerializer";
-import { newExecutionStartedEvent } from "../../../src/workflow/engine/worker/protoHelpers";
+import { newExecutionStartedEvent, newWorkflowStartedEvent } from "../../../src/workflow/engine/worker/protoHelpers";
 
 /** A work-item stream the test feeds item by item; it ends when aborted or ended. */
 class FakeWorkItemStream {
@@ -120,6 +121,137 @@ async function startWorker() {
 }
 
 describe("TaskHubWorker work-item dispatch", () => {
+  it("retries transient capability discovery failures without failing the workflow", async () => {
+    jest.useFakeTimers({ doNotFake: ["setImmediate"] });
+    const worker = new TaskHubWorker("localhost:50001");
+    const streams = [new FakeWorkItemStream(), new FakeWorkItemStream()];
+    const getWorkItems = jest.fn(
+      (_request: unknown, options: { signal: AbortSignal }): AsyncGenerator<WorkItem> =>
+        streams[getWorkItems.mock.calls.length - 1].iterate(options.signal),
+    );
+    const completeOrchestratorTask = jest.fn().mockResolvedValue({});
+    const getMetadata = jest
+      .fn()
+      .mockRejectedValueOnce(new ConnectError("temporarily unavailable", Code.Unavailable))
+      .mockResolvedValue({ runtimeVersion: "1.18.4" });
+    Object.defineProperty(worker, "client", {
+      value: {
+        hello: jest.fn().mockResolvedValue({}),
+        getWorkItems,
+        completeOrchestratorTask,
+      },
+    });
+    Object.defineProperty(worker, "metadataClient", { value: { getMetadata } });
+    worker.registry.addNamedOrchestrator("workflow", () => "done");
+    const item = create(WorkItemSchema, {
+      request: {
+        case: "workflowRequest",
+        value: {
+          instanceId: "wf",
+          newEvents: [newWorkflowStartedEvent(), newExecutionStartedEvent("workflow", "wf")],
+        },
+      },
+    });
+    try {
+      await worker.start();
+      streams[0].push(item);
+      await settle();
+      expect(completeOrchestratorTask).not.toHaveBeenCalled();
+      expect(getWorkItems.mock.calls[0][1].signal.aborted).toBe(true);
+      await jest.advanceTimersByTimeAsync(1500);
+      streams[1].push(item);
+      await settle();
+      expect(getMetadata).toHaveBeenCalledTimes(2);
+      expect(completeOrchestratorTask).toHaveBeenCalledTimes(1);
+      expect(completeOrchestratorTask.mock.calls[0][0]).toMatchObject({
+        version: { patches: ["dapr-js:workflow-semantics-v2"] },
+      });
+      expect(worker.isReady).toBe(true);
+    } finally {
+      await worker.stop();
+      jest.useRealTimers();
+    }
+  });
+
+  it.each(
+    [
+      { value: null, message: "null" },
+      { value: undefined, message: "undefined" },
+      { value: "failure", message: "failure" },
+      { value: 42, message: "42" },
+      { value: { message: "object failure", stack: "object stack" }, message: "object failure" },
+      { value: Object.create(null), message: "A non-Error value was thrown" },
+      {
+        value: new Proxy(
+          {},
+          {
+            getOwnPropertyDescriptor() {
+              throw new Error("unsafe inspection");
+            },
+          },
+        ),
+        message: "A non-Error value was thrown and its error details could not be inspected",
+      },
+      {
+        value: {
+          toString() {
+            throw new Error("unsafe conversion");
+          },
+        },
+        message: "A non-Error value was thrown",
+      },
+      { value: new TypeError("typed failure"), message: "typed failure" },
+    ].flatMap((testCase) => [false, true].map((asynchronous) => ({ ...testCase, asynchronous }))),
+  )(
+    "completes activity failures without aborting the stream: $message (async: $asynchronous)",
+    async ({ value, message, asynchronous }) => {
+      const worker = new TaskHubWorker("localhost:50001");
+      const stream = new FakeWorkItemStream();
+      const completeActivityTask = jest.fn().mockResolvedValue({});
+      const getWorkItems = jest.fn((_request: unknown, options: { signal: AbortSignal }) =>
+        stream.iterate(options.signal),
+      );
+      Object.defineProperty(worker, "client", {
+        value: {
+          hello: jest.fn().mockResolvedValue({}),
+          getWorkItems,
+          completeActivityTask,
+        },
+      });
+      worker.registry.addNamedActivity(
+        "activity",
+        asynchronous
+          ? async () => {
+              throw value;
+            }
+          : () => {
+              throw value;
+            },
+      );
+      await worker.start();
+      try {
+        stream.push(activityItem(1));
+        await settle();
+        expect(completeActivityTask).toHaveBeenCalledTimes(1);
+        expect(completeActivityTask.mock.calls[0][0]).toMatchObject({
+          taskId: 1,
+          failureDetails: { errorType: value instanceof Error ? "TypeError" : "Error", errorMessage: message },
+        });
+        if (value instanceof Error) {
+          expect(completeActivityTask.mock.calls[0][0].failureDetails.stackTrace).toBe(value.stack);
+        }
+        if (message === "object failure") {
+          expect(completeActivityTask.mock.calls[0][0].failureDetails.stackTrace).toBe("object stack");
+        }
+        expect(getWorkItems).toHaveBeenCalledTimes(1);
+        expect(getWorkItems.mock.calls[0][1].signal.aborted).toBe(false);
+        expect(worker.isReady).toBe(true);
+      } finally {
+        await worker.stop();
+      }
+    },
+  );
+
   it.each(["activity", "workflow"])("reconnects after a failed %s completion and accepts redelivery", async (kind) => {
     jest.useFakeTimers({ doNotFake: ["setImmediate"] });
     const worker = new TaskHubWorker("localhost:50001");

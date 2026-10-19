@@ -15,7 +15,9 @@ import { createClient, type Client, type Interceptor } from "@connectrpc/connect
 import { createGrpcTransport } from "@connectrpc/connect-node";
 import { create } from "@bufbuild/protobuf";
 import { EmptySchema } from "@bufbuild/protobuf/wkt";
-import { ConnectError } from "@connectrpc/connect";
+import { Code, ConnectError } from "@connectrpc/connect";
+import { Dapr } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import { GetMetadataRequestSchema } from "../../../proto/dapr/proto/runtime/v1/metadata_pb";
 import {
   TaskHubSidecarService,
   GetWorkItemsRequestSchema,
@@ -32,7 +34,7 @@ import { OrchestrationStatus } from "../../../proto/dapr/proto/durabletask/v1/or
 import { Registry } from "../worker/Registry";
 import { OrchestrationExecutor } from "../worker/OrchestrationExecutor";
 import { ActivityExecutor } from "../worker/ActivityExecutor";
-import { newCompleteWorkflowAction, newFailureDetails } from "../worker/protoHelpers";
+import { newCompleteWorkflowAction, newFailureDetails, toError } from "../worker/protoHelpers";
 import { Logger } from "../../../logger/Logger";
 import { IDaprSerializer } from "../../../serialization/IDaprSerializer";
 import { serializeWorkflowValue } from "../../../serialization/Serialization.util";
@@ -41,6 +43,8 @@ import { type GrpcChannelOptions, mapGrpcOptions } from "../../../types/workflow
 export class TaskHubWorker {
   private readonly logger = new Logger("Workflow", "TaskHubWorker");
   private readonly client: Client<typeof TaskHubSidecarService>;
+  private readonly metadataClient: Client<typeof Dapr>;
+  private _patchSupport?: Promise<boolean>;
   private readonly _registry: Registry;
 
   private _isRunning = false;
@@ -82,6 +86,7 @@ export class TaskHubWorker {
     });
 
     this.client = createClient(TaskHubSidecarService, transport);
+    this.metadataClient = createClient(Dapr, transport);
   }
 
   get registry(): Registry {
@@ -99,6 +104,7 @@ export class TaskHubWorker {
 
     this._isRunning = true;
     this._isReady = false;
+    this._patchSupport = undefined;
     const runController = new AbortController();
     this._runController = runController;
 
@@ -223,6 +229,36 @@ export class TaskHubWorker {
       });
   }
 
+  private supportsWorkflowPatches(): Promise<boolean> {
+    this._patchSupport ??= this.metadataClient
+      .getMetadata(create(GetMetadataRequestSchema), { timeoutMs: 10000 })
+      .then((metadata) => {
+        const version = /^v?(\d+)\.(\d+)(?:\.|$|-)/.exec(metadata.runtimeVersion);
+        const supported =
+          version !== null && (Number(version[1]) > 1 || (Number(version[1]) === 1 && Number(version[2]) >= 17));
+        if (!supported) {
+          this.logger.warn(
+            `Dapr runtime '${metadata.runtimeVersion}' does not support durable workflow patches; retaining legacy clock and GUID behavior.`,
+          );
+        }
+        return supported;
+      })
+      .catch((error: unknown) => {
+        if (
+          error instanceof ConnectError &&
+          (error.code === Code.Unimplemented || error.code === Code.PermissionDenied)
+        ) {
+          this.logger.warn(
+            `Cannot determine workflow patch support: ${error.message}; retaining legacy clock and GUID behavior.`,
+          );
+          return false;
+        }
+        this._patchSupport = undefined;
+        throw error;
+      });
+    return this._patchSupport;
+  }
+
   private async executeOrchestrator(req: WorkflowRequest, completionToken: string): Promise<void> {
     const instanceId = req.instanceId;
 
@@ -230,10 +266,15 @@ export class TaskHubWorker {
       throw new Error(`Could not execute the orchestrator as the instanceId was not provided`);
     }
 
+    // Only a new generation needs runtime capability discovery; committed histories select their own semantics.
+    const supportsPatches =
+      req.pastEvents.length === 0 && req.newEvents.some((event) => event.eventType.case === "workflowStarted")
+        ? await this.supportsWorkflowPatches()
+        : true;
     let res: WorkflowResponse;
 
     try {
-      const executor = new OrchestrationExecutor(this._registry, this.serializer);
+      const executor = new OrchestrationExecutor(this._registry, this.serializer, supportsPatches);
       const result = await executor.execute(
         instanceId,
         req.pastEvents,
@@ -245,19 +286,16 @@ export class TaskHubWorker {
       res = create(WorkflowResponseSchema, {
         instanceId,
         actions: result.actions,
+        version: result.version,
         customStatus:
           result.customStatus != null ? serializeWorkflowValue(result.customStatus, this.serializer) : undefined,
         completionToken,
       });
     } catch (e: unknown) {
-      this.logger.error(`An error occurred while trying to execute instance '${instanceId}': ${(e as Error).message}`);
+      const error = toError(e);
+      this.logger.error(`An error occurred while trying to execute instance '${instanceId}': ${error.message}`);
 
-      const action = newCompleteWorkflowAction(
-        -1,
-        OrchestrationStatus.FAILED,
-        undefined,
-        newFailureDetails(e as Error),
-      );
+      const action = newCompleteWorkflowAction(-1, OrchestrationStatus.FAILED, undefined, newFailureDetails(error));
 
       res = create(WorkflowResponseSchema, {
         instanceId,
@@ -271,9 +309,7 @@ export class TaskHubWorker {
       // methods to the service-invocation proxy. CompleteOrchestratorTask works on all.
       await this.client.completeOrchestratorTask(res);
     } catch (e: unknown) {
-      this.logger.error(
-        `An error occurred while trying to complete instance '${instanceId}': ${(e as Error)?.message}`,
-      );
+      this.logger.error(`An error occurred while trying to complete instance '${instanceId}': ${toError(e).message}`);
       throw e;
     }
   }
@@ -305,12 +341,13 @@ export class TaskHubWorker {
         completionToken,
       });
     } catch (e: unknown) {
-      this.logger.error(`An error occurred while trying to execute activity '${req.name}': ${(e as Error).message}`);
+      const error = toError(e);
+      this.logger.error(`An error occurred while trying to execute activity '${req.name}': ${error.message}`);
 
       res = create(ActivityResponseSchema, {
         instanceId,
         taskId: req.taskId,
-        failureDetails: newFailureDetails(e as Error),
+        failureDetails: newFailureDetails(error),
         completionToken,
       });
     }
@@ -320,7 +357,7 @@ export class TaskHubWorker {
     } catch (e: unknown) {
       this.logger.error(
         `Failed to deliver activity response for '${req.name}#${req.taskId}' of orchestration ID '${instanceId}': ${
-          (e as Error)?.message
+          toError(e).message
         }`,
       );
       throw e;

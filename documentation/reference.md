@@ -53,6 +53,33 @@ is lost. Await `runtime.stop()` before restarting the same runtime; stopping
 cancels connection attempts and reconnect delays while allowing active work the
 existing bounded shutdown period.
 
+### Workflow execution compatibility
+
+On Dapr 1.17+, new executions use the persisted workflow-turn timestamp for
+`ctx.getCurrentUtcDateTime()` and relative timers, rather than timestamps from
+individual events. `ctx.newGuid()` includes the full instance ID and the persisted
+execution identity, keeping results stable on replay and distinct across
+instances and continue-as-new generations. Automatically generated detached
+workflow IDs use the same sequence.
+
+These changes are selected with an internal durable history patch. Existing
+unmarked histories keep their original clock and GUID semantics until they
+complete or continue as new, avoiding changes to already-recorded decisions.
+Workers check the sidecar metadata API before selecting the new semantics. Dapr
+1.16 cannot persist these patches and retains the legacy behavior. If metadata
+access is denied, unsupported, or returns an unrecognized version, the worker
+logs a warning and also retains legacy behavior. No new public API or
+configuration is required. Avoid mixing old and updated workers for executions
+created with the new semantics, or downgrading their sidecars below Dapr 1.17.
+
+Ordinary synchronous and asynchronous workflows may return strings, arrays, and
+other serializable values directly. Generator workflows must yield SDK tasks;
+invalid yields fail explicitly instead of remaining pending. Non-`Error`
+activity rejections are reported as failures and follow the configured retry
+policy, including `null` and `undefined`. Workflow/activity registration and
+external-event waits accept names such as `constructor` and `__proto__` without
+confusing them with object prototype properties.
+
 ### Replay-safe workflow logging
 
 Use `ctx.logger` inside workflows to log without repeating application messages

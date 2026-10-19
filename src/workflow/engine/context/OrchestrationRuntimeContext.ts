@@ -22,7 +22,7 @@ import { CancellableCompletableTask, TaskTimeoutError } from "../task/Cancellabl
 import type { ExternalEventOptions } from "../../../types/workflow/ExternalEventOptions.type";
 import type { TActivity, TOrchestrator, AnyGenerator } from "./OrchestrationContext";
 import { OrchestrationContext } from "./OrchestrationContext";
-import { newDeterministicGuid } from "../guid/deterministicGuid";
+import { newDeterministicGuid, newLegacyDeterministicGuid, RFC4122_NAMESPACE_DNS } from "../guid/deterministicGuid";
 import type { RetryPolicy } from "../../../types/workflow/RetryPolicy.type";
 import type { ActivityOptions } from "../../../types/workflow/ActivityOptions.type";
 import type { ChildWorkflowOptions } from "../../../types/workflow/ChildWorkflowOptions.type";
@@ -69,6 +69,8 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     private readonly _name = "",
     private readonly serializer?: IDaprSerializer,
     private readonly _taskExecutionIds: ReadonlyMap<number, string> = new Map(),
+    private readonly _executionIdentity?: string,
+    private readonly _legacyGuids = false,
   ) {
     super();
     this._isReplaying = true;
@@ -80,8 +82,8 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     this._currentUtcDatetime = new Date(1000, 0, 1);
     this._instanceId = instanceId;
     this._completionStatus = undefined;
-    this._receivedEvents = {};
-    this._pendingEvents = {};
+    this._receivedEvents = Object.create(null);
+    this._pendingEvents = Object.create(null);
     this._newInput = undefined;
     this._saveEvents = false;
     this._customStatus = "";
@@ -121,6 +123,9 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
       return;
     }
 
+    if (!(value instanceof Task)) {
+      throw new Error("The orchestrator generator yielded a non-Task object");
+    }
     this._previousTask = value;
     await this.resume();
   }
@@ -439,6 +444,15 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
 
   newGuid(): string {
     const counter = this._guidCounter++;
+    if (this._legacyGuids) {
+      return newLegacyDeterministicGuid(this._instanceId, counter.toString());
+    }
+    if (this._executionIdentity !== undefined) {
+      return newDeterministicGuid(
+        RFC4122_NAMESPACE_DNS,
+        JSON.stringify([this._appId ?? "", this._instanceId, this._executionIdentity, counter]),
+      );
+    }
     return newDeterministicGuid(this._instanceId, counter.toString());
   }
 
