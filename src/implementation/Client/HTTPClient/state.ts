@@ -28,6 +28,7 @@ import { StateSaveOptions } from "../../../types/state/StateSaveOptions.type";
 import { StateDeleteOptions } from "../../../types/state/StateDeleteOptions.type";
 import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type";
 import { StateGetOptions } from "../../../types/state/StateGetOptions.type";
+import { serializeJsonValue, deserializeJsonValue } from "../../../serialization/Serialization.util";
 
 // https://docs.dapr.io/reference/api/state_api/
 export default class HTTPClientState implements IClientState {
@@ -45,6 +46,7 @@ export default class HTTPClientState implements IClientState {
     options: StateSaveOptions = {},
   ): Promise<StateSaveResponseType> {
     const queryParams = createHTTPQueryParam({ data: options?.metadata, type: "metadata" });
+    const serializer = this.client.options.serializer;
 
     for (const so of stateObjects) {
       const behavior = {
@@ -57,7 +59,12 @@ export default class HTTPClientState implements IClientState {
     try {
       await this.client.execute(`/state/${storeName}?${queryParams}`, {
         method: "POST",
-        body: stateObjects,
+        body: serializer
+          ? stateObjects.map((state) => ({
+              ...state,
+              value: serializeJsonValue(state.value, serializer),
+            }))
+          : stateObjects,
       });
     } catch (e: any) {
       this.logger.error(`Error saving state to store ${storeName}, error: ${e}`);
@@ -74,7 +81,15 @@ export default class HTTPClientState implements IClientState {
 
     const queryParams = createHTTPQueryParam({ data: options?.metadata, type: "metadata" }, { data: behavior });
 
-    const result = await this.client.execute(`/state/${storeName}/${key}?${queryParams}`);
+    const serializer = this.client.options.serializer;
+    const result = await this.client.execute(`/state/${storeName}/${key}?${queryParams}`, {
+      method: "GET",
+      responseType: serializer ? "text" : undefined,
+    });
+
+    if (serializer && typeof result === "string" && result !== "") {
+      return deserializeJsonValue<KeyValueType | string>(JSON.parse(result), serializer);
+    }
 
     return result as KeyValueType;
   }
@@ -90,7 +105,14 @@ export default class HTTPClientState implements IClientState {
       },
     });
 
-    return result as KeyValueType[];
+    const items = result as KeyValueType[];
+    const serializer = this.client.options.serializer;
+    return serializer
+      ? items.map((item) => ({
+          ...item,
+          data: item.data == null || item.error ? item.data : deserializeJsonValue(item.data, serializer),
+        }))
+      : items;
   }
 
   async delete(storeName: string, key: string, options?: Partial<StateDeleteOptions>): Promise<StateSaveResponseType> {
@@ -125,6 +147,7 @@ export default class HTTPClientState implements IClientState {
     operations: OperationType[] = [],
     metadata: IRequestMetadata | null = null,
   ): Promise<void> {
+    const serializer = this.client.options.serializer;
     for (const op of operations) {
       const behavior = {
         consistency: getStateConsistencyValue(op?.request?.options?.consistency),
@@ -136,7 +159,15 @@ export default class HTTPClientState implements IClientState {
     await this.client.execute(`/state/${storeName}/transaction`, {
       method: "POST",
       body: {
-        operations,
+        operations: serializer
+          ? operations.map((op) => ({
+              ...op,
+              request:
+                op.operation === "upsert"
+                  ? { ...op.request, value: serializeJsonValue(op.request.value, serializer) }
+                  : op.request,
+            }))
+          : operations,
         metadata,
       },
     });
@@ -154,6 +185,16 @@ export default class HTTPClientState implements IClientState {
       return { results: [] } as StateQueryResponseType;
     }
 
-    return result as StateQueryResponseType;
+    const response = result as StateQueryResponseType;
+    const serializer = this.client.options.serializer;
+    return serializer
+      ? {
+          ...response,
+          results: response.results.map((item) => ({
+            ...item,
+            data: item.data == null || item.error ? item.data : deserializeJsonValue(item.data, serializer),
+          })),
+        }
+      : response;
   }
 }

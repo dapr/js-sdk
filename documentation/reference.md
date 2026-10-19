@@ -33,10 +33,14 @@ the SDK does not synthesize a key or change how activities are scheduled.
 The existing `getWorkflowActivityId()` still returns the numeric task ID.
 
 `WorkflowState.getInput<T>()`, `getOutput<T>()`, and `getCustomStatus<T>()`
-deserialize JSON into the requested type (default `unknown`), without runtime type
-validation. Missing or empty serialized payloads return `undefined`; serialized
-JSON `null`, `false`, `0`, and `""` are preserved. Malformed JSON throws
-`SyntaxError`. The engine's existing omission of `null` workflow output and custom
+deserialize payloads using the configured `IDaprSerializer` (JSON by default)
+into the requested type (default `unknown`), without runtime type validation.
+Configure the same serializer on `DaprWorkflowClient` and `WorkflowRuntime`;
+workflow names and activity execution keys remain available with custom serializers.
+Missing or empty serialized payloads return `undefined`; serialized
+JSON `null`, `false`, `0`, and `""` are preserved with the default serializer.
+Deserialization errors propagate; malformed JSON throws `SyntaxError` by default.
+The engine's existing omission of `null` workflow output and custom
 status is unchanged: omitted values deserialize as `undefined`.
 Request payloads with `getWorkflowState(id, true)` or the existing `fetchPayloads`
 argument on wait methods. The existing `serializedInput`, `serializedOutput`, and
@@ -133,6 +137,10 @@ yielding its already-completed `Task<string>` returns the scheduled instance ID,
 not the workflow's result. The caller does not wait for execution or receive
 completion or failure notifications. Recursive termination of the caller does not
 terminate the detached instance.
+
+Detached workflow inputs use the configured serialization provider, just like
+activity and child workflow inputs. Without a provider, inputs retain the default
+JSON serialization behavior.
 
 ```typescript
 function* orderWorkflow(ctx: WorkflowContext, order: unknown): any {

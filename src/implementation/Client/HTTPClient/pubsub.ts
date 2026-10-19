@@ -22,6 +22,7 @@ import { PubSubBulkPublishMessage } from "../../../types/pubsub/PubSubBulkPublis
 import { PubSubBulkPublishEntry } from "../../../types/pubsub/PubSubBulkPublishEntry.type";
 import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
 import { PubSubPublishOptions } from "../../../types/pubsub/PubSubPublishOptions.type";
+import { serializeJsonValue } from "../../../serialization/Serialization.util";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPClientPubSub implements IClientPubSub {
@@ -53,6 +54,7 @@ export default class HTTPClientPubSub implements IClientPubSub {
         method: "POST",
         body: data,
         headers,
+        serializer: this.client.options.serializer,
       });
     } catch (e: any) {
       this.logger.error(`publish failed: ${e}`);
@@ -76,10 +78,22 @@ export default class HTTPClientPubSub implements IClientPubSub {
       },
     };
 
-    const entries = getBulkPublishEntries(messages);
-    params.body = entries;
-
+    const serializer = this.client.options.serializer;
+    const entries = getBulkPublishEntries(
+      messages,
+      serializer ? serializer.contentType ?? "application/json" : undefined,
+    );
     try {
+      params.body = serializer
+        ? entries.map((entry) => ({
+            ...entry,
+            event:
+              entry.contentType.split(";")[0].trim().toLowerCase() === "application/octet-stream"
+                ? Buffer.from(serializer.serialize(entry.event), "utf-8").toString("base64")
+                : serializeJsonValue(entry.event, serializer, entry.contentType),
+          }))
+        : entries;
+
       await this.client.executeWithApiVersion(
         "v1.0-alpha1",
         `/publish/bulk/${pubSubName}/${topic}?${queryParams}`,
