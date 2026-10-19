@@ -434,6 +434,49 @@ describe("workflow", () => {
     expect(state?.serializedOutput).toEqual(JSON.stringify(16));
   }, 31000);
 
+  it("should list instances, return history, and rerun from an event", async () => {
+    const echoActivity = (_: WorkflowActivityContext, input: { value: string }) => input;
+    const workflow: TWorkflow = async function* (ctx: WorkflowContext, input: { value: string }): any {
+      return yield ctx.callActivity(echoActivity, input);
+    };
+    const instanceId = `management-source-${Date.now()}`;
+    const rerunInstanceId = `management-rerun-${Date.now()}`;
+
+    workflowRuntime.registerWorkflow(workflow).registerActivity(echoActivity);
+    await workflowRuntime.start();
+
+    const startedId = await workflowClient.scheduleNewWorkflow(workflow, { value: "original" }, instanceId);
+    const completedState = await workflowClient.waitForWorkflowCompletion(startedId, undefined, 30);
+    expect(completedState?.runtimeStatus).toEqual(WorkflowRuntimeStatus.COMPLETED);
+    expect(completedState?.serializedOutput).toEqual(JSON.stringify({ value: "original" }));
+
+    const history = await workflowClient.getWorkflowHistory(instanceId);
+    const scheduledEvent = history.find((event) => event.eventType.case === "taskScheduled");
+    expect(history.length).toBeGreaterThan(0);
+    expect(scheduledEvent).toBeDefined();
+
+    const rerunId = await workflowClient.rerunWorkflowFromEvent(instanceId, scheduledEvent!.eventId, {
+      newInstanceId: rerunInstanceId,
+      input: { value: "rerun" },
+    });
+    expect(rerunId).toEqual(rerunInstanceId);
+
+    const rerunState = await workflowClient.waitForWorkflowCompletion(rerunId, undefined, 30);
+    expect(rerunState?.runtimeStatus).toEqual(WorkflowRuntimeStatus.COMPLETED);
+    expect(rerunState?.serializedOutput).toEqual(JSON.stringify({ value: "rerun" }));
+
+    const listedIds: string[] = [];
+    let continuationToken: string | undefined;
+    do {
+      const page = await workflowClient.listWorkflowInstanceIds(continuationToken, 1);
+      listedIds.push(...page.instanceIds);
+      continuationToken = page.continuationToken;
+    } while (continuationToken);
+
+    expect(listedIds).toContain(instanceId);
+    expect(listedIds).toContain(rerunInstanceId);
+  }, 65000);
+
   it("should support explicitly named workflows and activities", async () => {
     const plusOne = (_: WorkflowActivityContext, input: number) => input + 1;
     const workflow: TWorkflow = async function* (ctx: WorkflowContext, input: number): any {
