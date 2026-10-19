@@ -22,6 +22,7 @@ describe("WorkflowContext", () => {
   beforeEach(() => {
     mockInnerContext = {
       instanceId: "test-instance-id",
+      name: "registered-workflow",
       currentUtcDateTime: new Date("2025-01-01T00:00:00Z"),
       isReplaying: false,
       createTimer: jest.fn().mockReturnValue({ isCompleted: false } as Partial<Task<any>>),
@@ -50,6 +51,10 @@ describe("WorkflowContext", () => {
     it("should return the instance ID from inner context", () => {
       expect(ctx.getWorkflowInstanceId()).toBe("test-instance-id");
     });
+  });
+
+  it("returns the registered workflow name from the inner context", () => {
+    expect(ctx.getWorkflowName()).toBe("registered-workflow");
   });
 
   describe("getCurrentUtcDateTime", () => {

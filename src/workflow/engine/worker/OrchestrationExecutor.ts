@@ -48,11 +48,12 @@ export class OrchestrationExecutor {
     const startEvent = [...oldEvents, ...newEvents].find((event) => event.eventType.case === "executionStarted");
     const appRouter = startEvent?.router ?? router;
     const appId = appRouter?.targetAppID || appRouter?.sourceAppID;
+    const workflowName = startEvent?.eventType.case === "executionStarted" ? startEvent.eventType.value.name : "";
 
-    let ctx = new OrchestrationRuntimeContext(instanceId, appId, undefined, this.serializer);
+    let ctx = new OrchestrationRuntimeContext(instanceId, appId, undefined, workflowName, this.serializer);
     try {
       const history = decodePropagatedHistory(propagatedHistory);
-      ctx = new OrchestrationRuntimeContext(instanceId, appId, history, this.serializer);
+      ctx = new OrchestrationRuntimeContext(instanceId, appId, history, workflowName, this.serializer);
       this.logger.debug(`${instanceId}: Rebuilding local state with ${oldEvents.length} history event...`);
       ctx._isReplaying = true;
 

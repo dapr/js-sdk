@@ -275,7 +275,14 @@ export class TaskHubWorker {
 
     try {
       const executor = new ActivityExecutor(this._registry, this.serializer);
-      const result = await executor.execute(instanceId, req.name, req.taskId, req.input, req.propagatedHistory);
+      const result = await executor.execute(
+        instanceId,
+        req.name,
+        req.taskId,
+        req.input,
+        req.propagatedHistory,
+        req.taskExecutionId,
+      );
 
       res = create(ActivityResponseSchema, {
         instanceId,

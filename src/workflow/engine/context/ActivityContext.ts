@@ -18,6 +18,7 @@ export class ActivityContext {
     private readonly _orchestrationId: string,
     private readonly _taskId: number,
     public readonly propagatedHistory?: PropagatedHistory,
+    public readonly taskExecutionId?: string,
   ) {}
 
   get orchestrationId(): string {

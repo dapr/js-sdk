@@ -132,13 +132,22 @@ describe("workflow serialization", () => {
 
   it("round-trips activity input/output and replays an orchestration with the provider", async () => {
     const registry = new Registry();
-    registry.addNamedActivity("echo", (_ctx, input) => input);
+    registry.addNamedActivity("echo", (ctx, input) => {
+      expect(ctx.taskExecutionId).toBe("activity-execution-key");
+      return input;
+    });
+    const names: string[] = [];
     registry.addNamedOrchestrator("workflow", function* (ctx, input): Generator<Task<unknown>, unknown, unknown> {
-      return yield ctx.callActivity("echo", input);
+      names.push(ctx.name);
+      const result = yield ctx.callActivity("echo", input);
+      names.push(ctx.name);
+      return result;
     });
     const encoded = serializer.serialize(value);
     const activity = new ActivityExecutor(registry, serializer);
-    await expect(activity.execute("id", "echo", 1, encoded)).resolves.toBe(encoded);
+    await expect(activity.execute("id", "echo", 1, encoded, undefined, "activity-execution-key")).resolves.toBe(
+      encoded,
+    );
     const executor = new OrchestrationExecutor(registry, serializer);
     const started = newExecutionStartedEvent("workflow", "id", encoded);
     const first = await executor.execute("id", [], [started]);
@@ -155,6 +164,7 @@ describe("workflow serialization", () => {
       case: "completeWorkflow",
       value: { workflowStatus: OrchestrationStatus.COMPLETED, result: encoded },
     });
+    expect(names).toEqual(["workflow", "workflow", "workflow"]);
   });
 
   it.each([true, false])("decodes external events whether buffered or awaited (%s)", async (buffered) => {
@@ -176,7 +186,7 @@ describe("workflow serialization", () => {
   });
 
   it("uses the provider for child workflows, inter-workflow events and continue-as-new carryover", () => {
-    const ctx = new OrchestrationRuntimeContext("id", undefined, undefined, serializer);
+    const ctx = new OrchestrationRuntimeContext("id", undefined, undefined, "", serializer);
     ctx.callSubOrchestrator("child", value);
     ctx.sendEvent("other", "event", value);
     expect(ctx.getActions().map((action) => action.workflowActionType)).toEqual([

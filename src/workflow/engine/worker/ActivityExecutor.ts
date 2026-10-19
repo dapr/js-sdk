@@ -28,6 +28,7 @@ export class ActivityExecutor {
     taskId: number,
     encodedInput?: string,
     propagatedHistory?: HistoryMessage,
+    taskExecutionId?: string,
   ): Promise<string | undefined> {
     const fn = this._registry.getActivity(name);
 
@@ -37,7 +38,7 @@ export class ActivityExecutor {
 
     const activityInput = encodedInput ? deserializeWorkflowValue(encodedInput, this.serializer) : undefined;
     const history = decodePropagatedHistory(propagatedHistory);
-    const ctx = new ActivityContext(orchestrationId, taskId, history);
+    const ctx = new ActivityContext(orchestrationId, taskId, history, taskExecutionId);
 
     let activityOutput = fn(ctx, activityInput);
 
@@ -45,7 +46,6 @@ export class ActivityExecutor {
       activityOutput = await activityOutput;
     }
 
-    const encodedOutput = activityOutput != null ? serializeWorkflowValue(activityOutput, this.serializer) : undefined;
-    return encodedOutput;
+    return activityOutput != null ? serializeWorkflowValue(activityOutput, this.serializer) : undefined;
   }
 }
