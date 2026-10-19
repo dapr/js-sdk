@@ -12,9 +12,11 @@ limitations under the License.
 */
 
 import type { IDaprSerializer } from "./IDaprSerializer";
+import { PayloadReference } from "../workflow/payloads/PayloadReference";
 
 /** Preserve workflow JSON.stringify omission semantics unless a provider is explicitly configured. */
 export function serializeWorkflowValue(value: unknown, serializer?: IDaprSerializer): string | undefined {
+  if (value instanceof PayloadReference) return value.toEnvelope();
   return serializer ? serializer.serialize(value) : JSON.stringify(value);
 }
 

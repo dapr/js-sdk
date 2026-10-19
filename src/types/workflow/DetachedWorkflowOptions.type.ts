@@ -12,6 +12,8 @@ limitations under the License.
 */
 
 export interface DetachedWorkflowOptions {
+  /** Allow reference inputs at a cross-app boundary; destination must support and access the store. */
+  allowPayloadReferences?: boolean;
   /** Destination Dapr app ID. Omit to run in the calling application. */
   targetAppId?: string;
 }

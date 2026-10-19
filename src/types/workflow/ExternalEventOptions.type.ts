@@ -12,6 +12,8 @@ limitations under the License.
 */
 
 export interface ExternalEventOptions {
+  /** Receive the top-level event as a PayloadReference instead of buffering it. */
+  asReference?: boolean;
   /** Durable timeout in seconds, measured using workflow time. */
   timeoutInSeconds?: number;
 }

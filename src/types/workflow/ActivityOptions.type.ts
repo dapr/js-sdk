@@ -15,6 +15,10 @@ import type { RetryPolicy } from "./RetryPolicy.type";
 import type { HistoryPropagationScope } from "../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 
 export interface ActivityOptions {
+  /** Allow reference inputs at a cross-app boundary; destination must support and access the store. */
+  allowPayloadReferences?: boolean;
+  /** Receive the top-level result as a PayloadReference instead of buffering it. */
+  resultAsReference?: boolean;
   retryPolicy?: RetryPolicy;
   /** Destination Dapr app ID. Omit to run in the calling application. */
   targetAppId?: string;
