@@ -81,6 +81,17 @@ npm run test:e2e:grpc
 npm run test:e2e:http
 ```
 
+Bulk state deletion tests cover HTTP and gRPC request mapping, metadata, ETags,
+empty batches, and failure reporting. Integration tests use a real Dapr sidecar
+and Redis via Docker, including stale ETags, escaped keys, and preservation of
+unselected state. They run as part of the existing common unit and E2E suites.
+To run just these tests:
+
+```powershell
+node .\node_modules\jest\bin\jest.js --runTestsByPath test\unit\protocols\common\state.test.ts --runInBand
+node .\node_modules\jest\bin\jest.js --runTestsByPath test\e2e\common\client.test.ts --testNamePattern "bulk state deletion" --runInBand
+```
+
 Binary Store integration tests cover HTTP and gRPC against an authenticated
 sidecar and the `BinaryStoreHarness` from `@dapr/testcontainer-node`. The harness
 manages its own sidecar and in-memory component; its independent HTTP helpers

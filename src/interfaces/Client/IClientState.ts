@@ -120,6 +120,25 @@ export default interface IClientState {
   delete(storeName: string, key: string, options?: Partial<StateDeleteOptions>): Promise<StateSaveResponseType>;
 
   /**
+   * Deletes multiple state entries. Values are not required.
+   *
+   * Uses one DeleteBulkState RPC over gRPC, or individual deletes over HTTP.
+   * This is not atomic; use transaction() with a supporting store for atomic deletion.
+   * An empty array succeeds without contacting the sidecar.
+   *
+   * @param storeName - The name of the state store component.
+   * @param items - Keys with optional ETags, metadata, and state operation options.
+   * @param options - Shared metadata, overriding matching per-item metadata keys (as in save()).
+   * @returns An empty response on success. HTTP waits for all deletes and returns the first
+   * error in input order; gRPC rejects on RPC failure, as with delete().
+   */
+  deleteBulk(
+    storeName: string,
+    items: readonly Omit<KeyValuePairType, "value">[],
+    options?: StateSaveOptions,
+  ): Promise<StateSaveResponseType>;
+
+  /**
    * Performs a transactional state update.
    * Allows atomic multi-key operations (upsert, delete) on state with consistency guarantees.
    *
