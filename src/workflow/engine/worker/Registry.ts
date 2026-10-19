@@ -13,10 +13,13 @@ limitations under the License.
 
 import { getName } from "../task";
 import type { TActivity, TOrchestrator } from "../context/OrchestrationContext";
+import type { WorkflowPayloadRegistrationOptions } from "../../payloads/BinaryStorePayloadOptions";
 
 export class Registry {
   private _orchestrators: Record<string, TOrchestrator> = Object.create(null);
   private _activities: Record<string, TActivity<unknown, unknown>> = Object.create(null);
+  private readonly referenceOrchestrators = new Set<string>();
+  private readonly referenceActivities = new Set<string>();
 
   addOrchestrator(fn: TOrchestrator): string {
     if (!fn) {
@@ -27,7 +30,7 @@ export class Registry {
     return name;
   }
 
-  addNamedOrchestrator(name: string, fn: TOrchestrator): void {
+  addNamedOrchestrator(name: string, fn: TOrchestrator, options?: WorkflowPayloadRegistrationOptions): void {
     if (!name) {
       throw new Error("A non-empty orchestrator name is required.");
     }
@@ -35,6 +38,7 @@ export class Registry {
       throw new Error(`A '${name}' orchestrator already exists.`);
     }
     this._orchestrators[name] = fn;
+    if (options?.inputAsReference) this.referenceOrchestrators.add(name);
   }
 
   getOrchestrator(name?: string): TOrchestrator | undefined {
@@ -51,7 +55,7 @@ export class Registry {
     return name;
   }
 
-  addNamedActivity(name: string, fn: TActivity<unknown, unknown>): void {
+  addNamedActivity(name: string, fn: TActivity<unknown, unknown>, options?: WorkflowPayloadRegistrationOptions): void {
     if (!name) {
       throw new Error("A non-empty activity name is required.");
     }
@@ -59,9 +63,14 @@ export class Registry {
       throw new Error(`A '${name}' activity already exists.`);
     }
     this._activities[name] = fn;
+    if (options?.inputAsReference) this.referenceActivities.add(name);
   }
 
   getActivity(name: string): TActivity<unknown, unknown> | undefined {
     return this._activities[name];
+  }
+
+  expectsReference(name: string, activity = false): boolean {
+    return (activity ? this.referenceActivities : this.referenceOrchestrators).has(name);
   }
 }

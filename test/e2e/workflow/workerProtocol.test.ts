@@ -17,6 +17,8 @@ import { connectNodeAdapter } from "@connectrpc/connect-node";
 import { Code, ConnectError } from "@connectrpc/connect";
 import { Dapr } from "../../../src/proto/dapr/proto/runtime/v1/dapr_pb";
 import WorkflowRuntime from "../../../src/workflow/runtime/WorkflowRuntime";
+import { BinaryStoreWorkflowPayloadResolver, PayloadReference, PayloadWritePreference } from "../../../src";
+import { MemoryPayloadStore } from "../../utils/WorkflowPayloadTestUtils";
 import {
   TaskHubSidecarService,
   WorkItemSchema,
@@ -33,14 +35,32 @@ import {
 // Exercise the real HTTP/2 transport independently of sidecars that reject outbound eventSent messages.
 describe("workflow worker gRPC protocol", () => {
   it.each([
-    ["1.16.20", false],
-    ["1.17.0", true],
-    ["1.18.4", true],
-    ["unrecognized", false],
-    ["denied", false],
+    { version: "1.16.20", patched: false, offload: false },
+    { version: "1.17.0", patched: true, offload: false },
+    { version: "1.18.4", patched: true, offload: false },
+    { version: "unrecognized", patched: false, offload: false },
+    { version: "denied", patched: false, offload: false },
+    { version: "1.18.4", patched: true, offload: true },
   ])(
-    "preserves initial and legacy execution semantics over the wire (runtime: %s)",
-    async (version, patched) => {
+    "preserves initial and legacy execution semantics over the wire (runtime: $version, offload: $offload)",
+    async ({ version, patched, offload }) => {
+      const payloads = offload
+        ? new BinaryStoreWorkflowPayloadResolver(new MemoryPayloadStore(), {
+            storeName: "payloads",
+            writePreference: PayloadWritePreference.PreferReference,
+            offloadThreshold: 1,
+          })
+        : undefined;
+      const readPayload = async (wire: string | undefined): Promise<unknown> => {
+        expect(wire).toBeDefined();
+        const reference = PayloadReference.parse(wire);
+        if (payloads) {
+          expect(reference).toBeDefined();
+          return payloads.resolve(reference!);
+        }
+        expect(reference).toBeUndefined();
+        return JSON.parse(wire!);
+      };
       const responses: WorkflowResponse[] = [];
       const completed = Array.from({ length: 3 }, () => {
         let resolve!: () => void;
@@ -108,7 +128,7 @@ describe("workflow worker gRPC protocol", () => {
       await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
       const address = server.address();
       if (!address || typeof address === "string") throw new Error("Expected a TCP listener");
-      const runtime = new WorkflowRuntime({ daprHost: "127.0.0.1", daprPort: String(address.port) });
+      const runtime = new WorkflowRuntime({ daprHost: "127.0.0.1", daprPort: String(address.port), payloads });
       runtime.registerWorkflowByName("identity", function* (ctx) {
         const value = { guid: ctx.newGuid(), clock: ctx.getCurrentUtcDateTime().getTime() };
         ctx.setCustomStatus(value);
@@ -122,15 +142,19 @@ describe("workflow worker gRPC protocol", () => {
         await completed[2].promise;
         expect(metadataCalls).toBe(1);
         expect(responses[0].version?.patches.includes("dapr-js:workflow-semantics-v2") ?? false).toBe(patched);
-        expect(JSON.parse(responses[0].customStatus!).clock).toBe(patched ? 10000 : 1000);
-        expect(responses[1].actions[0].workflowActionType.value).toMatchObject({
-          workflowStatus: OrchestrationStatus.COMPLETED,
-          result: responses[0].customStatus,
-        });
+        const status = await readPayload(responses[0].customStatus);
+        expect(status).toMatchObject({ clock: patched ? 10000 : 1000 });
+        const replayCompletion = responses[1].actions[0].workflowActionType;
+        if (replayCompletion.case !== "completeWorkflow") throw new Error("Expected replay completion");
+        expect(replayCompletion.value.workflowStatus).toBe(OrchestrationStatus.COMPLETED);
+        expect(await readPayload(replayCompletion.value.result)).toEqual(status);
         expect(responses[2].version).toBeUndefined();
-        expect(responses[2].actions[0].workflowActionType.value).toMatchObject({
-          workflowStatus: OrchestrationStatus.COMPLETED,
-          result: JSON.stringify({ guid: "b6589fc6-ab0d-582c-b120-99d1c2d40ab9", clock: 1000 }),
+        const legacyCompletion = responses[2].actions[0].workflowActionType;
+        if (legacyCompletion.case !== "completeWorkflow") throw new Error("Expected legacy completion");
+        expect(legacyCompletion.value.workflowStatus).toBe(OrchestrationStatus.COMPLETED);
+        expect(await readPayload(legacyCompletion.value.result)).toEqual({
+          guid: "b6589fc6-ab0d-582c-b120-99d1c2d40ab9",
+          clock: 1000,
         });
       } finally {
         completed.forEach(({ resolve }) => resolve());

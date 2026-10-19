@@ -149,6 +149,179 @@ It returns `undefined` at the end of the chain. Nested details are preserved whe
 failed activities or child workflows fail their callers. The existing
 `innerFailure` property still exposes the raw protobuf details for compatibility.
 
+## Workflow payload references
+
+Workflow payload references keep large values in a [Binary Store](#binary-store)
+and put a small, versioned envelope into workflow history. This is opt-in and
+requires Dapr 1.19 or later and a binary store component. Use durable shared
+storage in production: the in-memory component is only suitable for tests.
+Unconfigured applications keep their existing inline serialization behavior.
+
+```typescript
+import {
+  BinaryStoreWorkflowPayloadResolver,
+  DaprClient,
+  DaprWorkflowClient,
+  PayloadWritePreference,
+  WorkflowRuntime,
+} from "@dapr/dapr";
+
+const dapr = new DaprClient();
+const payloads = new BinaryStoreWorkflowPayloadResolver(dapr.binaryStore, {
+  storeName: "binarystore",
+  writePreference: PayloadWritePreference.PreferReference,
+  offloadThreshold: 64 * 1024,
+});
+const client = new DaprWorkflowClient({ payloads });
+const runtime = new WorkflowRuntime({ payloads });
+
+runtime.registerWorkflowByName("echo", function* (_ctx, input) {
+  return input;
+});
+await runtime.start();
+const id = await client.scheduleNewWorkflow("echo", { text: "x".repeat(100_000) });
+const state = await client.waitForWorkflowCompletion(id);
+console.log(state?.getOutput()); // Materialized value, not an envelope.
+console.log(state?.getOutputReference()); // Metadata for the stored value.
+await runtime.stop();
+await client.stop();
+await dapr.stop();
+```
+
+Configure compatible resolvers on every client and worker that reads references.
+Passing a serializer as the resolver's third constructor argument also supplies
+the workflow serializer unless `WorkflowClientOptions.serializer` overrides it.
+If overriding it, use the same serialization format for explicit resolver
+operations and workflow boundaries.
+
+### Policies and boundaries
+
+| Option                       | Default             | Behavior                                                                                                                                     |
+| ---------------------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `writePreference`            | `Preserve`          | Preserve inline values and references. `PreferReference` offloads eligible inline values; `PreferInline` materializes outgoing references.   |
+| `offloadThreshold`           | 64 KiB              | Inclusive threshold in serialized **UTF-8 bytes**, not string length. `null` offloads all nonempty serialized snapshots.                     |
+| `offloadSites`               | `PayloadKind.All`   | Bitwise selection of workflow/activity input/output, external events, continue-as-new input, custom status, and child workflow input/output. |
+| `keyPrefix`                  | `workflow-payloads` | Keys are `<prefix>/<instanceId>/<sha256>`; equal bytes in the same instance have the same key.                                               |
+| `skipWriteIfExists`          | `true`              | Ignore only an AlreadyExists conflict; other write errors propagate.                                                                         |
+| `maxInMemoryRehydrationSize` | 16 MiB              | Reject buffering if the declared size or actual streamed byte count exceeds this limit.                                                      |
+| `verifyIntegrityOnRead`      | `true`              | Check the stored bytes against the reference's SHA-256 before deserialization.                                                               |
+| `resolutionCacheSize`        | 128                 | Bounded cache of serialized bytes for one orchestration execution; zero disables it. Deserialized mutable objects are not shared.            |
+
+Reads are independent of write policy. A worker can replay historical references
+after switching future writes to `Preserve` or `PreferInline`. Keep the referenced
+bytes available and immutable for as long as history or other consumers need
+them. Replayed activity/child/detached actions are not re-uploaded; newly emitted
+actions and the current custom-status snapshot use the current write policy.
+
+Activity inputs, activity outputs, workflow inputs/outputs, child inputs/outputs,
+external events (including `sendEvent`), `continueAsNew`, and custom status all
+participate. Detached input uses `WorkflowInput`; termination output uses
+`WorkflowOutput`; rerun replacement input uses `WorkflowInput`, matching .NET.
+When offloading rerun input and no destination ID was supplied, the SDK assigns
+one before uploading. `overwriteInput: false` does not upload the ignored input.
+Uploaded objects are not rolled back if a later workflow RPC fails.
+
+For a different `targetAppId`, activity, child, and detached inputs are forced
+inline unless their call options include `allowPayloadReferences: true`.
+This permission does not force offloading and does not override `PreferInline`.
+Both applications must have access to the referenced component and bytes.
+Outputs and propagated history are not covered by this input permission;
+propagated history's original signed bytes are never rewritten.
+
+### Explicit references and streaming
+
+`payloads.store(value, instanceId, signal?)` returns a `PayloadReference<T>`.
+`payloads.resolve(reference, signal?)` materializes it, and
+`payloads.open(reference, signal?)` returns a Node.js `Readable`.
+Activities can use the configured resolver through `ctx.payloads`.
+Workflow contexts expose read-only `ctx.resolvePayload(reference)` and
+`ctx.openPayload(reference)` as **Tasks to yield**, plus
+`ctx.hasPayloadResolver()`. Perform explicit writes in activities or clients,
+not by calling an external resolver from orchestration code.
+
+TypeScript generic arguments are erased, so unlike .NET the reference contract
+must be selected explicitly:
+
+| Boundary                | JS option                                  |
+| ----------------------- | ------------------------------------------ |
+| Workflow/activity input | Register with `{ inputAsReference: true }` |
+| Activity/child result   | Call with `{ resultAsReference: true }`    |
+| External-event result   | Wait with `{ asReference: true }`          |
+
+These options return `PayloadReference` objects without downloading them.
+A nonempty inline value does not satisfy a reference contract and fails
+explicitly. They do not force the producer to return a reference.
+
+```typescript
+import { PayloadReference, Task, WorkflowContext } from "@dapr/dapr";
+
+runtime.registerWorkflowByName(
+  "readReference",
+  function* (
+    ctx: WorkflowContext,
+    input: PayloadReference<{ text: string }>,
+  ): Generator<Task<unknown>, unknown, unknown> {
+    const value = yield ctx.resolvePayload(input);
+    return value;
+  },
+  { inputAsReference: true },
+);
+const reference = await payloads.store({ text: "large document" }, "document-owner");
+await client.scheduleNewWorkflow("readReference", reference);
+```
+
+For large streams, consume `payloads.open(reference)` using `for await`.
+Inside an async-generator workflow, first `yield ctx.openPayload(reference)`,
+then consume the returned stream. Raw streams bypass buffering limits, hash
+verification, and transformation-stage reversal; validate/process their bytes
+yourself and destroy the stream on early exit. Explicit reads run again on replay,
+so stream processing in workflows must remain deterministic.
+
+Fetched state retains its original envelopes through `getInputReference<T>()`,
+`getOutputReference<T>()`, and `getCustomStatusReference<T>()`.
+The existing synchronous typed getters return materialized values after the
+client asynchronously prepares state. An oversized reference or missing resolver
+is retained for explicit streaming, but its typed getter throws
+`PayloadRehydrationLimitError` or `PayloadNotResolvableError`; the corresponding
+serialized property still contains the envelope in that case. Other read failures,
+including `PayloadNotFoundError` and `PayloadIntegrityError`, reject the client
+operation. A missing binary object is not treated as a missing workflow.
+
+### .NET wire compatibility and retention
+
+The wire envelope matches dapr/dotnet-sdk#1934:
+
+```json
+{
+  "$daprRef": {
+    "v": 1,
+    "store": "binarystore",
+    "key": "workflow-payloads/instance/hash",
+    "size": 19,
+    "sha256": "c7f7e541b6aecfa4d9d3ee41214623f8d0176e0b9f1b41e002b1165d388fcf8e"
+  }
+}
+```
+
+Use `reference.toEnvelope()` and `PayloadReference.parse(wire)` to exchange
+envelopes. Only a **single top-level** `$daprRef` property is treated as a
+reference; nested references and objects with extra root properties are not
+automatically resolved. Unknown versions and malformed reserved envelopes throw.
+Hashes are lowercase SHA-256 hex and JS sizes must be nonnegative safe integers.
+Optional stages use `stages: [{ n: "name", m: { key: "value" } }]`; empty stages and
+absent metadata are omitted. Stage metadata is preserved, but automatic stage
+reversal is not supported. The envelope always uses JSON even with a non-JSON
+payload serializer. Cross-language applications must agree on the stored
+serialization format; the default JSON format interoperates with .NET.
+
+Cleanup is never automatic on completion or purge: references can be shared,
+and retained history may still need their data. Supply a durable, idempotent
+`IWorkflowPayloadManifest` (`record`, `list`, `clear`) to the resolver, then call
+`payloads.deletePayloads(instanceId)` explicitly after enforcing your retention
+and sharing rules. Without a manifest cleanup throws instead of silently doing
+nothing. A partial deletion failure keeps manifest records so cleanup can be
+retried; missing objects during cleanup are treated as already deleted.
+
 ## Cross-application workflow tasks
 
 `WorkflowContext.callActivity`, `callChildWorkflow`, and its alias `callSubWorkflow`

@@ -12,6 +12,7 @@ limitations under the License.
 */
 
 import type { PropagatedHistory } from "../../runtime/PropagatedHistory";
+import type { BinaryStoreWorkflowPayloadResolver } from "../../payloads/BinaryStoreWorkflowPayloadResolver";
 
 export class ActivityContext {
   constructor(
@@ -19,6 +20,7 @@ export class ActivityContext {
     private readonly _taskId: number,
     public readonly propagatedHistory?: PropagatedHistory,
     public readonly taskExecutionId?: string,
+    public readonly payloads?: BinaryStoreWorkflowPayloadResolver,
   ) {}
 
   get orchestrationId(): string {

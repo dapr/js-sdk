@@ -15,5 +15,10 @@ import type { WorkflowAction } from "../../../proto/dapr/proto/durabletask/v1/or
 import type { WorkflowVersion } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 
 export class OrchestrationExecuteResult {
-  constructor(public actions: WorkflowAction[], public customStatus: unknown, public version?: WorkflowVersion) {}
+  constructor(
+    public actions: WorkflowAction[],
+    public customStatus: unknown,
+    public encodedCustomStatus?: string,
+    public version?: WorkflowVersion,
+  ) {}
 }

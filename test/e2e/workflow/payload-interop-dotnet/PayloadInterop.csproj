@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(DaprDotnetSdkPath)\src\Dapr.Workflow\Dapr.Workflow.csproj" />
+    <ProjectReference Include="$(DaprDotnetSdkPath)\src\Dapr.Workflow.Abstractions\Dapr.Workflow.Abstractions.csproj" />
+    <ProjectReference Include="$(DaprDotnetSdkPath)\src\Dapr.BinaryStore.Abstractions\Dapr.BinaryStore.Abstractions.csproj" />
+    <ProjectReference Include="$(DaprDotnetSdkPath)\src\Dapr.BinaryStore.Runtime\Dapr.BinaryStore.Runtime.csproj" />
+  </ItemGroup>
+</Project>

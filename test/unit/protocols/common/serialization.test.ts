@@ -24,6 +24,7 @@ const mockClient = {
   executeStateTransaction: jest.fn(),
   invokeService: jest.fn(),
   publishEvent: jest.fn(),
+  bulkPublishEvent: jest.fn(),
   bulkPublishEventAlpha1: jest.fn(),
   invokeBinding: jest.fn(),
   getSecret: jest.fn(),
@@ -47,7 +48,12 @@ describe.each([CommunicationProtocolEnum.HTTP, CommunicationProtocolEnum.GRPC])(
       jest.resetAllMocks();
       client = new DaprClient({ communicationProtocol });
       client.daprClient.setIsInitialized(true);
-      jest.mocked(fetch).mockImplementation(async () => new Response("{}"));
+      jest
+        .mocked(fetch)
+        .mockImplementation(
+          async (url) =>
+            new Response(String(url).endsWith("/metadata") ? JSON.stringify({ runtimeVersion: "1.17.0" }) : "{}"),
+        );
     });
     afterEach(async () => client.stop());
 
@@ -239,6 +245,7 @@ describe.each([CommunicationProtocolEnum.HTTP, CommunicationProtocolEnum.GRPC])(
         { entryID: "binary", event: Buffer.from("bytes") },
       ];
       mockClient.publishEvent.mockResolvedValue({});
+      mockClient.bulkPublishEvent.mockResolvedValue({ failedEntries: [] });
       mockClient.bulkPublishEventAlpha1.mockResolvedValue({ failedEntries: [] });
       for (const { event } of messages) {
         await client.pubsub.publish("pubsub", "topic", event);
@@ -257,7 +264,7 @@ describe.each([CommunicationProtocolEnum.HTTP, CommunicationProtocolEnum.GRPC])(
             }),
           ),
         );
-        expect(JSON.parse(String(jest.mocked(fetch).mock.calls[3][1]?.body))).toEqual(
+        expect(JSON.parse(String(jest.mocked(fetch).mock.calls[4][1]?.body))).toEqual(
           messages.map((message, i) => ({
             ...message,
             event: JSON.parse(JSON.stringify(message.event)),
@@ -275,7 +282,7 @@ describe.each([CommunicationProtocolEnum.HTTP, CommunicationProtocolEnum.GRPC])(
             }),
           ),
         );
-        expect(mockClient.bulkPublishEventAlpha1).toHaveBeenCalledWith(
+        expect(mockClient.bulkPublishEvent).toHaveBeenCalledWith(
           expect.objectContaining({
             entries: encoded.map((body, i) =>
               expect.objectContaining({
