@@ -137,6 +137,7 @@ export default class HTTPClient implements IClient {
       actor: options?.actor,
       daprApiToken: options?.daprApiToken,
       maxBodySizeMb: options?.maxBodySizeMb,
+      serializer: options?.serializer,
     };
 
     this.logger = new Logger("HTTPClient", "HTTPClient", this.options.logger);
@@ -431,10 +432,14 @@ export default class HTTPClient implements IClient {
     clientOptions.headers["user-agent"] = `dapr-sdk-js/v${SDK_VERSION} http/1`;
 
     // Set Body and Content-Type Header
-    if (params?.body) {
+    if (params?.body || (params?.serializer && params.body !== undefined)) {
       // If content-type is already present, use that to serialize the data.
       const headerContentType = params?.headers?.["Content-Type"] ?? undefined;
-      const { serializedData, contentType } = SerializerUtil.serializeHttp(params?.body, headerContentType);
+      const { serializedData, contentType } = SerializerUtil.serializeHttp(
+        params?.body,
+        headerContentType,
+        params?.serializer,
+      );
 
       clientOptions.headers["Content-Type"] = contentType;
       clientOptions.body = serializedData;
@@ -464,6 +469,9 @@ export default class HTTPClient implements IClient {
 
     // 2XX -> OK; 3XX -> Redirects and Found
     if (res.status >= 200 && res.status <= 399) {
+      if (params?.responseType === "text") {
+        return txt;
+      }
       return txtParsed;
     } else {
       throw new Error(

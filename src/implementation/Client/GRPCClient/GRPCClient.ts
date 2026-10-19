@@ -111,6 +111,7 @@ export default class GRPCClient implements IClient {
       actor: options?.actor,
       daprApiToken: options?.daprApiToken,
       maxBodySizeMb: options?.maxBodySizeMb,
+      serializer: options?.serializer,
     };
 
     this.logger = new Logger("GRPCClient", "GRPCClient", options.logger);

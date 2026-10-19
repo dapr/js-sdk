@@ -29,6 +29,8 @@ import type { ChildWorkflowOptions } from "../../../types/workflow/ChildWorkflow
 import type { DetachedWorkflowOptions } from "../../../types/workflow/DetachedWorkflowOptions.type";
 import { HistoryPropagationScope } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import type { PropagatedHistory } from "../../runtime/PropagatedHistory";
+import { IDaprSerializer } from "../../../serialization/IDaprSerializer";
+import { serializeWorkflowValue } from "../../../serialization/Serialization.util";
 import {
   newCompleteWorkflowAction,
   newCreateTimerAction,
@@ -65,6 +67,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     private readonly _appId?: string,
     private readonly _propagatedHistory?: PropagatedHistory,
     private readonly _name = "",
+    private readonly serializer?: IDaprSerializer,
     private readonly _taskExecutionIds: ReadonlyMap<number, string> = new Map(),
   ) {
     super();
@@ -160,7 +163,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
 
     let resultJson: string | undefined;
     if (result != null) {
-      resultJson = isResultEncoded ? (result as string) : JSON.stringify(result);
+      resultJson = isResultEncoded ? (result as string) : serializeWorkflowValue(result, this.serializer);
     }
 
     const action = newCompleteWorkflowAction(this.nextSequenceNumber(), status, resultJson);
@@ -199,7 +202,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
         carryoverEvents = [];
         for (const [eventName, values] of Object.entries(this._receivedEvents)) {
           for (const eventValue of values) {
-            const encodedValue = eventValue != null ? JSON.stringify(eventValue) : undefined;
+            const encodedValue = eventValue != null ? serializeWorkflowValue(eventValue, this.serializer) : undefined;
             carryoverEvents.push(newEventRaisedEvent(eventName, encodedValue));
           }
         }
@@ -208,7 +211,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
       const action = newCompleteWorkflowAction(
         this.nextSequenceNumber(),
         OrchestrationStatusEnum.CONTINUED_AS_NEW,
-        this._newInput != null ? JSON.stringify(this._newInput) : undefined,
+        this._newInput != null ? serializeWorkflowValue(this._newInput, this.serializer) : undefined,
         undefined,
         carryoverEvents ?? undefined,
       );
@@ -255,7 +258,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     options?: ActivityOptions,
   ): Task<TOutput> {
     const name = typeof activity === "string" ? activity : getName(activity);
-    const encodedInput = input != null ? JSON.stringify(input) : undefined;
+    const encodedInput = input != null ? serializeWorkflowValue(input, this.serializer) : undefined;
     const routing = this.getRoutingOptions(options);
     if (options?.retryPolicy) {
       let executionId: string | undefined;
@@ -284,7 +287,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     options?: ChildWorkflowOptions,
   ): Task<TOutput> {
     const name = typeof orchestrator === "string" ? orchestrator : getName(orchestrator);
-    const encodedInput = input != null ? JSON.stringify(input) : undefined;
+    const encodedInput = input != null ? serializeWorkflowValue(input, this.serializer) : undefined;
     const routing = this.getRoutingOptions(options);
     if (options?.retryPolicy) {
       const firstInstanceId = instanceId;
@@ -340,7 +343,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
       throw new TypeError("Detached workflows do not support retries or history propagation");
     }
     const routing = this.getRoutingOptions(options);
-    const encodedInput = input === undefined ? undefined : JSON.stringify(input);
+    const encodedInput = input === undefined ? undefined : serializeWorkflowValue(input, this.serializer);
     const detachedInstanceId = instanceId ?? this.newGuid();
     if (
       Object.values(this._pendingActions).some(
@@ -426,7 +429,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
 
   sendEvent(instanceId: string, eventName: string, payload: unknown): void {
     const id = this.nextSequenceNumber();
-    const encodedData = payload != null ? JSON.stringify(payload) : undefined;
+    const encodedData = payload != null ? serializeWorkflowValue(payload, this.serializer) : undefined;
     const action = newSendEventAction(id, instanceId, eventName, encodedData);
     this._pendingActions[action.id] = action;
   }

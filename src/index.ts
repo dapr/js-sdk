@@ -117,6 +117,8 @@ export type {
   PropagatedHistoryView,
 } from "./workflow/runtime/PropagatedHistory";
 export type { CancellableTask } from "./types/workflow/CancellableTask.type";
+export type { IDaprSerializer } from "./serialization/IDaprSerializer";
+export { JsonSerializer } from "./serialization/JsonSerializer";
 export type { default as IClientBinaryStore } from "./interfaces/Client/IClientBinaryStore";
 export type { BinaryStoreOptions, BinaryStoreSetOptions } from "./types/binarystore/BinaryStoreOptions";
 export { withBaggage } from "./utils/Baggage.util";
