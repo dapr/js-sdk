@@ -13,6 +13,7 @@ limitations under the License.
 
 import { LoggerOptions } from "../logger/LoggerOptions";
 import type { Interceptor } from "@connectrpc/connect";
+import type { IDaprSerializer } from "../../serialization/IDaprSerializer";
 
 /**
  * Options for configuring the workflow gRPC transport.
@@ -27,6 +28,9 @@ export type GrpcChannelOptions = {
 };
 
 export type WorkflowClientOptions = {
+  /** Serializer shared by workflow clients and workers. Defaults to JSON. */
+  serializer?: IDaprSerializer;
+
   /**
    * Host location of the Dapr sidecar.
    * Default is 127.0.0.1.

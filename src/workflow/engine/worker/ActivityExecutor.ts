@@ -16,9 +16,11 @@ import { ActivityContext } from "../context/ActivityContext";
 import { Registry } from "./Registry";
 import type { PropagatedHistory as HistoryMessage } from "../../../proto/dapr/proto/durabletask/v1/history_events_pb";
 import { decodePropagatedHistory } from "./protoHelpers";
+import { IDaprSerializer } from "../../../serialization/IDaprSerializer";
+import { serializeWorkflowValue, deserializeWorkflowValue } from "../../../serialization/Serialization.util";
 
 export class ActivityExecutor {
-  constructor(private readonly _registry: Registry) {}
+  constructor(private readonly _registry: Registry, private readonly serializer?: IDaprSerializer) {}
 
   async execute(
     orchestrationId: string,
@@ -34,7 +36,7 @@ export class ActivityExecutor {
       throw new Error(`Activity '${name}' is not registered.`);
     }
 
-    const activityInput = encodedInput ? JSON.parse(encodedInput) : undefined;
+    const activityInput = encodedInput ? deserializeWorkflowValue(encodedInput, this.serializer) : undefined;
     const history = decodePropagatedHistory(propagatedHistory);
     const ctx = new ActivityContext(orchestrationId, taskId, history, taskExecutionId);
 
@@ -44,6 +46,6 @@ export class ActivityExecutor {
       activityOutput = await activityOutput;
     }
 
-    return activityOutput != null ? JSON.stringify(activityOutput) : undefined;
+    return activityOutput != null ? serializeWorkflowValue(activityOutput, this.serializer) : undefined;
   }
 }
