@@ -16,7 +16,14 @@ import { ConnectError } from "@connectrpc/connect";
 import DaprWorkflowClient from "../../../src/workflow/client/DaprWorkflowClient";
 import WorkflowContext from "../../../src/workflow/runtime/WorkflowContext";
 import WorkflowRuntime from "../../../src/workflow/runtime/WorkflowRuntime";
-import { type TWorkflow, WorkflowRuntimeStatus, Task, WorkflowFailureDetails } from "../../../src";
+import {
+  type TWorkflow,
+  WorkflowRuntimeStatus,
+  Task,
+  WorkflowFailureDetails,
+  LogLevel,
+  type LoggerService,
+} from "../../../src";
 import { getFunctionName } from "../../../src/workflow/internal";
 import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
 import {
@@ -77,6 +84,167 @@ describe("workflow", () => {
     }
     throw new Error(`Workflow ${instanceId} did not publish custom status before timeout`);
   };
+
+  it.each([false, true])(
+    "logs live workflow steps once across replay and concurrent instances (async generator: %s)",
+    async (asyncGenerator) => {
+      const service: jest.Mocked<LoggerService> = {
+        error: jest.fn(),
+        warn: jest.fn(),
+        info: jest.fn(),
+        verbose: jest.fn(),
+        debug: jest.fn(),
+      };
+      workflowRuntime = new WorkflowRuntime({
+        daprHost: workflowHarness.getHost(),
+        daprPort: workflowHarness.getGrpcPort().toString(),
+        logger: { level: LogLevel.Debug, service },
+      });
+      const replayed = new Set<string>();
+      const echo = (_ctx: WorkflowActivityContext, input: number) => input + 1;
+      const child: TWorkflow = function* (
+        ctx: WorkflowContext,
+        input: number,
+      ): Generator<Task<number>, number, number> {
+        ctx.logger.info("child started", input);
+        const result = yield ctx.callActivity(echo, input);
+        ctx.logger.info("child completed", result);
+        return result;
+      };
+      function* workflow(ctx: WorkflowContext, input: number): Generator<Task<unknown>, unknown, unknown> {
+        const logger = ctx.logger;
+        if (ctx.isReplaying()) replayed.add(ctx.getWorkflowInstanceId());
+        logger.info("started", input);
+        ctx.setCustomStatus("waiting");
+        const event = yield ctx.waitForExternalEvent("resume");
+        logger.debug("event", event);
+        const activity = (yield ctx.callActivity(echo, input)) as number;
+        logger.warn("activity", activity);
+        yield ctx.createTimer(0.01);
+        logger.verbose("timer");
+        const result = yield ctx.callChildWorkflow<number, number>("loggingChild", activity);
+        logger.error("finished", result);
+        ctx.setCustomStatus("done");
+        return { input, event, result };
+      }
+      const registered: TWorkflow = asyncGenerator
+        ? async function* (ctx, input: number) {
+            return yield* workflow(ctx, input);
+          }
+        : workflow;
+      workflowRuntime
+        .registerWorkflowByName("loggingWorkflow", registered)
+        .registerWorkflowByName("loggingChild", child)
+        .registerActivity(echo);
+      await workflowRuntime.start();
+      const ids = await Promise.all(
+        [10, 20].map((input) => workflowClient.scheduleNewWorkflow("loggingWorkflow", input)),
+      );
+      await Promise.all(ids.map((id) => waitForCustomStatus(id, '"waiting"')));
+      await Promise.all(ids.map((id) => workflowClient.raiseEvent(id, "resume", "payload")));
+      for (const [index, id] of ids.entries()) {
+        const input = [10, 20][index];
+        const state = await workflowClient.waitForWorkflowCompletion(id, true, 30);
+        expect(state?.runtimeStatus).toBe(WorkflowRuntimeStatus.COMPLETED);
+        expect(state?.workflowFailureDetails).toBeUndefined();
+        expect(state?.getInput()).toBe(input);
+        expect(state?.getOutput()).toEqual({ input, event: "payload", result: input + 2 });
+        expect(state?.getCustomStatus()).toBe("done");
+        expect(replayed.has(id)).toBe(true);
+        const prefix = `[Workflow, loggingWorkflow, ${id}]`;
+        expect(service.info.mock.calls.filter(([message]) => message === `${prefix} started`)).toEqual([
+          [`${prefix} started`, input],
+        ]);
+        expect(service.debug.mock.calls.filter(([message]) => message === `${prefix}: event`)).toEqual([
+          [`${prefix}: event`, "payload"],
+        ]);
+        expect(service.warn.mock.calls.filter(([message]) => message === `${prefix} activity`)).toEqual([
+          [`${prefix} activity`, input + 1],
+        ]);
+        expect(service.verbose.mock.calls.filter(([message]) => message === `${prefix} timer`)).toEqual([
+          [`${prefix} timer`],
+        ]);
+        expect(service.error.mock.calls.filter(([message]) => message === `${prefix} finished`)).toEqual([
+          [`${prefix} finished`, input + 2],
+        ]);
+        const history = await workflowClient.getWorkflowHistory(id);
+        expect(history.filter((event) => event.eventType.case === "taskScheduled")).toHaveLength(1);
+        expect(history.filter((event) => event.eventType.case === "timerCreated")).toHaveLength(1);
+        expect(history.filter((event) => event.eventType.case === "childWorkflowInstanceCreated")).toHaveLength(1);
+      }
+      expect(service.info).toHaveBeenCalledTimes(6);
+      expect(service.info.mock.calls.filter(([message]) => message.includes("[Workflow, loggingChild, "))).toEqual(
+        expect.arrayContaining([
+          [expect.stringContaining("child started"), 11],
+          [expect.stringContaining("child completed"), 12],
+          [expect.stringContaining("child started"), 21],
+          [expect.stringContaining("child completed"), 22],
+        ]),
+      );
+      expect(service.debug).toHaveBeenCalledTimes(2);
+      expect(service.warn).toHaveBeenCalledTimes(2);
+      expect(service.verbose).toHaveBeenCalledTimes(2);
+      expect(service.error).toHaveBeenCalledTimes(2);
+    },
+    90000,
+  );
+
+  it("logs each continue-as-new execution and preserves log filtering, state and failures", async () => {
+    const service: jest.Mocked<LoggerService> = {
+      error: jest.fn(),
+      warn: jest.fn(),
+      info: jest.fn(),
+      verbose: jest.fn(),
+      debug: jest.fn(),
+    };
+    workflowRuntime = new WorkflowRuntime({
+      daprHost: workflowHarness.getHost(),
+      daprPort: workflowHarness.getGrpcPort().toString(),
+      logger: { level: LogLevel.Info, service },
+    });
+    const replayed = new Set<number>();
+    const workflow: TWorkflow = function* (
+      ctx: WorkflowContext,
+      round: number,
+    ): Generator<Task<unknown>, void, unknown> {
+      const logger = ctx.logger;
+      if (ctx.isReplaying()) replayed.add(round);
+      logger.info("started", round);
+      logger.debug("filtered");
+      logger.verbose("filtered");
+      ctx.setCustomStatus({ round });
+      yield ctx.waitForExternalEvent(`resume-${round}`);
+      if (round === 0) {
+        logger.warn("continuing");
+        ctx.continueAsNew(1);
+        return;
+      }
+      logger.error("failing", { round });
+      throw new Error("expected workflow failure");
+    };
+    workflowRuntime.registerWorkflowWithName("continuingLogger", workflow);
+    await workflowRuntime.start();
+    const id = await workflowClient.scheduleNewWorkflow("continuingLogger", 0);
+    await waitForCustomStatus(id, '{"round":0}');
+    await workflowClient.raiseEvent(id, "resume-0");
+    await waitForCustomStatus(id, '{"round":1}');
+    await workflowClient.raiseEvent(id, "resume-1");
+    const state = await workflowClient.waitForWorkflowCompletion(id, true, 30);
+    expect(state?.runtimeStatus).toBe(WorkflowRuntimeStatus.FAILED);
+    expect(state?.workflowFailureDetails?.getErrorMessage()).toBe("expected workflow failure");
+    expect(state?.getInput()).toBe(1);
+    expect(state?.getCustomStatus()).toEqual({ round: 1 });
+    expect(replayed).toEqual(new Set([0, 1]));
+    const prefix = `[Workflow, continuingLogger, ${id}]`;
+    expect(service.info.mock.calls).toEqual([
+      [`${prefix} started`, 0],
+      [`${prefix} started`, 1],
+    ]);
+    expect(service.warn.mock.calls).toEqual([[`${prefix} continuing`]]);
+    expect(service.error.mock.calls).toEqual([[`${prefix} failing`, { round: 1 }]]);
+    expect(service.debug).not.toHaveBeenCalled();
+    expect(service.verbose).not.toHaveBeenCalled();
+  }, 60000);
 
   it("round-trips custom payloads through replay, events, continue-as-new, activities and child workflows", async () => {
     const serializer = new CustomSerializer();
