@@ -12,10 +12,13 @@ limitations under the License.
 */
 
 import { create } from "@bufbuild/protobuf";
+import { Code, ConnectError } from "@connectrpc/connect";
 import GRPCClient from "./GRPCClient";
 import {
+  BulkPublishRequest,
   BulkPublishRequestEntrySchema,
   BulkPublishRequestSchema,
+  BulkPublishResponse,
   PublishEventRequestSchema,
 } from "../../../proto/dapr/proto/runtime/v1/pubsub_pb";
 import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
@@ -27,6 +30,26 @@ import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishRe
 import { PubSubBulkPublishResponse } from "../../../types/pubsub/PubSubBulkPublishResponse.type";
 import { PubSubBulkPublishMessage } from "../../../types/pubsub/PubSubBulkPublishMessage.type";
 import { PubSubPublishOptions } from "../../../types/pubsub/PubSubPublishOptions.type";
+
+/**
+ * Determines whether a gRPC error means the sidecar does not serve the stable
+ * `BulkPublishEvent` RPC.
+ *
+ * A sidecar that predates the RPC should answer `UNIMPLEMENTED`, but Dapr
+ * installs a catch-all handler that forwards unrecognised methods to service
+ * invocation, so in practice it reports a proxy failure with `UNKNOWN`
+ * instead. Both shapes are treated as "not supported"; the match is kept
+ * deliberately narrow, because a broader one risks retrying a publish that the
+ * sidecar had in fact already accepted.
+ */
+function isBulkPublishUnsupported(error: unknown): boolean {
+  const connectError = ConnectError.from(error);
+
+  return (
+    connectError.code === Code.Unimplemented ||
+    (connectError.code === Code.Unknown && connectError.rawMessage.includes("failed to proxy request"))
+  );
+}
 
 /**
  * gRPC-based pub/sub building block implementation.
@@ -48,6 +71,22 @@ export default class GRPCClientPubSub implements IClientPubSub {
   client: GRPCClient;
 
   private readonly logger: Logger;
+
+  /**
+   * Set once the sidecar has been observed to not implement the stable
+   * `BulkPublishEvent` RPC, so subsequent calls go straight to the alpha1 RPC
+   * instead of paying for a failed round trip each time.
+   */
+  private useBulkPublishAlpha1 = false;
+
+  /**
+   * Settles once the first bulk publish on this client has completed, by which
+   * point it has found out whether the sidecar serves the stable RPC. Calls
+   * made in the meantime wait on it rather than each probing the sidecar, so
+   * however many publishes start concurrently, a pre-1.17 sidecar normally
+   * costs one failed round trip and one warning per client. It never rejects.
+   */
+  private bulkPublishProbe?: Promise<void>;
 
   constructor(client: GRPCClient) {
     this.client = client;
@@ -110,7 +149,8 @@ export default class GRPCClientPubSub implements IClientPubSub {
     const client = await this.client.getClient();
 
     try {
-      const res = await client.bulkPublishEventAlpha1(
+      const res = await this.bulkPublish(
+        client,
         create(BulkPublishRequestSchema, {
           pubsubName: pubSubName,
           topic,
@@ -135,5 +175,67 @@ export default class GRPCClientPubSub implements IClientPubSub {
     } catch (err) {
       return getBulkPublishResponse({ entries, error: err as Error });
     }
+  }
+
+  /**
+   * Invokes the stable `BulkPublishEvent` RPC, falling back to the deprecated
+   * `BulkPublishEventAlpha1` RPC when the sidecar does not serve it.
+   *
+   * The stable RPC was introduced in Dapr 1.17. Older sidecars reject it in a
+   * way that identifies the method as unknown rather than the publish as
+   * failed, so the fallback is remembered for the lifetime of this client.
+   *
+   * The first call doubles as the capability probe, and calls that arrive
+   * while it is in flight wait for its outcome before sending their own
+   * request through the selected RPC.
+   */
+  private async bulkPublish(
+    client: Awaited<ReturnType<GRPCClient["getClient"]>>,
+    request: BulkPublishRequest,
+  ): Promise<BulkPublishResponse> {
+    if (!this.bulkPublishProbe) {
+      const probe = this.bulkPublishStableFirst(client, request);
+      this.bulkPublishProbe = probe.then(
+        () => undefined,
+        () => undefined,
+      );
+      return await probe;
+    }
+
+    await this.bulkPublishProbe;
+
+    if (this.useBulkPublishAlpha1) {
+      return await client.bulkPublishEventAlpha1(request);
+    }
+
+    return await this.bulkPublishStableFirst(client, request);
+  }
+
+  private async bulkPublishStableFirst(
+    client: Awaited<ReturnType<GRPCClient["getClient"]>>,
+    request: BulkPublishRequest,
+  ): Promise<BulkPublishResponse> {
+    try {
+      return await client.bulkPublishEvent(request);
+    } catch (err) {
+      if (!isBulkPublishUnsupported(err)) {
+        throw err;
+      }
+
+      this.fallBackToBulkPublishAlpha1();
+      return await client.bulkPublishEventAlpha1(request);
+    }
+  }
+
+  private fallBackToBulkPublishAlpha1(): void {
+    if (this.useBulkPublishAlpha1) {
+      return;
+    }
+
+    this.useBulkPublishAlpha1 = true;
+    this.logger.warn(
+      "The Dapr sidecar does not implement the stable BulkPublishEvent API, " +
+        "falling back to the deprecated BulkPublishEventAlpha1 API. Upgrade to Dapr 1.17 or newer.",
+    );
   }
 }
