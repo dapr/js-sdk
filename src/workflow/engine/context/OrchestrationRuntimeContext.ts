@@ -31,6 +31,10 @@ import { HistoryPropagationScope } from "../../../proto/dapr/proto/durabletask/v
 import type { PropagatedHistory } from "../../runtime/PropagatedHistory";
 import { IDaprSerializer } from "../../../serialization/IDaprSerializer";
 import { serializeWorkflowValue } from "../../../serialization/Serialization.util";
+import type { Readable } from "node:stream";
+import { WorkflowPayloadHandler } from "../../payloads/WorkflowPayloadHandler";
+import { PayloadReference } from "../../payloads/PayloadReference";
+import { PayloadNotResolvableError } from "../../payloads/PayloadErrors";
 import {
   newCompleteWorkflowAction,
   newCreateTimerAction,
@@ -61,6 +65,8 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
   private _saveEvents: boolean;
   _customStatus: unknown;
   private _guidCounter: number;
+  private readonly payloadReads: Array<() => Promise<void>> = [];
+  private readonly referenceEvents = new WeakSet<CompletableTask<unknown>>();
 
   constructor(
     instanceId: string,
@@ -69,6 +75,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     private readonly _name = "",
     private readonly serializer?: IDaprSerializer,
     private readonly _taskExecutionIds: ReadonlyMap<number, string> = new Map(),
+    readonly payloadHandler = new WorkflowPayloadHandler(undefined, serializer, true),
   ) {
     super();
     this._isReplaying = true;
@@ -132,6 +139,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
 
     const MAX_ITERATIONS = 100_000;
     let iterations = 0;
+    await this.drainPayloadReads();
     while (this._previousTask?.isComplete) {
       if (++iterations > MAX_ITERATIONS) {
         throw new Error(
@@ -150,7 +158,59 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
         throw new Error("The orchestrator generator yielded a non-Task object");
       }
       this._previousTask = value;
+      await this.drainPayloadReads();
     }
+  }
+
+  override get hasPayloadResolver(): boolean {
+    return this.payloadHandler.resolver !== undefined;
+  }
+
+  override resolvePayload<T>(reference: PayloadReference<T>): Task<T> {
+    const task = new CompletableTask<T>();
+    this.queuePayloadRead(task, async () => (await this.payloadHandler.read(reference.toEnvelope())) as T);
+    return task;
+  }
+
+  override openPayload(reference: PayloadReference): Task<Readable> {
+    const task = new CompletableTask<Readable>();
+    this.queuePayloadRead(task, async () => {
+      if (!this.payloadHandler.resolver) throw new PayloadNotResolvableError();
+      return this.payloadHandler.resolver.open(reference);
+    });
+    return task;
+  }
+
+  completeExternalEvent(task: CompletableTask<unknown>, value: unknown): void {
+    const asReference = this.referenceEvents.has(task);
+    if (value instanceof PayloadReference || asReference) {
+      this.queuePayloadRead(task, async () => {
+        if (asReference && !(value instanceof PayloadReference)) {
+          throw new TypeError("The receiving contract requires a PayloadReference, but the event is inline");
+        }
+        return value instanceof PayloadReference && !asReference ? this.payloadHandler.read(value.toEnvelope()) : value;
+      });
+    } else {
+      task.complete(value);
+    }
+  }
+
+  private queuePayloadRead<T>(task: CompletableTask<T>, read: () => Promise<T>): void {
+    this.payloadReads.push(async () => {
+      if (task.isComplete) return;
+      let value: T;
+      try {
+        value = await read();
+      } catch (error) {
+        task.fail(String(error), newFailureDetails(error instanceof Error ? error : new Error(String(error))));
+        return;
+      }
+      task.complete(value);
+    });
+  }
+
+  private async drainPayloadReads(): Promise<void> {
+    while (this.payloadReads.length) await this.payloadReads.shift()!();
   }
 
   setComplete(result: unknown, status: OrchestrationStatus, isResultEncoded = false): void {
@@ -265,6 +325,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
       return this.callWithRetry(options.retryPolicy, (id) => {
         executionId = this.getTaskExecutionId(id, executionId);
         const action = newScheduleTaskAction(id, name, encodedInput, executionId, routing);
+        this.configurePayloadCall(id, options);
         this._pendingActions[action.id] = action;
         return executionId;
       });
@@ -273,6 +334,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     const id = this.nextSequenceNumber();
     const executionId = this.getTaskExecutionId(id);
     const action = newScheduleTaskAction(id, name, encodedInput, executionId, routing);
+    this.configurePayloadCall(id, options);
     this._pendingActions[action.id] = action;
 
     const task = new CompletableTask<TOutput>(executionId);
@@ -297,6 +359,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
             ? firstInstanceId
             : `${this._instanceId}:${id.toString(16).padStart(4, "0")}`;
         const action = newCreateChildWorkflowAction(id, name, childInstanceId, encodedInput, routing);
+        this.configurePayloadCall(id, options);
         this._pendingActions[action.id] = action;
         return undefined;
       });
@@ -309,6 +372,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     }
 
     const action = newCreateChildWorkflowAction(id, name, instanceId, encodedInput, routing);
+    this.configurePayloadCall(id, options);
     this._pendingActions[action.id] = action;
 
     const task = new CompletableTask<TOutput>();
@@ -362,6 +426,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
       startAt,
       routing,
     );
+    this.configurePayloadCall(action.id, options);
     this._pendingActions[action.id] = action;
     const task = new CompletableTask<string>();
     task.complete(detachedInstanceId);
@@ -391,6 +456,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
       }
       timeoutTask?.cancel();
     });
+    if (options?.asReference) this.referenceEvents.add(externalEventTask);
     const eventList = this._receivedEvents[eventName];
 
     if (eventList?.length) {
@@ -398,7 +464,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
       if (!eventList.length) {
         delete this._receivedEvents[eventName];
       }
-      externalEventTask.complete(eventData);
+      this.completeExternalEvent(externalEventTask, eventData);
     } else {
       let taskList = this._pendingEvents[eventName];
       if (!taskList?.length) {
@@ -459,6 +525,14 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
       throw new RangeError("propagationScope must be a valid HistoryPropagationScope");
     }
     return { sourceAppId: this._appId, targetAppId, propagationScope };
+  }
+
+  private configurePayloadCall(id: number, options?: ActivityOptions): void {
+    this.payloadHandler.inlineInputs.set(
+      id,
+      options?.allowPayloadReferences !== true && !!options?.targetAppId && options.targetAppId !== this._appId,
+    );
+    if (options?.resultAsReference) this.payloadHandler.referenceResults.add(id);
   }
 
   private getTaskExecutionId(id: number, previousId?: string): string | undefined {

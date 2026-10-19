@@ -122,3 +122,19 @@ export { JsonSerializer } from "./serialization/JsonSerializer";
 export type { default as IClientBinaryStore } from "./interfaces/Client/IClientBinaryStore";
 export type { BinaryStoreOptions, BinaryStoreSetOptions } from "./types/binarystore/BinaryStoreOptions";
 export { withBaggage } from "./utils/Baggage.util";
+export { PayloadReference, PayloadStage } from "./workflow/payloads/PayloadReference";
+export { BinaryStoreWorkflowPayloadResolver } from "./workflow/payloads/BinaryStoreWorkflowPayloadResolver";
+export {
+  BinaryStorePayloadOptions,
+  PayloadWritePreference,
+  PayloadKind,
+  PayloadSite,
+  IWorkflowPayloadManifest,
+  WorkflowPayloadRegistrationOptions,
+} from "./workflow/payloads/BinaryStorePayloadOptions";
+export {
+  PayloadNotResolvableError,
+  PayloadNotFoundError,
+  PayloadIntegrityError,
+  PayloadRehydrationLimitError,
+} from "./workflow/payloads/PayloadErrors";

@@ -14,6 +14,7 @@ limitations under the License.
 import { LoggerOptions } from "../logger/LoggerOptions";
 import type { Interceptor } from "@connectrpc/connect";
 import type { IDaprSerializer } from "../../serialization/IDaprSerializer";
+import type { BinaryStoreWorkflowPayloadResolver } from "../../workflow/payloads/BinaryStoreWorkflowPayloadResolver";
 
 /**
  * Options for configuring the workflow gRPC transport.
@@ -28,6 +29,8 @@ export type GrpcChannelOptions = {
 };
 
 export type WorkflowClientOptions = {
+  /** Optional binary-store payload support. Uses payloads.serializer unless serializer is supplied. */
+  payloads?: BinaryStoreWorkflowPayloadResolver;
   /** Serializer shared by workflow clients and workers. Defaults to JSON. */
   serializer?: IDaprSerializer;
 

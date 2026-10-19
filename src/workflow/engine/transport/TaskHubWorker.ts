@@ -34,8 +34,8 @@ import { ActivityExecutor } from "../worker/ActivityExecutor";
 import { newCompleteWorkflowAction, newFailureDetails } from "../worker/protoHelpers";
 import { Logger } from "../../../logger/Logger";
 import { IDaprSerializer } from "../../../serialization/IDaprSerializer";
-import { serializeWorkflowValue } from "../../../serialization/Serialization.util";
 import { type GrpcChannelOptions, mapGrpcOptions } from "../../../types/workflow/WorkflowClientOption";
+import type { BinaryStoreWorkflowPayloadResolver } from "../../payloads/BinaryStoreWorkflowPayloadResolver";
 
 export class TaskHubWorker {
   private readonly logger = new Logger("Workflow", "TaskHubWorker");
@@ -57,6 +57,7 @@ export class TaskHubWorker {
     maxMessageSize = 128 * 1024 * 1024,
     grpcOptions?: GrpcChannelOptions,
     private readonly serializer?: IDaprSerializer,
+    private readonly payloads?: BinaryStoreWorkflowPayloadResolver,
   ) {
     this._registry = new Registry();
 
@@ -220,7 +221,7 @@ export class TaskHubWorker {
     let res: WorkflowResponse;
 
     try {
-      const executor = new OrchestrationExecutor(this._registry, this.serializer);
+      const executor = new OrchestrationExecutor(this._registry, this.serializer, this.payloads);
       const result = await executor.execute(
         instanceId,
         req.pastEvents,
@@ -232,8 +233,7 @@ export class TaskHubWorker {
       res = create(WorkflowResponseSchema, {
         instanceId,
         actions: result.actions,
-        customStatus:
-          result.customStatus != null ? serializeWorkflowValue(result.customStatus, this.serializer) : undefined,
+        customStatus: result.encodedCustomStatus,
         completionToken,
       });
     } catch (e: unknown) {
@@ -274,7 +274,7 @@ export class TaskHubWorker {
     let res: ActivityResponse;
 
     try {
-      const executor = new ActivityExecutor(this._registry, this.serializer);
+      const executor = new ActivityExecutor(this._registry, this.serializer, this.payloads);
       const result = await executor.execute(
         instanceId,
         req.name,

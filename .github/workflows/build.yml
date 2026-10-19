@@ -137,6 +137,11 @@ jobs:
           name: sdk-build
           path: build
 
+      - name: Setup .NET for workflow payload interoperability tests
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+
       - name: Run E2E tests
         run: npm run test:e2e:all
         env:

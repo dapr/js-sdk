@@ -21,8 +21,24 @@ import type { ActivityOptions } from "../../types/workflow/ActivityOptions.type"
 import type { ChildWorkflowOptions } from "../../types/workflow/ChildWorkflowOptions.type";
 import type { DetachedWorkflowOptions } from "../../types/workflow/DetachedWorkflowOptions.type";
 import { createPropagatedHistoryView, type PropagatedHistoryView } from "./PropagatedHistory";
+import type { PayloadReference } from "../payloads/PayloadReference";
+import type { Readable } from "node:stream";
 
 export default class WorkflowContext {
+  public hasPayloadResolver(): boolean {
+    return this._innerContext.hasPayloadResolver;
+  }
+
+  /** Yield this read-only task; storage I/O is drained before workflow history advances. */
+  public resolvePayload<T>(reference: PayloadReference<T>): Task<T> {
+    return this._innerContext.resolvePayload(reference);
+  }
+
+  /** Yield to obtain a raw stream. Consume asynchronously and destroy it on early exit. */
+  public openPayload(reference: PayloadReference): Task<Readable> {
+    return this._innerContext.openPayload(reference);
+  }
+
   constructor(private readonly _innerContext: OrchestrationContext) {
     if (!_innerContext) {
       throw new Error("WorkflowContext cannot be undefined");
