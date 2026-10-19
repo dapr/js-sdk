@@ -13,6 +13,8 @@ limitations under the License.
 
 export { Task } from "./Task";
 export { CompletableTask } from "./CompletableTask";
+export { TaskCanceledError, TaskTimeoutError } from "./CancellableCompletableTask";
+export type { CancellableTask } from "../../../types/workflow/CancellableTask.type";
 export { CompositeTask } from "./CompositeTask";
 export { WhenAllTask } from "./WhenAllTask";
 export { WhenAnyTask } from "./WhenAnyTask";
@@ -32,7 +34,7 @@ export function whenAny<T = any>(tasks: Task<T>[]): WhenAnyTask<T> {
   return new WhenAnyTask(tasks);
 }
 
-export function getName(fn: Function): string {
+export function getName(fn: (...args: never[]) => unknown): string {
   if (!fn) {
     throw new Error("Cannot infer a name from a null or undefined function. Please provide a name explicitly.");
   }

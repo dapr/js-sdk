@@ -16,12 +16,11 @@ import type { WorkflowAction } from "../../../proto/dapr/proto/durabletask/v1/or
 import type { OrchestrationStatus } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import type { TaskFailureDetails } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import { OrchestrationStatus as OrchestrationStatusEnum } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
-import { CompletableTask } from "../task/CompletableTask";
-import { Task } from "../task/Task";
-import { StopIterationError } from "../task/StopIterationError";
+import { CompletableTask, Task, StopIterationError, getName } from "../task";
+import { CancellableCompletableTask, TaskTimeoutError } from "../task/CancellableCompletableTask";
+import type { ExternalEventOptions } from "../../../types/workflow/ExternalEventOptions.type";
 import type { TActivity, TOrchestrator, AnyGenerator } from "./OrchestrationContext";
 import { OrchestrationContext } from "./OrchestrationContext";
-import { getName } from "../task";
 import { newDeterministicGuid } from "../guid/deterministicGuid";
 import type { RetryPolicy } from "../../../types/workflow/RetryPolicy.type";
 import type { ActivityOptions } from "../../../types/workflow/ActivityOptions.type";
@@ -111,6 +110,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     }
 
     this._previousTask = value;
+    await this.resume();
   }
 
   async resume(): Promise<void> {
@@ -118,50 +118,26 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
       throw new Error("The orchestrator generator is not initialized! Was the orchestration history corrupted?");
     }
 
-    if (this._previousTask) {
-      if (this._previousTask.isFailed) {
-        const { done, value } = await this._generator.throw(this._previousTask.getException());
-        if (done) {
-          throw new StopIterationError(value);
-        }
-        if (!(value instanceof Task)) {
-          throw new Error("The orchestrator generator yielded a non-Task object");
-        }
-        this._previousTask = value;
-        if (!this._previousTask.isComplete) {
-          return;
-        }
+    const MAX_ITERATIONS = 100_000;
+    let iterations = 0;
+    while (this._previousTask?.isComplete) {
+      if (++iterations > MAX_ITERATIONS) {
+        throw new Error(
+          `Orchestrator exceeded maximum iteration limit (${MAX_ITERATIONS}). ` +
+            "This likely indicates an infinite loop in the orchestrator function.",
+        );
       }
-      if (this._previousTask.isComplete) {
-        const MAX_ITERATIONS = 100_000;
-        let iterations = 0;
-        for (;;) {
-          if (++iterations > MAX_ITERATIONS) {
-            throw new Error(
-              `Orchestrator exceeded maximum iteration limit (${MAX_ITERATIONS}). ` +
-                "This likely indicates an infinite loop in the orchestrator function.",
-            );
-          }
-
-          const prevResult: unknown = this._previousTask._result;
-          const nextResult: IteratorResult<Task<unknown>, unknown> = await this._generator.next(prevResult);
-          const { done, value } = nextResult;
-
-          if (done) {
-            throw new StopIterationError(value);
-          }
-
-          if (!(value instanceof Task)) {
-            throw new Error("The orchestrator generator yielded a non-Task object");
-          }
-
-          this._previousTask = value;
-
-          if (!this._previousTask.isComplete) {
-            break;
-          }
-        }
+      const nextResult: IteratorResult<Task<unknown>, unknown> = this._previousTask.isFailed
+        ? await this._generator.throw(this._previousTask.getException())
+        : await this._generator.next(this._previousTask._result);
+      const { done, value } = nextResult;
+      if (done) {
+        throw new StopIterationError(value);
       }
+      if (!(value instanceof Task)) {
+        throw new Error("The orchestrator generator yielded a non-Task object");
+      }
+      this._previousTask = value;
     }
   }
 
@@ -237,17 +213,21 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     return ++this._sequenceNumber;
   }
 
-  createTimer(fireAt: Date | number): Task<unknown> {
-    const id = this.nextSequenceNumber();
+  createTimer(fireAt: Date | number): CancellableCompletableTask<void> {
+    return this.scheduleTimer(fireAt);
+  }
 
-    if (!(fireAt instanceof Date)) {
-      fireAt = new Date(this._currentUtcDatetime.getTime() + (fireAt as number) * 1000);
+  private scheduleTimer(
+    fireAt: Date | number,
+    timerTask = new CancellableCompletableTask<void>(),
+  ): CancellableCompletableTask<void> {
+    const fireAtDate = fireAt instanceof Date ? fireAt : new Date(this._currentUtcDatetime.getTime() + fireAt * 1000);
+    if (!Number.isFinite(fireAtDate.getTime())) {
+      throw new RangeError("Timer deadline must be a valid date or a finite duration in seconds");
     }
-
-    const action = newCreateTimerAction(id, fireAt as Date);
+    const id = this.nextSequenceNumber();
+    const action = newCreateTimerAction(id, fireAtDate);
     this._pendingActions[action.id] = action;
-
-    const timerTask = new CompletableTask<unknown>();
     this._pendingTasks[id] = timerTask;
     return timerTask;
   }
@@ -311,9 +291,29 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     return task;
   }
 
-  waitForExternalEvent(name: string): Task<unknown> {
-    const externalEventTask = new CompletableTask<unknown>();
+  waitForExternalEvent(name: string, options?: ExternalEventOptions): CancellableCompletableTask<unknown> {
+    const timeout = options?.timeoutInSeconds;
+    if (
+      timeout !== undefined &&
+      (!Number.isFinite(timeout) ||
+        timeout < 0 ||
+        !Number.isFinite(new Date(this._currentUtcDatetime.getTime() + timeout * 1000).getTime()))
+    ) {
+      throw new RangeError("timeoutInSeconds must be a finite number greater than or equal to 0");
+    }
     const eventName = name.toLowerCase();
+    let timeoutTask: CancellableCompletableTask<void> | undefined;
+    const externalEventTask = new CancellableCompletableTask<unknown>(() => {
+      const tasks = this._pendingEvents[eventName];
+      const index = tasks?.indexOf(externalEventTask) ?? -1;
+      if (index >= 0) {
+        tasks.splice(index, 1);
+      }
+      if (tasks && !tasks.length) {
+        delete this._pendingEvents[eventName];
+      }
+      timeoutTask?.cancel();
+    });
     const eventList = this._receivedEvents[eventName];
 
     if (eventList?.length) {
@@ -329,6 +329,14 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
         this._pendingEvents[eventName] = taskList;
       }
       taskList.push(externalEventTask);
+      if (timeout !== undefined) {
+        timeoutTask = new CancellableCompletableTask<void>(() => {
+          if (!timeoutTask?.isCanceled && !externalEventTask.isComplete) {
+            externalEventTask.reject(new TaskTimeoutError());
+          }
+        });
+        this.scheduleTimer(timeout, timeoutTask);
+      }
     }
 
     return externalEventTask;
@@ -386,7 +394,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
       attempt++;
       const id = this.nextSequenceNumber();
       scheduleAttempt(id, attempt);
-      const attemptTask = new RetryAttemptTask<T>(
+      this._pendingTasks[id] = new RetryAttemptTask<T>(
         (result) => retryTask.complete(result),
         (message, details) => {
           const interval = Math.min(
@@ -408,7 +416,6 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
           this._pendingTasks[timerId] = new RetryDelayTask(runAttempt);
         },
       );
-      this._pendingTasks[id] = attemptTask;
     };
 
     runAttempt();

@@ -11,7 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import type { Task } from "../task/Task";
+import type { Task } from "../task";
+import type { CancellableTask } from "../../../types/workflow/CancellableTask.type";
+import type { ExternalEventOptions } from "../../../types/workflow/ExternalEventOptions.type";
 import type { ActivityContext } from "./ActivityContext";
 import type { ActivityOptions } from "../../../types/workflow/ActivityOptions.type";
 import type { ChildWorkflowOptions } from "../../../types/workflow/ChildWorkflowOptions.type";
@@ -30,7 +32,7 @@ export abstract class OrchestrationContext {
   abstract get currentUtcDateTime(): Date;
   abstract get isReplaying(): boolean;
 
-  abstract createTimer(fireAt: Date | number): Task<unknown>;
+  abstract createTimer(fireAt: Date | number): CancellableTask<void>;
   abstract callActivity<TInput, TOutput>(
     activity: TActivity<TInput, TOutput> | string,
     input?: TInput,
@@ -42,7 +44,7 @@ export abstract class OrchestrationContext {
     instanceId?: string,
     options?: ChildWorkflowOptions,
   ): Task<TOutput>;
-  abstract waitForExternalEvent(name: string): Task<unknown>;
+  abstract waitForExternalEvent(name: string, options?: ExternalEventOptions): CancellableTask<unknown>;
   abstract continueAsNew(newInput: unknown, saveEvents: boolean): void;
   abstract setCustomStatus(status: unknown): void;
   abstract sendEvent(instanceId: string, eventName: string, payload: unknown): void;

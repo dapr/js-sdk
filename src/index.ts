@@ -49,7 +49,8 @@ import { RetryPolicy } from "./types/workflow/RetryPolicy.type";
 import { ActivityOptions } from "./types/workflow/ActivityOptions.type";
 import { ChildWorkflowOptions } from "./types/workflow/ChildWorkflowOptions.type";
 import { HistoryPropagationScope } from "./proto/dapr/proto/durabletask/v1/orchestration_pb";
-import { Task } from "./workflow/engine/task/Task";
+import { Task, TaskCanceledError, TaskTimeoutError } from "./workflow/engine/task";
+import { ExternalEventOptions } from "./types/workflow/ExternalEventOptions.type";
 import { WorkflowFailureDetails } from "./workflow/client/WorkflowFailureDetails";
 import { WorkflowState } from "./workflow/client/WorkflowState";
 import {
@@ -93,6 +94,9 @@ export {
   ChildWorkflowOptions,
   HistoryPropagationScope,
   Task,
+  TaskCanceledError,
+  TaskTimeoutError,
+  ExternalEventOptions,
   WorkflowFailureDetails,
   WorkflowState,
   WorkflowRuntimeStatus,
@@ -101,3 +105,4 @@ export {
 };
 
 export type { PropagatedHistory, PropagatedHistoryEntry } from "./workflow/runtime/PropagatedHistory";
+export type { CancellableTask } from "./types/workflow/CancellableTask.type";
