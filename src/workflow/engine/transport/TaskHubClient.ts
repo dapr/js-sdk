@@ -49,6 +49,7 @@ import type {
 import type { BinaryStoreWorkflowPayloadResolver } from "../../payloads/BinaryStoreWorkflowPayloadResolver";
 import { WorkflowPayloadHandler } from "../../payloads/WorkflowPayloadHandler";
 import { PayloadKind, PayloadSite } from "../../payloads/BinaryStorePayloadOptions";
+import { getWorkflowTraceContext } from "../worker/WorkflowTrace";
 
 export class OrchestrationState {
   constructor(
@@ -140,6 +141,7 @@ export class TaskHubClient {
     const req = create(CreateInstanceRequestSchema, {
       name,
       instanceId: instanceId ?? randomUUID(),
+      parentTraceContext: getWorkflowTraceContext(),
     });
 
     if (input !== undefined) {
