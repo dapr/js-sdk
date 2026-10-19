@@ -21,9 +21,8 @@ import {
   QueryStateRequestSchema,
   SaveStateRequestSchema,
   TransactionalStateOperationSchema,
-} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+} from "../../../proto/dapr/proto/runtime/v1/state_pb";
 import {
-  Etag,
   EtagSchema,
   StateItem,
   StateItemSchema,

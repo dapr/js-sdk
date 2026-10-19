@@ -31,6 +31,7 @@ import "dapr/proto/runtime/v1/crypto.proto";
 import "dapr/proto/runtime/v1/workflow.proto";
 import "dapr/proto/runtime/v1/jobs.proto";
 import "dapr/proto/runtime/v1/ai.proto";
+import "dapr/proto/runtime/v1/binarystore.proto";
 
 option csharp_namespace = "Dapr.Client.Autogen.Grpc.v1";
 option java_outer_classname = "DaprProtos";
@@ -104,17 +105,31 @@ service Dapr {
 
   rpc ListActorReminders(ListActorRemindersRequest) returns (ListActorRemindersResponse) {}
 
+  // Lists the timers registered on this host for an actor.
+  rpc ListActorTimers(ListActorTimersRequest) returns (ListActorTimersResponse) {}
+
   // Gets the state for a specific actor.
   rpc GetActorState(GetActorStateRequest) returns (GetActorStateResponse) {}
 
   // Gets an actor reminder.
   rpc GetActorReminder(GetActorReminderRequest) returns (GetActorReminderResponse) {}
 
+  // Gets a timer registered on this host for an actor.
+  rpc GetActorTimer(GetActorTimerRequest) returns (GetActorTimerResponse) {}
+
   // Executes state transactions for a specified actor
   rpc ExecuteActorStateTransaction(ExecuteActorStateTransactionRequest) returns (google.protobuf.Empty) {}
 
   // InvokeActor calls a method on an actor.
   rpc InvokeActor (InvokeActorRequest) returns (InvokeActorResponse) {}
+
+  // SubscribeActorEventsAlpha1 is the app-initiated stream over which an
+  // actor host receives invocation, reminder, timer, and deactivation
+  // callbacks from Dapr. The first message the app sends must be a
+  // SubscribeActorEventsRequestInitialAlpha1 registering the actor types
+  // it hosts. Apps using this RPC do not need to expose a server port for
+  // actor callbacks.
+  rpc SubscribeActorEventsAlpha1(stream SubscribeActorEventsRequestAlpha1) returns (stream SubscribeActorEventsResponseAlpha1) {}
 
   // GetConfiguration gets configuration from configuration store.
   rpc GetConfigurationAlpha1(GetConfigurationRequest) returns (GetConfigurationResponse) {}
@@ -232,24 +247,61 @@ service Dapr {
   // Shutdown the sidecar
   rpc Shutdown (ShutdownRequest) returns (google.protobuf.Empty) {}
 
+  // Deprecated: Create and schedule a job
+  rpc ScheduleJobAlpha1(ScheduleJobRequest) returns (ScheduleJobResponse) {
+    option deprecated = true;
+  }
+
   // Create and schedule a job
-  rpc ScheduleJobAlpha1(ScheduleJobRequest) returns (ScheduleJobResponse) {}
+  rpc ScheduleJob(ScheduleJobRequest) returns (ScheduleJobResponse) {}
+
+  // Deprecated: Gets a scheduled job
+  rpc GetJobAlpha1(GetJobRequest) returns (GetJobResponse) {
+    option deprecated = true;
+  }
 
   // Gets a scheduled job
-  rpc GetJobAlpha1(GetJobRequest) returns (GetJobResponse) {}
+  rpc GetJob(GetJobRequest) returns (GetJobResponse) {}
+
+  // Deprecated: Delete a job
+  rpc DeleteJobAlpha1(DeleteJobRequest) returns (DeleteJobResponse) {
+    option deprecated = true;
+  }
 
   // Delete a job
-  rpc DeleteJobAlpha1(DeleteJobRequest) returns (DeleteJobResponse) {}
+  rpc DeleteJob(DeleteJobRequest) returns (DeleteJobResponse) {}
 
-  rpc DeleteJobsByPrefixAlpha1(DeleteJobsByPrefixRequestAlpha1) returns (DeleteJobsByPrefixResponseAlpha1) {}
+  // Deprecated: Delete jobs by name prefix
+  rpc DeleteJobsByPrefixAlpha1(DeleteJobsByPrefixRequestAlpha1) returns (DeleteJobsByPrefixResponseAlpha1) {
+    option deprecated = true;
+  }
 
-  rpc ListJobsAlpha1(ListJobsRequestAlpha1) returns (ListJobsResponseAlpha1) {}
+  // Delete jobs by name prefix
+  rpc DeleteJobsByPrefix(DeleteJobsByPrefixRequest) returns (DeleteJobsByPrefixResponse) {}
+
+  // Deprecated: List all jobs
+  rpc ListJobsAlpha1(ListJobsRequestAlpha1) returns (ListJobsResponseAlpha1) {
+    option deprecated = true;
+  }
+
+  // List all jobs
+  rpc ListJobs(ListJobsRequest) returns (ListJobsResponse) {}
 
   // Converse with a LLM service
   rpc ConverseAlpha1(ConversationRequest) returns (ConversationResponse) {}
 
   // Converse with a LLM service via alpha2 api
   rpc ConverseAlpha2(ConversationRequestAlpha2) returns (ConversationResponseAlpha2) {}
+
+  // Stores a binary file using a streaming request. The first message must
+  // contain the options; subsequent messages carry the file content as chunks.
+  rpc SetBinaryFileAlpha1(stream SetBinaryFileRequestAlpha1) returns (SetBinaryFileResponseAlpha1) {}
+
+  // Retrieves a binary file as a stream of chunks.
+  rpc GetBinaryFileAlpha1(GetBinaryFileRequestAlpha1) returns (stream GetBinaryFileResponseAlpha1) {}
+
+  // Deletes a binary file.
+  rpc DeleteBinaryFileAlpha1(DeleteBinaryFileRequestAlpha1) returns (DeleteBinaryFileResponseAlpha1) {}
 }
 
 // ShutdownRequest is the request for Shutdown.

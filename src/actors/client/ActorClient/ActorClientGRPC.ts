@@ -22,8 +22,8 @@ import {
   TransactionalActorStateOperationSchema,
   UnregisterActorReminderRequestSchema,
   UnregisterActorTimerRequestSchema,
-  GetMetadataRequestSchema,
-} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+} from "../../../proto/dapr/proto/runtime/v1/actors_pb";
+import { GetMetadataRequestSchema } from "../../../proto/dapr/proto/runtime/v1/metadata_pb";
 import GRPCClient from "../../../implementation/Client/GRPCClient/GRPCClient";
 import { OperationType } from "../../../types/Operation.type";
 import { ActorReminderType } from "../../../types/ActorReminder.type";
