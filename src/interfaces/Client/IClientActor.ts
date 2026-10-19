@@ -101,6 +101,23 @@ export default interface IClientActor {
   registerActorReminder(actorType: string, actorId: ActorId, name: string, reminder: ActorReminderType): Promise<void>;
 
   /**
+   * Retrieves the configuration of a registered actor reminder.
+   *
+   * @param actorType - The actor type registered in the Dapr runtime.
+   * @param actorId - The unique identifier for the actor instance.
+   * @param name - The name of the reminder to retrieve.
+   * @returns The stored data and timing configuration as Temporal.Duration values.
+   * Absolute due times and expiration timestamps are returned as durations relative to retrieval time;
+   * ttl is the remaining lifetime, not the originally registered TTL. Fields omitted by the runtime
+   * remain undefined; some scheduler-backed runtimes omit ttl even for expiring reminders.
+   * @throws Rejects on sidecar errors (including a missing reminder), malformed responses, or
+   * schedules that cannot be represented as Temporal.Duration (such as cron or repetition-count periods).
+   *
+   * @see https://docs.dapr.io/reference/api/actors_api/#get-actor-reminder
+   */
+  getActorReminder(actorType: string, actorId: ActorId, name: string): Promise<ActorReminderType>;
+
+  /**
    * Unregisters a previously registered actor reminder.
    *
    * @param actorType - The actor type registered in the Dapr runtime.

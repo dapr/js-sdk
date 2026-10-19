@@ -28,11 +28,23 @@ For **building** a new version, we:
 
 - update the version in `package.json` in the repo root, e.g. `3.4.0` for a final releaes or `3.4.0-rc.1` for a pre-release
 - run `npm install` again to refresh lock file (it should now be dirty and part of the change list)
-- verify the dapr runtime and versions in [./scripts/fetch-proto.sh](./scripts/fetch-proto.sh) and update if necessary
-- run `./scripts/fetch-proto.sh` from the repo root to regenerate protos to match runtime
-- verify [.github/workflows/test-e2e.yml](.github/workflows/test-e2e.yml) env variables, especially the Dapr and Node versions to test against
+- verify the Dapr revision in [scripts/fetch-proto.js](../scripts/fetch-proto.js) and update if necessary
+- run `node scripts/fetch-proto.js` from the repo root to sync the common, external runtime, and durabletask protos, then `npx buf generate` to regenerate bindings
+- verify [build.yml](../.github/workflows/build.yml) env variables, especially the Dapr and Node versions to test against
 
 PR this change into the right release branch, e.g. `release-3.4.0`. Merging to `master` branch should happen last.
+
+The proto snapshots are pinned to dapr/dapr commit `6801e6d54e908e0f7625e2a467d40359c3eb77d6`
+and dapr/durabletask-protobuf commit `89e5df3ffbbac9ac043997b109718db2c2b182b6`.
+To fetch another tag, branch, or commit, set `DAPR_VERSION` before running the fetcher
+(for example, `$env:DAPR_VERSION = "master"` in PowerShell).
+The fetcher updates both `dapr/proto` and the packaged sources in `src/proto/dapr/proto`,
+and only retrieves Dapr's `common/v1/common.proto`, `runtime/v1/*.proto`, and
+the durabletask definitions from `dapr/durabletask-protobuf`. Set `DURABLETASK_VERSION`
+to override the durabletask revision. Durabletask imports are rewritten to the local
+`dapr/proto/durabletask/v1` path.
+Bindings are generated with Protobuf-ES v2, which includes the service descriptors
+used by ConnectRPC v2; separate legacy gRPC and ConnectRPC v1 bindings are not needed.
 
 A custom script is utilized here since we have 2 libraries in one for HTTP and gRPC
 
@@ -43,7 +55,7 @@ For **publishing** the package, we simply cut a new release by:
   - for a pre-release it should look like `v3.4.0-rc.1` and mark it as a pre-release
 - verify the package is now uploaded to [https://www.npmjs.com/package/@dapr/dapr](https://www.npmjs.com/package/@dapr/dapr) and shows the new version
 
-Publishing is automated in the CI/CD pipeline. Each time a version is release (GitHub ref starting with `refs/tags/v`) then the pipeline will deploy the package as described in [build.yml](./.github/workflows/build.yml).
+Publishing is automated in the CI/CD pipeline. Each time a version is release (GitHub ref starting with `refs/tags/v`) then the pipeline will deploy the package as described in [build.yml](../.github/workflows/build.yml).
 
 ## Running Tests
 
@@ -69,12 +81,29 @@ npm run test:e2e:grpc
 npm run test:e2e:http
 ```
 
+Binary Store integration tests cover HTTP and gRPC against an authenticated
+sidecar and the `BinaryStoreHarness` from `@dapr/testcontainer-node`. The harness
+manages its own sidecar and in-memory component; its independent HTTP helpers
+seed files for SDK downloads and verify SDK uploads, overwrites, and deletes.
+The tests exercise the SDK in this checkout rather than the harness's published
+SDK dependency, including binary data, empty files, and streams larger than 4 MiB.
+They require Docker and Dapr runtime 1.19 or later (1.19.0-rc.3 or later for
+prereleases):
+
+```powershell
+$env:DAPR_RUNTIME_VERSION = "1.19.0-rc.4"
+npm run test:e2e:binarystore
+```
+
+They are part of `npm run test:e2e:all` and skip older runtime versions.
+The Binary Store unit tests are included in `test:unit:http` and `test:unit:grpc`.
+
 ## Setup GitHub actions
 
 1. Fork the [js-sdk](https://github.com/dapr/js-sdk) repo to your GitHub account.
-1. Go to `Settings` in the forked repo and click on `Secrets` -> `Action`:
+2. Go to `Settings` in the forked repo and click on `Secrets` -> `Action`:
    ![GitHub Settings](./assets/github_setting.png)
-1. Add secret variables for Dapr CI
+3. Add secret variables for Dapr CI
 
 | Secret         | Value                                                                                                                                                | Usage                                                                                                                      |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |

@@ -19,6 +19,7 @@ import { ConnectError } from "@connectrpc/connect";
 import {
   TaskHubSidecarService,
   GetWorkItemsRequestSchema,
+  WorkerCapability,
   type WorkItem,
   type WorkflowRequest,
   type ActivityRequest,
@@ -33,6 +34,8 @@ import { OrchestrationExecutor } from "../worker/OrchestrationExecutor";
 import { ActivityExecutor } from "../worker/ActivityExecutor";
 import { newCompleteWorkflowAction, newFailureDetails } from "../worker/protoHelpers";
 import { Logger } from "../../../logger/Logger";
+import { IDaprSerializer } from "../../../serialization/IDaprSerializer";
+import { serializeWorkflowValue } from "../../../serialization/Serialization.util";
 import { type GrpcChannelOptions, mapGrpcOptions } from "../../../types/workflow/WorkflowClientOption";
 
 export class TaskHubWorker {
@@ -41,9 +44,12 @@ export class TaskHubWorker {
   private readonly _registry: Registry;
 
   private _isRunning = false;
+  private _isReady = false;
   private _stopWorker = false;
   private _activeWorkItems = 0;
   private _workItemStreamController?: AbortController;
+  private _resolveReady?: () => void;
+  private _rejectReady?: (error: unknown) => void;
 
   constructor(
     hostAddress: string,
@@ -51,6 +57,7 @@ export class TaskHubWorker {
     useTLS = false,
     maxMessageSize = 128 * 1024 * 1024,
     grpcOptions?: GrpcChannelOptions,
+    private readonly serializer?: IDaprSerializer,
   ) {
     this._registry = new Registry();
 
@@ -80,18 +87,34 @@ export class TaskHubWorker {
     return this._registry;
   }
 
+  get isReady(): boolean {
+    return this._isReady;
+  }
+
   async start(): Promise<void> {
     if (this._isRunning) {
       throw new Error("The worker is already running.");
     }
 
     this._isRunning = true;
+    this._isReady = false;
     this._stopWorker = false;
+
+    const ready = new Promise<void>((resolve, reject) => {
+      this._resolveReady = resolve;
+      this._rejectReady = reject;
+    });
 
     this.internalRunWorker().catch((err) => {
       this.logger.error("Worker failed:", err);
       this._isRunning = false;
+      this._isReady = false;
+      this._rejectReady?.(err);
+      this._resolveReady = undefined;
+      this._rejectReady = undefined;
     });
+
+    await ready;
   }
 
   private async internalRunWorker(): Promise<void> {
@@ -103,25 +126,35 @@ export class TaskHubWorker {
     while (!this._stopWorker) {
       try {
         await this.client.hello(create(EmptySchema));
+        if (this._stopWorker) return;
+        // Only an unreachable sidecar on startup is fatal. Once connected,
+        // stream errors (a sidecar restart) must be retried.
+        isFirstAttempt = false;
 
         this.logger.info("Connected to sidecar. Waiting for work items...");
 
         const streamController = new AbortController();
         this._workItemStreamController = streamController;
-        const stream = this.client.getWorkItems(create(GetWorkItemsRequestSchema), {
-          signal: streamController.signal,
-        });
+        const stream = this.client.getWorkItems(
+          create(GetWorkItemsRequestSchema, { capabilities: [WorkerCapability.HEALTH_PING] }),
+          { signal: streamController.signal },
+        );
+        this.markReady();
         retryCount = 0;
 
         try {
           for await (const workItem of stream) {
             if (this._stopWorker) break;
+            // Health pings only keep the stream alive through idle proxies; they carry no work.
+            if (workItem.request.case === "healthPing") continue;
+
             // Concurrency is admitted by the Dapr runtime (workflow.maxConcurrent*Invocations), so every
             // work item is dispatched as it arrives. A work item that is not executed stays registered
             // as in flight on this stream, stalling its workflow until the stream reconnects.
             this.dispatchWorkItem(workItem);
           }
         } finally {
+          this._isReady = false;
           if (this._workItemStreamController === streamController) {
             this._workItemStreamController = undefined;
           }
@@ -144,8 +177,6 @@ export class TaskHubWorker {
         }
         this.logger.info("Connection will be retried...");
       }
-
-      isFirstAttempt = false;
 
       const delay = Math.min(BASE_DELAY_MS * Math.pow(2, retryCount), MAX_DELAY_MS);
       const jitter = delay * 0.5 * Math.random();
@@ -194,13 +225,20 @@ export class TaskHubWorker {
     let res: WorkflowResponse;
 
     try {
-      const executor = new OrchestrationExecutor(this._registry);
-      const result = await executor.execute(instanceId, req.pastEvents, req.newEvents);
+      const executor = new OrchestrationExecutor(this._registry, this.serializer);
+      const result = await executor.execute(
+        instanceId,
+        req.pastEvents,
+        req.newEvents,
+        req.router,
+        req.propagatedHistory,
+      );
 
       res = create(WorkflowResponseSchema, {
         instanceId,
         actions: result.actions,
-        customStatus: result.customStatus != null ? JSON.stringify(result.customStatus) : undefined,
+        customStatus:
+          result.customStatus != null ? serializeWorkflowValue(result.customStatus, this.serializer) : undefined,
         completionToken,
       });
     } catch (e: unknown) {
@@ -241,8 +279,15 @@ export class TaskHubWorker {
     let res: ActivityResponse;
 
     try {
-      const executor = new ActivityExecutor(this._registry);
-      const result = await executor.execute(instanceId, req.name, req.taskId, req.input);
+      const executor = new ActivityExecutor(this._registry, this.serializer);
+      const result = await executor.execute(
+        instanceId,
+        req.name,
+        req.taskId,
+        req.input,
+        req.propagatedHistory,
+        req.taskExecutionId,
+      );
 
       res = create(ActivityResponseSchema, {
         instanceId,
@@ -265,7 +310,9 @@ export class TaskHubWorker {
       await this.client.completeActivityTask(res);
     } catch (e: unknown) {
       this.logger.error(
-        `Failed to deliver activity response for '${req.name}#${req.taskId}' of orchestration ID '${instanceId}': ${(e as Error)?.message}`,
+        `Failed to deliver activity response for '${req.name}#${req.taskId}' of orchestration ID '${instanceId}': ${
+          (e as Error)?.message
+        }`,
       );
     }
   }
@@ -276,6 +323,10 @@ export class TaskHubWorker {
     }
 
     this._stopWorker = true;
+    this._isReady = false;
+    this._rejectReady?.(new Error("The worker stopped before becoming ready."));
+    this._resolveReady = undefined;
+    this._rejectReady = undefined;
     this._workItemStreamController?.abort();
 
     const drainTimeoutMs = 30000;
@@ -293,6 +344,13 @@ export class TaskHubWorker {
     }
 
     this._isRunning = false;
+  }
+
+  private markReady(): void {
+    this._isReady = true;
+    this._resolveReady?.();
+    this._resolveReady = undefined;
+    this._rejectReady = undefined;
   }
 }
 

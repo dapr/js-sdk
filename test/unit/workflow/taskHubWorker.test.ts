@@ -11,8 +11,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { TaskHubWorker } from "../../../src/workflow/engine/transport/TaskHubWorker";
-import type { WorkItem } from "../../../src/proto/dapr/proto/durabletask/v1/orchestrator_service_pb";
+import { TaskHubWorker } from "../../../src/workflow/engine";
+import { create } from "@bufbuild/protobuf";
+import {
+  type GetWorkItemsRequest,
+  WorkItemSchema,
+  WorkerCapability,
+  type WorkItem,
+} from "../../../src/proto/dapr/proto/durabletask/v1/orchestrator_service_pb";
+import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
+import { CustomSerializer } from "../../fixtures/CustomSerializer";
 
 /** A work-item stream the test feeds item by item; it ends when aborted or ended. */
 class FakeWorkItemStream {
@@ -59,6 +67,9 @@ const workflowItem = (instanceId: string) =>
     completionToken: "",
   } as unknown as WorkItem);
 
+const healthPingItem = () =>
+  ({ request: { case: "healthPing", value: {} }, completionToken: "" } as unknown as WorkItem);
+
 /** Lets the worker's stream loop and promise callbacks run. */
 const settle = async (rounds = 5) => {
   for (let i = 0; i < rounds; i++) {
@@ -73,9 +84,12 @@ const settle = async (rounds = 5) => {
 async function startWorker() {
   const worker = new TaskHubWorker("localhost:50001");
   const stream = new FakeWorkItemStream();
+  const getWorkItems = jest.fn((_req: GetWorkItemsRequest, opts?: { signal?: AbortSignal }) =>
+    stream.iterate(opts?.signal),
+  );
   (worker as unknown as { client: unknown }).client = {
     hello: jest.fn().mockResolvedValue({}),
-    getWorkItems: jest.fn((_req: unknown, opts?: { signal?: AbortSignal }) => stream.iterate(opts?.signal)),
+    getWorkItems,
     completeOrchestratorTask: jest.fn().mockResolvedValue({}),
     completeActivityTask: jest.fn().mockResolvedValue({}),
   };
@@ -101,10 +115,58 @@ async function startWorker() {
     pending.splice(0).forEach((release) => release());
     await stopped;
   };
-  return { stream, executed, stop };
+  return { stream, executed, stop, getWorkItems };
 }
 
 describe("TaskHubWorker work-item dispatch", () => {
+  it.each([undefined, new CustomSerializer()])(
+    "passes execution keys from work items to activities with serializer %p",
+    async (serializer) => {
+      const worker = new TaskHubWorker("localhost:50001", undefined, false, undefined, undefined, serializer);
+      const stream = new FakeWorkItemStream();
+      const completeActivityTask = jest.fn().mockResolvedValue({});
+      (worker as unknown as { client: unknown }).client = {
+        hello: jest.fn().mockResolvedValue({}),
+        getWorkItems: jest.fn((_req: unknown, opts?: { signal?: AbortSignal }) => stream.iterate(opts?.signal)),
+        completeActivityTask,
+      };
+      const received: (string | undefined)[] = [];
+      worker.registry.addNamedActivity("activity", (inner) => {
+        const ctx = new WorkflowActivityContext(inner);
+        received.push(ctx.getTaskExecutionId());
+        expect(ctx.getWorkflowActivityId()).toBe(0);
+        expect(ctx.getWorkflowInstanceId()).toBe("wf");
+        return "done";
+      });
+      await worker.start();
+      try {
+        for (const taskExecutionId of ["opaque-key", "opaque-key", "different-key", ""]) {
+          stream.push(
+            create(WorkItemSchema, {
+              request: {
+                case: "activityRequest",
+                value: { name: "activity", taskId: 0, workflowInstance: { instanceId: "wf" }, taskExecutionId },
+              },
+            }),
+          );
+        }
+        await settle();
+        expect(received).toEqual(["opaque-key", "opaque-key", "different-key", undefined]);
+        expect(completeActivityTask).toHaveBeenCalledTimes(4);
+        for (const [response] of completeActivityTask.mock.calls) {
+          expect(response).toMatchObject({
+            instanceId: "wf",
+            taskId: 0,
+            result: serializer ? serializer.serialize("done") : '"done"',
+          });
+          expect(response.failureDetails).toBeUndefined();
+        }
+      } finally {
+        await worker.stop();
+      }
+    },
+  );
+
   it("executes every work item as it arrives, without dropping any", async () => {
     const run = await startWorker();
 
@@ -123,6 +185,17 @@ describe("TaskHubWorker work-item dispatch", () => {
 
     expect(run.executed).toContain("workflow:a");
     expect(run.executed).toContain("workflow:b");
+    await run.stop();
+  });
+
+  it("advertises the health ping capability and discards pings without dispatching them", async () => {
+    const run = await startWorker();
+
+    run.stream.push(...Array.from({ length: 150 }, healthPingItem), activityItem(0));
+    await settle();
+
+    expect(run.getWorkItems.mock.calls[0][0].capabilities).toContain(WorkerCapability.HEALTH_PING);
+    expect(run.executed).toEqual(["activity:0"]);
     await run.stop();
   });
 });

@@ -21,8 +21,14 @@ import {
   QueryStateRequestSchema,
   SaveStateRequestSchema,
   TransactionalStateOperationSchema,
-} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
-import { Etag, EtagSchema, StateItem, StateItemSchema, StateOptions, StateOptionsSchema } from "../../../proto/dapr/proto/common/v1/common_pb";
+} from "../../../proto/dapr/proto/runtime/v1/state_pb";
+import {
+  EtagSchema,
+  StateItem,
+  StateItemSchema,
+  StateOptions,
+  StateOptionsSchema,
+} from "../../../proto/dapr/proto/common/v1/common_pb";
 import { KeyValuePairType } from "../../../types/KeyValuePair.type";
 import { OperationType } from "../../../types/Operation.type";
 import { IRequestMetadata } from "../../../types/RequestMetadata.type";
@@ -37,6 +43,7 @@ import { StateSaveOptions } from "../../../types/state/StateSaveOptions.type";
 import { StateDeleteOptions } from "../../../types/state/StateDeleteOptions.type";
 import { StateGetOptions } from "../../../types/state/StateGetOptions.type";
 import { IStateOptions } from "../../../types/state/StateOptions.type";
+import { serializeJsonValue, deserializeJsonValue } from "../../../serialization/Serialization.util";
 
 // https://docs.dapr.io/reference/api/state_api/
 export default class GRPCClientState implements IClientState {
@@ -56,10 +63,12 @@ export default class GRPCClientState implements IClientState {
     for (const stateObject of stateObjects) {
       const si = create(StateItemSchema, {
         key: stateObject.key,
-        value: Buffer.from(
-          typeof stateObject.value === "object" ? JSON.stringify(stateObject.value) : stateObject.value.toString(),
-          "utf-8",
-        ),
+        value: this.client.options.serializer
+          ? Buffer.from(JSON.stringify(serializeJsonValue(stateObject.value, this.client.options.serializer)), "utf-8")
+          : Buffer.from(
+              typeof stateObject.value === "object" ? JSON.stringify(stateObject.value) : stateObject.value.toString(),
+              "utf-8",
+            ),
         etag: stateObject?.etag ? create(EtagSchema, { value: stateObject.etag }) : undefined,
         options: this._configureStateOptions(stateObject?.options),
         metadata: { ...stateObject.metadata, ...options.metadata },
@@ -76,13 +85,19 @@ export default class GRPCClientState implements IClientState {
   async get(storeName: string, key: string, options?: Partial<StateGetOptions>): Promise<KeyValueType | string> {
     const client = await this.client.getClient();
 
-    const res = await client.getState(create(GetStateRequestSchema, {
-      storeName,
-      key,
-      consistency: options?.consistency as any,
-    }));
+    const res = await client.getState(
+      create(GetStateRequestSchema, {
+        storeName,
+        key,
+        consistency: options?.consistency as any,
+      }),
+    );
 
     const resData = Buffer.from(res.data).toString();
+
+    if (this.client.options.serializer && resData !== "") {
+      return deserializeJsonValue<KeyValueType | string>(JSON.parse(resData), this.client.options.serializer);
+    }
 
     try {
       return JSON.parse(resData);
@@ -94,15 +109,29 @@ export default class GRPCClientState implements IClientState {
   async getBulk(storeName: string, keys: string[], options: StateGetBulkOptions = {}): Promise<KeyValueType[]> {
     const client = await this.client.getClient();
 
-    const res = await client.getBulkState(create(GetBulkStateRequestSchema, {
-      storeName,
-      keys,
-      parallelism: options.parallelism ?? Settings.getDefaultStateGetBulkParallelism(),
-      metadata: options.metadata ?? {},
-    }));
+    const res = await client.getBulkState(
+      create(GetBulkStateRequestSchema, {
+        storeName,
+        keys,
+        parallelism: options.parallelism ?? Settings.getDefaultStateGetBulkParallelism(),
+        metadata: options.metadata ?? {},
+      }),
+    );
 
     return res.items.map((i) => {
       const resDataStr = Buffer.from(i.data).toString();
+      if (this.client.options.serializer) {
+        return {
+          key: i.key,
+          data:
+            resDataStr === "" || i.error
+              ? resDataStr
+              : deserializeJsonValue(JSON.parse(resDataStr), this.client.options.serializer),
+          etag: i.etag,
+          error: i.error,
+          metadata: i.metadata,
+        };
+      }
       let data: string;
       try {
         data = JSON.parse(resDataStr);
@@ -120,12 +149,14 @@ export default class GRPCClientState implements IClientState {
   async delete(storeName: string, key: string, options?: StateDeleteOptions): Promise<StateSaveResponseType> {
     const client = await this.client.getClient();
 
-    await client.deleteState(create(DeleteStateRequestSchema, {
-      storeName,
-      key,
-      etag: options?.etag ? create(EtagSchema, { value: options.etag }) : undefined,
-      options: this._configureStateOptions(options),
-    }));
+    await client.deleteState(
+      create(DeleteStateRequestSchema, {
+        storeName,
+        key,
+        etag: options?.etag ? create(EtagSchema, { value: options.etag }) : undefined,
+        options: this._configureStateOptions(options),
+      }),
+    );
 
     return {};
   }
@@ -138,7 +169,10 @@ export default class GRPCClientState implements IClientState {
     const ops = operations.map((o) => {
       const si = create(StateItemSchema, {
         key: o.request.key,
-        value: Buffer.from(o.request.value || "", "utf-8"),
+        value:
+          this.client.options.serializer && o.operation === "upsert"
+            ? Buffer.from(JSON.stringify(serializeJsonValue(o.request.value, this.client.options.serializer)), "utf-8")
+            : Buffer.from(o.request.value || "", "utf-8"),
         etag: o.request.etag ? create(EtagSchema, { value: o.request.etag.toString() }) : undefined,
         options: this._configureStateOptions(o.request?.options),
       });
@@ -151,20 +185,24 @@ export default class GRPCClientState implements IClientState {
 
     const client = await this.client.getClient();
 
-    await client.executeStateTransaction(create(ExecuteStateTransactionRequestSchema, {
-      storeName,
-      operations: ops,
-      metadata: metadata ? { ...metadata } : {},
-    }));
+    await client.executeStateTransaction(
+      create(ExecuteStateTransactionRequestSchema, {
+        storeName,
+        operations: ops,
+        metadata: metadata ? { ...metadata } : {},
+      }),
+    );
   }
 
   async query(storeName: string, query: StateQueryType): Promise<StateQueryResponseType> {
     const client = await this.client.getClient();
 
-    const res = await client.queryStateAlpha1(create(QueryStateRequestSchema, {
-      storeName,
-      query: JSON.stringify(query),
-    }));
+    const res = await client.queryStateAlpha1(
+      create(QueryStateRequestSchema, {
+        storeName,
+        query: JSON.stringify(query),
+      }),
+    );
 
     if (res.results.length === 0) {
       return {
@@ -176,7 +214,10 @@ export default class GRPCClientState implements IClientState {
     return {
       results: res.results.map((i) => ({
         key: i.key,
-        data: i.data,
+        data:
+          this.client.options.serializer && i.data.length > 0 && !i.error
+            ? deserializeJsonValue(JSON.parse(Buffer.from(i.data).toString()), this.client.options.serializer)
+            : i.data,
         etag: i.etag,
         error: i.error,
       })),

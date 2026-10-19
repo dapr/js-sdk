@@ -11,7 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import type { ActivityContext } from "../engine/context/ActivityContext";
+import type { ActivityContext } from "../engine";
+import { createPropagatedHistoryView, type PropagatedHistoryView } from "./PropagatedHistory";
 
 export default class WorkflowActivityContext {
   constructor(private readonly _innerContext: ActivityContext) {
@@ -24,7 +25,16 @@ export default class WorkflowActivityContext {
     return this._innerContext.orchestrationId;
   }
 
+  public getPropagatedHistory(): PropagatedHistoryView | undefined {
+    return createPropagatedHistoryView(this._innerContext.propagatedHistory);
+  }
+
   public getWorkflowActivityId(): number {
     return this._innerContext.taskId;
+  }
+
+  /** The runtime-supplied execution key, or undefined when the runtime does not supply one. */
+  public getTaskExecutionId(): string | undefined {
+    return this._innerContext.taskExecutionId || undefined;
   }
 }

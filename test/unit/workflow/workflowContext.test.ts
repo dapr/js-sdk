@@ -13,7 +13,7 @@ limitations under the License.
 
 import WorkflowContext from "../../../src/workflow/runtime/WorkflowContext";
 import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
-import { Task } from "../../../src/workflow/engine/task/Task";
+import { Task } from "../../../src";
 
 describe("WorkflowContext", () => {
   let mockInnerContext: any;
@@ -22,6 +22,7 @@ describe("WorkflowContext", () => {
   beforeEach(() => {
     mockInnerContext = {
       instanceId: "test-instance-id",
+      name: "registered-workflow",
       currentUtcDateTime: new Date("2025-01-01T00:00:00Z"),
       isReplaying: false,
       createTimer: jest.fn().mockReturnValue({ isCompleted: false } as Partial<Task<any>>),
@@ -50,6 +51,10 @@ describe("WorkflowContext", () => {
     it("should return the instance ID from inner context", () => {
       expect(ctx.getWorkflowInstanceId()).toBe("test-instance-id");
     });
+  });
+
+  it("returns the registered workflow name from the inner context", () => {
+    expect(ctx.getWorkflowName()).toBe("registered-workflow");
   });
 
   describe("getCurrentUtcDateTime", () => {
@@ -230,7 +235,15 @@ describe("WorkflowContext", () => {
     it("should delegate to inner context", () => {
       ctx.waitForExternalEvent("myEvent");
 
-      expect(mockInnerContext.waitForExternalEvent).toHaveBeenCalledWith("myEvent");
+      expect(mockInnerContext.waitForExternalEvent).toHaveBeenCalledWith("myEvent", undefined);
+    });
+
+    it("should pass durable timeout options and return the cancellable task", () => {
+      const options = { timeoutInSeconds: 30 };
+      expect(ctx.waitForExternalEvent("myEvent", options)).toBe(
+        mockInnerContext.waitForExternalEvent.mock.results[0].value,
+      );
+      expect(mockInnerContext.waitForExternalEvent).toHaveBeenCalledWith("myEvent", options);
     });
   });
 
@@ -243,6 +256,12 @@ describe("WorkflowContext", () => {
 
     it("should support saving events", () => {
       ctx.continueAsNew("new-input", true);
+
+      expect(mockInnerContext.continueAsNew).toHaveBeenCalledWith("new-input", true);
+    });
+
+    it("should preserve events by default", () => {
+      ctx.continueAsNew("new-input");
 
       expect(mockInnerContext.continueAsNew).toHaveBeenCalledWith("new-input", true);
     });

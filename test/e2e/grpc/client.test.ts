@@ -19,7 +19,7 @@ import { Network, StartedNetwork, StartedTestContainer } from "testcontainers";
 import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
 import { CommunicationProtocolEnum, DaprClient, LogLevel } from "../../../src";
 import { SubscribeConfigurationResponse } from "../../../src/types/configuration/SubscribeConfigurationResponse";
-import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runtime/v1/dapr_grpc_pb";
+import { Client as GrpcClient } from "@grpc/grpc-js";
 import {
   startRedisContainer,
   buildStateRedisComponent,
@@ -89,7 +89,7 @@ describe("grpc/client", () => {
 
   describe("proxy", () => {
     it("should throw when attempting to use proxy builder (not supported with ConnectRPC transport)", async () => {
-      await expect(client.proxy.create<DaprClientGrpc>(DaprClientGrpc)).rejects.toThrow(
+      await expect(client.proxy.create<GrpcClient>(GrpcClient)).rejects.toThrow(
         "GRPCClientProxy is not supported with the ConnectRPC transport.",
       );
     });
@@ -98,7 +98,7 @@ describe("grpc/client", () => {
       const oldProcessAppId = process.env?.APP_ID;
       process.env.APP_ID = "test-suite-proxy";
 
-      await expect(client.proxy.create<DaprClientGrpc>(DaprClientGrpc)).rejects.toThrow(
+      await expect(client.proxy.create<GrpcClient>(GrpcClient)).rejects.toThrow(
         "GRPCClientProxy is not supported with the ConnectRPC transport.",
       );
 

@@ -63,6 +63,8 @@ import { Settings } from "../../../utils/Settings.util";
 import { SubscriptionManager } from "../../../pubsub/subscriptionManager";
 import { PubSubSubscriptionsType } from "../../../types/pubsub/PubSubSubscriptions.type";
 
+import type { IDaprSerializer } from "../../../serialization/IDaprSerializer";
+
 export default class GRPCServerImpl {
   private readonly logger: Logger;
   private readonly subscriptionManager: SubscriptionManager;
@@ -70,7 +72,7 @@ export default class GRPCServerImpl {
   handlersInvoke: { [key: string]: DaprInvokerCallbackFunction };
   handlersBindings: { [key: string]: TypeDaprBindingCallback };
 
-  constructor(_server: IServerType, loggerOptions?: LoggerOptions) {
+  constructor(_server: IServerType, loggerOptions?: LoggerOptions, private readonly serializer?: IDaprSerializer) {
     this.logger = new Logger("GRPCServer", "GRPCServerImpl", loggerOptions);
     this.subscriptionManager = new SubscriptionManager();
 
@@ -141,10 +143,15 @@ export default class GRPCServerImpl {
       },
     });
 
-    const res = create(InvokeResponseSchema, { contentType: "application/json" });
+    const res = create(InvokeResponseSchema, { contentType: this.serializer?.contentType ?? "application/json" });
 
-    if (invokeResponseData) {
-      res.data = create(AnySchema, { value: Buffer.from(JSON.stringify(invokeResponseData), "utf-8") });
+    if (invokeResponseData || (this.serializer && invokeResponseData !== undefined)) {
+      res.data = create(AnySchema, {
+        value: Buffer.from(
+          this.serializer ? this.serializer.serialize(invokeResponseData) : JSON.stringify(invokeResponseData),
+          "utf-8",
+        ),
+      });
     }
 
     return res;
@@ -195,7 +202,7 @@ export default class GRPCServerImpl {
       return create(TopicEventResponseSchema);
     }
 
-    const data = deserializeGrpc(request.dataContentType, request.data);
+    const data = deserializeGrpc(request.dataContentType, request.data, this.serializer);
 
     const res = create(TopicEventResponseSchema);
 
@@ -254,10 +261,10 @@ export default class GRPCServerImpl {
     for (const event of request.entries) {
       let data: any;
       if (event.event.case === "bytes") {
-        data = deserializeGrpc(event.contentType, event.event.value);
+        data = deserializeGrpc(event.contentType, event.event.value, this.serializer);
       } else if (event.event.case === "cloudEvent") {
         const cloudEvent = event.event.value;
-        data = deserializeGrpc(cloudEvent.dataContentType, cloudEvent.data);
+        data = deserializeGrpc(cloudEvent.dataContentType, cloudEvent.data, this.serializer);
       }
 
       const res = create(TopicEventBulkResponseEntrySchema);
@@ -362,10 +369,12 @@ export default class GRPCServerImpl {
 
           if (daprConfig?.routes?.rules) {
             for (const ruleItem of daprConfig.routes.rules) {
-              routes.rules.push(create(TopicRuleSchema, {
-                match: ruleItem.match,
-                path: ruleItem.path,
-              }));
+              routes.rules.push(
+                create(TopicRuleSchema, {
+                  match: ruleItem.match,
+                  path: ruleItem.path,
+                }),
+              );
             }
           }
 

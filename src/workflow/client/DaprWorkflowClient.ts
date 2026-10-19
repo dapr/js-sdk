@@ -11,12 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { TaskHubClient } from "../engine/transport/TaskHubClient";
+import { TaskHubClient } from "../engine";
 import { Code, ConnectError } from "@connectrpc/connect";
 import { WorkflowState } from "./WorkflowState";
 import { generateEndpoint, getDaprApiToken, getFunctionName } from "../internal";
 import type { TWorkflow } from "../../types/workflow/Workflow.type";
 import type { WorkflowClientOptions } from "../../types/workflow/WorkflowClientOption";
+import type { HistoryEvent } from "../../proto/dapr/proto/durabletask/v1/history_events_pb";
+import type {
+  RerunWorkflowFromEventOptions,
+  WorkflowInstanceIdPage,
+} from "../../types/workflow/WorkflowManagement.types";
 
 export default class DaprWorkflowClient {
   private readonly _innerClient: TaskHubClient;
@@ -30,6 +35,7 @@ export default class DaprWorkflowClient {
       grpcEndpoint.tls,
       128 * 1024 * 1024,
       options.grpcOptions,
+      options.serializer,
     );
   }
 
@@ -38,46 +44,99 @@ export default class DaprWorkflowClient {
     input?: unknown,
     instanceId?: string,
     startAt?: Date,
+    signal?: AbortSignal,
   ): Promise<string> {
     if (typeof workflow === "string") {
-      return await this._innerClient.scheduleNewOrchestration(workflow, input, instanceId, startAt);
+      return await this._innerClient.scheduleNewOrchestration(workflow, input, instanceId, startAt, signal);
     }
-    return await this._innerClient.scheduleNewOrchestration(getFunctionName(workflow), input, instanceId, startAt);
+    return await this._innerClient.scheduleNewOrchestration(
+      getFunctionName(workflow),
+      input,
+      instanceId,
+      startAt,
+      signal,
+    );
   }
 
-  public async terminateWorkflow(workflowInstanceId: string, output?: unknown): Promise<void> {
-    await this._innerClient.terminateOrchestration(workflowInstanceId, output);
+  public async terminateWorkflow(workflowInstanceId: string, output?: unknown, signal?: AbortSignal): Promise<void> {
+    await this._innerClient.terminateOrchestration(workflowInstanceId, output, signal);
   }
 
+  /**
+   * Gets a snapshot of the current workflow state, or undefined if the instance does not exist.
+   * Compare runtimeStatus with WorkflowRuntimeStatus members, not hard-coded numbers or strings.
+   */
   public async getWorkflowState(
     workflowInstanceId: string,
     getInputsAndOutputs: boolean,
+    signal?: AbortSignal,
   ): Promise<WorkflowState | undefined> {
     try {
-      const state = await this._innerClient.getOrchestrationState(workflowInstanceId, getInputsAndOutputs);
+      const state = await this._innerClient.getOrchestrationState(workflowInstanceId, getInputsAndOutputs, signal);
       if (state !== undefined) {
-        return new WorkflowState(state);
+        return new WorkflowState(state, this._innerClient.serializer);
       }
     } catch (error) {
-      if (isWorkflowInstanceNotFound(error)) {
+      if (!signal?.aborted && isWorkflowInstanceNotFound(error)) {
         return undefined;
       }
       throw error;
     }
   }
 
+  /**
+   * Lists workflow instance IDs, optionally requesting a page using a continuation token.
+   */
+  public async listWorkflowInstanceIds(continuationToken?: string, pageSize?: number): Promise<WorkflowInstanceIdPage> {
+    if (pageSize !== undefined && (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 0xffffffff)) {
+      throw new RangeError("pageSize must be an integer between 1 and 4294967295");
+    }
+
+    return await this._innerClient.listWorkflowInstanceIds(continuationToken, pageSize);
+  }
+
+  /**
+   * Gets the complete execution history for a workflow instance.
+   * Runtime errors, including missing instances, are propagated to the caller.
+   */
+  public async getWorkflowHistory(workflowInstanceId: string): Promise<HistoryEvent[]> {
+    return await this._innerClient.getWorkflowHistory(workflowInstanceId);
+  }
+
+  /**
+   * Creates a new workflow instance by rerunning from an event in an existing instance's history.
+   * Replacement input applies to the activity targeted by the event, not the workflow's original input.
+   * Runtime errors, including missing instances and nonexistent events, are propagated to the caller.
+   */
+  public async rerunWorkflowFromEvent(
+    sourceInstanceId: string,
+    eventId: number,
+    options: RerunWorkflowFromEventOptions = {},
+  ): Promise<string> {
+    if (!Number.isInteger(eventId) || eventId < 0 || eventId > 0xffffffff) {
+      throw new RangeError("eventId must be an integer between 0 and 4294967295");
+    }
+    if (options.newInstanceId !== undefined && options.newInstanceId.length === 0) {
+      throw new TypeError("newInstanceId must not be empty");
+    }
+
+    return await this._innerClient.rerunWorkflowFromEvent(sourceInstanceId, eventId, options);
+  }
+
   public async waitForWorkflowStart(
     workflowInstanceId: string,
     fetchPayloads = true,
     timeoutInSeconds = 60,
+    signal?: AbortSignal,
   ): Promise<WorkflowState | undefined> {
     const state = await this._innerClient.waitForOrchestrationStart(
       workflowInstanceId,
       fetchPayloads,
       timeoutInSeconds,
+      signal,
     );
     if (state !== undefined) {
-      return new WorkflowState(state);
+      return new WorkflowState(state, this._innerClient.serializer);
     }
   }
 
@@ -85,35 +144,42 @@ export default class DaprWorkflowClient {
     workflowInstanceId: string,
     fetchPayloads = true,
     timeoutInSeconds = 60,
+    signal?: AbortSignal,
   ): Promise<WorkflowState | undefined> {
     const state = await this._innerClient.waitForOrchestrationCompletion(
       workflowInstanceId,
       fetchPayloads,
       timeoutInSeconds,
+      signal,
     );
     if (state !== undefined) {
-      return new WorkflowState(state);
+      return new WorkflowState(state, this._innerClient.serializer);
     }
   }
 
-  public async raiseEvent(workflowInstanceId: string, eventName: string, eventPayload?: unknown): Promise<void> {
-    await this._innerClient.raiseOrchestrationEvent(workflowInstanceId, eventName, eventPayload);
+  public async raiseEvent(
+    workflowInstanceId: string,
+    eventName: string,
+    eventPayload?: unknown,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    await this._innerClient.raiseOrchestrationEvent(workflowInstanceId, eventName, eventPayload, signal);
   }
 
-  public async purgeWorkflow(workflowInstanceId: string): Promise<boolean> {
-    const purgeResult = await this._innerClient.purgeOrchestration(workflowInstanceId);
+  public async purgeWorkflow(workflowInstanceId: string, signal?: AbortSignal): Promise<boolean> {
+    const purgeResult = await this._innerClient.purgeOrchestration(workflowInstanceId, signal);
     if (purgeResult !== undefined) {
       return purgeResult.deletedInstanceCount > 0;
     }
     return false;
   }
 
-  public async suspendWorkflow(workflowInstanceId: string, reason?: string): Promise<void> {
-    await this._innerClient.suspendOrchestration(workflowInstanceId, reason);
+  public async suspendWorkflow(workflowInstanceId: string, reason?: string, signal?: AbortSignal): Promise<void> {
+    await this._innerClient.suspendOrchestration(workflowInstanceId, reason, signal);
   }
 
-  public async resumeWorkflow(workflowInstanceId: string, reason?: string): Promise<void> {
-    await this._innerClient.resumeOrchestration(workflowInstanceId, reason);
+  public async resumeWorkflow(workflowInstanceId: string, reason?: string, signal?: AbortSignal): Promise<void> {
+    await this._innerClient.resumeOrchestration(workflowInstanceId, reason, signal);
   }
 
   public async stop(): Promise<void> {

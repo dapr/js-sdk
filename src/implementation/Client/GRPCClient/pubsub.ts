@@ -20,7 +20,7 @@ import {
   BulkPublishRequestSchema,
   BulkPublishResponse,
   PublishEventRequestSchema,
-} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+} from "../../../proto/dapr/proto/runtime/v1/pubsub_pb";
 import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 import { Logger } from "../../../logger/Logger";
 import * as SerializerUtil from "../../../utils/Serializer.util";
@@ -105,8 +105,8 @@ export default class GRPCClientPubSub implements IClientPubSub {
       metadata: options.metadata ?? {},
     };
 
-    if (data) {
-      const serialized = SerializerUtil.serializeGrpc(data, options.contentType);
+    if (data || (this.client.options.serializer && data !== undefined)) {
+      const serialized = SerializerUtil.serializeGrpc(data, options.contentType, this.client.options.serializer);
       req.data = serialized.serializedData;
       req.dataContentType = serialized.contentType;
     }
@@ -128,9 +128,17 @@ export default class GRPCClientPubSub implements IClientPubSub {
     messages: PubSubBulkPublishMessage[],
     metadata?: KeyValueType | undefined,
   ): Promise<PubSubBulkPublishResponse> {
-    const entries = getBulkPublishEntries(messages);
+    const serializer = this.client.options.serializer;
+    const entries = getBulkPublishEntries(
+      messages,
+      serializer ? serializer.contentType ?? "application/json" : undefined,
+    );
     const serializedEntries = entries.map((entry) => {
-      const serialized = SerializerUtil.serializeGrpc(entry.event);
+      const serialized = SerializerUtil.serializeGrpc(
+        entry.event,
+        serializer ? entry.contentType : undefined,
+        serializer,
+      );
       return create(BulkPublishRequestEntrySchema, {
         entryId: entry.entryID,
         event: serialized.serializedData,

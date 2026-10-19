@@ -19,6 +19,9 @@ import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
 import * as NodeJSUtil from "../../../src/utils/NodeJS.util";
 import ActorId from "../../../src/actors/ActorId";
 import ActorProxyBuilder from "../../../src/actors/client/ActorProxyBuilder";
+import ActorClient from "../../../src/actors/client/ActorClient/ActorClient";
+import { Temporal } from "@js-temporal/polyfill";
+import { Code } from "@connectrpc/connect";
 import ActorRuntime from "../../../src/actors/runtime/ActorRuntime";
 import AbstractActor from "../../../src/actors/runtime/AbstractActor";
 import Class from "../../../src/types/Class";
@@ -46,6 +49,7 @@ import {
   DAPR_TEST_SCHEDULER_IMAGE,
   runWithCleanupErrorSuppression,
 } from "../helpers/containers";
+import { DAPR_TEST_VERSION, evaluateMinimumDaprRuntime } from "../helpers/runtimeVersion";
 
 const serverHost = "127.0.0.1";
 const serverPort = "3001";
@@ -179,8 +183,9 @@ describe("http/actors", () => {
   // Note: it can take > 5s so increase timeout as we are testing reminders and timers
   afterAll(async () => {
     await runWithCleanupErrorSuppression(async () => {
-      await server.stop();
+      // Keep the app available for actor callbacks until the sidecar has stopped.
       await daprContainer.stop();
+      await server.stop();
       await redisContainer.stop();
       await network.stop();
     });
@@ -212,7 +217,7 @@ describe("http/actors", () => {
     });
 
     it("should not be able to create an actorId with an empty string", () => {
-      expect(() => new ActorId("")).toThrowError("ActorId cannot be empty");
+      expect(() => new ActorId("")).toThrow("ActorId cannot be empty");
     });
 
     it("should be able to create an actorId with url unsafe characters like '/'", () => {
@@ -429,6 +434,106 @@ describe("http/actors", () => {
   });
 
   describe("reminders", () => {
+    const gate = evaluateMinimumDaprRuntime("1.17.0", DAPR_TEST_VERSION);
+    const describeGetActorReminder = gate.supported ? describe : describe.skip;
+
+    describeGetActorReminder.each([CommunicationProtocolEnum.HTTP, CommunicationProtocolEnum.GRPC])(
+      `getActorReminder over %s (${gate.reason ?? DAPR_TEST_VERSION})`,
+      (protocol) => {
+        let reader: ActorClient;
+        let writer: ActorClient;
+
+        beforeAll(() => {
+          const httpOptions = {
+            daprHost: daprContainer.getHost(),
+            daprPort: daprContainer.getHttpPort().toString(),
+            communicationProtocol: CommunicationProtocolEnum.HTTP,
+            isKeepAlive: false,
+          };
+          writer = new ActorClient(
+            httpOptions.daprHost,
+            httpOptions.daprPort,
+            CommunicationProtocolEnum.HTTP,
+            httpOptions,
+          );
+          const options = {
+            ...httpOptions,
+            daprPort: (protocol === CommunicationProtocolEnum.GRPC
+              ? daprContainer.getGrpcPort()
+              : daprContainer.getHttpPort()
+            ).toString(),
+            communicationProtocol: protocol,
+          };
+          reader = new ActorClient(options.daprHost, options.daprPort, protocol, options);
+        });
+
+        it("retrieves a registered reminder's data and the timing fields exposed by the runtime", async () => {
+          const actorId = ActorId.createRandomId();
+          const actorType = DemoActorSayImpl.name;
+          const name = "get-reminder";
+          const data = { nested: [false, 0, "value"], text: "YWJj" };
+          await writer.actor.registerActorReminder(actorType, actorId, name, {
+            dueTime: Temporal.Duration.from({ minutes: 1 }),
+            period: Temporal.Duration.from({ seconds: 90 }),
+            ttl: Temporal.Duration.from({ minutes: 5 }),
+            data,
+          });
+          try {
+            const raw = await fetch(
+              `http://${daprContainer.getHost()}:${daprContainer.getHttpPort()}/v1.0/actors/${actorType}/${actorId.getURLSafeId()}/reminders/${name}`,
+            );
+            expect(raw.status).toBe(200);
+            const configuration: { ttl?: string } = await raw.json();
+            const before = Temporal.Now.instant();
+            const result = await reader.actor.getActorReminder(actorType, actorId, name);
+            const after = Temporal.Now.instant();
+            expect(result.data).toEqual(data);
+            expect(result.dueTime).toBeInstanceOf(Temporal.Duration);
+            expect(result.dueTime?.total("seconds")).toBe(60);
+            expect(result.period?.total("seconds")).toBe(90);
+            if (configuration.ttl === undefined) {
+              expect(result.ttl).toBeUndefined();
+            } else {
+              const expiration = Temporal.Instant.from(configuration.ttl);
+              expect(result.ttl).toBeInstanceOf(Temporal.Duration);
+              expect(result.ttl?.total("nanoseconds")).toBeGreaterThanOrEqual(
+                expiration.since(after).total("nanoseconds"),
+              );
+              expect(result.ttl?.total("nanoseconds")).toBeLessThanOrEqual(
+                expiration.since(before).total("nanoseconds"),
+              );
+            }
+          } finally {
+            await writer.actor.unregisterActorReminder(actorType, actorId, name);
+          }
+          const missing = reader.actor.getActorReminder(actorType, actorId, name);
+          if (protocol === CommunicationProtocolEnum.GRPC) {
+            await expect(missing).rejects.toMatchObject({ code: Code.NotFound });
+          } else {
+            await expect(missing).rejects.toThrow('"status":404');
+          }
+        });
+
+        it("retrieves a one-time reminder without optional data or TTL", async () => {
+          const actorId = ActorId.createRandomId();
+          const actorType = DemoActorSayImpl.name;
+          const name = "get-once";
+          await reader.actor.registerActorReminder(actorType, actorId, name, {
+            dueTime: Temporal.Duration.from({ minutes: 1 }),
+          });
+          try {
+            const result = await reader.actor.getActorReminder(actorType, actorId, name);
+            expect(result.dueTime?.total("seconds")).toBe(60);
+            expect(result.period?.total("seconds") ?? 0).toBe(0);
+            expect(result.ttl).toBeUndefined();
+            expect(result.data).toBeUndefined();
+          } finally {
+            await writer.actor.unregisterActorReminder(actorType, actorId, name);
+          }
+        });
+      },
+    );
+
     it("should be able to unregister a reminder", async () => {
       const builder = new ActorProxyBuilder<DemoActorReminderInterface>(DemoActorReminderImpl, client);
       const actor = builder.build(ActorId.createRandomId());

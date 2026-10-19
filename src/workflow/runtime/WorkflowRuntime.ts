@@ -31,6 +31,7 @@ export default class WorkflowRuntime {
       grpcEndpoint.tls,
       128 * 1024 * 1024,
       options.grpcOptions,
+      options.serializer,
     );
   }
 
@@ -85,8 +86,19 @@ export default class WorkflowRuntime {
     return this;
   }
 
+  /**
+   * Starts the worker and resolves once it has connected to the Dapr sidecar and is ready to process work.
+   * Rejects if the initial connection fails.
+   */
   public async start(): Promise<void> {
     await this.worker.start();
+  }
+
+  /**
+   * Whether the worker is currently connected to the Dapr sidecar and accepting work.
+   */
+  public get isReady(): boolean {
+    return this.worker.isReady;
   }
 
   public async stop(): Promise<void> {

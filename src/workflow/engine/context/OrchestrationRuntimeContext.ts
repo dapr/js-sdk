@@ -11,25 +11,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { randomUUID } from "crypto";
 import type { HistoryEvent } from "../../../proto/dapr/proto/durabletask/v1/history_events_pb";
 import type { WorkflowAction } from "../../../proto/dapr/proto/durabletask/v1/orchestrator_actions_pb";
 import type { OrchestrationStatus } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import type { TaskFailureDetails } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import { OrchestrationStatus as OrchestrationStatusEnum } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
-import { CompletableTask } from "../task/CompletableTask";
-import { Task } from "../task/Task";
-import { StopIterationError } from "../task/StopIterationError";
+import { CompletableTask, Task, StopIterationError, getName } from "../task";
+import { CancellableCompletableTask, TaskTimeoutError } from "../task/CancellableCompletableTask";
+import type { ExternalEventOptions } from "../../../types/workflow/ExternalEventOptions.type";
 import type { TActivity, TOrchestrator, AnyGenerator } from "./OrchestrationContext";
 import { OrchestrationContext } from "./OrchestrationContext";
-import { getName } from "../task";
 import { newDeterministicGuid } from "../guid/deterministicGuid";
 import type { RetryPolicy } from "../../../types/workflow/RetryPolicy.type";
 import type { ActivityOptions } from "../../../types/workflow/ActivityOptions.type";
 import type { ChildWorkflowOptions } from "../../../types/workflow/ChildWorkflowOptions.type";
+import type { DetachedWorkflowOptions } from "../../../types/workflow/DetachedWorkflowOptions.type";
+import { HistoryPropagationScope } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
+import type { PropagatedHistory } from "../../runtime/PropagatedHistory";
+import { IDaprSerializer } from "../../../serialization/IDaprSerializer";
+import { serializeWorkflowValue } from "../../../serialization/Serialization.util";
 import {
   newCompleteWorkflowAction,
   newCreateTimerAction,
   newCreateChildWorkflowAction,
+  newCreateDetachedWorkflowAction,
   newScheduleTaskAction,
   newSendEventAction,
   newEventRaisedEvent,
@@ -56,7 +62,14 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
   _customStatus: unknown;
   private _guidCounter: number;
 
-  constructor(instanceId: string) {
+  constructor(
+    instanceId: string,
+    private readonly _appId?: string,
+    private readonly _propagatedHistory?: PropagatedHistory,
+    private readonly _name = "",
+    private readonly serializer?: IDaprSerializer,
+    private readonly _taskExecutionIds: ReadonlyMap<number, string> = new Map(),
+  ) {
     super();
     this._isReplaying = true;
     this._isComplete = false;
@@ -77,6 +90,14 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
 
   get instanceId(): string {
     return this._instanceId;
+  }
+
+  override get name(): string {
+    return this._name;
+  }
+
+  override get propagatedHistory(): PropagatedHistory | undefined {
+    return this._propagatedHistory;
   }
 
   get currentUtcDateTime(): Date {
@@ -101,6 +122,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     }
 
     this._previousTask = value;
+    await this.resume();
   }
 
   async resume(): Promise<void> {
@@ -108,50 +130,26 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
       throw new Error("The orchestrator generator is not initialized! Was the orchestration history corrupted?");
     }
 
-    if (this._previousTask) {
-      if (this._previousTask.isFailed) {
-        const { done, value } = await this._generator.throw(this._previousTask.getException());
-        if (done) {
-          throw new StopIterationError(value);
-        }
-        if (!(value instanceof Task)) {
-          throw new Error("The orchestrator generator yielded a non-Task object");
-        }
-        this._previousTask = value;
-        if (!this._previousTask.isComplete) {
-          return;
-        }
+    const MAX_ITERATIONS = 100_000;
+    let iterations = 0;
+    while (this._previousTask?.isComplete) {
+      if (++iterations > MAX_ITERATIONS) {
+        throw new Error(
+          `Orchestrator exceeded maximum iteration limit (${MAX_ITERATIONS}). ` +
+            "This likely indicates an infinite loop in the orchestrator function.",
+        );
       }
-      if (this._previousTask.isComplete) {
-        const MAX_ITERATIONS = 100_000;
-        let iterations = 0;
-        for (;;) {
-          if (++iterations > MAX_ITERATIONS) {
-            throw new Error(
-              `Orchestrator exceeded maximum iteration limit (${MAX_ITERATIONS}). ` +
-                "This likely indicates an infinite loop in the orchestrator function.",
-            );
-          }
-
-          const prevResult: unknown = this._previousTask._result;
-          const nextResult: IteratorResult<Task<unknown>, unknown> = await this._generator.next(prevResult);
-          const { done, value } = nextResult;
-
-          if (done) {
-            throw new StopIterationError(value);
-          }
-
-          if (!(value instanceof Task)) {
-            throw new Error("The orchestrator generator yielded a non-Task object");
-          }
-
-          this._previousTask = value;
-
-          if (!this._previousTask.isComplete) {
-            break;
-          }
-        }
+      const nextResult: IteratorResult<Task<unknown>, unknown> = this._previousTask.isFailed
+        ? await this._generator.throw(this._previousTask.getException())
+        : await this._generator.next(this._previousTask._result);
+      const { done, value } = nextResult;
+      if (done) {
+        throw new StopIterationError(value);
       }
+      if (!(value instanceof Task)) {
+        throw new Error("The orchestrator generator yielded a non-Task object");
+      }
+      this._previousTask = value;
     }
   }
 
@@ -160,12 +158,12 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
 
     this._isComplete = true;
     this._completionStatus = status;
-    this._pendingActions = {};
+    this._pendingActions = status === OrchestrationStatusEnum.COMPLETED ? this.getPendingDetachedActions() : {};
     this._result = result;
 
     let resultJson: string | undefined;
     if (result != null) {
-      resultJson = isResultEncoded ? (result as string) : JSON.stringify(result);
+      resultJson = isResultEncoded ? (result as string) : serializeWorkflowValue(result, this.serializer);
     }
 
     const action = newCompleteWorkflowAction(this.nextSequenceNumber(), status, resultJson);
@@ -204,7 +202,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
         carryoverEvents = [];
         for (const [eventName, values] of Object.entries(this._receivedEvents)) {
           for (const eventValue of values) {
-            const encodedValue = eventValue != null ? JSON.stringify(eventValue) : undefined;
+            const encodedValue = eventValue != null ? serializeWorkflowValue(eventValue, this.serializer) : undefined;
             carryoverEvents.push(newEventRaisedEvent(eventName, encodedValue));
           }
         }
@@ -213,7 +211,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
       const action = newCompleteWorkflowAction(
         this.nextSequenceNumber(),
         OrchestrationStatusEnum.CONTINUED_AS_NEW,
-        this._newInput != null ? JSON.stringify(this._newInput) : undefined,
+        this._newInput != null ? serializeWorkflowValue(this._newInput, this.serializer) : undefined,
         undefined,
         carryoverEvents ?? undefined,
       );
@@ -227,17 +225,29 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     return ++this._sequenceNumber;
   }
 
-  createTimer(fireAt: Date | number): Task<unknown> {
-    const id = this.nextSequenceNumber();
+  private getPendingDetachedActions(): Record<number, WorkflowAction> {
+    return Object.fromEntries(
+      Object.entries(this._pendingActions).filter(
+        ([, action]) => action.workflowActionType.case === "createDetachedWorkflow",
+      ),
+    );
+  }
 
-    if (!(fireAt instanceof Date)) {
-      fireAt = new Date(this._currentUtcDatetime.getTime() + (fireAt as number) * 1000);
+  createTimer(fireAt: Date | number): CancellableCompletableTask<void> {
+    return this.scheduleTimer(fireAt);
+  }
+
+  private scheduleTimer(
+    fireAt: Date | number,
+    timerTask = new CancellableCompletableTask<void>(),
+  ): CancellableCompletableTask<void> {
+    const fireAtDate = fireAt instanceof Date ? fireAt : new Date(this._currentUtcDatetime.getTime() + fireAt * 1000);
+    if (!Number.isFinite(fireAtDate.getTime())) {
+      throw new RangeError("Timer deadline must be a valid date or a finite duration in seconds");
     }
-
-    const action = newCreateTimerAction(id, fireAt as Date);
+    const id = this.nextSequenceNumber();
+    const action = newCreateTimerAction(id, fireAtDate);
     this._pendingActions[action.id] = action;
-
-    const timerTask = new CompletableTask<unknown>();
     this._pendingTasks[id] = timerTask;
     return timerTask;
   }
@@ -248,19 +258,24 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     options?: ActivityOptions,
   ): Task<TOutput> {
     const name = typeof activity === "string" ? activity : getName(activity);
-    const encodedInput = input != null ? JSON.stringify(input) : undefined;
+    const encodedInput = input != null ? serializeWorkflowValue(input, this.serializer) : undefined;
+    const routing = this.getRoutingOptions(options);
     if (options?.retryPolicy) {
+      let executionId: string | undefined;
       return this.callWithRetry(options.retryPolicy, (id) => {
-        const action = newScheduleTaskAction(id, name, encodedInput);
+        executionId = this.getTaskExecutionId(id, executionId);
+        const action = newScheduleTaskAction(id, name, encodedInput, executionId, routing);
         this._pendingActions[action.id] = action;
+        return executionId;
       });
     }
 
     const id = this.nextSequenceNumber();
-    const action = newScheduleTaskAction(id, name, encodedInput);
+    const executionId = this.getTaskExecutionId(id);
+    const action = newScheduleTaskAction(id, name, encodedInput, executionId, routing);
     this._pendingActions[action.id] = action;
 
-    const task = new CompletableTask<TOutput>();
+    const task = new CompletableTask<TOutput>(executionId);
     this._pendingTasks[id] = task;
     return task;
   }
@@ -272,7 +287,8 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     options?: ChildWorkflowOptions,
   ): Task<TOutput> {
     const name = typeof orchestrator === "string" ? orchestrator : getName(orchestrator);
-    const encodedInput = input != null ? JSON.stringify(input) : undefined;
+    const encodedInput = input != null ? serializeWorkflowValue(input, this.serializer) : undefined;
+    const routing = this.getRoutingOptions(options);
     if (options?.retryPolicy) {
       const firstInstanceId = instanceId;
       return this.callWithRetry(options.retryPolicy, (id, attempt) => {
@@ -280,8 +296,9 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
           attempt === 1 && firstInstanceId
             ? firstInstanceId
             : `${this._instanceId}:${id.toString(16).padStart(4, "0")}`;
-        const action = newCreateChildWorkflowAction(id, name, childInstanceId, encodedInput);
+        const action = newCreateChildWorkflowAction(id, name, childInstanceId, encodedInput, routing);
         this._pendingActions[action.id] = action;
+        return undefined;
       });
     }
 
@@ -291,7 +308,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
       instanceId = `${this._instanceId}:${suffix}`;
     }
 
-    const action = newCreateChildWorkflowAction(id, name, instanceId, encodedInput);
+    const action = newCreateChildWorkflowAction(id, name, instanceId, encodedInput, routing);
     this._pendingActions[action.id] = action;
 
     const task = new CompletableTask<TOutput>();
@@ -299,9 +316,81 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     return task;
   }
 
-  waitForExternalEvent(name: string): Task<unknown> {
-    const externalEventTask = new CompletableTask<unknown>();
+  override scheduleNewDetachedWorkflow<TInput>(
+    workflow: TOrchestrator | string,
+    input?: TInput,
+    instanceId?: string,
+    startAt?: Date,
+    options?: DetachedWorkflowOptions,
+  ): Task<string> {
+    const name = typeof workflow === "string" ? workflow : getName(workflow);
+    if (typeof name !== "string" || !name.trim()) {
+      throw new TypeError("workflow must have a non-empty name");
+    }
+    if (instanceId !== undefined && (typeof instanceId !== "string" || !instanceId.trim())) {
+      throw new TypeError("instanceId must be a non-empty string");
+    }
+    if (startAt !== undefined && (!(startAt instanceof Date) || !Number.isFinite(startAt.getTime()))) {
+      throw new RangeError("startAt must be a valid date");
+    }
+    if (
+      options &&
+      (("retryPolicy" in options && options.retryPolicy != null) ||
+        ("propagationScope" in options &&
+          options.propagationScope != null &&
+          options.propagationScope !== HistoryPropagationScope.NONE))
+    ) {
+      throw new TypeError("Detached workflows do not support retries or history propagation");
+    }
+    const routing = this.getRoutingOptions(options);
+    const encodedInput = input === undefined ? undefined : serializeWorkflowValue(input, this.serializer);
+    const detachedInstanceId = instanceId ?? this.newGuid();
+    if (
+      Object.values(this._pendingActions).some(
+        (action) =>
+          action.workflowActionType.case === "createDetachedWorkflow" &&
+          action.workflowActionType.value.instanceId === detachedInstanceId,
+      )
+    ) {
+      throw new Error(`A detached workflow with instance ID '${detachedInstanceId}' has already been scheduled`);
+    }
+    const action = newCreateDetachedWorkflowAction(
+      this.nextSequenceNumber(),
+      name,
+      detachedInstanceId,
+      encodedInput,
+      startAt,
+      routing,
+    );
+    this._pendingActions[action.id] = action;
+    const task = new CompletableTask<string>();
+    task.complete(detachedInstanceId);
+    return task;
+  }
+
+  waitForExternalEvent(name: string, options?: ExternalEventOptions): CancellableCompletableTask<unknown> {
+    const timeout = options?.timeoutInSeconds;
+    if (
+      timeout !== undefined &&
+      (!Number.isFinite(timeout) ||
+        timeout < 0 ||
+        !Number.isFinite(new Date(this._currentUtcDatetime.getTime() + timeout * 1000).getTime()))
+    ) {
+      throw new RangeError("timeoutInSeconds must be a finite number greater than or equal to 0");
+    }
     const eventName = name.toLowerCase();
+    let timeoutTask: CancellableCompletableTask<void> | undefined;
+    const externalEventTask = new CancellableCompletableTask<unknown>(() => {
+      const tasks = this._pendingEvents[eventName];
+      const index = tasks?.indexOf(externalEventTask) ?? -1;
+      if (index >= 0) {
+        tasks.splice(index, 1);
+      }
+      if (tasks && !tasks.length) {
+        delete this._pendingEvents[eventName];
+      }
+      timeoutTask?.cancel();
+    });
     const eventList = this._receivedEvents[eventName];
 
     if (eventList?.length) {
@@ -317,12 +406,20 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
         this._pendingEvents[eventName] = taskList;
       }
       taskList.push(externalEventTask);
+      if (timeout !== undefined) {
+        timeoutTask = new CancellableCompletableTask<void>(() => {
+          if (!timeoutTask?.isCanceled && !externalEventTask.isComplete) {
+            externalEventTask.reject(new TaskTimeoutError());
+          }
+        });
+        this.scheduleTimer(timeout, timeoutTask);
+      }
     }
 
     return externalEventTask;
   }
 
-  continueAsNew(newInput: unknown, saveEvents = false): void {
+  continueAsNew(newInput: unknown, saveEvents = true): void {
     this.setContinuedAsNew(newInput, saveEvents);
   }
 
@@ -332,7 +429,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
 
   sendEvent(instanceId: string, eventName: string, payload: unknown): void {
     const id = this.nextSequenceNumber();
-    const encodedData = payload != null ? JSON.stringify(payload) : undefined;
+    const encodedData = payload != null ? serializeWorkflowValue(payload, this.serializer) : undefined;
     const action = newSendEventAction(id, instanceId, eventName, encodedData);
     this._pendingActions[action.id] = action;
   }
@@ -342,7 +439,40 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     return newDeterministicGuid(this._instanceId, counter.toString());
   }
 
-  private callWithRetry<T>(retryPolicy: RetryPolicy, scheduleAttempt: (id: number, attempt: number) => void): Task<T> {
+  private getRoutingOptions(options?: ActivityOptions) {
+    const targetAppId = options?.targetAppId;
+    const propagationScope = options?.propagationScope;
+    if (targetAppId !== undefined) {
+      if (typeof targetAppId !== "string" || !targetAppId.trim()) {
+        throw new TypeError("targetAppId must be a non-empty app ID");
+      }
+      if (!this._appId?.trim()) {
+        throw new Error("Cannot schedule a cross-app task without the calling app ID in workflow routing metadata");
+      }
+    }
+    if (
+      propagationScope !== undefined &&
+      propagationScope !== HistoryPropagationScope.NONE &&
+      propagationScope !== HistoryPropagationScope.OWN_HISTORY &&
+      propagationScope !== HistoryPropagationScope.LINEAGE
+    ) {
+      throw new RangeError("propagationScope must be a valid HistoryPropagationScope");
+    }
+    return { sourceAppId: this._appId, targetAppId, propagationScope };
+  }
+
+  private getTaskExecutionId(id: number, previousId?: string): string | undefined {
+    // An empty historical key must stay empty when replaying pre-execution-ID workflows.
+    if (this._taskExecutionIds.has(id)) {
+      return this._taskExecutionIds.get(id) || undefined;
+    }
+    return previousId ?? randomUUID();
+  }
+
+  private callWithRetry<T>(
+    retryPolicy: RetryPolicy,
+    scheduleAttempt: (id: number, attempt: number) => string | undefined,
+  ): Task<T> {
     const policy = validateRetryPolicy(retryPolicy);
     const retryTask = new CompletableTask<T>();
     const startedAt = this._currentUtcDatetime.getTime();
@@ -351,7 +481,8 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     const runAttempt = (): void => {
       attempt++;
       const id = this.nextSequenceNumber();
-      scheduleAttempt(id, attempt);
+      const executionId = scheduleAttempt(id, attempt);
+      retryTask._executionId = executionId;
       const attemptTask = new RetryAttemptTask<T>(
         (result) => retryTask.complete(result),
         (message, details) => {
@@ -374,6 +505,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
           this._pendingTasks[timerId] = new RetryDelayTask(runAttempt);
         },
       );
+      attemptTask._executionId = executionId;
       this._pendingTasks[id] = attemptTask;
     };
 

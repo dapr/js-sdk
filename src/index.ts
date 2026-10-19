@@ -48,9 +48,14 @@ import { TWorkflow } from "./types/workflow/Workflow.type";
 import { RetryPolicy } from "./types/workflow/RetryPolicy.type";
 import { ActivityOptions } from "./types/workflow/ActivityOptions.type";
 import { ChildWorkflowOptions } from "./types/workflow/ChildWorkflowOptions.type";
-import { Task } from "./workflow/engine/task/Task";
+import { DetachedWorkflowOptions } from "./types/workflow/DetachedWorkflowOptions.type";
+import { HistoryPropagationScope } from "./proto/dapr/proto/durabletask/v1/orchestration_pb";
+import { Task, TaskCanceledError, TaskTimeoutError } from "./workflow/engine/task";
+import { ExternalEventOptions } from "./types/workflow/ExternalEventOptions.type";
 import { WorkflowFailureDetails } from "./workflow/client/WorkflowFailureDetails";
 import { WorkflowState } from "./workflow/client/WorkflowState";
+import { RerunWorkflowFromEventOptions, WorkflowInstanceIdPage } from "./types/workflow/WorkflowManagement.types";
+import type { HistoryEvent } from "./proto/dapr/proto/durabletask/v1/history_events_pb";
 import {
   WorkflowRuntimeStatus,
   fromOrchestrationStatus,
@@ -90,10 +95,30 @@ export {
   RetryPolicy,
   ActivityOptions,
   ChildWorkflowOptions,
+  DetachedWorkflowOptions,
+  HistoryPropagationScope,
   Task,
+  TaskCanceledError,
+  TaskTimeoutError,
+  ExternalEventOptions,
   WorkflowFailureDetails,
   WorkflowState,
+  RerunWorkflowFromEventOptions,
+  WorkflowInstanceIdPage,
+  HistoryEvent,
   WorkflowRuntimeStatus,
   fromOrchestrationStatus,
   toOrchestrationStatus,
 };
+
+export type {
+  PropagatedHistory,
+  PropagatedHistoryEntry,
+  PropagatedHistoryView,
+} from "./workflow/runtime/PropagatedHistory";
+export type { CancellableTask } from "./types/workflow/CancellableTask.type";
+export type { IDaprSerializer } from "./serialization/IDaprSerializer";
+export { JsonSerializer } from "./serialization/JsonSerializer";
+export type { default as IClientBinaryStore } from "./interfaces/Client/IClientBinaryStore";
+export type { BinaryStoreOptions, BinaryStoreSetOptions } from "./types/binarystore/BinaryStoreOptions";
+export { withBaggage } from "./utils/Baggage.util";

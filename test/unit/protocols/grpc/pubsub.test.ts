@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import GRPCClientPubSub from "../../../../src/implementation/Client/GRPCClient/pubsub";
-import { PublishEventRequest } from "../../../../src/proto/dapr/proto/runtime/v1/dapr_pb";
+import { PublishEventRequest } from "../../../../src/proto/dapr/proto/runtime/v1/pubsub_pb";
 import { Code, ConnectError } from "@connectrpc/connect";
 import { LoggerOptions } from "../../../../src/types/logger/LoggerOptions";
 
