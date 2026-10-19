@@ -25,6 +25,42 @@ await client.invoker.listen("method", invokerListen.bind(this), options);
 
 ## Workflow context and state
 
+### Replay-safe workflow logging
+
+Use `ctx.logger` inside workflows to log without repeating application messages
+when the workflow history is replayed. It supports `error`, `warn`, `info`,
+`verbose`, and `debug`, including additional arguments. The logger checks the
+current replay state on every call, so a reference saved before a `yield` remains
+replay-safe after the workflow resumes.
+
+```typescript
+import { LogLevel, WorkflowContext, WorkflowRuntime } from "@dapr/dapr";
+
+const runtime = new WorkflowRuntime({ logger: { level: LogLevel.Debug } });
+runtime.registerWorkflow(function* orderWorkflow(ctx: WorkflowContext, orderId: string) {
+  const logger = ctx.logger;
+  logger.info("Processing order", { orderId });
+  const result = yield ctx.callActivity("processOrder", orderId);
+  logger.debug("Order processed", result);
+  return result;
+});
+```
+
+`WorkflowRuntime`'s `logger.level` and `logger.service` configure these application
+logs using the existing `LoggerOptions` and `LoggerService` interfaces. The default
+is console logging at `Info` level. Messages include a
+`[Workflow, <registered workflow name>, <instance ID>]` prefix. Named registrations,
+child workflows, and continue-as-new executions use the same configuration.
+
+This does not suppress worker/engine diagnostics, direct `console` calls, or
+other application loggers. Arguments are still evaluated before a log call;
+do not perform nondeterministic operations or side effects to construct them.
+Replay suppression is not an exactly-once delivery guarantee: worker retries
+can repeat non-replay execution, and each continue-as-new execution can emit new logs.
+Errors thrown by a custom logging service propagate like other workflow errors.
+
+### Context and state accessors
+
 `WorkflowContext.getWorkflowName()` returns the registered workflow name, including
 an explicit name supplied to `registerWorkflowByName`, and stays the same during replay.
 `WorkflowActivityContext.getTaskExecutionId()` exposes Dapr's activity task execution
