@@ -51,6 +51,8 @@ import { ChildWorkflowOptions } from "./types/workflow/ChildWorkflowOptions.type
 import { Task } from "./workflow/engine/task/Task";
 import { WorkflowFailureDetails } from "./workflow/client/WorkflowFailureDetails";
 import { WorkflowState } from "./workflow/client/WorkflowState";
+import { RerunWorkflowFromEventOptions, WorkflowInstanceIdPage } from "./types/workflow/WorkflowManagement.types";
+import type { HistoryEvent } from "./proto/dapr/proto/durabletask/v1/history_events_pb";
 import {
   WorkflowRuntimeStatus,
   fromOrchestrationStatus,
@@ -93,6 +95,9 @@ export {
   Task,
   WorkflowFailureDetails,
   WorkflowState,
+  RerunWorkflowFromEventOptions,
+  WorkflowInstanceIdPage,
+  HistoryEvent,
   WorkflowRuntimeStatus,
   fromOrchestrationStatus,
   toOrchestrationStatus,
