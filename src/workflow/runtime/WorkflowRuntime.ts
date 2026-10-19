@@ -19,11 +19,14 @@ import WorkflowContext from "./WorkflowContext";
 import { generateEndpoint, getDaprApiToken, getFunctionName } from "../internal";
 import type { WorkflowClientOptions } from "../../types/workflow/WorkflowClientOption";
 import type { WorkflowPayloadRegistrationOptions } from "../payloads/BinaryStorePayloadOptions";
+import type { LoggerOptions } from "../../types/logger/LoggerOptions";
 
 export default class WorkflowRuntime {
   private readonly worker: TaskHubWorker;
+  private readonly loggerOptions?: LoggerOptions;
 
   constructor(options: Partial<WorkflowClientOptions> = {}) {
+    this.loggerOptions = options.logger;
     const grpcEndpoint = generateEndpoint(options);
     const daprApiToken = getDaprApiToken(options);
     this.worker = new TaskHubWorker(
@@ -40,7 +43,7 @@ export default class WorkflowRuntime {
   public registerWorkflow(workflow: TWorkflow, options?: WorkflowPayloadRegistrationOptions): WorkflowRuntime {
     const name = getFunctionName(workflow);
     const workflowWrapper = (ctx: unknown, input: unknown) => {
-      const workflowContext = new WorkflowContext(ctx as never);
+      const workflowContext = new WorkflowContext(ctx as never, this.loggerOptions);
       return workflow(workflowContext, input);
     };
     this.worker.registry.addNamedOrchestrator(name, workflowWrapper as never, options);
@@ -53,7 +56,7 @@ export default class WorkflowRuntime {
     options?: WorkflowPayloadRegistrationOptions,
   ): WorkflowRuntime {
     const workflowWrapper = (ctx: unknown, input: unknown) => {
-      const workflowContext = new WorkflowContext(ctx as never);
+      const workflowContext = new WorkflowContext(ctx as never, this.loggerOptions);
       return workflow(workflowContext, input);
     };
     this.worker.registry.addNamedOrchestrator(name, workflowWrapper as never, options);

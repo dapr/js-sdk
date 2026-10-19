@@ -14,6 +14,8 @@ limitations under the License.
 import { TWorkflow } from "../../../src";
 import WorkflowContext from "../../../src/workflow/runtime/WorkflowContext";
 import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
+import { LogLevel, type LoggerService } from "../../../src";
+import { OrchestrationRuntimeContext } from "../../../src/workflow/engine";
 
 const mockAddNamedOrchestrator = jest.fn();
 const mockAddNamedActivity = jest.fn();
@@ -74,6 +76,36 @@ describe("WorkflowRuntime", () => {
       };
       runtime.registerWorkflow(syncGenWorkflow);
       expect(mockAddNamedOrchestrator).toHaveBeenCalledWith("syncGenWorkflow", expect.any(Function), undefined);
+    });
+
+    it.each(["inferred", "named", "legacy"])("configures replay-safe logging for %s workflow registrations", (kind) => {
+      const service: jest.Mocked<LoggerService> = {
+        error: jest.fn(),
+        warn: jest.fn(),
+        info: jest.fn(),
+        verbose: jest.fn(),
+        debug: jest.fn(),
+      };
+      const runtime = new WorkflowRuntime({ logger: { level: LogLevel.Debug, service } });
+      const workflow: TWorkflow = (ctx, input) => {
+        ctx.logger.debug("running", input);
+        return input;
+      };
+      if (kind === "inferred") {
+        runtime.registerWorkflow(workflow);
+      } else if (kind === "named") {
+        runtime.registerWorkflowByName("alias", workflow);
+      } else {
+        runtime.registerWorkflowWithName("alias", workflow);
+      }
+      const wrapper = mockAddNamedOrchestrator.mock.calls[0][1];
+      const name = kind === "inferred" ? "workflow" : "alias";
+      const inner = new OrchestrationRuntimeContext("id", undefined, undefined, name);
+      expect(wrapper(inner, 42)).toBe(42);
+      expect(service.debug).not.toHaveBeenCalled();
+      inner._isReplaying = false;
+      expect(wrapper(inner, 42)).toBe(42);
+      expect(service.debug.mock.calls).toEqual([[`[Workflow, ${name}, id]: running`, 42]]);
     });
 
     it("should register a workflow with its function name", () => {
