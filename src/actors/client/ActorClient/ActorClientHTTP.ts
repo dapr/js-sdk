@@ -18,6 +18,7 @@ import { ActorTimerType } from "../../../types/ActorTimer.type";
 import IClientActor from "../../../interfaces/Client/IClientActor";
 import { KeyValueType } from "../../../types/KeyValue.type";
 import ActorId from "../../ActorId";
+import { parseActorReminder } from "../../../utils/Actors.util";
 
 // https://docs.dapr.io/reference/api/actors_api/
 export default class ActorClientHTTP implements IClientActor {
@@ -74,6 +75,13 @@ export default class ActorClientHTTP implements IClientActor {
   async reminderGet(actorType: string, actorId: ActorId, name: string): Promise<object> {
     const result = await this.client.execute(`/actors/${actorType}/${actorId.getURLSafeId()}/reminders/${name}`);
     return result as object;
+  }
+
+  async getActorReminder(actorType: string, actorId: ActorId, name: string): Promise<ActorReminderType> {
+    const result = await this.client.execute(
+      `/actors/${encodeURIComponent(actorType)}/${actorId.getURLSafeId()}/reminders/${encodeURIComponent(name)}`,
+    );
+    return parseActorReminder(result);
   }
 
   async unregisterActorReminder(actorType: string, actorId: ActorId, name: string): Promise<void> {
