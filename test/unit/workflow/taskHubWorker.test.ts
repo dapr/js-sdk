@@ -13,7 +13,12 @@ limitations under the License.
 
 import { TaskHubWorker } from "../../../src/workflow/engine";
 import { create } from "@bufbuild/protobuf";
-import { WorkItemSchema, type WorkItem } from "../../../src/proto/dapr/proto/durabletask/v1/orchestrator_service_pb";
+import {
+  type GetWorkItemsRequest,
+  WorkItemSchema,
+  WorkerCapability,
+  type WorkItem,
+} from "../../../src/proto/dapr/proto/durabletask/v1/orchestrator_service_pb";
 import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
 import { CustomSerializer } from "../../fixtures/CustomSerializer";
 
@@ -62,6 +67,9 @@ const workflowItem = (instanceId: string) =>
     completionToken: "",
   } as unknown as WorkItem);
 
+const healthPingItem = () =>
+  ({ request: { case: "healthPing", value: {} }, completionToken: "" } as unknown as WorkItem);
+
 /** Lets the worker's stream loop and promise callbacks run. */
 const settle = async (rounds = 5) => {
   for (let i = 0; i < rounds; i++) {
@@ -76,9 +84,12 @@ const settle = async (rounds = 5) => {
 async function startWorker() {
   const worker = new TaskHubWorker("localhost:50001");
   const stream = new FakeWorkItemStream();
+  const getWorkItems = jest.fn((_req: GetWorkItemsRequest, opts?: { signal?: AbortSignal }) =>
+    stream.iterate(opts?.signal),
+  );
   (worker as unknown as { client: unknown }).client = {
     hello: jest.fn().mockResolvedValue({}),
-    getWorkItems: jest.fn((_req: unknown, opts?: { signal?: AbortSignal }) => stream.iterate(opts?.signal)),
+    getWorkItems,
     completeOrchestratorTask: jest.fn().mockResolvedValue({}),
     completeActivityTask: jest.fn().mockResolvedValue({}),
   };
@@ -104,7 +115,7 @@ async function startWorker() {
     pending.splice(0).forEach((release) => release());
     await stopped;
   };
-  return { stream, executed, stop };
+  return { stream, executed, stop, getWorkItems };
 }
 
 describe("TaskHubWorker work-item dispatch", () => {
@@ -174,6 +185,17 @@ describe("TaskHubWorker work-item dispatch", () => {
 
     expect(run.executed).toContain("workflow:a");
     expect(run.executed).toContain("workflow:b");
+    await run.stop();
+  });
+
+  it("advertises the health ping capability and discards pings without dispatching them", async () => {
+    const run = await startWorker();
+
+    run.stream.push(...Array.from({ length: 150 }, healthPingItem), activityItem(0));
+    await settle();
+
+    expect(run.getWorkItems.mock.calls[0][0].capabilities).toContain(WorkerCapability.HEALTH_PING);
+    expect(run.executed).toEqual(["activity:0"]);
     await run.stop();
   });
 });
