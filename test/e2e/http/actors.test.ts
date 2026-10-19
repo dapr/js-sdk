@@ -49,6 +49,7 @@ import {
   DAPR_TEST_SCHEDULER_IMAGE,
   runWithCleanupErrorSuppression,
 } from "../helpers/containers";
+import { DAPR_TEST_VERSION, evaluateMinimumDaprRuntime } from "../helpers/runtimeVersion";
 
 const serverHost = "127.0.0.1";
 const serverPort = "3001";
@@ -432,8 +433,11 @@ describe("http/actors", () => {
   });
 
   describe("reminders", () => {
-    describe.each([CommunicationProtocolEnum.HTTP, CommunicationProtocolEnum.GRPC])(
-      "getActorReminder over %s",
+    const gate = evaluateMinimumDaprRuntime("1.17.0", DAPR_TEST_VERSION);
+    const describeGetActorReminder = gate.supported ? describe : describe.skip;
+
+    describeGetActorReminder.each([CommunicationProtocolEnum.HTTP, CommunicationProtocolEnum.GRPC])(
+      `getActorReminder over %s (${gate.reason ?? DAPR_TEST_VERSION})`,
       (protocol) => {
         let reader: ActorClient;
         let writer: ActorClient;
