@@ -14,7 +14,7 @@ limitations under the License.
 import { randomBytes } from "node:crypto";
 import { Readable, Writable } from "node:stream";
 import { Network, StartedNetwork } from "testcontainers";
-import { Component, DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
+import { BinaryStoreHarness, Component, DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
 import { CommunicationProtocolEnum, DaprClient } from "../../../src";
 import {
   DAPR_TEST_PLACEMENT_IMAGE,
@@ -183,6 +183,121 @@ describeBinaryStore(`Binary Store (${gate.reason ?? DAPR_TEST_VERSION})`, () => 
       const downloaded = await client.binaryStore.getBinaryFileBytes("binarystore", name);
       expect(downloaded.equals(bytes)).toBe(true);
       await client.binaryStore.deleteBinaryFile("binarystore", name);
+    });
+  });
+});
+
+describeBinaryStore(`Binary Store harness (${gate.reason ?? DAPR_TEST_VERSION})`, () => {
+  let harness: BinaryStoreHarness;
+  const clients: DaprClient[] = [];
+
+  beforeAll(async () => {
+    harness = new BinaryStoreHarness({
+      daprRuntimeImage: DAPR_TEST_RUNTIME_IMAGE,
+      binaryStoreName: "binary-store-harness",
+      maxSize: "8Mi",
+      maxTotalSize: "32Mi",
+    });
+    harness
+      .getDaprContainer()
+      .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
+      .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE);
+    await harness.start();
+
+    // Exercise this checkout, not the published SDK used by harness.createDaprClient().
+    for (const protocol of [CommunicationProtocolEnum.HTTP, CommunicationProtocolEnum.GRPC]) {
+      clients.push(
+        new DaprClient({
+          communicationProtocol: protocol,
+          daprHost: harness.getHost(),
+          daprPort: String(protocol === CommunicationProtocolEnum.HTTP ? harness.getHttpPort() : harness.getGrpcPort()),
+        }),
+      );
+    }
+  }, 180_000);
+
+  afterAll(async () => {
+    await runWithCleanupErrorSuppression(async () => {
+      try {
+        await Promise.all(clients.map((client) => client.stop()));
+      } finally {
+        await harness?.stop();
+      }
+    });
+  }, 60_000);
+
+  describe.each([
+    ["HTTP", CommunicationProtocolEnum.HTTP],
+    ["gRPC", CommunicationProtocolEnum.GRPC],
+  ] as const)("%s", (_name, protocol) => {
+    let client: DaprClient;
+    let storeName: string;
+
+    beforeEach(() => {
+      client = clients[protocol === CommunicationProtocolEnum.HTTP ? 0 : 1];
+      storeName = harness.getBinaryStoreName();
+    });
+
+    it("reads harness-seeded binary files through every download API", async () => {
+      const name = `${protocol}/seeded file % \u00e9.bin`;
+      const bytes = Buffer.from([0, 128, 255, 0, 123, 125]);
+      await harness.setBinaryFile(name, bytes);
+
+      expect(await client.binaryStore.getBinaryFileBytes(storeName, name)).toEqual(bytes);
+      const chunks: Buffer[] = [];
+      for await (const chunk of client.binaryStore.getBinaryFileChunks(storeName, name)) {
+        chunks.push(chunk);
+      }
+      expect(Buffer.concat(chunks)).toEqual(bytes);
+
+      const written: Buffer[] = [];
+      const destination = new Writable({
+        write(chunk, _encoding, callback) {
+          written.push(Buffer.from(chunk));
+          callback();
+        },
+      });
+      await client.binaryStore.getBinaryFile(storeName, name, destination);
+      expect(Buffer.concat(written)).toEqual(bytes);
+      expect(destination.writableFinished).toBe(true);
+      await harness.deleteBinaryFile(name);
+    });
+
+    it("uploads a multi-chunk stream larger than 4 MiB that the harness can read unchanged", async () => {
+      const name = `${protocol}-harness-stream.bin`;
+      const bytes = randomBytes(4 * 1024 * 1024 + 321);
+      const source = Readable.from(
+        (async function* () {
+          for (let offset = 0; offset < bytes.length; offset += 65537) {
+            yield bytes.subarray(offset, offset + 65537);
+          }
+        })(),
+      );
+      await client.binaryStore.setBinaryFile(storeName, name, source, { chunkSize: 16384 });
+      const uploaded = await harness.getBinaryFile(name);
+      expect(uploaded.equals(bytes)).toBe(true);
+      await harness.deleteBinaryFile(name);
+    }, 90_000);
+
+    it("enforces create, overwrite, and delete semantics against harness-managed files", async () => {
+      const name = `${protocol}-harness-lifecycle.bin`;
+      const original = Buffer.from([0, 128, 255]);
+      await harness.setBinaryFile(name, original, false);
+      await expect(client.binaryStore.setBinaryFile(storeName, name, Buffer.from([1]))).rejects.toThrow();
+      expect(await harness.getBinaryFile(name)).toEqual(original);
+
+      const backing = Uint8Array.from([99, 0, 255, 128, 99]);
+      await client.binaryStore.setBinaryFile(storeName, name, backing.subarray(1, 4), { overwrite: true });
+      expect(await harness.getBinaryFile(name)).toEqual(Buffer.from([0, 255, 128]));
+      await client.binaryStore.setBinaryFile(storeName, name, Buffer.alloc(0), { overwrite: true });
+      expect(await harness.getBinaryFile(name)).toEqual(Buffer.alloc(0));
+
+      await client.binaryStore.deleteBinaryFile(storeName, name);
+      await expect(harness.getBinaryFile(name)).rejects.toThrow();
+      await client.binaryStore.setBinaryFile(storeName, name, original);
+      expect(await harness.getBinaryFile(name)).toEqual(original);
+      await harness.deleteBinaryFile(name);
+      await expect(client.binaryStore.getBinaryFileBytes(storeName, name)).rejects.toThrow();
     });
   });
 });

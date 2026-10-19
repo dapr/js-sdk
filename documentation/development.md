@@ -81,9 +81,14 @@ npm run test:e2e:grpc
 npm run test:e2e:http
 ```
 
-Binary Store integration tests start their own authenticated Dapr sidecar with
-an in-memory component and cover HTTP and gRPC. They require Docker and Dapr
-runtime 1.19 or later (1.19.0-rc.3 or later for prereleases):
+Binary Store integration tests cover HTTP and gRPC against an authenticated
+sidecar and the `BinaryStoreHarness` from `@dapr/testcontainer-node`. The harness
+manages its own sidecar and in-memory component; its independent HTTP helpers
+seed files for SDK downloads and verify SDK uploads, overwrites, and deletes.
+The tests exercise the SDK in this checkout rather than the harness's published
+SDK dependency, including binary data, empty files, and streams larger than 4 MiB.
+They require Docker and Dapr runtime 1.19 or later (1.19.0-rc.3 or later for
+prereleases):
 
 ```powershell
 $env:DAPR_RUNTIME_VERSION = "1.19.0-rc.4"
