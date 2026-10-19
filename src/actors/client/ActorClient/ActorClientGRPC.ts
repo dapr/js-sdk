@@ -12,10 +12,11 @@ limitations under the License.
 */
 
 import { create } from "@bufbuild/protobuf";
-import { AnySchema } from "@bufbuild/protobuf/wkt";
+import { AnySchema, anyUnpack, BytesValueSchema } from "@bufbuild/protobuf/wkt";
 import {
   ExecuteActorStateTransactionRequestSchema,
   GetActorStateRequestSchema,
+  GetActorReminderRequestSchema,
   InvokeActorRequestSchema,
   RegisterActorReminderRequestSchema,
   RegisterActorTimerRequestSchema,
@@ -31,6 +32,7 @@ import { ActorTimerType } from "../../../types/ActorTimer.type";
 import IClientActor from "../../../interfaces/Client/IClientActor";
 import { KeyValueType } from "../../../types/KeyValue.type";
 import ActorId from "../../ActorId";
+import { parseActorReminder } from "../../../utils/Actors.util";
 
 // https://docs.dapr.io/reference/api/actors_api/
 export default class ActorClientGRPC implements IClientActor {
@@ -54,7 +56,7 @@ export default class ActorClientGRPC implements IClientActor {
 
     try {
       return JSON.parse(resData);
-    } catch (e) {
+    } catch {
       return resData as any;
     }
   }
@@ -92,7 +94,7 @@ export default class ActorClientGRPC implements IClientActor {
 
     try {
       return JSON.parse(resData);
-    } catch (e) {
+    } catch {
       return resData;
     }
   }
@@ -114,6 +116,24 @@ export default class ActorClientGRPC implements IClientActor {
       dueTime: reminder.dueTime ? reminder.dueTime.toString() : "",
       ttl: reminder.ttl ? reminder.ttl.toString() : "",
     }));
+  }
+
+  async getActorReminder(actorType: string, actorId: ActorId, name: string): Promise<ActorReminderType> {
+    const client = await this.client.getClient();
+    const response = await client.getActorReminder(
+      create(GetActorReminderRequestSchema, { actorType, actorId: actorId.getId(), name }),
+    );
+
+    let data: unknown;
+    if (response.data !== undefined) {
+      const bytes = anyUnpack(response.data, BytesValueSchema);
+      if (bytes === undefined) {
+        throw new Error(`Unsupported actor reminder data type: ${response.data.typeUrl}`);
+      }
+      data = JSON.parse(Buffer.from(bytes.value).toString("utf-8"));
+    }
+
+    return parseActorReminder({ ...response, data });
   }
 
   async unregisterActorReminder(actorType: string, actorId: ActorId, name: string): Promise<void> {
