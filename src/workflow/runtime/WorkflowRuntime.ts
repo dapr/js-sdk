@@ -31,6 +31,7 @@ export default class WorkflowRuntime {
       grpcEndpoint.tls,
       128 * 1024 * 1024,
       options.grpcOptions,
+      options.serializer,
     );
   }
 

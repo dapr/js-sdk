@@ -39,6 +39,8 @@ import type { HistoryEvent } from "../../../proto/dapr/proto/durabletask/v1/hist
 import { OrchestrationStatus as OrchestrationStatusEnum } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import { timestampToDate } from "../worker/protoHelpers";
 import { Logger } from "../../../logger/Logger";
+import { IDaprSerializer } from "../../../serialization/IDaprSerializer";
+import { serializeWorkflowValue } from "../../../serialization/Serialization.util";
 import { type GrpcChannelOptions, mapGrpcOptions } from "../../../types/workflow/WorkflowClientOption";
 import type {
   RerunWorkflowFromEventOptions,
@@ -97,6 +99,7 @@ export class TaskHubClient {
     useTLS = false,
     maxMessageSize = 128 * 1024 * 1024,
     grpcOptions?: GrpcChannelOptions,
+    public readonly serializer?: IDaprSerializer,
   ) {
     const interceptors: Interceptor[] = [...(grpcOptions?.interceptors ?? [])];
 
@@ -134,7 +137,7 @@ export class TaskHubClient {
     });
 
     if (input !== undefined) {
-      req.input = JSON.stringify(input);
+      req.input = serializeWorkflowValue(input, this.serializer);
     }
 
     if (startAt) {
@@ -193,7 +196,7 @@ export class TaskHubClient {
       req.newInstanceID = options.newInstanceId;
     }
     if (options.input !== undefined) {
-      req.input = JSON.stringify(options.input);
+      req.input = serializeWorkflowValue(options.input, this.serializer);
     }
 
     const res = await this.client.rerunWorkflowFromEvent(req);
@@ -268,7 +271,7 @@ export class TaskHubClient {
     });
 
     if (data !== undefined) {
-      req.input = JSON.stringify(data);
+      req.input = serializeWorkflowValue(data, this.serializer);
     }
 
     this.logger.info(`Raising event '${eventName}' for instance '${instanceId}'`);
@@ -282,7 +285,7 @@ export class TaskHubClient {
     });
 
     if (output !== undefined) {
-      req.output = JSON.stringify(output);
+      req.output = serializeWorkflowValue(output, this.serializer);
     }
 
     this.logger.info(`Terminating '${instanceId}'`);

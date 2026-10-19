@@ -24,13 +24,16 @@ import { PubSubSubscriptionTopicRouteType } from "../../../types/pubsub/PubSubSu
 import { SubscriptionManager } from "../../../pubsub/subscriptionManager";
 import { PubSubSubscriptionsType } from "../../../types/pubsub/PubSubSubscriptions.type";
 import { DaprPubSubType } from "../../../types/pubsub/DaprPubSub.type";
+import type { IDaprSerializer } from "../../../serialization/IDaprSerializer";
+import { isJsonContentType } from "../../../serialization/Serialization.util";
+import { isCloudEvent } from "../../../utils/CloudEvent.util";
 
 export default class HTTPServerImpl {
   private readonly server: IServerType;
   private readonly logger: Logger;
   private readonly subscriptionManager: SubscriptionManager;
 
-  constructor(server: IServerType, loggerOptions?: LoggerOptions) {
+  constructor(server: IServerType, loggerOptions?: LoggerOptions, private readonly serializer?: IDaprSerializer) {
     this.server = server;
     this.logger = new Logger("HTTPServer", "HTTPServerImpl", loggerOptions);
     this.subscriptionManager = new SubscriptionManager();
@@ -45,6 +48,25 @@ export default class HTTPServerImpl {
    */
   extractDataFromSubscribeRequest(req: any): any {
     const payload = req.body ?? "";
+
+    if (this.serializer) {
+      const cloudEvent = isCloudEvent(payload);
+      if (cloudEvent && typeof payload.data_base64 === "string") {
+        return this.serializer.deserialize(Buffer.from(payload.data_base64, "base64").toString("utf-8"));
+      }
+      const data = cloudEvent ? payload.data : payload;
+      const contentType =
+        (cloudEvent ? payload.datacontenttype : undefined) ??
+        req.headers?.["content-type"] ??
+        this.serializer.contentType;
+      const encoded =
+        data instanceof Uint8Array
+          ? Buffer.from(data).toString("utf-8")
+          : isJsonContentType(contentType)
+          ? JSON.stringify(data)
+          : data;
+      return this.serializer.deserialize(encoded);
+    }
 
     // The payload should be an object with string keys and any values.
     if (!(payload instanceof Object) || payload instanceof Array || payload instanceof Buffer) {
@@ -98,20 +120,24 @@ export default class HTTPServerImpl {
       const routeObj = subscription.routes[route];
 
       // Add a server POST handler
-      this.server.post(`/${routeObj.path}`, async (req, res) => {
-        const bulkSubEnabled = subscription.dapr.bulkSubscribe?.enabled;
-        if (bulkSubEnabled) {
-          const result = await this.processBulkSubscribeMessage(routeObj, req);
-          return res.send(result);
+      this.server.post(`/${routeObj.path}`, async (req, res, next) => {
+        try {
+          const bulkSubEnabled = subscription.dapr.bulkSubscribe?.enabled;
+          if (bulkSubEnabled) {
+            const result = await this.processBulkSubscribeMessage(routeObj, req);
+            return res.send(result);
+          }
+
+          const headers = req.headers;
+          const data = this.extractDataFromSubscribeRequest(req);
+
+          // Process the callbacks
+          // we handle priority of status on `RETRY` > `DROP` > `SUCCESS` and default to `SUCCESS`
+          const status = await this.processPubSubCallbacks(routeObj, data, headers);
+          return res.send({ status });
+        } catch (error) {
+          next(error);
         }
-
-        const headers = req.headers;
-        const data = this.extractDataFromSubscribeRequest(req);
-
-        // Process the callbacks
-        // we handle priority of status on `RETRY` > `DROP` > `SUCCESS` and default to `SUCCESS`
-        const status = await this.processPubSubCallbacks(routeObj, data, headers);
-        return res.send({ status });
       });
     }
 
@@ -131,7 +157,18 @@ export default class HTTPServerImpl {
       const entry = entries[ind];
       let data: any;
 
-      if (entry.contentType == "application/octet-stream") {
+      if (this.serializer) {
+        data =
+          entry.contentType === "application/cloudevents+json"
+            ? this.extractDataFromSubscribeRequest({ body: entry.event, headers: entry.metadata })
+            : this.serializer.deserialize(
+                entry.contentType === "application/octet-stream"
+                  ? Buffer.from(entry.event, "base64").toString("utf-8")
+                  : isJsonContentType(entry.contentType)
+                  ? JSON.stringify(entry.event)
+                  : entry.event,
+              );
+      } else if (entry.contentType == "application/octet-stream") {
         const dataB64 = entry.event;
         data = Buffer.from(dataB64, "base64").toString();
         let parsedData: any;

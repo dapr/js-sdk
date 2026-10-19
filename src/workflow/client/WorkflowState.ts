@@ -14,12 +14,14 @@ limitations under the License.
 import type { OrchestrationState } from "../engine";
 import { WorkflowFailureDetails } from "./WorkflowFailureDetails";
 import { WorkflowRuntimeStatus, fromOrchestrationStatus } from "../runtime/WorkflowRuntimeStatus";
+import { IDaprSerializer } from "../../serialization/IDaprSerializer";
+import { JsonSerializer } from "../../serialization/JsonSerializer";
 
 export class WorkflowState {
   private readonly _state: OrchestrationState;
   private readonly _failureDetails?: WorkflowFailureDetails;
 
-  constructor(state: OrchestrationState) {
+  constructor(state: OrchestrationState, private readonly serializer: IDaprSerializer = new JsonSerializer()) {
     if (!state) {
       throw new Error("WorkflowState cannot be null");
     }
@@ -63,29 +65,26 @@ export class WorkflowState {
     return this._state.serializedOutput;
   }
 
+  getInput<T = unknown>(): T | undefined {
+    const data = this.serializedInput;
+    return data === undefined || data === "" ? undefined : this.serializer.deserialize<T>(data);
+  }
+
+  getOutput<T = unknown>(): T | undefined {
+    const data = this.serializedOutput;
+    return data === undefined || data === "" ? undefined : this.serializer.deserialize<T>(data);
+  }
+
+  getCustomStatus<T = unknown>(): T | undefined {
+    const data = this.customStatus;
+    return data === undefined || data === "" ? undefined : this.serializer.deserialize<T>(data);
+  }
+
   get workflowFailureDetails(): WorkflowFailureDetails | undefined {
     return this._failureDetails;
   }
 
   get customStatus(): string | undefined {
     return this._state.serializedCustomStatus;
-  }
-
-  /** Deserializes JSON without runtime type validation. Invalid JSON throws SyntaxError. */
-  getInput<T = unknown>(): T | undefined {
-    const input = this.serializedInput;
-    return input === undefined || input === "" ? undefined : JSON.parse(input);
-  }
-
-  /** Deserializes JSON without runtime type validation. Invalid JSON throws SyntaxError. */
-  getOutput<T = unknown>(): T | undefined {
-    const output = this.serializedOutput;
-    return output === undefined || output === "" ? undefined : JSON.parse(output);
-  }
-
-  /** Deserializes JSON without runtime type validation. Invalid JSON throws SyntaxError. */
-  getCustomStatus<T = unknown>(): T | undefined {
-    const status = this.customStatus;
-    return status === undefined || status === "" ? undefined : JSON.parse(status);
   }
 }

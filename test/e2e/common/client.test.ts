@@ -23,6 +23,7 @@ import {
 } from "../../../src";
 import { sleep } from "../../../src/utils/NodeJS.util";
 import { LockStatus } from "../../../src/types/lock/UnlockResponse";
+import { CustomSerializer, CustomJsonSerializer } from "../../fixtures/CustomSerializer";
 import {
   startRedisContainer,
   startMongoDbContainer,
@@ -82,6 +83,95 @@ describe("common/client/http", () => {
       await redisContainer.stop();
       await network.stop();
     });
+  });
+
+  describe("custom serialization", () => {
+    it.each([CommunicationProtocolEnum.HTTP, CommunicationProtocolEnum.GRPC])(
+      "queries custom JSON state using the stored representation (%s)",
+      async (communicationProtocol) => {
+        const serializer = new CustomJsonSerializer();
+        const customClient = new DaprClient({
+          communicationProtocol,
+          daprHost: daprContainer.getHost(),
+          daprPort: (communicationProtocol === CommunicationProtocolEnum.HTTP
+            ? daprContainer.getHttpPort()
+            : daprContainer.getGrpcPort()
+          ).toString(),
+          serializer,
+        });
+        const key = `custom-query-${randomUUID()}`;
+        const value = { id: key, count: 9007199254740993n };
+        try {
+          expect(
+            await customClient.state.save("state-mongodb", [{ key, value }], {
+              metadata: { contentType: "application/json" },
+            }),
+          ).toEqual({});
+          const response = await customClient.state.query("state-mongodb", {
+            filter: { EQ: { payload: JSON.parse(serializer.serialize(value)).payload } },
+            sort: [],
+            page: { limit: 10 },
+          });
+          expect(response.results).toEqual([expect.objectContaining({ key, data: value })]);
+        } finally {
+          await customClient.state.delete("state-mongodb", key);
+          await customClient.stop();
+        }
+      },
+      30000,
+    );
+
+    it.each([
+      [CommunicationProtocolEnum.HTTP, CommunicationProtocolEnum.GRPC, new CustomSerializer()],
+      [CommunicationProtocolEnum.GRPC, CommunicationProtocolEnum.HTTP, new CustomSerializer()],
+      [CommunicationProtocolEnum.HTTP, CommunicationProtocolEnum.GRPC, new CustomJsonSerializer()],
+      [CommunicationProtocolEnum.GRPC, CommunicationProtocolEnum.HTTP, new CustomJsonSerializer()],
+    ] as const)(
+      "round-trips state across %s and %s without changing protocol envelopes",
+      async (writeProtocol, readProtocol, serializer) => {
+        const makeClient = (communicationProtocol: CommunicationProtocolEnum) =>
+          new DaprClient({
+            communicationProtocol,
+            daprHost: daprContainer.getHost(),
+            daprPort: (communicationProtocol === CommunicationProtocolEnum.HTTP
+              ? daprContainer.getHttpPort()
+              : daprContainer.getGrpcPort()
+            ).toString(),
+            serializer,
+          });
+        const writer = makeClient(writeProtocol);
+        const reader = makeClient(readProtocol);
+        const key = `serialization-${randomUUID()}`;
+        const transactionKey = `${key}-transaction`;
+        const value = { count: 9007199254740993n, nested: [false, 0, "", null] };
+        try {
+          expect(await writer.state.save("state-redis", [{ key, value }])).toEqual({});
+          expect(await reader.state.get("state-redis", key)).toEqual(value);
+          expect(await reader.state.getBulk("state-redis", [key])).toEqual([
+            expect.objectContaining({ key, data: value, etag: expect.any(String) }),
+          ]);
+          expect(await client.state.get("state-redis", key)).toEqual(
+            serializer.contentType === "text/plain"
+              ? serializer.serialize(value)
+              : JSON.parse(serializer.serialize(value)),
+          );
+          await writer.state.transaction("state-redis", [
+            { operation: "upsert", request: { key: transactionKey, value } },
+            { operation: "delete", request: { key } },
+          ]);
+          expect(await reader.state.get("state-redis", transactionKey)).toEqual(value);
+          expect(await reader.state.get("state-redis", key)).toBe("");
+          expect(await reader.metadata.get()).toHaveProperty("id");
+          expect(client.options.serializer).toBeUndefined();
+        } finally {
+          await reader.state.delete("state-redis", key);
+          await reader.state.delete("state-redis", transactionKey);
+          await writer.stop();
+          await reader.stop();
+        }
+      },
+      30000,
+    );
   });
 
   describe("client", () => {
