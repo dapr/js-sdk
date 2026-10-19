@@ -21,12 +21,27 @@ import type { ActivityOptions } from "../../types/workflow/ActivityOptions.type"
 import type { ChildWorkflowOptions } from "../../types/workflow/ChildWorkflowOptions.type";
 import type { DetachedWorkflowOptions } from "../../types/workflow/DetachedWorkflowOptions.type";
 import { createPropagatedHistoryView, type PropagatedHistoryView } from "./PropagatedHistory";
+import { Logger } from "../../logger/Logger";
+import type { LoggerOptions } from "../../types/logger/LoggerOptions";
+import type { LoggerService } from "../../types/logger/LoggerService";
+import { ReplaySafeLogger } from "./ReplaySafeLogger";
 
 export default class WorkflowContext {
-  constructor(private readonly _innerContext: OrchestrationContext) {
+  private _logger?: LoggerService;
+
+  constructor(private readonly _innerContext: OrchestrationContext, private readonly loggerOptions?: LoggerOptions) {
     if (!_innerContext) {
       throw new Error("WorkflowContext cannot be undefined");
     }
+  }
+
+  /** Logs application messages only during non-replay execution. */
+  public get logger(): LoggerService {
+    this._logger ??= new ReplaySafeLogger(
+      new Logger("Workflow", `${this.getWorkflowName()}, ${this.getWorkflowInstanceId()}`, this.loggerOptions),
+      () => this.isReplaying(),
+    );
+    return this._logger;
   }
 
   public getWorkflowInstanceId(): string {
