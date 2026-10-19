@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import type { ActivityContext } from "../engine/context/ActivityContext";
+import type { ActivityContext } from "../engine";
 import type { PropagatedHistory } from "./PropagatedHistory";
 
 export default class WorkflowActivityContext {
@@ -31,5 +31,10 @@ export default class WorkflowActivityContext {
 
   public getWorkflowActivityId(): number {
     return this._innerContext.taskId;
+  }
+
+  /** The runtime-supplied execution key, or undefined when the runtime does not supply one. */
+  public getTaskExecutionId(): string | undefined {
+    return this._innerContext.taskExecutionId || undefined;
   }
 }

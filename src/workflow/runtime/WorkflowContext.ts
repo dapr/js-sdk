@@ -32,6 +32,10 @@ export default class WorkflowContext {
     return this._innerContext.instanceId;
   }
 
+  public getWorkflowName(): string {
+    return this._innerContext.name;
+  }
+
   public getPropagatedHistory(): PropagatedHistory | undefined {
     return this._innerContext.propagatedHistory;
   }

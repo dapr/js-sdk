@@ -61,6 +61,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     instanceId: string,
     private readonly _appId?: string,
     private readonly _propagatedHistory?: PropagatedHistory,
+    private readonly _name = "",
   ) {
     super();
     this._isReplaying = true;
@@ -82,6 +83,10 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
 
   get instanceId(): string {
     return this._instanceId;
+  }
+
+  override get name(): string {
+    return this._name;
   }
 
   override get propagatedHistory(): PropagatedHistory | undefined {

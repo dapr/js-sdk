@@ -24,6 +24,10 @@ export type TOrchestrator = (context: OrchestrationContext, input: unknown) => A
 export type TActivity<TInput, TOutput> = (context: ActivityContext, input: TInput) => TOutput | Promise<TOutput>;
 
 export abstract class OrchestrationContext {
+  get name(): string {
+    throw new Error("This orchestration context does not provide a workflow name");
+  }
+
   get propagatedHistory(): PropagatedHistory | undefined {
     return undefined;
   }
