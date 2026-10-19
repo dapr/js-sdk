@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import fetch, { RequestInit } from "node-fetch";
+import fetch, { Headers, RequestInit, Response } from "node-fetch";
 import { DaprClient } from "../../..";
 import IClient from "../../../interfaces/Client/IClient";
 import http from "http";
@@ -323,6 +323,29 @@ export default class HTTPClient implements IClient {
     return await this.execute(`${newClientUrl}${url}`, params);
   }
 
+  /** Execute a raw streaming request without JSON serialization or text decoding. */
+  async executeStreamWithApiVersion(apiVersion: string, path: string, params: RequestInit): Promise<Response> {
+    const headers = new Headers(params.headers);
+    if (this.options.daprApiToken) {
+      headers.set("dapr-api-token", this.options.daprApiToken);
+    }
+    headers.set("user-agent", `dapr-sdk-js/v${SDK_VERSION} http/1`);
+    const url = `${this.daprEndpoint.endpoint}/${apiVersion}${path}`;
+    const client = await this.getClient();
+    const response = await client(url, {
+      ...params,
+      headers,
+      redirect: "error",
+      agent: url.startsWith("https") ? HTTPClient.httpsAgent : HTTPClient.httpAgent,
+    });
+    if (!response.ok) {
+      throw new Error(
+        JSON.stringify({ error: response.statusText, error_msg: await response.text(), status: response.status }),
+      );
+    }
+    return response;
+  }
+
   /**
    * Executes an HTTP request to the Dapr sidecar API.
    *
@@ -414,8 +437,7 @@ export default class HTTPClient implements IClient {
     }
 
     const urlFull = url.startsWith("http") ? url : `${this.clientUrl}${url}`;
-    const agent = urlFull.startsWith("https") ? HTTPClient.httpsAgent : HTTPClient.httpAgent;
-    clientOptions.agent = agent;
+    clientOptions.agent = urlFull.startsWith("https") ? HTTPClient.httpsAgent : HTTPClient.httpAgent;
 
     this.logger.debug(
       `Fetching ${clientOptions.method} ${urlFull} with (headers: ${JSON.stringify(
