@@ -25,6 +25,7 @@ import { SDK_VERSION } from "../../../version";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import communicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
 import { HttpEndpoint } from "../../../network/HttpEndpoint";
+import { getBaggageHeader } from "../../../utils/Baggage.util";
 
 /**
  * HTTP-based Dapr client implementation.
@@ -326,6 +327,10 @@ export default class HTTPClient implements IClient {
   /** Execute a raw streaming request without JSON serialization or text decoding. */
   async executeStreamWithApiVersion(apiVersion: string, path: string, params: RequestInit): Promise<Response> {
     const headers = new Headers(params.headers);
+    const baggage = getBaggageHeader();
+    if (baggage !== undefined && !headers.has("baggage")) {
+      headers.set("baggage", baggage);
+    }
     if (this.options.daprApiToken) {
       headers.set("dapr-api-token", this.options.daprApiToken);
     }
@@ -414,7 +419,11 @@ export default class HTTPClient implements IClient {
     clientOptions.method = params?.method.toLocaleUpperCase() || (params?.body ? "POST" : "GET");
 
     // Set Headers
-    clientOptions.headers = params?.headers ?? {};
+    clientOptions.headers = { ...params?.headers };
+    const baggage = getBaggageHeader();
+    if (baggage !== undefined && !Object.keys(clientOptions.headers).some((key) => key.toLowerCase() === "baggage")) {
+      clientOptions.headers["baggage"] = baggage;
+    }
 
     if (this.options.daprApiToken) {
       clientOptions.headers["dapr-api-token"] = this.options.daprApiToken;
