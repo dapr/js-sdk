@@ -45,7 +45,8 @@ export class TaskHubWorker {
 
   private _isRunning = false;
   private _isReady = false;
-  private _stopWorker = false;
+  private _runController?: AbortController;
+  private _stopPromise?: Promise<void>;
   private _activeWorkItems = 0;
   private _workItemStreamController?: AbortController;
   private _resolveReady?: () => void;
@@ -98,14 +99,16 @@ export class TaskHubWorker {
 
     this._isRunning = true;
     this._isReady = false;
-    this._stopWorker = false;
+    const runController = new AbortController();
+    this._runController = runController;
 
     const ready = new Promise<void>((resolve, reject) => {
       this._resolveReady = resolve;
       this._rejectReady = reject;
     });
 
-    this.internalRunWorker().catch((err) => {
+    this.internalRunWorker(runController.signal).catch((err) => {
+      if (runController.signal.aborted) return;
       this.logger.error("Worker failed:", err);
       this._isRunning = false;
       this._isReady = false;
@@ -117,16 +120,16 @@ export class TaskHubWorker {
     await ready;
   }
 
-  private async internalRunWorker(): Promise<void> {
+  private async internalRunWorker(signal: AbortSignal): Promise<void> {
     const BASE_DELAY_MS = 1000;
     const MAX_DELAY_MS = 30000;
     let retryCount = 0;
     let isFirstAttempt = true;
 
-    while (!this._stopWorker) {
+    while (!signal.aborted) {
       try {
-        await this.client.hello(create(EmptySchema));
-        if (this._stopWorker) return;
+        await this.client.hello(create(EmptySchema), { signal });
+        if (signal.aborted) return;
         // Only an unreachable sidecar on startup is fatal. Once connected,
         // stream errors (a sidecar restart) must be retried.
         isFirstAttempt = false;
@@ -144,30 +147,30 @@ export class TaskHubWorker {
 
         try {
           for await (const workItem of stream) {
-            if (this._stopWorker) break;
+            if (signal.aborted || streamController.signal.aborted) break;
             // Health pings only keep the stream alive through idle proxies; they carry no work.
             if (workItem.request.case === "healthPing") continue;
 
             // Concurrency is admitted by the Dapr runtime (workflow.maxConcurrent*Invocations), so every
             // work item is dispatched as it arrives. A work item that is not executed stays registered
             // as in flight on this stream, stalling its workflow until the stream reconnects.
-            this.dispatchWorkItem(workItem);
+            this.dispatchWorkItem(workItem, streamController);
           }
         } finally {
-          this._isReady = false;
           if (this._workItemStreamController === streamController) {
+            this._isReady = false;
             this._workItemStreamController = undefined;
           }
         }
 
-        if (this._stopWorker) {
+        if (signal.aborted) {
           this.logger.info("Stream ended");
           return;
         }
 
         this.logger.warn("Stream abruptly closed, will retry the connection...");
       } catch (err: unknown) {
-        if (this._stopWorker) return;
+        if (signal.aborted) return;
 
         const errorMsg = err instanceof ConnectError ? err.message : String(err);
         this.logger.error(`Error on grpc stream: ${errorMsg}`);
@@ -180,12 +183,12 @@ export class TaskHubWorker {
 
       const delay = Math.min(BASE_DELAY_MS * Math.pow(2, retryCount), MAX_DELAY_MS);
       const jitter = delay * 0.5 * Math.random();
-      await sleep(delay + jitter);
+      await sleep(delay + jitter, signal);
       retryCount++;
     }
   }
 
-  private dispatchWorkItem(workItem: WorkItem): void {
+  private dispatchWorkItem(workItem: WorkItem, streamController: AbortController): void {
     const requestType = workItem.request;
     if (!requestType) {
       this.logger.warn("Received work item with no request");
@@ -195,20 +198,25 @@ export class TaskHubWorker {
     if (requestType.case === "workflowRequest") {
       const req = requestType.value;
       this.logger.info(`Received "Orchestrator Request" work item with instance id '${req.instanceId}'`);
-      this.trackWorkItem(this.executeOrchestrator(req, workItem.completionToken));
+      this.trackWorkItem(this.executeOrchestrator(req, workItem.completionToken), streamController);
     } else if (requestType.case === "activityRequest") {
       this.logger.info(`Received "Activity Request" work item`);
-      this.trackWorkItem(this.executeActivity(requestType.value, workItem.completionToken));
+      this.trackWorkItem(this.executeActivity(requestType.value, workItem.completionToken), streamController);
     } else {
       this.logger.warn(`Received unknown work item type`);
     }
   }
 
-  private trackWorkItem(workPromise: Promise<void>): void {
+  private trackWorkItem(workPromise: Promise<void>, streamController: AbortController): void {
     this._activeWorkItems++;
     workPromise
       .catch((err) => {
         this.logger.error("Unhandled error in work item execution:", err);
+        // Release unacknowledged work for redelivery, but never abort a newer stream.
+        if (this._workItemStreamController === streamController) {
+          this._isReady = false;
+        }
+        streamController.abort();
       })
       .finally(() => {
         this._activeWorkItems--;
@@ -266,6 +274,7 @@ export class TaskHubWorker {
       this.logger.error(
         `An error occurred while trying to complete instance '${instanceId}': ${(e as Error)?.message}`,
       );
+      throw e;
     }
   }
 
@@ -314,6 +323,7 @@ export class TaskHubWorker {
           (e as Error)?.message
         }`,
       );
+      throw e;
     }
   }
 
@@ -322,7 +332,17 @@ export class TaskHubWorker {
       throw new Error("The worker is not running.");
     }
 
-    this._stopWorker = true;
+    if (!this._stopPromise) {
+      this._stopPromise = this.stopInternal().finally(() => {
+        this._isRunning = false;
+        this._stopPromise = undefined;
+      });
+    }
+    await this._stopPromise;
+  }
+
+  private async stopInternal(): Promise<void> {
+    this._runController?.abort();
     this._isReady = false;
     this._rejectReady?.(new Error("The worker stopped before becoming ready."));
     this._resolveReady = undefined;
@@ -342,8 +362,6 @@ export class TaskHubWorker {
         `Shutdown timeout reached with ${this._activeWorkItems} work item(s) still active. Proceeding with shutdown.`,
       );
     }
-
-    this._isRunning = false;
   }
 
   private markReady(): void {
@@ -354,6 +372,18 @@ export class TaskHubWorker {
   }
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve) => {
+    if (signal?.aborted) {
+      resolve();
+      return;
+    }
+    const finish = () => {
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", finish);
+      resolve();
+    };
+    const timer = setTimeout(finish, ms);
+    signal?.addEventListener("abort", finish, { once: true });
+  });
 }

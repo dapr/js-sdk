@@ -101,14 +101,15 @@ export class OrchestrationExecutor {
   }
 
   private async processEvent(ctx: OrchestrationRuntimeContext, event: HistoryEvent): Promise<void> {
-    // Successful completion can still have detached creation confirmations to consume on replay.
-    if (
-      ctx._isComplete &&
-      ctx._completionStatus !== OrchestrationStatus.CONTINUED_AS_NEW &&
-      (ctx._completionStatus !== OrchestrationStatus.COMPLETED ||
-        event.eventType.case !== "detachedWorkflowInstanceCreated")
-    ) {
-      return;
+    if (ctx._isComplete) {
+      const continued = ctx._completionStatus === OrchestrationStatus.CONTINUED_AS_NEW;
+      const completed = ctx._completionStatus === OrchestrationStatus.COMPLETED;
+      const confirmation =
+        ((completed || continued) && event.eventType.case === "eventSent") ||
+        (completed && event.eventType.case === "detachedWorkflowInstanceCreated");
+      if (!confirmation && !(continued && event.eventType.case === "eventRaised")) {
+        return;
+      }
     }
 
     if (this._isSuspended && this.isSuspendable(event)) {
@@ -376,6 +377,22 @@ export class OrchestrationExecutor {
         break;
       }
 
+      case "eventSent": {
+        const action = ctx._pendingActions[event.eventId];
+        const actionType = action?.workflowActionType;
+        if (
+          actionType?.case !== "sendEvent" ||
+          actionType.value.instance?.instanceId !== eventType.value.instanceId ||
+          actionType.value.name !== eventType.value.name
+        ) {
+          throw new NonDeterminismError(
+            `A previous execution sent event '${eventType.value.name}' with ID=${event.eventId}, but the current execution doesn't have a matching sendEvent action.`,
+          );
+        }
+        delete ctx._pendingActions[event.eventId];
+        break;
+      }
+
       case "eventRaised": {
         const eventName = eventType.value.name?.toLowerCase();
 
@@ -384,7 +401,7 @@ export class OrchestrationExecutor {
         }
 
         let taskList;
-        if (eventName) {
+        if (eventName && !ctx._isComplete) {
           taskList = ctx._pendingEvents[eventName];
         }
 

@@ -12,6 +12,7 @@ limitations under the License.
 */
 
 import { Task } from "./Task";
+import { registerTaskParent } from "./taskCompletion";
 
 export abstract class CompositeTask<T> extends Task<T> {
   _tasks: Task<unknown>[];
@@ -29,6 +30,8 @@ export abstract class CompositeTask<T> extends Task<T> {
 
       if (task.isComplete) {
         this.onChildCompleted(task);
+      } else {
+        registerTaskParent(task, this);
       }
     }
   }

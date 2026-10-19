@@ -21,6 +21,7 @@ import {
 } from "../../../src/proto/dapr/proto/durabletask/v1/orchestrator_service_pb";
 import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
 import { CustomSerializer } from "../../fixtures/CustomSerializer";
+import { newExecutionStartedEvent } from "../../../src/workflow/engine/worker/protoHelpers";
 
 /** A work-item stream the test feeds item by item; it ends when aborted or ended. */
 class FakeWorkItemStream {
@@ -119,6 +120,103 @@ async function startWorker() {
 }
 
 describe("TaskHubWorker work-item dispatch", () => {
+  it.each(["activity", "workflow"])("reconnects after a failed %s completion and accepts redelivery", async (kind) => {
+    jest.useFakeTimers({ doNotFake: ["setImmediate"] });
+    const worker = new TaskHubWorker("localhost:50001");
+    const streams = [new FakeWorkItemStream(), new FakeWorkItemStream()];
+    const getWorkItems = jest.fn(
+      (_request: unknown, options: { signal: AbortSignal }): AsyncGenerator<WorkItem> =>
+        streams[getWorkItems.mock.calls.length - 1].iterate(options.signal),
+    );
+    const complete = jest.fn().mockRejectedValueOnce(new Error("response unavailable")).mockResolvedValue({});
+    const execute = jest.fn(() => ({ result: true }));
+    worker.registry.addNamedActivity("activity", execute);
+    worker.registry.addNamedOrchestrator("workflow", execute);
+    (worker as unknown as { client: unknown }).client = {
+      hello: jest.fn().mockResolvedValue({}),
+      getWorkItems,
+      completeActivityTask: complete,
+      completeOrchestratorTask: complete,
+    };
+    const item =
+      kind === "activity"
+        ? activityItem(1)
+        : create(WorkItemSchema, {
+            request: {
+              case: "workflowRequest",
+              value: {
+                instanceId: "wf",
+                newEvents: [newExecutionStartedEvent("workflow", "wf")],
+              },
+            },
+          });
+    try {
+      await worker.start();
+      streams[0].push(item);
+      await settle();
+      expect(complete).toHaveBeenCalledTimes(1);
+      expect(getWorkItems.mock.calls[0][1].signal.aborted).toBe(true);
+      expect(worker.isReady).toBe(false);
+      await jest.advanceTimersByTimeAsync(1500);
+      expect(getWorkItems).toHaveBeenCalledTimes(2);
+      streams[1].push({ ...item, completionToken: "redelivery-token" });
+      await settle();
+      expect(complete).toHaveBeenCalledTimes(2);
+      expect(complete.mock.calls[1][0]).toMatchObject({ completionToken: "redelivery-token" });
+      if (kind === "activity") {
+        expect(complete.mock.calls[1][0]).toMatchObject({ result: '{"result":true}' });
+      } else {
+        expect(complete.mock.calls[1][0].actions[0].workflowActionType.value).toMatchObject({
+          result: '{"result":true}',
+        });
+      }
+      expect(execute).toHaveBeenCalledTimes(2);
+      expect(worker.isReady).toBe(true);
+      await worker.stop();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it("does not abort a newer stream when an old activity completion fails late", async () => {
+    jest.useFakeTimers({ doNotFake: ["setImmediate"] });
+    const worker = new TaskHubWorker("localhost:50001");
+    const streams = [new FakeWorkItemStream(), new FakeWorkItemStream()];
+    const getWorkItems = jest.fn(
+      (_request: unknown, options: { signal: AbortSignal }): AsyncGenerator<WorkItem> =>
+        streams[getWorkItems.mock.calls.length - 1].iterate(options.signal),
+    );
+    let rejectCompletion!: (error: Error) => void;
+    const completeActivityTask = jest.fn(
+      () =>
+        new Promise<void>((_resolve, reject) => {
+          rejectCompletion = reject;
+        }),
+    );
+    (worker as unknown as { client: unknown }).client = {
+      hello: jest.fn().mockResolvedValue({}),
+      getWorkItems,
+      completeActivityTask,
+    };
+    worker.registry.addNamedActivity("activity", () => "result");
+    try {
+      await worker.start();
+      streams[0].push(activityItem(1));
+      await settle();
+      streams[0].end();
+      await settle();
+      await jest.advanceTimersByTimeAsync(1500);
+      expect(getWorkItems).toHaveBeenCalledTimes(2);
+      rejectCompletion(new Error("late response failure"));
+      await settle();
+      expect(getWorkItems.mock.calls[1][1].signal.aborted).toBe(false);
+      expect(worker.isReady).toBe(true);
+      await worker.stop();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it.each([undefined, new CustomSerializer()])(
     "passes execution keys from work items to activities with serializer %p",
     async (serializer) => {

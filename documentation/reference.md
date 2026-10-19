@@ -25,6 +25,34 @@ await client.invoker.listen("method", invokerListen.bind(this), options);
 
 ## Workflow context and state
 
+### Task composition and reliable delivery
+
+`ctx.whenAll([])` completes immediately with `[]`. Tasks can participate in
+multiple `whenAll` or `whenAny` groups, and groups can be nested. `whenAll`
+preserves input order and propagates failures; `whenAny` returns the first
+completed task, even if that task failed. Neither operation cancels other tasks.
+An empty `whenAny` remains pending.
+
+`ctx.sendEvent(...)` queues an event without requiring a yield. Pending outbound
+events are sent when the workflow completes successfully or continues as new;
+replaying a confirmed send does not send it again. Events from a failed execution
+are not committed. With `ctx.continueAsNew(input, true)` (the default), external
+events arriving after the transition are carried into the next execution, not
+delivered to abandoned waits. Passing `false` discards those buffered events.
+
+Outbound workflow-to-workflow events also require sidecar support. Dapr 1.18.4
+and 1.19.0-rc.4 reject the resulting outbound `eventSent` message; the SDK cannot
+provide end-to-end delivery on those runtimes. SDK send-action serialization and
+replay are covered by the gRPC protocol integration tests. Use a client
+`raiseEvent` call from an activity when targeting a runtime with this limitation.
+
+The worker reconnects if it cannot deliver a work-item completion, allowing Dapr
+to redeliver unacknowledged work. Activities remain **at-least-once**, not
+exactly-once: make side effects idempotent, including when a completion response
+is lost. Await `runtime.stop()` before restarting the same runtime; stopping
+cancels connection attempts and reconnect delays while allowing active work the
+existing bounded shutdown period.
+
 ### Replay-safe workflow logging
 
 Use `ctx.logger` inside workflows to log without repeating application messages

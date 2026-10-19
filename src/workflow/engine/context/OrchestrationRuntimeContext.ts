@@ -158,7 +158,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
 
     this._isComplete = true;
     this._completionStatus = status;
-    this._pendingActions = status === OrchestrationStatusEnum.COMPLETED ? this.getPendingDetachedActions() : {};
+    this._pendingActions = status === OrchestrationStatusEnum.COMPLETED ? this.getPendingCompletionActions() : {};
     this._result = result;
 
     let resultJson: string | undefined;
@@ -188,7 +188,9 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     if (this._isComplete) return;
 
     this._isComplete = true;
-    this._pendingActions = {};
+    this._pendingActions = Object.fromEntries(
+      Object.entries(this._pendingActions).filter(([, action]) => action.workflowActionType.case === "sendEvent"),
+    );
     this._completionStatus = OrchestrationStatusEnum.CONTINUED_AS_NEW;
     this._newInput = newInput;
     this._saveEvents = saveEvents;
@@ -215,7 +217,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
         undefined,
         carryoverEvents ?? undefined,
       );
-      return [action];
+      return [...Object.values(this._pendingActions), action];
     }
 
     return Object.values(this._pendingActions);
@@ -225,10 +227,11 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     return ++this._sequenceNumber;
   }
 
-  private getPendingDetachedActions(): Record<number, WorkflowAction> {
+  private getPendingCompletionActions(): Record<number, WorkflowAction> {
     return Object.fromEntries(
       Object.entries(this._pendingActions).filter(
-        ([, action]) => action.workflowActionType.case === "createDetachedWorkflow",
+        ([, action]) =>
+          action.workflowActionType.case === "createDetachedWorkflow" || action.workflowActionType.case === "sendEvent",
       ),
     );
   }
