@@ -22,6 +22,9 @@ import { Code, ConnectError } from "@connectrpc/connect";
 
 const mockScheduleNewOrchestration = jest.fn();
 const mockGetOrchestrationState = jest.fn();
+const mockListWorkflowInstanceIds = jest.fn();
+const mockGetWorkflowHistory = jest.fn();
+const mockRerunWorkflowFromEvent = jest.fn();
 const mockWaitForOrchestrationStart = jest.fn();
 const mockWaitForOrchestrationCompletion = jest.fn();
 const mockTerminateOrchestration = jest.fn();
@@ -38,6 +41,9 @@ jest.mock("../../../src/workflow/engine/transport/TaskHubClient", () => {
     TaskHubClient: jest.fn().mockImplementation(() => ({
       scheduleNewOrchestration: mockScheduleNewOrchestration,
       getOrchestrationState: mockGetOrchestrationState,
+      listWorkflowInstanceIds: mockListWorkflowInstanceIds,
+      getWorkflowHistory: mockGetWorkflowHistory,
+      rerunWorkflowFromEvent: mockRerunWorkflowFromEvent,
       waitForOrchestrationStart: mockWaitForOrchestrationStart,
       waitForOrchestrationCompletion: mockWaitForOrchestrationCompletion,
       terminateOrchestration: mockTerminateOrchestration,
@@ -176,6 +182,66 @@ describe("DaprWorkflowClient", () => {
       expect(state?.workflowFailureDetails?.getErrorMessage()).toBe("Something went wrong");
       expect(state?.workflowFailureDetails?.getErrorType()).toBe("Error");
       expect(state?.workflowFailureDetails?.getStackTrace()).toBe("stack trace here");
+    });
+  });
+
+  describe("listWorkflowInstanceIds", () => {
+    it("should return the requested page", async () => {
+      const page = { instanceIds: ["instance-1"], continuationToken: "next-page" };
+      mockListWorkflowInstanceIds.mockResolvedValue(page);
+
+      await expect(client.listWorkflowInstanceIds("previous-page", 10)).resolves.toEqual(page);
+      expect(mockListWorkflowInstanceIds).toHaveBeenCalledWith("previous-page", 10);
+    });
+
+    it("should allow listing without pagination options", async () => {
+      mockListWorkflowInstanceIds.mockResolvedValue({ instanceIds: [] });
+
+      await expect(client.listWorkflowInstanceIds()).resolves.toEqual({ instanceIds: [] });
+      expect(mockListWorkflowInstanceIds).toHaveBeenCalledWith(undefined, undefined);
+    });
+
+    it.each([0, -1, 1.5, 0x1_0000_0000])("should reject invalid page size %s", async (pageSize) => {
+      await expect(client.listWorkflowInstanceIds(undefined, pageSize)).rejects.toThrow(RangeError);
+      expect(mockListWorkflowInstanceIds).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("getWorkflowHistory", () => {
+    it("should return the workflow's execution history", async () => {
+      const history = [{ eventId: 1 }, { eventId: 2 }];
+      mockGetWorkflowHistory.mockResolvedValue(history);
+
+      await expect(client.getWorkflowHistory("instance-1")).resolves.toBe(history);
+      expect(mockGetWorkflowHistory).toHaveBeenCalledWith("instance-1");
+    });
+  });
+
+  describe("rerunWorkflowFromEvent", () => {
+    it("should return the new instance ID and forward options", async () => {
+      mockRerunWorkflowFromEvent.mockResolvedValue("rerun-instance");
+      const options = { newInstanceId: "rerun-instance", input: { retry: true }, overwriteInput: true };
+
+      await expect(client.rerunWorkflowFromEvent("source-instance", 3, options)).resolves.toBe("rerun-instance");
+      expect(mockRerunWorkflowFromEvent).toHaveBeenCalledWith("source-instance", 3, options);
+    });
+
+    it("should accept the first event ID", async () => {
+      mockRerunWorkflowFromEvent.mockResolvedValue("new-instance");
+
+      await expect(client.rerunWorkflowFromEvent("source-instance", 0)).resolves.toBe("new-instance");
+    });
+
+    it.each([-1, 1.5, 0x1_0000_0000])("should reject invalid event ID %s", async (eventId) => {
+      await expect(client.rerunWorkflowFromEvent("source-instance", eventId)).rejects.toThrow(RangeError);
+      expect(mockRerunWorkflowFromEvent).not.toHaveBeenCalled();
+    });
+
+    it("should reject an empty new instance ID", async () => {
+      await expect(client.rerunWorkflowFromEvent("source-instance", 1, { newInstanceId: "" })).rejects.toThrow(
+        TypeError,
+      );
+      expect(mockRerunWorkflowFromEvent).not.toHaveBeenCalled();
     });
   });
 
