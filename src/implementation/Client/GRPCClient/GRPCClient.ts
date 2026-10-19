@@ -22,6 +22,7 @@ import GRPCClientSidecar from "./sidecar";
 import DaprClient from "../DaprClient";
 import communicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
 import { GrpcEndpoint } from "../../../network/GrpcEndpoint";
+import { getBaggageHeader } from "../../../utils/Baggage.util";
 
 /**
  * gRPC-based Dapr client implementation.
@@ -117,7 +118,15 @@ export default class GRPCClient implements IClient {
     this.isInitialized = false;
 
     const maxBytes = (this.options.maxBodySizeMb ?? 4) * 1024 * 1024;
-    const interceptors: Interceptor[] = [];
+    const interceptors: Interceptor[] = [
+      (next) => async (req) => {
+        const baggage = getBaggageHeader();
+        if (baggage !== undefined && !req.header.has("baggage")) {
+          req.header.set("baggage", baggage);
+        }
+        return await next(req);
+      },
+    ];
 
     if (this.options.daprApiToken) {
       interceptors.push(this.generateInterceptor());
