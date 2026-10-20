@@ -105,14 +105,48 @@ describe("http/metadata", () => {
     });
   });
 
+  it.each([
+    ["1.16.0", "v1.0-alpha1", "v1.0-alpha1"],
+    ["1.17.0", "v1.0", "v1.0-alpha1"],
+    ["1.17.0-rc.1", "v1.0", "v1.0-alpha1"],
+    ["1.18.0-rc.1", "v1.0", "v1.0-alpha1"],
+    ["1.18.0", "v1.0", "v1.0"],
+    ["edge", "v1.0", "v1.0"],
+  ])("keeps bulk publish and Jobs decisions independent on %s", async (runtimeVersion, bulkVersion, jobsVersion) => {
+    const { metadata, execute } = getMetadata();
+    execute.mockResolvedValue({ runtimeVersion });
+
+    const bulk = metadata.getBulkPublishApiVersion();
+    const jobs = metadata.getJobsApiVersion();
+    expect(metadata.getBulkPublishApiVersion()).toBe(bulk);
+    expect(metadata.getJobsApiVersion()).toBe(jobs);
+    await expect(bulk).resolves.toBe(bulkVersion);
+    await expect(jobs).resolves.toBe(jobsVersion);
+    expect(execute).toHaveBeenCalledTimes(2);
+  });
+
+  it("retries a failed Jobs check without invalidating a successful bulk publish decision", async () => {
+    const { metadata, execute } = getMetadata();
+    execute.mockResolvedValue({ runtimeVersion: "1.15.0" });
+    const bulk = metadata.getBulkPublishApiVersion();
+    await expect(bulk).resolves.toBe("v1.0-alpha1");
+    await expect(metadata.getJobsApiVersion()).rejects.toThrow("requires Dapr runtime 1.16");
+
+    execute.mockResolvedValue({ runtimeVersion: "1.16.0" });
+    await expect(metadata.getJobsApiVersion()).resolves.toBe("v1.0-alpha1");
+    expect(metadata.getBulkPublishApiVersion()).toBe(bulk);
+    expect(execute).toHaveBeenCalledTimes(3);
+  });
+
   it("keeps get() fresh and preserves edge as the reported runtime version", async () => {
     const { metadata, execute } = getMetadata();
     execute.mockResolvedValue({ runtimeVersion: "edge" });
     await metadata.getBulkPublishApiVersion();
+    await metadata.getJobsApiVersion();
     await expect(metadata.get()).resolves.toEqual({ runtimeVersion: "edge" });
 
     execute.mockResolvedValue({ runtimeVersion: "edge", extended: { updated: "true" } });
     await expect(metadata.get()).resolves.toEqual({ runtimeVersion: "edge", extended: { updated: "true" } });
-    expect(execute).toHaveBeenCalledTimes(3);
+    expect(execute).toHaveBeenCalledTimes(4);
   });
 });

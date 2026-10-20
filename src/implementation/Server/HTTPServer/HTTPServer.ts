@@ -48,6 +48,14 @@ export default class HTTPServer implements IServer {
     this.isInitialized = false;
 
     this.server = options.serverHttp ?? express();
+    // Jobs accepts all JSON values, including scalar and null payloads.
+    this.server.use(
+      "/job",
+      bodyParser.json({
+        strict: false,
+        limit: `${this.serverOptions?.maxBodySizeMb ?? 4}mb`,
+      }),
+    );
     const serializer = client.options.serializer;
     if (serializer?.contentType && !isJsonContentType(serializer.contentType)) {
       this.server.use(
