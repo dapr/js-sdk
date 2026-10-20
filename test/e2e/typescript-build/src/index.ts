@@ -20,8 +20,23 @@ import {
   ConversationToolCalls,
   DaprClient,
   IClientConversation,
+  DaprPubSubStatusEnum,
+  PubSubStreamingSubscription,
+  PubSubStreamingSubscriptionOptions,
   Temporal,
 } from "@dapr/dapr";
+
+export async function subscribe(client: DaprClient): Promise<PubSubStreamingSubscription> {
+  const options: PubSubStreamingSubscriptionOptions = {
+    metadata: { rawPayload: "true" },
+    deadLetterTopic: "failed",
+    signal: new AbortController().signal,
+  };
+  return client.pubsub.subscribeStream("pubsub", "topic", async () => DaprPubSubStatusEnum.SUCCESS, options);
+}
+
+// @ts-expect-error Streaming subscriptions do not accept server-side routing options.
+const _streamRoute: PubSubStreamingSubscriptionOptions = { route: "/events" };
 
 // Compile against the built package's public surface, not this checkout's source or generated types.
 export async function converse(client: DaprClient): Promise<ConversationResponseAlpha2> {
