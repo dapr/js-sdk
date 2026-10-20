@@ -47,6 +47,15 @@ export class TaskHubWorker {
   private _isReady = false;
   private _stopWorker = false;
   private _activeWorkItems = 0;
+  private _activeActivities = 0;
+  // Bounds activities only. Workflow work items are always dispatched: an
+  // activity may wait on another workflow's progress (scheduleNewWorkflow
+  // returns once the new workflow has started), which needs a workflow work
+  // item to run on this worker.
+  private readonly _maxConcurrentActivities = 10;
+  // ponytail: unbounded on purpose; a queued item must never be dropped, as the
+  // sidecar keeps it in flight on this stream and its workflow stalls until reconnect.
+  private readonly _activityQueue: WorkItem[] = [];
   private _workItemStreamController?: AbortController;
   private _resolveReady?: () => void;
   private _rejectReady?: (error: unknown) => void;
@@ -148,13 +157,24 @@ export class TaskHubWorker {
             // Health pings only keep the stream alive through idle proxies; they carry no work.
             if (workItem.request.case === "healthPing") continue;
 
-            // Concurrency is admitted by the Dapr runtime (workflow.maxConcurrent*Invocations), so every
-            // work item is dispatched as it arrives. A work item that is not executed stays registered
-            // as in flight on this stream, stalling its workflow until the stream reconnects.
+            // Workflow work items are dispatched as they arrive. Activities above the cap are
+            // queued, never dropped: a work item that is not executed stays registered as in
+            // flight on this stream, stalling its workflow until the stream reconnects.
+            if (
+              workItem.request.case === "activityRequest" &&
+              this._activeActivities >= this._maxConcurrentActivities
+            ) {
+              this._activityQueue.push(workItem);
+              this.logger.debug(`Queued activity work item (${this._activityQueue.length} queued)`);
+              continue;
+            }
+
             this.dispatchWorkItem(workItem);
           }
         } finally {
           this._isReady = false;
+          // Queued items belonged to this stream; the sidecar re-delivers them on the next one.
+          this._activityQueue.length = 0;
           if (this._workItemStreamController === streamController) {
             this._workItemStreamController = undefined;
           }
@@ -195,24 +215,40 @@ export class TaskHubWorker {
     if (requestType.case === "workflowRequest") {
       const req = requestType.value;
       this.logger.info(`Received "Orchestrator Request" work item with instance id '${req.instanceId}'`);
-      this.trackWorkItem(this.executeOrchestrator(req, workItem.completionToken));
+      this.trackWorkItem(this.executeOrchestrator(req, workItem.completionToken), false);
     } else if (requestType.case === "activityRequest") {
       this.logger.info(`Received "Activity Request" work item`);
-      this.trackWorkItem(this.executeActivity(requestType.value, workItem.completionToken));
+      this.trackWorkItem(this.executeActivity(requestType.value, workItem.completionToken), true);
     } else {
       this.logger.warn(`Received unknown work item type`);
     }
   }
 
-  private trackWorkItem(workPromise: Promise<void>): void {
+  private trackWorkItem(workPromise: Promise<void>, activity: boolean): void {
     this._activeWorkItems++;
+    if (activity) {
+      this._activeActivities++;
+    }
     workPromise
       .catch((err) => {
         this.logger.error("Unhandled error in work item execution:", err);
       })
       .finally(() => {
         this._activeWorkItems--;
+        if (activity) {
+          this._activeActivities--;
+        }
+        this.drainQueue();
       });
+  }
+
+  private drainQueue(): void {
+    while (this._activityQueue.length > 0 && this._activeActivities < this._maxConcurrentActivities) {
+      const queued = this._activityQueue.shift();
+      if (queued) {
+        this.dispatchWorkItem(queued);
+      }
+    }
   }
 
   private async executeOrchestrator(req: WorkflowRequest, completionToken: string): Promise<void> {

@@ -110,12 +110,14 @@ async function startWorker() {
   await worker.start();
   await settle();
 
+  const release = () => pending.splice(0).forEach((resolve) => resolve());
   const stop = async () => {
     const stopped = worker.stop();
-    pending.splice(0).forEach((release) => release());
+    await settle(); // the stream has ended and the worker has dropped its queue
+    release();
     await stopped;
   };
-  return { stream, executed, stop, getWorkItems };
+  return { stream, executed, release, stop, getWorkItems };
 }
 
 describe("TaskHubWorker work-item dispatch", () => {
@@ -167,11 +169,17 @@ describe("TaskHubWorker work-item dispatch", () => {
     },
   );
 
-  it("executes every work item as it arrives, without dropping any", async () => {
+  it("runs at most 10 activities at once and executes every queued one in order, dropping none", async () => {
     const run = await startWorker();
 
     run.stream.push(...Array.from({ length: 250 }, (_, i) => activityItem(i)));
     await settle();
+    expect(run.executed).toHaveLength(10);
+
+    for (let round = 0; round < 30 && run.executed.length < 250; round++) {
+      run.release();
+      await settle();
+    }
 
     expect(run.executed).toEqual(Array.from({ length: 250 }, (_, i) => `activity:${i}`));
     await run.stop();
@@ -183,9 +191,14 @@ describe("TaskHubWorker work-item dispatch", () => {
     run.stream.push(...Array.from({ length: 20 }, (_, i) => activityItem(i)), workflowItem("a"), workflowItem("b"));
     await settle();
 
+    const activities = () => run.executed.filter((label) => label.startsWith("activity:"));
     expect(run.executed).toContain("workflow:a");
     expect(run.executed).toContain("workflow:b");
+    expect(activities()).toHaveLength(10);
+
+    // Stopping ends the stream; the queued activities are left to the sidecar to re-deliver.
     await run.stop();
+    expect(activities()).toHaveLength(10);
   });
 
   it("advertises the health ping capability and discards pings without dispatching them", async () => {
