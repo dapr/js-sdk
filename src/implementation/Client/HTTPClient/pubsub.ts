@@ -22,23 +22,18 @@ import { PubSubBulkPublishMessage } from "../../../types/pubsub/PubSubBulkPublis
 import { PubSubBulkPublishEntry } from "../../../types/pubsub/PubSubBulkPublishEntry.type";
 import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
 import { PubSubPublishOptions } from "../../../types/pubsub/PubSubPublishOptions.type";
-import { GetMetadataResponse } from "../../../types/metadata/GetMetadataResponse";
+import HTTPClientMetadata from "./metadata";
 import { serializeJsonValue } from "../../../serialization/Serialization.util";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPClientPubSub implements IClientPubSub {
   client: HTTPClient;
   private readonly logger: Logger;
+  private readonly metadata: HTTPClientMetadata;
 
-  /**
-   * Resolves the bulk publish API version from the sidecar's metadata. This
-   * avoids probing with a publish request, which older runtimes can route to a
-   * regular publish endpoint.
-   */
-  private bulkPublishApiVersion?: Promise<"v1.0" | "v1.0-alpha1">;
-
-  constructor(client: HTTPClient) {
+  constructor(client: HTTPClient, metadata = new HTTPClientMetadata(client)) {
     this.client = client;
+    this.metadata = metadata;
     this.logger = new Logger("HTTPClient", "PubSub", client.options.logger);
   }
 
@@ -104,7 +99,8 @@ export default class HTTPClientPubSub implements IClientPubSub {
     const path = `/publish/bulk/${pubSubName}/${topic}?${queryParams}`;
 
     try {
-      await this.executeBulkPublish(path, params);
+      const apiVersion = await this.metadata.getBulkPublishApiVersion();
+      await this.client.executeWithApiVersion(apiVersion, path, params);
     } catch (error: any) {
       this.logger.error(`Failure publishing bulk messages: ${error}`);
       return this.handleBulkPublishError(entries, error);
@@ -112,39 +108,6 @@ export default class HTTPClientPubSub implements IClientPubSub {
 
     // If no error is thrown, all messages were published successfully
     return { failedMessages: [] };
-  }
-
-  /**
-   * Selects the stable or alpha1 endpoint using the sidecar's runtime version,
-   * obtained through the side-effect-free metadata endpoint.
-   */
-  private async executeBulkPublish(path: string, params: THTTPExecuteParams): Promise<object | string> {
-    const apiVersion = await this.getBulkPublishApiVersion();
-    return await this.client.executeWithApiVersion(apiVersion, path, params);
-  }
-
-  private getBulkPublishApiVersion(): Promise<"v1.0" | "v1.0-alpha1"> {
-    if (!this.bulkPublishApiVersion) {
-      const apiVersion = this.client.execute("/metadata").then((response) => {
-        const runtimeVersion = (response as GetMetadataResponse).runtimeVersion;
-        const version = /^v?(\d+)\.(\d+)(?:\.\d+)?(?:[-+].*)?$/i.exec(runtimeVersion?.trim() ?? "");
-        if (!version) {
-          throw new Error(`Unable to determine Dapr runtime version from metadata: '${runtimeVersion ?? ""}'.`);
-        }
-
-        const major = Number(version[1]);
-        const minor = Number(version[2]);
-        return major > 1 || (major === 1 && minor >= 17) ? "v1.0" : "v1.0-alpha1";
-      });
-      this.bulkPublishApiVersion = apiVersion;
-      void apiVersion.catch(() => {
-        if (this.bulkPublishApiVersion === apiVersion) {
-          this.bulkPublishApiVersion = undefined;
-        }
-      });
-    }
-
-    return this.bulkPublishApiVersion;
   }
 
   private async handleBulkPublishError(
@@ -159,7 +122,7 @@ export default class HTTPClientPubSub implements IClientPubSub {
         const bulkPublishResponse = JSON.parse(err.error_msg);
         return getBulkPublishResponse({ entries: entries, response: bulkPublishResponse });
       }
-    } catch (_innerError: any) {
+    } catch {
       // This can indicate a general error with the request (e.g., network error, invalid pubsub name, etc.).
     }
 
