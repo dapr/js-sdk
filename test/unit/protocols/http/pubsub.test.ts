@@ -14,6 +14,7 @@ limitations under the License.
 import HTTPClient from "../../../../src/implementation/Client/HTTPClient/HTTPClient";
 import HTTPClientPubSub from "../../../../src/implementation/Client/HTTPClient/pubsub";
 import { CommunicationProtocolEnum, DaprClient } from "../../../../src";
+import { HTTPNotSupportedError } from "../../../../src/errors/HTTPNotSupportedError";
 
 const httpError = (status: number, errorMsg = "") =>
   new Error(JSON.stringify({ error: "Not Found", error_msg: errorMsg, status }));
@@ -37,6 +38,22 @@ describe("http/pubsub", () => {
 
   const publishConcurrently = (pubsub: HTTPClientPubSub, count = 3) =>
     Promise.all(Array.from({ length: count }, () => pubsub.publishBulk("my-pubsub", "my-topic", messages)));
+
+  it("rejects streaming subscriptions without sending requests or invoking the callback", async () => {
+    const { pubsub, execute, executeMetadata } = getPubSub();
+    const callback = jest.fn();
+    const subscription = pubsub.subscribeStream("my-pubsub", "my-topic", callback, {
+      metadata: { rawPayload: "true" },
+      deadLetterTopic: "dead-letters",
+      signal: new AbortController().signal,
+    });
+
+    await expect(subscription).rejects.toBeInstanceOf(HTTPNotSupportedError);
+    await expect(subscription).rejects.toThrow("Streaming pub/sub subscriptions require the gRPC protocol.");
+    expect(execute).not.toHaveBeenCalled();
+    expect(executeMetadata).not.toHaveBeenCalled();
+    expect(callback).not.toHaveBeenCalled();
+  });
 
   describe("publishBulk should prefer the stable v1.0 endpoint", () => {
     it("should use the Dapr client's shared metadata instance", async () => {
