@@ -37,6 +37,7 @@ export default class WorkflowRuntime {
       options.grpcOptions,
       options.serializer ?? options.payloads?.serializer,
       options.payloads,
+      options.maxConcurrentActivities,
     );
   }
 
