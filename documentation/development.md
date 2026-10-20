@@ -59,6 +59,50 @@ Publishing is automated in the CI/CD pipeline. Each time a version is release (G
 
 ## Running Tests
 
+Conversation Alpha2 unit tests cover both client transports, all message roles,
+tool round trips, schemas, reserved JSON parameters, durations, optional fields,
+and safe-integer boundaries. They assert literal transport contracts, exact
+duration encodings, rejection of non-JSON values, and recovery after validation
+and response-mapping failures without returning partial results.
+Integration tests use a real authenticated Dapr
+sidecar and a local deterministic OpenAI-compatible HTTP server. They exercise
+this checkout's SDK without downloading a model or requiring provider keys.
+Docker is required.
+
+The provider validates the complete two-tool history, including assistant-call
+ordering, IDs, arguments, duplicate/missing results, and result content. Negative
+cases also cover invalid credentials, invalid tool choices, provider 400/429/503
+errors, malformed JSON/choices, and broken connections. A two-second sidecar
+resiliency timeout must cancel a deliberately stalled provider request; retries
+are disabled and provider request counts detect duplicate invocations. Failed
+requests are followed by successful calls on the same client. Additional cases
+cover concurrent success/failure isolation, directional PII scrubbing, multiple
+choices and finish reasons, omitted usage, and every token-detail field.
+
+```powershell
+node .\node_modules\jest\bin\jest.js --runTestsByPath test\unit\protocols\common\conversation.test.ts --runInBand
+$env:DAPR_RUNTIME_VERSION = "1.19.0-rc.4"
+npm run test:e2e:conversation
+```
+
+These are included in `test:unit:common` and `test:e2e:common`, respectively.
+The integration suite skips runtimes older than 1.16 and skips advanced-option
+cases individually: structured output, cache retention, and usage require 1.17;
+model reporting requires 1.18; request-level token limits require 1.19.
+These gates describe the OpenAI component used by the fixture, not guarantees
+that every provider supports each feature.
+
+The existing TypeScript consumer fixture also compiles conversations against
+the built package's exports, without importing source files or generated
+protobuf types. Negative type assertions cover invalid message unions, parsed
+tool arguments, and raw duration strings:
+
+```powershell
+npm run build
+npm --prefix test\e2e\typescript-build install
+npm --prefix test\e2e\typescript-build run build
+```
+
 Tests are written per protocol layer: http or grpc. This is done because Dapr requires endpoints to be registered for for pubsub and bindings, making us having to start up the test, initialize those endpoints and then run. Since Dapr is a sidecar architecture, we thus have to start 2 test suites seperately. It requires the following containers:
 
 - **EMQX:** Used for Binding Tests
