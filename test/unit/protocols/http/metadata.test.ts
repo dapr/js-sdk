@@ -15,6 +15,8 @@ import HTTPClient from "../../../../src/implementation/Client/HTTPClient/HTTPCli
 import HTTPClientMetadata from "../../../../src/implementation/Client/HTTPClient/metadata";
 
 describe("http/metadata", () => {
+  afterEach(() => jest.restoreAllMocks());
+
   const getMetadata = () => {
     const client = new HTTPClient({ daprHost: "", daprPort: "", communicationProtocol: 0 });
     const execute = jest.spyOn(client, "execute").mockResolvedValue({ runtimeVersion: "1.17.0" });
@@ -105,14 +107,69 @@ describe("http/metadata", () => {
     });
   });
 
+  it.each([
+    ["1.16.0", "v1.0-alpha1", "v1.0-alpha1"],
+    ["1.17.0", "v1.0", "v1.0-alpha1"],
+    ["1.17.0-rc.1", "v1.0", "v1.0-alpha1"],
+    ["1.18.0-rc.1", "v1.0", "v1.0-alpha1"],
+    ["1.18.0", "v1.0", "v1.0"],
+    ["edge", "v1.0", "v1.0"],
+  ])("keeps bulk publish and Jobs decisions independent on %s", async (runtimeVersion, bulkVersion, jobsVersion) => {
+    const { metadata, execute } = getMetadata();
+    execute.mockResolvedValue({ runtimeVersion });
+
+    const bulk = metadata.getBulkPublishApiVersion();
+    const jobs = metadata.getJobsApiVersion();
+    expect(metadata.getBulkPublishApiVersion()).toBe(bulk);
+    expect(metadata.getJobsApiVersion()).toBe(jobs);
+    await expect(bulk).resolves.toBe(bulkVersion);
+    await expect(jobs).resolves.toBe(jobsVersion);
+    expect(execute).toHaveBeenCalledTimes(2);
+  });
+
+  it("retries a failed Jobs check without invalidating a successful bulk publish decision", async () => {
+    const { metadata, execute } = getMetadata();
+    execute.mockResolvedValue({ runtimeVersion: "1.15.0" });
+    const bulk = metadata.getBulkPublishApiVersion();
+    await expect(bulk).resolves.toBe("v1.0-alpha1");
+    await expect(metadata.getJobsApiVersion()).rejects.toThrow("requires Dapr runtime 1.16");
+
+    execute.mockResolvedValue({ runtimeVersion: "1.16.0" });
+    await expect(metadata.getJobsApiVersion()).resolves.toBe("v1.0-alpha1");
+    expect(metadata.getBulkPublishApiVersion()).toBe(bulk);
+    expect(execute).toHaveBeenCalledTimes(3);
+  });
+
   it("keeps get() fresh and preserves edge as the reported runtime version", async () => {
     const { metadata, execute } = getMetadata();
     execute.mockResolvedValue({ runtimeVersion: "edge" });
     await metadata.getBulkPublishApiVersion();
+    await metadata.getJobsApiVersion();
     await expect(metadata.get()).resolves.toEqual({ runtimeVersion: "edge" });
 
     execute.mockResolvedValue({ runtimeVersion: "edge", extended: { updated: "true" } });
     await expect(metadata.get()).resolves.toEqual({ runtimeVersion: "edge", extended: { updated: "true" } });
-    expect(execute).toHaveBeenCalledTimes(3);
+    expect(execute).toHaveBeenCalledTimes(4);
+  });
+
+  it.each(["deployment-1", "", '{"value":false}'])("writes metadata as plain text: %j", async (value) => {
+    const { metadata, execute } = getMetadata();
+    execute.mockResolvedValue("");
+    await expect(metadata.set("deployment", value)).resolves.toBe(true);
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(execute).toHaveBeenCalledWith("/metadata/deployment", {
+      method: "PUT",
+      headers: { "Content-Type": "text/plain" },
+      body: value,
+    });
+  });
+
+  it("propagates get and set failures without retrying or reporting success", async () => {
+    const { metadata, execute } = getMetadata();
+    const error = new Error("sidecar unavailable");
+    execute.mockRejectedValue(error);
+    await expect(metadata.get()).rejects.toBe(error);
+    await expect(metadata.set("deployment", "test")).rejects.toBe(error);
+    expect(execute).toHaveBeenCalledTimes(2);
   });
 });
