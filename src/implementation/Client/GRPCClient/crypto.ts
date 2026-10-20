@@ -254,7 +254,7 @@ export default class GRPCClientCrypto implements IClientCrypto {
     } else if (typeof inData == "object" && Buffer.isBuffer(inData)) {
       return inData;
     } else if (typeof inData == "object" && ArrayBuffer.isView(inData)) {
-      return Buffer.from(inData.buffer, inData.byteOffset);
+      return Buffer.from(inData.buffer, inData.byteOffset, inData.byteLength);
     } else if (typeof inData == "object" && inData instanceof ArrayBuffer) {
       return Buffer.from(inData);
     } else {
