@@ -18,6 +18,8 @@ import { DaprClient, DaprServer, HTTPClient } from "../../../../src";
 import HTTPServer from "../../../../src/implementation/Server/HTTPServer/HTTPServer";
 
 describe("HTTP Jobs client", () => {
+  afterEach(() => jest.restoreAllMocks());
+
   const setup = (runtimeVersion = "1.18.0") => {
     const client = new DaprClient();
     const transport = client.daprClient as HTTPClient;
@@ -105,6 +107,37 @@ describe("HTTP Jobs client", () => {
       await expect(client.jobs.get("test")).rejects.toThrow();
     },
   );
+
+  it("blocks all Jobs requests on unsupported runtimes and recovers after metadata becomes valid", async () => {
+    const { client, metadata, execute } = setup("1.15.9");
+    await expect(client.jobs.schedule("test", { dueTime: "1h" })).rejects.toThrow("requires Dapr runtime 1.16");
+    await expect(client.jobs.get("test")).rejects.toThrow("requires Dapr runtime 1.16");
+    await expect(client.jobs.delete("test")).rejects.toThrow("requires Dapr runtime 1.16");
+    expect(execute).not.toHaveBeenCalled();
+    metadata.mockResolvedValue({ id: "test", runtimeVersion: "1.18.0", actors: [], components: [], extended: {} });
+    await expect(client.jobs.schedule("test", { dueTime: "1h" })).resolves.toBeUndefined();
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(metadata).toHaveBeenCalledTimes(4);
+  });
+
+  it("preserves Struct responses and optional fields from older clients", async () => {
+    const { client, execute } = setup();
+    execute.mockResolvedValue({
+      name: "test",
+      schedule: "0 * * * * *",
+      data: { "@type": "type.googleapis.com/google.protobuf.Struct", value: { nested: [false, 0] } },
+      failurePolicy: { drop: {} },
+    });
+    await expect(client.jobs.get("test")).resolves.toEqual({
+      name: "test",
+      schedule: "0 * * * * *",
+      dueTime: undefined,
+      ttl: undefined,
+      repeats: undefined,
+      data: { nested: [false, 0] },
+      failurePolicy: { type: "drop" },
+    });
+  });
 });
 
 describe("HTTP Jobs callbacks", () => {
@@ -176,5 +209,40 @@ describe("HTTP Jobs callbacks", () => {
     });
     expect(response.status).toBe(400);
     expect(callback).not.toHaveBeenCalled();
+  });
+
+  it("rejects non-function callbacks without reserving the name or registering the route", async () => {
+    const app = (server.daprServer as HTTPServer).getServer();
+    const post = jest.spyOn(app, "post");
+    try {
+      // @ts-expect-error Exercise JavaScript callers that omit the required callback.
+      await expect(server.jobs.listen("test", undefined)).rejects.toThrow("A job callback is required");
+      expect(post).not.toHaveBeenCalled();
+      const callback = jest.fn(async () => {});
+      await server.jobs.listen("test", callback);
+      await server.jobs.listen("second", callback);
+      expect(post).toHaveBeenCalledTimes(1);
+      expect((await fetch(`${url}/test`, { method: "POST" })).status).toBe(200);
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith(undefined);
+    } finally {
+      post.mockRestore();
+    }
+  });
+
+  it("recovers after a failed callback without replacing the registered handler", async () => {
+    const callback = jest
+      .fn<Promise<void>, [unknown]>()
+      .mockRejectedValueOnce(new Error("temporary failure"))
+      .mockResolvedValue();
+    const replacement = jest.fn(async () => {});
+    await server.jobs.listen("test", callback);
+    await expect(server.jobs.listen("test", replacement)).rejects.toThrow("already registered");
+    const failed = await fetch(`${url}/test`, { method: "POST" });
+    expect(failed.status).toBe(500);
+    expect(await failed.json()).toEqual({ error: "COULD_NOT_PROCESS_CALLBACK" });
+    expect((await fetch(`${url}/test`, { method: "POST" })).status).toBe(200);
+    expect(callback).toHaveBeenCalledTimes(2);
+    expect(replacement).not.toHaveBeenCalled();
   });
 });

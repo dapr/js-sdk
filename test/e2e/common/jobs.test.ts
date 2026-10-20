@@ -170,6 +170,55 @@ describe.each([CommunicationProtocolEnum.HTTP, CommunicationProtocolEnum.GRPC])(
         }
       }, 30000);
 
+      it("routes escaped and case-sensitive names to distinct handlers without replacing duplicates", async () => {
+        const prefix = name();
+        const ids = [`${prefix} with spaces`, `${prefix}-Name`, `${prefix}-name`];
+        const handlers = ids.map(() => jest.fn(async (_data: Job["data"]) => {}));
+        const replacement = jest.fn(async () => {});
+        try {
+          for (const [i, id] of ids.entries()) {
+            await server.jobs.listen(id, handlers[i]);
+            await client.jobs.schedule(id, { dueTime: "1h", data: { id } });
+            expect(await other.jobs.get(id)).toMatchObject({ name: id, data: { id } });
+          }
+          await expect(server.jobs.listen(ids[0], replacement)).rejects.toThrow("already registered");
+          for (const id of ids) {
+            await other.jobs.schedule(id, { dueTime: "100ms", data: { id }, overwrite: true });
+          }
+          await waitFor(() => handlers.every((handler) => handler.mock.calls.length > 0));
+          handlers.forEach((handler, i) => {
+            expect(handler).toHaveBeenCalledTimes(1);
+            expect(handler).toHaveBeenCalledWith({ id: ids[i] });
+          });
+          expect(replacement).not.toHaveBeenCalled();
+        } finally {
+          await Promise.all(ids.map((id) => client.jobs.delete(id)));
+        }
+      }, 20000);
+
+      it("keeps metadata fresh across transports after Jobs version selection is cached", async () => {
+        const id = name();
+        const key = `metadata-${id}`;
+        try {
+          await client.jobs.schedule(id, { dueTime: "1h", data: { unchanged: true } });
+          const before = await client.metadata.get();
+          expect(before.id).not.toBe("");
+          expect(before.runtimeVersion).toBeTruthy();
+          await expect(client.metadata.set(key, "first")).resolves.toBe(true);
+          expect((await other.metadata.get()).extended[key]).toBe("first");
+          await expect(other.metadata.set(key, "second")).resolves.toBe(true);
+          const after = await client.metadata.get();
+          expect(after.extended[key]).toBe("second");
+          expect(after.id).toBe(before.id);
+          expect(after.runtimeVersion).toBe(before.runtimeVersion);
+          expect(await client.jobs.get(id)).toMatchObject({ name: id, data: { unchanged: true } });
+          await other.jobs.delete(id);
+          await expect(client.jobs.get(id)).rejects.toThrow();
+        } finally {
+          await client.jobs.delete(id);
+        }
+      });
+
       it("uses cron builder output, honors repeats, and stops after deletion", async () => {
         const id = name();
         let calls = 0;

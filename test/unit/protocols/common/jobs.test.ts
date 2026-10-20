@@ -18,6 +18,7 @@ import { encodeJob, decodeJob, decodeJobData, validateJobName } from "../../../.
 import RuntimeVersionChecker from "../../../../src/implementation/Client/RuntimeVersionChecker";
 import IClientMetadata from "../../../../src/interfaces/Client/IClientMetadata";
 import { GetMetadataResponse } from "../../../../src/types/metadata/GetMetadataResponse";
+import { JobSchema } from "../../../../src/proto/dapr/proto/runtime/v1/jobs_pb";
 
 const metadataResponse = (runtimeVersion?: string): GetMetadataResponse => ({
   id: "test",
@@ -89,6 +90,36 @@ describe("Jobs runtime reflection", () => {
     ]);
     await expect(checker.getJobsApiVersion()).resolves.toBe("v1.0-alpha1");
   });
+
+  it.each([
+    ["  V1.18  ", "v1.0", "v1.0"],
+    ["1.18.0-rc.1+build.2", "v1.0", "v1.0-alpha1"],
+    ["2.0.0-rc.1", "v1.0", "v1.0"],
+    ["0.99.0", "v1.0-alpha1", undefined],
+  ])("resolves independent API boundaries for %s", async (version, bulkVersion, jobsVersion) => {
+    const checker = new RuntimeVersionChecker(metadataClient(version));
+    await expect(checker.getBulkPublishApiVersion()).resolves.toBe(bulkVersion);
+    if (jobsVersion === undefined) {
+      await expect(checker.getJobsApiVersion()).rejects.toThrow("Jobs requires Dapr runtime 1.16 or later");
+    } else {
+      await expect(checker.getJobsApiVersion()).resolves.toBe(jobsVersion);
+    }
+  });
+
+  it("retries failed bulk metadata without discarding a cached Jobs decision", async () => {
+    const metadata = metadataClient("1.18.0");
+    const checker = new RuntimeVersionChecker(metadata);
+    const jobs = checker.getJobsApiVersion();
+    await expect(jobs).resolves.toBe("v1.0");
+    const error = new Error("metadata unavailable");
+    metadata.get.mockRejectedValueOnce(error);
+    await expect(checker.getBulkPublishApiVersion()).rejects.toBe(error);
+    expect(checker.getJobsApiVersion()).toBe(jobs);
+    metadata.get.mockResolvedValue(metadataResponse("1.16.0"));
+    await expect(checker.getBulkPublishApiVersion()).resolves.toBe("v1.0-alpha1");
+    expect(checker.getJobsApiVersion()).toBe(jobs);
+    expect(metadata.get).toHaveBeenCalledTimes(3);
+  });
 });
 
 describe("CronExpressionBuilder", () => {
@@ -141,7 +172,26 @@ describe("CronExpressionBuilder", () => {
     for (const period of ["year", "__proto__", "constructor"]) {
       expect(() => new CronExpressionBuilder().each(period as CronPeriod)).toThrow();
       expect(() => new CronExpressionBuilder().on(period as CronPeriod, 1)).toThrow();
+      expect(() => new CronExpressionBuilder().through(period as CronPeriod, 1, 2)).toThrow(RangeError);
+      expect(() => new CronExpressionBuilder().every(period as CronPeriod, 1)).toThrow(RangeError);
     }
+  });
+
+  it("keeps fluent mutations local to the builder and preserves its state after a failed update", () => {
+    const builder = new CronExpressionBuilder();
+    expect(builder.on("minute", 10, 2, 10)).toBe(builder);
+    expect(builder.through("hour", 8, 17)).toBe(builder);
+    expect(builder.every("second", 1)).toBe(builder);
+    expect(builder.each("dayOfWeek")).toBe(builder);
+    expect(builder.withTimeZone("UTC")).toBe(builder);
+    const expression = builder.toString();
+    expect(expression).toBe("CRON_TZ=UTC */1 2,10 8-17 * * *");
+    expect(() => builder.on("minute", 5, 60)).toThrow(RangeError);
+    expect(() => builder.through("hour", -1, 12)).toThrow(RangeError);
+    expect(() => builder.withTimeZone("Not/AZone")).toThrow(RangeError);
+    expect(builder.toString()).toBe(expression);
+    expect(new CronExpressionBuilder().toString()).toBe("* * * * * *");
+    expect(builder.withTimeZone("America/New_York").toString()).toBe("CRON_TZ=America/New_York */1 2,10 8-17 * * *");
   });
 });
 
@@ -225,5 +275,83 @@ describe("Jobs encoding", () => {
       a: shared,
       b: shared,
     });
+  });
+
+  it.each<[unknown, string]>([
+    [undefined, "Job options are required"],
+    [null, "Job options are required"],
+    ["1s", "Job options are required"],
+    [{ schedule: 42 }, "schedule must be a nonempty string"],
+    [{ dueTime: null }, "dueTime must be a nonempty string"],
+    [{ dueTime: "1s", ttl: false }, "ttl must be a nonempty string"],
+    [{ dueTime: "1s", overwrite: "true" }, "overwrite must be a boolean"],
+    [{ dueTime: "1s", failurePolicy: { type: "exponential" } }, "Unknown job failure policy"],
+  ])("rejects invalid JavaScript options %j", (options, message) => {
+    // @ts-expect-error Exercise runtime validation of untyped JavaScript options.
+    expect(() => encodeJob("test", options)).toThrow(message);
+  });
+
+  it.each(["a\u0000b", "a\u001fb", "a\u007fb"])("rejects control characters in %j", (name) => {
+    expect(() => validateJobName(name)).toThrow(TypeError);
+  });
+
+  it("accepts uint32 limits and the smallest positive retry interval", () => {
+    expect(
+      decodeJob(
+        encodeJob("test", {
+          dueTime: "1s",
+          repeats: 0xffffffff,
+          failurePolicy: { type: "constant", interval: "0.000000001s", maxRetries: 0xffffffff },
+        }),
+      ),
+    ).toMatchObject({
+      repeats: 0xffffffff,
+      failurePolicy: { type: "constant", interval: "0.000000001s", maxRetries: 0xffffffff },
+    });
+    expect(() =>
+      encodeJob("test", { dueTime: "1s", failurePolicy: { type: "constant", interval: "-0.000000001s" } }),
+    ).toThrow("Failure policy interval must be positive");
+  });
+
+  it("copies opaque data on encode and decode rather than aliasing caller buffers", () => {
+    const input = Uint8Array.of(1, 2, 3);
+    const encoded = encodeJob("test", { dueTime: "1s", data: input });
+    input.fill(0);
+    const decoded = decodeJobData(encoded.data);
+    expect(decoded).toEqual(Buffer.from([1, 2, 3]));
+    if (!Buffer.isBuffer(decoded)) {
+      throw new Error("Expected an opaque Buffer payload");
+    }
+    decoded.fill(9);
+    expect(decodeJobData(encoded.data)).toEqual(Buffer.from([1, 2, 3]));
+  });
+
+  it("rejects nameless responses, incomplete retry policies, and malformed Struct payloads", () => {
+    expect(() => decodeJob(create(JobSchema))).toThrow("missing job or name");
+    expect(() =>
+      decodeJob(
+        create(JobSchema, {
+          name: "test",
+          failurePolicy: { policy: { case: "constant", value: { maxRetries: 1 } } },
+        }),
+      ),
+    ).toThrow("missing retry interval");
+    expect(() =>
+      decodeJobData(
+        create(AnySchema, { typeUrl: "type.googleapis.com/google.protobuf.Struct", value: Uint8Array.of(255) }),
+      ),
+    ).toThrow();
+    expect(
+      decodeJobData(create(AnySchema, { typeUrl: "example.com/custom.Payload", value: Uint8Array.of(0, 255) })),
+    ).toEqual(Buffer.from([0, 255]));
+  });
+
+  it("accepts null-prototype JSON objects and rejects non-JSON nested array values", () => {
+    const data = Object.assign(Object.create(null), { value: "test" });
+    expect(decodeJob(encodeJob("test", { dueTime: "1s", data })).data).toEqual({ value: "test" });
+    for (const invalid of [1n, Symbol("test"), () => {}, [undefined], new Map(), new Set()]) {
+      // @ts-expect-error Exercise runtime validation of non-JSON values from JavaScript callers.
+      expect(() => encodeJob("test", { dueTime: "1s", data: invalid })).toThrow(TypeError);
+    }
   });
 });

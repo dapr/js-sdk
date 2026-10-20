@@ -159,11 +159,37 @@ describe("gRPC Jobs", () => {
     await expect(client.jobs.delete("")).rejects.toThrow();
     expect(calls).toEqual(["get"]);
   });
+
+  it("validates names before metadata lookup or any Jobs RPC", async () => {
+    await expect(client.jobs.schedule("a/b", { dueTime: "1h" })).rejects.toThrow(TypeError);
+    await expect(client.jobs.get("")).rejects.toThrow(TypeError);
+    await expect(client.jobs.delete("a?b")).rejects.toThrow(TypeError);
+    expect(metadataCalls).toBe(0);
+    expect(calls).toEqual([]);
+  });
+
+  it("blocks unsupported runtimes and recovers without falling back to a mutating RPC", async () => {
+    runtimeVersion = "1.15.9";
+    await expect(client.jobs.schedule("test", { dueTime: "1h" })).rejects.toThrow("requires Dapr runtime 1.16");
+    await expect(client.jobs.get("test")).rejects.toThrow("requires Dapr runtime 1.16");
+    await expect(client.jobs.delete("test")).rejects.toThrow("requires Dapr runtime 1.16");
+    expect(calls).toEqual([]);
+    runtimeVersion = "1.18.0";
+    await expect(client.jobs.schedule("test", { dueTime: "1h" })).resolves.toBeUndefined();
+    expect(calls).toEqual(["schedule"]);
+    expect(metadataCalls).toBe(4);
+  });
 });
 
 describe("gRPC Jobs callbacks", () => {
+  const servers: DaprServer[] = [];
+  afterEach(async () => {
+    await Promise.all(servers.splice(0).map((server) => server.client.stop()));
+  });
+
   const setup = () => {
     const server = new DaprServer({ communicationProtocol: CommunicationProtocolEnum.GRPC });
+    servers.push(server);
     const impl = (server.daprServer as GRPCServer).getServerImpl();
     const transport = createRouterTransport((router) => {
       router.service(AppCallback, { onJobEvent: (req, ctx) => impl.onJobEventAlpha1(req, ctx) });
@@ -226,5 +252,23 @@ describe("gRPC Jobs callbacks", () => {
       }),
     ).rejects.toMatchObject({ code: Code.Internal });
     expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects invalid registrations without reserving the name and recovers after handler failure", async () => {
+    const { server, stable, alpha } = setup();
+    // @ts-expect-error Exercise JavaScript callers that omit the required callback.
+    await expect(server.jobs.listen("test", undefined)).rejects.toThrow("A job callback is required");
+    await expect(server.jobs.listen("a/b", async () => {})).rejects.toThrow(TypeError);
+    const callback = jest
+      .fn<Promise<void>, [unknown]>()
+      .mockRejectedValueOnce(new Error("temporary failure"))
+      .mockResolvedValue();
+    await server.jobs.listen("test", callback);
+    const replacement = jest.fn(async () => {});
+    await expect(server.jobs.listen("test", replacement)).rejects.toThrow("already registered");
+    await expect(stable.onJobEvent({ name: "test" })).rejects.toMatchObject({ code: Code.Internal });
+    await expect(alpha.onJobEventAlpha1({ name: "test" })).resolves.toMatchObject({});
+    expect(callback).toHaveBeenCalledTimes(2);
+    expect(replacement).not.toHaveBeenCalled();
   });
 });

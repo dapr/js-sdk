@@ -15,6 +15,8 @@ import HTTPClient from "../../../../src/implementation/Client/HTTPClient/HTTPCli
 import HTTPClientMetadata from "../../../../src/implementation/Client/HTTPClient/metadata";
 
 describe("http/metadata", () => {
+  afterEach(() => jest.restoreAllMocks());
+
   const getMetadata = () => {
     const client = new HTTPClient({ daprHost: "", daprPort: "", communicationProtocol: 0 });
     const execute = jest.spyOn(client, "execute").mockResolvedValue({ runtimeVersion: "1.17.0" });
@@ -148,5 +150,26 @@ describe("http/metadata", () => {
     execute.mockResolvedValue({ runtimeVersion: "edge", extended: { updated: "true" } });
     await expect(metadata.get()).resolves.toEqual({ runtimeVersion: "edge", extended: { updated: "true" } });
     expect(execute).toHaveBeenCalledTimes(4);
+  });
+
+  it.each(["deployment-1", "", '{"value":false}'])("writes metadata as plain text: %j", async (value) => {
+    const { metadata, execute } = getMetadata();
+    execute.mockResolvedValue("");
+    await expect(metadata.set("deployment", value)).resolves.toBe(true);
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(execute).toHaveBeenCalledWith("/metadata/deployment", {
+      method: "PUT",
+      headers: { "Content-Type": "text/plain" },
+      body: value,
+    });
+  });
+
+  it("propagates get and set failures without retrying or reporting success", async () => {
+    const { metadata, execute } = getMetadata();
+    const error = new Error("sidecar unavailable");
+    execute.mockRejectedValue(error);
+    await expect(metadata.get()).rejects.toBe(error);
+    await expect(metadata.set("deployment", "test")).rejects.toBe(error);
+    expect(execute).toHaveBeenCalledTimes(2);
   });
 });
