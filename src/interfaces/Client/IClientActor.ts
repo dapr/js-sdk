@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import ActorId from "../../actors/ActorId";
-import { ActorReminderType } from "../../types/ActorReminder.type";
+import { ActorReminderType, NamedActorReminderType } from "../../types/ActorReminder.type";
 import { ActorTimerType } from "../../types/ActorTimer.type";
 import { KeyValueType } from "../../types/KeyValue.type";
 import { OperationType } from "../../types/Operation.type";
@@ -118,6 +118,24 @@ export default interface IClientActor {
   getActorReminder(actorType: string, actorId: ActorId, name: string): Promise<ActorReminderType>;
 
   /**
+   * Lists registered reminders for an actor type, optionally restricted to one actor.
+   *
+   * @param actorType - The actor type registered in the Dapr runtime.
+   * @param actorId - An exact actor ID filter. Required for HTTP; omit over gRPC to list the whole type.
+   * @returns Reminders with their name, actor identity, data, and Temporal.Duration timing fields.
+   * An empty result is returned when no reminders match. Ordering is not guaranteed.
+   * As with getActorReminder, absolute timestamps become durations relative to retrieval time;
+   * ttl is the remaining lifetime and fields omitted by the runtime remain undefined.
+   * @throws Rejects on sidecar errors, malformed responses, unrepresentable schedules, or
+   * an omitted actorId over HTTP (the runtime has no type-wide HTTP listing endpoint).
+   *
+   * @remarks Requires a runtime exposing ListActorReminders: gRPC in Dapr 1.17+;
+   * HTTP in Dapr 1.19+ (including 1.19.0-rc.4).
+   * @see https://docs.dapr.io/reference/api/actors_api/
+   */
+  listActorReminders(actorType: string, actorId?: ActorId): Promise<NamedActorReminderType[]>;
+
+  /**
    * Unregisters a previously registered actor reminder.
    *
    * @param actorType - The actor type registered in the Dapr runtime.
@@ -128,6 +146,22 @@ export default interface IClientActor {
    * @see https://docs.dapr.io/reference/api/actors_api/#reminders
    */
   unregisterActorReminder(actorType: string, actorId: ActorId, name: string): Promise<void>;
+
+  /**
+   * Unregisters all reminders for an actor type, optionally limited to one actor instance.
+   * Requires gRPC and Dapr runtime 1.17 or later; the runtime has no equivalent HTTP endpoint.
+   *
+   * @remarks
+   * WARNING: Omitting actorId deletes ALL reminders for ALL instances of the actor type.
+   * This operation is destructive; deleted reminders cannot be recovered.
+   *
+   * @param actorType - The actor type registered in the Dapr runtime.
+   * @param actorId - Optional exact actor ID. When provided, other actor instances are unaffected.
+   * @returns A promise that resolves when the matching reminders are unregistered.
+   * @throws HTTPNotSupportedError when using the HTTP transport.
+   * @throws Rejects on sidecar or RPC errors.
+   */
+  unregisterActorRemindersByType(actorType: string, actorId?: ActorId): Promise<void>;
 
   /**
    * Registers a timer for an actor.

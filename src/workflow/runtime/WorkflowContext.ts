@@ -21,12 +21,43 @@ import type { ActivityOptions } from "../../types/workflow/ActivityOptions.type"
 import type { ChildWorkflowOptions } from "../../types/workflow/ChildWorkflowOptions.type";
 import type { DetachedWorkflowOptions } from "../../types/workflow/DetachedWorkflowOptions.type";
 import { createPropagatedHistoryView, type PropagatedHistoryView } from "./PropagatedHistory";
+import type { PayloadReference } from "../payloads/PayloadReference";
+import type { Readable } from "node:stream";
+import { Logger } from "../../logger/Logger";
+import type { LoggerOptions } from "../../types/logger/LoggerOptions";
+import type { LoggerService } from "../../types/logger/LoggerService";
+import { ReplaySafeLogger } from "./ReplaySafeLogger";
 
 export default class WorkflowContext {
-  constructor(private readonly _innerContext: OrchestrationContext) {
+  private _logger?: LoggerService;
+
+  public hasPayloadResolver(): boolean {
+    return this._innerContext.hasPayloadResolver;
+  }
+
+  /** Yield this read-only task; storage I/O is drained before workflow history advances. */
+  public resolvePayload<T>(reference: PayloadReference<T>): Task<T> {
+    return this._innerContext.resolvePayload(reference);
+  }
+
+  /** Yield to obtain a raw stream. Consume asynchronously and destroy it on early exit. */
+  public openPayload(reference: PayloadReference): Task<Readable> {
+    return this._innerContext.openPayload(reference);
+  }
+
+  constructor(private readonly _innerContext: OrchestrationContext, private readonly loggerOptions?: LoggerOptions) {
     if (!_innerContext) {
       throw new Error("WorkflowContext cannot be undefined");
     }
+  }
+
+  /** Logs application messages only during non-replay execution. */
+  public get logger(): LoggerService {
+    this._logger ??= new ReplaySafeLogger(
+      new Logger("Workflow", `${this.getWorkflowName()}, ${this.getWorkflowInstanceId()}`, this.loggerOptions),
+      () => this.isReplaying(),
+    );
+    return this._logger;
   }
 
   public getWorkflowInstanceId(): string {
@@ -47,6 +78,16 @@ export default class WorkflowContext {
 
   public isReplaying(): boolean {
     return this._innerContext.isReplaying;
+  }
+
+  /**
+   * Enables a named code change without changing previously replayed execution paths (Dapr 1.17+).
+   * Returns false for an unrecorded patch first encountered during replay, otherwise true.
+   * Names are case-sensitive, must not be blank, and must not be reused for different changes.
+   * Keep the original code path until instances that need it have finished.
+   */
+  public isPatched(patchName: string): boolean {
+    return this._innerContext.isPatched(patchName);
   }
 
   public createTimer(fireAt: Date | number): CancellableTask<void> {

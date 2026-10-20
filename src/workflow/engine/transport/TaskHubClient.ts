@@ -46,6 +46,10 @@ import type {
   RerunWorkflowFromEventOptions,
   WorkflowInstanceIdPage,
 } from "../../../types/workflow/WorkflowManagement.types";
+import type { BinaryStoreWorkflowPayloadResolver } from "../../payloads/BinaryStoreWorkflowPayloadResolver";
+import { WorkflowPayloadHandler } from "../../payloads/WorkflowPayloadHandler";
+import { PayloadKind, PayloadSite } from "../../payloads/BinaryStorePayloadOptions";
+import { getWorkflowTraceContext } from "../worker/WorkflowTrace";
 
 export class OrchestrationState {
   constructor(
@@ -92,6 +96,7 @@ export class PurgeResult {
 export class TaskHubClient {
   private readonly logger = new Logger("Workflow", "TaskHubClient");
   private readonly client: Client<typeof TaskHubSidecarService>;
+  readonly payloadHandler: WorkflowPayloadHandler;
 
   constructor(
     hostAddress: string,
@@ -100,7 +105,9 @@ export class TaskHubClient {
     maxMessageSize = 128 * 1024 * 1024,
     grpcOptions?: GrpcChannelOptions,
     public readonly serializer?: IDaprSerializer,
+    payloads?: BinaryStoreWorkflowPayloadResolver,
   ) {
+    this.payloadHandler = new WorkflowPayloadHandler(payloads, serializer);
     const interceptors: Interceptor[] = [...(grpcOptions?.interceptors ?? [])];
 
     if (daprApiToken) {
@@ -134,10 +141,15 @@ export class TaskHubClient {
     const req = create(CreateInstanceRequestSchema, {
       name,
       instanceId: instanceId ?? randomUUID(),
+      parentTraceContext: getWorkflowTraceContext(),
     });
 
     if (input !== undefined) {
-      req.input = serializeWorkflowValue(input, this.serializer);
+      req.input = await this.encodePayload(
+        input,
+        { kind: PayloadKind.WorkflowInput, instanceId: req.instanceId, name },
+        signal,
+      );
     }
 
     if (startAt) {
@@ -196,7 +208,15 @@ export class TaskHubClient {
       req.newInstanceID = options.newInstanceId;
     }
     if (options.input !== undefined) {
-      req.input = serializeWorkflowValue(options.input, this.serializer);
+      if (req.overwriteInput) {
+        if (this.payloadHandler.resolver && !req.newInstanceID) req.newInstanceID = randomUUID();
+        req.input = await this.encodePayload(options.input, {
+          kind: PayloadKind.WorkflowInput,
+          instanceId: req.newInstanceID || sourceInstanceId,
+        });
+      } else {
+        req.input = serializeWorkflowValue(options.input, this.serializer);
+      }
     }
 
     const res = await this.client.rerunWorkflowFromEvent(req);
@@ -271,7 +291,11 @@ export class TaskHubClient {
     });
 
     if (data !== undefined) {
-      req.input = serializeWorkflowValue(data, this.serializer);
+      req.input = await this.encodePayload(
+        data,
+        { kind: PayloadKind.ExternalEvent, instanceId, name: eventName },
+        signal,
+      );
     }
 
     this.logger.info(`Raising event '${eventName}' for instance '${instanceId}'`);
@@ -285,7 +309,7 @@ export class TaskHubClient {
     });
 
     if (output !== undefined) {
-      req.output = serializeWorkflowValue(output, this.serializer);
+      req.output = await this.encodePayload(output, { kind: PayloadKind.WorkflowOutput, instanceId }, signal);
     }
 
     this.logger.info(`Terminating '${instanceId}'`);
@@ -334,6 +358,11 @@ export class TaskHubClient {
 
   async stop(): Promise<void> {
     // ConnectRPC transport doesn't require explicit close
+  }
+
+  private async encodePayload(value: unknown, site: PayloadSite, signal?: AbortSignal): Promise<string | undefined> {
+    this.callOptions(signal);
+    return this.payloadHandler.encode(serializeWorkflowValue(value, this.serializer), site, signal);
   }
 
   private callOptions(signal?: AbortSignal, timeoutSeconds?: number): CallOptions {

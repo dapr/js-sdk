@@ -19,12 +19,27 @@ import type { ActivityOptions } from "../../../types/workflow/ActivityOptions.ty
 import type { ChildWorkflowOptions } from "../../../types/workflow/ChildWorkflowOptions.type";
 import type { DetachedWorkflowOptions } from "../../../types/workflow/DetachedWorkflowOptions.type";
 import type { PropagatedHistory } from "../../runtime/PropagatedHistory";
+import type { Readable } from "node:stream";
+import type { PayloadReference } from "../../payloads/PayloadReference";
+import { PayloadNotResolvableError } from "../../payloads/PayloadErrors";
 
 export type AnyGenerator<T> = AsyncGenerator<T, unknown, unknown> | Generator<T, unknown, unknown>;
 export type TOrchestrator = (context: OrchestrationContext, input: unknown) => AnyGenerator<Task<unknown>> | unknown;
 export type TActivity<TInput, TOutput> = (context: ActivityContext, input: TInput) => TOutput | Promise<TOutput>;
 
 export abstract class OrchestrationContext {
+  get hasPayloadResolver(): boolean {
+    return false;
+  }
+
+  resolvePayload<T>(_reference: PayloadReference<T>): Task<T> {
+    throw new PayloadNotResolvableError();
+  }
+
+  openPayload(_reference: PayloadReference): Task<Readable> {
+    throw new PayloadNotResolvableError();
+  }
+
   get name(): string {
     throw new Error("This orchestration context does not provide a workflow name");
   }
@@ -36,6 +51,10 @@ export abstract class OrchestrationContext {
   abstract get instanceId(): string;
   abstract get currentUtcDateTime(): Date;
   abstract get isReplaying(): boolean;
+
+  isPatched(_patchName: string): boolean {
+    throw new Error("This orchestration context does not support workflow patches");
+  }
 
   abstract createTimer(fireAt: Date | number): CancellableTask<void>;
   abstract callActivity<TInput, TOutput>(

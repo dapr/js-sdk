@@ -14,20 +14,24 @@ limitations under the License.
 import { create } from "@bufbuild/protobuf";
 import { AnySchema, anyUnpack, BytesValueSchema } from "@bufbuild/protobuf/wkt";
 import {
+  ActorReminder,
   ExecuteActorStateTransactionRequestSchema,
   GetActorStateRequestSchema,
   GetActorReminderRequestSchema,
+  GetActorReminderResponse,
   InvokeActorRequestSchema,
+  ListActorRemindersRequestSchema,
   RegisterActorReminderRequestSchema,
   RegisterActorTimerRequestSchema,
   TransactionalActorStateOperationSchema,
   UnregisterActorReminderRequestSchema,
+  UnregisterActorRemindersByTypeRequestSchema,
   UnregisterActorTimerRequestSchema,
 } from "../../../proto/dapr/proto/runtime/v1/actors_pb";
 import { GetMetadataRequestSchema } from "../../../proto/dapr/proto/runtime/v1/metadata_pb";
 import GRPCClient from "../../../implementation/Client/GRPCClient/GRPCClient";
 import { OperationType } from "../../../types/Operation.type";
-import { ActorReminderType } from "../../../types/ActorReminder.type";
+import { ActorReminderType, NamedActorReminderType } from "../../../types/ActorReminder.type";
 import { ActorTimerType } from "../../../types/ActorTimer.type";
 import IClientActor from "../../../interfaces/Client/IClientActor";
 import { KeyValueType } from "../../../types/KeyValue.type";
@@ -124,6 +128,28 @@ export default class ActorClientGRPC implements IClientActor {
       create(GetActorReminderRequestSchema, { actorType, actorId: actorId.getId(), name }),
     );
 
+    return this.parseReminder(response);
+  }
+
+  async listActorReminders(actorType: string, actorId?: ActorId): Promise<NamedActorReminderType[]> {
+    const client = await this.client.getClient();
+    const response = await client.listActorReminders(
+      create(ListActorRemindersRequestSchema, { actorType, actorId: actorId?.getId() }),
+    );
+    return response.reminders.map(({ name, reminder }) => {
+      if (reminder === undefined) {
+        throw new TypeError("Invalid actor reminder list entry: missing reminder");
+      }
+      return {
+        ...this.parseReminder(reminder),
+        name,
+        actorType: reminder.actorType,
+        actorId: reminder.actorId,
+      };
+    });
+  }
+
+  private parseReminder(response: GetActorReminderResponse | ActorReminder): ActorReminderType {
     let data: unknown;
     if (response.data !== undefined) {
       const bytes = anyUnpack(response.data, BytesValueSchema);
@@ -132,7 +158,6 @@ export default class ActorClientGRPC implements IClientActor {
       }
       data = JSON.parse(Buffer.from(bytes.value).toString("utf-8"));
     }
-
     return parseActorReminder({ ...response, data });
   }
 
@@ -144,6 +169,16 @@ export default class ActorClientGRPC implements IClientActor {
       actorId: actorId.getId(),
       name,
     }));
+  }
+
+  async unregisterActorRemindersByType(actorType: string, actorId?: ActorId): Promise<void> {
+    const client = await this.client.getClient();
+    await client.unregisterActorRemindersByType(
+      create(UnregisterActorRemindersByTypeRequestSchema, {
+        actorType,
+        actorId: actorId === undefined ? undefined : actorId.getId(),
+      }),
+    );
   }
 
   async registerActorTimer(actorType: string, actorId: ActorId, name: string, timer: ActorTimerType): Promise<void> {

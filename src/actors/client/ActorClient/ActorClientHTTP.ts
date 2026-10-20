@@ -13,12 +13,13 @@ limitations under the License.
 
 import HTTPClient from "../../../implementation/Client/HTTPClient/HTTPClient";
 import { OperationType } from "../../../types/Operation.type";
-import { ActorReminderType } from "../../../types/ActorReminder.type";
+import { ActorReminderType, NamedActorReminderType } from "../../../types/ActorReminder.type";
 import { ActorTimerType } from "../../../types/ActorTimer.type";
 import IClientActor from "../../../interfaces/Client/IClientActor";
 import { KeyValueType } from "../../../types/KeyValue.type";
 import ActorId from "../../ActorId";
 import { parseActorReminder } from "../../../utils/Actors.util";
+import { HTTPNotSupportedError } from "../../../errors/HTTPNotSupportedError";
 
 // https://docs.dapr.io/reference/api/actors_api/
 export default class ActorClientHTTP implements IClientActor {
@@ -87,6 +88,50 @@ export default class ActorClientHTTP implements IClientActor {
   async unregisterActorReminder(actorType: string, actorId: ActorId, name: string): Promise<void> {
     await this.client.execute(`/actors/${actorType}/${actorId.getURLSafeId()}/reminders/${name}`, {
       method: "DELETE",
+    });
+  }
+
+  /** The Dapr runtime exposes bulk reminder deletion only over gRPC. */
+  async unregisterActorRemindersByType(_actorType: string, _actorId?: ActorId): Promise<void> {
+    throw new HTTPNotSupportedError();
+  }
+
+  async listActorReminders(actorType: string, actorId?: ActorId): Promise<NamedActorReminderType[]> {
+    if (actorId === undefined) {
+      throw new Error(
+        "listActorReminders requires actorId over HTTP; use gRPC to list reminders for an entire actor type",
+      );
+    }
+    const response = await this.client.execute(
+      `/actors/${encodeURIComponent(actorType)}/${actorId.getURLSafeId()}/reminders`,
+    );
+    if (
+      typeof response !== "object" ||
+      response === null ||
+      !("reminders" in response) ||
+      !Array.isArray(response.reminders)
+    ) {
+      throw new TypeError("Invalid actor reminder list response: expected a reminders array");
+    }
+    return response.reminders.map((reminder: unknown) => {
+      if (
+        typeof reminder !== "object" ||
+        reminder === null ||
+        !("name" in reminder) ||
+        typeof reminder.name !== "string" ||
+        !("actorType" in reminder) ||
+        typeof reminder.actorType !== "string" ||
+        !("actorID" in reminder) ||
+        typeof reminder.actorID !== "string"
+      ) {
+        throw new TypeError("Invalid actor reminder list entry: expected name, actorType, and actorID strings");
+      }
+      return {
+        ...parseActorReminder(reminder),
+        name: reminder.name,
+        actorType: reminder.actorType,
+        actorId: reminder.actorID,
+      };
     });
   }
 

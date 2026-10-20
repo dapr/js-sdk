@@ -15,6 +15,7 @@ import { createClient, type Client, type Interceptor } from "@connectrpc/connect
 import { createGrpcTransport } from "@connectrpc/connect-node";
 import { create } from "@bufbuild/protobuf";
 import { EmptySchema } from "@bufbuild/protobuf/wkt";
+import { context } from "@opentelemetry/api";
 import { ConnectError } from "@connectrpc/connect";
 import {
   TaskHubSidecarService,
@@ -35,8 +36,9 @@ import { ActivityExecutor } from "../worker/ActivityExecutor";
 import { newCompleteWorkflowAction, newFailureDetails } from "../worker/protoHelpers";
 import { Logger } from "../../../logger/Logger";
 import { IDaprSerializer } from "../../../serialization/IDaprSerializer";
-import { serializeWorkflowValue } from "../../../serialization/Serialization.util";
 import { type GrpcChannelOptions, mapGrpcOptions } from "../../../types/workflow/WorkflowClientOption";
+import type { BinaryStoreWorkflowPayloadResolver } from "../../payloads/BinaryStoreWorkflowPayloadResolver";
+import { getOrchestrationTraceContext, runWithActivityTrace } from "../worker/WorkflowTrace";
 
 export class TaskHubWorker {
   private readonly logger = new Logger("Workflow", "TaskHubWorker");
@@ -67,6 +69,7 @@ export class TaskHubWorker {
     maxMessageSize = 128 * 1024 * 1024,
     grpcOptions?: GrpcChannelOptions,
     private readonly serializer?: IDaprSerializer,
+    private readonly payloads?: BinaryStoreWorkflowPayloadResolver,
   ) {
     this._registry = new Registry();
 
@@ -261,21 +264,18 @@ export class TaskHubWorker {
     let res: WorkflowResponse;
 
     try {
-      const executor = new OrchestrationExecutor(this._registry, this.serializer);
-      const result = await executor.execute(
-        instanceId,
-        req.pastEvents,
-        req.newEvents,
-        req.router,
-        req.propagatedHistory,
+      const executor = new OrchestrationExecutor(this._registry, this.serializer, this.payloads);
+      // Restore context without emitting a span for every replayed workflow turn.
+      const result = await context.with(getOrchestrationTraceContext([...req.pastEvents, ...req.newEvents]), () =>
+        executor.execute(instanceId, req.pastEvents, req.newEvents, req.router, req.propagatedHistory),
       );
 
       res = create(WorkflowResponseSchema, {
         instanceId,
         actions: result.actions,
-        customStatus:
-          result.customStatus != null ? serializeWorkflowValue(result.customStatus, this.serializer) : undefined,
+        customStatus: result.encodedCustomStatus,
         completionToken,
+        version: result.version,
       });
     } catch (e: unknown) {
       this.logger.error(`An error occurred while trying to execute instance '${instanceId}': ${(e as Error).message}`);
@@ -315,14 +315,9 @@ export class TaskHubWorker {
     let res: ActivityResponse;
 
     try {
-      const executor = new ActivityExecutor(this._registry, this.serializer);
-      const result = await executor.execute(
-        instanceId,
-        req.name,
-        req.taskId,
-        req.input,
-        req.propagatedHistory,
-        req.taskExecutionId,
+      const executor = new ActivityExecutor(this._registry, this.serializer, this.payloads);
+      const result = await runWithActivityTrace(req.name, req.parentTraceContext, () =>
+        executor.execute(instanceId, req.name, req.taskId, req.input, req.propagatedHistory, req.taskExecutionId),
       );
 
       res = create(ActivityResponseSchema, {

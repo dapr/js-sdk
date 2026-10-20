@@ -23,7 +23,212 @@ const invokerListen = (req: IRequest, res: IResponse) => {
 await client.invoker.listen("method", invokerListen.bind(this), options);
 ```
 
+## Bulk actor reminder cleanup
+
+`ActorClient.actor.unregisterActorRemindersByType(actorType, actorId?)` removes
+reminders for an exact actor instance, or for every instance of an actor type.
+It requires gRPC and Dapr runtime 1.17 or later. The runtime does not expose an
+equivalent HTTP endpoint; HTTP clients reject with `HTTPNotSupportedError`
+without sending a request.
+
+**Warning:** Omitting `actorId` deletes all reminders for all instances of the
+specified actor type. Deleted reminders cannot be recovered. Other actor types
+are unaffected, and repeating cleanup when no matching reminders remain succeeds.
+Sidecar and RPC errors propagate to the caller.
+
+```typescript
+import { ActorId, CommunicationProtocolEnum } from "@dapr/dapr";
+import ActorClient from "@dapr/dapr/actors/client/ActorClient/ActorClient";
+
+const options = {
+  daprHost: "127.0.0.1",
+  daprPort: "50001",
+  communicationProtocol: CommunicationProtocolEnum.GRPC,
+};
+const client = new ActorClient(options.daprHost, options.daprPort, options.communicationProtocol, options);
+
+await client.actor.unregisterActorRemindersByType("OrderActor", new ActorId("order-123"));
+
+// Destructive: removes reminders for every OrderActor instance.
+await client.actor.unregisterActorRemindersByType("OrderActor");
+```
+
+## Listing actor reminders
+
+Use `listActorReminders(actorType, actorId?)` on the existing `ActorClient.actor`
+interface. It returns `NamedActorReminderType[]`, with `name`, `actorType`,
+`actorId`, optional `data`, and optional `Temporal.Duration` values for
+`dueTime`, `period`, and `ttl`.
+
+```typescript
+import { ActorId, CommunicationProtocolEnum } from "@dapr/dapr";
+import ActorClient from "@dapr/dapr/actors/client/ActorClient/ActorClient";
+
+const options = {
+  daprHost: "127.0.0.1",
+  daprPort: "50001",
+  communicationProtocol: CommunicationProtocolEnum.GRPC,
+};
+const client = new ActorClient(
+  options.daprHost,
+  options.daprPort,
+  options.communicationProtocol,
+  options,
+);
+const all = await client.actor.listActorReminders("OrderActor");
+const filtered = await client.actor.listActorReminders("OrderActor", new ActorId("order-123"));
+```
+
+gRPC supports listing the entire actor type or filtering by an exact actor ID
+(Dapr 1.17+). HTTP supports only the actor-ID form, using
+`GET /v1.0/actors/{actorType}/{actorId}/reminders` (Dapr 1.19+, including
+1.19.0-rc.4). Omitting `actorId` over HTTP rejects explicitly; the SDK does not
+silently switch transports. Older runtimes' endpoint/RPC errors propagate.
+
+No matches returns an empty array; ordering is unspecified. As with
+`getActorReminder`, absolute due times and expiration timestamps are converted
+relative to retrieval time: `ttl` is the remaining lifetime, not the original
+TTL. Fields omitted by the runtime remain undefined. Invalid responses,
+unsupported data envelopes, and schedules that cannot be represented as
+`Temporal.Duration` (such as cron or repetition-count periods) reject rather than
+returning a partial list.
+
 ## Workflow context and state
+
+### Patch-based workflow versioning
+
+With Dapr 1.17+, use `ctx.isPatched(patchName)` to introduce a change without
+breaking the replay of existing instances. This follows the .NET SDK's
+`WorkflowContext.IsPatched` semantics:
+
+```typescript
+import { WorkflowContext, WorkflowRuntime } from "@dapr/dapr";
+
+const runtime = new WorkflowRuntime();
+runtime.registerWorkflow(function* orderWorkflow(ctx: WorkflowContext, orderId: string) {
+  const order = yield ctx.callActivity("processOrder", orderId);
+  if (ctx.isPatched("add-validation-step")) {
+    yield ctx.callActivity("validateOrder", order);
+  }
+  yield ctx.callActivity("shipOrder", order);
+});
+```
+
+- A recorded patch returns `true` on replay.
+- An unrecorded patch first encountered while replaying returns `false`, preserving
+  the original code path, even if the instance has no versioning history.
+- An unrecorded patch first encountered during live execution returns `true`.
+  This includes an existing instance that has not yet reached the patch point.
+- Repeated checks of the same name keep their first decision within an execution,
+  including across the transition from replay to live execution.
+
+Enabled checks are sent to Dapr in execution order (including duplicates) and
+persisted in workflow history for subsequent replays. Patch names are case-sensitive;
+empty or whitespace-only names throw. Use stable names, never repurpose a name for
+a different change, and keep the original branch and existing patch checks while
+in-flight instances depend on them. Do not reorder or rename deployed checks.
+Each instance has independent patch state; `continueAsNew` starts a new history.
+
+Workflows that do not use patches do not emit patch-version metadata.
+`isReplaying()` is not a replacement for a persisted patch decision.
+
+### Workflow tracing
+
+Workflow tracing uses the application's OpenTelemetry configuration. Register a
+Node tracer provider (including its async context manager) before starting the
+workflow client or runtime, and configure tracing on the Dapr sidecar as well.
+The SDK does not install a global provider, context manager, exporter, or sampler.
+
+For example, using OpenTelemetry JS 2.x and its Zipkin exporter:
+
+```typescript
+import { trace } from "@opentelemetry/api";
+import { ZipkinExporter } from "@opentelemetry/exporter-zipkin";
+import { resourceFromAttributes } from "@opentelemetry/resources";
+import { NodeTracerProvider, SimpleSpanProcessor } from "@opentelemetry/sdk-trace-node";
+import { DaprWorkflowClient } from "@dapr/dapr";
+
+const provider = new NodeTracerProvider({
+  resource: resourceFromAttributes({ "service.name": "orders" }),
+  spanProcessors: [new SimpleSpanProcessor(new ZipkinExporter({ url: "http://localhost:9411/api/v2/spans" }))],
+});
+provider.register();
+
+const client = new DaprWorkflowClient();
+await trace.getTracer("orders").startActiveSpan("submit-order", async (span) => {
+  try {
+    await client.scheduleNewWorkflow("orderWorkflow", { orderId: "123" });
+  } finally {
+    span.end();
+  }
+});
+// On application shutdown, stop workflow clients/runtimes before shutting down the provider.
+await client.stop();
+await provider.shutdown();
+```
+
+Install the OpenTelemetry provider/exporter packages in the application; they are
+not installed as SDK runtime dependencies. Use a batching processor in production.
+Configure Dapr's Zipkin endpoint to reach the same collector from the sidecar.
+
+Scheduling forwards the active W3C `traceparent`, sampling flags, and `tracestate`
+through the workflow protocol. Each activity invocation emits an internal
+`WorkflowActivity <registered name>` span from the `Dapr.Workflow` instrumentation
+scope, parented to the runtime's activity span. Instrumented downstream work uses
+that SDK activity span as its parent. Failures mark the span as an error and record
+the exception without changing workflow failure/retry behavior. Each retry attempt
+has its own span.
+
+Workflow turns restore the context from execution history without emitting new
+SDK spans during replay. `trace.getSpan(context.active())` is therefore available
+in workflows and activities when the runtime supplies valid context and an
+OpenTelemetry context manager is configured. Avoid creating spans or performing
+other side effects inside replaying workflow code; put instrumented I/O in
+activities instead. Child workflows and remote activities use the context supplied
+by their runtime. Continue-as-new can start a new runtime trace; the SDK adopts
+the new execution's context rather than retaining the previous trace.
+
+Without a tracer provider, no SDK spans are exported. With only a context manager,
+valid remote context remains available for propagation. Missing or invalid remote
+context does not inherit the worker's ambient span. Sampling is controlled by
+Dapr and the application's OpenTelemetry sampler. The workflow protocol carries
+trace context, not OpenTelemetry baggage.
+
+### Replay-safe workflow logging
+
+Use `ctx.logger` inside workflows to log without repeating application messages
+when the workflow history is replayed. It supports `error`, `warn`, `info`,
+`verbose`, and `debug`, including additional arguments. The logger checks the
+current replay state on every call, so a reference saved before a `yield` remains
+replay-safe after the workflow resumes.
+
+```typescript
+import { LogLevel, WorkflowContext, WorkflowRuntime } from "@dapr/dapr";
+
+const runtime = new WorkflowRuntime({ logger: { level: LogLevel.Debug } });
+runtime.registerWorkflow(function* orderWorkflow(ctx: WorkflowContext, orderId: string) {
+  const logger = ctx.logger;
+  logger.info("Processing order", { orderId });
+  const result = yield ctx.callActivity("processOrder", orderId);
+  logger.debug("Order processed", result);
+  return result;
+});
+```
+
+`WorkflowRuntime`'s `logger.level` and `logger.service` configure these application
+logs using the existing `LoggerOptions` and `LoggerService` interfaces. The default
+is console logging at `Info` level. Messages include a
+`[Workflow, <registered workflow name>, <instance ID>]` prefix. Named registrations,
+child workflows, and continue-as-new executions use the same configuration.
+
+This does not suppress worker/engine diagnostics, direct `console` calls, or
+other application loggers. Arguments are still evaluated before a log call;
+do not perform nondeterministic operations or side effects to construct them.
+Replay suppression is not an exactly-once delivery guarantee: worker retries
+can repeat non-replay execution, and each continue-as-new execution can emit new logs.
+Errors thrown by a custom logging service propagate like other workflow errors.
+
+### Context and state accessors
 
 `WorkflowContext.getWorkflowName()` returns the registered workflow name, including
 an explicit name supplied to `registerWorkflowByName`, and stays the same during replay.
@@ -57,6 +262,179 @@ existence. State is a snapshot, so purging an instance does not mutate old snaps
 It returns `undefined` at the end of the chain. Nested details are preserved when
 failed activities or child workflows fail their callers. The existing
 `innerFailure` property still exposes the raw protobuf details for compatibility.
+
+## Workflow payload references
+
+Workflow payload references keep large values in a [Binary Store](#binary-store)
+and put a small, versioned envelope into workflow history. This is opt-in and
+requires Dapr 1.19 or later and a binary store component. Use durable shared
+storage in production: the in-memory component is only suitable for tests.
+Unconfigured applications keep their existing inline serialization behavior.
+
+```typescript
+import {
+  BinaryStoreWorkflowPayloadResolver,
+  DaprClient,
+  DaprWorkflowClient,
+  PayloadWritePreference,
+  WorkflowRuntime,
+} from "@dapr/dapr";
+
+const dapr = new DaprClient();
+const payloads = new BinaryStoreWorkflowPayloadResolver(dapr.binaryStore, {
+  storeName: "binarystore",
+  writePreference: PayloadWritePreference.PreferReference,
+  offloadThreshold: 64 * 1024,
+});
+const client = new DaprWorkflowClient({ payloads });
+const runtime = new WorkflowRuntime({ payloads });
+
+runtime.registerWorkflowByName("echo", function* (_ctx, input) {
+  return input;
+});
+await runtime.start();
+const id = await client.scheduleNewWorkflow("echo", { text: "x".repeat(100_000) });
+const state = await client.waitForWorkflowCompletion(id);
+console.log(state?.getOutput()); // Materialized value, not an envelope.
+console.log(state?.getOutputReference()); // Metadata for the stored value.
+await runtime.stop();
+await client.stop();
+await dapr.stop();
+```
+
+Configure compatible resolvers on every client and worker that reads references.
+Passing a serializer as the resolver's third constructor argument also supplies
+the workflow serializer unless `WorkflowClientOptions.serializer` overrides it.
+If overriding it, use the same serialization format for explicit resolver
+operations and workflow boundaries.
+
+### Policies and boundaries
+
+| Option                       | Default             | Behavior                                                                                                                                     |
+| ---------------------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `writePreference`            | `Preserve`          | Preserve inline values and references. `PreferReference` offloads eligible inline values; `PreferInline` materializes outgoing references.   |
+| `offloadThreshold`           | 64 KiB              | Inclusive threshold in serialized **UTF-8 bytes**, not string length. `null` offloads all nonempty serialized snapshots.                     |
+| `offloadSites`               | `PayloadKind.All`   | Bitwise selection of workflow/activity input/output, external events, continue-as-new input, custom status, and child workflow input/output. |
+| `keyPrefix`                  | `workflow-payloads` | Keys are `<prefix>/<instanceId>/<sha256>`; equal bytes in the same instance have the same key.                                               |
+| `skipWriteIfExists`          | `true`              | Ignore only an AlreadyExists conflict; other write errors propagate.                                                                         |
+| `maxInMemoryRehydrationSize` | 16 MiB              | Reject buffering if the declared size or actual streamed byte count exceeds this limit.                                                      |
+| `verifyIntegrityOnRead`      | `true`              | Check the stored bytes against the reference's SHA-256 before deserialization.                                                               |
+| `resolutionCacheSize`        | 128                 | Bounded cache of serialized bytes for one orchestration execution; zero disables it. Deserialized mutable objects are not shared.            |
+
+Reads are independent of write policy. A worker can replay historical references
+after switching future writes to `Preserve` or `PreferInline`. Keep the referenced
+bytes available and immutable for as long as history or other consumers need
+them. Replayed activity/child/detached actions are not re-uploaded; newly emitted
+actions and the current custom-status snapshot use the current write policy.
+
+Activity inputs, activity outputs, workflow inputs/outputs, child inputs/outputs,
+external events (including `sendEvent`), `continueAsNew`, and custom status all
+participate. Detached input uses `WorkflowInput`; termination output uses
+`WorkflowOutput`; rerun replacement input uses `WorkflowInput`, matching .NET.
+When offloading rerun input and no destination ID was supplied, the SDK assigns
+one before uploading. `overwriteInput: false` does not upload the ignored input.
+Uploaded objects are not rolled back if a later workflow RPC fails.
+
+For a different `targetAppId`, activity, child, and detached inputs are forced
+inline unless their call options include `allowPayloadReferences: true`.
+This permission does not force offloading and does not override `PreferInline`.
+Both applications must have access to the referenced component and bytes.
+Outputs and propagated history are not covered by this input permission;
+propagated history's original signed bytes are never rewritten.
+
+### Explicit references and streaming
+
+`payloads.store(value, instanceId, signal?)` returns a `PayloadReference<T>`.
+`payloads.resolve(reference, signal?)` materializes it, and
+`payloads.open(reference, signal?)` returns a Node.js `Readable`.
+Activities can use the configured resolver through `ctx.payloads`.
+Workflow contexts expose read-only `ctx.resolvePayload(reference)` and
+`ctx.openPayload(reference)` as **Tasks to yield**, plus
+`ctx.hasPayloadResolver()`. Perform explicit writes in activities or clients,
+not by calling an external resolver from orchestration code.
+
+TypeScript generic arguments are erased, so unlike .NET the reference contract
+must be selected explicitly:
+
+| Boundary                | JS option                                  |
+| ----------------------- | ------------------------------------------ |
+| Workflow/activity input | Register with `{ inputAsReference: true }` |
+| Activity/child result   | Call with `{ resultAsReference: true }`    |
+| External-event result   | Wait with `{ asReference: true }`          |
+
+These options return `PayloadReference` objects without downloading them.
+A nonempty inline value does not satisfy a reference contract and fails
+explicitly. They do not force the producer to return a reference.
+
+```typescript
+import { PayloadReference, Task, WorkflowContext } from "@dapr/dapr";
+
+runtime.registerWorkflowByName(
+  "readReference",
+  function* (
+    ctx: WorkflowContext,
+    input: PayloadReference<{ text: string }>,
+  ): Generator<Task<unknown>, unknown, unknown> {
+    const value = yield ctx.resolvePayload(input);
+    return value;
+  },
+  { inputAsReference: true },
+);
+const reference = await payloads.store({ text: "large document" }, "document-owner");
+await client.scheduleNewWorkflow("readReference", reference);
+```
+
+For large streams, consume `payloads.open(reference)` using `for await`.
+Inside an async-generator workflow, first `yield ctx.openPayload(reference)`,
+then consume the returned stream. Raw streams bypass buffering limits, hash
+verification, and transformation-stage reversal; validate/process their bytes
+yourself and destroy the stream on early exit. Explicit reads run again on replay,
+so stream processing in workflows must remain deterministic.
+
+Fetched state retains its original envelopes through `getInputReference<T>()`,
+`getOutputReference<T>()`, and `getCustomStatusReference<T>()`.
+The existing synchronous typed getters return materialized values after the
+client asynchronously prepares state. An oversized reference or missing resolver
+is retained for explicit streaming, but its typed getter throws
+`PayloadRehydrationLimitError` or `PayloadNotResolvableError`; the corresponding
+serialized property still contains the envelope in that case. Other read failures,
+including `PayloadNotFoundError` and `PayloadIntegrityError`, reject the client
+operation. A missing binary object is not treated as a missing workflow.
+
+### .NET wire compatibility and retention
+
+The wire envelope matches dapr/dotnet-sdk#1934:
+
+```json
+{
+  "$daprRef": {
+    "v": 1,
+    "store": "binarystore",
+    "key": "workflow-payloads/instance/hash",
+    "size": 19,
+    "sha256": "c7f7e541b6aecfa4d9d3ee41214623f8d0176e0b9f1b41e002b1165d388fcf8e"
+  }
+}
+```
+
+Use `reference.toEnvelope()` and `PayloadReference.parse(wire)` to exchange
+envelopes. Only a **single top-level** `$daprRef` property is treated as a
+reference; nested references and objects with extra root properties are not
+automatically resolved. Unknown versions and malformed reserved envelopes throw.
+Hashes are lowercase SHA-256 hex and JS sizes must be nonnegative safe integers.
+Optional stages use `stages: [{ n: "name", m: { key: "value" } }]`; empty stages and
+absent metadata are omitted. Stage metadata is preserved, but automatic stage
+reversal is not supported. The envelope always uses JSON even with a non-JSON
+payload serializer. Cross-language applications must agree on the stored
+serialization format; the default JSON format interoperates with .NET.
+
+Cleanup is never automatic on completion or purge: references can be shared,
+and retained history may still need their data. Supply a durable, idempotent
+`IWorkflowPayloadManifest` (`record`, `list`, `clear`) to the resolver, then call
+`payloads.deletePayloads(instanceId)` explicitly after enforcing your retention
+and sharing rules. Without a manifest cleanup throws instead of silently doing
+nothing. A partial deletion failure keeps manifest records so cleanup can be
+retried; missing objects during cleanup are treated as already deleted.
 
 ## Cross-application workflow tasks
 

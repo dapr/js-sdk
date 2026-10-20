@@ -23,17 +23,26 @@ import { Task, NonDeterminismError, StopIterationError } from "../task";
 import type { CompletableTask } from "../task";
 import { Registry } from "./Registry";
 import { OrchestrationExecuteResult } from "./OrchestrationExecuteResult";
-import { isEmpty, getOrchestrationStatusStr, decodePropagatedHistory } from "./protoHelpers";
+import { isEmpty, getOrchestrationStatusStr, decodePropagatedHistory, newFailureDetails } from "./protoHelpers";
 import { Logger } from "../../../logger/Logger";
 import { IDaprSerializer } from "../../../serialization/IDaprSerializer";
 import { deserializeWorkflowValue } from "../../../serialization/Serialization.util";
+import { serializeWorkflowValue } from "../../../serialization/Serialization.util";
+import type { BinaryStoreWorkflowPayloadResolver } from "../../payloads/BinaryStoreWorkflowPayloadResolver";
+import { WorkflowPayloadHandler } from "../../payloads/WorkflowPayloadHandler";
+import { PayloadReference } from "../../payloads/PayloadReference";
+import { PayloadKind } from "../../payloads/BinaryStorePayloadOptions";
 
 export class OrchestrationExecutor {
   private readonly logger = new Logger("Workflow", "OrchestrationExecutor");
   private _isSuspended = false;
   private _suspendedEvents: HistoryEvent[] = [];
 
-  constructor(private readonly _registry: Registry, private readonly serializer?: IDaprSerializer) {}
+  constructor(
+    private readonly _registry: Registry,
+    private readonly serializer?: IDaprSerializer,
+    private readonly payloads?: BinaryStoreWorkflowPayloadResolver,
+  ) {}
 
   async execute(
     instanceId: string,
@@ -57,7 +66,17 @@ export class OrchestrationExecutor {
       }
     }
 
-    let ctx = new OrchestrationRuntimeContext(instanceId, appId, undefined, workflowName, this.serializer);
+    const handler = new WorkflowPayloadHandler(this.payloads, this.serializer, true);
+    let ctx = new OrchestrationRuntimeContext(
+      instanceId,
+      appId,
+      undefined,
+      workflowName,
+      this.serializer,
+      taskExecutionIds,
+      handler,
+      oldEvents,
+    );
     try {
       const history = decodePropagatedHistory(propagatedHistory);
       ctx = new OrchestrationRuntimeContext(
@@ -67,6 +86,8 @@ export class OrchestrationExecutor {
         workflowName,
         this.serializer,
         taskExecutionIds,
+        handler,
+        oldEvents,
       );
       this.logger.debug(`${instanceId}: Rebuilding local state with ${oldEvents.length} history event...`);
       ctx._isReplaying = true;
@@ -94,10 +115,25 @@ export class OrchestrationExecutor {
       this.logger.info(`${instanceId}: Orchestration completed with status ${completionStatusStr}`);
     }
 
-    const actions = ctx.getActions();
+    let actions = ctx.getActions();
+    let encodedCustomStatus: string | undefined;
+    try {
+      await handler.encodeActions(
+        actions,
+        instanceId,
+        startEvent?.eventType.case === "executionStarted" && !!startEvent.eventType.value.parentInstance,
+      );
+      encodedCustomStatus = await handler.encode(
+        ctx._customStatus != null ? serializeWorkflowValue(ctx._customStatus, this.serializer) : undefined,
+        { kind: PayloadKind.CustomStatus, instanceId },
+      );
+    } catch (error) {
+      ctx.setFailed(error instanceof Error ? error : new Error(String(error)));
+      actions = ctx.getActions();
+    }
     this.logger.info(`${instanceId}: Returning ${actions.length} action(s)`);
 
-    return new OrchestrationExecuteResult(actions, ctx._customStatus);
+    return new OrchestrationExecuteResult(actions, ctx._customStatus, encodedCustomStatus, ctx.version);
   }
 
   private async processEvent(ctx: OrchestrationRuntimeContext, event: HistoryEvent): Promise<void> {
@@ -159,7 +195,7 @@ export class OrchestrationExecutor {
         let input: unknown = undefined;
         const rawInput = executionStartedEvent.input;
         if (rawInput != null && rawInput !== "") {
-          input = deserializeWorkflowValue(rawInput, this.serializer);
+          input = await ctx.payloadHandler.read(rawInput, this._registry.expectsReference(executionStartedEvent.name));
         }
 
         const result = await fn(ctx, input);
@@ -255,7 +291,19 @@ export class OrchestrationExecutor {
 
         let result: unknown;
         if (!isEmpty(taskCompletedEvent.result)) {
-          result = deserializeWorkflowValue(taskCompletedEvent.result ?? "", this.serializer);
+          try {
+            result = await ctx.payloadHandler.read(
+              taskCompletedEvent.result,
+              ctx.payloadHandler.referenceResults.has(taskId),
+            );
+          } catch (error) {
+            activityTask.fail(
+              String(error),
+              newFailureDetails(error instanceof Error ? error : new Error(String(error))),
+            );
+            await ctx.resume();
+            break;
+          }
         }
 
         activityTask.complete(result);
@@ -334,7 +382,20 @@ export class OrchestrationExecutor {
 
         let result: unknown;
         if (!isEmpty(subCompletedEvent.result)) {
-          result = deserializeWorkflowValue(subCompletedEvent.result ?? "", this.serializer);
+          try {
+            result = await ctx.payloadHandler.read(
+              subCompletedEvent.result,
+              ctx.payloadHandler.referenceResults.has(taskId),
+            );
+          } catch (error) {
+            if (!subOrchTask) throw error;
+            subOrchTask.fail(
+              String(error),
+              newFailureDetails(error instanceof Error ? error : new Error(String(error))),
+            );
+            await ctx.resume();
+            break;
+          }
         }
 
         if (subOrchTask) {
@@ -394,11 +455,13 @@ export class OrchestrationExecutor {
           const eventTask = taskList.shift();
 
           if (!isEmpty(eventType.value.input)) {
-            decodedResult = deserializeWorkflowValue(eventType.value.input ?? "", this.serializer);
+            decodedResult =
+              PayloadReference.parse(eventType.value.input) ??
+              deserializeWorkflowValue(eventType.value.input ?? "", this.serializer);
           }
 
           if (eventTask) {
-            eventTask.complete(decodedResult);
+            ctx.completeExternalEvent(eventTask, decodedResult);
           }
 
           if (taskList.length === 0 && eventName) {
@@ -418,7 +481,9 @@ export class OrchestrationExecutor {
           }
 
           if (!isEmpty(eventType.value.input)) {
-            decodedResult = deserializeWorkflowValue(eventType.value.input ?? "", this.serializer);
+            decodedResult =
+              PayloadReference.parse(eventType.value.input) ??
+              deserializeWorkflowValue(eventType.value.input ?? "", this.serializer);
           }
 
           eventList?.push(decodedResult);

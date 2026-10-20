@@ -85,6 +85,130 @@ describe("common/client/http", () => {
     });
   });
 
+  describe.each([CommunicationProtocolEnum.HTTP, CommunicationProtocolEnum.GRPC])(
+    "bulk state deletion (%s)",
+    (communicationProtocol) => {
+      let bulkClient: DaprClient;
+      let keys: string[];
+      const storeName = "state-redis";
+
+      beforeEach(() => {
+        bulkClient = new DaprClient({
+          communicationProtocol,
+          daprHost: daprContainer.getHost(),
+          daprPort: (communicationProtocol === CommunicationProtocolEnum.HTTP
+            ? daprContainer.getHttpPort()
+            : daprContainer.getGrpcPort()
+          ).toString(),
+        });
+        keys = [randomUUID(), `${randomUUID()}/key ?#%`, randomUUID()];
+      });
+
+      afterEach(async () => {
+        try {
+          for (const key of keys) {
+            expect(
+              await bulkClient.state.delete(
+                storeName,
+                communicationProtocol === CommunicationProtocolEnum.HTTP ? encodeURIComponent(key) : key,
+              ),
+            ).toEqual({});
+          }
+        } finally {
+          await bulkClient.stop();
+        }
+      });
+
+      it("deletes only selected keys, including escaped, duplicate, and missing keys", async () => {
+        expect(
+          await bulkClient.state.save(
+            storeName,
+            keys.map((key, index) => ({ key, value: { index } })),
+          ),
+        ).toEqual({});
+        expect(
+          await bulkClient.state.deleteBulk(storeName, [
+            { key: keys[0] },
+            { key: keys[1] },
+            { key: keys[0] },
+            { key: randomUUID() },
+          ]),
+        ).toEqual({});
+        const remaining = await bulkClient.state.getBulk(storeName, keys);
+        expect(remaining.find((item) => item.key === keys[0])?.data).toBeFalsy();
+        expect(remaining.find((item) => item.key === keys[1])?.data).toBeFalsy();
+        expect(remaining.find((item) => item.key === keys[2])?.data).toEqual({ index: 2 });
+      });
+
+      it("honors current ETags and per-item state options", async () => {
+        expect(
+          await bulkClient.state.save(storeName, [
+            { key: keys[0], value: "first" },
+            { key: keys[2], value: "second" },
+          ]),
+        ).toEqual({});
+        const saved = await bulkClient.state.getBulk(storeName, [keys[0], keys[2]]);
+        for (const item of saved) {
+          expect(item.etag).toEqual(expect.any(String));
+        }
+        expect(
+          await bulkClient.state.deleteBulk(
+            storeName,
+            saved.map((item) => ({
+              key: item.key,
+              etag: item.etag,
+              options: {
+                consistency: StateConsistencyEnum.CONSISTENCY_STRONG,
+                concurrency: StateConcurrencyEnum.CONCURRENCY_FIRST_WRITE,
+              },
+            })),
+            { metadata: { contentType: "application/json" } },
+          ),
+        ).toEqual({});
+        expect(await bulkClient.state.get(storeName, keys[0])).toBe("");
+        expect(await bulkClient.state.get(storeName, keys[2])).toBe("");
+      });
+
+      it("reports stale ETags and leaves the newer state intact", async () => {
+        expect(await bulkClient.state.save(storeName, [{ key: keys[0], value: "original" }])).toEqual({});
+        const [saved] = await bulkClient.state.getBulk(storeName, [keys[0]]);
+        expect(saved.etag).toEqual(expect.any(String));
+        expect(await bulkClient.state.save(storeName, [{ key: keys[0], value: "updated" }])).toEqual({});
+        const result = bulkClient.state.deleteBulk(storeName, [
+          {
+            key: keys[0],
+            etag: saved.etag,
+            options: {
+              consistency: StateConsistencyEnum.CONSISTENCY_STRONG,
+              concurrency: StateConcurrencyEnum.CONCURRENCY_FIRST_WRITE,
+            },
+          },
+        ]);
+        if (communicationProtocol === CommunicationProtocolEnum.HTTP) {
+          expect((await result).error).toBeInstanceOf(Error);
+        } else {
+          await expect(result).rejects.toThrow();
+        }
+        expect(await bulkClient.state.get(storeName, keys[0])).toBe("updated");
+      });
+
+      it("reports a missing state store", async () => {
+        const result = bulkClient.state.deleteBulk(`missing-${randomUUID()}`, [{ key: keys[0] }]);
+        if (communicationProtocol === CommunicationProtocolEnum.HTTP) {
+          expect((await result).error).toBeInstanceOf(Error);
+        } else {
+          await expect(result).rejects.toThrow();
+        }
+      });
+
+      it("leaves existing state unchanged for an empty batch", async () => {
+        expect(await bulkClient.state.save(storeName, [{ key: keys[0], value: "retained" }])).toEqual({});
+        expect(await bulkClient.state.deleteBulk(storeName, [])).toEqual({});
+        expect(await bulkClient.state.get(storeName, keys[0])).toBe("retained");
+      });
+    },
+  );
+
   describe("custom serialization", () => {
     it.each([CommunicationProtocolEnum.HTTP, CommunicationProtocolEnum.GRPC])(
       "queries custom JSON state using the stored representation (%s)",

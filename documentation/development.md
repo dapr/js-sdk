@@ -81,6 +81,17 @@ npm run test:e2e:grpc
 npm run test:e2e:http
 ```
 
+Bulk state deletion tests cover HTTP and gRPC request mapping, metadata, ETags,
+empty batches, and failure reporting. Integration tests use a real Dapr sidecar
+and Redis via Docker, including stale ETags, escaped keys, and preservation of
+unselected state. They run as part of the existing common unit and E2E suites.
+To run just these tests:
+
+```powershell
+node .\node_modules\jest\bin\jest.js --runTestsByPath test\unit\protocols\common\state.test.ts --runInBand
+node .\node_modules\jest\bin\jest.js --runTestsByPath test\e2e\common\client.test.ts --testNamePattern "bulk state deletion" --runInBand
+```
+
 Binary Store integration tests cover HTTP and gRPC against an authenticated
 sidecar and the `BinaryStoreHarness` from `@dapr/testcontainer-node`. The harness
 manages its own sidecar and in-memory component; its independent HTTP helpers
@@ -97,6 +108,65 @@ npm run test:e2e:binarystore
 
 They are part of `npm run test:e2e:all` and skip older runtime versions.
 The Binary Store unit tests are included in `test:unit:http` and `test:unit:grpc`.
+
+Workflow tracing tests use `@dapr/testcontainer-node` **1.0.5** and its in-process
+Zipkin v2 collector. They capture both real Dapr runtime spans and SDK spans
+exported with OpenTelemetry; no separate Zipkin installation is needed. Docker
+and Dapr 1.17 or later are required. The tests use the SDK in this checkout, not
+the published SDK bundled with the harness.
+
+```powershell
+node .\node_modules\jest\bin\jest.js --runTestsByPath test\unit\workflow\workflowTracing.test.ts --runInBand
+node .\node_modules\jest\bin\jest.js --runTestsByPath test\e2e\workflow\tracing.test.ts --runInBand
+```
+
+These are also included in `test:unit:workflow` and `test:e2e:workflow`, respectively.
+Coverage includes caller-to-runtime-to-SDK-to-downstream parent relationships,
+failures, retries, child workflows, cross-application execution, parallel activity
+and workflow isolation, timer/event replay, continue-as-new, and W3C tracestate.
+Unit tests additionally cover invalid/missing context, sampling, operation without
+a tracer provider, and restoration of the caller's context. Set
+`DAPR_RUNTIME_VERSION` to run against another supported runtime.
+
+Actor reminder listing tests are included in the actor unit and HTTP actor E2E
+suites (the latter exercises both HTTP and gRPC clients). The E2E test registers
+multiple reminders across two actors and another actor type, verifies exact
+actor-ID filtering, type-wide gRPC listing, data/timing conversion, and empty
+results after cleanup. HTTP listing requires Dapr 1.19+ (tested with
+1.19.0-rc.4); gRPC listing requires 1.17+. Older runtimes skip only the
+unsupported transport's listing test.
+
+```powershell
+node .\node_modules\jest\bin\jest.js --runTestsByPath test\unit\actor\actorClientReminderList.test.ts --runInBand
+$env:DAPR_RUNTIME_VERSION = "1.19.0-rc.4"
+node .\node_modules\jest\bin\jest.js --runTestsByPath test\e2e\http\actors.test.ts --testNamePattern "lists all reminders" --runInBand
+```
+
+Workflow payload-reference tests are part of the existing workflow unit and E2E
+suites. The integration tests require Docker, Dapr 1.19 or later, Git, and the
+.NET 10 SDK. They run real JS and .NET workflow workers and exchange stored
+references in both directions, not just hand-written envelope fixtures.
+Coverage includes primitive JSON values, Unicode and escaped strings, optional
+stage metadata, and byte-size/hash verification. A pass-through workflow in
+each SDK forwards an oversized, staged reference to a nonexistent store,
+proving that explicit reference contracts need neither payload access nor
+JS-specific envelope fields. Both SDKs also reject corrupt and deleted payloads
+originally written by either implementation.
+
+```powershell
+$env:DAPR_RUNTIME_VERSION = "1.19.0-rc.4"
+node .\node_modules\jest\bin\jest.js --runTestsByPath test\e2e\workflow\payloads.test.ts --runInBand
+```
+
+The .NET fixture builds against the exact source commit from
+dapr/dotnet-sdk#1934 (`5ae2908a059a25c9793a60fc3f45a8be1c22c522`), because
+the published `1.19.0-rc.3` workflow package lacks the payload APIs. The test
+fetches that revision into a temporary directory, builds the fixture, and removes
+the source checkout. GitHub and NuGet access are needed for the first build.
+Set `DAPR_DOTNET_SDK_PATH` to an existing checkout of that revision to reuse local
+sources; the test does not modify or remove that checkout. The fixture's `bin`
+and `obj` outputs are ignored. CI installs .NET automatically; older Dapr runtime
+matrix entries skip this suite without requiring a .NET build.
 
 ## Setup GitHub actions
 
