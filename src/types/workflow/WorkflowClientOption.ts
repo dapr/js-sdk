@@ -62,6 +62,13 @@ export type WorkflowClientOptions = {
    * Compatible with legacy @grpc/grpc-js ChannelOptions.
    */
   grpcOptions?: GrpcChannelOptions | Record<string, any>;
+
+  /**
+   * Maximum number of activities the workflow runtime executes at once; further activities wait
+   * in a queue on the worker. Unlimited by default, leaving concurrency to the Dapr runtime's
+   * workflow.maxConcurrentActivityInvocations. Workflow work items are never limited.
+   */
+  maxConcurrentActivities?: number;
 };
 
 /**

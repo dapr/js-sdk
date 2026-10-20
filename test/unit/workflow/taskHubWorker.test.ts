@@ -85,8 +85,17 @@ const settle = async (rounds = 5) => {
  * A started worker on a fake stream whose executions stay pending until released, recording the
  * order in which work items were executed.
  */
-async function startWorker() {
-  const worker = new TaskHubWorker("localhost:50001");
+async function startWorker(maxConcurrentActivities?: number) {
+  const worker = new TaskHubWorker(
+    "localhost:50001",
+    undefined,
+    false,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    maxConcurrentActivities,
+  );
   const stream = new FakeWorkItemStream();
   const getWorkItems = jest.fn((_req: GetWorkItemsRequest, opts?: { signal?: AbortSignal }) =>
     stream.iterate(opts?.signal),
@@ -234,8 +243,18 @@ describe("TaskHubWorker work-item dispatch", () => {
     },
   );
 
-  it("runs at most 10 activities at once and executes every queued one in order, dropping none", async () => {
+  it("executes every work item as it arrives, without dropping any", async () => {
     const run = await startWorker();
+
+    run.stream.push(...Array.from({ length: 250 }, (_, i) => activityItem(i)));
+    await settle();
+
+    expect(run.executed).toEqual(Array.from({ length: 250 }, (_, i) => `activity:${i}`));
+    await run.stop();
+  });
+
+  it("runs at most the configured number of activities at once and executes every queued one in order", async () => {
+    const run = await startWorker(10);
 
     run.stream.push(...Array.from({ length: 250 }, (_, i) => activityItem(i)));
     await settle();
@@ -250,8 +269,8 @@ describe("TaskHubWorker work-item dispatch", () => {
     await run.stop();
   });
 
-  it("does not hold back workflow work items behind pending activities", async () => {
-    const run = await startWorker();
+  it("does not hold back workflow work items behind configured pending activities", async () => {
+    const run = await startWorker(10);
 
     run.stream.push(...Array.from({ length: 20 }, (_, i) => activityItem(i)), workflowItem("a"), workflowItem("b"));
     await settle();

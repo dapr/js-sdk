@@ -50,11 +50,12 @@ export class TaskHubWorker {
   private _stopWorker = false;
   private _activeWorkItems = 0;
   private _activeActivities = 0;
-  // Bounds activities only. Workflow work items are always dispatched: an
-  // activity may wait on another workflow's progress (scheduleNewWorkflow
-  // returns once the new workflow has started), which needs a workflow work
-  // item to run on this worker.
-  private readonly _maxConcurrentActivities = 10;
+  // Unlimited unless configured; the Dapr runtime admits work items
+  // (workflow.maxConcurrentActivityInvocations). Bounds activities only. Workflow
+  // work items are always dispatched: an activity may wait on another workflow's
+  // progress (scheduleNewWorkflow returns once the new workflow has started),
+  // which needs a workflow work item to run on this worker.
+  private readonly _maxConcurrentActivities: number;
   // ponytail: unbounded on purpose; a queued item must never be dropped, as the
   // sidecar keeps it in flight on this stream and its workflow stalls until reconnect.
   private readonly _activityQueue: WorkItem[] = [];
@@ -70,8 +71,10 @@ export class TaskHubWorker {
     grpcOptions?: GrpcChannelOptions,
     private readonly serializer?: IDaprSerializer,
     private readonly payloads?: BinaryStoreWorkflowPayloadResolver,
+    maxConcurrentActivities?: number,
   ) {
     this._registry = new Registry();
+    this._maxConcurrentActivities = maxConcurrentActivities ?? Infinity;
 
     const interceptors: Interceptor[] = [...(grpcOptions?.interceptors ?? [])];
     if (daprApiToken) {
@@ -246,11 +249,10 @@ export class TaskHubWorker {
   }
 
   private drainQueue(): void {
-    while (this._activityQueue.length > 0 && this._activeActivities < this._maxConcurrentActivities) {
+    while (this._activeActivities < this._maxConcurrentActivities) {
       const queued = this._activityQueue.shift();
-      if (queued) {
-        this.dispatchWorkItem(queued);
-      }
+      if (!queued) return;
+      this.dispatchWorkItem(queued);
     }
   }
 
