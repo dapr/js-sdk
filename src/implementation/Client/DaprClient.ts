@@ -319,9 +319,10 @@ export default class DaprClient {
         this.health = new HTTPClientHealth(client);
         this.invoker = new HTTPClientInvoker(client);
         this.lock = new HTTPClientLock(client);
-        this.metadata = new HTTPClientMetadata(client);
+        const metadata = new HTTPClientMetadata(client);
+        this.metadata = metadata;
         this.proxy = new HTTPClientProxy(client);
-        this.pubsub = new HTTPClientPubSub(client);
+        this.pubsub = new HTTPClientPubSub(client, metadata);
         this.secret = new HTTPClientSecret(client);
         this.sidecar = new HTTPClientSidecar(client);
         this.state = new HTTPClientState(client);

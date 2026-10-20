@@ -13,6 +13,7 @@ limitations under the License.
 
 import HTTPClient from "../../../../src/implementation/Client/HTTPClient/HTTPClient";
 import HTTPClientPubSub from "../../../../src/implementation/Client/HTTPClient/pubsub";
+import { CommunicationProtocolEnum, DaprClient } from "../../../../src";
 
 const httpError = (status: number, errorMsg = "") =>
   new Error(JSON.stringify({ error: "Not Found", error_msg: errorMsg, status }));
@@ -38,6 +39,24 @@ describe("http/pubsub", () => {
     Promise.all(Array.from({ length: count }, () => pubsub.publishBulk("my-pubsub", "my-topic", messages)));
 
   describe("publishBulk should prefer the stable v1.0 endpoint", () => {
+    it("should use the Dapr client's shared metadata instance", async () => {
+      const client = new DaprClient({ communicationProtocol: CommunicationProtocolEnum.HTTP });
+      const metadata = jest.spyOn(client.metadata, "get").mockResolvedValue({
+        id: "test",
+        runtimeVersion: "1.16.12",
+        actors: [],
+        extended: {},
+        components: [],
+      });
+      const execute = jest.spyOn(client.daprClient as HTTPClient, "executeWithApiVersion").mockResolvedValue({});
+
+      const res = await client.pubsub.publishBulk("my-pubsub", "my-topic", messages);
+
+      expect(res.failedMessages).toEqual([]);
+      expect(metadata).toHaveBeenCalledTimes(1);
+      expect(execute.mock.calls[0][0]).toBe("v1.0-alpha1");
+    });
+
     it("should call the stable v1.0 bulk publish endpoint", async () => {
       const { pubsub, execute, executeMetadata } = getPubSub();
       execute.mockResolvedValue({});
@@ -173,6 +192,18 @@ describe("http/pubsub", () => {
 
       expect(execute).not.toHaveBeenCalled();
       expect(res.failedMessages.length).toBe(2);
+    });
+
+    it.each(["edge", " EDGE "])("should use the stable endpoint on runtime '%s'", async (runtimeVersion) => {
+      const { pubsub, execute, executeMetadata } = getPubSub();
+      executeMetadata.mockResolvedValue({ runtimeVersion });
+      execute.mockResolvedValue({});
+
+      const res = await pubsub.publishBulk("my-pubsub", "my-topic", messages);
+
+      expect(res.failedMessages).toEqual([]);
+      expect(execute).toHaveBeenCalledTimes(1);
+      expect(execute.mock.calls[0][0]).toBe("v1.0");
     });
 
     it("should parse runtime versions with a v prefix and prerelease suffix", async () => {
