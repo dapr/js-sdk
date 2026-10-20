@@ -43,8 +43,28 @@ import type { BinaryStoreWorkflowPayloadResolver } from "../../payloads/BinarySt
 import { WorkflowPayloadHandler } from "../../payloads/WorkflowPayloadHandler";
 import { PayloadReference } from "../../payloads/PayloadReference";
 import { PayloadKind } from "../../payloads/BinaryStorePayloadOptions";
+import {
+  PayloadIntegrityError,
+  PayloadNotFoundError,
+  PayloadNotResolvableError,
+  PayloadRehydrationLimitError,
+} from "../../payloads/PayloadErrors";
+import { TransientWorkItemError, isRetryableRpcError } from "./TransientWorkItemError";
 
 const WORKFLOW_SEMANTICS_PATCH = "dapr-js:workflow-semantics-v2";
+
+/** Errors that a re-executed turn would reproduce; retrying them would loop forever. */
+function isDeterministicPayloadError(error: unknown): boolean {
+  return (
+    error instanceof PayloadNotResolvableError ||
+    error instanceof PayloadNotFoundError ||
+    error instanceof PayloadIntegrityError ||
+    error instanceof PayloadRehydrationLimitError ||
+    error instanceof TypeError ||
+    error instanceof RangeError ||
+    !isRetryableRpcError(error)
+  );
+}
 
 function isWorkflowGenerator(value: unknown): value is AnyGenerator<Task<unknown>> {
   return (
@@ -183,6 +203,14 @@ export class OrchestrationExecutor {
         { kind: PayloadKind.CustomStatus, instanceId },
       );
     } catch (error) {
+      if (!isDeterministicPayloadError(error)) {
+        this.logger.warn(
+          `${instanceId}: Payload offloading failed transiently; releasing the work item for redelivery: ${
+            toError(error).message
+          }`,
+        );
+        throw new TransientWorkItemError(`Payload offloading failed for '${instanceId}'`, error);
+      }
       ctx.setFailed(error instanceof Error ? error : new Error(String(error)));
       actions = ctx.getActions();
     }
@@ -430,10 +458,16 @@ export class OrchestrationExecutor {
         const subCompletedEvent = eventType.value;
         const taskId = subCompletedEvent.taskScheduledId;
 
-        let subOrchTask;
-        if (taskId !== undefined) {
-          subOrchTask = ctx._pendingTasks[taskId];
-          delete ctx._pendingTasks[taskId];
+        const subOrchTask = ctx._pendingTasks[taskId];
+        delete ctx._pendingTasks[taskId];
+
+        if (!subOrchTask) {
+          if (!ctx._isReplaying) {
+            this.logger.warn(
+              `${ctx.instanceId}: Ignoring unexpected childWorkflowInstanceCompleted event with ID = ${taskId}`,
+            );
+          }
+          return;
         }
 
         let result: unknown;
@@ -444,7 +478,6 @@ export class OrchestrationExecutor {
               ctx.payloadHandler.referenceResults.has(taskId),
             );
           } catch (error) {
-            if (!subOrchTask) throw error;
             subOrchTask.fail(
               String(error),
               newFailureDetails(error instanceof Error ? error : new Error(String(error))),
@@ -454,10 +487,7 @@ export class OrchestrationExecutor {
           }
         }
 
-        if (subOrchTask) {
-          subOrchTask.complete(result);
-        }
-
+        subOrchTask.complete(result);
         await ctx.resume();
         break;
       }
@@ -466,11 +496,8 @@ export class OrchestrationExecutor {
         const subFailedEvent = eventType.value;
         const taskId = subFailedEvent.taskScheduledId;
 
-        let subOrchTask;
-        if (taskId !== undefined) {
-          subOrchTask = ctx._pendingTasks[taskId];
-          delete ctx._pendingTasks[taskId];
-        }
+        const subOrchTask = ctx._pendingTasks[taskId];
+        delete ctx._pendingTasks[taskId];
 
         if (!subOrchTask) {
           if (!ctx._isReplaying) {
@@ -584,11 +611,12 @@ export class OrchestrationExecutor {
 
         this._isSuspended = false;
 
-        for (const e of this._suspendedEvents) {
+        // Detach the buffer first: replaying a buffered event must never append to the list being drained.
+        const buffered = this._suspendedEvents;
+        this._suspendedEvents = [];
+        for (const e of buffered) {
           await this.processEvent(ctx, e);
         }
-
-        this._suspendedEvents = [];
         break;
       }
 
@@ -639,6 +667,7 @@ export class OrchestrationExecutor {
     if (!eventType) return true;
     return (
       eventType.case !== "executionResumed" &&
+      eventType.case !== "executionSuspended" &&
       eventType.case !== "executionTerminated" &&
       (!this._useTurnClock || eventType.case !== "workflowStarted")
     );

@@ -16,9 +16,12 @@ import { HistoryEventSchema } from "../../../src/proto/dapr/proto/durabletask/v1
 import { OrchestrationStatus } from "../../../src/proto/dapr/proto/durabletask/v1/orchestration_pb";
 import { OrchestrationExecutor, Registry, Task } from "../../../src/workflow/engine";
 import WorkflowContext from "../../../src/workflow/runtime/WorkflowContext";
+import { PayloadReference } from "../../../src/workflow/payloads/PayloadReference";
 import {
   newEventRaisedEvent,
+  newExecutionResumedEvent,
   newExecutionStartedEvent,
+  newExecutionSuspendedEvent,
   newTaskCompletedEvent,
   newTaskScheduledEvent,
   newTimerCreatedEvent,
@@ -81,6 +84,106 @@ describe("workflow delivery and replay", () => {
       expect(result.actions[0].workflowActionType.value).toMatchObject({
         workflowStatus: OrchestrationStatus.FAILED,
         failureDetails: { errorType: "NonDeterminismError" },
+      });
+    },
+  );
+
+  it("drops work scheduled after continueAsNew() while keeping outbound events", async () => {
+    const registry = new Registry();
+    registry.addNamedOrchestrator("continuing", (inner) => {
+      const ctx = new WorkflowContext(inner);
+      ctx.callActivity("before", 1);
+      ctx.continueAsNew("next");
+      // Scheduled after the generation ended: nothing could ever observe these completions.
+      ctx.callActivity("after", 2);
+      ctx.createTimer(1);
+      ctx.sendEvent("recipient", "message", { value: 1 });
+      return "ignored";
+    });
+    const result = await new OrchestrationExecutor(registry).execute(
+      "id",
+      [],
+      [newExecutionStartedEvent("continuing", "id")],
+    );
+    expect(result.actions.map((action) => action.workflowActionType.case)).toEqual(["sendEvent", "completeWorkflow"]);
+    expect(result.actions[1].workflowActionType.value).toMatchObject({
+      workflowStatus: OrchestrationStatus.CONTINUED_AS_NEW,
+      result: '"next"',
+    });
+  });
+
+  it("completes after redundant suspensions are followed by a resume", async () => {
+    const registry = new Registry();
+    registry.addNamedOrchestrator("suspendable", function* (ctx) {
+      return (yield ctx.waitForExternalEvent("go")) as unknown;
+    });
+    const execution = new OrchestrationExecutor(registry).execute(
+      "id",
+      [],
+      [
+        newExecutionStartedEvent("suspendable", "id"),
+        newExecutionSuspendedEvent(),
+        newExecutionSuspendedEvent(),
+        newEventRaisedEvent("go", '"payload"'),
+        newExecutionResumedEvent(),
+      ],
+    );
+    const timeout = new Promise<never>((_resolve, reject) =>
+      setTimeout(() => reject(new Error("executor hung on buffered suspension")), 2000).unref(),
+    );
+    const result = await Promise.race([execution, timeout]);
+    expect(result.actions.map((action) => action.workflowActionType.case)).toEqual(["completeWorkflow"]);
+    expect(result.actions[0].workflowActionType.value).toMatchObject({
+      workflowStatus: OrchestrationStatus.COMPLETED,
+      result: '"payload"',
+    });
+  });
+
+  it("stays suspended when a resume is followed by another suspend", async () => {
+    const registry = new Registry();
+    registry.addNamedOrchestrator("suspendable", function* (ctx) {
+      return (yield ctx.waitForExternalEvent("go")) as unknown;
+    });
+    const result = await new OrchestrationExecutor(registry).execute(
+      "id",
+      [],
+      [
+        newExecutionStartedEvent("suspendable", "id"),
+        newExecutionSuspendedEvent(),
+        newExecutionResumedEvent(),
+        newExecutionSuspendedEvent(),
+        newEventRaisedEvent("go", '"payload"'),
+      ],
+    );
+    expect(result.actions).toEqual([]);
+  });
+
+  it.each(["childWorkflowInstanceCompleted", "childWorkflowInstanceFailed"] as const)(
+    "ignores an unexpected %s event, even one carrying an unreadable payload",
+    async (eventCase) => {
+      const registry = new Registry();
+      registry.addNamedOrchestrator("parent", function* (ctx) {
+        return (yield ctx.waitForExternalEvent("go")) as unknown;
+      });
+      const unreadable = JSON.stringify(
+        new PayloadReference("store", "missing", 4, "a".repeat(64)).toJSON(),
+      );
+      const unexpected = create(HistoryEventSchema, {
+        eventId: 7,
+        eventType:
+          eventCase === "childWorkflowInstanceCompleted"
+            ? { case: eventCase, value: { taskScheduledId: 42, result: unreadable } }
+            : { case: eventCase, value: { taskScheduledId: 42 } },
+      });
+      const result = await new OrchestrationExecutor(registry).execute(
+        "id",
+        [newExecutionStartedEvent("parent", "id")],
+        [unexpected, newEventRaisedEvent("go", '"done"')],
+      );
+      expect(result.actions.map((action) => action.workflowActionType.case)).toEqual(["completeWorkflow"]);
+      expect(result.actions[0].workflowActionType.value).toMatchObject({
+        workflowStatus: OrchestrationStatus.COMPLETED,
+        result: '"done"',
       });
     },
   );

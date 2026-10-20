@@ -263,6 +263,10 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
 
   getActions(): WorkflowAction[] {
     if (this._completionStatus === OrchestrationStatusEnum.CONTINUED_AS_NEW) {
+      // Work scheduled after continueAsNew() can never be observed by this generation; only outbound events survive.
+      const retained = Object.values(this._pendingActions).filter(
+        (action) => action.workflowActionType.case === "sendEvent",
+      );
       let carryoverEvents: HistoryEvent[] | null = null;
 
       if (this._saveEvents) {
@@ -282,7 +286,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
         undefined,
         carryoverEvents ?? undefined,
       );
-      return [...Object.values(this._pendingActions), action];
+      return [...retained, action];
     }
 
     return Object.values(this._pendingActions);

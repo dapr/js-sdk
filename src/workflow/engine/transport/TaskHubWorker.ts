@@ -41,6 +41,20 @@ import { IDaprSerializer } from "../../../serialization/IDaprSerializer";
 import { type GrpcChannelOptions, mapGrpcOptions } from "../../../types/workflow/WorkflowClientOption";
 import type { BinaryStoreWorkflowPayloadResolver } from "../../payloads/BinaryStoreWorkflowPayloadResolver";
 import { getOrchestrationTraceContext, runWithActivityTrace } from "../worker/WorkflowTrace";
+import { TransientWorkItemError, isRetryableRpcError } from "../worker/TransientWorkItemError";
+
+const COMPLETION_TIMEOUT_MS = 30_000;
+const COMPLETION_MAX_ATTEMPTS = 3;
+const COMPLETION_RETRY_BASE_MS = 500;
+const DRAIN_TIMEOUT_MS = 30_000;
+
+/** Stream rejections that no amount of reconnecting will fix. */
+function isDefinitiveStreamError(error: unknown): boolean {
+  return (
+    error instanceof ConnectError &&
+    (error.code === Code.Unimplemented || error.code === Code.Unauthenticated || error.code === Code.PermissionDenied)
+  );
+}
 
 export class TaskHubWorker {
   private readonly logger = new Logger("Workflow", "TaskHubWorker");
@@ -54,6 +68,7 @@ export class TaskHubWorker {
   private _runController?: AbortController;
   private _stopPromise?: Promise<void>;
   private _activeWorkItems = 0;
+  private _idleWaiters: Array<() => void> = [];
   private _workItemStreamController?: AbortController;
   private _resolveReady?: () => void;
   private _rejectReady?: (error: unknown) => void;
@@ -136,6 +151,8 @@ export class TaskHubWorker {
     let isFirstAttempt = true;
 
     while (!signal.aborted) {
+      // Readiness is only confirmed once the sidecar has sent something on the stream.
+      let streamYielded = false;
       try {
         await this.client.hello(create(EmptySchema), { signal });
         if (signal.aborted) return;
@@ -152,11 +169,16 @@ export class TaskHubWorker {
           { signal: streamController.signal },
         );
         this.markReady();
-        retryCount = 0;
 
         try {
           for await (const workItem of stream) {
             if (signal.aborted || streamController.signal.aborted) break;
+            if (!streamYielded) {
+              streamYielded = true;
+              // Only a stream that actually delivers messages resets the backoff; otherwise a sidecar that
+              // accepts and immediately drops the stream would be hammered in a tight loop.
+              retryCount = 0;
+            }
             // Health pings only keep the stream alive through idle proxies; they carry no work.
             if (workItem.request.case === "healthPing") continue;
 
@@ -184,7 +206,8 @@ export class TaskHubWorker {
         const errorMsg = err instanceof ConnectError ? err.message : String(err);
         this.logger.error(`Error on grpc stream: ${errorMsg}`);
 
-        if (isFirstAttempt) {
+        if (isFirstAttempt || (!streamYielded && isDefinitiveStreamError(err))) {
+          // Retrying cannot fix a rejected stream (wrong token, missing API); surface it instead of spinning.
           throw err;
         }
         this.logger.info("Connection will be retried...");
@@ -229,7 +252,44 @@ export class TaskHubWorker {
       })
       .finally(() => {
         this._activeWorkItems--;
+        if (this._activeWorkItems === 0) {
+          const waiters = this._idleWaiters;
+          this._idleWaiters = [];
+          for (const notify of waiters) notify();
+        }
       });
+  }
+
+  private whenIdle(): Promise<void> {
+    if (this._activeWorkItems === 0) return Promise.resolve();
+    return new Promise((resolve) => this._idleWaiters.push(resolve));
+  }
+
+  /**
+   * Delivers a completion to the sidecar. Transient failures are retried a few times; a failure the sidecar
+   * will reproduce (e.g. an unknown instance) is logged and dropped so one bad completion cannot tear down
+   * the shared work-item stream. Retryable failures that exhaust the budget propagate and abort the stream.
+   */
+  private async completeWithRetry(describe: string, send: (timeoutMs: number) => Promise<unknown>): Promise<void> {
+    const signal = this._runController?.signal;
+    for (let attempt = 1; ; attempt++) {
+      try {
+        await send(COMPLETION_TIMEOUT_MS);
+        return;
+      } catch (e: unknown) {
+        const error = toError(e);
+        if (!isRetryableRpcError(e)) {
+          this.logger.error(`Sidecar rejected ${describe}; dropping the completion: ${error.message}`);
+          return;
+        }
+        if (attempt >= COMPLETION_MAX_ATTEMPTS || signal?.aborted) {
+          this.logger.error(`Failed to deliver ${describe} after ${attempt} attempt(s): ${error.message}`);
+          throw e;
+        }
+        this.logger.warn(`Retrying ${describe} (attempt ${attempt} failed): ${error.message}`);
+        await sleep(COMPLETION_RETRY_BASE_MS * attempt, signal);
+      }
+    }
   }
 
   private supportsWorkflowPatches(): Promise<boolean> {
@@ -266,10 +326,13 @@ export class TaskHubWorker {
     const instanceId = req.instanceId;
 
     if (!instanceId) {
-      throw new Error(`Could not execute the orchestrator as the instanceId was not provided`);
+      // Nothing can be completed or redelivered without an instance; aborting the stream would not help.
+      this.logger.warn("Ignoring orchestrator work item without an instanceId");
+      return;
     }
 
     // Only a new generation needs runtime capability discovery; committed histories select their own semantics.
+    // A transient discovery failure propagates so the work item is redelivered rather than failed.
     const supportsPatches =
       req.pastEvents.length === 0 && req.newEvents.some((event) => event.eventType.case === "workflowStarted")
         ? await this.supportsWorkflowPatches()
@@ -291,6 +354,10 @@ export class TaskHubWorker {
         completionToken,
       });
     } catch (e: unknown) {
+      if (e instanceof TransientWorkItemError) {
+        // Leave the work item unacknowledged so the runtime redelivers it once the infrastructure recovers.
+        throw e;
+      }
       const error = toError(e);
       this.logger.error(`An error occurred while trying to execute instance '${instanceId}': ${error.message}`);
 
@@ -303,21 +370,19 @@ export class TaskHubWorker {
       });
     }
 
-    try {
-      // CompleteWorkflowTask only exists in Dapr >= 1.18; older runtimes route unknown
-      // methods to the service-invocation proxy. CompleteOrchestratorTask works on all.
-      await this.client.completeOrchestratorTask(res);
-    } catch (e: unknown) {
-      this.logger.error(`An error occurred while trying to complete instance '${instanceId}': ${toError(e).message}`);
-      throw e;
-    }
+    // CompleteWorkflowTask only exists in Dapr >= 1.18; older runtimes route unknown
+    // methods to the service-invocation proxy. CompleteOrchestratorTask works on all.
+    await this.completeWithRetry(`completion of instance '${instanceId}'`, (timeoutMs) =>
+      this.client.completeOrchestratorTask(res, { timeoutMs }),
+    );
   }
 
   private async executeActivity(req: ActivityRequest, completionToken: string): Promise<void> {
     const instanceId = req.workflowInstance?.instanceId;
 
     if (!instanceId) {
-      throw new Error("Activity request does not contain an orchestration instance id");
+      this.logger.warn(`Ignoring activity work item '${req.name}' without an orchestration instance id`);
+      return;
     }
 
     let res: ActivityResponse;
@@ -346,21 +411,15 @@ export class TaskHubWorker {
       });
     }
 
-    try {
-      await this.client.completeActivityTask(res);
-    } catch (e: unknown) {
-      this.logger.error(
-        `Failed to deliver activity response for '${req.name}#${req.taskId}' of orchestration ID '${instanceId}': ${
-          toError(e).message
-        }`,
-      );
-      throw e;
-    }
+    await this.completeWithRetry(
+      `activity response for '${req.name}#${req.taskId}' of orchestration ID '${instanceId}'`,
+      (timeoutMs) => this.client.completeActivityTask(res, { timeoutMs }),
+    );
   }
 
   async stop(): Promise<void> {
     if (!this._isRunning) {
-      throw new Error("The worker is not running.");
+      return;
     }
 
     if (!this._stopPromise) {
@@ -380,12 +439,11 @@ export class TaskHubWorker {
     this._rejectReady = undefined;
     this._workItemStreamController?.abort();
 
-    const drainTimeoutMs = 30000;
-    const drainPollIntervalMs = 100;
-    const drainStart = Date.now();
-    while (this._activeWorkItems > 0 && Date.now() - drainStart < drainTimeoutMs) {
+    if (this._activeWorkItems > 0) {
       this.logger.debug(`Waiting for ${this._activeWorkItems} active work item(s) to complete before shutdown...`);
-      await sleep(drainPollIntervalMs);
+      const drainTimeout = new AbortController();
+      await Promise.race([this.whenIdle(), sleep(DRAIN_TIMEOUT_MS, drainTimeout.signal)]);
+      drainTimeout.abort();
     }
 
     if (this._activeWorkItems > 0) {

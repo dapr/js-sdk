@@ -141,15 +141,20 @@ describe("workflow reliability", () => {
     expect(state?.getOutput()).toEqual(["first", "second"]);
   }, 60000);
 
-  it.each(["CompleteActivityTask", "CompleteOrchestratorTask"])(
-    "recovers an undelivered %s response",
-    async (method) => {
+  it.each([
+    { method: "CompleteActivityTask", injected: 1 },
+    { method: "CompleteOrchestratorTask", injected: 1 },
+    { method: "CompleteActivityTask", injected: 3 },
+    { method: "CompleteOrchestratorTask", injected: 3 },
+  ])(
+    "recovers an undelivered $method response ($injected transport failure(s))",
+    async ({ method, injected }) => {
       let failures = 0;
       let streams = 0;
       let activityCalls = 0;
       const interceptor: Interceptor = (next) => async (request) => {
         if (request.method.name === "GetWorkItems") streams++;
-        if (request.method.name === method && failures === 0) {
+        if (request.method.name === method && failures < injected) {
           failures++;
           throw new ConnectError("Injected completion transport failure", Code.Unavailable);
         }
@@ -166,11 +171,18 @@ describe("workflow reliability", () => {
       await start();
       const id = await client.scheduleNewWorkflow("recovering");
       const state = await client.waitForWorkflowCompletion(id, true, 60);
-      expect(failures).toBe(1);
-      expect(streams).toBeGreaterThanOrEqual(2);
+      expect(failures).toBe(injected);
       expect(state?.runtimeStatus).toBe(WorkflowRuntimeStatus.COMPLETED);
       expect(state?.getOutput()).toBe(42);
-      expect(activityCalls).toBeGreaterThanOrEqual(method === "CompleteActivityTask" ? 2 : 1);
+      if (injected === 1) {
+        // A transient failure is retried in place: no reconnect, no re-execution.
+        expect(streams).toBe(1);
+        expect(activityCalls).toBe(1);
+      } else {
+        // Once retries are exhausted the stream is dropped so the runtime redelivers the work item.
+        expect(streams).toBeGreaterThanOrEqual(2);
+        expect(activityCalls).toBeGreaterThanOrEqual(method === "CompleteActivityTask" ? 2 : 1);
+      }
     },
     90000,
   );
