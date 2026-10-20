@@ -19,7 +19,8 @@ import { DAPR_TEST_VERSION } from "./runtimeVersion";
 // Version resolution
 //
 // Set DAPR_RUNTIME_VERSION to test against a specific Dapr version (e.g. an
-// RC or N-1 stable). DAPR_RUNTIME_VER remains supported for older workflows.
+// RC, N-1 stable, or case-insensitive edge). DAPR_RUNTIME_VER remains supported
+// for older workflows.
 // When unset, the version pinned in @dapr/testcontainer-node is used.
 //
 // All three images (daprd, placement, scheduler) always use the same version

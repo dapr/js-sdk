@@ -27,7 +27,7 @@ on:
     inputs:
       dapr_runtime_version:
         description: >
-          Dapr runtime version to test against (for example, 1.16.4 or 1.17.0-rc.1).
+          Dapr runtime version to test against (for example, 1.16.4, 1.17.0-rc.1, or edge).
           Leave blank to test the dynamically selected supported versions.
         required: false
         default: ""
@@ -98,7 +98,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: dapr/dotnet-sdk
-          ref: dd2d9deba4dd7e94502052f87e6013bb900f010a
+          ref: 5e595ee41d61ef8b78fc81280504f39ae3a4c1fd
           path: dapr-version-selector
           sparse-checkout: .github/tools/tag-selector
           persist-credentials: false

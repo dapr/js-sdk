@@ -59,6 +59,19 @@ Publishing is automated in the CI/CD pipeline. Each time a version is release (G
 
 ## Running Tests
 
+Set `DAPR_RUNTIME_VERSION` to a numerical runtime version or `edge` to test the
+latest development runtime. `edge` is case-insensitive and is normalized to the
+lowercase image tag for daprd, placement, and scheduler. `DAPR_RUNTIME_VER` is
+still accepted as a legacy fallback; when neither is set, the version pinned by
+`@dapr/testcontainer-node` is used.
+
+The Jest `minimumDaprRuntime` helper (and suite-level `evaluateMinimumDaprRuntime`)
+runs tests on numerical runtimes at or above the specified minimum and always on
+`edge`. Minimum versions must remain numerical. Numerical comparisons ignore
+prerelease/build suffixes; the existing permissive behavior for unknown current
+versions is unchanged. CI includes `edge` alongside the supported numerical
+releases selected by the shared .NET version selector.
+
 Tests are written per protocol layer: http or grpc. This is done because Dapr requires endpoints to be registered for for pubsub and bindings, making us having to start up the test, initialize those endpoints and then run. Since Dapr is a sidecar architecture, we thus have to start 2 test suites seperately. It requires the following containers:
 
 - **EMQX:** Used for Binding Tests

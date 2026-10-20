@@ -11,7 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { DAPR_VERSION } from "@dapr/testcontainer-node";
 import { evaluateMinimumDaprRuntime } from "../../e2e/helpers/runtimeVersion";
+
+jest.mock("@dapr/testcontainer-node", () => ({
+  DAPR_VERSION: "1.19.0",
+  DaprContainer: jest.fn(),
+}));
+jest.mock("testcontainers", () => ({}));
 
 describe("Dapr runtime version gate", () => {
   it.each([
@@ -29,20 +36,71 @@ describe("Dapr runtime version gate", () => {
     expect(evaluateMinimumDaprRuntime(minimumVersion, currentVersion)).toEqual({ supported: true });
   });
 
-  it("skips a test when the runtime is older than its minimum", () => {
-    expect(evaluateMinimumDaprRuntime("1.17.0", "1.16.9")).toEqual({
+  it.each([
+    ["1.17.0", "1.16.9"],
+    ["1.17.1", "1.17.0"],
+    ["2.0.0", "1.99.99"],
+  ])("skips minimum %s on older runtime %s", (minimumVersion, currentVersion) => {
+    expect(evaluateMinimumDaprRuntime(minimumVersion, currentVersion)).toEqual({
       supported: false,
-      reason: "requires Dapr runtime >= 1.17.0; current: 1.16.9",
+      reason: `requires Dapr runtime >= ${minimumVersion}; current: ${currentVersion}`,
     });
+  });
+
+  it.each(["edge", "EDGE", "Edge", "eDgE", " edge "])("allows every minimum on runtime '%s'", (currentVersion) => {
+    for (const minimumVersion of ["1.16.0", "1.19.0", "99.0.0"]) {
+      expect(evaluateMinimumDaprRuntime(minimumVersion, currentVersion)).toEqual({ supported: true });
+    }
   });
 
   it.each(["", "latest", "development"])("allows an unknown current runtime version '%s'", (currentVersion) => {
     expect(evaluateMinimumDaprRuntime("1.16.0", currentVersion)).toEqual({ supported: true });
   });
 
-  it.each(["", "latest", "1", "one.sixteen"])("rejects invalid minimum version '%s'", (minimumVersion) => {
-    expect(() => evaluateMinimumDaprRuntime(minimumVersion, "1.16.0")).toThrow(
-      `Invalid minimum Dapr runtime version '${minimumVersion}'.`,
-    );
+  it.each(["", "latest", "edge", "EDGE", "1", "one.sixteen"])(
+    "rejects invalid minimum version '%s'",
+    (minimumVersion) => {
+      for (const currentVersion of ["1.16.0", "edge", "EDGE"]) {
+        expect(() => evaluateMinimumDaprRuntime(minimumVersion, currentVersion)).toThrow(
+          `Invalid minimum Dapr runtime version '${minimumVersion}'.`,
+        );
+      }
+    },
+  );
+});
+
+describe("Dapr test runtime images", () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  it.each([
+    ["edge", undefined, "edge"],
+    ["EDGE", undefined, "edge"],
+    [" Edge ", undefined, "edge"],
+    [undefined, "eDgE", "edge"],
+    ["", "EDGE", "edge"],
+    ["1.19.0-rc.4", "edge", "1.19.0-rc.4"],
+    ["edge", "1.18.0", "edge"],
+    [undefined, "1.18.0", "1.18.0"],
+    [undefined, undefined, DAPR_VERSION],
+  ])("resolves primary %s and legacy %s to %s", (primary, legacy, expected) => {
+    const env = { ...process.env };
+    delete env.DAPR_RUNTIME_VERSION;
+    delete env.DAPR_RUNTIME_VER;
+    if (primary !== undefined) env.DAPR_RUNTIME_VERSION = primary;
+    if (legacy !== undefined) env.DAPR_RUNTIME_VER = legacy;
+    jest.replaceProperty(process, "env", env);
+
+    jest.isolateModules(() => {
+      const runtime = jest.requireActual<typeof import("../../e2e/helpers/runtimeVersion")>(
+        "../../e2e/helpers/runtimeVersion",
+      );
+      const containers =
+        jest.requireActual<typeof import("../../e2e/helpers/containers")>("../../e2e/helpers/containers");
+
+      expect(runtime.DAPR_TEST_VERSION).toBe(expected);
+      expect(containers.DAPR_TEST_RUNTIME_IMAGE).toBe(`daprio/daprd:${expected}`);
+      expect(containers.DAPR_TEST_PLACEMENT_IMAGE).toBe(`daprio/placement:${expected}`);
+      expect(containers.DAPR_TEST_SCHEDULER_IMAGE).toBe(`daprio/scheduler:${expected}`);
+    });
   });
 });

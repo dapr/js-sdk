@@ -13,7 +13,8 @@ limitations under the License.
 
 import { DAPR_VERSION } from "@dapr/testcontainer-node";
 
-export const DAPR_TEST_VERSION = process.env.DAPR_RUNTIME_VERSION || process.env.DAPR_RUNTIME_VER || DAPR_VERSION;
+const configuredVersion = process.env.DAPR_RUNTIME_VERSION || process.env.DAPR_RUNTIME_VER || DAPR_VERSION;
+export const DAPR_TEST_VERSION = configuredVersion.trim().toLowerCase() === "edge" ? "edge" : configuredVersion;
 
 interface RuntimeVersionGate {
   supported: boolean;
@@ -39,7 +40,8 @@ export function evaluateMinimumDaprRuntime(minimumVersion: string, currentVersio
     throw new Error(`Invalid minimum Dapr runtime version '${minimumVersion}'.`);
   }
 
-  if (currentVersion.trim() === "" || currentVersion.trim().toLowerCase() === "latest") {
+  const normalizedVersion = currentVersion.trim().toLowerCase();
+  if (normalizedVersion === "" || normalizedVersion === "latest" || normalizedVersion === "edge") {
     return { supported: true };
   }
 
