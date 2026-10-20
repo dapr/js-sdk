@@ -127,6 +127,11 @@ export default class HTTPClientPubSub implements IClientPubSub {
     if (!this.bulkPublishApiVersion) {
       const apiVersion = this.client.execute("/metadata").then((response) => {
         const runtimeVersion = (response as GetMetadataResponse).runtimeVersion;
+        // A daprd built without a release version reports "edge"; it is built
+        // from the latest source, so it serves the stable endpoint.
+        if (runtimeVersion?.trim().toLowerCase() === "edge") {
+          return "v1.0";
+        }
         const version = /^v?(\d+)\.(\d+)(?:\.\d+)?(?:[-+].*)?$/i.exec(runtimeVersion?.trim() ?? "");
         if (!version) {
           throw new Error(`Unable to determine Dapr runtime version from metadata: '${runtimeVersion ?? ""}'.`);

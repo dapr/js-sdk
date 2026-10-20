@@ -175,6 +175,17 @@ describe("http/pubsub", () => {
       expect(res.failedMessages.length).toBe(2);
     });
 
+    it("should use the stable v1.0 endpoint on an edge runtime", async () => {
+      const { pubsub, execute, executeMetadata } = getPubSub();
+      executeMetadata.mockResolvedValue({ runtimeVersion: "edge" });
+      execute.mockResolvedValue({});
+
+      const res = await pubsub.publishBulk("my-pubsub", "my-topic", messages);
+
+      expect(res.failedMessages.length).toBe(0);
+      expect(execute.mock.calls[0][0]).toBe("v1.0");
+    });
+
     it("should parse runtime versions with a v prefix and prerelease suffix", async () => {
       const { pubsub, execute, executeMetadata } = getPubSub();
       executeMetadata.mockResolvedValue({ runtimeVersion: "v1.17.0-rc.1" });
