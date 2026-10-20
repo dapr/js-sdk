@@ -16,6 +16,7 @@ import IClientActorBuilder from "../../interfaces/Client/IClientActorBuilder";
 import IClientBinding from "../../interfaces/Client/IClientBinding";
 import IClientBinaryStore from "../../interfaces/Client/IClientBinaryStore";
 import IClientConfiguration from "../../interfaces/Client/IClientConfiguration";
+import IClientConversation from "../../interfaces/Client/IClientConversation";
 import IClientCrypto from "../../interfaces/Client/IClientCrypto";
 import IClientHealth from "../../interfaces/Client/IClientHealth";
 import IClientInvoker from "../../interfaces/Client/IClientInvoker";
@@ -36,6 +37,7 @@ import GRPCClientActor from "./GRPCClient/actor";
 import GRPCClientBinding from "./GRPCClient/binding";
 import GRPCClientBinaryStore from "./GRPCClient/binaryStore";
 import GRPCClientConfiguration from "./GRPCClient/configuration";
+import GRPCClientConversation from "./GRPCClient/conversation";
 import GRPCClientCrypto from "./GRPCClient/crypto";
 import GRPCClientHealth from "./GRPCClient/health";
 import GRPCClientInvoker from "./GRPCClient/invoker";
@@ -52,6 +54,7 @@ import HTTPClientActor from "./HTTPClient/actor";
 import HTTPClientBinding from "./HTTPClient/binding";
 import HTTPClientBinaryStore from "./HTTPClient/binaryStore";
 import HTTPClientConfiguration from "./HTTPClient/configuration";
+import HTTPClientConversation from "./HTTPClient/conversation";
 import HTTPClientCrypto from "./HTTPClient/crypto";
 import HTTPClientHealth from "./HTTPClient/health";
 import HTTPClientInvoker from "./HTTPClient/invoker";
@@ -154,6 +157,9 @@ export default class DaprClient {
    * @see {@link https://dapr.io/docs/developing-applications/building-blocks/configuration/ | Dapr Configuration}
    */
   readonly configuration: IClientConfiguration;
+
+  /** LLM conversations and application-managed tool calling (Dapr 1.16+ Alpha2 API). */
+  readonly conversation: IClientConversation;
 
   /**
    * Cryptographic operations client.
@@ -308,6 +314,7 @@ export default class DaprClient {
         this.sidecar = new GRPCClientSidecar(client);
         this.proxy = new GRPCClientProxy(client);
         this.configuration = new GRPCClientConfiguration(client);
+        this.conversation = new GRPCClientConversation(client);
         this.lock = new GRPCClientLock(client);
         this.crypto = new GRPCClientCrypto(client);
         this.actor = new GRPCClientActor(client); // we use an abstractor here since we interface through a builder with the Actor Runtime
@@ -323,6 +330,7 @@ export default class DaprClient {
         this.binding = new HTTPClientBinding(client);
         this.binaryStore = new HTTPClientBinaryStore(client);
         this.configuration = new HTTPClientConfiguration(client);
+        this.conversation = new HTTPClientConversation(client);
         this.crypto = new HTTPClientCrypto(client);
         this.health = new HTTPClientHealth(client);
         this.invoker = new HTTPClientInvoker(client);
