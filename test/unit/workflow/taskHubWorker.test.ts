@@ -130,7 +130,7 @@ async function startWorker(maxConcurrentActivities?: number) {
     release();
     await stopped;
   };
-  return { stream, executed, release, stop, getWorkItems };
+  return { worker, stream, executed, release, stop, getWorkItems };
 }
 
 describe("TaskHubWorker work-item dispatch", () => {
@@ -283,6 +283,27 @@ describe("TaskHubWorker work-item dispatch", () => {
     // Stopping ends the stream; the queued activities are left to the sidecar to re-deliver.
     await run.stop();
     expect(activities()).toHaveLength(10);
+  });
+
+  it.each([0, -1, NaN])("rejects an activity limit of %p", (limit) => {
+    expect(
+      () => new TaskHubWorker("localhost:50001", undefined, false, undefined, undefined, undefined, undefined, limit),
+    ).toThrow("maxConcurrentActivities must be a positive number");
+  });
+
+  it("does not start queued activities once shutdown has begun", async () => {
+    const run = await startWorker(10);
+
+    run.stream.push(...Array.from({ length: 20 }, (_, i) => activityItem(i)));
+    await settle();
+
+    // A completion landing after stop() began, but before the stream's cleanup cleared the queue.
+    (run.worker as unknown as { _stopWorker: boolean })._stopWorker = true;
+    run.release();
+    await settle();
+
+    expect(run.executed).toHaveLength(10);
+    await run.stop();
   });
 
   it("advertises the health ping capability and discards pings without dispatching them", async () => {

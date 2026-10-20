@@ -73,6 +73,9 @@ export class TaskHubWorker {
     private readonly payloads?: BinaryStoreWorkflowPayloadResolver,
     maxConcurrentActivities?: number,
   ) {
+    if (maxConcurrentActivities !== undefined && !(maxConcurrentActivities >= 1)) {
+      throw new Error(`maxConcurrentActivities must be a positive number, got ${maxConcurrentActivities}`);
+    }
     this._registry = new Registry();
     this._maxConcurrentActivities = maxConcurrentActivities ?? Infinity;
 
@@ -249,6 +252,8 @@ export class TaskHubWorker {
   }
 
   private drainQueue(): void {
+    // Once shutdown has begun, queued items are left to the sidecar to re-deliver.
+    if (this._stopWorker) return;
     while (this._activeActivities < this._maxConcurrentActivities) {
       const queued = this._activityQueue.shift();
       if (!queued) return;
