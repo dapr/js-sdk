@@ -39,6 +39,8 @@ import {
   newTimerFiredEvent,
 } from "../../../src/workflow/engine/worker/protoHelpers";
 import { MemoryPayloadStore } from "../../utils/WorkflowPayloadTestUtils";
+import { TransientWorkItemError } from "../../../src/workflow/engine/worker/TransientWorkItemError";
+import { Code, ConnectError } from "@connectrpc/connect";
 
 function output(result: OrchestrationExecuteResult) {
   const action = result.actions.find(
@@ -424,13 +426,59 @@ describe("workflow payload execution and replay", () => {
     expect(PayloadReference.parse(output(result))).toBeDefined();
   });
 
-  it("reports upload failures as workflow failures, never as successful inline outputs", async () => {
+  it("releases the work item for redelivery when a payload upload fails transiently", async () => {
     registry.addNamedOrchestrator("test", () => ({ output: true }));
-    jest.spyOn(store, "setBinaryFile").mockRejectedValue(new Error("store offline"));
+    const setBinaryFile = jest.spyOn(store, "setBinaryFile").mockRejectedValueOnce(new Error("store offline"));
+    const resolver = automatic();
+    const start = newExecutionStartedEvent("test", "id");
+    await expect(execute(resolver).execute("id", [], [start])).rejects.toBeInstanceOf(TransientWorkItemError);
+    expect(store.files.size).toBe(0);
+    // The redelivered turn uploads the same content-addressed key, so nothing from the failed attempt is orphaned.
+    setBinaryFile.mockRestore();
+    const retried = await execute(resolver).execute("id", [], [start]);
+    expect(await resolver.resolve(PayloadReference.parse(output(retried))!)).toEqual({ output: true });
+  });
+
+  it("reuses blobs written before a partial upload failure instead of orphaning them", async () => {
+    registry.addNamedOrchestrator("test", function* (ctx) {
+      ctx.callActivity("first", { payload: "one" });
+      ctx.callActivity("second", { payload: "two" });
+      yield ctx.waitForExternalEvent("never");
+    });
+    const original = store.setBinaryFile.bind(store);
+    let calls = 0;
+    jest.spyOn(store, "setBinaryFile").mockImplementation(async (...args) => {
+      if (++calls === 2) throw new Error("store offline");
+      return original(...args);
+    });
+    const resolver = automatic();
+    const start = newExecutionStartedEvent("test", "id");
+    await expect(execute(resolver).execute("id", [], [start])).rejects.toBeInstanceOf(TransientWorkItemError);
+    const written = [...store.files.keys()];
+    expect(written).toHaveLength(1);
+    const retried = await execute(resolver).execute("id", [], [start]);
+    expect(retried.actions.map((action) => action.workflowActionType.case)).toEqual(["scheduleTask", "scheduleTask"]);
+    // The blob from the failed attempt is exactly what the redelivered turn needs: same key, no duplicate.
+    expect([...store.files.keys()]).toEqual(expect.arrayContaining(written));
+    const clean = new MemoryPayloadStore();
+    await new OrchestrationExecutor(
+      registry,
+      undefined,
+      new BinaryStoreWorkflowPayloadResolver(clean, { ...resolver.options }),
+    ).execute("id", [], [start]);
+    expect([...store.files.keys()].sort()).toEqual([...clean.files.keys()].sort());
+  });
+
+  it.each([
+    { name: "a TypeError", error: new TypeError("bad value") },
+    { name: "a non-retryable sidecar rejection", error: new ConnectError("denied", Code.PermissionDenied) },
+  ])("fails the workflow when payload encoding hits a deterministic error ($name)", async ({ error }) => {
+    registry.addNamedOrchestrator("test", () => ({ output: true }));
+    jest.spyOn(store, "setBinaryFile").mockRejectedValue(error);
     const result = await execute(automatic()).execute("id", [], [newExecutionStartedEvent("test", "id")]);
     expect(result.actions[0].workflowActionType.value).toMatchObject({
       workflowStatus: OrchestrationStatus.FAILED,
-      failureDetails: { errorMessage: "store offline" },
+      failureDetails: { errorMessage: expect.stringContaining(error.message) },
     });
   });
 

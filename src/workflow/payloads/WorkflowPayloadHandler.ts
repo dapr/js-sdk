@@ -24,7 +24,8 @@ import { PayloadNotResolvableError } from "./PayloadErrors";
 export class WorkflowPayloadHandler {
   readonly inlineInputs = new Map<number, boolean>();
   readonly referenceResults = new Set<number>();
-  private readonly cache = new Map<string, Promise<string>>();
+  private readonly cache = new Map<string, { read: Promise<string>; size: number }>();
+  private cachedBytes = 0;
 
   constructor(
     readonly resolver?: BinaryStoreWorkflowPayloadResolver,
@@ -52,19 +53,30 @@ export class WorkflowPayloadHandler {
     if (!this.resolver) throw new PayloadNotResolvableError();
     const key = reference.toEnvelope();
     const cached = this.cache.get(key);
-    if (cached) return cached;
+    if (cached) return cached.read;
     const read = this.resolver.resolveSerialized(reference, signal);
-    const capacity = this.cacheReads ? this.resolver.options.resolutionCacheSize : 0;
-    if (capacity) {
-      if (this.cache.size >= capacity) this.cache.delete(this.cache.keys().next().value!);
-      this.cache.set(key, read);
+    const { resolutionCacheSize: capacity, resolutionCacheBytes: budget } = this.resolver.options;
+    // Both bounds apply: the entry count keeps lookups cheap, the byte budget keeps replay memory predictable.
+    if (this.cacheReads && capacity && reference.size <= budget) {
+      while (this.cache.size >= capacity || this.cachedBytes + reference.size > budget) {
+        this.evict(this.cache.keys().next().value!);
+      }
+      this.cache.set(key, { read, size: reference.size });
+      this.cachedBytes += reference.size;
     }
     try {
       return await read;
     } catch (error) {
-      this.cache.delete(key);
+      this.evict(key);
       throw error;
     }
+  }
+
+  private evict(key: string): void {
+    const entry = this.cache.get(key);
+    if (!entry) return;
+    this.cache.delete(key);
+    this.cachedBytes -= entry.size;
   }
 
   async encode(wire: string | undefined, site: PayloadSite, signal?: AbortSignal): Promise<string | undefined> {

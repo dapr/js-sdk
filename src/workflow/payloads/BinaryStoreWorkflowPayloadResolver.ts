@@ -47,6 +47,7 @@ export class BinaryStoreWorkflowPayloadResolver {
       maxInMemoryRehydrationSize: options.maxInMemoryRehydrationSize ?? 16 * 1024 * 1024,
       verifyIntegrityOnRead: options.verifyIntegrityOnRead ?? true,
       resolutionCacheSize: options.resolutionCacheSize ?? 128,
+      resolutionCacheBytes: options.resolutionCacheBytes ?? 64 * 1024 * 1024,
       manifest: options.manifest,
     });
     const o = this.options;
@@ -71,7 +72,9 @@ export class BinaryStoreWorkflowPayloadResolver {
       !Number.isSafeInteger(o.maxInMemoryRehydrationSize) ||
       o.maxInMemoryRehydrationSize <= 0 ||
       !Number.isSafeInteger(o.resolutionCacheSize) ||
-      o.resolutionCacheSize < 0
+      o.resolutionCacheSize < 0 ||
+      !Number.isSafeInteger(o.resolutionCacheBytes) ||
+      o.resolutionCacheBytes < 0
     ) {
       throw new RangeError("Invalid binary-store payload size, cache size, or offload sites");
     }

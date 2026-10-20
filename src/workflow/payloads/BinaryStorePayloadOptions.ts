@@ -63,6 +63,11 @@ export interface BinaryStorePayloadOptions {
   verifyIntegrityOnRead?: boolean;
   /** Per-orchestrator-execution cache; zero disables it. Defaults to 128. */
   resolutionCacheSize?: number;
+  /**
+   * Upper bound on the summed envelope sizes retained by one execution's resolution cache. Payloads larger
+   * than the budget are read but never cached. Defaults to 64 MiB; zero disables the cache.
+   */
+  resolutionCacheBytes?: number;
   manifest?: IWorkflowPayloadManifest;
 }
 
