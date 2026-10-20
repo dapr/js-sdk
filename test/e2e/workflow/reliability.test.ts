@@ -54,21 +54,37 @@ describe("workflow reliability", () => {
   };
 
   beforeEach(async () => {
+    running = false;
+    let starting = true;
+    let startupLogs = "";
     harness = new WorkflowHarness({ daprRuntimeImage: DAPR_TEST_RUNTIME_IMAGE });
     harness
       .getDaprContainer()
       .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
-      .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE);
-    await harness.start();
+      .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE)
+      .withLogConsumer((stream) => {
+        const capture = (chunk: Buffer) => {
+          if (starting) startupLogs = (startupLogs + chunk.toString()).slice(-65536);
+        };
+        stream.on("data", capture);
+        stream.on("err", capture);
+      });
+    try {
+      await harness.start();
+    } catch (error) {
+      console.error(`Workflow sidecar startup failed (${DAPR_TEST_RUNTIME_IMAGE}):\n${startupLogs}`);
+      throw error;
+    } finally {
+      starting = false;
+    }
     client = new DaprWorkflowClient(options());
     runtime = new WorkflowRuntime(options());
-    running = false;
   }, 180000);
 
   afterEach(async () => {
     try {
       if (running) await stop();
-      await client.stop();
+      await client?.stop();
     } finally {
       await runWithCleanupErrorSuppression(() => harness.stop());
     }
@@ -229,40 +245,44 @@ describe("workflow reliability", () => {
     "waits the requested timer duration after a delayed start and suspension, keeping replay stable",
     async () => {
       const observations: { clock: number; guid: string; replay: boolean }[] = [];
-      let startedAt = 0;
-      let elapsed = 0;
-      let resumedAt = 0;
-      let resumedElapsed = 0;
+      const timers: { clock: number; completedAt: number }[] = [];
       runtime.registerWorkflowByName("clock", function* (ctx): Generator<Task<unknown>, unknown, unknown> {
         observations.push({
           clock: ctx.getCurrentUtcDateTime().getTime(),
           guid: ctx.newGuid(),
           replay: ctx.isReplaying(),
         });
-        if (!ctx.isReplaying()) startedAt = Date.now();
+        const initialClock = ctx.getCurrentUtcDateTime().getTime();
         yield ctx.createTimer(2);
-        if (!ctx.isReplaying()) elapsed = Date.now() - startedAt;
+        if (!ctx.isReplaying()) timers.push({ clock: initialClock, completedAt: Date.now() });
         ctx.setCustomStatus("waiting");
         yield ctx.waitForExternalEvent("wake");
-        if (!ctx.isReplaying()) resumedAt = Date.now();
+        const resumedClock = ctx.getCurrentUtcDateTime().getTime();
         yield ctx.createTimer(2);
-        if (!ctx.isReplaying()) resumedElapsed = Date.now() - resumedAt;
+        if (!ctx.isReplaying()) timers.push({ clock: resumedClock, completedAt: Date.now() });
         return "done";
       });
       const scheduled = client.scheduleNewWorkflow("clock", undefined, "delayed-order");
       await new Promise((resolve) => setTimeout(resolve, 2500));
+      const workerStartedAt = Date.now();
       await start();
       const id = await scheduled;
       await waitForStatus(id, "waiting");
       await client.suspendWorkflow(id);
       await client.raiseEvent(id, "wake");
       await new Promise((resolve) => setTimeout(resolve, 2500));
+      const resumeRequestedAt = Date.now();
       await client.resumeWorkflow(id);
       const state = await client.waitForWorkflowCompletion(id, true, 30);
       expect(state?.runtimeStatus).toBe(WorkflowRuntimeStatus.COMPLETED);
-      // Allow transport overhead between the persisted turn timestamp and entering the generator.
-      expect(elapsed).toBeGreaterThanOrEqual(1900);
-      expect(resumedElapsed).toBeGreaterThanOrEqual(1900);
+      expect(timers).toHaveLength(2);
+      expect(timers[0].clock).toBeGreaterThanOrEqual(workerStartedAt);
+      expect(timers[1].clock).toBeGreaterThanOrEqual(resumeRequestedAt);
+      for (const timer of timers) {
+        // Older sidecars truncate reminder deadlines to seconds. Measure from the
+        // persisted turn clock, not generator entry, which also includes delivery latency.
+        expect(timer.completedAt).toBeGreaterThanOrEqual(Math.floor((timer.clock + 2000) / 1000) * 1000);
+      }
       expect(observations.some((value) => value.replay)).toBe(true);
       expect(new Set(observations.map((value) => value.clock)).size).toBe(1);
       expect(new Set(observations.map((value) => value.guid)).size).toBe(1);

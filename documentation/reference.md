@@ -173,7 +173,12 @@ const options = {
   daprPort: "50001",
   communicationProtocol: CommunicationProtocolEnum.GRPC,
 };
-const client = new ActorClient(options.daprHost, options.daprPort, options.communicationProtocol, options);
+const client = new ActorClient(
+  options.daprHost,
+  options.daprPort,
+  options.communicationProtocol,
+  options,
+);
 
 await client.actor.unregisterActorRemindersByType("OrderActor", new ActorId("order-123"));
 
@@ -197,12 +202,7 @@ const options = {
   daprPort: "50001",
   communicationProtocol: CommunicationProtocolEnum.GRPC,
 };
-const client = new ActorClient(
-  options.daprHost,
-  options.daprPort,
-  options.communicationProtocol,
-  options,
-);
+const client = new ActorClient(options.daprHost, options.daprPort, options.communicationProtocol, options);
 const all = await client.actor.listActorReminders("OrderActor");
 const filtered = await client.actor.listActorReminders("OrderActor", new ActorId("order-123"));
 ```
@@ -255,10 +255,16 @@ existing bounded shutdown period.
 
 On Dapr 1.17+, new executions use the persisted workflow-turn timestamp for
 `ctx.getCurrentUtcDateTime()` and relative timers, rather than timestamps from
-individual events. `ctx.newGuid()` includes the full instance ID and the persisted
-execution identity, keeping results stable on replay and distinct across
-instances and continue-as-new generations. Automatically generated detached
-workflow IDs use the same sequence.
+individual events. Older sidecars (including Dapr 1.17.15) truncate reminder
+deadlines to whole seconds, so timers can fire up to one second early even
+though the SDK sends a deadline with millisecond precision.
+
+`ctx.newGuid()` includes the full instance ID and the persisted generation start
+timestamp, including nanoseconds, keeping results stable on replay and distinct
+across instances and continue-as-new generations. Automatically generated detached
+workflow IDs use the same sequence. Runtime execution IDs are not used when a
+start timestamp is available, because sidecars can rewrite those IDs between
+the first execution of a continue-as-new generation and its replay.
 
 These changes are selected with an internal durable history patch. Existing
 unmarked histories keep their original clock and GUID semantics until they

@@ -83,13 +83,13 @@ describe("workflow clocks and durable GUID identities", () => {
       yield ctx.waitForExternalEvent("wake");
       yield ctx.createTimer(5);
     });
-    const first = await new OrchestrationExecutor(registry).execute("order-A", [], [turn(10000), start()]);
+    const first = await new OrchestrationExecutor(registry).execute("order-A", [], [turn(10187), start()]);
     const resumed = await new OrchestrationExecutor(registry).execute(
       "order-A",
-      [turn(10000, first.version), start(), newExecutionSuspendedEvent(), turn(20000), newEventRaisedEvent("wake")],
-      [turn(30000), newExecutionResumedEvent()],
+      [turn(10187, first.version), start(), newExecutionSuspendedEvent(), turn(20000), newEventRaisedEvent("wake")],
+      [turn(30573), newExecutionResumedEvent()],
     );
-    expect(resumed.actions[0].workflowActionType.value).toMatchObject({ fireAt: { seconds: 35n } });
+    expect(resumed.actions[0].workflowActionType.value).toMatchObject({ fireAt: { seconds: 35n, nanos: 573000000 } });
   });
 
   it("uses turn timestamps for initial and resumed timers and ignores individual event timestamps", async () => {
@@ -101,22 +101,22 @@ describe("workflow clocks and durable GUID identities", () => {
       ctx.setCustomStatus(times);
       yield ctx.createTimer(3);
     });
-    const first = await new OrchestrationExecutor(registry).execute("order-A", [], [turn(10000), start()]);
-    expect(first.actions[0].workflowActionType.value).toMatchObject({ fireAt: { seconds: 12n } });
+    const first = await new OrchestrationExecutor(registry).execute("order-A", [], [turn(10187), start()]);
+    expect(first.actions[0].workflowActionType.value).toMatchObject({ fireAt: { seconds: 12n, nanos: 187000000 } });
     expect(first.version?.patches).toContain("dapr-js:workflow-semantics-v2");
-    const created = newTimerCreatedEvent(1, new Date(12000));
+    const created = newTimerCreatedEvent(1, new Date(12187));
     created.timestamp = dateToTimestamp(new Date(1000));
-    const fired = newTimerFiredEvent(1, new Date(12000));
-    fired.timestamp = dateToTimestamp(new Date(12000));
+    const fired = newTimerFiredEvent(1, new Date(12187));
+    fired.timestamp = dateToTimestamp(new Date(12187));
     const unrelated = newEventRaisedEvent("unrelated");
     unrelated.timestamp = dateToTimestamp(new Date(99000));
     const resumed = await new OrchestrationExecutor(registry).execute(
       "order-A",
-      [turn(10000, first.version), start(), created],
-      [turn(20000), unrelated, fired],
+      [turn(10187, first.version), start(), created],
+      [turn(20573), unrelated, fired],
     );
-    expect(resumed.customStatus).toEqual([10000, 20000]);
-    expect(resumed.actions[0].workflowActionType.value).toMatchObject({ fireAt: { seconds: 23n } });
+    expect(resumed.customStatus).toEqual([10187, 20573]);
+    expect(resumed.actions[0].workflowActionType.value).toMatchObject({ fireAt: { seconds: 23n, nanos: 573000000 } });
     expect(resumed.version).toEqual(first.version);
   });
 
@@ -198,6 +198,30 @@ describe("workflow clocks and durable GUID identities", () => {
       );
       expect(other.customStatus).not.toEqual(first.customStatus);
       expect(other.actions[0]).not.toEqual(first.actions[0]);
+    },
+  );
+
+  it.each([undefined, "transient-execution-id"])(
+    "preserves GUIDs and detached IDs when the runtime rewrites execution ID %s on replay",
+    async (executionId) => {
+      const registry = new Registry();
+      registry.addNamedOrchestrator("workflow", function* (ctx) {
+        ctx.setCustomStatus([ctx.newGuid(), ctx.newGuid()]);
+        ctx.scheduleNewDetachedWorkflow("child");
+        yield ctx.waitForExternalEvent("finish");
+      });
+      const first = await new OrchestrationExecutor(registry).execute(
+        "order-A",
+        [],
+        [turn(10000), start(1000, "order-A", executionId)],
+      );
+      const replay = await new OrchestrationExecutor(registry).execute(
+        "order-A",
+        [turn(10000, first.version), start(1000, "order-A", "persisted-execution-id")],
+        [turn(20000)],
+      );
+      expect(replay.customStatus).toEqual(first.customStatus);
+      expect(replay.actions).toEqual(first.actions);
     },
   );
 

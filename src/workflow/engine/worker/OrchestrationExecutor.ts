@@ -118,8 +118,10 @@ export class OrchestrationExecutor {
       startEvent?.eventType.case === "executionStarted"
         ? startEvent.eventType.value.workflowInstance?.executionId
         : undefined;
+    // Continue-as-new execution IDs can be rewritten by the sidecar before replay.
+    // The generation's persisted start timestamp remains stable.
     const executionIdentity = startEvent?.timestamp
-      ? JSON.stringify([executionId ?? "", startEvent.timestamp.seconds.toString(), startEvent.timestamp.nanos])
+      ? JSON.stringify([startEvent.timestamp.seconds.toString(), startEvent.timestamp.nanos])
       : executionId;
     const appRouter = startEvent?.router ?? router;
     const appId = appRouter?.targetAppID || appRouter?.sourceAppID;
