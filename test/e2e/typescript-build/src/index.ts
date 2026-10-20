@@ -11,7 +11,62 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { DaprClient } from "@dapr/dapr";
+import {
+  ConversationCompletionUsage,
+  ConversationJsonObject,
+  ConversationMessage,
+  ConversationRequestAlpha2,
+  ConversationResponseAlpha2,
+  ConversationToolCalls,
+  DaprClient,
+  IClientConversation,
+  Temporal,
+} from "@dapr/dapr";
+
+// Compile against the built package's public surface, not this checkout's source or generated types.
+export async function converse(client: DaprClient): Promise<ConversationResponseAlpha2> {
+  const schema: ConversationJsonObject = {
+    type: "object",
+    properties: { query: { type: "string" } },
+    required: ["query"],
+  };
+  const messages: ConversationMessage[] = [
+    { ofDeveloper: { content: [{ text: "Use tools when needed" }] } },
+    { ofSystem: { content: [{ text: "Be concise" }] } },
+    { ofUser: { content: [{ text: "What is Dapr?" }] } },
+  ];
+  const request: ConversationRequestAlpha2 = {
+    name: "llm",
+    inputs: [{ messages, scrubPii: true }],
+    parameters: { custom: [null, true, 42] },
+    tools: [{ function: { name: "search", parameters: schema } }],
+    responseFormat: schema,
+    promptCacheRetention: Temporal.Duration.from({ hours: 24 }),
+    maxTokens: 100,
+  };
+  const conversation: IClientConversation = client.conversation;
+  const response = await conversation.converse(request);
+  const usage: ConversationCompletionUsage | undefined = response.outputs[0]?.usage;
+  const tokens: number | undefined = usage?.totalTokens;
+  console.log(tokens);
+  const toolCalls: ConversationToolCalls[] = response.outputs[0]?.choices[0]?.message?.toolCalls ?? [];
+  if (toolCalls.length > 0) {
+    messages.push({ ofAssistant: { toolCalls } });
+    messages.push({
+      ofTool: { toolId: toolCalls[0].id, name: toolCalls[0].function.name, content: [{ text: "result" }] },
+    });
+  }
+  return response;
+}
+
+// @ts-expect-error A message must have exactly one role.
+const _twoRoles: ConversationMessage = { ofUser: { content: [] }, ofSystem: { content: [] } };
+// @ts-expect-error A message must have a role.
+const _noRole: ConversationMessage = {};
+// @ts-expect-error Tool arguments remain model-generated strings.
+const _parsedArguments: ConversationToolCalls = { function: { name: "search", arguments: {} } };
+// @ts-expect-error Cache retention uses Temporal.Duration, not a provider-specific string.
+const _rawDuration: ConversationRequestAlpha2 = { name: "llm", inputs: [], promptCacheRetention: "24h" };
 
 const daprHost = "127.0.0.1";
 const daprPortDefault = "3500";

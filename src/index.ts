@@ -121,6 +121,31 @@ export type { IDaprSerializer } from "./serialization/IDaprSerializer";
 export type { NamedActorReminderType } from "./types/ActorReminder.type";
 export { JsonSerializer } from "./serialization/JsonSerializer";
 export type { default as IClientBinaryStore } from "./interfaces/Client/IClientBinaryStore";
+export type { default as IClientConversation } from "./interfaces/Client/IClientConversation";
+export type {
+  ConversationJsonValue,
+  ConversationJsonObject,
+  ConversationMessageContent,
+  ConversationMessageOfDeveloper,
+  ConversationMessageOfSystem,
+  ConversationMessageOfUser,
+  ConversationMessageOfAssistant,
+  ConversationMessageOfTool,
+  ConversationMessage,
+  ConversationInputAlpha2,
+  ConversationToolsFunction,
+  ConversationTools,
+  ConversationToolCallsOfFunction,
+  ConversationToolCalls,
+  ConversationRequestAlpha2,
+  ConversationResultMessage,
+  ConversationResultChoices,
+  ConversationCompletionTokensDetails,
+  ConversationPromptTokensDetails,
+  ConversationCompletionUsage,
+  ConversationResultAlpha2,
+  ConversationResponseAlpha2,
+} from "./types/conversation/Conversation.types";
 export type { BinaryStoreOptions, BinaryStoreSetOptions } from "./types/binarystore/BinaryStoreOptions";
 export { withBaggage } from "./utils/Baggage.util";
 export { PayloadReference, PayloadStage } from "./workflow/payloads/PayloadReference";
