@@ -23,6 +23,134 @@ const invokerListen = (req: IRequest, res: IResponse) => {
 await client.invoker.listen("method", invokerListen.bind(this), options);
 ```
 
+## Conversation Alpha2
+
+`client.conversation.converse(request)` supports HTTP and gRPC using the Alpha2
+Conversation API (Dapr 1.16+). The public API uses SDK-owned TypeScript objects;
+no generated protobuf messages or provider SDK are required. Configure a
+[conversation component](https://docs.dapr.io/reference/components-reference/supported-conversation/)
+in your sidecar, with provider credentials supplied through component secrets.
+
+```typescript
+import { DaprClient, Temporal } from "@dapr/dapr";
+
+const client = new DaprClient();
+const response = await client.conversation.converse({
+  name: "my-llm",
+  inputs: [{ messages: [{ ofUser: { content: [{ text: "What is Dapr?" }] } }] }],
+  temperature: 0,
+  maxTokens: 200, // Requires Dapr 1.19+
+  promptCacheRetention: Temporal.Duration.from({ hours: 24 }),
+});
+console.log(response.outputs[0]?.choices[0]?.message?.content);
+console.log(response.outputs[0]?.usage?.totalTokens);
+await client.stop();
+```
+
+Each message has exactly one role: `ofDeveloper`, `ofSystem`, `ofUser`,
+`ofAssistant`, or `ofTool`. Content is an array of `{ text: string }` objects.
+Assistant messages can omit content when carrying tool calls. Outputs retain
+all choices, finish reasons, tool calls, model names, and usage details.
+Token counts and choice indexes are JavaScript `number` values on both
+transports; responses outside the safe integer range reject rather than lose
+precision. Missing usage remains `undefined`, while omitted protobuf scalar
+defaults and arrays are normalized (for example index `0` and `toolCalls: []`).
+
+### Tool calling
+
+The SDK does not execute functions or parse model-generated arguments. Validate
+the tool name and arguments before executing an application-approved function.
+Send the assistant's tool calls and corresponding tool results on the next turn:
+
+```typescript
+import { ConversationRequestAlpha2, DaprClient } from "@dapr/dapr";
+
+const client = new DaprClient();
+const request: ConversationRequestAlpha2 = {
+  name: "my-llm",
+  inputs: [{ messages: [{ ofUser: { content: [{ text: "What is the meaning of life?" }] } }] }],
+  tools: [{
+    function: {
+      name: "lookup",
+      description: "Look up a known answer",
+      parameters: {
+        type: "object",
+        properties: { key: { type: "string", enum: ["meaning-of-life"] } },
+        required: ["key"],
+        additionalProperties: false,
+      },
+    },
+  }],
+  toolChoice: "required",
+};
+const first = await client.conversation.converse(request);
+const toolCalls = first.outputs[0]?.choices[0]?.message?.toolCalls;
+if (!toolCalls?.length) {
+  throw new Error("Expected a tool call");
+}
+const results = toolCalls.map((call) => {
+  const args: unknown = JSON.parse(call.function.arguments);
+  if (
+    call.function.name !== "lookup" ||
+    args === null ||
+    typeof args !== "object" ||
+    !("key" in args) ||
+    args.key !== "meaning-of-life" ||
+    Object.keys(args).length !== 1
+  ) {
+    throw new Error("Unexpected tool or arguments");
+  }
+  return {
+    ofTool: { toolId: call.id, name: "lookup", content: [{ text: "42" }] },
+  };
+});
+const second = await client.conversation.converse({
+  ...request,
+  toolChoice: "none",
+  inputs: [{
+    messages: [
+      ...request.inputs[0].messages,
+      { ofAssistant: { toolCalls } },
+      ...results,
+    ],
+  }],
+});
+console.log(second.outputs[0]?.choices[0]?.message?.content);
+await client.stop();
+```
+
+`toolChoice` accepts `"auto"`, `"none"`, `"required"`, or an exact function name.
+Tool IDs are optional in the API because provider requirements differ; preserve
+them when returned. Arguments remain strings even when they are not valid JSON.
+
+### Options and compatibility
+
+`responseFormat` and function `parameters` accept JSON Schema objects, not JSON
+strings. Structured output remains text in the response; validate it before use.
+`promptCacheRetention` accepts a nonnegative `Temporal.Duration` with fixed
+units (days through nanoseconds), not calendar years, months, or weeks. The SDK
+handles protobuf duration encoding internally. Support for structured output,
+cache retention, and usage details depends on the runtime and provider.
+In Dapr 1.19.0-rc.4, the OpenAI component forwards cache retention in provider
+metadata rather than as a top-level OpenAI option; accepting this request field
+does not by itself establish that provider-side extended caching is active.
+
+`maxTokens` accepts an integer from 1 to 2147483647 and requires Dapr 1.19+.
+Older runtimes may ignore fields they do not recognize; the SDK does not
+negotiate advanced capabilities or fall back to Alpha1. Runtime and provider
+errors propagate to the caller.
+
+Set input-level `scrubPii` to obfuscate input text and request-level `scrubPii`
+to obfuscate response text. Explicit `false` and `temperature: 0` are preserved.
+`metadata` is a string map for conversation tags, not provider configuration.
+`contextId` is a correlation value; the runtime does not retain conversation
+history on its behalf. Include the relevant messages on subsequent calls.
+
+The reserved top-level `parameters` field accepts JSON values, each wrapped
+internally in a protobuf `Value`. It is distinct from tool-schema `parameters`;
+the current Alpha2 runtime does not consume this reserved field. Arbitrary
+protobuf `Any` payloads are not part of the public API.
+
 ## Bulk actor reminder cleanup
 
 `ActorClient.actor.unregisterActorRemindersByType(actorType, actorId?)` removes
