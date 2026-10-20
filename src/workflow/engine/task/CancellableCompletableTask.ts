@@ -15,6 +15,7 @@ import { CompletableTask } from "./CompletableTask";
 import type { CancellableTask } from "../../../types/workflow/CancellableTask.type";
 import { TaskFailedError } from "./TaskFailedError";
 import type { TaskFailureDetails } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
+import { notifyTaskParents } from "./taskCompletion";
 
 export class TaskCanceledError extends TaskFailedError {
   constructor() {
@@ -63,6 +64,6 @@ export class CancellableCompletableTask<T> extends CompletableTask<T> implements
     this._exception = error;
     this._isComplete = true;
     this._onSettled?.();
-    this._parent?.onChildCompleted(this);
+    notifyTaskParents(this);
   }
 }

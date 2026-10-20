@@ -20,6 +20,113 @@ jest.mock("@connectrpc/connect", () => ({
 }));
 
 describe("TaskHubWorker", () => {
+  const settle = async () => {
+    for (let i = 0; i < 5; i++) await Promise.resolve();
+  };
+
+  const idleStream = (signal: AbortSignal) => ({
+    [Symbol.asyncIterator]: () => ({
+      next: () =>
+        new Promise<IteratorResult<never>>((resolve) => {
+          const end = () => resolve({ done: true, value: undefined as never });
+          if (signal.aborted) end();
+          else signal.addEventListener("abort", end, { once: true });
+        }),
+    }),
+  });
+
+  it.each(["resolve", "reject"])(
+    "isolates a stopped connection that later %ss from a restarted worker",
+    async (outcome) => {
+      let resolveHello!: () => void;
+      let rejectHello!: (error: Error) => void;
+      const hello = jest
+        .fn()
+        .mockImplementationOnce(
+          () =>
+            new Promise<void>((resolve, reject) => {
+              resolveHello = resolve;
+              rejectHello = reject;
+            }),
+        )
+        .mockResolvedValue({});
+      const getWorkItems = jest.fn((_request: unknown, options: { signal: AbortSignal }) => idleStream(options.signal));
+      (createClient as jest.Mock).mockReturnValue({ hello, getWorkItems });
+      const worker = new TaskHubWorker("localhost:50001");
+      const firstStart = worker.start();
+      const rejected = expect(firstStart).rejects.toThrow("stopped before becoming ready");
+      const firstSignal = hello.mock.calls[0][1].signal as AbortSignal;
+      await worker.stop();
+      await rejected;
+      expect(firstSignal.aborted).toBe(true);
+      await worker.start();
+      if (outcome === "resolve") resolveHello();
+      else rejectHello(new Error("late connection error"));
+      await settle();
+      expect(getWorkItems).toHaveBeenCalledTimes(1);
+      expect(worker.isReady).toBe(true);
+      await worker.stop();
+      expect(getWorkItems.mock.calls[0][1].signal.aborted).toBe(true);
+    },
+  );
+
+  it("does not let delayed stream cleanup clear a restarted worker's readiness", async () => {
+    let endOldStream!: (result: IteratorResult<never>) => void;
+    const getWorkItems = jest.fn((_request: unknown, options: { signal: AbortSignal }) => {
+      if (getWorkItems.mock.calls.length === 1) {
+        return {
+          [Symbol.asyncIterator]: () => ({
+            next: () =>
+              new Promise<IteratorResult<never>>((resolve) => {
+                endOldStream = resolve;
+              }),
+          }),
+        };
+      }
+      return idleStream(options.signal);
+    });
+    (createClient as jest.Mock).mockReturnValue({ hello: jest.fn().mockResolvedValue({}), getWorkItems });
+    const worker = new TaskHubWorker("localhost:50001");
+    await worker.start();
+    await worker.stop();
+    await worker.start();
+    endOldStream({ done: true, value: undefined as never });
+    await settle();
+    expect(worker.isReady).toBe(true);
+    expect(getWorkItems).toHaveBeenCalledTimes(2);
+    await worker.stop();
+  });
+
+  it("cancels reconnect backoff on stop instead of reviving the old loop after restart", async () => {
+    jest.useFakeTimers();
+    const getWorkItems = jest.fn((_request: unknown, options: { signal: AbortSignal }) => {
+      if (getWorkItems.mock.calls.length === 1) {
+        return {
+          [Symbol.asyncIterator]: () => ({ next: async () => ({ done: true as const, value: undefined as never }) }),
+        };
+      }
+      return idleStream(options.signal);
+    });
+    const hello = jest.fn().mockResolvedValue({});
+    (createClient as jest.Mock).mockReturnValue({ hello, getWorkItems });
+    const worker = new TaskHubWorker("localhost:50001");
+    try {
+      await worker.start();
+      await settle();
+      expect(jest.getTimerCount()).toBe(1);
+      await Promise.all([worker.stop(), worker.stop()]);
+      expect(jest.getTimerCount()).toBe(0);
+      await worker.start();
+      await jest.advanceTimersByTimeAsync(30000);
+      expect(hello).toHaveBeenCalledTimes(2);
+      expect(getWorkItems).toHaveBeenCalledTimes(2);
+      expect(worker.isReady).toBe(true);
+      await worker.stop();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it("waits for the sidecar connection before resolving start", async () => {
     let resolveHello!: () => void;
     const hello = jest.fn(

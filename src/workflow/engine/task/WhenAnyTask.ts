@@ -13,6 +13,7 @@ limitations under the License.
 
 import { CompositeTask } from "./CompositeTask";
 import type { Task } from "./Task";
+import { notifyTaskParents } from "./taskCompletion";
 
 export class WhenAnyTask<T = any> extends CompositeTask<Task<T>> {
   constructor(tasks: Task<T>[]) {
@@ -23,6 +24,7 @@ export class WhenAnyTask<T = any> extends CompositeTask<Task<T>> {
     if (!this._isComplete) {
       this._isComplete = true;
       this._result = task as Task<T>;
+      notifyTaskParents(this);
     }
   }
 }
