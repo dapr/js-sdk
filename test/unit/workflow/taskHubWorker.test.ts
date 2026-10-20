@@ -85,8 +85,17 @@ const settle = async (rounds = 5) => {
  * A started worker on a fake stream whose executions stay pending until released, recording the
  * order in which work items were executed.
  */
-async function startWorker() {
-  const worker = new TaskHubWorker("localhost:50001");
+async function startWorker(maxConcurrentActivities?: number) {
+  const worker = new TaskHubWorker(
+    "localhost:50001",
+    undefined,
+    false,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    maxConcurrentActivities,
+  );
   const stream = new FakeWorkItemStream();
   const getWorkItems = jest.fn((_req: GetWorkItemsRequest, opts?: { signal?: AbortSignal }) =>
     stream.iterate(opts?.signal),
@@ -114,12 +123,14 @@ async function startWorker() {
   await worker.start();
   await settle();
 
+  const release = () => pending.splice(0).forEach((resolve) => resolve());
   const stop = async () => {
     const stopped = worker.stop();
-    pending.splice(0).forEach((release) => release());
+    await settle(); // the stream has ended and the worker has dropped its queue
+    release();
     await stopped;
   };
-  return { stream, executed, stop, getWorkItems };
+  return { worker, stream, executed, release, stop, getWorkItems };
 }
 
 describe("TaskHubWorker work-item dispatch", () => {
@@ -242,14 +253,56 @@ describe("TaskHubWorker work-item dispatch", () => {
     await run.stop();
   });
 
-  it("does not hold back workflow work items behind pending activities", async () => {
-    const run = await startWorker();
+  it("runs at most the configured number of activities at once and executes every queued one in order", async () => {
+    const run = await startWorker(10);
+
+    run.stream.push(...Array.from({ length: 250 }, (_, i) => activityItem(i)));
+    await settle();
+    expect(run.executed).toHaveLength(10);
+
+    for (let round = 0; round < 30 && run.executed.length < 250; round++) {
+      run.release();
+      await settle();
+    }
+
+    expect(run.executed).toEqual(Array.from({ length: 250 }, (_, i) => `activity:${i}`));
+    await run.stop();
+  });
+
+  it("does not hold back workflow work items behind configured pending activities", async () => {
+    const run = await startWorker(10);
 
     run.stream.push(...Array.from({ length: 20 }, (_, i) => activityItem(i)), workflowItem("a"), workflowItem("b"));
     await settle();
 
+    const activities = () => run.executed.filter((label) => label.startsWith("activity:"));
     expect(run.executed).toContain("workflow:a");
     expect(run.executed).toContain("workflow:b");
+    expect(activities()).toHaveLength(10);
+
+    // Stopping ends the stream; the queued activities are left to the sidecar to re-deliver.
+    await run.stop();
+    expect(activities()).toHaveLength(10);
+  });
+
+  it.each([0, -1, NaN])("rejects an activity limit of %p", (limit) => {
+    expect(
+      () => new TaskHubWorker("localhost:50001", undefined, false, undefined, undefined, undefined, undefined, limit),
+    ).toThrow("maxConcurrentActivities must be a positive number");
+  });
+
+  it("does not start queued activities once shutdown has begun", async () => {
+    const run = await startWorker(10);
+
+    run.stream.push(...Array.from({ length: 20 }, (_, i) => activityItem(i)));
+    await settle();
+
+    // A completion landing after stop() began, but before the stream's cleanup cleared the queue.
+    (run.worker as unknown as { _stopWorker: boolean })._stopWorker = true;
+    run.release();
+    await settle();
+
+    expect(run.executed).toHaveLength(10);
     await run.stop();
   });
 
