@@ -290,6 +290,50 @@ describe("binary-store payload conversion", () => {
     }
   });
 
+  it("bounds the execution cache by total bytes and never caches entries larger than the budget", async () => {
+    const small = "x".repeat(10);
+    const large = "y".repeat(100);
+    const payloads = resolver({ resolutionCacheSize: 128, resolutionCacheBytes: 60 });
+    const first = await payloads.store(small, "instance");
+    const second = await payloads.store(small + "2", "instance");
+    const third = await payloads.store(small + "3", "instance");
+    const oversized = await payloads.store(large, "instance");
+    const handler = new WorkflowPayloadHandler(payloads, undefined, true);
+    expect(first.size).toBeLessThanOrEqual(20);
+    await handler.read(first.toEnvelope());
+    await handler.read(second.toEnvelope());
+    await handler.read(third.toEnvelope());
+    expect(store.reads).toBe(3);
+    // Reads within the budget are cached.
+    await handler.read(first.toEnvelope());
+    expect(store.reads).toBe(3);
+    // An entry larger than the whole budget is read but not retained, and does not evict anything.
+    await handler.read(oversized.toEnvelope());
+    await handler.read(oversized.toEnvelope());
+    expect(store.reads).toBe(5);
+    await handler.read(first.toEnvelope());
+    expect(store.reads).toBe(5);
+    // Filling the budget evicts the oldest entries first.
+    const fourth = await payloads.store(small + "4", "instance");
+    const fifth = await payloads.store(small + "5", "instance");
+    await handler.read(fourth.toEnvelope());
+    await handler.read(fifth.toEnvelope());
+    expect(store.reads).toBe(7);
+    await handler.read(fifth.toEnvelope());
+    expect(store.reads).toBe(7);
+    await handler.read(first.toEnvelope());
+    expect(store.reads).toBe(8);
+  });
+
+  it("disables the execution cache when the byte budget is zero", async () => {
+    const payloads = resolver({ resolutionCacheBytes: 0 });
+    const reference = await payloads.store("value", "instance");
+    const handler = new WorkflowPayloadHandler(payloads, undefined, true);
+    await handler.read(reference.toEnvelope());
+    await handler.read(reference.toEnvelope());
+    expect(store.reads).toBe(2);
+  });
+
   it("applies defaults to undefined options without changing explicit zero, false, or null", () => {
     const payloads = resolver({
       offloadThreshold: undefined,
@@ -300,6 +344,7 @@ describe("binary-store payload conversion", () => {
     expect(payloads.options.offloadThreshold).toBe(64 * 1024);
     expect(payloads.options.writePreference).toBe(PayloadWritePreference.Preserve);
     expect(payloads.options.resolutionCacheSize).toBe(0);
+    expect(payloads.options.resolutionCacheBytes).toBe(64 * 1024 * 1024);
     expect(payloads.options.verifyIntegrityOnRead).toBe(false);
     expect(resolver({ offloadThreshold: null }).options.offloadThreshold).toBeNull();
   });
@@ -332,6 +377,8 @@ describe("binary-store payload conversion", () => {
     { maxInMemoryRehydrationSize: 0 },
     { resolutionCacheSize: -1 },
     { resolutionCacheSize: 0.5 },
+    { resolutionCacheBytes: -1 },
+    { resolutionCacheBytes: 0.5 },
     { offloadSites: 1024 },
   ])("validates configuration %j", (options) => {
     expect(() => resolver(options)).toThrow();

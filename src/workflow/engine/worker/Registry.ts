@@ -16,8 +16,8 @@ import type { TActivity, TOrchestrator } from "../context/OrchestrationContext";
 import type { WorkflowPayloadRegistrationOptions } from "../../payloads/BinaryStorePayloadOptions";
 
 export class Registry {
-  private _orchestrators: Record<string, TOrchestrator> = {};
-  private _activities: Record<string, TActivity<unknown, unknown>> = {};
+  private _orchestrators: Record<string, TOrchestrator> = Object.create(null);
+  private _activities: Record<string, TActivity<unknown, unknown>> = Object.create(null);
   private readonly referenceOrchestrators = new Set<string>();
   private readonly referenceActivities = new Set<string>();
 

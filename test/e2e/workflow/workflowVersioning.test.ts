@@ -78,12 +78,14 @@ describe("workflow patch versioning", () => {
     throw new Error(`Workflow ${id} did not reach '${expected}'`);
   }
 
+  /** User-visible patch metadata; the SDK's internal semantics marker is not part of the contract under test. */
   function versions(history: HistoryEvent[]) {
-    return history.flatMap((event) =>
-      event.eventType.case === "workflowStarted" && event.eventType.value.version
-        ? [event.eventType.value.version]
-        : [],
-    );
+    return history.flatMap((event) => {
+      if (event.eventType.case !== "workflowStarted" || !event.eventType.value.version) return [];
+      const version = event.eventType.value.version;
+      const patches = version.patches.filter((patch) => patch !== "dapr-js:workflow-semantics-v2");
+      return patches.length ? [{ ...version, patches }] : [];
+    });
   }
 
   for (const asyncGenerator of [false, true]) {

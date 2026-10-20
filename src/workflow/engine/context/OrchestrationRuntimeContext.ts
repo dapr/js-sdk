@@ -27,7 +27,7 @@ import { CancellableCompletableTask, TaskTimeoutError } from "../task/Cancellabl
 import type { ExternalEventOptions } from "../../../types/workflow/ExternalEventOptions.type";
 import type { TActivity, TOrchestrator, AnyGenerator } from "./OrchestrationContext";
 import { OrchestrationContext } from "./OrchestrationContext";
-import { newDeterministicGuid } from "../guid/deterministicGuid";
+import { newDeterministicGuid, newLegacyDeterministicGuid, RFC4122_NAMESPACE_DNS } from "../guid/deterministicGuid";
 import type { RetryPolicy } from "../../../types/workflow/RetryPolicy.type";
 import type { ActivityOptions } from "../../../types/workflow/ActivityOptions.type";
 import type { ChildWorkflowOptions } from "../../../types/workflow/ChildWorkflowOptions.type";
@@ -85,6 +85,8 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     private readonly _taskExecutionIds: ReadonlyMap<number, string> = new Map(),
     readonly payloadHandler = new WorkflowPayloadHandler(undefined, serializer, true),
     pastEvents: readonly HistoryEvent[] = [],
+    private readonly _executionIdentity?: string,
+    private readonly _legacyGuids = false,
   ) {
     super();
     this._isReplaying = true;
@@ -96,8 +98,8 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     this._currentUtcDatetime = new Date(1000, 0, 1);
     this._instanceId = instanceId;
     this._completionStatus = undefined;
-    this._receivedEvents = {};
-    this._pendingEvents = {};
+    this._receivedEvents = Object.create(null);
+    this._pendingEvents = Object.create(null);
     this._newInput = undefined;
     this._saveEvents = false;
     this._customStatus = "";
@@ -168,6 +170,9 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
       return;
     }
 
+    if (!(value instanceof Task)) {
+      throw new Error("The orchestrator generator yielded a non-Task object");
+    }
     this._previousTask = value;
     await this.resume();
   }
@@ -258,7 +263,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
 
     this._isComplete = true;
     this._completionStatus = status;
-    this._pendingActions = status === OrchestrationStatusEnum.COMPLETED ? this.getPendingDetachedActions() : {};
+    this._pendingActions = status === OrchestrationStatusEnum.COMPLETED ? this.getPendingCompletionActions() : {};
     this._result = result;
 
     let resultJson: string | undefined;
@@ -288,7 +293,9 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     if (this._isComplete) return;
 
     this._isComplete = true;
-    this._pendingActions = {};
+    this._pendingActions = Object.fromEntries(
+      Object.entries(this._pendingActions).filter(([, action]) => action.workflowActionType.case === "sendEvent"),
+    );
     this._completionStatus = OrchestrationStatusEnum.CONTINUED_AS_NEW;
     this._newInput = newInput;
     this._saveEvents = saveEvents;
@@ -296,6 +303,10 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
 
   getActions(): WorkflowAction[] {
     if (this._completionStatus === OrchestrationStatusEnum.CONTINUED_AS_NEW) {
+      // Work scheduled after continueAsNew() can never be observed by this generation; only outbound events survive.
+      const retained = Object.values(this._pendingActions).filter(
+        (action) => action.workflowActionType.case === "sendEvent",
+      );
       let carryoverEvents: HistoryEvent[] | null = null;
 
       if (this._saveEvents) {
@@ -315,7 +326,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
         undefined,
         carryoverEvents ?? undefined,
       );
-      return [action];
+      return [...retained, action];
     }
 
     return Object.values(this._pendingActions);
@@ -325,10 +336,11 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     return ++this._sequenceNumber;
   }
 
-  private getPendingDetachedActions(): Record<number, WorkflowAction> {
+  private getPendingCompletionActions(): Record<number, WorkflowAction> {
     return Object.fromEntries(
       Object.entries(this._pendingActions).filter(
-        ([, action]) => action.workflowActionType.case === "createDetachedWorkflow",
+        ([, action]) =>
+          action.workflowActionType.case === "createDetachedWorkflow" || action.workflowActionType.case === "sendEvent",
       ),
     );
   }
@@ -542,6 +554,15 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
 
   newGuid(): string {
     const counter = this._guidCounter++;
+    if (this._legacyGuids) {
+      return newLegacyDeterministicGuid(this._instanceId, counter.toString());
+    }
+    if (this._executionIdentity !== undefined) {
+      return newDeterministicGuid(
+        RFC4122_NAMESPACE_DNS,
+        JSON.stringify([this._appId ?? "", this._instanceId, this._executionIdentity, counter]),
+      );
+    }
     return newDeterministicGuid(this._instanceId, counter.toString());
   }
 

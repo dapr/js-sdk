@@ -12,6 +12,7 @@ limitations under the License.
 */
 
 import { create, fromBinary } from "@bufbuild/protobuf";
+import { types } from "node:util";
 import { TaskFailedError } from "../task";
 import type { ActivityOptions } from "../../../types/workflow/ActivityOptions.type";
 import { createPropagatedHistoryView, type PropagatedHistoryView } from "../../runtime/PropagatedHistory";
@@ -85,7 +86,25 @@ export function timestampToDate(ts?: Timestamp): Date {
   return timestampDate(ts);
 }
 
-export function newFailureDetails(e: Error): TaskFailureDetails {
+export function toError(value: unknown): Error {
+  if (types.isNativeError(value)) return value;
+  if (value !== null && (typeof value === "object" || typeof value === "function")) {
+    // Read data properties without invoking user-defined getters or string conversion.
+    try {
+      const message: unknown = Object.getOwnPropertyDescriptor(value, "message")?.value;
+      const stack: unknown = Object.getOwnPropertyDescriptor(value, "stack")?.value;
+      const error = new Error(typeof message === "string" ? message : "A non-Error value was thrown");
+      if (typeof stack === "string") error.stack = stack;
+      return error;
+    } catch {
+      return new Error("A non-Error value was thrown and its error details could not be inspected");
+    }
+  }
+  return new Error(String(value));
+}
+
+export function newFailureDetails(value: unknown): TaskFailureDetails {
+  const e = toError(value);
   return create(TaskFailureDetailsSchema, {
     errorType: e.constructor?.name ?? "Error",
     errorMessage: e.message,

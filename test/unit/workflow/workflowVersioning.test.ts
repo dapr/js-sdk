@@ -34,6 +34,9 @@ const marker = (patches?: string[]) =>
     eventType: { case: "workflowStarted", value: { version: patches ? { name: "workflow", patches } : undefined } },
   });
 
+/** New executions lead with the SDK's internal semantics marker; user patches follow it. */
+const SEMANTICS = "dapr-js:workflow-semantics-v2";
+
 function context(patches?: string[]): OrchestrationRuntimeContext {
   return new OrchestrationRuntimeContext("id", undefined, undefined, "workflow", undefined, undefined, undefined, [
     marker(patches),
@@ -151,7 +154,7 @@ describe.each([false, true])("workflow patch replay (async generator: %s)", (asy
       id: 1,
       workflowActionType: { case: "scheduleTask", value: { name: "validate" } },
     });
-    expect(result.version).toMatchObject({ name: "workflow", patches: ["validation"] });
+    expect(result.version).toMatchObject({ name: "workflow", patches: [SEMANTICS, "validation"] });
   });
 
   it("replays an old instance without patch history and never schedules the inserted activity", async () => {
@@ -241,7 +244,7 @@ describe.each([false, true])("workflow patch replay (async generator: %s)", (asy
       workflowStatus: OrchestrationStatus.FAILED,
       failureDetails: { errorType: "TypeError", errorMessage: expect.stringContaining("patchName") },
     });
-    expect(result.version).toBeUndefined();
+    expect(result.version?.patches).toEqual([SEMANTICS]);
   });
 
   it("continues as new without carrying the previous execution's patch state", async () => {
@@ -253,9 +256,9 @@ describe.each([false, true])("workflow patch replay (async generator: %s)", (asy
     expect(first.actions[0].workflowActionType.value).toMatchObject({
       workflowStatus: OrchestrationStatus.CONTINUED_AS_NEW,
     });
-    expect(first.version?.patches).toEqual(["old-generation"]);
+    expect(first.version?.patches).toEqual([SEMANTICS, "old-generation"]);
     const next = await executor((ctx) => ctx.isPatched("new-generation")).execute("id", [], [start()]);
-    expect(next.version?.patches).toEqual(["new-generation"]);
+    expect(next.version?.patches).toEqual([SEMANTICS, "new-generation"]);
   });
 
   it("does not mask unrelated nondeterminism with patch support", async () => {

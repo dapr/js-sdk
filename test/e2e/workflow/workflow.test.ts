@@ -945,6 +945,76 @@ describe("workflow", () => {
     expect(state?.serializedOutput).toEqual(JSON.stringify("hello"));
   }, 31000);
 
+  it("should complete after redundant suspensions while events arrive during the suspension", async () => {
+    const workflow: TWorkflow = async function* (ctx: WorkflowContext, _: any): any {
+      return yield ctx.waitForExternalEvent("my_event");
+    };
+
+    workflowRuntime.registerWorkflow(workflow);
+    await workflowRuntime.start();
+
+    const id = await workflowClient.scheduleNewWorkflow(workflow);
+    let state = await workflowClient.waitForWorkflowStart(id, undefined, 30);
+    expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.RUNNING);
+
+    await workflowClient.suspendWorkflow(id);
+    // A second suspend may be recorded as another history event or rejected by the runtime; both are fine.
+    await workflowClient.suspendWorkflow(id).catch(() => undefined);
+    // Raised while suspended, so the worker buffers it until the resume arrives.
+    await workflowClient.raiseEvent(id, "my_event", "hello");
+    state = await workflowClient.getWorkflowState(id, false);
+    expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.SUSPENDED);
+
+    await workflowClient.resumeWorkflow(id);
+    state = await workflowClient.waitForWorkflowCompletion(id, undefined, 30);
+    expect(state).toBeDefined();
+    expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.COMPLETED);
+    expect(state?.serializedOutput).toEqual(JSON.stringify("hello"));
+  }, 31000);
+
+  it("should treat runtime stop() as idempotent and allow restarting", async () => {
+    const workflow: TWorkflow = async (_ctx: WorkflowContext, input: number) => input * 2;
+    workflowRuntime.registerWorkflow(workflow);
+
+    // Stopping a runtime that never started is a no-op rather than an error.
+    await expect(workflowRuntime.stop()).resolves.toBeUndefined();
+
+    await workflowRuntime.start();
+    expect(workflowRuntime.isReady).toBe(true);
+    await Promise.all([workflowRuntime.stop(), workflowRuntime.stop()]);
+    await expect(workflowRuntime.stop()).resolves.toBeUndefined();
+    expect(workflowRuntime.isReady).toBe(false);
+
+    // A stopped runtime can be started again and still processes work.
+    await workflowRuntime.start();
+    const id = await workflowClient.scheduleNewWorkflow(workflow, 21);
+    const state = await workflowClient.waitForWorkflowCompletion(id, undefined, 30);
+    expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.COMPLETED);
+    expect(state?.serializedOutput).toEqual(JSON.stringify(42));
+  }, 31000);
+
+  it("should ignore work scheduled after continueAsNew without stalling the next generation", async () => {
+    const activity = async (_ctx: WorkflowActivityContext, input: number) => input + 1;
+    const workflow: TWorkflow = async (ctx: WorkflowContext, input: number) => {
+      if (input < 3) {
+        ctx.continueAsNew(input + 1);
+        // Leaked actions would make the runtime wait on tasks the next generation never observes.
+        ctx.callActivity(activity, input);
+        ctx.createTimer(1);
+        return;
+      }
+      return input;
+    };
+
+    workflowRuntime.registerWorkflow(workflow).registerActivity(activity);
+    await workflowRuntime.start();
+
+    const id = await workflowClient.scheduleNewWorkflow(workflow, 0);
+    const state = await workflowClient.waitForWorkflowCompletion(id, undefined, 30);
+    expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.COMPLETED);
+    expect(state?.serializedOutput).toEqual(JSON.stringify(3));
+  }, 31000);
+
   it("should be able to terminate an orchestration", async () => {
     const workflow: TWorkflow = async function* (ctx: WorkflowContext, _: any): any {
       return yield ctx.waitForExternalEvent("my_event");

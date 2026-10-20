@@ -282,7 +282,12 @@ const options = {
   daprPort: "50001",
   communicationProtocol: CommunicationProtocolEnum.GRPC,
 };
-const client = new ActorClient(options.daprHost, options.daprPort, options.communicationProtocol, options);
+const client = new ActorClient(
+  options.daprHost,
+  options.daprPort,
+  options.communicationProtocol,
+  options,
+);
 
 await client.actor.unregisterActorRemindersByType("OrderActor", new ActorId("order-123"));
 
@@ -306,12 +311,7 @@ const options = {
   daprPort: "50001",
   communicationProtocol: CommunicationProtocolEnum.GRPC,
 };
-const client = new ActorClient(
-  options.daprHost,
-  options.daprPort,
-  options.communicationProtocol,
-  options,
-);
+const client = new ActorClient(options.daprHost, options.daprPort, options.communicationProtocol, options);
 const all = await client.actor.listActorReminders("OrderActor");
 const filtered = await client.actor.listActorReminders("OrderActor", new ActorId("order-123"));
 ```
@@ -331,6 +331,67 @@ unsupported data envelopes, and schedules that cannot be represented as
 returning a partial list.
 
 ## Workflow context and state
+
+### Task composition and reliable delivery
+
+`ctx.whenAll([])` completes immediately with `[]`. Tasks can participate in
+multiple `whenAll` or `whenAny` groups, and groups can be nested. `whenAll`
+preserves input order and propagates failures; `whenAny` returns the first
+completed task, even if that task failed. Neither operation cancels other tasks.
+An empty `whenAny` remains pending.
+
+`ctx.sendEvent(...)` queues an event without requiring a yield. Pending outbound
+events are sent when the workflow completes successfully or continues as new;
+replaying a confirmed send does not send it again. Events from a failed execution
+are not committed. With `ctx.continueAsNew(input, true)` (the default), external
+events arriving after the transition are carried into the next execution, not
+delivered to abandoned waits. Passing `false` discards those buffered events.
+
+Outbound workflow-to-workflow events also require sidecar support. Dapr 1.18.4
+and 1.19.0-rc.4 reject the resulting outbound `eventSent` message; the SDK cannot
+provide end-to-end delivery on those runtimes. SDK send-action serialization and
+replay are covered by the gRPC protocol integration tests. Use a client
+`raiseEvent` call from an activity when targeting a runtime with this limitation.
+
+The worker reconnects if it cannot deliver a work-item completion, allowing Dapr
+to redeliver unacknowledged work. Activities remain **at-least-once**, not
+exactly-once: make side effects idempotent, including when a completion response
+is lost. Await `runtime.stop()` before restarting the same runtime; stopping
+cancels connection attempts and reconnect delays while allowing active work the
+existing bounded shutdown period.
+
+### Workflow execution compatibility
+
+On Dapr 1.17+, new executions use the persisted workflow-turn timestamp for
+`ctx.getCurrentUtcDateTime()` and relative timers, rather than timestamps from
+individual events. Older sidecars (including Dapr 1.17.15) truncate reminder
+deadlines to whole seconds, so timers can fire up to one second early even
+though the SDK sends a deadline with millisecond precision.
+
+`ctx.newGuid()` includes the full instance ID and the persisted generation start
+timestamp, including nanoseconds, keeping results stable on replay and distinct
+across instances and continue-as-new generations. Automatically generated detached
+workflow IDs use the same sequence. Runtime execution IDs are not used when a
+start timestamp is available, because sidecars can rewrite those IDs between
+the first execution of a continue-as-new generation and its replay.
+
+These changes are selected with an internal durable history patch. Existing
+unmarked histories keep their original clock and GUID semantics until they
+complete or continue as new, avoiding changes to already-recorded decisions.
+Workers check the sidecar metadata API before selecting the new semantics. Dapr
+1.16 cannot persist these patches and retains the legacy behavior. If metadata
+access is denied, unsupported, or returns an unrecognized version, the worker
+logs a warning and also retains legacy behavior. No new public API or
+configuration is required. Avoid mixing old and updated workers for executions
+created with the new semantics, or downgrading their sidecars below Dapr 1.17.
+
+Ordinary synchronous and asynchronous workflows may return strings, arrays, and
+other serializable values directly. Generator workflows must yield SDK tasks;
+invalid yields fail explicitly instead of remaining pending. Non-`Error`
+activity rejections are reported as failures and follow the configured retry
+policy, including `null` and `undefined`. Workflow/activity registration and
+external-event waits accept names such as `constructor` and `__proto__` without
+confusing them with object prototype properties.
 
 ### Patch-based workflow versioning
 
@@ -359,15 +420,17 @@ runtime.registerWorkflow(function* orderWorkflow(ctx: WorkflowContext, orderId: 
 - Repeated checks of the same name keep their first decision within an execution,
   including across the transition from replay to live execution.
 
-Enabled checks are sent to Dapr in execution order (including duplicates) and
-persisted in workflow history for subsequent replays. Patch names are case-sensitive;
+Enabled checks are sent to Dapr in execution order (including duplicates), after
+the SDK's internal compatibility marker described above, and persisted in
+workflow history for subsequent replays. Patch names are case-sensitive;
 empty or whitespace-only names throw. Use stable names, never repurpose a name for
 a different change, and keep the original branch and existing patch checks while
 in-flight instances depend on them. Do not reorder or rename deployed checks.
 Each instance has independent patch state; `continueAsNew` starts a new history.
 
-Workflows that do not use patches do not emit patch-version metadata.
-`isReplaying()` is not a replacement for a persisted patch decision.
+Workflows that do not use patches emit only the internal compatibility marker
+(and nothing on legacy histories). `isReplaying()` is not a replacement for a
+persisted patch decision.
 
 ### Workflow tracing
 

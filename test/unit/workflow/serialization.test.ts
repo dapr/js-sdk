@@ -104,7 +104,10 @@ describe("workflow serialization", () => {
       ),
     ]);
     ctx.continueAsNew(value);
-    expect(ctx.getActions()).toEqual([newCompleteWorkflowAction(5, OrchestrationStatus.CONTINUED_AS_NEW, encoded)]);
+    expect(ctx.getActions()).toEqual([
+      newSendEventAction(3, "other", "event", encoded),
+      newCompleteWorkflowAction(5, OrchestrationStatus.CONTINUED_AS_NEW, encoded),
+    ]);
   });
 
   it("keeps strict JSON validation opt-in and does not fall back after provider errors", async () => {
@@ -218,6 +221,10 @@ describe("workflow serialization", () => {
     ctx._receivedEvents.event = [value];
     ctx.continueAsNew(value);
     expect(ctx.getActions()[0].workflowActionType).toMatchObject({
+      case: "sendEvent",
+      value: { data: serializer.serialize(value) },
+    });
+    expect(ctx.getActions()[1].workflowActionType).toMatchObject({
       case: "completeWorkflow",
       value: {
         result: serializer.serialize(value),
