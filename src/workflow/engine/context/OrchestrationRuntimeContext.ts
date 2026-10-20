@@ -12,11 +12,16 @@ limitations under the License.
 */
 
 import { randomUUID } from "crypto";
+import { create } from "@bufbuild/protobuf";
 import type { HistoryEvent } from "../../../proto/dapr/proto/durabletask/v1/history_events_pb";
 import type { WorkflowAction } from "../../../proto/dapr/proto/durabletask/v1/orchestrator_actions_pb";
 import type { OrchestrationStatus } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import type { TaskFailureDetails } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
-import { OrchestrationStatus as OrchestrationStatusEnum } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
+import {
+  OrchestrationStatus as OrchestrationStatusEnum,
+  WorkflowVersionSchema,
+  type WorkflowVersion,
+} from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import { CompletableTask, Task, StopIterationError, getName } from "../task";
 import { CancellableCompletableTask, TaskTimeoutError } from "../task/CancellableCompletableTask";
 import type { ExternalEventOptions } from "../../../types/workflow/ExternalEventOptions.type";
@@ -67,6 +72,9 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
   private _guidCounter: number;
   private readonly payloadReads: Array<() => Promise<void>> = [];
   private readonly referenceEvents = new WeakSet<CompletableTask<unknown>>();
+  private readonly historyPatches = new Set<string>();
+  private readonly appliedPatches = new Map<string, boolean>();
+  private readonly evaluatedPatches: string[] = [];
 
   constructor(
     instanceId: string,
@@ -76,6 +84,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     private readonly serializer?: IDaprSerializer,
     private readonly _taskExecutionIds: ReadonlyMap<number, string> = new Map(),
     readonly payloadHandler = new WorkflowPayloadHandler(undefined, serializer, true),
+    pastEvents: readonly HistoryEvent[] = [],
     private readonly _executionIdentity?: string,
     private readonly _legacyGuids = false,
   ) {
@@ -95,6 +104,14 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     this._saveEvents = false;
     this._customStatus = "";
     this._guidCounter = 0;
+    // A patch's marker can occur after its first check, so load all markers before replay starts.
+    for (const event of pastEvents) {
+      if (event.eventType.case === "workflowStarted") {
+        for (const patch of event.eventType.value.version?.patches ?? []) {
+          this.historyPatches.add(patch);
+        }
+      }
+    }
   }
 
   get instanceId(): string {
@@ -115,6 +132,29 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
 
   get isReplaying(): boolean {
     return this._isReplaying;
+  }
+
+  override isPatched(patchName: string): boolean {
+    if (typeof patchName !== "string" || patchName.trim().length === 0) {
+      throw new TypeError("patchName must be a non-empty, non-whitespace string");
+    }
+
+    let patched = this.appliedPatches.get(patchName);
+    if (patched === undefined) {
+      patched = this.historyPatches.has(patchName) || !this.isReplaying;
+      this.appliedPatches.set(patchName, patched);
+    }
+    if (patched) {
+      // Preserve order and duplicates to match the runtime's patch-sequence validation.
+      this.evaluatedPatches.push(patchName);
+    }
+    return patched;
+  }
+
+  get version(): WorkflowVersion | undefined {
+    return this.evaluatedPatches.length
+      ? create(WorkflowVersionSchema, { name: this.name, patches: [...this.evaluatedPatches] })
+      : undefined;
   }
 
   set currentUtcDateTime(value: Date) {

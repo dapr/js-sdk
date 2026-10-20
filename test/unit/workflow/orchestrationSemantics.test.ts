@@ -15,7 +15,6 @@ import { create } from "@bufbuild/protobuf";
 import { HistoryEventSchema } from "../../../src/proto/dapr/proto/durabletask/v1/history_events_pb";
 import {
   OrchestrationStatus,
-  WorkflowVersionSchema,
   type WorkflowVersion,
 } from "../../../src/proto/dapr/proto/durabletask/v1/orchestration_pb";
 import { OrchestrationExecutor, OrchestrationRuntimeContext, Registry, Task } from "../../../src/workflow/engine";
@@ -149,14 +148,14 @@ describe("workflow clocks and durable GUID identities", () => {
   it("preserves other patch metadata and recognizes a compacted marker in a later turn", async () => {
     const registry = new Registry();
     registry.addNamedOrchestrator("workflow", function* (ctx) {
+      ctx.isPatched("other-patch");
       ctx.setCustomStatus(ctx.currentUtcDateTime.getTime());
       yield ctx.waitForExternalEvent("finish");
     });
-    const version = create(WorkflowVersionSchema, { name: "existing", patches: ["other-patch"] });
-    const first = await new OrchestrationExecutor(registry).execute("order-A", [], [turn(10000, version), start()]);
+    const first = await new OrchestrationExecutor(registry).execute("order-A", [], [turn(10000), start()]);
     expect(first.version).toMatchObject({
-      name: "existing",
-      patches: ["other-patch", "dapr-js:workflow-semantics-v2"],
+      name: "workflow",
+      patches: ["dapr-js:workflow-semantics-v2", "other-patch"],
     });
     const replay = await new OrchestrationExecutor(registry).execute(
       "order-A",

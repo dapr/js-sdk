@@ -12,14 +12,17 @@ limitations under the License.
 */
 
 import { TaskHubWorker } from "../../../src/workflow/engine";
-import { create } from "@bufbuild/protobuf";
+import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
 import { Code, ConnectError } from "@connectrpc/connect";
 import {
   type GetWorkItemsRequest,
   WorkItemSchema,
   WorkerCapability,
   type WorkItem,
+  WorkflowResponseSchema,
 } from "../../../src/proto/dapr/proto/durabletask/v1/orchestrator_service_pb";
+import { HistoryEventSchema } from "../../../src/proto/dapr/proto/durabletask/v1/history_events_pb";
+import { OrchestrationStatus } from "../../../src/proto/dapr/proto/durabletask/v1/orchestration_pb";
 import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
 import { CustomSerializer } from "../../fixtures/CustomSerializer";
 import { newExecutionStartedEvent, newWorkflowStartedEvent } from "../../../src/workflow/engine/worker/protoHelpers";
@@ -585,6 +588,71 @@ describe("TaskHubWorker work-item dispatch", () => {
       await stopping;
     } finally {
       jest.useRealTimers();
+    }
+  });
+
+  it.each(["new", "recorded", "old", "unused"])("transports patch metadata for a %s workflow", async (scenario) => {
+    const worker = new TaskHubWorker("localhost:50001");
+    const stream = new FakeWorkItemStream();
+    const completeOrchestratorTask = jest.fn().mockResolvedValue({});
+    Object.assign(worker, {
+      client: {
+        hello: jest.fn().mockResolvedValue({}),
+        getWorkItems: (_req: unknown, opts?: { signal?: AbortSignal }) => stream.iterate(opts?.signal),
+        completeOrchestratorTask,
+      },
+    });
+    Object.defineProperty(worker, "metadataClient", {
+      value: { getMetadata: jest.fn().mockResolvedValue({ runtimeVersion: "1.18.0" }) },
+    });
+    worker.registry.addNamedOrchestrator("workflow", (ctx) => {
+      if (scenario === "unused") return { unchanged: true };
+      return { checks: [ctx.isPatched("b"), ctx.isPatched("a"), ctx.isPatched("b")] };
+    });
+    const start = newExecutionStartedEvent("workflow", "id");
+    const recorded = create(HistoryEventSchema, {
+      eventType: { case: "workflowStarted", value: { version: { patches: ["b", "a", "b"] } } },
+    });
+    const turn = create(HistoryEventSchema, { eventType: { case: "workflowStarted", value: {} } });
+    await worker.start();
+    try {
+      stream.push(
+        create(WorkItemSchema, {
+          completionToken: "token",
+          request: {
+            case: "workflowRequest",
+            value: {
+              instanceId: "id",
+              pastEvents: scenario === "recorded" ? [start, recorded] : scenario === "old" ? [start] : [],
+              newEvents: scenario === "recorded" || scenario === "old" ? [turn] : [turn, start],
+            },
+          },
+        }),
+      );
+      await settle();
+      expect(completeOrchestratorTask).toHaveBeenCalledTimes(1);
+      const response = fromBinary(
+        WorkflowResponseSchema,
+        toBinary(WorkflowResponseSchema, completeOrchestratorTask.mock.calls[0][0]),
+      );
+      expect(response).toMatchObject({ instanceId: "id", completionToken: "token" });
+      expect(response.actions[0].workflowActionType.value).toMatchObject({
+        workflowStatus: OrchestrationStatus.COMPLETED,
+        result:
+          scenario === "unused"
+            ? '{"unchanged":true}'
+            : JSON.stringify({
+                checks: scenario === "old" ? [false, false, false] : [true, true, true],
+              }),
+      });
+      // A history recorded without the SDK marker keeps legacy semantics; everything else leads with the marker.
+      const marker = "dapr-js:workflow-semantics-v2";
+      expect(response.version).toMatchObject({
+        name: "workflow",
+        patches: scenario === "new" ? [marker, "b", "a", "b"] : scenario === "recorded" ? ["b", "a", "b"] : [marker],
+      });
+    } finally {
+      await worker.stop();
     }
   });
 

@@ -150,6 +150,45 @@ policy, including `null` and `undefined`. Workflow/activity registration and
 external-event waits accept names such as `constructor` and `__proto__` without
 confusing them with object prototype properties.
 
+### Patch-based workflow versioning
+
+With Dapr 1.17+, use `ctx.isPatched(patchName)` to introduce a change without
+breaking the replay of existing instances. This follows the .NET SDK's
+`WorkflowContext.IsPatched` semantics:
+
+```typescript
+import { WorkflowContext, WorkflowRuntime } from "@dapr/dapr";
+
+const runtime = new WorkflowRuntime();
+runtime.registerWorkflow(function* orderWorkflow(ctx: WorkflowContext, orderId: string) {
+  const order = yield ctx.callActivity("processOrder", orderId);
+  if (ctx.isPatched("add-validation-step")) {
+    yield ctx.callActivity("validateOrder", order);
+  }
+  yield ctx.callActivity("shipOrder", order);
+});
+```
+
+- A recorded patch returns `true` on replay.
+- An unrecorded patch first encountered while replaying returns `false`, preserving
+  the original code path, even if the instance has no versioning history.
+- An unrecorded patch first encountered during live execution returns `true`.
+  This includes an existing instance that has not yet reached the patch point.
+- Repeated checks of the same name keep their first decision within an execution,
+  including across the transition from replay to live execution.
+
+Enabled checks are sent to Dapr in execution order (including duplicates), after
+the SDK's internal compatibility marker described above, and persisted in
+workflow history for subsequent replays. Patch names are case-sensitive;
+empty or whitespace-only names throw. Use stable names, never repurpose a name for
+a different change, and keep the original branch and existing patch checks while
+in-flight instances depend on them. Do not reorder or rename deployed checks.
+Each instance has independent patch state; `continueAsNew` starts a new history.
+
+Workflows that do not use patches emit only the internal compatibility marker
+(and nothing on legacy histories). `isReplaying()` is not a replacement for a
+persisted patch decision.
+
 ### Workflow tracing
 
 Workflow tracing uses the application's OpenTelemetry configuration. Register a

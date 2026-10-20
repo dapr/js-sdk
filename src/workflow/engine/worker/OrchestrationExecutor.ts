@@ -16,11 +16,7 @@ import type {
   PropagatedHistory as HistoryMessage,
 } from "../../../proto/dapr/proto/durabletask/v1/history_events_pb";
 import { create } from "@bufbuild/protobuf";
-import {
-  WorkflowVersionSchema,
-  type WorkflowVersion,
-  type TaskRouter,
-} from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
+import { WorkflowVersionSchema, type TaskRouter } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import type { AnyGenerator } from "../context/OrchestrationContext";
 import { OrchestrationStatus } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import { OrchestrationRuntimeContext } from "../context/OrchestrationRuntimeContext";
@@ -107,11 +103,9 @@ export class OrchestrationExecutor {
     const events = [...oldEvents, ...newEvents];
     const startEvent = events.find((event) => event.eventType.case === "executionStarted");
     const patches = new Set<string>();
-    let historyVersion: WorkflowVersion | undefined;
     for (const event of events) {
-      if (event.eventType.case === "workflowStarted" && event.eventType.value.version) {
-        historyVersion = event.eventType.value.version;
-        for (const patch of historyVersion.patches) patches.add(patch);
+      if (event.eventType.case === "workflowStarted") {
+        for (const patch of event.eventType.value.version?.patches ?? []) patches.add(patch);
       }
     }
     // Unmarked committed histories must retain their original clock and GUID values on replay.
@@ -120,10 +114,6 @@ export class OrchestrationExecutor {
       (!this._supportsWorkflowPatches || oldEvents.some((event) => event.eventType.case === "workflowStarted"));
     this._useTurnClock = !legacy;
     this._hasTurnClock = false;
-    if (!legacy) patches.add(WORKFLOW_SEMANTICS_PATCH);
-    const version = legacy
-      ? historyVersion
-      : create(WorkflowVersionSchema, { ...historyVersion, patches: [...patches] });
     const executionId =
       startEvent?.eventType.case === "executionStarted"
         ? startEvent.eventType.value.workflowInstance?.executionId
@@ -150,6 +140,9 @@ export class OrchestrationExecutor {
       this.serializer,
       taskExecutionIds,
       handler,
+      oldEvents,
+      executionIdentity,
+      legacy,
     );
     try {
       const history = decodePropagatedHistory(propagatedHistory);
@@ -161,6 +154,7 @@ export class OrchestrationExecutor {
         this.serializer,
         taskExecutionIds,
         handler,
+        oldEvents,
         executionIdentity,
         legacy,
       );
@@ -216,6 +210,13 @@ export class OrchestrationExecutor {
     }
     this.logger.info(`${instanceId}: Returning ${actions.length} action(s)`);
 
+    // The marker leads so that patches evaluated by newer code append after the recorded prefix.
+    const evaluatedPatches = legacy
+      ? ctx.version?.patches ?? []
+      : [WORKFLOW_SEMANTICS_PATCH, ...(ctx.version?.patches ?? [])];
+    const version = evaluatedPatches.length
+      ? create(WorkflowVersionSchema, { name: workflowName, patches: evaluatedPatches })
+      : undefined;
     return new OrchestrationExecuteResult(actions, ctx._customStatus, encodedCustomStatus, version);
   }
 
