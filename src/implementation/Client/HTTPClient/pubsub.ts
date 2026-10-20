@@ -24,6 +24,12 @@ import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishRe
 import { PubSubPublishOptions } from "../../../types/pubsub/PubSubPublishOptions.type";
 import HTTPClientMetadata from "./metadata";
 import { serializeJsonValue } from "../../../serialization/Serialization.util";
+import { HTTPNotSupportedError } from "../../../errors/HTTPNotSupportedError";
+import { TypeDaprPubSubCallback } from "../../../types/DaprPubSubCallback.type";
+import {
+  PubSubStreamingSubscription,
+  PubSubStreamingSubscriptionOptions,
+} from "../../../types/pubsub/PubSubStreamingSubscription.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPClientPubSub implements IClientPubSub {
@@ -35,6 +41,15 @@ export default class HTTPClientPubSub implements IClientPubSub {
     this.client = client;
     this.metadata = metadata;
     this.logger = new Logger("HTTPClient", "PubSub", client.options.logger);
+  }
+
+  async subscribeStream(
+    _pubSubName: string,
+    _topic: string,
+    _callback: TypeDaprPubSubCallback,
+    _options?: PubSubStreamingSubscriptionOptions,
+  ): Promise<PubSubStreamingSubscription> {
+    throw new HTTPNotSupportedError("Streaming pub/sub subscriptions require the gRPC protocol.");
   }
 
   async publish(

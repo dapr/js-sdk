@@ -20,6 +20,8 @@ import {
   BulkPublishRequestSchema,
   BulkPublishResponse,
   PublishEventRequestSchema,
+  SubscribeTopicEventsRequestAlpha1,
+  SubscribeTopicEventsRequestAlpha1Schema,
 } from "../../../proto/dapr/proto/runtime/v1/pubsub_pb";
 import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 import { Logger } from "../../../logger/Logger";
@@ -30,6 +32,15 @@ import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishRe
 import { PubSubBulkPublishResponse } from "../../../types/pubsub/PubSubBulkPublishResponse.type";
 import { PubSubBulkPublishMessage } from "../../../types/pubsub/PubSubBulkPublishMessage.type";
 import { PubSubPublishOptions } from "../../../types/pubsub/PubSubPublishOptions.type";
+import { TypeDaprPubSubCallback } from "../../../types/DaprPubSubCallback.type";
+import {
+  PubSubStreamingSubscription,
+  PubSubStreamingSubscriptionOptions,
+} from "../../../types/pubsub/PubSubStreamingSubscription.type";
+import { DeferredAsyncIterable } from "../../../utils/Streams.util";
+import { deserializeGrpc } from "../../../utils/Deserializer.util";
+import DaprPubSubStatusEnum from "../../../enum/DaprPubSubStatus.enum";
+import { TopicEventResponse_TopicEventResponseStatus } from "../../../proto/dapr/proto/runtime/v1/appcallback_pb";
 
 /**
  * Determines whether a gRPC error means the sidecar does not serve the stable
@@ -91,6 +102,135 @@ export default class GRPCClientPubSub implements IClientPubSub {
   constructor(client: GRPCClient) {
     this.client = client;
     this.logger = new Logger("GRPCClient", "PubSub", client.options.logger);
+  }
+
+  async subscribeStream(
+    pubSubName: string,
+    topic: string,
+    callback: TypeDaprPubSubCallback,
+    options: PubSubStreamingSubscriptionOptions = {},
+  ): Promise<PubSubStreamingSubscription> {
+    if (!pubSubName.trim() || !topic.trim()) {
+      throw new TypeError("Streaming subscriptions require a non-empty pub/sub name and topic.");
+    }
+    if (typeof callback !== "function") {
+      throw new TypeError("Streaming subscriptions require a callback.");
+    }
+    options.signal?.throwIfAborted();
+    const client = await this.client.getClient();
+    options.signal?.throwIfAborted();
+
+    const requests = new DeferredAsyncIterable<SubscribeTopicEventsRequestAlpha1>();
+    const controller = new AbortController();
+    const cancel = () => {
+      requests.end();
+      controller.abort();
+    };
+    options.signal?.addEventListener("abort", cancel, { once: true });
+    requests.push(
+      create(SubscribeTopicEventsRequestAlpha1Schema, {
+        subscribeTopicEventsRequestType: {
+          case: "initialRequest",
+          value: {
+            pubsubName: pubSubName,
+            topic,
+            metadata: options.metadata,
+            deadLetterTopic: options.deadLetterTopic,
+          },
+        },
+      }),
+    );
+
+    let ready = false;
+    let resolveReady!: () => void;
+    let rejectReady!: (error: unknown) => void;
+    const started = new Promise<void>((resolve, reject) => {
+      resolveReady = resolve;
+      rejectReady = reject;
+    });
+
+    const closed = (async () => {
+      try {
+        const responses = client.subscribeTopicEventsAlpha1(requests, { signal: controller.signal });
+        for await (const response of responses) {
+          if (controller.signal.aborted) break;
+          const message = response.subscribeTopicEventsResponseType;
+          if (!ready) {
+            if (message.case !== "initialResponse") {
+              throw new Error("Expected an initial response for the streaming subscription.");
+            }
+            ready = true;
+            resolveReady();
+            continue;
+          }
+          if (message.case !== "eventMessage") {
+            throw new Error("Expected an event message for the streaming subscription.");
+          }
+
+          const event = message.value;
+          let status = TopicEventResponse_TopicEventResponseStatus.RETRY;
+          try {
+            const data = deserializeGrpc(event.dataContentType, event.data, this.client.options.serializer);
+            const result: unknown = await callback(data, {
+              ...event.extensions,
+              id: event.id,
+              source: event.source,
+              type: event.type,
+              specversion: event.specVersion,
+              datacontenttype: event.dataContentType,
+              topic: event.topic,
+              pubsubname: event.pubsubName,
+              path: event.path,
+            });
+            switch (result) {
+              case undefined:
+              case DaprPubSubStatusEnum.SUCCESS:
+                status = TopicEventResponse_TopicEventResponseStatus.SUCCESS;
+                break;
+              case DaprPubSubStatusEnum.RETRY:
+                break;
+              case DaprPubSubStatusEnum.DROP:
+                status = TopicEventResponse_TopicEventResponseStatus.DROP;
+                break;
+              default:
+                throw new TypeError("Streaming subscription callback must return SUCCESS, RETRY, DROP, or void.");
+            }
+          } catch (error) {
+            this.logger.error(`Streaming subscription '${pubSubName}/${topic}' processing failed: ${error}`);
+          }
+          if (controller.signal.aborted) break;
+          requests.push(
+            create(SubscribeTopicEventsRequestAlpha1Schema, {
+              subscribeTopicEventsRequestType: {
+                case: "eventProcessed",
+                value: { id: event.id, status: { status } },
+              },
+            }),
+          );
+        }
+        if (!controller.signal.aborted) {
+          throw new Error("Streaming subscription ended unexpectedly.");
+        }
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          rejectReady(error);
+          throw error;
+        }
+      } finally {
+        if (!ready) {
+          rejectReady(new ConnectError("Streaming subscription canceled before confirmation.", Code.Canceled));
+        }
+        options.signal?.removeEventListener("abort", cancel);
+        cancel();
+      }
+    })();
+    // Keep the rejection observable without an unhandled rejection if callers
+    // choose to rely on logging instead of awaiting closed.
+    void closed.catch((error: unknown) => {
+      this.logger.error(`Streaming subscription '${pubSubName}/${topic}' failed: ${error}`);
+    });
+    await started;
+    return { close: async () => cancel(), closed };
   }
 
   async publish(
