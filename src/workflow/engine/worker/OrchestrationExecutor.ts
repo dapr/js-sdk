@@ -75,6 +75,7 @@ export class OrchestrationExecutor {
       this.serializer,
       taskExecutionIds,
       handler,
+      oldEvents,
     );
     try {
       const history = decodePropagatedHistory(propagatedHistory);
@@ -86,6 +87,7 @@ export class OrchestrationExecutor {
         this.serializer,
         taskExecutionIds,
         handler,
+        oldEvents,
       );
       this.logger.debug(`${instanceId}: Rebuilding local state with ${oldEvents.length} history event...`);
       ctx._isReplaying = true;
@@ -131,7 +133,7 @@ export class OrchestrationExecutor {
     }
     this.logger.info(`${instanceId}: Returning ${actions.length} action(s)`);
 
-    return new OrchestrationExecuteResult(actions, ctx._customStatus, encodedCustomStatus);
+    return new OrchestrationExecuteResult(actions, ctx._customStatus, encodedCustomStatus, ctx.version);
   }
 
   private async processEvent(ctx: OrchestrationRuntimeContext, event: HistoryEvent): Promise<void> {

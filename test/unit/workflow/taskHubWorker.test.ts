@@ -12,13 +12,17 @@ limitations under the License.
 */
 
 import { TaskHubWorker } from "../../../src/workflow/engine";
-import { create } from "@bufbuild/protobuf";
+import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
 import {
   type GetWorkItemsRequest,
   WorkItemSchema,
   WorkerCapability,
   type WorkItem,
+  WorkflowResponseSchema,
 } from "../../../src/proto/dapr/proto/durabletask/v1/orchestrator_service_pb";
+import { HistoryEventSchema } from "../../../src/proto/dapr/proto/durabletask/v1/history_events_pb";
+import { newExecutionStartedEvent } from "../../../src/workflow/engine/worker/protoHelpers";
+import { OrchestrationStatus } from "../../../src/proto/dapr/proto/durabletask/v1/orchestration_pb";
 import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
 import { CustomSerializer } from "../../fixtures/CustomSerializer";
 
@@ -119,6 +123,67 @@ async function startWorker() {
 }
 
 describe("TaskHubWorker work-item dispatch", () => {
+  it.each(["new", "recorded", "old", "unused"])("transports patch metadata for a %s workflow", async (scenario) => {
+    const worker = new TaskHubWorker("localhost:50001");
+    const stream = new FakeWorkItemStream();
+    const completeOrchestratorTask = jest.fn().mockResolvedValue({});
+    Object.assign(worker, {
+      client: {
+        hello: jest.fn().mockResolvedValue({}),
+        getWorkItems: (_req: unknown, opts?: { signal?: AbortSignal }) => stream.iterate(opts?.signal),
+        completeOrchestratorTask,
+      },
+    });
+    worker.registry.addNamedOrchestrator("workflow", (ctx) => {
+      if (scenario === "unused") return { unchanged: true };
+      return { checks: [ctx.isPatched("b"), ctx.isPatched("a"), ctx.isPatched("b")] };
+    });
+    const start = newExecutionStartedEvent("workflow", "id");
+    const recorded = create(HistoryEventSchema, {
+      eventType: { case: "workflowStarted", value: { version: { patches: ["b", "a", "b"] } } },
+    });
+    const turn = create(HistoryEventSchema, { eventType: { case: "workflowStarted", value: {} } });
+    await worker.start();
+    try {
+      stream.push(
+        create(WorkItemSchema, {
+          completionToken: "token",
+          request: {
+            case: "workflowRequest",
+            value: {
+              instanceId: "id",
+              pastEvents: scenario === "recorded" ? [start, recorded] : scenario === "old" ? [start] : [],
+              newEvents: scenario === "recorded" || scenario === "old" ? [turn] : [turn, start],
+            },
+          },
+        }),
+      );
+      await settle();
+      expect(completeOrchestratorTask).toHaveBeenCalledTimes(1);
+      const response = fromBinary(
+        WorkflowResponseSchema,
+        toBinary(WorkflowResponseSchema, completeOrchestratorTask.mock.calls[0][0]),
+      );
+      expect(response).toMatchObject({ instanceId: "id", completionToken: "token" });
+      expect(response.actions[0].workflowActionType.value).toMatchObject({
+        workflowStatus: OrchestrationStatus.COMPLETED,
+        result:
+          scenario === "unused"
+            ? '{"unchanged":true}'
+            : JSON.stringify({
+                checks: scenario === "old" ? [false, false, false] : [true, true, true],
+              }),
+      });
+      if (scenario === "new" || scenario === "recorded") {
+        expect(response.version).toMatchObject({ name: "workflow", patches: ["b", "a", "b"] });
+      } else {
+        expect(response.version).toBeUndefined();
+      }
+    } finally {
+      await worker.stop();
+    }
+  });
+
   it.each([undefined, new CustomSerializer()])(
     "passes execution keys from work items to activities with serializer %p",
     async (serializer) => {

@@ -12,7 +12,13 @@ limitations under the License.
 */
 
 import type { WorkflowAction } from "../../../proto/dapr/proto/durabletask/v1/orchestrator_actions_pb";
+import type { WorkflowVersion } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 
 export class OrchestrationExecuteResult {
-  constructor(public actions: WorkflowAction[], public customStatus: unknown, public encodedCustomStatus?: string) {}
+  constructor(
+    public actions: WorkflowAction[],
+    public customStatus: unknown,
+    public encodedCustomStatus?: string,
+    public version?: WorkflowVersion,
+  ) {}
 }

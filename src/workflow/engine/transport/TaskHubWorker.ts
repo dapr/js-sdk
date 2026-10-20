@@ -239,6 +239,7 @@ export class TaskHubWorker {
         actions: result.actions,
         customStatus: result.encodedCustomStatus,
         completionToken,
+        version: result.version,
       });
     } catch (e: unknown) {
       this.logger.error(`An error occurred while trying to execute instance '${instanceId}': ${(e as Error).message}`);
