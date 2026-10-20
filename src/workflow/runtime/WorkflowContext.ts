@@ -80,6 +80,16 @@ export default class WorkflowContext {
     return this._innerContext.isReplaying;
   }
 
+  /**
+   * Enables a named code change without changing previously replayed execution paths (Dapr 1.17+).
+   * Returns false for an unrecorded patch first encountered during replay, otherwise true.
+   * Names are case-sensitive, must not be blank, and must not be reused for different changes.
+   * Keep the original code path until instances that need it have finished.
+   */
+  public isPatched(patchName: string): boolean {
+    return this._innerContext.isPatched(patchName);
+  }
+
   public createTimer(fireAt: Date | number): CancellableTask<void> {
     return this._innerContext.createTimer(fireAt);
   }

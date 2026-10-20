@@ -52,6 +52,10 @@ export abstract class OrchestrationContext {
   abstract get currentUtcDateTime(): Date;
   abstract get isReplaying(): boolean;
 
+  isPatched(_patchName: string): boolean {
+    throw new Error("This orchestration context does not support workflow patches");
+  }
+
   abstract createTimer(fireAt: Date | number): CancellableTask<void>;
   abstract callActivity<TInput, TOutput>(
     activity: TActivity<TInput, TOutput> | string,

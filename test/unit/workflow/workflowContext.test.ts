@@ -25,6 +25,7 @@ describe("WorkflowContext", () => {
       name: "registered-workflow",
       currentUtcDateTime: new Date("2025-01-01T00:00:00Z"),
       isReplaying: false,
+      isPatched: jest.fn(),
       createTimer: jest.fn().mockReturnValue({ isCompleted: false } as Partial<Task<any>>),
       callActivity: jest.fn().mockReturnValue({ isCompleted: false } as Partial<Task<any>>),
       callSubOrchestrator: jest.fn().mockReturnValue({ isCompleted: false } as Partial<Task<any>>),
@@ -72,6 +73,19 @@ describe("WorkflowContext", () => {
       mockInnerContext.isReplaying = true;
       expect(ctx.isReplaying()).toBe(true);
     });
+  });
+
+  it.each([true, false])("delegates isPatched and preserves a %s decision", (patched) => {
+    mockInnerContext.isPatched.mockReturnValue(patched);
+    expect(ctx.isPatched("add-validation")).toBe(patched);
+    expect(mockInnerContext.isPatched).toHaveBeenCalledWith("add-validation");
+  });
+
+  it("propagates patch errors from the inner context", () => {
+    mockInnerContext.isPatched.mockImplementation(() => {
+      throw new TypeError("invalid patch");
+    });
+    expect(() => ctx.isPatched("")).toThrow("invalid patch");
   });
 
   describe("createTimer", () => {
