@@ -23,6 +23,115 @@ const invokerListen = (req: IRequest, res: IResponse) => {
 await client.invoker.listen("method", invokerListen.bind(this), options);
 ```
 
+## Jobs
+
+`client.jobs.schedule(name, options)`, `get(name)`, and `delete(name)` support
+HTTP and gRPC on Dapr **1.16 or later**. The SDK reads the connected sidecar's
+metadata and caches the API selection per client: 1.16/1.17 use Alpha1,
+1.18+ use stable APIs. Prerelease builds of 1.18 conservatively use Alpha1;
+later prereleases and `edge` use stable APIs. Failed metadata lookups can be
+retried on the next call. Unrecognized versions fail explicitly. The SDK does
+not retry a mutating operation against a different API after an error.
+The HTTP and gRPC metadata implementations delegate version selection to the
+same internal checker used for HTTP Bulk PubSub. Decisions are cached per API
+and client; calling `metadata.get()` still retrieves fresh metadata.
+
+The promotion boundary is defined by the runtime's
+[1.17 RPCs](https://github.com/dapr/dapr/blob/v1.17.0/dapr/proto/runtime/v1/dapr.proto)
+and [1.18 HTTP endpoints](https://github.com/dapr/dapr/blob/v1.18.0/pkg/api/http/jobs.go).
+Both stable and Alpha1 gRPC callback services are registered by `DaprServer`.
+
+```typescript
+import { CronExpressionBuilder, DaprServer } from "@dapr/dapr";
+
+const server = new DaprServer();
+await server.jobs.listen("daily-report", async (data) => {
+  console.log(data);
+  // Await all work here. Throw/reject on failure so Dapr applies the failure policy.
+});
+await server.start();
+
+await server.client.jobs.schedule("daily-report", {
+  schedule: new CronExpressionBuilder()
+    .on("second", 0)
+    .on("minute", 30)
+    .on("hour", 9)
+    .through("dayOfWeek", 1, 5)
+    .withTimeZone("America/New_York"),
+  data: { report: "daily" },
+  failurePolicy: { type: "constant", interval: "1s", maxRetries: 3 },
+});
+
+const job = await server.client.jobs.get("daily-report");
+console.log(job.schedule, job.data);
+await server.client.jobs.delete("daily-report");
+await server.stop();
+await server.client.stop();
+```
+
+The fluent cron builder follows the .NET SDK's `on`, `through`, `each`, and
+`every` operations, with one string-union period type instead of separate enums.
+It produces **six fields, including seconds**; every field initially contains
+`*`. Periods are `second`, `minute`, `hour`, `dayOfMonth`, `month`, and
+`dayOfWeek` (Sunday = 0). Months are 1-12. Lists are sorted and deduplicated,
+ranges must increase, and steps must be positive integers. `toString()` also
+allows using the result independently of the Jobs client.
+
+Use a raw schedule string for runtime-supported expressions such as `@daily`
+or `@every 5m`. For a one-shot job, supply `dueTime` without `schedule`.
+`dueTime` and `ttl` accept RFC3339 timestamps, Go durations, or non-repeating
+ISO8601 durations; returned strings preserve the runtime's representation.
+The runtime validates raw schedules and timing combinations. Optional `repeats`
+limits executions; omitting it leaves recurring jobs unlimited. Existing jobs
+are not overwritten unless `overwrite: true` is supplied.
+
+JSON payloads, including `null`, `false`, zero, strings, arrays, and objects,
+are portable across both transports and callback protocols. gRPC encodes them
+using the same `google.protobuf.Value` envelope as the runtime's HTTP API.
+gRPC additionally accepts `Uint8Array`/`Buffer` payloads, using the .NET SDK's
+`dapr.io/schedule/jobpayload` type URL, and returns opaque payloads as buffers.
+Use a gRPC callback server for arbitrary binary data: Dapr's HTTP app channel
+treats callback bodies as JSON. HTTP scheduling rejects byte payloads rather
+than silently converting them. Jobs payloads use these wire formats rather
+than the client's custom serializer.
+Omitted HTTP payloads are sent as JSON `null`: older runtimes otherwise store
+an empty protobuf `Value` that cannot be delivered. Omitted gRPC payloads remain
+absent. Non-JSON values and circular references are rejected before scheduling.
+
+Failure policies are `{ type: "drop" }` or
+`{ type: "constant", interval: "0.5s", maxRetries: 3 }`. The interval is a
+positive protobuf duration in seconds, with up to nine fractional digits.
+Omitting `maxRetries` allows unlimited retries; zero is preserved. Omitting
+the policy leaves Dapr's default policy in control.
+
+Register handlers before starting the server. Names are case-sensitive and
+must not contain URL delimiters (`/`, `\`, `?`, `#`, `%`), pipes, control
+characters, surrounding whitespace, or be `.`/`..`, because Dapr constructs
+callback URLs from them. Duplicate handler registration fails instead of
+silently replacing a callback. Missing handlers and rejected callbacks return
+errors, never successful acknowledgments. Jobs are at-least-once deliveries;
+handlers should be idempotent. Client-side, metadata, sidecar, and scheduler
+errors propagate to the caller.
+
+The public surface intentionally covers scheduling, retrieval, deletion, and
+callbacks rather than adding separate versioned clients or bulk-management
+methods that are unavailable across the supported transports and runtimes.
+
+### Jobs tests
+
+Unit tests live in `test/unit/protocols/{common,http,grpc}/jobs.test.ts` and run
+with the existing unit suites. Integration tests require Docker and start
+isolated scheduler, placement, and sidecar containers. They exercise both
+client transports against both callback protocols, including retries, dropped
+failures, duplicate jobs, deletion, invalid schedules, and JSON/binary payloads.
+Jobs runs as part of `test:e2e:all` through `test:e2e:common`, using the shared
+CI runtime-version matrix. Use `test:e2e:jobs` to run it independently.
+
+```powershell
+$env:DAPR_RUNTIME_VERSION = "1.16.0" # Also run with 1.17.0 and 1.18.0
+npm run test:e2e:jobs
+```
+
 ## Conversation Alpha2
 
 `client.conversation.converse(request)` supports HTTP and gRPC using the Alpha2

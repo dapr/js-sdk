@@ -21,6 +21,9 @@ import IClientCrypto from "../../interfaces/Client/IClientCrypto";
 import IClientHealth from "../../interfaces/Client/IClientHealth";
 import IClientInvoker from "../../interfaces/Client/IClientInvoker";
 import IClientLock from "../../interfaces/Client/IClientLock";
+import IClientJobs from "../../interfaces/Client/IClientJobs";
+import GRPCClientJobs from "./GRPCClient/jobs";
+import HTTPClientJobs from "./HTTPClient/jobs";
 import IClientMetadata from "../../interfaces/Client/IClientMetadata";
 import IClientProxy from "../../interfaces/Client/IClientProxy";
 import IClientPubSub from "../../interfaces/Client/IClientPubSub";
@@ -143,6 +146,9 @@ export default class DaprClient {
 
   /** Binary file storage and streaming (Dapr 1.19+ alpha API). */
   readonly binaryStore: IClientBinaryStore;
+
+  /** Schedule, retrieve, and delete jobs (Dapr 1.16+). */
+  readonly jobs: IClientJobs;
 
   /**
    * Configuration store client.
@@ -302,7 +308,9 @@ export default class DaprClient {
         this.invoker = new GRPCClientInvoker(client);
         this.secret = new GRPCClientSecret(client);
         this.health = new GRPCClientHealth(client);
-        this.metadata = new GRPCClientMetadata(client);
+        const metadata = new GRPCClientMetadata(client);
+        this.metadata = metadata;
+        this.jobs = new GRPCClientJobs(client, metadata);
         this.sidecar = new GRPCClientSidecar(client);
         this.proxy = new GRPCClientProxy(client);
         this.configuration = new GRPCClientConfiguration(client);
@@ -329,6 +337,7 @@ export default class DaprClient {
         this.lock = new HTTPClientLock(client);
         const metadata = new HTTPClientMetadata(client);
         this.metadata = metadata;
+        this.jobs = new HTTPClientJobs(client, metadata);
         this.proxy = new HTTPClientProxy(client);
         this.pubsub = new HTTPClientPubSub(client, metadata);
         this.secret = new HTTPClientSecret(client);

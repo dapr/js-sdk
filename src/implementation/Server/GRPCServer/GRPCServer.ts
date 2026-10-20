@@ -58,6 +58,7 @@ export default class GRPCServer implements IServer {
           onBulkTopicEvent: (req, ctx) => impl.onBulkTopicEventAlpha1(req, ctx),
           listInputBindings: (req, ctx) => impl.listInputBindings(req, ctx),
           onBindingEvent: (req, ctx) => impl.onBindingEvent(req, ctx),
+          onJobEvent: (req, ctx) => impl.onJobEventAlpha1(req, ctx),
         });
         router.service(AppCallbackAlpha, {
           onBulkTopicEventAlpha1: (req, ctx) => impl.onBulkTopicEventAlpha1(req, ctx),

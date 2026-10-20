@@ -16,6 +16,9 @@ import IServerPubSub from "../../interfaces/Server/IServerPubSub";
 import IServerBinding from "../../interfaces/Server/IServerBinding";
 import IServerInvoker from "../../interfaces/Server/IServerInvoker";
 import IServerActor from "../../interfaces/Server/IServerActor";
+import IServerJobs from "../../interfaces/Server/IServerJobs";
+import GRPCServerJobs from "./GRPCServer/jobs";
+import HTTPServerJobs from "./HTTPServer/jobs";
 
 import CommunicationProtocolEnum from "../../enum/CommunicationProtocol.enum";
 import GRPCServer from "./GRPCServer/GRPCServer";
@@ -103,6 +106,9 @@ export default class DaprServer {
    * @see {@link https://dapr.io/docs/developing-applications/building-blocks/bindings/ | Dapr Bindings}
    */
   readonly binding: IServerBinding;
+
+  /** Receive scheduled job callbacks, including Alpha1 callbacks from older runtimes. */
+  readonly jobs: IServerJobs;
 
   /**
    * Service invocation handler.
@@ -204,6 +210,7 @@ export default class DaprServer {
 
         this.pubsub = new GRPCServerPubSub(server);
         this.binding = new GRPCServerBinding(server);
+        this.jobs = new GRPCServerJobs(server);
         this.invoker = new GRPCServerInvoker(server);
         this.actor = new GRPCServerActor(server);
         break;
@@ -215,6 +222,7 @@ export default class DaprServer {
 
         this.pubsub = new HTTPServerPubSub(server);
         this.binding = new HTTPServerBinding(server);
+        this.jobs = new HTTPServerJobs(server);
         this.invoker = new HTTPServerInvoker(server);
         this.actor = new HTTPServerActor(server, this.client);
         break;
