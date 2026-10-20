@@ -13,14 +13,15 @@ limitations under the License.
 
 import { create } from "@bufbuild/protobuf";
 import { AnySchema } from "@bufbuild/protobuf/wkt";
-import { type HandlerContext } from "@connectrpc/connect";
+import { Code, ConnectError, type HandlerContext } from "@connectrpc/connect";
+import IServerJobs from "../../../interfaces/Server/IServerJobs";
+import { decodeJobData, validateJobName } from "../../../jobs/Jobs.util";
 
 import { InvokeRequest, InvokeResponse, InvokeResponseSchema } from "../../../proto/dapr/proto/common/v1/common_pb";
 import {
   BindingEventRequest,
   BindingEventResponse,
   BindingEventResponseSchema,
-  BulkSubscribeConfig,
   BulkSubscribeConfigSchema,
   HealthCheckResponse,
   HealthCheckResponseSchema,
@@ -40,9 +41,7 @@ import {
   TopicEventResponse,
   TopicEventResponseSchema,
   TopicEventResponse_TopicEventResponseStatus,
-  TopicRoutes,
   TopicRoutesSchema,
-  TopicRule,
   TopicRuleSchema,
   TopicSubscription,
   TopicSubscriptionSchema,
@@ -71,6 +70,7 @@ export default class GRPCServerImpl {
 
   handlersInvoke: { [key: string]: DaprInvokerCallbackFunction };
   handlersBindings: { [key: string]: TypeDaprBindingCallback };
+  private readonly jobHandlers = new Map<string, Parameters<IServerJobs["listen"]>[1]>();
 
   constructor(_server: IServerType, loggerOptions?: LoggerOptions, private readonly serializer?: IDaprSerializer) {
     this.logger = new Logger("GRPCServer", "GRPCServerImpl", loggerOptions);
@@ -171,7 +171,7 @@ export default class GRPCServerImpl {
 
     try {
       dataParsed = JSON.parse(data);
-    } catch (e) {
+    } catch {
       dataParsed = data;
     }
 
@@ -348,12 +348,11 @@ export default class GRPCServerImpl {
         }
 
         if (daprConfig?.bulkSubscribe) {
-          const bulkSubscribe = create(BulkSubscribeConfigSchema, {
+          topicSubscription.bulkSubscribe = create(BulkSubscribeConfigSchema, {
             enabled: daprConfig.bulkSubscribe.enabled,
             maxMessagesCount: daprConfig.bulkSubscribe.maxMessagesCount ?? 0,
             maxAwaitDurationMs: daprConfig.bulkSubscribe.maxAwaitDurationMs ?? 0,
           });
-          topicSubscription.bulkSubscribe = bulkSubscribe;
         }
 
         if (daprConfig?.metadata) {
@@ -402,7 +401,29 @@ export default class GRPCServerImpl {
     return create(HealthCheckResponseSchema);
   }
 
-  async onJobEventAlpha1(_request: JobEventRequest, _context: HandlerContext): Promise<JobEventResponse> {
+  registerJobHandler(name: string, callback: Parameters<IServerJobs["listen"]>[1]): void {
+    validateJobName(name);
+    if (typeof callback !== "function") {
+      throw new TypeError("A job callback is required");
+    }
+    if (this.jobHandlers.has(name)) {
+      throw new Error(`A handler for job '${name}' is already registered`);
+    }
+    this.jobHandlers.set(name, callback);
+  }
+
+  async onJobEventAlpha1(request: JobEventRequest, _context: HandlerContext): Promise<JobEventResponse> {
+    const callback = this.jobHandlers.get(request.name);
+    if (!callback) {
+      this.logger.warn(`Job '${request.name}' was not handled`);
+      throw new ConnectError("Job handler not found", Code.NotFound);
+    }
+    try {
+      await callback(decodeJobData(request.data));
+    } catch (error) {
+      this.logger.error(`Job '${request.name}' callback failed: ${error}`);
+      throw new ConnectError("Could not process job callback", Code.Internal);
+    }
     return create(JobEventResponseSchema);
   }
 }

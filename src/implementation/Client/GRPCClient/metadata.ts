@@ -16,6 +16,7 @@ import GRPCClient from "./GRPCClient";
 import { GetMetadataRequestSchema, SetMetadataRequestSchema } from "../../../proto/dapr/proto/runtime/v1/metadata_pb";
 import IClientMetadata from "../../../interfaces/Client/IClientMetadata";
 import { GetMetadataResponse as GetMetadataResponseResult } from "../../../types/metadata/GetMetadataResponse";
+import RuntimeVersionChecker from "../RuntimeVersionChecker";
 
 /**
  * gRPC-based metadata building block implementation.
@@ -30,6 +31,13 @@ import { GetMetadataResponse as GetMetadataResponseResult } from "../../../types
  * @internal
  */
 export default class GRPCClientMetadata implements IClientMetadata {
+  private readonly versionChecker = new RuntimeVersionChecker(this);
+
+  /** Selects stable Jobs or Alpha1 without probing or retrying a mutating RPC. */
+  getJobsApiVersion(): Promise<"v1.0" | "v1.0-alpha1"> {
+    return this.versionChecker.getJobsApiVersion();
+  }
+
   /**
    * Reference to the underlying gRPC client.
    */
@@ -72,8 +80,9 @@ export default class GRPCClientMetadata implements IClientMetadata {
     const client = await this.client.getClient();
     const res = await client.getMetadata(create(GetMetadataRequestSchema));
 
-    const wrapped: GetMetadataResponseResult = {
+    return {
       id: res.id,
+      runtimeVersion: res.runtimeVersion,
       actors: res.activeActorsCount.map((a) => ({
         type: a.type,
         count: a.count,
@@ -89,9 +98,7 @@ export default class GRPCClientMetadata implements IClientMetadata {
         version: c.version,
         capabilities: c.capabilities,
       })),
-    };
-
-    return wrapped;
+    } as GetMetadataResponseResult;
   }
 
   /**
@@ -121,7 +128,7 @@ export default class GRPCClientMetadata implements IClientMetadata {
     try {
       await client.setMetadata(create(SetMetadataRequestSchema, { key, value }));
       return true;
-    } catch (_err) {
+    } catch {
       return false;
     }
   }

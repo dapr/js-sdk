@@ -14,11 +14,12 @@ limitations under the License.
 import HTTPClient from "./HTTPClient";
 import { GetMetadataResponse } from "../../../types/metadata/GetMetadataResponse";
 import IClientMetadata from "../../../interfaces/Client/IClientMetadata";
+import RuntimeVersionChecker from "../RuntimeVersionChecker";
 
 // https://docs.dapr.io/reference/api/metadata_api
 export default class HTTPClientMetadata implements IClientMetadata {
   client: HTTPClient;
-  private bulkPublishApiVersion?: Promise<"v1.0" | "v1.0-alpha1">;
+  private readonly versionChecker = new RuntimeVersionChecker(this);
 
   constructor(client: HTTPClient) {
     this.client = client;
@@ -37,30 +38,12 @@ export default class HTTPClientMetadata implements IClientMetadata {
    * Failed lookups are retried on the next call; get() still returns fresh metadata.
    */
   getBulkPublishApiVersion(): Promise<"v1.0" | "v1.0-alpha1"> {
-    if (!this.bulkPublishApiVersion) {
-      const apiVersion = this.get().then(({ runtimeVersion }) => {
-        if (runtimeVersion?.trim().toLowerCase() === "edge") {
-          return "v1.0";
-        }
+    return this.versionChecker.getBulkPublishApiVersion();
+  }
 
-        const version = /^v?(\d+)\.(\d+)(?:\.\d+)?(?:[-+].*)?$/i.exec(runtimeVersion?.trim() ?? "");
-        if (!version) {
-          throw new Error(`Unable to determine Dapr runtime version from metadata: '${runtimeVersion ?? ""}'.`);
-        }
-
-        const major = Number(version[1]);
-        const minor = Number(version[2]);
-        return major > 1 || (major === 1 && minor >= 17) ? "v1.0" : "v1.0-alpha1";
-      });
-      this.bulkPublishApiVersion = apiVersion;
-      void apiVersion.catch(() => {
-        if (this.bulkPublishApiVersion === apiVersion) {
-          this.bulkPublishApiVersion = undefined;
-        }
-      });
-    }
-
-    return this.bulkPublishApiVersion;
+  /** Selects stable Jobs or Alpha1 using the same metadata lookup and caching policy. */
+  getJobsApiVersion(): Promise<"v1.0" | "v1.0-alpha1"> {
+    return this.versionChecker.getJobsApiVersion();
   }
 
   async set(key: string, value: string): Promise<boolean> {
