@@ -17,6 +17,12 @@ mistaken for a regular publish by older runtimes. For gRPC, the SDK probes the s
 handler reports `UNKNOWN` with a `failed to proxy request` message on runtimes that do not recognize the RPC.
 Concurrent first publishes share the same version check or RPC probe.
 
+HTTP endpoint selection and caching are centralized in the metadata client. Bulk publishing also uses
+the stable endpoint when the runtime reports `edge` (case-insensitive, ignoring surrounding whitespace).
+This is a bulk-publish-specific compatibility rule, not a general assumption that every API is stable on
+`edge`. Missing or unrecognized versions still fail without publishing, and failed metadata checks are
+retried on the next call. Direct metadata reads remain uncached.
+
 Dapr 1.17 and newer still serve the alpha1 API, so the fallback remains valid for every currently supported
 runtime.
 
