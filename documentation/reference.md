@@ -1022,6 +1022,70 @@ Rerunning creates a new instance; it does not modify the source instance. Omit `
 
 ## Pub/Sub
 
+### Streaming subscriptions (gRPC, alpha)
+
+`client.pubsub.subscribeStream(pubsubName, topic, callback, options?)` subscribes
+directly to the sidecar using `SubscribeTopicEventsAlpha1`. No `DaprServer`,
+application port, or callback endpoint is required. The runtime API is alpha
+and subject to change. HTTP clients throw `HTTPNotSupportedError`; existing
+publishing and server-side subscriptions are unchanged.
+
+```typescript
+import { CommunicationProtocolEnum, DaprClient, DaprPubSubStatusEnum } from "@dapr/dapr";
+
+const client = new DaprClient({ communicationProtocol: CommunicationProtocolEnum.GRPC });
+const shutdown = new AbortController();
+const subscription = await client.pubsub.subscribeStream(
+  "orders-pubsub",
+  "orders",
+  async (data, headers) => {
+    console.log("Order:", data, "CloudEvent attributes:", headers);
+    return DaprPubSubStatusEnum.SUCCESS;
+  },
+  { deadLetterTopic: "failed-orders", signal: shutdown.signal },
+);
+
+// Install an error observer for failures occurring after the subscription opens.
+const completion = subscription.closed.catch((error) => {
+  console.error("Subscription failed:", error);
+  process.exitCode = 1;
+});
+
+// Later, during application shutdown:
+await subscription.close(); // Alternatively: shutdown.abort()
+await completion;
+await client.stop();
+```
+
+The initial call resolves only after the sidecar confirms the subscription, and
+rejects on setup failure. Options accept component-specific `metadata`,
+`deadLetterTopic`, and an optional `AbortSignal` to cancel the stream, including
+while awaiting confirmation. Subscribe separately to the dead-letter topic to
+receive its messages.
+
+Callbacks run sequentially within each subscription. Data uses the same decoding
+as gRPC server subscriptions, including the client's custom serializer if set.
+The second argument contains `id`, `source`, `type`, `specversion`,
+`datacontenttype`, `topic`, `pubsubname`, `path`, and flattened CloudEvent
+extensions (including tracing attributes when present). These are event
+attributes, not HTTP request headers. No generated protobuf types are required.
+
+Return `DaprPubSubStatusEnum.SUCCESS` (or `undefined`) to acknowledge, `RETRY` to
+request retry, or `DROP` to discard. Exceptions, serializer failures, and invalid
+return values are logged and acknowledged with `RETRY`. Actual retry counts,
+delays, and dead-letter behavior depend on the runtime resiliency policy and
+pub/sub component; returning `RETRY` does not guarantee unlimited redelivery.
+Handlers should be idempotent because pub/sub delivery is at least once.
+
+`close()` is idempotent and can be awaited inside a callback. It cancels the
+stream immediately rather than draining messages: an in-flight callback may
+finish, but its event is not acknowledged. `closed` waits for that callback and
+resolves after cancellation, or rejects on transport/protocol failure or
+unexpected end of stream. Failures are also logged. There is no automatic
+reconnection; applications can explicitly create a new subscription after
+handling a failure. Close all subscriptions explicitly before stopping the
+client; `client.stop()` does not close streaming subscriptions.
+
 ## Bindings
 
 ## Actors
