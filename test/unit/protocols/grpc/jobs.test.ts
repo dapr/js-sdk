@@ -127,6 +127,23 @@ describe("gRPC Jobs", () => {
     expect(metadataCalls).toBe(2);
   });
 
+  it.each(["1.16.0", "1.18.0"])("round-trips immediate-retry policies on %s", async (version) => {
+    runtimeVersion = version;
+    for (const interval of [undefined, "0s"]) {
+      for (const maxRetries of [undefined, 0, 4]) {
+        await client.jobs.schedule("test", {
+          dueTime: "1h",
+          failurePolicy: { type: "constant", interval, maxRetries },
+        });
+        expect((await client.jobs.get("test")).failurePolicy).toStrictEqual({
+          type: "constant",
+          interval,
+          maxRetries,
+        });
+      }
+    }
+  });
+
   it.each([
     Code.Unimplemented,
     Code.NotFound,

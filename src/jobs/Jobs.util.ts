@@ -111,9 +111,9 @@ export function encodeJob(name: string, options: JobOptions): ProtoJob {
     if (policy.type === "drop") {
       job.failurePolicy = create(JobFailurePolicySchema, { policy: { case: "drop", value: {} } });
     } else if (policy.type === "constant") {
-      const interval = fromJson(DurationSchema, policy.interval);
-      if (interval.seconds < 0n || (interval.seconds === 0n && interval.nanos <= 0)) {
-        throw new RangeError("Failure policy interval must be positive");
+      const interval = policy.interval === undefined ? undefined : fromJson(DurationSchema, policy.interval);
+      if (interval && (interval.seconds < 0n || interval.nanos < 0)) {
+        throw new RangeError("Failure policy interval must not be negative");
       }
       if (policy.maxRetries !== undefined) {
         validateUint32(policy.maxRetries, "maxRetries");
@@ -158,12 +158,9 @@ export function decodeJob(job?: ProtoJob): Job {
   if (policy?.case === "drop") {
     failurePolicy = { type: "drop" };
   } else if (policy?.case === "constant") {
-    if (!policy.value.interval) {
-      throw new TypeError("Invalid Jobs response: missing retry interval");
-    }
     failurePolicy = {
       type: "constant",
-      interval: toJson(DurationSchema, policy.value.interval) as string,
+      interval: policy.value.interval ? (toJson(DurationSchema, policy.value.interval) as string) : undefined,
       maxRetries: policy.value.maxRetries,
     };
   }
