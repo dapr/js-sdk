@@ -413,7 +413,11 @@ export default class HTTPClient implements IClient {
     params?: THTTPExecuteParams | undefined | null,
     requiresInitialization = true,
   ): Promise<object | string> {
+    params?.signal?.throwIfAborted();
     const clientOptions: RequestInit = {};
+    if (params?.signal !== undefined) {
+      clientOptions.signal = params.signal;
+    }
 
     // Set Method
     clientOptions.method = params?.method.toLocaleUpperCase() || (params?.body ? "POST" : "GET");
@@ -454,7 +458,23 @@ export default class HTTPClient implements IClient {
       )}, body size: ${(clientOptions.body?.toString()?.length ?? 0) / 1024 / 1024} Mb)`,
     );
 
-    const client = await this.getClient(requiresInitialization);
+    const pendingClient = this.getClient(requiresInitialization);
+    const signal = params?.signal;
+    // Cancel this caller's wait without cancelling initialization shared by other requests.
+    const client = signal
+      ? await new Promise<typeof fetch>((resolve, reject) => {
+          const abort = () => {
+            signal.removeEventListener("abort", abort);
+            reject(signal.reason);
+          };
+          signal.addEventListener("abort", abort, { once: true });
+          pendingClient.then(resolve, reject).finally(() => signal.removeEventListener("abort", abort));
+          if (signal.aborted) {
+            abort();
+          }
+        })
+      : await pendingClient;
+    signal?.throwIfAborted();
     const res = await client(urlFull, clientOptions);
 
     // Parse body
@@ -463,7 +483,7 @@ export default class HTTPClient implements IClient {
 
     try {
       txtParsed = JSON.parse(txt);
-    } catch (e) {
+    } catch {
       txtParsed = txt;
     }
 

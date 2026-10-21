@@ -37,6 +37,10 @@ The helper returns the callback's result and preserves baggage across `await` an
 
 Keys must be nonempty HTTP tokens; values must be unencoded strings and are percent-encoded for transmission. Invalid entries throw before the callback runs. Explicit request `baggage` headers take precedence over the context, and existing trace headers and API tokens are preserved. Dapr runtimes with baggage support forward it across service calls. This helper does not create spans, configure tracing, or automatically extract baggage from incoming requests. Avoid putting secrets or sensitive personal data in baggage.
 
+### Search
+
+`client.search` supports index management, document indexing/retrieval/deletion, and lexical or native queries over HTTP using Dapr's Search Alpha1 API (1.19+). See the [Search reference](documentation/reference.md#search-alpha1) for typed examples, acknowledgement semantics, and runtime requirements.
+
 ## Community
 
 There are multiple ways to get involved with the SDK community, please see [wiki/Community-engagement](https://github.com/dapr/js-sdk/wiki/Community-engagement) for more information.

@@ -21,6 +21,7 @@ export type THTTPExecuteParams = {
   headers?: { [key: string]: any };
   method: string;
   agent?: http.Agent | https.Agent;
+  signal?: AbortSignal;
   /** @internal Serialize only a raw application payload, never a Dapr API envelope. */
   serializer?: IDaprSerializer;
   /** @internal Return successful response bytes as UTF-8 without JSON parsing. */

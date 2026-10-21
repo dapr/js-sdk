@@ -301,8 +301,21 @@ describe("Jobs encoding", () => {
   it("rejects non-JSON values and cycles instead of silently corrupting payloads", () => {
     const cycle: Record<string, unknown> = {};
     cycle.self = cycle;
-    for (const data of [NaN, Infinity, { nested: NaN }, { missing: undefined }, new Date(), cycle]) {
-      expect(() => encodeJob("test", { dueTime: "1s", data } as JobOptions)).toThrow();
+    const invalid: [unknown, string][] = [
+      [NaN, "Job data must contain only JSON values"],
+      [Infinity, "Job data must contain only JSON values"],
+      [{ nested: NaN }, "Job data must contain only JSON values"],
+      [{ missing: undefined }, "Job data must contain only JSON values"],
+      [new Date(0), "Job data must contain only plain JSON objects"],
+      [{ nested: new Date(0) }, "Job data must contain only plain JSON objects"],
+      [cycle, "Job data must not contain circular references"],
+      [{ nested: cycle }, "Job data must not contain circular references"],
+    ];
+    for (const [data, message] of invalid) {
+      // @ts-expect-error Exercise validation of invalid JSON from JavaScript callers.
+      expect(() => encodeJob("test", { dueTime: "1s", data })).toThrow(
+        expect.objectContaining({ name: "TypeError", message }),
+      );
     }
     const shared = { value: 1 };
     expect(decodeJob(encodeJob("test", { dueTime: "1s", data: { a: shared, b: shared } })).data).toEqual({

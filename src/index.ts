@@ -126,6 +126,17 @@ export type { NamedActorReminderType } from "./types/ActorReminder.type";
 export { JsonSerializer } from "./serialization/JsonSerializer";
 export type { default as IClientBinaryStore } from "./interfaces/Client/IClientBinaryStore";
 export type { default as IClientConversation } from "./interfaces/Client/IClientConversation";
+export type { default as IClientSearch } from "./interfaces/Client/IClientSearch";
+export type {
+  IndexAck,
+  IndexDocumentsResult,
+  IndexingOptions,
+  SearchDocument,
+  SearchIndex,
+  SearchOptions,
+  SearchQuery,
+  SearchResult,
+} from "./types/search/Search.types";
 export type {
   ConversationJsonValue,
   ConversationJsonObject,

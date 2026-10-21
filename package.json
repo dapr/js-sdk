@@ -22,7 +22,8 @@
     "test:e2e:grpc:client": "jest --runInBand --forceExit --testMatch [ '**/test/e2e/grpc/*client.test.ts' ]",
     "test:e2e:grpc:clientWithApiToken": "jest --runInBand --forceExit --testMatch [ '**/test/e2e/grpc/clientWithApiToken.test.ts' ]",
     "test:e2e:grpc:server": "jest --runInBand --forceExit --testMatch [ '**/test/e2e/grpc/*server.test.ts' ]",
-    "test:e2e:http": "npm run test:e2e:http:client && npm run test:e2e:http:server && npm run test:e2e:http:actors",
+    "test:e2e:http": "npm run test:e2e:http:client && npm run test:e2e:http:server && npm run test:e2e:http:actors && npm run test:e2e:search",
+    "test:e2e:search": "jest test/e2e/http/search.test.ts --runInBand --forceExit",
     "test:e2e:http:client": "jest --runInBand --forceExit --testMatch [ '**/test/e2e/http/(client).test.ts' ]",
     "test:e2e:http:server": "jest --runInBand --forceExit --testMatch [ '**/test/e2e/http/(server).test.ts' ]",
     "test:e2e:http:actors": "jest --runInBand --forceExit --testMatch [ '**/test/e2e/http/actors.test.ts' ]",
@@ -75,7 +76,7 @@
   },
   "devDependencies": {
     "@bufbuild/buf": "^1.57.2",
-    "@dapr/testcontainer-node": "1.0.5",
+    "@dapr/testcontainer-node": "1.0.6",
     "@opentelemetry/context-async-hooks": "^2.0.0",
     "@opentelemetry/exporter-zipkin": "^2.0.0",
     "@opentelemetry/resources": "^2.0.0",
