@@ -313,6 +313,7 @@ export default class GRPCServerImpl {
         status = await cb(data, headers);
       } catch (e) {
         this.logger.error(`[route - ${routeObj.path}]Message processing failed, ${e}`);
+        status = DaprPubSubStatusEnum.RETRY;
       }
 
       statuses.push(status ?? DaprPubSubStatusEnum.SUCCESS);
