@@ -21,6 +21,7 @@ import {
   getBulkPublishResponse,
   getClientOptions,
   createHTTPQueryParam,
+  withAbortSignal,
 } from "../../../src/utils/Client.util";
 import { PubSubBulkPublishEntry } from "../../../src/types/pubsub/PubSubBulkPublishEntry.type";
 import { PubSubBulkPublishApiResponse } from "../../../src/types/pubsub/PubSubBulkPublishApiResponse.type";
@@ -29,6 +30,37 @@ import { DaprClient } from "../../../src";
 import { Settings } from "../../../src/utils/Settings.util";
 
 describe("Client.util", () => {
+  describe("withAbortSignal", () => {
+    it("returns the original promise when no signal is supplied", () => {
+      const pending = Promise.resolve(1);
+      expect(withAbortSignal(pending)).toBe(pending);
+    });
+
+    it.each(["resolve", "reject"] as const)("removes the listener after %s", async (settlement) => {
+      const controller = new AbortController();
+      const remove = jest.spyOn(controller.signal, "removeEventListener");
+      const error = new Error("failure");
+      const pending = withAbortSignal(
+        settlement === "resolve" ? Promise.resolve(7) : Promise.reject(error),
+        controller.signal,
+      );
+      if (settlement === "resolve") {
+        await expect(pending).resolves.toBe(7);
+      } else {
+        await expect(pending).rejects.toBe(error);
+      }
+      expect(remove).toHaveBeenCalledWith("abort", expect.any(Function));
+      remove.mockRestore();
+    });
+
+    it("observes underlying rejections even when the signal was already aborted", async () => {
+      const controller = new AbortController();
+      const reason = new Error("cancelled");
+      controller.abort(reason);
+      await expect(withAbortSignal(Promise.reject(new Error("later failure")), controller.signal)).rejects.toBe(reason);
+    });
+  });
+
   describe("addMetadataToMap", () => {
     it("should add values to Map", () => {
       const m = new Map<string, string>([]);

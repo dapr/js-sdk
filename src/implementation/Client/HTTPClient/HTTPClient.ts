@@ -26,6 +26,7 @@ import * as SerializerUtil from "../../../utils/Serializer.util";
 import communicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
 import { HttpEndpoint } from "../../../network/HttpEndpoint";
 import { getBaggageHeader } from "../../../utils/Baggage.util";
+import { withAbortSignal } from "../../../utils/Client.util";
 
 /**
  * HTTP-based Dapr client implementation.
@@ -413,7 +414,11 @@ export default class HTTPClient implements IClient {
     params?: THTTPExecuteParams | undefined | null,
     requiresInitialization = true,
   ): Promise<object | string> {
+    params?.signal?.throwIfAborted();
     const clientOptions: RequestInit = {};
+    if (params?.signal !== undefined) {
+      clientOptions.signal = params.signal;
+    }
 
     // Set Method
     clientOptions.method = params?.method.toLocaleUpperCase() || (params?.body ? "POST" : "GET");
@@ -454,7 +459,8 @@ export default class HTTPClient implements IClient {
       )}, body size: ${(clientOptions.body?.toString()?.length ?? 0) / 1024 / 1024} Mb)`,
     );
 
-    const client = await this.getClient(requiresInitialization);
+    const client = await withAbortSignal(this.getClient(requiresInitialization), params?.signal);
+    params?.signal?.throwIfAborted();
     const res = await client(urlFull, clientOptions);
 
     // Parse body
@@ -463,7 +469,7 @@ export default class HTTPClient implements IClient {
 
     try {
       txtParsed = JSON.parse(txt);
-    } catch (e) {
+    } catch {
       txtParsed = txt;
     }
 

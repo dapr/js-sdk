@@ -24,6 +24,20 @@ import {
   PubSubStreamingSubscription,
   PubSubStreamingSubscriptionOptions,
   Temporal,
+  IClientVector,
+  VectorBatchQueryResult,
+  VectorCollection,
+  VectorCreateCollectionOptions,
+  VectorDistanceMetric,
+  VectorError,
+  VectorErrorDetail,
+  VectorIndexAck,
+  VectorIndexingOptions,
+  VectorOptions,
+  VectorQuery,
+  VectorQueryResult,
+  VectorRecord,
+  VectorUpsertResult,
 } from "@dapr/dapr";
 
 export async function subscribe(client: DaprClient): Promise<PubSubStreamingSubscription> {
@@ -82,6 +96,75 @@ const _noRole: ConversationMessage = {};
 const _parsedArguments: ConversationToolCalls = { function: { name: "search", arguments: {} } };
 // @ts-expect-error Cache retention uses Temporal.Duration, not a provider-specific string.
 const _rawDuration: ConversationRequestAlpha2 = { name: "llm", inputs: [], promptCacheRetention: "24h" };
+
+export async function vectors(client: DaprClient): Promise<VectorBatchQueryResult[]> {
+  const vector: IClientVector = client.vector;
+  const metric: VectorDistanceMetric = "cosine";
+  const options: VectorOptions = { metadata: { tenant: "test" }, signal: new AbortController().signal };
+  const createOptions: VectorCreateCollectionOptions = { ...options, dimensions: 3, metric };
+  await vector.createCollection("vectors", "documents", createOptions);
+  const collection: VectorCollection = await vector.getCollection("vectors", "documents", options);
+  const names: string[] = await vector.listCollections("vectors", options);
+  const records: readonly VectorRecord[] = [
+    { id: "doc", values: [1, 0, 0], payload: Buffer.from("opaque"), metadata: { nested: { tags: ["docs", null] } } },
+  ];
+  const writeOptions: VectorIndexingOptions = {
+    ...options,
+    mode: "waitForCompletion",
+    waitTimeout: "5s",
+    onWaitTimeout: "failRequest",
+  };
+  const write: VectorUpsertResult = await vector.upsertVectors("vectors", "documents", records, writeOptions);
+  const error: VectorError | undefined = write.failedItems[0]?.error;
+  const detail: VectorErrorDetail | undefined = error?.details[0];
+  const read: VectorRecord[] = await vector.getVectors("vectors", "documents", ["doc"], { includeValues: true });
+  const query: VectorQuery = { vector: [1, 0, 0], topK: 3, includePayload: true, filter: { title: { $exists: true } } };
+  const result: VectorQueryResult = await vector.queryVectors("vectors", "documents", query, options);
+  const batch = await vector.batchQueryVectors("vectors", "documents", [query, { byId: "doc" }], options);
+  const ack: VectorIndexAck = await vector.deleteVectors("vectors", "documents", ["doc"], writeOptions);
+  await vector.deleteCollection("vectors", "documents", options);
+  console.log(collection, names, detail, read, result, ack);
+  return batch;
+}
+
+// @ts-expect-error Vector queries require exactly one source.
+const _twoVectorSources: VectorQuery = { vector: [1], byId: "doc" };
+// @ts-expect-error Vector queries require a source.
+const _noVectorSource: VectorQuery = { topK: 10 };
+// @ts-expect-error Waiting requires an explicit timeout action.
+const _missingTimeoutAction: VectorIndexingOptions = { mode: "waitForCompletion", waitTimeout: "5s" };
+// @ts-expect-error Acceptance does not accept wait settings.
+const _acceptanceTimeout: VectorIndexingOptions = { mode: "returnOnAcceptance", waitTimeout: "5s" };
+// @ts-expect-error Collection dimensions are required.
+const _noDimensions: VectorCreateCollectionOptions = { metric: "cosine" };
+// @ts-expect-error Payloads are opaque bytes, not application objects.
+const _jsonVectorPayload: VectorRecord = { id: "doc", values: [1], payload: { text: "not bytes" } };
+// @ts-expect-error A batch slot cannot contain both a response and an error.
+const _ambiguousVectorResult: VectorBatchQueryResult = {
+  response: { matches: [], metric: "cosine" },
+  error: { code: 3, message: "error", details: [] },
+};
+// @ts-expect-error A batch result cannot omit both discriminants.
+const _emptyVectorResult: VectorBatchQueryResult = {};
+// @ts-expect-error Request metadata is string-valued, unlike structured record metadata.
+const _structuredRequestMetadata: VectorOptions = { metadata: { nested: { key: "value" } } };
+// @ts-expect-error Inclusion flags are booleans, not protobuf JSON strings.
+const _stringInclusionFlag: VectorQuery = { byId: "doc", includePayload: "false" };
+// @ts-expect-error Unsupported metrics cannot silently change query semantics.
+const _unknownVectorMetric: VectorQuery = { byId: "doc", metric: "manhattan" };
+const _numericVectorTimeout: VectorIndexingOptions = {
+  mode: "waitForCompletion",
+  // @ts-expect-error Waiting requires a protobuf duration, not a numeric millisecond count.
+  waitTimeout: 1000,
+  onWaitTimeout: "failRequest",
+};
+// @ts-expect-error Wait settings require the waitForCompletion mode.
+const _implicitVectorWait: VectorIndexingOptions = { waitTimeout: "1s", onWaitTimeout: "continueAsync" };
+
+export function vectorBatchSummary(result: VectorBatchQueryResult): string | number {
+  if (result.error !== undefined) return result.error.message;
+  return result.response.matches.length;
+}
 
 const daprHost = "127.0.0.1";
 const daprPortDefault = "3500";

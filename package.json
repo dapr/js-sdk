@@ -26,7 +26,8 @@
     "test:e2e:http:client": "jest --runInBand --forceExit --testMatch [ '**/test/e2e/http/(client).test.ts' ]",
     "test:e2e:http:server": "jest --runInBand --forceExit --testMatch [ '**/test/e2e/http/(server).test.ts' ]",
     "test:e2e:http:actors": "jest --runInBand --forceExit --testMatch [ '**/test/e2e/http/actors.test.ts' ]",
-    "test:e2e:common": "npm run test:e2e:common:client && npm run test:e2e:common:server && npm run test:e2e:baggage && npm run test:e2e:jobs && npm run test:e2e:conversation && npm run test:e2e:crypto",
+    "test:e2e:common": "npm run test:e2e:common:client && npm run test:e2e:common:server && npm run test:e2e:baggage && npm run test:e2e:jobs && npm run test:e2e:conversation && npm run test:e2e:crypto && npm run test:e2e:vector",
+    "test:e2e:vector": "jest test/e2e/common/vector.test.ts --runInBand --forceExit",
     "test:e2e:crypto": "jest test/e2e/common/crypto.test.ts --runInBand --forceExit",
     "test:e2e:jobs": "jest test/e2e/common/jobs.test.ts --runInBand --forceExit",
     "test:e2e:conversation": "jest test/e2e/common/conversation.test.ts --runInBand --forceExit",
@@ -75,7 +76,7 @@
   },
   "devDependencies": {
     "@bufbuild/buf": "^1.57.2",
-    "@dapr/testcontainer-node": "1.0.5",
+    "@dapr/testcontainer-node": "1.0.6",
     "@opentelemetry/context-async-hooks": "^2.0.0",
     "@opentelemetry/exporter-zipkin": "^2.0.0",
     "@opentelemetry/resources": "^2.0.0",

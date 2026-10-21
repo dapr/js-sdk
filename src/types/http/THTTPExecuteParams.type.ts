@@ -25,4 +25,5 @@ export type THTTPExecuteParams = {
   serializer?: IDaprSerializer;
   /** @internal Return successful response bytes as UTF-8 without JSON parsing. */
   responseType?: "text";
+  signal?: AbortSignal;
 };

@@ -31,6 +31,8 @@ import type { GetMetadataRequestSchema, GetMetadataResponseSchema, SetMetadataRe
 import type { GetWorkflowRequestSchema, GetWorkflowResponseSchema, PauseWorkflowRequestSchema, PurgeWorkflowRequestSchema, RaiseEventWorkflowRequestSchema, ResumeWorkflowRequestSchema, StartWorkflowRequestSchema, StartWorkflowResponseSchema, TerminateWorkflowRequestSchema } from "./workflow_pb.js";
 import type { DeleteJobRequestSchema, DeleteJobResponseSchema, DeleteJobsByPrefixRequestAlpha1Schema, DeleteJobsByPrefixRequestSchema, DeleteJobsByPrefixResponseAlpha1Schema, DeleteJobsByPrefixResponseSchema, GetJobRequestSchema, GetJobResponseSchema, ListJobsRequestAlpha1Schema, ListJobsRequestSchema, ListJobsResponseAlpha1Schema, ListJobsResponseSchema, ScheduleJobRequestSchema, ScheduleJobResponseSchema } from "./jobs_pb.js";
 import type { ConversationRequestAlpha2Schema, ConversationRequestSchema, ConversationResponseAlpha2Schema, ConversationResponseSchema } from "./ai_pb.js";
+import type { CreateIndexRequestAlpha1Schema, DeleteDocumentsRequestAlpha1Schema, DeleteDocumentsResponseAlpha1Schema, DeleteIndexRequestAlpha1Schema, GetDocumentsRequestAlpha1Schema, GetDocumentsResponseAlpha1Schema, GetIndexRequestAlpha1Schema, GetIndexResponseAlpha1Schema, IndexDocumentsRequestAlpha1Schema, IndexDocumentsResponseAlpha1Schema, ListIndexesRequestAlpha1Schema, ListIndexesResponseAlpha1Schema, SearchRequestAlpha1Schema, SearchResponseAlpha1Schema } from "./search_pb.js";
+import type { BatchQueryVectorsRequestAlpha1Schema, BatchQueryVectorsResponseAlpha1Schema, CreateCollectionRequestAlpha1Schema, DeleteCollectionRequestAlpha1Schema, DeleteVectorsRequestAlpha1Schema, DeleteVectorsResponseAlpha1Schema, GetCollectionRequestAlpha1Schema, GetCollectionResponseAlpha1Schema, GetVectorsRequestAlpha1Schema, GetVectorsResponseAlpha1Schema, ListCollectionsRequestAlpha1Schema, ListCollectionsResponseAlpha1Schema, QueryVectorsRequestAlpha1Schema, QueryVectorsResponseAlpha1Schema, UpsertVectorsRequestAlpha1Schema, UpsertVectorsResponseAlpha1Schema } from "./vector_pb.js";
 import type { DeleteBinaryFileRequestAlpha1Schema, DeleteBinaryFileResponseAlpha1Schema, GetBinaryFileRequestAlpha1Schema, GetBinaryFileResponseAlpha1Schema, SetBinaryFileRequestAlpha1Schema, SetBinaryFileResponseAlpha1Schema } from "./binarystore_pb.js";
 
 /**
@@ -815,6 +817,177 @@ export declare const Dapr: GenService<{
     methodKind: "unary";
     input: typeof ConversationRequestAlpha2Schema;
     output: typeof ConversationResponseAlpha2Schema;
+  },
+  /**
+   * Create an index.
+   *
+   * @generated from rpc dapr.proto.runtime.v1.Dapr.CreateIndexAlpha1
+   */
+  createIndexAlpha1: {
+    methodKind: "unary";
+    input: typeof CreateIndexRequestAlpha1Schema;
+    output: typeof EmptySchema;
+  },
+  /**
+   * Get an index.
+   *
+   * @generated from rpc dapr.proto.runtime.v1.Dapr.GetIndexAlpha1
+   */
+  getIndexAlpha1: {
+    methodKind: "unary";
+    input: typeof GetIndexRequestAlpha1Schema;
+    output: typeof GetIndexResponseAlpha1Schema;
+  },
+  /**
+   * List indexes.
+   *
+   * @generated from rpc dapr.proto.runtime.v1.Dapr.ListIndexesAlpha1
+   */
+  listIndexesAlpha1: {
+    methodKind: "unary";
+    input: typeof ListIndexesRequestAlpha1Schema;
+    output: typeof ListIndexesResponseAlpha1Schema;
+  },
+  /**
+   * Delete an index.
+   *
+   * @generated from rpc dapr.proto.runtime.v1.Dapr.DeleteIndexAlpha1
+   */
+  deleteIndexAlpha1: {
+    methodKind: "unary";
+    input: typeof DeleteIndexRequestAlpha1Schema;
+    output: typeof EmptySchema;
+  },
+  /**
+   * Index (keyed upsert) documents.
+   *
+   * @generated from rpc dapr.proto.runtime.v1.Dapr.IndexDocumentsAlpha1
+   */
+  indexDocumentsAlpha1: {
+    methodKind: "unary";
+    input: typeof IndexDocumentsRequestAlpha1Schema;
+    output: typeof IndexDocumentsResponseAlpha1Schema;
+  },
+  /**
+   * Get documents by ID.
+   *
+   * @generated from rpc dapr.proto.runtime.v1.Dapr.GetDocumentsAlpha1
+   */
+  getDocumentsAlpha1: {
+    methodKind: "unary";
+    input: typeof GetDocumentsRequestAlpha1Schema;
+    output: typeof GetDocumentsResponseAlpha1Schema;
+  },
+  /**
+   * Delete documents by ID.
+   *
+   * @generated from rpc dapr.proto.runtime.v1.Dapr.DeleteDocumentsAlpha1
+   */
+  deleteDocumentsAlpha1: {
+    methodKind: "unary";
+    input: typeof DeleteDocumentsRequestAlpha1Schema;
+    output: typeof DeleteDocumentsResponseAlpha1Schema;
+  },
+  /**
+   * Search an index.
+   *
+   * @generated from rpc dapr.proto.runtime.v1.Dapr.SearchAlpha1
+   */
+  searchAlpha1: {
+    methodKind: "unary";
+    input: typeof SearchRequestAlpha1Schema;
+    output: typeof SearchResponseAlpha1Schema;
+  },
+  /**
+   * Create a collection.
+   *
+   * @generated from rpc dapr.proto.runtime.v1.Dapr.CreateCollectionAlpha1
+   */
+  createCollectionAlpha1: {
+    methodKind: "unary";
+    input: typeof CreateCollectionRequestAlpha1Schema;
+    output: typeof EmptySchema;
+  },
+  /**
+   * Get a collection.
+   *
+   * @generated from rpc dapr.proto.runtime.v1.Dapr.GetCollectionAlpha1
+   */
+  getCollectionAlpha1: {
+    methodKind: "unary";
+    input: typeof GetCollectionRequestAlpha1Schema;
+    output: typeof GetCollectionResponseAlpha1Schema;
+  },
+  /**
+   * List collections.
+   *
+   * @generated from rpc dapr.proto.runtime.v1.Dapr.ListCollectionsAlpha1
+   */
+  listCollectionsAlpha1: {
+    methodKind: "unary";
+    input: typeof ListCollectionsRequestAlpha1Schema;
+    output: typeof ListCollectionsResponseAlpha1Schema;
+  },
+  /**
+   * Delete a collection.
+   *
+   * @generated from rpc dapr.proto.runtime.v1.Dapr.DeleteCollectionAlpha1
+   */
+  deleteCollectionAlpha1: {
+    methodKind: "unary";
+    input: typeof DeleteCollectionRequestAlpha1Schema;
+    output: typeof EmptySchema;
+  },
+  /**
+   * Upsert (keyed) vectors.
+   *
+   * @generated from rpc dapr.proto.runtime.v1.Dapr.UpsertVectorsAlpha1
+   */
+  upsertVectorsAlpha1: {
+    methodKind: "unary";
+    input: typeof UpsertVectorsRequestAlpha1Schema;
+    output: typeof UpsertVectorsResponseAlpha1Schema;
+  },
+  /**
+   * Delete vectors by ID.
+   *
+   * @generated from rpc dapr.proto.runtime.v1.Dapr.DeleteVectorsAlpha1
+   */
+  deleteVectorsAlpha1: {
+    methodKind: "unary";
+    input: typeof DeleteVectorsRequestAlpha1Schema;
+    output: typeof DeleteVectorsResponseAlpha1Schema;
+  },
+  /**
+   * Get vectors by ID.
+   *
+   * @generated from rpc dapr.proto.runtime.v1.Dapr.GetVectorsAlpha1
+   */
+  getVectorsAlpha1: {
+    methodKind: "unary";
+    input: typeof GetVectorsRequestAlpha1Schema;
+    output: typeof GetVectorsResponseAlpha1Schema;
+  },
+  /**
+   * Query vectors.
+   *
+   * @generated from rpc dapr.proto.runtime.v1.Dapr.QueryVectorsAlpha1
+   */
+  queryVectorsAlpha1: {
+    methodKind: "unary";
+    input: typeof QueryVectorsRequestAlpha1Schema;
+    output: typeof QueryVectorsResponseAlpha1Schema;
+  },
+  /**
+   * Issue multiple queries against the same collection, each succeeding or
+   * failing on its own.
+   *
+   * @generated from rpc dapr.proto.runtime.v1.Dapr.BatchQueryVectorsAlpha1
+   */
+  batchQueryVectorsAlpha1: {
+    methodKind: "unary";
+    input: typeof BatchQueryVectorsRequestAlpha1Schema;
+    output: typeof BatchQueryVectorsResponseAlpha1Schema;
   },
   /**
    * Stores a binary file using a streaming request. The first message must
