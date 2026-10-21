@@ -86,7 +86,7 @@ export default class HTTPServerImpl {
       try {
         // This can be JSON, so try to parse it.
         return JSON.parse(parsedBase64);
-      } catch (_e) {
+      } catch {
         // If it's not JSON, use the string as-is.
         return parsedBase64;
       }
@@ -176,7 +176,7 @@ export default class HTTPServerImpl {
           // This can be JSON, so try to parse it.
           parsedData = JSON.parse(data);
           data = parsedData;
-        } catch (_e) {
+        } catch {
           // If it's not JSON, use the string as-is.
           // Skip and continue with the same data
         }
@@ -198,11 +198,9 @@ export default class HTTPServerImpl {
 
     this.logger.debug(`[route-${routeObj.path}] Ack'ing the bulk message`);
 
-    const bulkResult: BulkSubscribeResponse = {
+    return {
       statuses: resArr,
-    };
-
-    return bulkResult;
+    } as BulkSubscribeResponse;
   }
 
   async processPubSubCallbacks(
@@ -220,8 +218,8 @@ export default class HTTPServerImpl {
       try {
         status = await cb(data, headers);
       } catch (e) {
-        // We catch and log an error, but we don't do anything with it as the statuses should define that
         this.logger.error(`[route-${routeObj.path}] Message processing failed, ${e}`);
+        status = DaprPubSubStatusEnum.RETRY;
       }
 
       statuses.push(status ?? DaprPubSubStatusEnum.SUCCESS);
