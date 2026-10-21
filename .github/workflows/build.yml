@@ -198,6 +198,11 @@ jobs:
           node-version: ${{ env.NODE_VER }}
           registry-url: "https://registry.npmjs.org"
 
+      - name: Setup npm for trusted publishing
+        run: |
+          npm install --global npm@11.21.1
+          npm --version
+
       - name: Set version from tag
         run: |
           # Strip the leading 'v' from the tag ref (e.g. refs/tags/v1.2.3 -> 1.2.3)
@@ -211,6 +216,11 @@ jobs:
         run: npm run build-ci
 
       - name: Publish to npm (@dapr/dapr)
-        run: npm publish build/ --access public
+        run: |
+          NPM_TAG=latest
+          if [[ "${GITHUB_REF%%+*}" == *-* ]]; then
+            NPM_TAG=next
+          fi
+          npm publish build/ --access public --tag "$NPM_TAG"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
