@@ -20,6 +20,7 @@ import {
   WorkerCapability,
   type WorkItem,
   WorkflowResponseSchema,
+  ActivityResponseSchema,
 } from "../../../src/proto/dapr/proto/durabletask/v1/orchestrator_service_pb";
 import { HistoryEventSchema } from "../../../src/proto/dapr/proto/durabletask/v1/history_events_pb";
 import { OrchestrationStatus } from "../../../src/proto/dapr/proto/durabletask/v1/orchestration_pb";
@@ -253,6 +254,7 @@ describe("TaskHubWorker work-item dispatch", () => {
         },
         message: "A non-Error value was thrown",
       },
+      { value: new Error("Something went wrong!"), message: "Something went wrong!" },
       { value: new TypeError("typed failure"), message: "typed failure" },
     ].flatMap((testCase) => [false, true].map((asynchronous) => ({ ...testCase, asynchronous }))),
   )(
@@ -283,18 +285,33 @@ describe("TaskHubWorker work-item dispatch", () => {
       );
       await worker.start();
       try {
-        stream.push(activityItem(1));
+        stream.push(
+          create(WorkItemSchema, {
+            request: {
+              case: "activityRequest",
+              value: { name: "activity", taskId: 2, workflowInstance: { instanceId: "wf" } },
+            },
+            completionToken: "activity-failure-token",
+          }),
+        );
         await settle();
         expect(completeActivityTask).toHaveBeenCalledTimes(1);
-        expect(completeActivityTask.mock.calls[0][0]).toMatchObject({
-          taskId: 1,
-          failureDetails: { errorType: value instanceof Error ? "TypeError" : "Error", errorMessage: message },
+        const response = fromBinary(
+          ActivityResponseSchema,
+          toBinary(ActivityResponseSchema, completeActivityTask.mock.calls[0][0]),
+        );
+        expect(response).toMatchObject({
+          instanceId: "wf",
+          taskId: 2,
+          completionToken: "activity-failure-token",
+          failureDetails: { errorType: value instanceof Error ? value.name : "Error", errorMessage: message },
         });
+        expect(response.result).toBeUndefined();
         if (value instanceof Error) {
-          expect(completeActivityTask.mock.calls[0][0].failureDetails.stackTrace).toBe(value.stack);
+          expect(response.failureDetails?.stackTrace).toBe(value.stack);
         }
         if (message === "object failure") {
-          expect(completeActivityTask.mock.calls[0][0].failureDetails.stackTrace).toBe("object stack");
+          expect(response.failureDetails?.stackTrace).toBe("object stack");
         }
         expect(getWorkItems).toHaveBeenCalledTimes(1);
         expect(getWorkItems.mock.calls[0][1].signal.aborted).toBe(false);

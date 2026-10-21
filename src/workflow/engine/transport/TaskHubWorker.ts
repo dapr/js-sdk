@@ -27,7 +27,6 @@ import {
   type WorkflowRequest,
   type ActivityRequest,
   type WorkflowResponse,
-  type ActivityResponse,
   WorkflowResponseSchema,
   ActivityResponseSchema,
 } from "../../../proto/dapr/proto/durabletask/v1/orchestrator_service_pb";
@@ -432,7 +431,11 @@ export class TaskHubWorker {
       return;
     }
 
-    let res: ActivityResponse;
+    const res = create(ActivityResponseSchema, {
+      instanceId,
+      taskId: req.taskId,
+      completionToken,
+    });
 
     try {
       const executor = new ActivityExecutor(this._registry, this.serializer, this.payloads);
@@ -440,22 +443,12 @@ export class TaskHubWorker {
         executor.execute(instanceId, req.name, req.taskId, req.input, req.propagatedHistory, req.taskExecutionId),
       );
 
-      res = create(ActivityResponseSchema, {
-        instanceId,
-        taskId: req.taskId,
-        result: result ?? undefined,
-        completionToken,
-      });
+      res.result = result ?? undefined;
     } catch (e: unknown) {
       const error = toError(e);
       this.logger.error(`An error occurred while trying to execute activity '${req.name}': ${error.message}`);
 
-      res = create(ActivityResponseSchema, {
-        instanceId,
-        taskId: req.taskId,
-        failureDetails: newFailureDetails(error),
-        completionToken,
-      });
+      res.failureDetails = newFailureDetails(error);
     }
 
     await this.completeWithRetry(

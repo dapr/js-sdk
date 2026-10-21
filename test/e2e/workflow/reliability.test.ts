@@ -17,6 +17,7 @@ import {
   DaprWorkflowClient,
   WorkflowRuntime,
   WorkflowContext,
+  WorkflowActivityContext,
   WorkflowRuntimeStatus,
   type Task,
   type TWorkflow,
@@ -325,6 +326,96 @@ describe("workflow reliability", () => {
       expect(new Set(all).size).toBe(6);
       expect(replayed.size).toBe(6);
       for (const values of replayed.values()) expect(values.size).toBe(1);
+    },
+    60000,
+  );
+
+  it.each([false, true])(
+    "propagates activity errors without stalling workflows (async workflow: %s)",
+    async (asyncGenerator) => {
+      type FailureInput = { activity: string; message: string };
+      const attempts = new Map<string, number>();
+      let streams = 0;
+      const interceptor: Interceptor = (next) => (request) => {
+        if (request.method.name === "GetWorkItems") streams++;
+        return next(request);
+      };
+      runtime = new WorkflowRuntime({ ...options(), grpcOptions: { interceptors: [interceptor] } });
+      const fail = (_ctx: WorkflowActivityContext, message: string): never => {
+        attempts.set(message, (attempts.get(message) ?? 0) + 1);
+        throw new Error(message);
+      };
+      runtime
+        .registerActivityWithName("failSync", fail)
+        .registerActivityWithName("failAsync", async (ctx, message: string) => {
+          await Promise.resolve();
+          return fail(ctx, message);
+        })
+        .registerActivityWithName("recover", (_ctx, input: unknown) => input);
+
+      function* handled(ctx: WorkflowContext, input: FailureInput): Generator<Task<unknown>, unknown, unknown> {
+        try {
+          return yield ctx.callActivity(input.activity, input.message);
+        } catch (error) {
+          if (!(error instanceof Error)) throw error;
+          return yield ctx.callActivity("recover", {
+            instanceId: ctx.getWorkflowInstanceId(),
+            message: error.message,
+          });
+        }
+      }
+      function* unhandled(ctx: WorkflowContext, input: FailureInput): Generator<Task<unknown>, unknown, unknown> {
+        return yield ctx.callActivity(input.activity, input.message);
+      }
+      runtime.registerWorkflowByName(
+        "handled",
+        asyncGenerator
+          ? async function* (ctx, input: FailureInput) {
+              return yield* handled(ctx, input);
+            }
+          : handled,
+      );
+      runtime.registerWorkflowByName(
+        "unhandled",
+        asyncGenerator
+          ? async function* (ctx, input: FailureInput) {
+              return yield* unhandled(ctx, input);
+            }
+          : unhandled,
+      );
+      await start();
+
+      for (const activity of ["failSync", "failAsync"]) {
+        const handledMessage = `${activity} handled failure`;
+        const unhandledMessage = `${activity} unhandled failure`;
+        const [handledId, unhandledId] = await Promise.all([
+          client.scheduleNewWorkflow("handled", { activity, message: handledMessage }),
+          client.scheduleNewWorkflow("unhandled", { activity, message: unhandledMessage }),
+        ]);
+        const [handledState, unhandledState] = await Promise.all([
+          client.waitForWorkflowCompletion(handledId, true, 30),
+          client.waitForWorkflowCompletion(unhandledId, true, 30),
+        ]);
+
+        expect(handledState?.runtimeStatus).toBe(WorkflowRuntimeStatus.COMPLETED);
+        expect(handledState?.workflowFailureDetails).toBeUndefined();
+        expect(handledState?.getOutput()).toEqual({
+          instanceId: handledId,
+          message: expect.stringContaining(handledMessage),
+        });
+        expect(unhandledState?.runtimeStatus).toBe(WorkflowRuntimeStatus.FAILED);
+        expect(unhandledState?.getOutput()).toBeUndefined();
+        expect(unhandledState?.workflowFailureDetails?.getErrorType()).toBe("TaskFailedError");
+        expect(unhandledState?.workflowFailureDetails?.getErrorMessage()).toContain(unhandledMessage);
+        const cause = unhandledState?.workflowFailureDetails?.getInnerFailure();
+        expect(cause?.getErrorType()).toBe("Error");
+        expect(cause?.getErrorMessage()).toBe(unhandledMessage);
+        expect(cause?.getStackTrace()).toContain(unhandledMessage);
+        expect(attempts.get(handledMessage)).toBe(1);
+        expect(attempts.get(unhandledMessage)).toBe(1);
+      }
+      expect(streams).toBe(1);
+      expect(runtime.isReady).toBe(true);
     },
     60000,
   );
