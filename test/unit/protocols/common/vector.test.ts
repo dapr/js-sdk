@@ -12,6 +12,7 @@ limitations under the License.
 */
 
 import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
+import * as protobuf from "@bufbuild/protobuf";
 import { EmptySchema } from "@bufbuild/protobuf/wkt";
 import {
   CommunicationProtocolEnum,
@@ -19,6 +20,7 @@ import {
   IClientVector,
   LogLevel,
   VectorIndexingOptions,
+  VectorOptions,
   VectorQuery,
 } from "../../../../src";
 import GRPCClient from "../../../../src/implementation/Client/GRPCClient/GRPCClient";
@@ -27,6 +29,12 @@ import HTTPClient from "../../../../src/implementation/Client/HTTPClient/HTTPCli
 import HTTPClientVector from "../../../../src/implementation/Client/HTTPClient/vector";
 import { IndexAck } from "../../../../src/proto/dapr/proto/runtime/v1/search_pb";
 import * as Proto from "../../../../src/proto/dapr/proto/runtime/v1/vector_pb";
+
+// Make re-exports spyable while retaining the real protobuf encoders and schemas.
+jest.mock("@bufbuild/protobuf", () => ({
+  __esModule: true,
+  ...jest.requireActual<typeof import("@bufbuild/protobuf")>("@bufbuild/protobuf"),
+}));
 
 const record = {
   id: "a",
@@ -116,17 +124,41 @@ async function setup(protocol: CommunicationProtocolEnum) {
 }
 
 const operations = [
-  ["createCollectionAlpha1", (v: IClientVector) => v.createCollection("store", "collection", { dimensions: 3 })],
-  ["getCollectionAlpha1", (v: IClientVector) => v.getCollection("store", "collection")],
-  ["listCollectionsAlpha1", (v: IClientVector) => v.listCollections("store")],
-  ["deleteCollectionAlpha1", (v: IClientVector) => v.deleteCollection("store", "collection")],
-  ["upsertVectorsAlpha1", (v: IClientVector) => v.upsertVectors("store", "collection", [record])],
-  ["getVectorsAlpha1", (v: IClientVector) => v.getVectors("store", "collection", ["a"])],
-  ["deleteVectorsAlpha1", (v: IClientVector) => v.deleteVectors("store", "collection", ["a"])],
-  ["queryVectorsAlpha1", (v: IClientVector) => v.queryVectors("store", "collection", { vector: [1, 0, 0] })],
+  [
+    "createCollectionAlpha1",
+    (v: IClientVector, options?: VectorOptions) =>
+      v.createCollection("store", "collection", { dimensions: 3, ...options }),
+  ],
+  [
+    "getCollectionAlpha1",
+    (v: IClientVector, options?: VectorOptions) => v.getCollection("store", "collection", options),
+  ],
+  ["listCollectionsAlpha1", (v: IClientVector, options?: VectorOptions) => v.listCollections("store", options)],
+  [
+    "deleteCollectionAlpha1",
+    (v: IClientVector, options?: VectorOptions) => v.deleteCollection("store", "collection", options),
+  ],
+  [
+    "upsertVectorsAlpha1",
+    (v: IClientVector, options?: VectorOptions) => v.upsertVectors("store", "collection", [record], options),
+  ],
+  [
+    "getVectorsAlpha1",
+    (v: IClientVector, options?: VectorOptions) => v.getVectors("store", "collection", ["a"], options),
+  ],
+  [
+    "deleteVectorsAlpha1",
+    (v: IClientVector, options?: VectorOptions) => v.deleteVectors("store", "collection", ["a"], options),
+  ],
+  [
+    "queryVectorsAlpha1",
+    (v: IClientVector, options?: VectorOptions) =>
+      v.queryVectors("store", "collection", { vector: [1, 0, 0] }, options),
+  ],
   [
     "batchQueryVectorsAlpha1",
-    (v: IClientVector) => v.batchQueryVectors("store", "collection", [{ vector: [1, 0, 0] }, { byId: "missing" }]),
+    (v: IClientVector, options?: VectorOptions) =>
+      v.batchQueryVectors("store", "collection", [{ vector: [1, 0, 0] }, { byId: "missing" }], options),
   ],
 ] as const;
 
@@ -786,15 +818,40 @@ describe("Vector transport edge cases", () => {
     expect(decoded.records[0].payload).toEqual(record.payload);
   });
 
-  it("rejects pre-cancelled gRPC requests without initializing the transport", async () => {
+  it.each(operations)("rejects pre-cancelled %s without initializing gRPC", async (method, invoke) => {
     const { vector, getClient, rpc } = await setup(CommunicationProtocolEnum.GRPC);
     const controller = new AbortController();
     const reason = new Error("cancelled");
     controller.abort(reason);
-    await expect(vector.listCollections("store", { signal: controller.signal })).rejects.toBe(reason);
+    await expect(invoke(vector, { signal: controller.signal })).rejects.toBe(reason);
     expect(getClient).not.toHaveBeenCalled();
-    expect(rpc.listCollectionsAlpha1).not.toHaveBeenCalled();
+    expect(rpc[method]).not.toHaveBeenCalled();
   });
+
+  it.each(operations)(
+    "does not send %s when cancellation races with completed gRPC initialization",
+    async (method, invoke) => {
+      const { vector, getClient, rpc } = await setup(CommunicationProtocolEnum.GRPC);
+      const controller = new AbortController();
+      const remove = jest.spyOn(controller.signal, "removeEventListener");
+      const reason = new Error("cancelled after initialization");
+      const pending = invoke(vector, { signal: controller.signal });
+      let listenerRemovedBeforeAbort = false;
+
+      // Initialization resolves first; cancellation runs before the awaiting method resumes.
+      queueMicrotask(() => {
+        listenerRemovedBeforeAbort = remove.mock.calls.length === 1;
+        controller.abort(reason);
+      });
+
+      await expect(pending).rejects.toBe(reason);
+      expect(listenerRemovedBeforeAbort).toBe(true);
+      expect(getClient).toHaveBeenCalledTimes(1);
+      expect(rpc[method]).not.toHaveBeenCalled();
+      await invoke(vector);
+      expect(rpc[method]).toHaveBeenCalledTimes(1);
+    },
+  );
 
   it("cancels a gRPC initialization wait without cancelling another caller", async () => {
     const { vector, getClient, rpc, transport } = await setup(CommunicationProtocolEnum.GRPC);
@@ -815,12 +872,55 @@ describe("Vector transport edge cases", () => {
     expect(rpc.listCollectionsAlpha1).toHaveBeenCalledTimes(1);
   });
 
-  it("propagates gRPC initialization errors", async () => {
+  it.each(operations)("propagates %s initialization errors without an RPC and recovers", async (method, invoke) => {
     const { vector, getClient, rpc } = await setup(CommunicationProtocolEnum.GRPC);
     const failure = new Error("initialization failed");
     getClient.mockRejectedValueOnce(failure);
-    await expect(vector.listCollections("store", { signal: new AbortController().signal })).rejects.toBe(failure);
-    expect(rpc.listCollectionsAlpha1).not.toHaveBeenCalled();
+    await expect(invoke(vector, { signal: new AbortController().signal })).rejects.toBe(failure);
+    expect(rpc[method]).not.toHaveBeenCalled();
+    expect(getClient).toHaveBeenCalledTimes(1);
+    await invoke(vector);
+    expect(rpc[method]).toHaveBeenCalledTimes(1);
+    expect(getClient).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    { name: "null", value: null },
+    { name: "an array", value: [] },
+    { name: "a string", value: "" },
+    { name: "a number", value: 0 },
+    { name: "a boolean", value: false },
+  ])("rejects an HTTP request encoded as $name before sending it, then recovers", async ({ value }) => {
+    const { vector, execute } = await setup(CommunicationProtocolEnum.HTTP);
+    jest.spyOn(protobuf, "toJson").mockReturnValueOnce(value);
+
+    await expect(vector.createCollection("store", "collection", { dimensions: 3 })).rejects.toThrow(
+      new TypeError("Vector request must encode to a JSON object"),
+    );
+    expect(execute).not.toHaveBeenCalled();
+    await expect(vector.createCollection("store", "collection", { dimensions: 3 })).resolves.toBeUndefined();
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(execute).toHaveBeenCalledWith("v1.0-alpha1", "/vector/store/collections/collection", {
+      method: "POST",
+      body: { dimensions: 3 },
+      signal: undefined,
+    });
+  });
+
+  it("propagates HTTP encoding errors unchanged without sending a partial request", async () => {
+    const { vector, execute } = await setup(CommunicationProtocolEnum.HTTP);
+    const failure = new Error("encoding failed");
+    jest.spyOn(protobuf, "toJson").mockImplementationOnce(() => {
+      throw failure;
+    });
+
+    await expect(vector.upsertVectors("store", "collection", [record])).rejects.toBe(failure);
+    expect(execute).not.toHaveBeenCalled();
+    await expect(vector.upsertVectors("store", "collection", [record])).resolves.toEqual({
+      ack: "completed",
+      failedItems: [],
+    });
+    expect(execute).toHaveBeenCalledTimes(1);
   });
 
   it.each([null, [], "not-json", { records: [{ id: "a", payload: "!not-base64!" }] }, { records: "invalid" }])(
