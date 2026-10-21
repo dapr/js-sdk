@@ -340,9 +340,12 @@ export class TaskHubWorker {
     this._patchSupport ??= this.metadataClient
       .getMetadata(create(GetMetadataRequestSchema), { timeoutMs: 10000 })
       .then((metadata) => {
+        // A daprd built without a release version reports "edge"; it is built from the latest source.
+        const edge = metadata.runtimeVersion.trim().toLowerCase() === "edge";
         const version = /^v?(\d+)\.(\d+)(?:\.|$|-)/.exec(metadata.runtimeVersion);
         const supported =
-          version !== null && (Number(version[1]) > 1 || (Number(version[1]) === 1 && Number(version[2]) >= 17));
+          edge ||
+          (version !== null && (Number(version[1]) > 1 || (Number(version[1]) === 1 && Number(version[2]) >= 17)));
         if (!supported) {
           this.logger.warn(
             `Dapr runtime '${metadata.runtimeVersion}' does not support durable workflow patches; retaining legacy clock and GUID behavior.`,

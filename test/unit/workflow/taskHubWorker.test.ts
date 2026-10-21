@@ -187,6 +187,45 @@ describe("TaskHubWorker work-item dispatch", () => {
     }
   });
 
+  it.each([
+    { runtimeVersion: "edge", patches: ["dapr-js:workflow-semantics-v2"] },
+    { runtimeVersion: "1.16.0", patches: undefined },
+  ])("selects the workflow semantics for runtime '$runtimeVersion'", async ({ runtimeVersion, patches }) => {
+    const worker = new TaskHubWorker("localhost:50001");
+    const stream = new FakeWorkItemStream();
+    const completeOrchestratorTask = jest.fn().mockResolvedValue({});
+    Object.defineProperty(worker, "client", {
+      value: {
+        hello: jest.fn().mockResolvedValue({}),
+        getWorkItems: (_request: unknown, options: { signal: AbortSignal }) => stream.iterate(options.signal),
+        completeOrchestratorTask,
+      },
+    });
+    Object.defineProperty(worker, "metadataClient", {
+      value: { getMetadata: jest.fn().mockResolvedValue({ runtimeVersion }) },
+    });
+    worker.registry.addNamedOrchestrator("workflow", () => "done");
+    try {
+      await worker.start();
+      stream.push(
+        create(WorkItemSchema, {
+          request: {
+            case: "workflowRequest",
+            value: {
+              instanceId: "wf",
+              newEvents: [newWorkflowStartedEvent(), newExecutionStartedEvent("workflow", "wf")],
+            },
+          },
+        }),
+      );
+      await settle();
+      expect(completeOrchestratorTask).toHaveBeenCalledTimes(1);
+      expect(completeOrchestratorTask.mock.calls[0][0].version?.patches).toEqual(patches);
+    } finally {
+      await worker.stop();
+    }
+  });
+
   it.each(
     [
       { value: null, message: "null" },
