@@ -420,7 +420,7 @@ export default class HTTPClient implements IClient {
     }
 
     // Set Method
-    clientOptions.method = params?.method.toLocaleUpperCase() || (params?.body ? "POST" : "GET");
+    clientOptions.method = params?.method?.toLocaleUpperCase() || (params?.body ? "POST" : "GET");
 
     // Set Headers
     clientOptions.headers = { ...params?.headers };

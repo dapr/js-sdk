@@ -12,13 +12,18 @@ limitations under the License.
 */
 
 import { create, fromBinary, fromJson, toBinary, toJson } from "@bufbuild/protobuf";
-import { AnySchema, anyPack, StructSchema, ValueSchema } from "@bufbuild/protobuf/wkt";
+import { AnySchema, anyPack, anyUnpack, StructSchema, ValueSchema } from "@bufbuild/protobuf/wkt";
 import { CronExpressionBuilder, CronPeriod, JobOptions } from "../../../../src";
 import { encodeJob, decodeJob, decodeJobData, validateJobName } from "../../../../src/jobs/Jobs.util";
 import RuntimeVersionChecker from "../../../../src/implementation/Client/RuntimeVersionChecker";
 import IClientMetadata from "../../../../src/interfaces/Client/IClientMetadata";
 import { GetMetadataResponse } from "../../../../src/types/metadata/GetMetadataResponse";
 import { JobSchema } from "../../../../src/proto/dapr/proto/runtime/v1/jobs_pb";
+
+jest.mock("@bufbuild/protobuf/wkt", () => {
+  const actual = jest.requireActual<typeof import("@bufbuild/protobuf/wkt")>("@bufbuild/protobuf/wkt");
+  return { ...actual, anyUnpack: jest.fn(actual.anyUnpack) };
+});
 
 const metadataResponse = (runtimeVersion?: string): GetMetadataResponse => ({
   id: "test",
@@ -383,6 +388,20 @@ describe("Jobs encoding", () => {
     expect(
       decodeJobData(create(AnySchema, { typeUrl: "example.com/custom.Payload", value: Uint8Array.of(0, 255) })),
     ).toEqual(Buffer.from([0, 255]));
+  });
+
+  it.each([
+    { schema: ValueSchema, message: "Invalid job Value payload" },
+    { schema: StructSchema, message: "Invalid job Struct payload" },
+  ])("rejects a recognized $schema.typeName payload when unpacking returns no message", ({ schema, message }) => {
+    const data = create(AnySchema, { typeUrl: `type.googleapis.com/${schema.typeName}` });
+    const unpack = jest.mocked(anyUnpack);
+    unpack.mockClear();
+    unpack.mockReturnValueOnce(undefined);
+
+    expect(() => decodeJobData(data)).toThrow(new TypeError(message));
+    expect(unpack).toHaveBeenCalledTimes(1);
+    expect(unpack).toHaveBeenCalledWith(data, schema);
   });
 
   it("accepts null-prototype JSON objects and rejects non-JSON nested array values", () => {
