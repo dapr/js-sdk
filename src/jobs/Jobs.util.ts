@@ -11,12 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { create, fromJson, toJson, JsonValue } from "@bufbuild/protobuf";
+import { create, fromJson, toJson } from "@bufbuild/protobuf";
 import { Any, AnySchema, anyPack, anyUnpack, DurationSchema, StructSchema, ValueSchema } from "@bufbuild/protobuf/wkt";
 import { Job, JobOptions, JobFailurePolicy } from "../types/jobs/Job";
 import { Job as ProtoJob, JobSchema } from "../proto/dapr/proto/runtime/v1/jobs_pb";
 import { JobFailurePolicySchema } from "../proto/dapr/proto/common/v1/common_pb";
 import { CronExpressionBuilder } from "./CronExpressionBuilder";
+import { validateJson } from "../utils/Json.util";
 
 export function validateJobName(name: string): void {
   // The runtime constructs callback URLs from the name without escaping reserved URL characters.
@@ -39,33 +40,6 @@ function validateUint32(value: number, field: string): void {
   if (!Number.isInteger(value) || value < 0 || value > 0xffffffff) {
     throw new RangeError(`${field} must be an integer between 0 and 4294967295`);
   }
-}
-
-function validateJson(value: unknown, ancestors = new Set<object>()): asserts value is JsonValue {
-  if (value === null || typeof value === "string" || typeof value === "boolean") {
-    return;
-  }
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return;
-  }
-  if (typeof value !== "object") {
-    throw new TypeError("Job data must contain only JSON values");
-  }
-  if (ancestors.has(value)) {
-    throw new TypeError("Job data must not contain circular references");
-  }
-  if (
-    !Array.isArray(value) &&
-    Object.getPrototypeOf(value) !== Object.prototype &&
-    Object.getPrototypeOf(value) !== null
-  ) {
-    throw new TypeError("Job data must contain only plain JSON objects");
-  }
-  ancestors.add(value);
-  for (const item of Array.isArray(value) ? value : Object.values(value)) {
-    validateJson(item, ancestors);
-  }
-  ancestors.delete(value);
 }
 
 export function encodeJob(name: string, options: JobOptions): ProtoJob {
@@ -102,7 +76,7 @@ export function encodeJob(name: string, options: JobOptions): ProtoJob {
         value: Uint8Array.from(options.data),
       });
     } else {
-      validateJson(options.data);
+      validateJson(options.data, "Job data");
       job.data = anyPack(ValueSchema, fromJson(ValueSchema, options.data));
     }
   }

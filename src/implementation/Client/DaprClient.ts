@@ -28,6 +28,7 @@ import IClientMetadata from "../../interfaces/Client/IClientMetadata";
 import IClientProxy from "../../interfaces/Client/IClientProxy";
 import IClientPubSub from "../../interfaces/Client/IClientPubSub";
 import IClientSecret from "../../interfaces/Client/IClientSecret";
+import IClientSearch from "../../interfaces/Client/IClientSearch";
 import IClientSidecar from "../../interfaces/Client/IClientSidecar";
 import IClientState from "../../interfaces/Client/IClientState";
 import IClientWorkflow from "../../interfaces/Client/IClientWorkflow";
@@ -45,6 +46,7 @@ import GRPCClientLock from "./GRPCClient/lock";
 import GRPCClientMetadata from "./GRPCClient/metadata";
 import GRPCClientPubSub from "./GRPCClient/pubsub";
 import GRPCClientSecret from "./GRPCClient/secret";
+import GRPCClientSearch from "./GRPCClient/search";
 import GRPCClientSidecar from "./GRPCClient/sidecar";
 import GRPCClientState from "./GRPCClient/state";
 import GRPCClientWorkflow from "./GRPCClient/workflow";
@@ -63,6 +65,7 @@ import HTTPClientMetadata from "./HTTPClient/metadata";
 import HTTPClientProxy from "./HTTPClient/proxy";
 import HTTPClientPubSub from "./HTTPClient/pubsub";
 import HTTPClientSecret from "./HTTPClient/secret";
+import HTTPClientSearch from "./HTTPClient/search";
 import HTTPClientSidecar from "./HTTPClient/sidecar";
 import HTTPClientState from "./HTTPClient/state";
 import HTTPClientWorkflow from "./HTTPClient/workflow";
@@ -221,6 +224,9 @@ export default class DaprClient {
    */
   readonly secret: IClientSecret;
 
+  /** Index management, document retrieval, and search (Dapr 1.19+ Alpha1 API, HTTP only). */
+  readonly search: IClientSearch;
+
   /**
    * Sidecar client.
    * Manages the Dapr sidecar lifecycle (shutdown, etc.).
@@ -307,6 +313,7 @@ export default class DaprClient {
         this.binaryStore = new GRPCClientBinaryStore(client);
         this.invoker = new GRPCClientInvoker(client);
         this.secret = new GRPCClientSecret(client);
+        this.search = new GRPCClientSearch();
         this.health = new GRPCClientHealth(client);
         const metadata = new GRPCClientMetadata(client);
         this.metadata = metadata;
@@ -341,6 +348,7 @@ export default class DaprClient {
         this.proxy = new HTTPClientProxy(client);
         this.pubsub = new HTTPClientPubSub(client, metadata);
         this.secret = new HTTPClientSecret(client);
+        this.search = new HTTPClientSearch(client);
         this.sidecar = new HTTPClientSidecar(client);
         this.state = new HTTPClientState(client);
         this.workflow = new HTTPClientWorkflow(client);

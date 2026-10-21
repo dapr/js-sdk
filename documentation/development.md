@@ -59,6 +59,13 @@ Publishing is automated in the CI/CD pipeline. Each time a version is release (G
 
 ## Running Tests
 
+Run `npm run test:unit:all` for all unit suites and a combined coverage report in
+`coverage/lcov.info` (HTML in `coverage/lcov-report/index.html`). This uses one Jest
+invocation so HTTP, gRPC, utilities, and workflow coverage are retained together.
+The individual `test:unit:*` commands remain available for focused runs, but each
+run replaces the default coverage report rather than merging with earlier runs.
+Pass `--coverageDirectory` to Jest when keeping separate reports.
+
 Conversation Alpha2 unit tests cover both client transports, all message roles,
 tool round trips, schemas, reserved JSON parameters, durations, optional fields,
 and safe-integer boundaries. They assert literal transport contracts, exact
