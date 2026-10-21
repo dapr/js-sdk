@@ -64,6 +64,16 @@ export function evaluateVectorRuntime(currentVersion: string): RuntimeVersionGat
   return evaluateMinimumDaprRuntime("1.19.0", currentVersion);
 }
 
+export function evaluateSearchRuntime(currentVersion: string): RuntimeVersionGate {
+  if (/^v?1\.19\.0-rc\.?0*[0-4](?:\+.*)?$/i.test(currentVersion.trim())) {
+    return {
+      supported: false,
+      reason: `Search is not included in Dapr ${currentVersion}; use a Search-capable runtime such as edge`,
+    };
+  }
+  return evaluateMinimumDaprRuntime("1.19.0", currentVersion);
+}
+
 function parseDaprRuntimeVersion(version: string): readonly [number, number, number] | undefined {
   const match = /^v?(\d+)\.(\d+)(?:\.(\d+))?(?:[-+].*)?$/i.exec(version.trim());
   if (match === null) {

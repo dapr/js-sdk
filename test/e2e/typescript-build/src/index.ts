@@ -20,6 +20,15 @@ import {
   ConversationToolCalls,
   DaprClient,
   IClientConversation,
+  IClientSearch,
+  IndexAck,
+  IndexDocumentsResult,
+  IndexingOptions,
+  SearchDocument,
+  SearchIndex,
+  SearchOptions,
+  SearchQuery,
+  SearchResult,
   DaprPubSubStatusEnum,
   PubSubStreamingSubscription,
   PubSubStreamingSubscriptionOptions,
@@ -165,6 +174,49 @@ export function vectorBatchSummary(result: VectorBatchQueryResult): string | num
   if (result.error !== undefined) return result.error.message;
   return result.response.matches.length;
 }
+
+export async function search(client: DaprClient): Promise<SearchResult<{ title: string }>> {
+  const search: IClientSearch = client.search;
+  const options: SearchOptions = { metadata: { tenant: "sample" }, signal: new AbortController().signal };
+  const indexing: IndexingOptions = {
+    ...options,
+    mode: "waitForCompletion",
+    waitTimeout: "20s",
+    onWaitTimeout: "failRequest",
+  };
+  const documents: readonly SearchDocument<{ title: string }>[] = [{ id: "1", content: { title: "Dapr" } }];
+  await search.createIndex("store", "products", options);
+  const indexed: IndexDocumentsResult = await search.indexDocuments("store", "products", documents, indexing);
+  const info: SearchIndex = await search.getIndex("store", "products", options);
+  const indexes: string[] = await search.listIndexes("store", options);
+  const found = await search.getDocuments<{ title: string }>("store", "products", ["1"], {
+    ...options,
+    includeContent: true,
+  });
+  const query: SearchQuery = {
+    text: "Dapr",
+    includeContent: true,
+    filter: { title: { $eq: "Dapr" } },
+    sort: [{ field: "title", order: "asc" }],
+  };
+  const result = await search.search<{ title: string }>("store", "products", query, options);
+  const title: string | undefined = result.hits[0]?.document.content?.title;
+  const deleted: IndexAck = await search.deleteDocuments("store", "products", ["1"], indexing);
+  await search.deleteIndex("store", "products", options);
+  console.log(indexed.failedItems, info.documentCount, indexes, found[0]?.content?.title, title, deleted);
+  return result;
+}
+
+// @ts-expect-error Text and native queries are mutually exclusive.
+const _twoSearchKinds: SearchQuery = { text: "Dapr", native: { q: "Dapr" } };
+// @ts-expect-error Waiting requires an explicit timeout and timeout action.
+const _missingSearchWait: IndexingOptions = { mode: "waitForCompletion" };
+// @ts-expect-error Acceptance must not have a wait policy.
+const _acceptanceWait: IndexingOptions = { mode: "returnOnAcceptance", waitTimeout: "1s" };
+// @ts-expect-error Provider request metadata is string-valued.
+const _invalidSearchMetadata: SearchOptions = { metadata: { enabled: true } };
+// @ts-expect-error Sort order is an SDK-owned string union, not a protobuf enum.
+const _invalidSearchSort: SearchQuery = { sort: [{ field: "title", order: 1 }] };
 
 const daprHost = "127.0.0.1";
 const daprPortDefault = "3500";

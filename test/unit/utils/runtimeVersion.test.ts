@@ -11,7 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { evaluateMinimumDaprRuntime, evaluateVectorRuntime } from "../../e2e/helpers/runtimeVersion";
+import {
+  evaluateMinimumDaprRuntime,
+  evaluateSearchRuntime,
+  evaluateVectorRuntime,
+} from "../../e2e/helpers/runtimeVersion";
 
 describe("Dapr runtime version gate", () => {
   it.each(["1.18.9", "1.19.0-rc.1", "v1.19.0-rc4", "1.19.0-RC.04+build"])(
@@ -39,6 +43,22 @@ describe("Dapr runtime version gate", () => {
     ["1.16", "1.16.0"],
   ])("allows minimum %s on runtime %s", (minimumVersion, currentVersion) => {
     expect(evaluateMinimumDaprRuntime(minimumVersion, currentVersion)).toEqual({ supported: true });
+  });
+
+  describe("Search runtime version gate", () => {
+    it.each(["1.18.9", "1.19.0-rc.1", "1.19.0-rc.3+build", "v1.19.0-rc04", " 1.19.0-rc.4 "])(
+      "skips runtime %s without Search",
+      (version) => {
+        expect(evaluateSearchRuntime(version)).toMatchObject({ supported: false, reason: expect.any(String) });
+      },
+    );
+
+    it.each(["edge", "latest", "1.19.0-rc.5", "1.19.0", "1.19.1", "1.20.0-rc.1"])(
+      "allows Search-capable runtime %s",
+      (version) => {
+        expect(evaluateSearchRuntime(version)).toEqual({ supported: true });
+      },
+    );
   });
 
   it("skips a test when the runtime is older than its minimum", () => {

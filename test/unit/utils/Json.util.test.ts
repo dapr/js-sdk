@@ -37,6 +37,7 @@ describe("validateJson", () => {
       nested: Object.assign(Object.create(null), { enabled: false }),
     });
     Object.defineProperty(value, "__proto__", { value: { safe: true }, enumerable: true });
+    Object.freeze(value);
 
     expect(validateJson(value, "metadata")).toBeUndefined();
     expect(Object.getPrototypeOf(value)).toBeNull();
@@ -54,6 +55,16 @@ describe("validateJson", () => {
     expect([...ancestors]).toEqual([ancestor]);
     expect(value.first).toBe(shared);
     expect(value.second).toBe(shared);
+  });
+
+  it("allows repeated array references outside the current ancestor chain", () => {
+    const shared = Object.freeze({ value: 1 });
+    const items = Object.freeze([shared, shared]);
+    const value = Object.freeze({ first: items, second: items, third: shared });
+
+    expect(validateJson(value, "metadata")).toBeUndefined();
+    expect(value.first).toBe(value.second);
+    expect(value.first[0]).toBe(value.third);
   });
 
   it.each([
@@ -97,6 +108,12 @@ describe("validateJson", () => {
     expect(() => validateJson(new CustomValue(), "filter")).toThrow(
       new TypeError("filter must contain only plain JSON objects"),
     );
+    expect(toJSON).not.toHaveBeenCalled();
+  });
+
+  it("rejects toJSON methods on plain objects instead of invoking them", () => {
+    const toJSON = jest.fn(() => ({ value: 1 }));
+    expect(() => validateJson({ toJSON }, "metadata")).toThrow(new TypeError("metadata must contain only JSON values"));
     expect(toJSON).not.toHaveBeenCalled();
   });
 

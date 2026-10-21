@@ -59,6 +59,13 @@ Publishing is automated in the CI/CD pipeline. Each time a version is release (G
 
 ## Running Tests
 
+Run `npm run test:unit:all` for all unit suites and a combined coverage report in
+`coverage/lcov.info` (HTML in `coverage/lcov-report/index.html`). This uses one Jest
+invocation so HTTP, gRPC, utilities, and workflow coverage are retained together.
+The individual `test:unit:*` commands remain available for focused runs, but each
+run replaces the default coverage report rather than merging with earlier runs.
+Pass `--coverageDirectory` to Jest when keeping separate reports.
+
 Vector unit tests cover HTTP and gRPC request/response mapping, encoding failures,
 initialization and cancellation races, and recovery after errors. Shared utility
 tests exercise JSON validation, abort-listener cleanup, metadata, state options,
