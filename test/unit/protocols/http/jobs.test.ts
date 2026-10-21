@@ -87,6 +87,31 @@ describe("HTTP Jobs client", () => {
     expect(execute.mock.calls[0][2].body.data).toBeNull();
   });
 
+  it.each(["1.16.0", "1.18.0"])("round-trips immediate-retry policies on %s", async (runtimeVersion) => {
+    const { client, execute } = setup(runtimeVersion);
+    for (const interval of [undefined, "0s"]) {
+      for (const maxRetries of [undefined, 0, 4]) {
+        await client.jobs.schedule("test job", {
+          dueTime: "1h",
+          failurePolicy: { type: "constant", interval, maxRetries },
+        });
+        const wirePolicy = {
+          constant: {
+            ...(interval === undefined ? {} : { interval }),
+            ...(maxRetries === undefined ? {} : { maxRetries }),
+          },
+        };
+        expect(execute.mock.calls.at(-1)?.[2].body.failurePolicy).toStrictEqual(wirePolicy);
+        execute.mockResolvedValueOnce({ name: "test job", failurePolicy: wirePolicy });
+        expect((await client.jobs.get("test job")).failurePolicy).toStrictEqual({
+          type: "constant",
+          interval,
+          maxRetries,
+        });
+      }
+    }
+  });
+
   it("never retries mutations or hides not-found, authorization, or server errors", async () => {
     for (const status of [400, 401, 403, 404, 409, 500, 503]) {
       const { client, execute } = setup();

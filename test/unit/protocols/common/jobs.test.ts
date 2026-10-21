@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { create, fromJson } from "@bufbuild/protobuf";
+import { create, fromBinary, fromJson, toBinary, toJson } from "@bufbuild/protobuf";
 import { AnySchema, anyPack, StructSchema, ValueSchema } from "@bufbuild/protobuf/wkt";
 import { CronExpressionBuilder, CronPeriod, JobOptions } from "../../../../src";
 import { encodeJob, decodeJob, decodeJobData, validateJobName } from "../../../../src/jobs/Jobs.util";
@@ -208,13 +208,47 @@ describe("Jobs encoding", () => {
 
   it.each([-1, 0x100000000, 1.5, NaN, Infinity])("rejects invalid uint32 %s", (value) => {
     expect(() => encodeJob("test", { dueTime: "1s", repeats: value })).toThrow();
-    expect(() =>
-      encodeJob("test", { dueTime: "1s", failurePolicy: { type: "constant", interval: "1s", maxRetries: value } }),
-    ).toThrow();
+    for (const interval of [undefined, "0s", "1s"]) {
+      expect(() =>
+        encodeJob("test", { dueTime: "1s", failurePolicy: { type: "constant", interval, maxRetries: value } }),
+      ).toThrow();
+    }
   });
 
-  it.each(["0s", "-1s", "1m", "", "garbage"])("rejects invalid retry interval %s", (interval) => {
+  it.each(["-1s", "-0.5s", "1m", "200ms", "", "garbage"])("rejects invalid retry interval %s", (interval) => {
     expect(() => encodeJob("test", { dueTime: "1s", failurePolicy: { type: "constant", interval } })).toThrow();
+  });
+
+  it("leaves an omitted failure policy unset on both wire formats", () => {
+    const encoded = encodeJob("test", { dueTime: "1s" });
+    const json = toJson(JobSchema, encoded);
+    expect(encoded.failurePolicy).toBeUndefined();
+    expect(json).not.toHaveProperty("failurePolicy");
+    expect(decodeJob(fromJson(JobSchema, json)).failurePolicy).toBeUndefined();
+    expect(decodeJob(fromBinary(JobSchema, toBinary(JobSchema, encoded))).failurePolicy).toBeUndefined();
+  });
+
+  it.each([undefined, "0s"])("preserves retry interval %j and maxRetries through JSON and protobuf", (interval) => {
+    for (const maxRetries of [undefined, 0, 4]) {
+      const encoded = encodeJob("test", {
+        dueTime: "1s",
+        failurePolicy: { type: "constant", ...(interval === undefined ? {} : { interval }), maxRetries },
+      });
+      const json = toJson(JobSchema, encoded);
+      expect(json).toStrictEqual({
+        name: "test",
+        dueTime: "1s",
+        failurePolicy: {
+          constant: {
+            ...(interval === undefined ? {} : { interval }),
+            ...(maxRetries === undefined ? {} : { maxRetries }),
+          },
+        },
+      });
+      for (const job of [encoded, fromJson(JobSchema, json), fromBinary(JobSchema, toBinary(JobSchema, encoded))]) {
+        expect(decodeJob(job).failurePolicy).toStrictEqual({ type: "constant", interval, maxRetries });
+      }
+    }
   });
 
   it.each([null, false, 0, "", [0, null, false], { nested: { value: "x" } }])(
@@ -310,7 +344,7 @@ describe("Jobs encoding", () => {
     });
     expect(() =>
       encodeJob("test", { dueTime: "1s", failurePolicy: { type: "constant", interval: "-0.000000001s" } }),
-    ).toThrow("Failure policy interval must be positive");
+    ).toThrow("Failure policy interval must not be negative");
   });
 
   it("copies opaque data on encode and decode rather than aliasing caller buffers", () => {
@@ -326,16 +360,8 @@ describe("Jobs encoding", () => {
     expect(decodeJobData(encoded.data)).toEqual(Buffer.from([1, 2, 3]));
   });
 
-  it("rejects nameless responses, incomplete retry policies, and malformed Struct payloads", () => {
+  it("rejects nameless responses and malformed Struct payloads", () => {
     expect(() => decodeJob(create(JobSchema))).toThrow("missing job or name");
-    expect(() =>
-      decodeJob(
-        create(JobSchema, {
-          name: "test",
-          failurePolicy: { policy: { case: "constant", value: { maxRetries: 1 } } },
-        }),
-      ),
-    ).toThrow("missing retry interval");
     expect(() =>
       decodeJobData(
         create(AnySchema, { typeUrl: "type.googleapis.com/google.protobuf.Struct", value: Uint8Array.of(255) }),

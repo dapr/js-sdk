@@ -14,7 +14,7 @@ limitations under the License.
 import type { JsonValue } from "@bufbuild/protobuf";
 import type { CronExpressionBuilder } from "../../jobs/CronExpressionBuilder";
 
-export type JobFailurePolicy = { type: "drop" } | { type: "constant"; interval: string; maxRetries?: number };
+export type JobFailurePolicy = { type: "drop" } | { type: "constant"; interval?: string; maxRetries?: number };
 
 export type Job = {
   name: string;
@@ -28,7 +28,7 @@ export type Job = {
   repeats?: number;
   /** JSON values work across transports. Opaque bytes require gRPC for scheduling and retrieval. */
   data?: JsonValue | Uint8Array;
-  /** Constant interval uses protobuf duration syntax, for example "1.5s". */
+  /** Constant interval uses protobuf duration syntax; omit it or use "0s" for immediate retries. */
   failurePolicy?: JobFailurePolicy;
 };
 
