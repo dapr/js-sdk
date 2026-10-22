@@ -126,6 +126,22 @@ export type { NamedActorReminderType } from "./types/ActorReminder.type";
 export { JsonSerializer } from "./serialization/JsonSerializer";
 export type { default as IClientBinaryStore } from "./interfaces/Client/IClientBinaryStore";
 export type { default as IClientConversation } from "./interfaces/Client/IClientConversation";
+export type { default as IClientVector } from "./interfaces/Client/IClientVector";
+export type {
+  VectorDistanceMetric,
+  VectorOptions,
+  VectorCreateCollectionOptions,
+  VectorIndexingOptions,
+  VectorIndexAck,
+  VectorCollection,
+  VectorRecord,
+  VectorQuery,
+  VectorQueryResult,
+  VectorErrorDetail,
+  VectorError,
+  VectorUpsertResult,
+  VectorBatchQueryResult,
+} from "./types/vector/Vector.types";
 export type { default as IClientSearch } from "./interfaces/Client/IClientSearch";
 export type {
   IndexAck,

@@ -66,6 +66,21 @@ The individual `test:unit:*` commands remain available for focused runs, but eac
 run replaces the default coverage report rather than merging with earlier runs.
 Pass `--coverageDirectory` to Jest when keeping separate reports.
 
+Vector unit tests cover HTTP and gRPC request/response mapping, encoding failures,
+initialization and cancellation races, and recovery after errors. Shared utility
+tests exercise JSON validation, abort-listener cleanup, metadata, state options,
+bulk publishing, and client defaults. These suites run without Docker or a Dapr
+sidecar and are included in the existing protocol and utility unit-test commands.
+
+```powershell
+node .\node_modules\jest\bin\jest.js --runInBand --runTestsByPath `
+  test\unit\protocols\common\vector.test.ts `
+  test\unit\protocols\http\vector.test.ts `
+  test\unit\protocols\grpc\vector.test.ts `
+  test\unit\utils\Json.util.test.ts `
+  test\unit\utils\Client.util.test.ts
+```
+
 Conversation Alpha2 unit tests cover both client transports, all message roles,
 tool round trips, schemas, reserved JSON parameters, durations, optional fields,
 and safe-integer boundaries. They assert literal transport contracts, exact

@@ -11,9 +11,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { evaluateMinimumDaprRuntime, evaluateSearchRuntime } from "../../e2e/helpers/runtimeVersion";
+import {
+  evaluateMinimumDaprRuntime,
+  evaluateSearchRuntime,
+  evaluateVectorRuntime,
+} from "../../e2e/helpers/runtimeVersion";
 
 describe("Dapr runtime version gate", () => {
+  it.each(["1.18.9", "1.19.0-rc.1", "v1.19.0-rc4", "1.19.0-RC.04+build"])(
+    "skips vector APIs on runtime %s",
+    (version) => {
+      expect(evaluateVectorRuntime(version).supported).toBe(false);
+      expect(evaluateVectorRuntime(version).reason).toBeTruthy();
+    },
+  );
+
+  it.each(["edge", "latest", "1.19.0-rc.5", "1.19.0", "1.20.0"])("allows vector APIs on runtime %s", (version) => {
+    expect(evaluateVectorRuntime(version)).toEqual({ supported: true });
+  });
+
   it.each([
     ["1.16.0", "1.16.0"],
     ["1.16.0", "1.16.1"],

@@ -20,23 +20,6 @@ npm install --save @dapr/dapr-dev
 
 Visit [https://docs.dapr.io/developing-applications/sdks/js/](https://docs.dapr.io/developing-applications/sdks/js/) to view the full documentation.
 
-### Baggage propagation
-
-Use `withBaggage` to attach [W3C Baggage](https://www.w3.org/TR/baggage/) to outgoing `DaprClient` requests over HTTP or gRPC, without installing OpenTelemetry:
-
-```typescript
-import { DaprClient, HttpMethod, withBaggage } from "@dapr/dapr";
-
-const client = new DaprClient();
-const result = await withBaggage({ "user-id": "12345", tenant: "acme" }, async () => {
-  return await client.invoker.invoke("order-service", "orders", HttpMethod.GET);
-});
-```
-
-The helper returns the callback's result and preserves baggage across `await` and other asynchronous work started in the callback. Concurrent contexts are isolated. Nested calls inherit outer entries and override matching keys; after the callback, the caller's context is unchanged. An empty object adds no entries.
-
-Keys must be nonempty HTTP tokens; values must be unencoded strings and are percent-encoded for transmission. Invalid entries throw before the callback runs. Explicit request `baggage` headers take precedence over the context, and existing trace headers and API tokens are preserved. Dapr runtimes with baggage support forward it across service calls. This helper does not create spans, configure tracing, or automatically extract baggage from incoming requests. Avoid putting secrets or sensitive personal data in baggage.
-
 ### Search
 
 `client.search` supports index management, document indexing/retrieval/deletion, and lexical or native queries over HTTP using Dapr's Search Alpha1 API (1.19+). See the [Search reference](documentation/reference.md#search-alpha1) for typed examples, acknowledgement semantics, and runtime requirements.

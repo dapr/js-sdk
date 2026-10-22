@@ -26,6 +26,7 @@ import * as SerializerUtil from "../../../utils/Serializer.util";
 import communicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
 import { HttpEndpoint } from "../../../network/HttpEndpoint";
 import { getBaggageHeader } from "../../../utils/Baggage.util";
+import { withAbortSignal } from "../../../utils/Client.util";
 
 /**
  * HTTP-based Dapr client implementation.
@@ -458,23 +459,8 @@ export default class HTTPClient implements IClient {
       )}, body size: ${(clientOptions.body?.toString()?.length ?? 0) / 1024 / 1024} Mb)`,
     );
 
-    const pendingClient = this.getClient(requiresInitialization);
-    const signal = params?.signal;
-    // Cancel this caller's wait without cancelling initialization shared by other requests.
-    const client = signal
-      ? await new Promise<typeof fetch>((resolve, reject) => {
-          const abort = () => {
-            signal.removeEventListener("abort", abort);
-            reject(signal.reason);
-          };
-          signal.addEventListener("abort", abort, { once: true });
-          pendingClient.then(resolve, reject).finally(() => signal.removeEventListener("abort", abort));
-          if (signal.aborted) {
-            abort();
-          }
-        })
-      : await pendingClient;
-    signal?.throwIfAborted();
+    const client = await withAbortSignal(this.getClient(requiresInitialization), params?.signal);
+    params?.signal?.throwIfAborted();
     const res = await client(urlFull, clientOptions);
 
     // Parse body

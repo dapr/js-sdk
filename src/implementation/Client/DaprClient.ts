@@ -31,6 +31,7 @@ import IClientSecret from "../../interfaces/Client/IClientSecret";
 import IClientSearch from "../../interfaces/Client/IClientSearch";
 import IClientSidecar from "../../interfaces/Client/IClientSidecar";
 import IClientState from "../../interfaces/Client/IClientState";
+import IClientVector from "../../interfaces/Client/IClientVector";
 import IClientWorkflow from "../../interfaces/Client/IClientWorkflow";
 
 import GRPCClient from "./GRPCClient/GRPCClient";
@@ -49,6 +50,7 @@ import GRPCClientSecret from "./GRPCClient/secret";
 import GRPCClientSearch from "./GRPCClient/search";
 import GRPCClientSidecar from "./GRPCClient/sidecar";
 import GRPCClientState from "./GRPCClient/state";
+import GRPCClientVector from "./GRPCClient/vector";
 import GRPCClientWorkflow from "./GRPCClient/workflow";
 
 import HTTPClient from "./HTTPClient/HTTPClient";
@@ -68,6 +70,7 @@ import HTTPClientSecret from "./HTTPClient/secret";
 import HTTPClientSearch from "./HTTPClient/search";
 import HTTPClientSidecar from "./HTTPClient/sidecar";
 import HTTPClientState from "./HTTPClient/state";
+import HTTPClientVector from "./HTTPClient/vector";
 import HTTPClientWorkflow from "./HTTPClient/workflow";
 
 import CommunicationProtocolEnum from "../../enum/CommunicationProtocol.enum";
@@ -241,6 +244,9 @@ export default class DaprClient {
    */
   readonly state: IClientState;
 
+  /** Dense vector collections, records, and similarity queries (Dapr Vector Alpha1). */
+  readonly vector: IClientVector;
+
   /**
    * Workflow client.
    * Manages workflow instances and job scheduling.
@@ -308,6 +314,7 @@ export default class DaprClient {
         this.daprClient = client;
 
         this.state = new GRPCClientState(client);
+        this.vector = new GRPCClientVector(client);
         this.pubsub = new GRPCClientPubSub(client);
         this.binding = new GRPCClientBinding(client);
         this.binaryStore = new GRPCClientBinaryStore(client);
@@ -351,6 +358,7 @@ export default class DaprClient {
         this.search = new HTTPClientSearch(client);
         this.sidecar = new HTTPClientSidecar(client);
         this.state = new HTTPClientState(client);
+        this.vector = new HTTPClientVector(client);
         this.workflow = new HTTPClientWorkflow(client);
         break;
       }

@@ -17,8 +17,9 @@ const fs = require("fs-extra");
 const path = require("path");
 const os = require("os");
 
-const DAPR_VERSION = "6801e6d54e908e0f7625e2a467d40359c3eb77d6";
+const DAPR_VERSION = "04215fd7eb2666910d9afd1a6d672ca3862bd1ae";
 const DURABLETASK_VERSION = "89e5df3ffbbac9ac043997b109718db2c2b182b6";
+const GOOGLEAPIS_VERSION = "ebd1d23ac613b177828dad42ad8dfb13ba498279";
 
 async function request(url) {
   const response = await fetch(url, {
@@ -61,7 +62,14 @@ async function fetchProtoFiles(
   const durabletaskFiles = await listProtoFiles("dapr/durabletask-protobuf", durabletaskVersion, (file) =>
     file.startsWith("protos/") ? `dapr/proto/durabletask/v1/${file.slice("protos/".length)}` : undefined,
   );
-  const files = [...daprFiles, ...durabletaskFiles];
+  const files = [
+    ...daprFiles,
+    ...durabletaskFiles,
+    {
+      url: `https://raw.githubusercontent.com/googleapis/googleapis/${GOOGLEAPIS_VERSION}/google/rpc/status.proto`,
+      path: "google/rpc/status.proto",
+    },
+  ];
   const stagingDir = await fs.mkdtemp(path.join(os.tmpdir(), "dapr-proto-"));
   try {
     for (const file of files) {
@@ -76,11 +84,14 @@ async function fetchProtoFiles(
     }
     for (const destination of [projectRoot, path.join(projectRoot, "src", "proto")]) {
       await fs.copy(path.join(stagingDir, "dapr", "proto"), path.join(destination, "dapr", "proto"));
+      await fs.copy(path.join(stagingDir, "google"), path.join(destination, "google"));
     }
   } finally {
     await fs.remove(stagingDir);
   }
-  console.log(`Updated ${daprFiles.length} common/runtime protos and ${durabletaskFiles.length} durabletask protos`);
+  console.log(
+    `Updated ${daprFiles.length} common/runtime protos, ${durabletaskFiles.length} durabletask protos, and google.rpc.Status`,
+  );
 }
 
 async function main() {

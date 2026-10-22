@@ -15,104 +15,145 @@ import { validateJson } from "../../../src/utils/Json.util";
 
 describe("validateJson", () => {
   it.each([
-    { name: "null", value: null },
-    { name: "an empty string", value: "" },
-    { name: "a string", value: "Dapr" },
-    { name: "true", value: true },
-    { name: "false", value: false },
-    { name: "zero", value: 0 },
-    { name: "a negative fraction", value: -0.5 },
-    { name: "the largest finite number", value: Number.MAX_VALUE },
-    { name: "an empty array", value: [] },
-    { name: "an empty object", value: {} },
-    { name: "nested arrays and objects", value: { items: [{ value: [null, false, 0, "text"] }] } },
-  ])("accepts $name", ({ value }) => {
-    expect(validateJson(value, "Payload")).toBeUndefined();
+    ["null", null],
+    ["an empty string", ""],
+    ["a string", "value"],
+    ["true", true],
+    ["false", false],
+    ["zero", 0],
+    ["negative zero", -0],
+    ["a fraction", -0.5],
+    ["the smallest positive number", Number.MIN_VALUE],
+    ["the largest finite number", Number.MAX_VALUE],
+    ["an empty array", []],
+    ["an empty object", {}],
+    ["nested JSON", { values: [null, false, 0, "", { tags: ["a", "b"] }] }],
+  ])("accepts %s", (_name, value) => {
+    expect(validateJson(value, "metadata")).toBeUndefined();
   });
 
   it("accepts null-prototype objects without changing their properties or prototype", () => {
-    const value: Record<string, unknown> = Object.create(null);
-    value["__proto__"] = { nested: [1, null] };
+    const value: Record<string, unknown> = Object.assign(Object.create(null), {
+      nested: Object.assign(Object.create(null), { enabled: false }),
+    });
+    Object.defineProperty(value, "__proto__", { value: { safe: true }, enumerable: true });
     Object.freeze(value);
 
-    expect(validateJson(value, "Payload")).toBeUndefined();
+    expect(validateJson(value, "metadata")).toBeUndefined();
     expect(Object.getPrototypeOf(value)).toBeNull();
-    expect(value["__proto__"]).toEqual({ nested: [1, null] });
+    expect(value.__proto__).toEqual({ safe: true });
+    expect(value.nested).toEqual({ enabled: false });
   });
 
-  it.each([
-    { name: "undefined", value: undefined },
-    { name: "NaN", value: NaN },
-    { name: "positive infinity", value: Infinity },
-    { name: "negative infinity", value: -Infinity },
-    { name: "a bigint", value: 1n },
-    { name: "a symbol", value: Symbol("value") },
-    { name: "a function", value: () => "value" },
-  ])("rejects $name at the root and in nested collections", ({ value }) => {
-    for (const input of [value, { nested: value }, [value]]) {
-      expect(() => validateJson(input, "Payload")).toThrow(new TypeError("Payload must contain only JSON values"));
-    }
+  it("accepts shared references and frozen values without mistaking siblings for cycles", () => {
+    const shared = Object.freeze({ tags: Object.freeze([1, null, "tag"]) });
+    const value = Object.freeze({ first: shared, second: shared, items: Object.freeze([shared, shared]) });
+    const ancestor = {};
+    const ancestors = new Set([ancestor]);
+
+    expect(validateJson(value, "metadata", ancestors)).toBeUndefined();
+    expect([...ancestors]).toEqual([ancestor]);
+    expect(value.first).toBe(shared);
+    expect(value.second).toBe(shared);
   });
 
-  it.each([
-    { name: "a Date", value: new Date(0) },
-    { name: "a Map", value: new Map() },
-    { name: "a Set", value: new Set() },
-    { name: "a RegExp", value: /value/ },
-    { name: "a typed array", value: Uint8Array.of(1, 2) },
-    { name: "an object with a custom prototype", value: Object.create({ inherited: true }) },
-  ])("does not coerce $name into JSON", ({ value }) => {
-    for (const input of [value, { nested: [value] }]) {
-      expect(() => validateJson(input, "Payload")).toThrow(
-        new TypeError("Payload must contain only plain JSON objects"),
-      );
-    }
-  });
-
-  it("rejects toJSON methods instead of invoking them", () => {
-    const toJSON = jest.fn(() => ({ value: 1 }));
-    expect(() => validateJson({ toJSON }, "Payload")).toThrow(new TypeError("Payload must contain only JSON values"));
-    expect(toJSON).not.toHaveBeenCalled();
-  });
-
-  it("rejects array holes rather than treating them as null", () => {
-    const value = { items: new Array(1) };
-    expect(() => validateJson(value, "Payload")).toThrow(new TypeError("Payload must contain only JSON values"));
-  });
-
-  it("rejects direct, indirect, and mixed object/array cycles", () => {
-    const object: Record<string, unknown> = {};
-    object.self = object;
-    const array: unknown[] = [];
-    array.push(array);
-    const mixed: Record<string, unknown> = {};
-    mixed.items = [{ parent: mixed }];
-
-    for (const value of [object, array, mixed, { nested: object }]) {
-      expect(() => validateJson(value, "Payload")).toThrow(
-        new TypeError("Payload must not contain circular references"),
-      );
-    }
-  });
-
-  it("allows repeated object and array references outside the current ancestor chain", () => {
+  it("allows repeated array references outside the current ancestor chain", () => {
     const shared = Object.freeze({ value: 1 });
     const items = Object.freeze([shared, shared]);
     const value = Object.freeze({ first: items, second: items, third: shared });
 
-    expect(validateJson(value, "Payload")).toBeUndefined();
+    expect(validateJson(value, "metadata")).toBeUndefined();
     expect(value.first).toBe(value.second);
     expect(value.first[0]).toBe(value.third);
   });
 
-  it("preserves supplied ancestors after a successful validation", () => {
-    const ancestor = {};
-    const ancestors = new Set([ancestor]);
+  it.each([
+    ["undefined", undefined],
+    ["NaN", NaN],
+    ["positive infinity", Infinity],
+    ["negative infinity", -Infinity],
+    ["a bigint", 1n],
+    ["a symbol", Symbol("invalid")],
+    ["a function", () => 1],
+  ])("rejects %s at the root and inside arrays and objects", (_name, value) => {
+    for (const candidate of [value, [value], { nested: [{ value }] }]) {
+      expect(() => validateJson(candidate, "request.metadata")).toThrow(
+        new TypeError("request.metadata must contain only JSON values"),
+      );
+    }
+  });
 
-    expect(validateJson({ nested: [1, {}] }, "Payload", ancestors)).toBeUndefined();
-    expect(ancestors).toEqual(new Set([ancestor]));
-    expect(() => validateJson(ancestor, "Payload", ancestors)).toThrow(
-      new TypeError("Payload must not contain circular references"),
+  it.each([
+    ["a date", new Date("2026-01-01T00:00:00Z")],
+    ["a map", new Map([["key", "value"]])],
+    ["a set", new Set([1])],
+    ["a regular expression", /value/],
+    ["a buffer", Buffer.from([1, 2])],
+    ["a typed array", new Uint8Array([1, 2])],
+    ["a custom prototype", Object.create({ inherited: true })],
+  ])("rejects %s rather than silently coercing it to JSON", (_name, value) => {
+    for (const candidate of [value, { nested: [value] }]) {
+      expect(() => validateJson(candidate, "filter")).toThrow(
+        new TypeError("filter must contain only plain JSON objects"),
+      );
+    }
+  });
+
+  it("does not call toJSON to turn a class instance into a plain object", () => {
+    const toJSON = jest.fn(() => ({ valid: true }));
+    class CustomValue {
+      toJSON = toJSON;
+    }
+
+    expect(() => validateJson(new CustomValue(), "filter")).toThrow(
+      new TypeError("filter must contain only plain JSON objects"),
+    );
+    expect(toJSON).not.toHaveBeenCalled();
+  });
+
+  it("rejects toJSON methods on plain objects instead of invoking them", () => {
+    const toJSON = jest.fn(() => ({ value: 1 }));
+    expect(() => validateJson({ toJSON }, "metadata")).toThrow(new TypeError("metadata must contain only JSON values"));
+    expect(toJSON).not.toHaveBeenCalled();
+  });
+
+  it("rejects sparse arrays rather than treating holes as valid JSON nulls", () => {
+    expect(() => validateJson({ values: new Array(2) }, "metadata")).toThrow(
+      new TypeError("metadata must contain only JSON values"),
+    );
+  });
+
+  it("rejects a direct object cycle", () => {
+    const value: Record<string, unknown> = {};
+    value.self = value;
+
+    expect(() => validateJson(value, "metadata")).toThrow(
+      new TypeError("metadata must not contain circular references"),
+    );
+  });
+
+  it("rejects a direct array cycle", () => {
+    const value: unknown[] = [];
+    value.push(value);
+
+    expect(() => validateJson(value, "metadata")).toThrow(
+      new TypeError("metadata must not contain circular references"),
+    );
+  });
+
+  it("rejects an indirect cycle through objects and arrays", () => {
+    const value: { children: unknown[] } = { children: [] };
+    value.children.push({ parent: value });
+
+    expect(() => validateJson(value, "metadata")).toThrow(
+      new TypeError("metadata must not contain circular references"),
+    );
+  });
+
+  it("rejects a reference to an ancestor supplied by the caller", () => {
+    const value = { valid: true };
+    expect(() => validateJson({ value }, "filter", new Set([value]))).toThrow(
+      new TypeError("filter must not contain circular references"),
     );
   });
 });

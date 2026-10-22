@@ -14,9 +14,9 @@ limitations under the License.
 import path from "path";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { fetchProtoFiles } = require("../../../scripts/fetch-proto");
+import { fetchProtoFiles } from "../../../scripts/fetch-proto";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const fs = require("fs-extra");
+import fs from "fs-extra";
 
 jest.mock("fs-extra", () => ({
   mkdtemp: jest.fn(),
@@ -35,7 +35,7 @@ describe("proto fetching", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    fs.mkdtemp.mockResolvedValue(stagingDir);
+    jest.mocked(fs.mkdtemp).mockImplementation(async () => stagingDir);
     fetchMock = jest.spyOn(global, "fetch");
     jest.spyOn(console, "log").mockImplementation(() => undefined);
   });
@@ -53,6 +53,8 @@ describe("proto fetching", () => {
             entry("dapr/proto/common/v1/common.proto"),
             entry("dapr/proto/runtime/v1/dapr.proto"),
             entry("dapr/proto/runtime/v1/binarystore.proto"),
+            entry("dapr/proto/runtime/v1/search.proto"),
+            entry("dapr/proto/runtime/v1/vector.proto"),
             entry("dapr/proto/internals/v1/status.proto"),
             entry("dapr/proto/components/v1/common.proto"),
             entry("dapr/proto/operator/v1/operator.proto"),
@@ -68,7 +70,7 @@ describe("proto fetching", () => {
       .mockResolvedValueOnce(json({ tree: [entry("protos/orchestration.proto"), entry("README.md")] }));
   }
 
-  it("fetches only common, external runtime, and durabletask protos into both source locations", async () => {
+  it("fetches common, external runtime, durabletask, and status protos into both source locations", async () => {
     mockRepositories();
     fetchMock.mockImplementation(
       async () => new Response('import "orchestration.proto";\nimport "google/protobuf/any.proto";'),
@@ -76,20 +78,25 @@ describe("proto fetching", () => {
 
     await fetchProtoFiles("master", projectRoot, "main");
 
-    expect(fetchMock).toHaveBeenCalledTimes(8);
+    expect(fetchMock).toHaveBeenCalledTimes(11);
     expect(fetchMock.mock.calls.slice(4).map(([url]) => url)).toEqual([
       "https://raw.githubusercontent.com/dapr/dapr/dapr-sha/dapr/proto/common/v1/common.proto",
       "https://raw.githubusercontent.com/dapr/dapr/dapr-sha/dapr/proto/runtime/v1/dapr.proto",
       "https://raw.githubusercontent.com/dapr/dapr/dapr-sha/dapr/proto/runtime/v1/binarystore.proto",
+      "https://raw.githubusercontent.com/dapr/dapr/dapr-sha/dapr/proto/runtime/v1/search.proto",
+      "https://raw.githubusercontent.com/dapr/dapr/dapr-sha/dapr/proto/runtime/v1/vector.proto",
       "https://raw.githubusercontent.com/dapr/durabletask-protobuf/durabletask-sha/protos/orchestration.proto",
+      "https://raw.githubusercontent.com/googleapis/googleapis/ebd1d23ac613b177828dad42ad8dfb13ba498279/google/rpc/status.proto",
     ]);
     expect(fs.writeFile).toHaveBeenCalledWith(
       path.join(stagingDir, "dapr", "proto", "durabletask", "v1", "orchestration.proto"),
       'import "dapr/proto/durabletask/v1/orchestration.proto";\nimport "google/protobuf/any.proto";',
     );
-    expect(fs.copy.mock.calls).toEqual([
+    expect(jest.mocked(fs.copy).mock.calls).toEqual([
       [path.join(stagingDir, "dapr", "proto"), path.join(projectRoot, "dapr", "proto")],
+      [path.join(stagingDir, "google"), path.join(projectRoot, "google")],
       [path.join(stagingDir, "dapr", "proto"), path.join(projectRoot, "src", "proto", "dapr", "proto")],
+      [path.join(stagingDir, "google"), path.join(projectRoot, "src", "proto", "google")],
     ]);
     expect(fs.remove).toHaveBeenCalledWith(stagingDir);
   });
@@ -109,6 +116,17 @@ describe("proto fetching", () => {
 
   it("reports failed downloads and cleans staging without copying partial results", async () => {
     mockRepositories();
+    fetchMock.mockResolvedValueOnce(new Response("Not Found", { status: 404 }));
+    await expect(fetchProtoFiles("master", projectRoot)).rejects.toThrow("HTTP 404");
+    expect(fs.copy).not.toHaveBeenCalled();
+    expect(fs.remove).toHaveBeenCalledWith(stagingDir);
+  });
+
+  it("does not copy partial snapshots if the shared status dependency fails to download", async () => {
+    mockRepositories();
+    for (let index = 0; index < 6; index++) {
+      fetchMock.mockResolvedValueOnce(new Response('syntax = "proto3";'));
+    }
     fetchMock.mockResolvedValueOnce(new Response("Not Found", { status: 404 }));
     await expect(fetchProtoFiles("master", projectRoot)).rejects.toThrow("HTTP 404");
     expect(fs.copy).not.toHaveBeenCalled();
