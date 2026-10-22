@@ -22,7 +22,7 @@ import type {
   SearchResult,
 } from "../../types/search/Search.types";
 
-/** Search Alpha1 (Dapr 1.19+, HTTP only). Provider capabilities determine supported query options. */
+/** Search Alpha1 (Dapr 1.19+, HTTP and gRPC). Provider capabilities determine supported query options. */
 export default interface IClientSearch {
   createIndex(storeName: string, index: string, options?: SearchOptions): Promise<void>;
   getIndex(storeName: string, index: string, options?: SearchOptions): Promise<SearchIndex>;
