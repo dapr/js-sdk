@@ -227,7 +227,7 @@ export default class DaprClient {
    */
   readonly secret: IClientSecret;
 
-  /** Index management, document retrieval, and search (Dapr 1.19+ Alpha1 API, HTTP only). */
+  /** Index management, document retrieval, and search (Dapr 1.19+ Alpha1 API, HTTP and gRPC). */
   readonly search: IClientSearch;
 
   /**
@@ -320,7 +320,7 @@ export default class DaprClient {
         this.binaryStore = new GRPCClientBinaryStore(client);
         this.invoker = new GRPCClientInvoker(client);
         this.secret = new GRPCClientSecret(client);
-        this.search = new GRPCClientSearch();
+        this.search = new GRPCClientSearch(client);
         this.health = new GRPCClientHealth(client);
         const metadata = new GRPCClientMetadata(client);
         this.metadata = metadata;

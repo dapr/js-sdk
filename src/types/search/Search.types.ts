@@ -87,7 +87,7 @@ export type IndexDocumentsResult = {
     /** Canonical non-OK google.rpc.Code. */
     errorCode: number;
     errorMessage: string;
-    /** Provider details in protobuf JSON form, including their @type URLs. */
+    /** HTTP: protobuf JSON. gRPC: { "@type": type URL, value: base64 protobuf bytes }. */
     details: JsonObject[];
   }[];
 };
