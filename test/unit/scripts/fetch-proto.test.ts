@@ -35,7 +35,7 @@ describe("proto fetching", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    fs.mkdtemp.mockResolvedValue(stagingDir);
+    jest.mocked(fs.mkdtemp).mockImplementation(async () => stagingDir);
     fetchMock = jest.spyOn(global, "fetch");
     jest.spyOn(console, "log").mockImplementation(() => undefined);
   });
@@ -92,7 +92,7 @@ describe("proto fetching", () => {
       path.join(stagingDir, "dapr", "proto", "durabletask", "v1", "orchestration.proto"),
       'import "dapr/proto/durabletask/v1/orchestration.proto";\nimport "google/protobuf/any.proto";',
     );
-    expect(fs.copy.mock.calls).toEqual([
+    expect(jest.mocked(fs.copy).mock.calls).toEqual([
       [path.join(stagingDir, "dapr", "proto"), path.join(projectRoot, "dapr", "proto")],
       [path.join(stagingDir, "google"), path.join(projectRoot, "google")],
       [path.join(stagingDir, "dapr", "proto"), path.join(projectRoot, "src", "proto", "dapr", "proto")],
