@@ -116,10 +116,16 @@ export default class ActorRuntime {
    * @param payload
    * @returns
    */
-  async invoke(actorTypeName: string, actorId: string, actorMethodName: string, requestBody?: Buffer): Promise<Buffer> {
+  async invoke(
+    actorTypeName: string,
+    actorId: string,
+    actorMethodName: string,
+    requestBody?: Buffer,
+    activationId?: string,
+  ): Promise<Buffer> {
     const actorIdObj = new ActorId(actorId);
     const manager = this.getActorManager(actorTypeName);
-    return await manager.invoke(actorIdObj, actorMethodName, requestBody);
+    return await manager.invoke(actorIdObj, actorMethodName, requestBody, activationId);
   }
 
   /**
@@ -130,10 +136,16 @@ export default class ActorRuntime {
    * @param name the name of the reminder
    * @param requestBody the body passed to the reminder callback
    */
-  async fireReminder(actorTypeName: string, actorId: string, name: string, requestBody?: Buffer) {
+  async fireReminder(
+    actorTypeName: string,
+    actorId: string,
+    name: string,
+    requestBody?: Buffer,
+    activationId?: string,
+  ) {
     const actorIdObj = new ActorId(actorId);
     const manager = this.getActorManager(actorTypeName);
-    return await manager.fireReminder(actorIdObj, name, requestBody);
+    return await manager.fireReminder(actorIdObj, name, requestBody, activationId);
   }
 
   /**
@@ -144,10 +156,10 @@ export default class ActorRuntime {
    * @param name the name of the timer
    * @param requestBody the body passed to the timer callback
    */
-  async fireTimer(actorTypeName: string, actorId: string, name: string, requestBody?: Buffer) {
+  async fireTimer(actorTypeName: string, actorId: string, name: string, requestBody?: Buffer, activationId?: string) {
     const actorIdObj = new ActorId(actorId);
     const manager = this.getActorManager(actorTypeName);
-    return await manager.fireTimer(actorIdObj, name, requestBody);
+    return await manager.fireTimer(actorIdObj, name, requestBody, activationId);
   }
 
   async deactivate(actorTypeName: string, actorId: string): Promise<void> {
