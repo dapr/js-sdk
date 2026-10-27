@@ -13,12 +13,14 @@ limitations under the License.
 
 import { Network, StartedNetwork, StartedTestContainer, TestContainers } from "testcontainers";
 import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
-import { CommunicationProtocolEnum, DaprClient, DaprServer, DaprPubSubStatusEnum } from "../../../src";
+import { CommunicationProtocolEnum, DaprClient, DaprServer, DaprPubSubStatusEnum, HttpMethod } from "../../../src";
+import { CustomSerializer, CustomJsonSerializer, CustomBinarySerializer } from "../../fixtures/CustomSerializer";
 import { DaprGrpcAppContainer, StartedGrpcDaprContainer } from "../helpers/DaprGrpcAppContainer";
 import {
   startRedisContainer,
   startMqttContainer,
   buildPubSubMqttComponent,
+  buildInMemoryPubSubComponent,
   DAPR_TEST_RUNTIME_IMAGE,
   DAPR_TEST_PLACEMENT_IMAGE,
   DAPR_TEST_SCHEDULER_IMAGE,
@@ -26,6 +28,151 @@ import {
 } from "../helpers/containers";
 
 const pubSubName = "pubsub-mqtt"; // MQTT is required by the tests with wildcard routes
+const retryPubSubName = "pubsub-retries";
+const pubSubMaxRetries = 2;
+const pubSubRetryResiliency = {
+  target: "/dapr-resources/pubsub-callback-resiliency.yaml",
+  content: JSON.stringify({
+    apiVersion: "dapr.io/v1alpha1",
+    kind: "Resiliency",
+    metadata: { name: "pubsub-callback-resiliency" },
+    spec: {
+      policies: {
+        retries: { callbackRetry: { policy: "constant", duration: "100ms", maxRetries: pubSubMaxRetries } },
+      },
+      targets: { components: { [retryPubSubName]: { inbound: { retry: "callbackRetry" } } } },
+    },
+  }),
+};
+
+describe.each([
+  { communicationProtocol: CommunicationProtocolEnum.HTTP, serializer: new CustomSerializer() },
+  { communicationProtocol: CommunicationProtocolEnum.GRPC, serializer: new CustomSerializer() },
+  { communicationProtocol: CommunicationProtocolEnum.HTTP, serializer: new CustomJsonSerializer() },
+  { communicationProtocol: CommunicationProtocolEnum.GRPC, serializer: new CustomJsonSerializer() },
+  { communicationProtocol: CommunicationProtocolEnum.HTTP, serializer: new CustomBinarySerializer() },
+  { communicationProtocol: CommunicationProtocolEnum.GRPC, serializer: new CustomBinarySerializer() },
+])(
+  "custom serialization server/$communicationProtocol/$serializer.contentType",
+  ({ communicationProtocol, serializer }) => {
+    const appPort = communicationProtocol === CommunicationProtocolEnum.HTTP ? 3523 : 3524;
+    const appId = `serialization-${communicationProtocol}`;
+    let server: DaprServer;
+    let network: StartedNetwork;
+    let sidecar: StartedDaprContainer | StartedGrpcDaprContainer;
+    const received: unknown[] = [];
+    const bulkReceived: unknown[] = [];
+
+    beforeAll(async () => {
+      network = await new Network().start();
+      await TestContainers.exposeHostPorts(appPort);
+      server = new DaprServer({
+        communicationProtocol,
+        serverHost: "127.0.0.1",
+        serverPort: appPort.toString(),
+        clientOptions: { serializer },
+      });
+      await server.invoker.listen("echo", async (request) => serializer.deserialize<object>(request.body ?? ""), {
+        method: HttpMethod.POST,
+      });
+      await server.invoker.listen("false", async () => false, { method: HttpMethod.POST });
+      await server.pubsub.subscribe("pubsub", "custom", async (value) => {
+        received.push(value);
+      });
+      await server.pubsub.subscribeBulk(
+        "pubsub",
+        "custom-bulk",
+        async (value) => {
+          bulkReceived.push(value);
+        },
+        serializer.contentType === "application/octet-stream" ? { metadata: { rawPayload: true } } : {},
+      );
+      await server.daprServer.start("127.0.0.1", appPort.toString());
+      sidecar =
+        communicationProtocol === CommunicationProtocolEnum.HTTP
+          ? await new DaprContainer(DAPR_TEST_RUNTIME_IMAGE)
+              .withPlacementImage(DAPR_TEST_PLACEMENT_IMAGE)
+              .withSchedulerImage(DAPR_TEST_SCHEDULER_IMAGE)
+              .withNetwork(network)
+              .withAppName(appId)
+              .withAppPort(appPort)
+              .withAppChannelAddress("host.testcontainers.internal")
+              .withComponent(buildInMemoryPubSubComponent())
+              .start()
+          : await new DaprGrpcAppContainer()
+              .withNetwork(network)
+              .withAppId(appId)
+              .withAppPort(appPort)
+              .withAppChannelAddress("host.testcontainers.internal")
+              .withComponent(buildInMemoryPubSubComponent())
+              .start();
+    }, 180000);
+
+    afterAll(async () => {
+      await runWithCleanupErrorSuppression(async () => {
+        // Close the sidecar's persistent gRPC session before stopping the app server.
+        await sidecar.stop();
+        await server.stop();
+        await network.stop();
+      });
+    }, 120 * 1000);
+
+    it.each([CommunicationProtocolEnum.HTTP, CommunicationProtocolEnum.GRPC])(
+      "round-trips invocation and single/bulk publishing from %s",
+      async (senderProtocol) => {
+        const client = new DaprClient({
+          communicationProtocol: senderProtocol,
+          daprHost: sidecar.getHost(),
+          daprPort: (senderProtocol === CommunicationProtocolEnum.HTTP
+            ? sidecar.getHttpPort()
+            : sidecar.getGrpcPort()
+          ).toString(),
+          serializer,
+        });
+        const value = { protocol: senderProtocol, count: 9007199254740993n };
+        try {
+          expect(await client.invoker.invoke(appId, "echo", HttpMethod.POST, value)).toEqual(value);
+          expect(await client.invoker.invoke(appId, "false", HttpMethod.POST, {})).toBe(false);
+          expect(await client.pubsub.publish("pubsub", "custom", value)).toEqual({});
+          expect(
+            await client.pubsub.publishBulk(
+              "pubsub",
+              "custom-bulk",
+              [value],
+              serializer.contentType === "application/octet-stream" ? { rawPayload: "true" } : undefined,
+            ),
+          ).toEqual({ failedMessages: [] });
+          const explicit = { ...value, count: value.count + 1n };
+          expect(
+            await client.pubsub.publishBulk(
+              "pubsub",
+              "custom-bulk",
+              [{ entryID: "explicit", event: explicit, contentType: "text/plain" }],
+              serializer.contentType === "application/octet-stream" ? { rawPayload: "true" } : undefined,
+            ),
+          ).toEqual({ failedMessages: [] });
+          const deadline = Date.now() + 10000;
+          while (
+            Date.now() < deadline &&
+            (!received.some((item) => serializer.serialize(item) === serializer.serialize(value)) ||
+              ![value, explicit].every((expected) =>
+                bulkReceived.some((item) => serializer.serialize(item) === serializer.serialize(expected)),
+              ))
+          ) {
+            await new Promise((resolve) => setTimeout(resolve, 50));
+          }
+          expect(received).toContainEqual(value);
+          expect(bulkReceived).toContainEqual(value);
+          expect(bulkReceived).toContainEqual(explicit);
+        } finally {
+          await client.stop();
+        }
+      },
+      30000,
+    );
+  },
+);
+
 const topicDefault = "test-topic";
 const topicRawPayload = "test-topic-raw";
 const topicOptionsWithCallback = "test-topic-options-callback";
@@ -38,6 +185,7 @@ const topicWithDeadletter = "test-topic-6";
 const topicWithDeadletterInOptions = "test-topic-7";
 const topicWithDeadletterInOptionsDefault = "test-topic-8";
 const topicWithDeadletterAndErrorCb = "test-topic-9";
+const topicWithRetryCb = "test-topic-retry-callback";
 const topicWithStatusCb = "test-topic-status-callback";
 const topicWithBulk = "test-topic-bulk";
 const topicWildcardHash = "myhome/groundfloor/#";
@@ -70,6 +218,16 @@ function getDataFromCEObject(obj: object) {
   return values[0];
 }
 
+async function waitForPubSub(predicate: () => boolean): Promise<void> {
+  const deadline = Date.now() + 10_000;
+  while (!predicate()) {
+    if (Date.now() >= deadline) {
+      throw new Error("Timed out waiting for pub/sub callbacks");
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+}
+
 describe("common/server/http", () => {
   jest.setTimeout(30000);
 
@@ -89,8 +247,11 @@ describe("common/server/http", () => {
   const mockBulkSubscribeCloudEventToRawPayloadHandler = jest.fn(async (_data: object, _headers: object) => null);
   const mockBulkSubscribeRawPayloadToCloudEventHandler = jest.fn(async (_data: object, _headers: object) => null);
   const mockSubscribeDeadletterHandler = jest.fn(async (_data: object, _headers: object) => null);
+  const mockSubscribeRetryHandler = jest.fn(async (_data: object, _headers: object) => {});
+  const mockSubscribeRetryDeadletterHandler = jest.fn(async (_data: object, _headers: object) => null);
+  const mockSubscribeErrorDeadletterHandler = jest.fn(async (_data: object, _headers: object) => null);
   const mockSubscribeErrorHandler = jest.fn(async (_data: object, _headers: object) => {
-    throw new Error("This will DROP the message!");
+    throw new Error("handler failed");
   });
 
   const statusHandlerVars = { counter: 0 };
@@ -132,11 +293,20 @@ describe("common/server/http", () => {
     // Register all subscriptions before starting the server
     await httpServer.pubsub.subscribe(pubSubName, getTopic(topicDefault), mockSubscribeHandler);
 
-    await httpServer.pubsub.subscribeBulk(pubSubName, getTopic(bulkSubscribeTopic), mockBulkSubscribeRawPayloadHandler, {
-      metadata: { rawPayload: true },
-    });
+    await httpServer.pubsub.subscribeBulk(
+      pubSubName,
+      getTopic(bulkSubscribeTopic),
+      mockBulkSubscribeRawPayloadHandler,
+      {
+        metadata: { rawPayload: true },
+      },
+    );
 
-    await httpServer.pubsub.subscribeBulk(pubSubName, getTopic(bulkSubscribeClodEventTopic), mockBulkSubscribeCEHandler);
+    await httpServer.pubsub.subscribeBulk(
+      pubSubName,
+      getTopic(bulkSubscribeClodEventTopic),
+      mockBulkSubscribeCEHandler,
+    );
 
     await httpServer.pubsub.subscribeBulk(
       pubSubName,
@@ -193,10 +363,25 @@ describe("common/server/http", () => {
       deadLetterCallback: mockSubscribeHandler,
     });
 
-    await httpServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicWithDeadletterAndErrorCb), {
-      deadLetterCallback: mockSubscribeHandler,
+    await httpServer.pubsub.subscribeWithOptions(retryPubSubName, getTopic(topicWithRetryCb), {
+      deadLetterTopic: getTopic(`${topicWithRetryCb}-deadletter`),
+      callback: mockSubscribeRetryHandler,
+    });
+    await httpServer.pubsub.subscribe(
+      retryPubSubName,
+      getTopic(`${topicWithRetryCb}-deadletter`),
+      mockSubscribeRetryDeadletterHandler,
+    );
+
+    await httpServer.pubsub.subscribeWithOptions(retryPubSubName, getTopic(topicWithDeadletterAndErrorCb), {
+      deadLetterTopic: getTopic(`${topicWithDeadletterAndErrorCb}-deadletter`),
       callback: mockSubscribeErrorHandler,
     });
+    await httpServer.pubsub.subscribe(
+      retryPubSubName,
+      getTopic(`${topicWithDeadletterAndErrorCb}-deadletter`),
+      mockSubscribeErrorDeadletterHandler,
+    );
 
     // Configure subscriptions for Status Message testing
     // to test, we use the message as the status (SUCCESS, RETRY, DROP, Other)
@@ -216,6 +401,8 @@ describe("common/server/http", () => {
       .withAppPort(appPort)
       .withAppChannelAddress("host.testcontainers.internal")
       .withComponent(buildPubSubMqttComponent())
+      .withComponent(buildInMemoryPubSubComponent(retryPubSubName))
+      .withCopyContentToContainer([pubSubRetryResiliency])
       .start();
 
     // Patch the DaprClient with real container ports, then wait for sidecar.
@@ -241,7 +428,6 @@ describe("common/server/http", () => {
     });
   }, 60 * 1000);
 
-
   describe("pubsub", () => {
     it("should mark messages as processed successfully (SUCCESS) by-default, and the same message should not be received anymore", async () => {
       const res = await httpServer.client.pubsub.publish(pubSubName, getTopic(topicWithStatusCb), "SUCCESS");
@@ -265,6 +451,22 @@ describe("common/server/http", () => {
       expect(mockSubscribeStatusHandler.mock.calls.length).toBe(3);
       expect(mockSubscribeDeadletterHandler.mock.calls.length).toBe(0);
     }, 60_000);
+
+    it("should retry a thrown callback and acknowledge completion without a status", async () => {
+      const message = { orderId: "http-retry-recovery" };
+      mockSubscribeRetryHandler.mockImplementationOnce(async () => {
+        throw new Error("temporary handler failure");
+      });
+      const res = await httpServer.client.pubsub.publish(retryPubSubName, getTopic(topicWithRetryCb), message);
+      expect(res.error).toBeUndefined();
+
+      await waitForPubSub(() => mockSubscribeRetryHandler.mock.calls.length >= 2);
+      expect(mockSubscribeRetryHandler.mock.calls.map(([data]) => data)).toEqual([message, message]);
+      // Observe beyond the retry budget to detect retries after successful processing.
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      expect(mockSubscribeRetryHandler).toHaveBeenCalledTimes(2);
+      expect(mockSubscribeRetryDeadletterHandler).not.toHaveBeenCalled();
+    });
 
     it("should mark messages as dropped (DROP), and the message should be deadlettered", async () => {
       const res = await httpServer.client.pubsub.publish(pubSubName, getTopic(topicWithStatusCb), "DROP");
@@ -613,16 +815,21 @@ describe("common/server/http", () => {
       expect(routes[defaultDeadLetterTopic].eventHandlers.length).toEqual(1);
     });
 
-    it("should be able to send and receive events through deadletter", async () => {
-      const res = await httpServer.client.pubsub.publish(pubSubName, getTopic(topicWithDeadletterAndErrorCb), {
-        message: "Hello, world!",
-      });
+    it("should deliver failed messages to the dead-letter topic after exhausting retries", async () => {
+      const message = { message: "Hello, world!" };
+      const res = await httpServer.client.pubsub.publish(
+        retryPubSubName,
+        getTopic(topicWithDeadletterAndErrorCb),
+        message,
+      );
       expect(res.error).toBeUndefined();
-      // Delay a bit for event to arrive
-      await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
-      expect(mockSubscribeErrorHandler).toHaveBeenCalledTimes(1);
-      expect(mockSubscribeErrorHandler.mock.calls[0][0]).toEqual({ message: "Hello, world!" });
-      expect(mockSubscribeHandler).toHaveBeenCalledTimes(0);
+      await waitForPubSub(() => mockSubscribeErrorDeadletterHandler.mock.calls.length > 0);
+      expect(mockSubscribeErrorHandler.mock.calls.map(([data]) => data)).toEqual(
+        Array.from({ length: pubSubMaxRetries + 1 }, () => message),
+      );
+      expect(mockSubscribeErrorDeadletterHandler).toHaveBeenCalledTimes(1);
+      expect(mockSubscribeErrorDeadletterHandler.mock.calls[0][0]).toEqual(message);
+      expect(mockSubscribeHandler).not.toHaveBeenCalled();
     });
 
     it("should be able to subscribe to wildcard topics with a # (e.g., myhome/groundfloor/#) - multi level wildcard", async () => {
@@ -694,8 +901,11 @@ describe("common/server/grpc", () => {
   const mockBulkSubscribeCloudEventToRawPayloadHandler = jest.fn(async (_data: object, _headers: object) => null);
   const mockBulkSubscribeRawPayloadToCloudEventHandler = jest.fn(async (_data: object, _headers: object) => null);
   const mockSubscribeDeadletterHandler = jest.fn(async (_data: object, _headers: object) => null);
+  const mockSubscribeRetryHandler = jest.fn(async (_data: object, _headers: object) => {});
+  const mockSubscribeRetryDeadletterHandler = jest.fn(async (_data: object, _headers: object) => null);
+  const mockSubscribeErrorDeadletterHandler = jest.fn(async (_data: object, _headers: object) => null);
   const mockSubscribeErrorHandler = jest.fn(async (_data: object, _headers: object) => {
-    throw new Error("This will DROP the message!");
+    throw new Error("handler failed");
   });
 
   const statusHandlerVars = { counter: 0 };
@@ -805,10 +1015,25 @@ describe("common/server/grpc", () => {
       deadLetterCallback: mockSubscribeHandler,
     });
 
-    await grpcServer.pubsub.subscribeWithOptions(pubSubName, getTopic(topicWithDeadletterAndErrorCb), {
-      deadLetterCallback: mockSubscribeHandler,
+    await grpcServer.pubsub.subscribeWithOptions(retryPubSubName, getTopic(topicWithRetryCb), {
+      deadLetterTopic: getTopic(`${topicWithRetryCb}-deadletter`),
+      callback: mockSubscribeRetryHandler,
+    });
+    await grpcServer.pubsub.subscribe(
+      retryPubSubName,
+      getTopic(`${topicWithRetryCb}-deadletter`),
+      mockSubscribeRetryDeadletterHandler,
+    );
+
+    await grpcServer.pubsub.subscribeWithOptions(retryPubSubName, getTopic(topicWithDeadletterAndErrorCb), {
+      deadLetterTopic: getTopic(`${topicWithDeadletterAndErrorCb}-deadletter`),
       callback: mockSubscribeErrorHandler,
     });
+    await grpcServer.pubsub.subscribe(
+      retryPubSubName,
+      getTopic(`${topicWithDeadletterAndErrorCb}-deadletter`),
+      mockSubscribeErrorDeadletterHandler,
+    );
 
     // Configure subscriptions for Status Message testing
     // to test, we use the message as the status (SUCCESS, RETRY, DROP, Other)
@@ -826,6 +1051,8 @@ describe("common/server/grpc", () => {
       .withAppPort(appPort)
       .withAppChannelAddress("host.testcontainers.internal")
       .withComponent(buildPubSubMqttComponent())
+      .withComponent(buildInMemoryPubSubComponent(retryPubSubName))
+      .withCopyContentToContainer([pubSubRetryResiliency])
       .start();
 
     // Patch the DaprClient with real container ports, then wait for sidecar.
@@ -878,6 +1105,22 @@ describe("common/server/grpc", () => {
       expect(mockSubscribeStatusHandler.mock.calls.length).toBe(3);
       expect(mockSubscribeDeadletterHandler.mock.calls.length).toBe(0);
     }, 60_000);
+
+    it("should retry a thrown callback and acknowledge completion without a status", async () => {
+      const message = { orderId: "grpc-retry-recovery" };
+      mockSubscribeRetryHandler.mockImplementationOnce(async () => {
+        throw new Error("temporary handler failure");
+      });
+      const res = await grpcServer.client.pubsub.publish(retryPubSubName, getTopic(topicWithRetryCb), message);
+      expect(res.error).toBeUndefined();
+
+      await waitForPubSub(() => mockSubscribeRetryHandler.mock.calls.length >= 2);
+      expect(mockSubscribeRetryHandler.mock.calls.map(([data]) => data)).toEqual([message, message]);
+      // Observe beyond the retry budget to detect retries after successful processing.
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      expect(mockSubscribeRetryHandler).toHaveBeenCalledTimes(2);
+      expect(mockSubscribeRetryDeadletterHandler).not.toHaveBeenCalled();
+    });
 
     it("should mark messages as dropped (DROP), and the message should be deadlettered", async () => {
       const res = await grpcServer.client.pubsub.publish(pubSubName, getTopic(topicWithStatusCb), "DROP");
@@ -1225,16 +1468,21 @@ describe("common/server/grpc", () => {
       expect(routes[defaultDeadLetterTopic].eventHandlers.length).toEqual(1);
     });
 
-    it("should be able to send and receive events through deadletter", async () => {
-      const res = await grpcServer.client.pubsub.publish(pubSubName, getTopic(topicWithDeadletterAndErrorCb), {
-        message: "Hello, world!",
-      });
+    it("should deliver failed messages to the dead-letter topic after exhausting retries", async () => {
+      const message = { message: "Hello, world!" };
+      const res = await grpcServer.client.pubsub.publish(
+        retryPubSubName,
+        getTopic(topicWithDeadletterAndErrorCb),
+        message,
+      );
       expect(res.error).toBeUndefined();
-      // Delay a bit for event to arrive
-      await new Promise((resolve, _reject) => setTimeout(resolve, 1000));
-      expect(mockSubscribeErrorHandler).toHaveBeenCalledTimes(1);
-      expect(mockSubscribeErrorHandler.mock.calls[0][0]).toEqual({ message: "Hello, world!" });
-      expect(mockSubscribeHandler).toHaveBeenCalledTimes(0);
+      await waitForPubSub(() => mockSubscribeErrorDeadletterHandler.mock.calls.length > 0);
+      expect(mockSubscribeErrorHandler.mock.calls.map(([data]) => data)).toEqual(
+        Array.from({ length: pubSubMaxRetries + 1 }, () => message),
+      );
+      expect(mockSubscribeErrorDeadletterHandler).toHaveBeenCalledTimes(1);
+      expect(mockSubscribeErrorDeadletterHandler.mock.calls[0][0]).toEqual(message);
+      expect(mockSubscribeHandler).not.toHaveBeenCalled();
     });
 
     it("should be able to subscribe to wildcard topics with a # (e.g., myhome/groundfloor/#) - multi level wildcard", async () => {

@@ -30,6 +30,33 @@ import { StateConsistencyEnum } from "../enum/StateConsistency.enum";
 import { StateConcurrencyEnum } from "../enum/StateConcurrency.enum";
 import { Settings } from "./Settings.util";
 
+/** Cancel one caller's wait without cancelling an operation shared by other callers. */
+export function withAbortSignal<T>(pending: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (signal === undefined) {
+    return pending;
+  }
+  return new Promise<T>((resolve, reject) => {
+    const abort = () => {
+      signal.removeEventListener("abort", abort);
+      reject(signal.reason);
+    };
+    signal.addEventListener("abort", abort, { once: true });
+    pending.then(
+      (value) => {
+        signal.removeEventListener("abort", abort);
+        resolve(value);
+      },
+      (error) => {
+        signal.removeEventListener("abort", abort);
+        reject(error);
+      },
+    );
+    if (signal.aborted) {
+      abort();
+    }
+  });
+}
+
 /**
  * Adds metadata to a map.
  * @param map Input map
@@ -114,13 +141,12 @@ export function createConfigurationType(configDict: { [key: string]: Configurati
   const configMap: { [k: string]: ConfigurationItem } = {};
 
   for (const [k, v] of Object.entries(configDict)) {
-    const item: ConfigurationItem = {
+    configMap[k] = {
       key: k,
       value: v.value,
       version: v.version,
       metadata: { ...v.metadata },
     };
-    configMap[k] = item;
   }
   return configMap;
 }
@@ -166,14 +192,17 @@ export function getContentType(data: any): string {
  * @param messages pubsub bulk publish messages
  * @returns configured entries
  */
-export function getBulkPublishEntries(messages: PubSubBulkPublishMessage[]): PubSubBulkPublishEntry[] {
+export function getBulkPublishEntries(
+  messages: PubSubBulkPublishMessage[],
+  defaultContentType?: string,
+): PubSubBulkPublishEntry[] {
   return messages.map((message) => {
     // If message is a PubSubBulkPublishEntry, use it directly
     if (typeof message !== "string" && "event" in message) {
       return {
         entryID: message.entryID ? message.entryID : randomUUID(),
         event: message.event,
-        contentType: message.contentType ? message.contentType : getContentType(message.event),
+        contentType: message.contentType ? message.contentType : defaultContentType ?? getContentType(message.event),
         metadata: message.metadata ? message.metadata : {},
       };
     }
@@ -181,7 +210,7 @@ export function getBulkPublishEntries(messages: PubSubBulkPublishMessage[]): Pub
     return {
       entryID: randomUUID(),
       event: message,
-      contentType: getContentType(message),
+      contentType: defaultContentType ?? getContentType(message),
       metadata: {},
     };
   });
@@ -265,5 +294,6 @@ export function getClientOptions(
     actor: clientOptions?.actor,
     daprApiToken: clientOptions?.daprApiToken ?? Settings.getDefaultApiToken(),
     maxBodySizeMb: clientOptions?.maxBodySizeMb,
+    serializer: clientOptions?.serializer,
   };
 }

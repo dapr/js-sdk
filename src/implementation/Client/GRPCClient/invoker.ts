@@ -17,7 +17,7 @@ import GRPCClient from "./GRPCClient";
 
 import { HttpMethod } from "../../../enum/HttpMethod.enum";
 import { HTTPExtensionSchema, InvokeRequestSchema } from "../../../proto/dapr/proto/common/v1/common_pb";
-import { InvokeServiceRequestSchema } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import { InvokeServiceRequestSchema } from "../../../proto/dapr/proto/runtime/v1/invoke_pb";
 import * as HttpVerbUtil from "../../../utils/HttpVerb.util";
 import IClientInvoker from "../../../interfaces/Client/IClientInvoker";
 import * as SerializerUtil from "../../../utils/Serializer.util";
@@ -105,7 +105,11 @@ export default class GRPCClientInvoker implements IClientInvoker {
       verb: HttpVerbUtil.convertHttpVerbStringToNumber(method),
     });
 
-    const { serializedData, contentType } = SerializerUtil.serializeGrpc(data);
+    const { serializedData, contentType } = SerializerUtil.serializeGrpc(
+      data,
+      this.client.options.serializer ? _options.headers?.["Content-Type"] : undefined,
+      this.client.options.serializer,
+    );
     const msgSerialized = create(AnySchema, { value: serializedData });
 
     const msgInvoke = create(InvokeRequestSchema, {
@@ -129,6 +133,10 @@ export default class GRPCClientInvoker implements IClientInvoker {
       resData = Buffer.from(res.data.value).toString();
     }
 
+    if (this.client.options.serializer) {
+      return this.client.options.serializer.deserialize<object>(resData);
+    }
+
     try {
       return JSON.parse(resData);
     } catch (e) {
@@ -141,4 +149,3 @@ export default class GRPCClientInvoker implements IClientInvoker {
     }
   }
 }
-

@@ -20,6 +20,7 @@ import { DaprClient } from "../../..";
 import { createHttpTerminator } from "http-terminator";
 import { Logger } from "../../../logger/Logger";
 import { DaprServerOptions } from "../../../types/DaprServerOptions";
+import { isJsonContentType } from "../../../serialization/Serialization.util";
 
 export type IServerImplType = HTTPServerImpl;
 export type IServerType = express.Express;
@@ -47,6 +48,23 @@ export default class HTTPServer implements IServer {
     this.isInitialized = false;
 
     this.server = options.serverHttp ?? express();
+    // Jobs accepts all JSON values, including scalar and null payloads.
+    this.server.use(
+      "/job",
+      bodyParser.json({
+        strict: false,
+        limit: `${this.serverOptions?.maxBodySizeMb ?? 4}mb`,
+      }),
+    );
+    const serializer = client.options.serializer;
+    if (serializer?.contentType && !isJsonContentType(serializer.contentType)) {
+      this.server.use(
+        bodyParser.text({
+          type: serializer.contentType,
+          limit: `${this.serverOptions?.maxBodySizeMb ?? 4}mb`,
+        }),
+      );
+    }
     this.server.use(
       bodyParser.text({
         limit: `${this.serverOptions?.maxBodySizeMb ?? 4}mb`,
@@ -62,6 +80,7 @@ export default class HTTPServer implements IServer {
 
     this.server.use(
       bodyParser.json({
+        strict: !serializer,
         type: [
           "application/json",
 
@@ -74,7 +93,7 @@ export default class HTTPServer implements IServer {
       }),
     );
 
-    this.serverImpl = new HTTPServerImpl(this.server, client.options.logger);
+    this.serverImpl = new HTTPServerImpl(this.server, client.options.logger, client.options.serializer);
 
     this.serverAddress = "";
   }

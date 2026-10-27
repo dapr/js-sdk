@@ -12,7 +12,16 @@ limitations under the License.
 */
 
 import type { RetryPolicy } from "./RetryPolicy.type";
+import type { HistoryPropagationScope } from "../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 
 export interface ChildWorkflowOptions {
+  /** Allow reference inputs at a cross-app boundary; destination must support and access the store. */
+  allowPayloadReferences?: boolean;
+  /** Receive the top-level result as a PayloadReference instead of buffering it. */
+  resultAsReference?: boolean;
   retryPolicy?: RetryPolicy;
+  /** Destination Dapr app ID. Omit to run in the calling application. */
+  targetAppId?: string;
+  /** Ancestor history to share with the callee. Defaults to NONE. */
+  propagationScope?: HistoryPropagationScope;
 }

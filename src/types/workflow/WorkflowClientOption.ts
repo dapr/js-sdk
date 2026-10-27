@@ -13,6 +13,8 @@ limitations under the License.
 
 import { LoggerOptions } from "../logger/LoggerOptions";
 import type { Interceptor } from "@connectrpc/connect";
+import type { IDaprSerializer } from "../../serialization/IDaprSerializer";
+import type { BinaryStoreWorkflowPayloadResolver } from "../../workflow/payloads/BinaryStoreWorkflowPayloadResolver";
 
 /**
  * Options for configuring the workflow gRPC transport.
@@ -27,6 +29,11 @@ export type GrpcChannelOptions = {
 };
 
 export type WorkflowClientOptions = {
+  /** Optional binary-store payload support. Uses payloads.serializer unless serializer is supplied. */
+  payloads?: BinaryStoreWorkflowPayloadResolver;
+  /** Serializer shared by workflow clients and workers. Defaults to JSON. */
+  serializer?: IDaprSerializer;
+
   /**
    * Host location of the Dapr sidecar.
    * Default is 127.0.0.1.
@@ -55,6 +62,13 @@ export type WorkflowClientOptions = {
    * Compatible with legacy @grpc/grpc-js ChannelOptions.
    */
   grpcOptions?: GrpcChannelOptions | Record<string, any>;
+
+  /**
+   * Maximum number of activities the workflow runtime executes at once; further activities wait
+   * in a queue on the worker. Unlimited by default, leaving concurrency to the Dapr runtime's
+   * workflow.maxConcurrentActivityInvocations. Workflow work items are never limited.
+   */
+  maxConcurrentActivities?: number;
 };
 
 /**

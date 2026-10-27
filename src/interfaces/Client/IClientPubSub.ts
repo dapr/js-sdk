@@ -16,6 +16,11 @@ import { PubSubBulkPublishMessage } from "../../types/pubsub/PubSubBulkPublishMe
 import { PubSubBulkPublishResponse } from "../../types/pubsub/PubSubBulkPublishResponse.type";
 import { PubSubPublishOptions } from "../../types/pubsub/PubSubPublishOptions.type";
 import { PubSubPublishResponseType } from "../../types/pubsub/PubSubPublishResponse.type";
+import { TypeDaprPubSubCallback } from "../../types/DaprPubSubCallback.type";
+import {
+  PubSubStreamingSubscription,
+  PubSubStreamingSubscriptionOptions,
+} from "../../types/pubsub/PubSubStreamingSubscription.type";
 
 /**
  * Dapr client interface for Pub/Sub messaging.
@@ -24,6 +29,28 @@ import { PubSubPublishResponseType } from "../../types/pubsub/PubSubPublishRespo
  * @see https://docs.dapr.io/developing-applications/building-blocks/pubsub/
  */
 export default interface IClientPubSub {
+  /**
+   * Subscribes without an application server using the gRPC-only
+   * SubscribeTopicEventsAlpha1 API (alpha; subject to runtime changes).
+   * Resolves only after Dapr confirms the subscription; setup failures reject.
+   *
+   * Callbacks run sequentially with deserialized data and CloudEvent attributes
+   * in headers (id, source, type, specversion, datacontenttype, topic,
+   * pubsubname, path, and flattened extensions). Uses the client's serializer.
+   * Return DaprPubSubStatusEnum.SUCCESS (or void), RETRY, or DROP.
+   * Callback/deserialization errors and invalid statuses are logged and retried.
+   *
+   * Observe the returned `closed` promise for later failures. No automatic
+   * reconnection is attempted. Close the subscription explicitly when finished;
+   * client.stop() does not close it. HTTP clients reject this operation.
+   */
+  subscribeStream(
+    pubSubName: string,
+    topic: string,
+    callback: TypeDaprPubSubCallback,
+    options?: PubSubStreamingSubscriptionOptions,
+  ): Promise<PubSubStreamingSubscription>;
+
   /**
    * Publishes a message to a topic.
    *
@@ -70,6 +97,15 @@ export default interface IClientPubSub {
    * @param metadata - Optional component-specific metadata for the bulk publish request.
    * @returns A promise that resolves to a response containing any failed entries.
    * A successful bulk publish may still have individual failed messages.
+   *
+   * @remarks
+   * Bulk publish targets the stable bulk publish API introduced in Dapr 1.17
+   * (`BulkPublishEvent` over gRPC, `v1.0/publish/bulk` over HTTP). When the
+   * sidecar does not implement it, the SDK transparently uses the deprecated
+   * alpha1 API, so runtimes older than 1.17 keep working without any change to
+   * this method's signature. For HTTP, the runtime version is read from the
+   * sidecar metadata before publishing to avoid probing with a request that
+   * could be routed as a regular publish by older runtimes.
    *
    * @example
    * ```ts

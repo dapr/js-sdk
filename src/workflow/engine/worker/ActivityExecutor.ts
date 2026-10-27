@@ -14,15 +14,28 @@ limitations under the License.
 import { isPromise } from "util/types";
 import { ActivityContext } from "../context/ActivityContext";
 import { Registry } from "./Registry";
+import type { PropagatedHistory as HistoryMessage } from "../../../proto/dapr/proto/durabletask/v1/history_events_pb";
+import { decodePropagatedHistory } from "./protoHelpers";
+import { IDaprSerializer } from "../../../serialization/IDaprSerializer";
+import { serializeWorkflowValue } from "../../../serialization/Serialization.util";
+import type { BinaryStoreWorkflowPayloadResolver } from "../../payloads/BinaryStoreWorkflowPayloadResolver";
+import { WorkflowPayloadHandler } from "../../payloads/WorkflowPayloadHandler";
+import { PayloadKind } from "../../payloads/BinaryStorePayloadOptions";
 
 export class ActivityExecutor {
-  constructor(private readonly _registry: Registry) {}
+  constructor(
+    private readonly _registry: Registry,
+    private readonly serializer?: IDaprSerializer,
+    private readonly payloads?: BinaryStoreWorkflowPayloadResolver,
+  ) {}
 
   async execute(
     orchestrationId: string,
     name: string,
     taskId: number,
     encodedInput?: string,
+    propagatedHistory?: HistoryMessage,
+    taskExecutionId?: string,
   ): Promise<string | undefined> {
     const fn = this._registry.getActivity(name);
 
@@ -30,8 +43,10 @@ export class ActivityExecutor {
       throw new Error(`Activity '${name}' is not registered.`);
     }
 
-    const activityInput = encodedInput ? JSON.parse(encodedInput) : undefined;
-    const ctx = new ActivityContext(orchestrationId, taskId);
+    const handler = new WorkflowPayloadHandler(this.payloads, this.serializer);
+    const activityInput = await handler.read(encodedInput, this._registry.expectsReference(name, true));
+    const history = decodePropagatedHistory(propagatedHistory);
+    const ctx = new ActivityContext(orchestrationId, taskId, history, taskExecutionId, this.payloads);
 
     let activityOutput = fn(ctx, activityInput);
 
@@ -39,7 +54,9 @@ export class ActivityExecutor {
       activityOutput = await activityOutput;
     }
 
-    const encodedOutput = activityOutput != null ? JSON.stringify(activityOutput) : undefined;
-    return encodedOutput;
+    return handler.encode(
+      activityOutput != null ? serializeWorkflowValue(activityOutput, this.serializer) : undefined,
+      { kind: PayloadKind.ActivityOutput, instanceId: orchestrationId, name },
+    );
   }
 }

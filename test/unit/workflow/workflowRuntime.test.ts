@@ -11,14 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { TWorkflow } from "../../../src/types/workflow/Workflow.type";
+import { TWorkflow } from "../../../src";
 import WorkflowContext from "../../../src/workflow/runtime/WorkflowContext";
 import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
+import { LogLevel, type LoggerService } from "../../../src";
+import { OrchestrationRuntimeContext } from "../../../src/workflow/engine";
 
 const mockAddNamedOrchestrator = jest.fn();
 const mockAddNamedActivity = jest.fn();
 const mockStart = jest.fn().mockResolvedValue(undefined);
 const mockStop = jest.fn().mockResolvedValue(undefined);
+const mockIsReady = jest.fn().mockReturnValue(false);
 
 jest.mock("../../../src/workflow/engine/transport/TaskHubWorker", () => ({
   TaskHubWorker: jest.fn().mockImplementation(() => ({
@@ -28,24 +31,81 @@ jest.mock("../../../src/workflow/engine/transport/TaskHubWorker", () => ({
     },
     start: mockStart,
     stop: mockStop,
+    get isReady() {
+      return mockIsReady();
+    },
   })),
 }));
 
 import WorkflowRuntime from "../../../src/workflow/runtime/WorkflowRuntime";
 
 describe("WorkflowRuntime", () => {
+  it("passes explicit reference contracts through every registration entry point", () => {
+    const runtime = new WorkflowRuntime();
+    const options = { inputAsReference: true };
+    const workflow = function namedWorkflow() {
+      return;
+    };
+    const activity = async function namedActivity() {
+      return;
+    };
+    runtime
+      .registerWorkflow(workflow, options)
+      .registerWorkflowByName("alias", workflow, options)
+      .registerWorkflowWithName("legacy", workflow, options)
+      .registerActivity(activity, options)
+      .registerActivityWithName("activityAlias", activity, options);
+    for (const name of ["namedWorkflow", "alias", "legacy"]) {
+      expect(mockAddNamedOrchestrator).toHaveBeenCalledWith(name, expect.any(Function), options);
+    }
+    for (const name of ["namedActivity", "activityAlias"]) {
+      expect(mockAddNamedActivity).toHaveBeenCalledWith(name, expect.any(Function), options);
+    }
+  });
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsReady.mockReturnValue(false);
   });
 
   describe("registerWorkflow", () => {
     it("should allow synchronous generator functions (function*)", () => {
       const runtime = new WorkflowRuntime();
       const syncGenWorkflow: TWorkflow = function* (_ctx: WorkflowContext, _input: any) {
+        yield "step";
         return "result";
       };
       runtime.registerWorkflow(syncGenWorkflow);
-      expect(mockAddNamedOrchestrator).toHaveBeenCalledWith("syncGenWorkflow", expect.any(Function));
+      expect(mockAddNamedOrchestrator).toHaveBeenCalledWith("syncGenWorkflow", expect.any(Function), undefined);
+    });
+
+    it.each(["inferred", "named", "legacy"])("configures replay-safe logging for %s workflow registrations", (kind) => {
+      const service: jest.Mocked<LoggerService> = {
+        error: jest.fn(),
+        warn: jest.fn(),
+        info: jest.fn(),
+        verbose: jest.fn(),
+        debug: jest.fn(),
+      };
+      const runtime = new WorkflowRuntime({ logger: { level: LogLevel.Debug, service } });
+      const workflow: TWorkflow = (ctx, input) => {
+        ctx.logger.debug("running", input);
+        return input;
+      };
+      if (kind === "inferred") {
+        runtime.registerWorkflow(workflow);
+      } else if (kind === "named") {
+        runtime.registerWorkflowByName("alias", workflow);
+      } else {
+        runtime.registerWorkflowWithName("alias", workflow);
+      }
+      const wrapper = mockAddNamedOrchestrator.mock.calls[0][1];
+      const name = kind === "inferred" ? "workflow" : "alias";
+      const inner = new OrchestrationRuntimeContext("id", undefined, undefined, name);
+      expect(wrapper(inner, 42)).toBe(42);
+      expect(service.debug).not.toHaveBeenCalled();
+      inner._isReplaying = false;
+      expect(wrapper(inner, 42)).toBe(42);
+      expect(service.debug.mock.calls).toEqual([[`[Workflow, ${name}, id]: running`, 42]]);
     });
 
     it("should register a workflow with its function name", () => {
@@ -58,7 +118,7 @@ describe("WorkflowRuntime", () => {
       const result = runtime.registerWorkflow(myWorkflow);
 
       expect(mockAddNamedOrchestrator).toHaveBeenCalledTimes(1);
-      expect(mockAddNamedOrchestrator).toHaveBeenCalledWith("myWorkflow", expect.any(Function));
+      expect(mockAddNamedOrchestrator).toHaveBeenCalledWith("myWorkflow", expect.any(Function), undefined);
       expect(result).toBe(runtime); // returns this for chaining
     });
 
@@ -100,7 +160,7 @@ describe("WorkflowRuntime", () => {
       const result = runtime.registerWorkflowByName("customName", myWorkflow);
 
       expect(mockAddNamedOrchestrator).toHaveBeenCalledTimes(1);
-      expect(mockAddNamedOrchestrator).toHaveBeenCalledWith("customName", expect.any(Function));
+      expect(mockAddNamedOrchestrator).toHaveBeenCalledWith("customName", expect.any(Function), undefined);
       expect(result).toBe(runtime);
     });
 
@@ -114,7 +174,7 @@ describe("WorkflowRuntime", () => {
       const result = runtime.registerWorkflowWithName("legacyName", myWorkflow);
 
       expect(mockAddNamedOrchestrator).toHaveBeenCalledTimes(1);
-      expect(mockAddNamedOrchestrator).toHaveBeenCalledWith("legacyName", expect.any(Function));
+      expect(mockAddNamedOrchestrator).toHaveBeenCalledWith("legacyName", expect.any(Function), undefined);
       expect(result).toBe(runtime);
     });
   });
@@ -130,7 +190,7 @@ describe("WorkflowRuntime", () => {
       const result = runtime.registerActivity(myActivity as any);
 
       expect(mockAddNamedActivity).toHaveBeenCalledTimes(1);
-      expect(mockAddNamedActivity).toHaveBeenCalledWith("myActivity", expect.any(Function));
+      expect(mockAddNamedActivity).toHaveBeenCalledWith("myActivity", expect.any(Function), undefined);
       expect(result).toBe(runtime);
     });
 
@@ -189,7 +249,7 @@ describe("WorkflowRuntime", () => {
       const result = runtime.registerActivityWithName("customActivity", myActivity as any);
 
       expect(mockAddNamedActivity).toHaveBeenCalledTimes(1);
-      expect(mockAddNamedActivity).toHaveBeenCalledWith("customActivity", expect.any(Function));
+      expect(mockAddNamedActivity).toHaveBeenCalledWith("customActivity", expect.any(Function), undefined);
       expect(result).toBe(runtime);
     });
   });
@@ -218,6 +278,14 @@ describe("WorkflowRuntime", () => {
       await runtime.start();
 
       expect(mockStart).toHaveBeenCalledTimes(1);
+    });
+
+    it("exposes whether the worker is ready", () => {
+      const runtime = new WorkflowRuntime();
+      mockIsReady.mockReturnValue(true);
+
+      expect(runtime.isReady).toBe(true);
+      expect(mockIsReady).toHaveBeenCalledTimes(1);
     });
   });
 

@@ -13,7 +13,11 @@ limitations under the License.
 
 import * as http2 from "http2";
 import { connectNodeAdapter } from "@connectrpc/connect-node";
-import { AppCallback, AppCallbackAlpha, AppCallbackHealthCheck } from "../../../proto/dapr/proto/runtime/v1/appcallback_pb";
+import {
+  AppCallback,
+  AppCallbackAlpha,
+  AppCallbackHealthCheck,
+} from "../../../proto/dapr/proto/runtime/v1/appcallback_pb";
 import GRPCServerImpl from "./GRPCServerImpl";
 import IServer from "../../../interfaces/Server/IServer";
 import { DaprClient } from "../../..";
@@ -41,7 +45,7 @@ export default class GRPCServer implements IServer {
     this.client = client;
     this.logger = new Logger("GRPCServer", "GRPCServer", client.options.logger);
 
-    this.serverImpl = new GRPCServerImpl(null as any, client.options.logger);
+    this.serverImpl = new GRPCServerImpl(null as any, client.options.logger, client.options.serializer);
 
     const impl = this.serverImpl;
 
@@ -54,6 +58,7 @@ export default class GRPCServer implements IServer {
           onBulkTopicEvent: (req, ctx) => impl.onBulkTopicEventAlpha1(req, ctx),
           listInputBindings: (req, ctx) => impl.listInputBindings(req, ctx),
           onBindingEvent: (req, ctx) => impl.onBindingEvent(req, ctx),
+          onJobEvent: (req, ctx) => impl.onJobEventAlpha1(req, ctx),
         });
         router.service(AppCallbackAlpha, {
           onBulkTopicEventAlpha1: (req, ctx) => impl.onBulkTopicEventAlpha1(req, ctx),

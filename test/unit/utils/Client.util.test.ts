@@ -12,6 +12,8 @@ limitations under the License.
 */
 
 import { create } from "@bufbuild/protobuf";
+import StateConcurrencyEnum from "../../../src/enum/StateConcurrency.enum";
+import StateConsistencyEnum from "../../../src/enum/StateConsistency.enum";
 import { ConfigurationItem, ConfigurationItemSchema } from "../../../src/proto/dapr/proto/common/v1/common_pb";
 import {
   addMetadataToMap,
@@ -20,7 +22,10 @@ import {
   getBulkPublishEntries,
   getBulkPublishResponse,
   getClientOptions,
+  getStateConcurrencyValue,
+  getStateConsistencyValue,
   createHTTPQueryParam,
+  withAbortSignal,
 } from "../../../src/utils/Client.util";
 import { PubSubBulkPublishEntry } from "../../../src/types/pubsub/PubSubBulkPublishEntry.type";
 import { PubSubBulkPublishApiResponse } from "../../../src/types/pubsub/PubSubBulkPublishApiResponse.type";
@@ -29,6 +34,116 @@ import { DaprClient } from "../../../src";
 import { Settings } from "../../../src/utils/Settings.util";
 
 describe("Client.util", () => {
+  describe("withAbortSignal", () => {
+    afterEach(() => jest.restoreAllMocks());
+
+    it("returns the original promise when no signal is supplied", () => {
+      const pending = Promise.resolve(1);
+      expect(withAbortSignal(pending)).toBe(pending);
+    });
+
+    it.each(["resolve", "reject"] as const)("removes the listener after %s", async (settlement) => {
+      const controller = new AbortController();
+      const add = jest.spyOn(controller.signal, "addEventListener");
+      const remove = jest.spyOn(controller.signal, "removeEventListener");
+      const error = new Error("failure");
+      const pending = withAbortSignal(
+        settlement === "resolve" ? Promise.resolve(7) : Promise.reject(error),
+        controller.signal,
+      );
+      if (settlement === "resolve") {
+        await expect(pending).resolves.toBe(7);
+      } else {
+        await expect(pending).rejects.toBe(error);
+      }
+      expect(add).toHaveBeenCalledWith("abort", expect.any(Function), { once: true });
+      expect(remove).toHaveBeenCalledWith("abort", add.mock.calls[0][1]);
+      expect(remove).toHaveBeenCalledTimes(1);
+      controller.abort(new Error("too late"));
+      if (settlement === "resolve") {
+        await expect(pending).resolves.toBe(7);
+      } else {
+        await expect(pending).rejects.toBe(error);
+      }
+      expect(remove).toHaveBeenCalledTimes(1);
+    });
+
+    it("observes underlying rejections even when the signal was already aborted", async () => {
+      const controller = new AbortController();
+      const reason = new Error("cancelled");
+      controller.abort(reason);
+      await expect(withAbortSignal(Promise.reject(new Error("later failure")), controller.signal)).rejects.toBe(reason);
+    });
+
+    it.each([null, 0, "cancelled", { code: "CANCELLED" }])("preserves a pre-aborted reason %j", async (reason) => {
+      const controller = new AbortController();
+      const add = jest.spyOn(controller.signal, "addEventListener");
+      const remove = jest.spyOn(controller.signal, "removeEventListener");
+      controller.abort(reason);
+
+      await expect(withAbortSignal(Promise.resolve(7), controller.signal)).rejects.toBe(reason);
+      expect(remove).toHaveBeenCalledWith("abort", add.mock.calls[0][1]);
+    });
+
+    it.each(["resolve", "reject"] as const)(
+      "cancels only one waiter when the shared operation later %s",
+      async (settlement) => {
+        const shared = deferred<number>();
+        const first = new AbortController();
+        const second = new AbortController();
+        const addFirst = jest.spyOn(first.signal, "addEventListener");
+        const removeFirst = jest.spyOn(first.signal, "removeEventListener");
+        const addSecond = jest.spyOn(second.signal, "addEventListener");
+        const removeSecond = jest.spyOn(second.signal, "removeEventListener");
+        const reason = new Error("stop waiting");
+        const failure = new Error("operation failed");
+        const cancelled = withAbortSignal(shared.promise, first.signal);
+        const other = withAbortSignal(shared.promise, second.signal);
+
+        first.abort(reason);
+        await expect(cancelled).rejects.toBe(reason);
+        expect(removeFirst).toHaveBeenCalledWith("abort", addFirst.mock.calls[0][1]);
+        expect(removeSecond).not.toHaveBeenCalled();
+        expect(second.signal.aborted).toBe(false);
+
+        if (settlement === "resolve") {
+          shared.resolve(7);
+          await expect(other).resolves.toBe(7);
+        } else {
+          shared.reject(failure);
+          await expect(other).rejects.toBe(failure);
+        }
+        await expect(cancelled).rejects.toBe(reason);
+        expect(removeSecond).toHaveBeenCalledWith("abort", addSecond.mock.calls[0][1]);
+      },
+    );
+
+    it("observes a late underlying rejection after the only waiter is cancelled", async () => {
+      const shared = deferred<number>();
+      const controller = new AbortController();
+      const pending = withAbortSignal(shared.promise, controller.signal);
+      controller.abort();
+      await expect(pending).rejects.toMatchObject({ name: "AbortError" });
+
+      shared.reject(new Error("later failure"));
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      await expect(pending).rejects.toBe(controller.signal.reason);
+    });
+
+    it("honors cancellation before an already-resolved operation's continuation runs", async () => {
+      const shared = deferred<number>();
+      const controller = new AbortController();
+      const reason = new Error("cancel before continuation");
+      const pending = withAbortSignal(shared.promise, controller.signal);
+
+      shared.resolve(7);
+      controller.abort(reason);
+
+      await expect(pending).rejects.toBe(reason);
+      await expect(shared.promise).resolves.toBe(7);
+    });
+  });
+
   describe("addMetadataToMap", () => {
     it("should add values to Map", () => {
       const m = new Map<string, string>([]);
@@ -54,6 +169,26 @@ describe("Client.util", () => {
       addMetadataToMap(m, undefined);
 
       expect(m.entries()).toEqual(new Map<string, string>([]).entries());
+    });
+
+    it("overwrites matching keys, keeps unrelated entries, and ignores inherited metadata", () => {
+      const metadata: Record<string, string> = Object.assign(Object.create({ inherited: "ignored" }), {
+        key: "new",
+        empty: "",
+      });
+      Object.freeze(metadata);
+      const map = new Map([
+        ["key", "old"],
+        ["unrelated", "keep"],
+      ]);
+
+      addMetadataToMap(map, metadata);
+
+      expect([...map]).toEqual([
+        ["key", "new"],
+        ["unrelated", "keep"],
+        ["empty", ""],
+      ]);
     });
   });
   describe("createHTTPQueryParam", () => {
@@ -110,9 +245,74 @@ describe("Client.util", () => {
         "metadata.key%26with%3Dspecial%21ch%23r%23cters=value1%26value2&metadata.key00=value3+value4&key1=value1&key2=value2",
       );
     });
+
+    it("skips absent groups and undefined values without dropping empty, zero, or false values", () => {
+      expect(
+        createHTTPQueryParam(
+          {},
+          { data: undefined },
+          { data: { key: "value", absent: undefined } },
+          { type: "metadata", data: { empty: "", zero: 0, disabled: false, absent: undefined } },
+        ),
+      ).toBe("key=value&metadata.empty=&metadata.zero=0&metadata.disabled=false");
+    });
+
+    it("lets later groups replace duplicate keys without conflating ordinary and metadata keys", () => {
+      const first = Object.freeze({ key: "first" });
+      expect(
+        createHTTPQueryParam(
+          { data: first },
+          { data: { key: "metadata" }, type: "metadata" },
+          { data: { key: "last" } },
+          { data: { key: undefined } },
+        ),
+      ).toBe("key=last&metadata.key=metadata");
+      expect(first).toEqual({ key: "first" });
+    });
+  });
+
+  describe("state option values", () => {
+    it.each([
+      [StateConsistencyEnum.CONSISTENCY_EVENTUAL, "eventual"],
+      [StateConsistencyEnum.CONSISTENCY_STRONG, "strong"],
+      [StateConsistencyEnum.CONSISTENCY_UNSPECIFIED, undefined],
+      [undefined, undefined],
+    ] as const)("maps consistency %s to %s", (input, expected) => {
+      expect(getStateConsistencyValue(input)).toBe(expected);
+    });
+
+    it.each([
+      [StateConcurrencyEnum.CONCURRENCY_FIRST_WRITE, "first-write"],
+      [StateConcurrencyEnum.CONCURRENCY_LAST_WRITE, "last-write"],
+      [StateConcurrencyEnum.CONCURRENCY_UNSPECIFIED, undefined],
+      [undefined, undefined],
+    ] as const)("maps concurrency %s to %s", (input, expected) => {
+      expect(getStateConcurrencyValue(input)).toBe(expected);
+    });
   });
 
   describe("createConfigurationType", () => {
+    it("converts an empty configuration dictionary", () => {
+      expect(createConfigurationType({})).toEqual({});
+    });
+
+    it("copies item metadata instead of exposing the response's mutable map", () => {
+      const item = create(ConfigurationItemSchema, {
+        value: "original",
+        version: "v1",
+        metadata: { tenant: "original" },
+      });
+      const result = createConfigurationType({ key: item });
+      expect(result.key.metadata).not.toBe(item.metadata);
+
+      item.value = "changed";
+      item.metadata.tenant = "changed";
+
+      expect(result).toEqual({
+        key: { key: "key", value: "original", version: "v1", metadata: { tenant: "original" } },
+      });
+    });
+
     it("converts a dictionary to a configuration type", () => {
       const item1 = create(ConfigurationItemSchema, { value: "value1", version: "v1", metadata: { m1: "mv1" } });
       const item2 = create(ConfigurationItemSchema, { value: "value2", version: "v2", metadata: { m2: "mv2" } });
@@ -145,6 +345,25 @@ describe("Client.util", () => {
   });
 
   describe("getContentType", () => {
+    it.each([true, false, 0, 42, -0.5])("returns text/plain for the primitive %s", (value) => {
+      expect(getContentType(value)).toBe("text/plain");
+    });
+
+    it.each([Buffer.from([0, 255]), new Int8Array([-1, 1]), new ArrayBuffer(2)])(
+      "returns application/octet-stream for binary data %p",
+      (value) => {
+        expect(getContentType(value)).toBe("application/octet-stream");
+      },
+    );
+
+    it("falls back to binary content for an unnamed class instance", () => {
+      const value = new (class {
+        value = 1;
+      })();
+      expect(value.constructor.name).toBe("");
+      expect(getContentType(value)).toBe("application/octet-stream");
+    });
+
     it("should return text/plain for a string", () => {
       expect(getContentType("foobar")).toEqual("text/plain");
     });
@@ -217,6 +436,56 @@ describe("Client.util", () => {
   });
 
   describe("getBulkPublishEntries", () => {
+    it("returns no entries for an empty batch", () => {
+      expect(getBulkPublishEntries([], "application/custom")).toEqual([]);
+    });
+
+    it("uses the default content type for raw messages and entries without an explicit type", () => {
+      const messages = ["raw", { value: 1 }, { event: "wrapped" }, { event: "empty type", contentType: "" }];
+      const entries = getBulkPublishEntries(messages, "application/custom");
+
+      expect(entries).toEqual(
+        ["raw", { value: 1 }, "wrapped", "empty type"].map((event) => ({
+          entryID: expect.any(String),
+          event,
+          contentType: "application/custom",
+          metadata: {},
+        })),
+      );
+      expect(new Set(entries.map((entry) => entry.entryID)).size).toBe(messages.length);
+    });
+
+    it("preserves explicit entry fields over defaults without mutating the message", () => {
+      const message = Object.freeze({
+        entryID: "provided",
+        event: Object.freeze({ value: 1 }),
+        contentType: "application/explicit",
+        metadata: Object.freeze({ tenant: "test" }),
+      });
+      const [entry] = getBulkPublishEntries([message], "application/default");
+
+      expect(entry).toEqual(message);
+      expect(entry).not.toBe(message);
+      expect(entry.event).toBe(message.event);
+      expect(entry.metadata).toBe(message.metadata);
+    });
+
+    it("fills empty entry IDs and content types and gives each entry its own default metadata", () => {
+      const messages = [Object.freeze({ entryID: "", event: "", contentType: "" }), ""];
+      const entries = getBulkPublishEntries(messages);
+
+      for (const entry of entries) {
+        expect(entry).toEqual({
+          entryID: expect.stringMatching(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i),
+          event: "",
+          contentType: "text/plain",
+          metadata: {},
+        });
+      }
+      expect(entries[0].entryID).not.toBe(entries[1].entryID);
+      expect(entries[0].metadata).not.toBe(entries[1].metadata);
+    });
+
     it("returns correct responses for string and object array", () => {
       const testCases = [
         {
@@ -289,6 +558,33 @@ describe("Client.util", () => {
       },
     ];
 
+    it("returns no failed messages after a successful publish or for an empty failed request", () => {
+      expect(getBulkPublishResponse({ entries, response: { failedEntries: [] } })).toEqual({ failedMessages: [] });
+      expect(getBulkPublishResponse({ entries: [], error: new Error("request failed") })).toEqual({
+        failedMessages: [],
+      });
+    });
+
+    it("ignores unknown entry IDs while retaining known failures in response order", () => {
+      const response = getBulkPublishResponse({
+        entries,
+        response: {
+          failedEntries: [
+            { entryID: "unknown", error: "not in the request" },
+            { entryID: "entry2", error: "second failed" },
+            { entryID: "entry1", error: "first failed" },
+          ],
+        },
+      });
+
+      expect(response.failedMessages).toEqual([
+        { message: entries[1], error: new Error("second failed") },
+        { message: entries[0], error: new Error("first failed") },
+      ]);
+      expect(response.failedMessages[0].message).toBe(entries[1]);
+      expect(response.failedMessages[1].message).toBe(entries[0]);
+    });
+
     it("returns response with a common error", () => {
       const error = new Error("test error");
       const response = getBulkPublishResponse({ entries: entries, error: error });
@@ -317,6 +613,47 @@ describe("Client.util", () => {
   });
 
   describe("getClientOptions", () => {
+    afterEach(() => jest.restoreAllMocks());
+
+    it("preserves explicit false/empty options and custom components without mutating the input", () => {
+      const defaultToken = jest.spyOn(Settings, "getDefaultApiToken").mockReturnValue("default-token");
+      const input: DaprClientOptions = Object.freeze({
+        daprHost: "localhost",
+        daprPort: "3500",
+        communicationProtocol: CommunicationProtocolEnum.HTTP,
+        isKeepAlive: false,
+        daprApiToken: "",
+        logger: { level: LogLevel.Error },
+        actor: {},
+        serializer: { serialize: jest.fn(), deserialize: jest.fn() },
+        maxBodySizeMb: 16,
+      });
+
+      const result = getClientOptions(input, CommunicationProtocolEnum.GRPC, { level: LogLevel.Debug });
+
+      expect(result).toStrictEqual(input);
+      expect(result).not.toBe(input);
+      expect(result.logger).toBe(input.logger);
+      expect(result.actor).toBe(input.actor);
+      expect(result.serializer).toBe(input.serializer);
+      expect(defaultToken).not.toHaveBeenCalled();
+    });
+
+    it("uses the supplied defaults and configured API token when options are omitted", () => {
+      const defaultToken = jest.spyOn(Settings, "getDefaultApiToken").mockReturnValue("default-token");
+      const logger = { level: LogLevel.Error };
+
+      const result = getClientOptions(undefined, CommunicationProtocolEnum.GRPC, logger);
+
+      expect(result).toEqual({
+        communicationProtocol: CommunicationProtocolEnum.GRPC,
+        logger,
+        daprApiToken: "default-token",
+      });
+      expect(result.logger).toBe(logger);
+      expect(defaultToken).toHaveBeenCalledTimes(1);
+    });
+
     it("returns correct Dapr Client Options for provided options", () => {
       const inOptions: DaprClientOptions = {
         daprHost: "localhost",
@@ -401,6 +738,16 @@ describe("Client.util", () => {
       expect(options).toEqual(expectedOptions);
     });
   });
+
+  function deferred<T>() {
+    let resolve!: (value: T) => void;
+    let reject!: (reason: Error) => void;
+    const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+      resolve = resolvePromise;
+      reject = rejectPromise;
+    });
+    return { promise, resolve, reject };
+  }
 
   describe("test correct client instantiation", () => {
     let client: DaprClient;

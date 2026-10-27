@@ -19,6 +19,10 @@ import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
 import * as NodeJSUtil from "../../../src/utils/NodeJS.util";
 import ActorId from "../../../src/actors/ActorId";
 import ActorProxyBuilder from "../../../src/actors/client/ActorProxyBuilder";
+import ActorClient from "../../../src/actors/client/ActorClient/ActorClient";
+import { Temporal } from "@js-temporal/polyfill";
+import { Code } from "@connectrpc/connect";
+import { HTTPNotSupportedError } from "../../../src/errors/HTTPNotSupportedError";
 import ActorRuntime from "../../../src/actors/runtime/ActorRuntime";
 import AbstractActor from "../../../src/actors/runtime/AbstractActor";
 import Class from "../../../src/types/Class";
@@ -46,6 +50,7 @@ import {
   DAPR_TEST_SCHEDULER_IMAGE,
   runWithCleanupErrorSuppression,
 } from "../helpers/containers";
+import { DAPR_TEST_VERSION, evaluateMinimumDaprRuntime } from "../helpers/runtimeVersion";
 
 const serverHost = "127.0.0.1";
 const serverPort = "3001";
@@ -179,8 +184,9 @@ describe("http/actors", () => {
   // Note: it can take > 5s so increase timeout as we are testing reminders and timers
   afterAll(async () => {
     await runWithCleanupErrorSuppression(async () => {
-      await server.stop();
+      // Keep the app available for actor callbacks until the sidecar has stopped.
       await daprContainer.stop();
+      await server.stop();
       await redisContainer.stop();
       await network.stop();
     });
@@ -212,7 +218,7 @@ describe("http/actors", () => {
     });
 
     it("should not be able to create an actorId with an empty string", () => {
-      expect(() => new ActorId("")).toThrowError("ActorId cannot be empty");
+      expect(() => new ActorId("")).toThrow("ActorId cannot be empty");
     });
 
     it("should be able to create an actorId with url unsafe characters like '/'", () => {
@@ -429,6 +435,287 @@ describe("http/actors", () => {
   });
 
   describe("reminders", () => {
+    const gate = evaluateMinimumDaprRuntime("1.17.0", DAPR_TEST_VERSION);
+    const describeGetActorReminder = gate.supported ? describe : describe.skip;
+
+    describeGetActorReminder.each([CommunicationProtocolEnum.HTTP, CommunicationProtocolEnum.GRPC])(
+      `actor reminder queries over %s (${gate.reason ?? DAPR_TEST_VERSION})`,
+      (protocol) => {
+        let reader: ActorClient;
+        let writer: ActorClient;
+
+        beforeAll(() => {
+          const httpOptions = {
+            daprHost: daprContainer.getHost(),
+            daprPort: daprContainer.getHttpPort().toString(),
+            communicationProtocol: CommunicationProtocolEnum.HTTP,
+            isKeepAlive: false,
+          };
+          writer = new ActorClient(
+            httpOptions.daprHost,
+            httpOptions.daprPort,
+            CommunicationProtocolEnum.HTTP,
+            httpOptions,
+          );
+          const options = {
+            ...httpOptions,
+            daprPort: (protocol === CommunicationProtocolEnum.GRPC
+              ? daprContainer.getGrpcPort()
+              : daprContainer.getHttpPort()
+            ).toString(),
+            communicationProtocol: protocol,
+          };
+          reader = new ActorClient(options.daprHost, options.daprPort, protocol, options);
+        });
+
+        it("retrieves a registered reminder's data and the timing fields exposed by the runtime", async () => {
+          const actorId = ActorId.createRandomId();
+          const actorType = DemoActorSayImpl.name;
+          const name = "get-reminder";
+          const data = { nested: [false, 0, "value"], text: "YWJj" };
+          await writer.actor.registerActorReminder(actorType, actorId, name, {
+            dueTime: Temporal.Duration.from({ minutes: 1 }),
+            period: Temporal.Duration.from({ seconds: 90 }),
+            ttl: Temporal.Duration.from({ minutes: 5 }),
+            data,
+          });
+          try {
+            const raw = await fetch(
+              `http://${daprContainer.getHost()}:${daprContainer.getHttpPort()}/v1.0/actors/${actorType}/${actorId.getURLSafeId()}/reminders/${name}`,
+            );
+            expect(raw.status).toBe(200);
+            const configuration: { ttl?: string } = await raw.json();
+            const before = Temporal.Now.instant();
+            const result = await reader.actor.getActorReminder(actorType, actorId, name);
+            const after = Temporal.Now.instant();
+            expect(result.data).toEqual(data);
+            expect(result.dueTime).toBeInstanceOf(Temporal.Duration);
+            expect(result.dueTime?.total("seconds")).toBe(60);
+            expect(result.period?.total("seconds")).toBe(90);
+            if (configuration.ttl === undefined) {
+              expect(result.ttl).toBeUndefined();
+            } else {
+              const expiration = Temporal.Instant.from(configuration.ttl);
+              expect(result.ttl).toBeInstanceOf(Temporal.Duration);
+              expect(result.ttl?.total("nanoseconds")).toBeGreaterThanOrEqual(
+                expiration.since(after).total("nanoseconds"),
+              );
+              expect(result.ttl?.total("nanoseconds")).toBeLessThanOrEqual(
+                expiration.since(before).total("nanoseconds"),
+              );
+            }
+          } finally {
+            await writer.actor.unregisterActorReminder(actorType, actorId, name);
+          }
+          const missing = reader.actor.getActorReminder(actorType, actorId, name);
+          if (protocol === CommunicationProtocolEnum.GRPC) {
+            await expect(missing).rejects.toMatchObject({ code: Code.NotFound });
+          } else {
+            await expect(missing).rejects.toThrow('"status":404');
+          }
+        });
+
+        it("retrieves a one-time reminder without optional data or TTL", async () => {
+          const actorId = ActorId.createRandomId();
+          const actorType = DemoActorSayImpl.name;
+          const name = "get-once";
+          await reader.actor.registerActorReminder(actorType, actorId, name, {
+            dueTime: Temporal.Duration.from({ minutes: 1 }),
+          });
+          try {
+            const result = await reader.actor.getActorReminder(actorType, actorId, name);
+            expect(result.dueTime?.total("seconds")).toBe(60);
+            expect(result.period?.total("seconds") ?? 0).toBe(0);
+            expect(result.ttl).toBeUndefined();
+            expect(result.data).toBeUndefined();
+          } finally {
+            await writer.actor.unregisterActorReminder(actorType, actorId, name);
+          }
+        });
+
+        const listGate = evaluateMinimumDaprRuntime(
+          protocol === CommunicationProtocolEnum.HTTP ? "1.19.0" : "1.17.0",
+          DAPR_TEST_VERSION,
+        );
+        const itList = listGate.supported ? it : it.skip;
+
+        itList(
+          `lists all reminders with exact actor filtering (${listGate.reason ?? DAPR_TEST_VERSION})`,
+          async () => {
+            const actorType = DemoActorSayImpl.name;
+            const firstId = ActorId.createRandomId();
+            const secondId = new ActorId(`${firstId.getId()}-other`);
+            const registrations = [
+              { actorType, actorId: firstId, name: "shared", data: { nested: [false, 0, "YWJj"] } },
+              { actorType, actorId: firstId, name: "second", data: false },
+              { actorType, actorId: secondId, name: "shared", data: undefined },
+              { actorType: DemoActorCounterImpl.name, actorId: firstId, name: "other-type", data: 0 },
+            ];
+            const registered: typeof registrations = [];
+            try {
+              for (const registration of registrations) {
+                await writer.actor.registerActorReminder(
+                  registration.actorType,
+                  registration.actorId,
+                  registration.name,
+                  {
+                    dueTime: Temporal.Duration.from({ minutes: 5 }),
+                    period: registration.data === undefined ? undefined : Temporal.Duration.from({ seconds: 90 }),
+                    ttl: registration.data === undefined ? undefined : Temporal.Duration.from({ minutes: 10 }),
+                    data: registration.data,
+                  },
+                );
+                registered.push(registration);
+              }
+              const first = await reader.actor.listActorReminders(actorType, firstId);
+              expect(first.map((reminder) => reminder.name).sort()).toEqual(["second", "shared"]);
+              for (const reminder of first) {
+                expect(reminder.actorType).toBe(actorType);
+                expect(reminder.actorId).toBe(firstId.getId());
+                expect(reminder.data).toEqual(registrations.find((item) => item.name === reminder.name)?.data);
+                expect(reminder.dueTime).toBeInstanceOf(Temporal.Duration);
+                expect(reminder.dueTime?.total("seconds")).toBe(300);
+                expect(reminder.period?.total("seconds")).toBe(90);
+                if (reminder.ttl !== undefined) {
+                  expect(reminder.ttl).toBeInstanceOf(Temporal.Duration);
+                  expect(reminder.ttl.total("seconds")).toBeGreaterThan(0);
+                  expect(reminder.ttl.total("seconds")).toBeLessThanOrEqual(600);
+                }
+              }
+              const second = await reader.actor.listActorReminders(actorType, secondId);
+              expect(second).toHaveLength(1);
+              expect(second[0]).toMatchObject({ name: "shared", actorType, actorId: secondId.getId() });
+              expect(second[0].data).toBeUndefined();
+              expect(second[0].ttl).toBeUndefined();
+              expect(second[0].period?.total("seconds") ?? 0).toBe(0);
+
+              expect(await reader.actor.listActorReminders(actorType, ActorId.createRandomId())).toEqual([]);
+              if (protocol === CommunicationProtocolEnum.GRPC) {
+                const all = await reader.actor.listActorReminders(actorType);
+                expect(all.map(({ actorId, name }) => `${actorId}/${name}`).sort()).toEqual(
+                  registrations
+                    .filter((item) => item.actorType === actorType)
+                    .map(({ actorId, name }) => `${actorId.getId()}/${name}`)
+                    .sort(),
+                );
+                expect(all.every((reminder) => reminder.actorType === actorType)).toBe(true);
+              } else {
+                await expect(reader.actor.listActorReminders(actorType)).rejects.toThrow("requires actorId over HTTP");
+              }
+            } finally {
+              for (const registration of registered) {
+                await writer.actor.unregisterActorReminder(
+                  registration.actorType,
+                  registration.actorId,
+                  registration.name,
+                );
+              }
+            }
+            expect(await reader.actor.listActorReminders(actorType, firstId)).toEqual([]);
+            if (protocol === CommunicationProtocolEnum.GRPC) {
+              expect(await reader.actor.listActorReminders(actorType)).toEqual([]);
+            }
+          },
+          30000,
+        );
+      },
+    );
+
+    const describeBulkReminders = gate.supported ? describe : describe.skip;
+    describeBulkReminders(`bulk actor reminder cleanup (${gate.reason ?? DAPR_TEST_VERSION})`, () => {
+      let http: ActorClient;
+      let grpc: ActorClient;
+
+      beforeAll(() => {
+        const httpOptions = {
+          daprHost: daprContainer.getHost(),
+          daprPort: daprContainer.getHttpPort().toString(),
+          communicationProtocol: CommunicationProtocolEnum.HTTP,
+          isKeepAlive: false,
+        };
+        http = new ActorClient(httpOptions.daprHost, httpOptions.daprPort, CommunicationProtocolEnum.HTTP, httpOptions);
+        const grpcOptions = {
+          ...httpOptions,
+          daprPort: daprContainer.getGrpcPort().toString(),
+          communicationProtocol: CommunicationProtocolEnum.GRPC,
+        };
+        grpc = new ActorClient(grpcOptions.daprHost, grpcOptions.daprPort, CommunicationProtocolEnum.GRPC, grpcOptions);
+      });
+
+      it.each([true, false])("deletes only matching reminders over gRPC (instance-scoped: %s)", async (scoped) => {
+        const actorType = DemoActorSayImpl.name;
+        const actorId = ActorId.createRandomId();
+        const siblingId = new ActorId(`${actorId.getId()}-sibling`);
+        const reminders = [
+          { actorType, actorId, name: "bulk-first" },
+          { actorType, actorId, name: "bulk-second" },
+          { actorType, actorId: siblingId, name: "bulk-first" },
+          { actorType, actorId: siblingId, name: "bulk-second" },
+          { actorType: DemoActorCounterImpl.name, actorId, name: "bulk-first" },
+        ];
+        const configuration = {
+          dueTime: Temporal.Duration.from({ hours: 1 }),
+          period: Temporal.Duration.from({ hours: 1 }),
+          data: { marker: actorId.getId() },
+        };
+        const getReminder = (reminder: (typeof reminders)[number]) =>
+          fetch(
+            `http://${daprContainer.getHost()}:${daprContainer.getHttpPort()}/v1.0/actors/${reminder.actorType}/${reminder.actorId.getURLSafeId()}/reminders/${reminder.name}`,
+          );
+
+        try {
+          for (const reminder of reminders) {
+            await http.actor.registerActorReminder(reminder.actorType, reminder.actorId, reminder.name, configuration);
+            const response = await getReminder(reminder);
+            expect(response.status).toBe(200);
+            expect(await response.json()).toMatchObject({ data: configuration.data });
+          }
+
+          await expect(
+            grpc.actor.unregisterActorRemindersByType(actorType, scoped ? actorId : undefined),
+          ).resolves.toBeUndefined();
+          // Repeating the operation must succeed even when there are no remaining matches.
+          await expect(
+            grpc.actor.unregisterActorRemindersByType(actorType, scoped ? actorId : undefined),
+          ).resolves.toBeUndefined();
+
+          for (const reminder of reminders) {
+            const deleted = reminder.actorType === actorType && (!scoped || reminder.actorId === actorId);
+            const response = await getReminder(reminder);
+            expect(response.status).toBe(deleted ? 404 : 200);
+            const body = await response.json();
+            if (!deleted) {
+              expect(body).toMatchObject({ data: configuration.data });
+            }
+          }
+        } finally {
+          await Promise.all(
+            reminders.map((reminder) =>
+              http.actor.unregisterActorReminder(reminder.actorType, reminder.actorId, reminder.name),
+            ),
+          );
+        }
+      });
+
+      it.each([true, false])("rejects HTTP cleanup without deleting reminders (instance-scoped: %s)", async (scoped) => {
+        const actorType = DemoActorSayImpl.name;
+        const actorId = ActorId.createRandomId();
+        const name = "bulk-http-unsupported";
+        await http.actor.registerActorReminder(actorType, actorId, name, {
+          dueTime: Temporal.Duration.from({ hours: 1 }),
+        });
+        try {
+          await expect(
+            http.actor.unregisterActorRemindersByType(actorType, scoped ? actorId : undefined),
+          ).rejects.toBeInstanceOf(HTTPNotSupportedError);
+          const reminder = await http.actor.getActorReminder(actorType, actorId, name);
+          expect(reminder.dueTime?.total("seconds")).toBe(3600);
+        } finally {
+          await http.actor.unregisterActorReminder(actorType, actorId, name);
+        }
+      });
+    });
+
     it("should be able to unregister a reminder", async () => {
       const builder = new ActorProxyBuilder<DemoActorReminderInterface>(DemoActorReminderImpl, client);
       const actor = builder.build(ActorId.createRandomId());

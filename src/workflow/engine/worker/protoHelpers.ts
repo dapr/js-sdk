@@ -11,27 +11,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { create } from "@bufbuild/protobuf";
+import { create, fromBinary } from "@bufbuild/protobuf";
+import { types } from "node:util";
+import { TaskFailedError } from "../task";
+import type { ActivityOptions } from "../../../types/workflow/ActivityOptions.type";
+import { createPropagatedHistoryView, type PropagatedHistoryView } from "../../runtime/PropagatedHistory";
 import { timestampFromDate, timestampDate, type Timestamp } from "@bufbuild/protobuf/wkt";
-import type { OrchestrationStatus, TaskFailureDetails, WorkflowInstance } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
+import type {
+  OrchestrationStatus,
+  TaskFailureDetails,
+} from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import {
   OrchestrationStatus as OrchestrationStatusEnum,
   TaskFailureDetailsSchema,
   WorkflowInstanceSchema,
+  TaskRouterSchema,
 } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import type {
   HistoryEvent,
-  ExecutionStartedEvent,
-  TaskScheduledEvent,
-  TaskCompletedEvent,
-  TaskFailedEvent,
-  TimerCreatedEvent,
-  TimerFiredEvent,
-  EventRaisedEvent,
-  ExecutionTerminatedEvent,
-  ExecutionSuspendedEvent,
-  ExecutionResumedEvent,
-  WorkflowStartedEvent,
+  PropagatedHistory as HistoryMessage,
 } from "../../../proto/dapr/proto/durabletask/v1/history_events_pb";
 import {
   HistoryEventSchema,
@@ -48,22 +46,36 @@ import {
   WorkflowStartedEventSchema,
   TimerOriginCreateTimerSchema,
 } from "../../../proto/dapr/proto/durabletask/v1/history_events_pb";
-import type {
-  WorkflowAction,
-  ScheduleTaskAction,
-  CreateTimerAction,
-  CreateChildWorkflowAction,
-  CompleteWorkflowAction,
-  SendEventAction,
-} from "../../../proto/dapr/proto/durabletask/v1/orchestrator_actions_pb";
+import type { WorkflowAction } from "../../../proto/dapr/proto/durabletask/v1/orchestrator_actions_pb";
 import {
   WorkflowActionSchema,
   ScheduleTaskActionSchema,
   CreateTimerActionSchema,
   CreateChildWorkflowActionSchema,
+  CreateDetachedWorkflowActionSchema,
   CompleteWorkflowActionSchema,
   SendEventActionSchema,
 } from "../../../proto/dapr/proto/durabletask/v1/orchestrator_actions_pb";
+
+type RoutingOptions = Pick<ActivityOptions, "targetAppId" | "propagationScope"> & { sourceAppId?: string };
+
+export function decodePropagatedHistory(history?: HistoryMessage): PropagatedHistoryView | undefined {
+  if (!history?.chunks.length) {
+    return undefined;
+  }
+  return createPropagatedHistoryView({
+    scope: history.scope,
+    chunks: history.chunks.map((chunk) => ({
+      appId: chunk.appId,
+      instanceId: chunk.instanceId,
+      workflowName: chunk.workflowName,
+      events: chunk.rawEvents.map((event) => fromBinary(HistoryEventSchema, event)),
+      rawEvents: chunk.rawEvents,
+      rawSignatures: chunk.rawSignatures,
+      signingCertChains: chunk.signingCertChains,
+    })),
+  });
+}
 
 export function dateToTimestamp(date: Date): Timestamp {
   return timestampFromDate(date);
@@ -74,12 +86,31 @@ export function timestampToDate(ts?: Timestamp): Date {
   return timestampDate(ts);
 }
 
-export function newFailureDetails(e: Error): TaskFailureDetails {
+export function toError(value: unknown): Error {
+  if (types.isNativeError(value)) return value;
+  if (value !== null && (typeof value === "object" || typeof value === "function")) {
+    // Read data properties without invoking user-defined getters or string conversion.
+    try {
+      const message: unknown = Object.getOwnPropertyDescriptor(value, "message")?.value;
+      const stack: unknown = Object.getOwnPropertyDescriptor(value, "stack")?.value;
+      const error = new Error(typeof message === "string" ? message : "A non-Error value was thrown");
+      if (typeof stack === "string") error.stack = stack;
+      return error;
+    } catch {
+      return new Error("A non-Error value was thrown and its error details could not be inspected");
+    }
+  }
+  return new Error(String(value));
+}
+
+export function newFailureDetails(value: unknown): TaskFailureDetails {
+  const e = toError(value);
   return create(TaskFailureDetailsSchema, {
     errorType: e.constructor?.name ?? "Error",
     errorMessage: e.message,
     stackTrace: e.stack?.toString() ?? "",
     isNonRetriable: false,
+    innerFailure: e instanceof TaskFailedError ? e.failureDetails : undefined,
   });
 }
 
@@ -98,7 +129,12 @@ export function newExecutionStartedEvent(name: string, instanceId: string, encod
   });
 }
 
-export function newTaskScheduledEvent(eventId: number, name: string, encodedInput?: string, taskExecutionId?: string): HistoryEvent {
+export function newTaskScheduledEvent(
+  eventId: number,
+  name: string,
+  encodedInput?: string,
+  taskExecutionId?: string,
+): HistoryEvent {
   return create(HistoryEventSchema, {
     eventId,
     timestamp: dateToTimestamp(new Date()),
@@ -128,7 +164,11 @@ export function newTaskCompletedEvent(eventId: number, encodedOutput?: string, t
   });
 }
 
-export function newTaskFailedEvent(eventId: number, details: TaskFailureDetails, taskExecutionId?: string): HistoryEvent {
+export function newTaskFailedEvent(
+  eventId: number,
+  details: TaskFailureDetails,
+  taskExecutionId?: string,
+): HistoryEvent {
   return create(HistoryEventSchema, {
     eventId: -1,
     timestamp: dateToTimestamp(new Date()),
@@ -239,15 +279,20 @@ export function newScheduleTaskAction(
   name: string,
   encodedInput?: string,
   taskExecutionId?: string,
+  options?: RoutingOptions,
 ): WorkflowAction {
   return create(WorkflowActionSchema, {
     id,
+    router: options?.targetAppId
+      ? create(TaskRouterSchema, { sourceAppID: options.sourceAppId, targetAppID: options.targetAppId })
+      : undefined,
     workflowActionType: {
       case: "scheduleTask",
       value: create(ScheduleTaskActionSchema, {
         name,
         input: encodedInput,
         taskExecutionId: taskExecutionId ?? "",
+        historyPropagationScope: options?.propagationScope || undefined,
       }),
     },
   });
@@ -274,15 +319,45 @@ export function newCreateChildWorkflowAction(
   name: string,
   instanceId: string,
   encodedInput?: string,
+  options?: RoutingOptions,
 ): WorkflowAction {
   return create(WorkflowActionSchema, {
     id,
+    router: options?.targetAppId
+      ? create(TaskRouterSchema, { sourceAppID: options.sourceAppId, targetAppID: options.targetAppId })
+      : undefined,
     workflowActionType: {
       case: "createChildWorkflow",
       value: create(CreateChildWorkflowActionSchema, {
         name,
         instanceId,
         input: encodedInput,
+        historyPropagationScope: options?.propagationScope || undefined,
+      }),
+    },
+  });
+}
+
+export function newCreateDetachedWorkflowAction(
+  id: number,
+  name: string,
+  instanceId: string,
+  encodedInput?: string,
+  startAt?: Date,
+  options?: RoutingOptions,
+): WorkflowAction {
+  return create(WorkflowActionSchema, {
+    id,
+    router: options?.targetAppId
+      ? create(TaskRouterSchema, { sourceAppID: options.sourceAppId, targetAppID: options.targetAppId })
+      : undefined,
+    workflowActionType: {
+      case: "createDetachedWorkflow",
+      value: create(CreateDetachedWorkflowActionSchema, {
+        name,
+        instanceId,
+        input: encodedInput,
+        scheduledStartTimestamp: startAt === undefined ? undefined : dateToTimestamp(startAt),
       }),
     },
   });

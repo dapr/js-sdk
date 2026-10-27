@@ -22,15 +22,34 @@ import { PubSubBulkPublishMessage } from "../../../types/pubsub/PubSubBulkPublis
 import { PubSubBulkPublishEntry } from "../../../types/pubsub/PubSubBulkPublishEntry.type";
 import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
 import { PubSubPublishOptions } from "../../../types/pubsub/PubSubPublishOptions.type";
+import HTTPClientMetadata from "./metadata";
+import { serializeJsonValue } from "../../../serialization/Serialization.util";
+import { HTTPNotSupportedError } from "../../../errors/HTTPNotSupportedError";
+import { TypeDaprPubSubCallback } from "../../../types/DaprPubSubCallback.type";
+import {
+  PubSubStreamingSubscription,
+  PubSubStreamingSubscriptionOptions,
+} from "../../../types/pubsub/PubSubStreamingSubscription.type";
 
 // https://docs.dapr.io/reference/api/pubsub_api/
 export default class HTTPClientPubSub implements IClientPubSub {
   client: HTTPClient;
   private readonly logger: Logger;
+  private readonly metadata: HTTPClientMetadata;
 
-  constructor(client: HTTPClient) {
+  constructor(client: HTTPClient, metadata = new HTTPClientMetadata(client)) {
     this.client = client;
+    this.metadata = metadata;
     this.logger = new Logger("HTTPClient", "PubSub", client.options.logger);
+  }
+
+  async subscribeStream(
+    _pubSubName: string,
+    _topic: string,
+    _callback: TypeDaprPubSubCallback,
+    _options?: PubSubStreamingSubscriptionOptions,
+  ): Promise<PubSubStreamingSubscription> {
+    throw new HTTPNotSupportedError("Streaming pub/sub subscriptions require the gRPC protocol.");
   }
 
   async publish(
@@ -53,6 +72,7 @@ export default class HTTPClientPubSub implements IClientPubSub {
         method: "POST",
         body: data,
         headers,
+        serializer: this.client.options.serializer,
       });
     } catch (e: any) {
       this.logger.error(`publish failed: ${e}`);
@@ -76,15 +96,26 @@ export default class HTTPClientPubSub implements IClientPubSub {
       },
     };
 
-    const entries = getBulkPublishEntries(messages);
-    params.body = entries;
+    const serializer = this.client.options.serializer;
+    const entries = getBulkPublishEntries(
+      messages,
+      serializer ? serializer.contentType ?? "application/json" : undefined,
+    );
+    params.body = serializer
+      ? entries.map((entry) => ({
+          ...entry,
+          event:
+            entry.contentType.split(";")[0].trim().toLowerCase() === "application/octet-stream"
+              ? Buffer.from(serializer.serialize(entry.event), "utf-8").toString("base64")
+              : serializeJsonValue(entry.event, serializer, entry.contentType),
+        }))
+      : entries;
+
+    const path = `/publish/bulk/${pubSubName}/${topic}?${queryParams}`;
 
     try {
-      await this.client.executeWithApiVersion(
-        "v1.0-alpha1",
-        `/publish/bulk/${pubSubName}/${topic}?${queryParams}`,
-        params,
-      );
+      const apiVersion = await this.metadata.getBulkPublishApiVersion();
+      await this.client.executeWithApiVersion(apiVersion, path, params);
     } catch (error: any) {
       this.logger.error(`Failure publishing bulk messages: ${error}`);
       return this.handleBulkPublishError(entries, error);
@@ -106,7 +137,7 @@ export default class HTTPClientPubSub implements IClientPubSub {
         const bulkPublishResponse = JSON.parse(err.error_msg);
         return getBulkPublishResponse({ entries: entries, response: bulkPublishResponse });
       }
-    } catch (_innerError: any) {
+    } catch {
       // This can indicate a general error with the request (e.g., network error, invalid pubsub name, etc.).
     }
 

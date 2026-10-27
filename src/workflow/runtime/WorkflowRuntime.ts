@@ -11,18 +11,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { TaskHubWorker } from "../engine/transport/TaskHubWorker";
+import { TaskHubWorker } from "../engine";
 import type { TWorkflow } from "../../types/workflow/Workflow.type";
 import type { TWorkflowActivity } from "../../types/workflow/Activity.type";
 import WorkflowActivityContext from "./WorkflowActivityContext";
 import WorkflowContext from "./WorkflowContext";
 import { generateEndpoint, getDaprApiToken, getFunctionName } from "../internal";
 import type { WorkflowClientOptions } from "../../types/workflow/WorkflowClientOption";
+import type { WorkflowPayloadRegistrationOptions } from "../payloads/BinaryStorePayloadOptions";
+import type { LoggerOptions } from "../../types/logger/LoggerOptions";
 
 export default class WorkflowRuntime {
   private readonly worker: TaskHubWorker;
+  private readonly loggerOptions?: LoggerOptions;
 
   constructor(options: Partial<WorkflowClientOptions> = {}) {
+    this.loggerOptions = options.logger;
     const grpcEndpoint = generateEndpoint(options);
     const daprApiToken = getDaprApiToken(options);
     this.worker = new TaskHubWorker(
@@ -31,25 +35,32 @@ export default class WorkflowRuntime {
       grpcEndpoint.tls,
       128 * 1024 * 1024,
       options.grpcOptions,
+      options.serializer ?? options.payloads?.serializer,
+      options.payloads,
+      options.maxConcurrentActivities,
     );
   }
 
-  public registerWorkflow(workflow: TWorkflow): WorkflowRuntime {
+  public registerWorkflow(workflow: TWorkflow, options?: WorkflowPayloadRegistrationOptions): WorkflowRuntime {
     const name = getFunctionName(workflow);
     const workflowWrapper = (ctx: unknown, input: unknown) => {
-      const workflowContext = new WorkflowContext(ctx as never);
+      const workflowContext = new WorkflowContext(ctx as never, this.loggerOptions);
       return workflow(workflowContext, input);
     };
-    this.worker.registry.addNamedOrchestrator(name, workflowWrapper as never);
+    this.worker.registry.addNamedOrchestrator(name, workflowWrapper as never, options);
     return this;
   }
 
-  public registerWorkflowByName(name: string, workflow: TWorkflow): WorkflowRuntime {
+  public registerWorkflowByName(
+    name: string,
+    workflow: TWorkflow,
+    options?: WorkflowPayloadRegistrationOptions,
+  ): WorkflowRuntime {
     const workflowWrapper = (ctx: unknown, input: unknown) => {
-      const workflowContext = new WorkflowContext(ctx as never);
+      const workflowContext = new WorkflowContext(ctx as never, this.loggerOptions);
       return workflow(workflowContext, input);
     };
-    this.worker.registry.addNamedOrchestrator(name, workflowWrapper as never);
+    this.worker.registry.addNamedOrchestrator(name, workflowWrapper as never, options);
     return this;
   }
 
@@ -59,34 +70,53 @@ export default class WorkflowRuntime {
    * @param {string} name - The name or identifier for the registered Workflow.
    * @param {TWorkflow} workflow - The instance of the Workflow class being registered.
    */
-  public registerWorkflowWithName(name: string, workflow: TWorkflow): WorkflowRuntime {
-    return this.registerWorkflowByName(name, workflow);
+  public registerWorkflowWithName(
+    name: string,
+    workflow: TWorkflow,
+    options?: WorkflowPayloadRegistrationOptions,
+  ): WorkflowRuntime {
+    return this.registerWorkflowByName(name, workflow, options);
   }
 
-  public registerActivity<TInput, TOutput>(fn: TWorkflowActivity<TInput, TOutput>): WorkflowRuntime {
+  public registerActivity<TInput, TOutput>(
+    fn: TWorkflowActivity<TInput, TOutput>,
+    options?: WorkflowPayloadRegistrationOptions,
+  ): WorkflowRuntime {
     const name = getFunctionName(fn as never);
     const activityWrapper = (ctx: unknown, input: unknown) => {
       const wfActivityContext = new WorkflowActivityContext(ctx as never);
       return fn(wfActivityContext, input as TInput);
     };
-    this.worker.registry.addNamedActivity(name, activityWrapper as never);
+    this.worker.registry.addNamedActivity(name, activityWrapper as never, options);
     return this;
   }
 
   public registerActivityWithName<TInput, TOutput>(
     name: string,
     fn: TWorkflowActivity<TInput, TOutput>,
+    options?: WorkflowPayloadRegistrationOptions,
   ): WorkflowRuntime {
     const activityWrapper = (ctx: unknown, input: unknown) => {
       const wfActivityContext = new WorkflowActivityContext(ctx as never);
       return fn(wfActivityContext, input as TInput);
     };
-    this.worker.registry.addNamedActivity(name, activityWrapper as never);
+    this.worker.registry.addNamedActivity(name, activityWrapper as never, options);
     return this;
   }
 
+  /**
+   * Starts the worker and resolves once it has connected to the Dapr sidecar and is ready to process work.
+   * Rejects if the initial connection fails.
+   */
   public async start(): Promise<void> {
     await this.worker.start();
+  }
+
+  /**
+   * Whether the worker is currently connected to the Dapr sidecar and accepting work.
+   */
+  public get isReady(): boolean {
+    return this.worker.isReady;
   }
 
   public async stop(): Promise<void> {
