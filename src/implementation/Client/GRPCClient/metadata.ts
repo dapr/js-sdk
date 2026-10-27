@@ -74,6 +74,7 @@ export default class GRPCClientMetadata implements IClientMetadata {
 
     const wrapped: GetMetadataResponseResult = {
       id: res.id,
+      runtimeVersion: res.runtimeVersion,
       actors: res.activeActorsCount.map((a) => ({
         type: a.type,
         count: a.count,

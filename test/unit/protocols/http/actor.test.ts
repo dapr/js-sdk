@@ -18,6 +18,7 @@ import { DaprClient } from "../../../../src";
 import CommunicationProtocolEnum from "../../../../src/enum/CommunicationProtocol.enum";
 import ActorRuntime from "../../../../src/actors/runtime/ActorRuntime";
 import HTTPServer from "../../../../src/implementation/Server/HTTPServer/HTTPServer";
+import HTTPClientMetadata from "../../../../src/implementation/Client/HTTPClient/metadata";
 import HTTPServerActor, { ACTOR_ACTIVATION_ID_HEADER } from "../../../../src/implementation/Server/HTTPServer/actor";
 import DemoActorActivationIdImpl, {
   counterKey,
@@ -57,6 +58,7 @@ describe("HTTPServerActor activation id", () => {
   beforeEach(() => {
     resetActivationIdFixtures();
     mockStateProvider();
+    jest.spyOn(HTTPClientMetadata.prototype, "get").mockResolvedValue({ runtimeVersion: "1.19.1" } as any);
     const runtime = ActorRuntime.getInstance(client.daprClient);
     runtime.clearActorManagers();
     runtime.registerActor(DemoActorActivationIdImpl);
@@ -69,6 +71,7 @@ describe("HTTPServerActor activation id", () => {
   });
 
   const manager = () => ActorRuntime.getInstance(client.daprClient).getActorManager(ACTOR_TYPE);
+  const active = () => manager()["activeActors"];
   const created = () => DemoActorActivationIdImpl.created;
   const otherHostWrites = (value: number) => store.set(counterKey(actorId), value);
   const stored = () => store.get(counterKey(actorId));
@@ -95,7 +98,7 @@ describe("HTTPServerActor activation id", () => {
     "reads the header as %s",
     async (headerName) => {
       expect(await method("incr", "a1", headerName)).toEqual({ status: 200, text: "1" });
-      expect(manager().activationIds.get(actorId)).toEqual("a1");
+      expect(active().get(actorId)?.activationId).toEqual("a1");
     },
   );
 
@@ -112,7 +115,7 @@ describe("HTTPServerActor activation id", () => {
     expect(await method("incr", "a2")).toEqual({ status: 200, text: "6" });
     expect(created()).toHaveLength(2);
     expect(created()[0].deactivations).toEqual(1);
-    expect(manager().activationIds.get(actorId)).toEqual("a2");
+    expect(active().get(actorId)?.activationId).toEqual("a2");
   });
 
   it("does not reset without the header", async () => {
@@ -120,12 +123,12 @@ describe("HTTPServerActor activation id", () => {
     otherHostWrites(5);
     expect(await method("incr")).toEqual({ status: 200, text: "2" });
     expect(created()).toHaveLength(1);
-    expect(manager().activationIds.get(actorId)).toEqual("a1");
+    expect(active().get(actorId)?.activationId).toEqual("a1");
   });
 
   it("stores an empty id when the header is missing and resets on a later id", async () => {
     await method("incr");
-    expect(manager().activationIds.get(actorId)).toEqual("");
+    expect(active().get(actorId)?.activationId).toEqual("");
     otherHostWrites(5);
     expect(await method("incr", "a1")).toEqual({ status: 200, text: "6" });
     expect(created()).toHaveLength(2);
@@ -152,8 +155,7 @@ describe("HTTPServerActor activation id", () => {
     const res = await fetch(`${baseUrl}/actors/${ACTOR_TYPE}/${actorId}`, { method: "DELETE" });
     expect(res.status).toEqual(200);
     expect(created()[0].deactivations).toEqual(1);
-    expect(manager().actors.has(actorId)).toBe(false);
-    expect(manager().activationIds.has(actorId)).toBe(false);
+    expect(active().has(actorId)).toBe(false);
   });
 
   it("returns 404 on DELETE of an actor that is not active", async () => {

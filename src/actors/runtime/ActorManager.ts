@@ -25,14 +25,15 @@ import { Logger } from "../../logger/Logger";
  */
 const REMINDER_METHOD_NAME = "receiveReminder"; // the callback method name for the reminder
 
+type ActiveActor<T> = { actor: T; activationId: string };
+
 export default class ActorManager<T extends AbstractActor> {
   readonly actorCls: Class<T>;
   readonly daprClient: DaprClient;
   readonly serializer: BufferSerializer = new BufferSerializer();
   private readonly logger: Logger;
 
-  actors: Map<string, T>;
-  activationIds: Map<string, string>;
+  private readonly activeActors = new Map<string, ActiveActor<T>>();
 
   // dispatcher: ActorMethodDispatcher<T>;
   // timerMethodContext: any;
@@ -42,9 +43,6 @@ export default class ActorManager<T extends AbstractActor> {
     this.daprClient = daprClient;
     this.actorCls = actorCls;
     this.logger = new Logger("Actors", "ActorManager", daprClient.options.logger);
-
-    this.actors = new Map<string, T>();
-    this.activationIds = new Map<string, string>();
 
     // @todo: we need to make sure race condition cannot happen when accessing the active actors
     // NodeJS has an event loop (main thread -> runs JS code) and a worker pool (threadpool -> automatically created for offloading work through libuv) threads
@@ -74,14 +72,13 @@ export default class ActorManager<T extends AbstractActor> {
     await actor.onActivateInternal(this.noneRegistered(actorId));
 
     // another call may have registered an object while this one was activating
-    const registered = this.actors.get(actorId.getId());
+    const registered = this.activeActors.get(actorId.getId());
     if (!registered) {
-      this.actors.set(actorId.getId(), actor);
-      this.activationIds.set(actorId.getId(), activationId);
+      this.activeActors.set(actorId.getId(), { actor, activationId });
       return actor;
     }
 
-    const registeredId = this.activationIds.get(actorId.getId());
+    const registeredId = registered.activationId;
     await this.deactivateDiscarded(actorId, actor);
     if (activationId && activationId !== registeredId) {
       throw new Error(
@@ -91,11 +88,11 @@ export default class ActorManager<T extends AbstractActor> {
         }),
       );
     }
-    return registered;
+    return registered.actor;
   }
 
   async deactivateActor(actorId: ActorId): Promise<void> {
-    if (!this.actors.has(actorId.getId())) {
+    if (!this.activeActors.has(actorId.getId())) {
       throw new Error(
         JSON.stringify({
           error: "ACTOR_NOT_ACTIVATED",
@@ -111,15 +108,15 @@ export default class ActorManager<T extends AbstractActor> {
 
   // an unregistered object must not overwrite the registered one's state
   private noneRegistered(actorId: ActorId): () => boolean {
-    return () => !this.actors.has(actorId.getId());
+    return () => !this.activeActors.has(actorId.getId());
   }
 
   private forget(actorId: ActorId): void {
-    this.actors.delete(actorId.getId());
-    this.activationIds.delete(actorId.getId());
+    this.activeActors.delete(actorId.getId());
   }
 
   private async deactivateDiscarded(actorId: ActorId, actor: T): Promise<void> {
+    actor.getStateManager().discard();
     try {
       await actor.onDeactivateInternal(() => false);
     } catch (err) {
@@ -128,15 +125,15 @@ export default class ActorManager<T extends AbstractActor> {
   }
 
   async getActiveActor(actorId: ActorId, activationId = ""): Promise<T> {
-    const current = this.actors.get(actorId.getId());
+    const current = this.activeActors.get(actorId.getId());
     if (current) {
-      if (!activationId || this.activationIds.get(actorId.getId()) === activationId) {
-        return current;
+      if (!activationId || current.activationId === activationId) {
+        return current.actor;
       }
 
       // a new activation id means daprd reactivated the actor, so this object is stale
       this.forget(actorId);
-      await this.deactivateDiscarded(actorId, current);
+      await this.deactivateDiscarded(actorId, current.actor);
     }
 
     return await this.activateActor(actorId, activationId);
@@ -207,7 +204,7 @@ export default class ActorManager<T extends AbstractActor> {
 
   // a call left over from a previous activation must not overwrite what the new one saved
   private ensureLive(actorId: ActorId, actor: T): void {
-    if (this.actors.get(actorId.getId()) !== actor) {
+    if (this.activeActors.get(actorId.getId())?.actor !== actor) {
       throw new Error(
         JSON.stringify({
           error: "ACTOR_DEACTIVATED_DURING_CALL",
