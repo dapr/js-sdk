@@ -18,6 +18,7 @@ import StateMetadata from "./StateMetadata";
 
 export default class ActorStateManager<T> {
   actor: AbstractActor;
+  private discarded = false;
   defaultStateChangeTracker: Map<string, StateMetadata<T>>;
 
   constructor(actor: AbstractActor) {
@@ -274,7 +275,24 @@ export default class ActorStateManager<T> {
     stateChangeTracker.clear();
   }
 
+  /**
+   * Refuses every later save, once a newer activation replaced the actor
+   */
+  discard(): void {
+    this.discarded = true;
+  }
+
   async saveState(): Promise<void> {
+    if (this.discarded) {
+      const actorId = this.actor.getActorId().getId();
+      throw new Error(
+        JSON.stringify({
+          error: "ACTOR_REPLACED",
+          errorMsg: `The actor ${actorId} of type ${this.actor.getActorType()} was replaced by a newer activation, state not saved`,
+        }),
+      );
+    }
+
     const stateChangeTracker = this.getContextualStateTracker();
 
     if (stateChangeTracker.size === 0) {

@@ -18,18 +18,22 @@ import AbstractActor from "./AbstractActor";
 import ActorReminderData from "./ActorReminderData";
 import ActorTimerData from "./ActorTimerData";
 import BufferSerializer from "./BufferSerializer";
+import { Logger } from "../../logger/Logger";
 
 /**
  * The Actor Manager manages actor objects of a specific actor type
  */
 const REMINDER_METHOD_NAME = "receiveReminder"; // the callback method name for the reminder
 
+type ActiveActor<T> = { actor: T; activationId: string };
+
 export default class ActorManager<T extends AbstractActor> {
   readonly actorCls: Class<T>;
   readonly daprClient: DaprClient;
   readonly serializer: BufferSerializer = new BufferSerializer();
+  private readonly logger: Logger;
 
-  actors: Map<string, T>;
+  private readonly activeActors = new Map<string, ActiveActor<T>>();
 
   // dispatcher: ActorMethodDispatcher<T>;
   // timerMethodContext: any;
@@ -38,8 +42,7 @@ export default class ActorManager<T extends AbstractActor> {
   constructor(actorCls: Class<T>, daprClient: DaprClient) {
     this.daprClient = daprClient;
     this.actorCls = actorCls;
-
-    this.actors = new Map<string, T>();
+    this.logger = new Logger("Actors", "ActorManager", daprClient.options.logger);
 
     // @todo: we need to make sure race condition cannot happen when accessing the active actors
     // NodeJS has an event loop (main thread -> runs JS code) and a worker pool (threadpool -> automatically created for offloading work through libuv) threads
@@ -61,18 +64,35 @@ export default class ActorManager<T extends AbstractActor> {
     return new this.actorCls(this.daprClient, actorId);
   }
 
-  async activateActor(actorId: ActorId): Promise<void> {
+  async activateActor(actorId: ActorId, activationId = ""): Promise<T> {
     const actor = await this.createActor(actorId);
 
     // We activate the actor by calling the onActivateInternal method on it
     // this will create its state object
-    await actor.onActivateInternal();
+    await actor.onActivateInternal(this.noneRegistered(actorId));
 
-    this.actors.set(actorId.getId(), actor);
+    // another call may have registered an object while this one was activating
+    const registered = this.activeActors.get(actorId.getId());
+    if (!registered) {
+      this.activeActors.set(actorId.getId(), { actor, activationId });
+      return actor;
+    }
+
+    const registeredId = registered.activationId;
+    await this.deactivateDiscarded(actorId, actor);
+    if (activationId && activationId !== registeredId) {
+      throw new Error(
+        JSON.stringify({
+          error: "ACTOR_ACTIVATION_SUPERSEDED",
+          errorMsg: `The actor ${actorId.getId()} was activated by activation ${registeredId} during this activation`,
+        }),
+      );
+    }
+    return registered.actor;
   }
 
   async deactivateActor(actorId: ActorId): Promise<void> {
-    if (!this.actors.has(actorId.getId())) {
+    if (!this.activeActors.has(actorId.getId())) {
       throw new Error(
         JSON.stringify({
           error: "ACTOR_NOT_ACTIVATED",
@@ -82,23 +102,41 @@ export default class ActorManager<T extends AbstractActor> {
     }
 
     const actor = await this.getActiveActor(actorId);
-    await actor.onDeactivateInternal();
-
-    this.actors.delete(actorId.getId());
+    this.forget(actorId);
+    await actor.onDeactivateInternal(this.noneRegistered(actorId));
   }
 
-  async getActiveActor(actorId: ActorId): Promise<T> {
-    if (!this.actors.has(actorId.getId())) {
-      await this.activateActor(actorId);
+  // an unregistered object must not overwrite the registered one's state
+  private noneRegistered(actorId: ActorId): () => boolean {
+    return () => !this.activeActors.has(actorId.getId());
+  }
+
+  private forget(actorId: ActorId): void {
+    this.activeActors.delete(actorId.getId());
+  }
+
+  private async deactivateDiscarded(actorId: ActorId, actor: T): Promise<void> {
+    actor.getStateManager().discard();
+    try {
+      await actor.onDeactivateInternal(() => false);
+    } catch (err) {
+      this.logger.error(`Deactivating discarded object for actor ${actorId.getId()} failed: ${err}`);
+    }
+  }
+
+  async getActiveActor(actorId: ActorId, activationId = ""): Promise<T> {
+    const current = this.activeActors.get(actorId.getId());
+    if (current) {
+      if (!activationId || current.activationId === activationId) {
+        return current.actor;
+      }
+
+      // a new activation id means daprd reactivated the actor, so this object is stale
+      this.forget(actorId);
+      await this.deactivateDiscarded(actorId, current.actor);
     }
 
-    const actor = this.actors.get(actorId.getId());
-
-    if (!actor) {
-      throw new Error(`${actorId.getId()} was not activated correctly`);
-    }
-
-    return actor;
+    return await this.activateActor(actorId, activationId);
   }
 
   /**
@@ -110,27 +148,27 @@ export default class ActorManager<T extends AbstractActor> {
    * @param actorMethodContext
    * @returns
    */
-  async invoke(actorId: ActorId, actorMethodName: string, requestBody?: Buffer): Promise<any> {
+  async invoke(actorId: ActorId, actorMethodName: string, requestBody?: Buffer, activationId = ""): Promise<any> {
     const requestBodyDeserialized = this.serializer.deserialize(requestBody || Buffer.from(""));
-    return await this.callActorMethod(actorId, actorMethodName, requestBodyDeserialized);
+    return await this.callActorMethod(actorId, actorMethodName, requestBodyDeserialized, activationId);
   }
 
-  async fireReminder(actorId: ActorId, reminderName: string, requestBody?: Buffer): Promise<void> {
+  async fireReminder(actorId: ActorId, reminderName: string, requestBody?: Buffer, activationId = ""): Promise<void> {
     // @todo: make sure we are remindable
     const requestBodyDeserialized = this.serializer.deserialize(requestBody || Buffer.from(""));
     const reminderData = ActorReminderData.fromObject(reminderName, requestBodyDeserialized as object);
-    await this.callActorMethod(actorId, REMINDER_METHOD_NAME, reminderData.state);
+    await this.callActorMethod(actorId, REMINDER_METHOD_NAME, reminderData.state, activationId);
   }
 
-  async fireTimer(actorId: ActorId, timerName: string, requestBody?: Buffer): Promise<void> {
+  async fireTimer(actorId: ActorId, timerName: string, requestBody?: Buffer, activationId = ""): Promise<void> {
     // @todo: make sure we are remindable
     const requestBodyDeserialized = this.serializer.deserialize(requestBody || Buffer.from(""));
     const timerData = ActorTimerData.fromObject(timerName, requestBodyDeserialized as object);
-    await this.callActorMethod(actorId, timerData.callback, timerData.state);
+    await this.callActorMethod(actorId, timerData.callback, timerData.state, activationId);
   }
 
-  async callActorMethod(actorId: ActorId, actorMethodName: string, args: any): Promise<Buffer> {
-    const actorObject = await this.getActiveActor(actorId);
+  async callActorMethod(actorId: ActorId, actorMethodName: string, args: any, activationId = ""): Promise<Buffer> {
+    const actorObject = await this.getActiveActor(actorId, activationId);
 
     // Check if the actor method exists? Skip type-checking as it's the power of Javascript
     // @ts-ignore
@@ -159,8 +197,20 @@ export default class ActorManager<T extends AbstractActor> {
       res = await actorObject[actorMethodName](args);
     }
 
-    await actorObject.onActorMethodPostInternal();
+    await actorObject.onActorMethodPostInternal(() => this.ensureLive(actorId, actorObject));
 
     return res;
+  }
+
+  // a call left over from a previous activation must not overwrite what the new one saved
+  private ensureLive(actorId: ActorId, actor: T): void {
+    if (this.activeActors.get(actorId.getId())?.actor !== actor) {
+      throw new Error(
+        JSON.stringify({
+          error: "ACTOR_DEACTIVATED_DURING_CALL",
+          errorMsg: `The actor ${actorId.getId()} was deactivated or replaced during the call, state not saved`,
+        }),
+      );
+    }
   }
 }

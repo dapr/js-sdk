@@ -13,11 +13,30 @@ limitations under the License.
 
 import { DaprClient } from "../..";
 import IClient from "../../interfaces/Client/IClient";
+import { Logger } from "../../logger/Logger";
 import { ActorRuntimeOptions } from "../../types/actors/ActorRuntimeOptions";
 import Class from "../../types/Class";
 import ActorId from "../ActorId";
 import AbstractActor from "./AbstractActor";
 import ActorManager from "./ActorManager";
+
+const ACTIVATION_ID_MIN_VERSION = [1, 19, 1];
+const RUNTIME_VERSION_LOOKUP_TIMEOUT_MS = 5000;
+
+// Older sidecars forward caller headers, so the activation id can't be trusted from them.
+export function supportsActivationId(runtimeVersion?: string): boolean {
+  const match = /^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/.exec(runtimeVersion ?? "");
+  if (!match) {
+    return false;
+  }
+  for (let i = 0; i < ACTIVATION_ID_MIN_VERSION.length; i++) {
+    const part = Number(match[i + 1]);
+    if (part !== ACTIVATION_ID_MIN_VERSION[i]) {
+      return part > ACTIVATION_ID_MIN_VERSION[i];
+    }
+  }
+  return true;
+}
 
 /**
  * Creates instances of "Actor" and activates and deactivates "Actor"
@@ -26,7 +45,10 @@ export default class ActorRuntime {
   private static instance: ActorRuntime;
 
   private readonly daprClient: DaprClient;
+  private readonly logger: Logger;
   private actorManagers: Map<string, ActorManager<any>>;
+  private activationIdTrusted?: boolean;
+  private activationIdLookup?: Promise<boolean>;
 
   // @todo: we need to make sure race condition cannot happen when accessing the active actors
   // NodeJS has an event loop (main thread -> runs JS code) and a worker pool (threadpool -> automatically created for offloading work through libuv) threads
@@ -41,6 +63,7 @@ export default class ActorRuntime {
 
   private constructor(daprClient: DaprClient) {
     this.daprClient = daprClient;
+    this.logger = new Logger("Actors", "ActorRuntime", daprClient.options.logger);
     this.actorManagers = new Map<string, ActorManager<any>>();
   }
 
@@ -116,10 +139,16 @@ export default class ActorRuntime {
    * @param payload
    * @returns
    */
-  async invoke(actorTypeName: string, actorId: string, actorMethodName: string, requestBody?: Buffer): Promise<Buffer> {
+  async invoke(
+    actorTypeName: string,
+    actorId: string,
+    actorMethodName: string,
+    requestBody?: Buffer,
+    activationId?: string,
+  ): Promise<Buffer> {
     const actorIdObj = new ActorId(actorId);
     const manager = this.getActorManager(actorTypeName);
-    return await manager.invoke(actorIdObj, actorMethodName, requestBody);
+    return await manager.invoke(actorIdObj, actorMethodName, requestBody, await this.trustedActivationId(activationId));
   }
 
   /**
@@ -130,10 +159,16 @@ export default class ActorRuntime {
    * @param name the name of the reminder
    * @param requestBody the body passed to the reminder callback
    */
-  async fireReminder(actorTypeName: string, actorId: string, name: string, requestBody?: Buffer) {
+  async fireReminder(
+    actorTypeName: string,
+    actorId: string,
+    name: string,
+    requestBody?: Buffer,
+    activationId?: string,
+  ) {
     const actorIdObj = new ActorId(actorId);
     const manager = this.getActorManager(actorTypeName);
-    return await manager.fireReminder(actorIdObj, name, requestBody);
+    return await manager.fireReminder(actorIdObj, name, requestBody, await this.trustedActivationId(activationId));
   }
 
   /**
@@ -144,15 +179,53 @@ export default class ActorRuntime {
    * @param name the name of the timer
    * @param requestBody the body passed to the timer callback
    */
-  async fireTimer(actorTypeName: string, actorId: string, name: string, requestBody?: Buffer) {
+  async fireTimer(actorTypeName: string, actorId: string, name: string, requestBody?: Buffer, activationId?: string) {
     const actorIdObj = new ActorId(actorId);
     const manager = this.getActorManager(actorTypeName);
-    return await manager.fireTimer(actorIdObj, name, requestBody);
+    return await manager.fireTimer(actorIdObj, name, requestBody, await this.trustedActivationId(activationId));
   }
 
   async deactivate(actorTypeName: string, actorId: string): Promise<void> {
     const actorIdObj = new ActorId(actorId);
     const manager = this.getActorManager(actorTypeName);
     return await manager.deactivateActor(actorIdObj);
+  }
+
+  private async trustedActivationId(activationId?: string): Promise<string | undefined> {
+    if (!activationId) {
+      return activationId;
+    }
+    return (await this.isActivationIdTrusted()) ? activationId : undefined;
+  }
+
+  private isActivationIdTrusted(): Promise<boolean> {
+    if (this.activationIdTrusted !== undefined) {
+      return Promise.resolve(this.activationIdTrusted);
+    }
+    if (!this.activationIdLookup) {
+      this.activationIdLookup = this.lookupRuntimeVersion()
+        .then((version) => (this.activationIdTrusted = supportsActivationId(version)))
+        .catch((e) => {
+          this.logger.warn(`Ignoring actor activation id, failed to look up the sidecar version: ${e}`);
+          return false;
+        })
+        .finally(() => {
+          this.activationIdLookup = undefined;
+        });
+    }
+    return this.activationIdLookup;
+  }
+
+  private async lookupRuntimeVersion(): Promise<string | undefined> {
+    let timer: NodeJS.Timeout | undefined;
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error("timed out")), RUNTIME_VERSION_LOOKUP_TIMEOUT_MS);
+    });
+    try {
+      const metadata = await Promise.race([this.daprClient.metadata.get(), timeout]);
+      return metadata.runtimeVersion;
+    } finally {
+      clearTimeout(timer);
+    }
   }
 }

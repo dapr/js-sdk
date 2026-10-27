@@ -24,6 +24,8 @@ import { Logger } from "../../../logger/Logger";
 import { getRegisteredActorResponse } from "../../../utils/Actors.util";
 import HttpStatusCode from "../../../enum/HttpStatusCode.enum";
 
+export const ACTOR_ACTIVATION_ID_HEADER = "Dapr-Actor-Activation-Id";
+
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class HTTPServerActor implements IServerActor {
   private readonly server: HTTPServer;
@@ -88,9 +90,14 @@ export default class HTTPServerActor implements IServerActor {
 
   private async handlerDeactivate(req: IRequest, res: IResponse): Promise<IResponse> {
     const { actorTypeName, actorId } = req.params;
-    const result = await ActorRuntime.getInstance(this.client.daprClient).deactivate(actorTypeName, actorId);
-    res.statusCode = HttpStatusCode.OK;
-    return this.handleResult(res, result);
+    try {
+      const result = await ActorRuntime.getInstance(this.client.daprClient).deactivate(actorTypeName, actorId);
+      res.statusCode = HttpStatusCode.OK;
+      return this.handleResult(res, result);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : `${err}`;
+      return res.status(this.deactivateErrorStatus(message)).send(message);
+    }
   }
 
   private async handlerMethod(req: IRequest, res: IResponse): Promise<IResponse> {
@@ -106,12 +113,13 @@ export default class HTTPServerActor implements IServerActor {
         actorId,
         methodName,
         dataSerialized,
+        req.header(ACTOR_ACTIVATION_ID_HEADER),
       );
       res.statusCode = HttpStatusCode.OK;
       return this.handleResult(res, result);
     } catch (err) {
       if (err instanceof Error) {
-        res.statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
+        return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).send(err.message);
       }
       return this.handleResult(res, err);
     }
@@ -122,13 +130,18 @@ export default class HTTPServerActor implements IServerActor {
     const body = req.body;
 
     const dataSerialized = this.serializer.serialize(body);
-    const result = await ActorRuntime.getInstance(this.client.daprClient).fireTimer(
-      actorTypeName,
-      actorId,
-      timerName,
-      dataSerialized,
-    );
-    return res.status(200).send(result);
+    try {
+      const result = await ActorRuntime.getInstance(this.client.daprClient).fireTimer(
+        actorTypeName,
+        actorId,
+        timerName,
+        dataSerialized,
+        req.header(ACTOR_ACTIVATION_ID_HEADER),
+      );
+      return res.status(200).send(result);
+    } catch (err) {
+      return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).send(err instanceof Error ? err.message : `${err}`);
+    }
   }
 
   private async handlerReminder(req: IRequest, res: IResponse): Promise<IResponse> {
@@ -136,13 +149,29 @@ export default class HTTPServerActor implements IServerActor {
     const body = req.body;
 
     const dataSerialized = this.serializer.serialize(body);
-    const result = await ActorRuntime.getInstance(this.client.daprClient).fireReminder(
-      actorTypeName,
-      actorId,
-      reminderName,
-      dataSerialized,
-    );
-    return res.status(200).send(result);
+    try {
+      const result = await ActorRuntime.getInstance(this.client.daprClient).fireReminder(
+        actorTypeName,
+        actorId,
+        reminderName,
+        dataSerialized,
+        req.header(ACTOR_ACTIVATION_ID_HEADER),
+      );
+      return res.status(200).send(result);
+    } catch (err) {
+      return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).send(err instanceof Error ? err.message : `${err}`);
+    }
+  }
+
+  private deactivateErrorStatus(message: string): HttpStatusCode {
+    try {
+      if (JSON.parse(message)?.error === "ACTOR_NOT_ACTIVATED") {
+        return HttpStatusCode.NOT_FOUND;
+      }
+    } catch {
+      return HttpStatusCode.INTERNAL_SERVER_ERROR;
+    }
+    return HttpStatusCode.INTERNAL_SERVER_ERROR;
   }
 
   private handleResult(res: IResponse, result: any) {
