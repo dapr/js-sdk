@@ -42,6 +42,7 @@ import { Settings } from "../../../utils/Settings.util";
 import { StateSaveResponseType } from "../../../types/state/StateSaveResponseType";
 import { StateSaveOptions } from "../../../types/state/StateSaveOptions.type";
 import { StateDeleteOptions } from "../../../types/state/StateDeleteOptions.type";
+import { StateGetResponseType } from "../../../types/state/StateGetResponse.type";
 import { StateGetOptions } from "../../../types/state/StateGetOptions.type";
 import { IStateOptions } from "../../../types/state/StateOptions.type";
 import { serializeJsonValue, deserializeJsonValue } from "../../../serialization/Serialization.util";
@@ -105,6 +106,34 @@ export default class GRPCClientState implements IClientState {
     } catch (e) {
       return resData;
     }
+  }
+
+  async getWithMetadata(
+    storeName: string,
+    key: string,
+    options?: Partial<StateGetOptions>,
+  ): Promise<StateGetResponseType> {
+    const client = await this.client.getClient();
+    const response = await client.getState(
+      create(GetStateRequestSchema, {
+        storeName,
+        key,
+        consistency: options?.consistency as any,
+        metadata: options?.metadata ?? {},
+      }),
+    );
+    const text = Buffer.from(response.data).toString();
+    let value: unknown = text;
+    if (this.client.options.serializer && text !== "") {
+      value = deserializeJsonValue(JSON.parse(text), this.client.options.serializer);
+    } else {
+      try {
+        value = JSON.parse(text);
+      } catch {
+        // Non-JSON and empty values retain the existing get() behavior.
+      }
+    }
+    return { key, value, etag: response.etag || undefined, metadata: { ...response.metadata } };
   }
 
   async getBulk(storeName: string, keys: string[], options: StateGetBulkOptions = {}): Promise<KeyValueType[]> {
