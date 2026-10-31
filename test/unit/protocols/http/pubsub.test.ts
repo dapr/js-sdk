@@ -180,7 +180,8 @@ describe("http/pubsub", () => {
           new Error(
             JSON.stringify({
               error: "Internal Server Error",
-              error_msg: JSON.stringify({ failedEntries: [{ entryID: "1", error: "failed to publish" }] }),
+              // daprd HTTP uses "entryId" (see dapr pkg/api/http/responses.go)
+              error_msg: JSON.stringify({ failedEntries: [{ entryId: "1", error: "failed to publish" }] }),
               status: 500,
             }),
           ),
@@ -238,7 +239,8 @@ describe("http/pubsub", () => {
         new Error(
           JSON.stringify({
             error: "Internal Server Error",
-            error_msg: JSON.stringify({ failedEntries: [{ entryID: "1", error: "failed to publish" }] }),
+            // daprd HTTP uses "entryId" (see dapr pkg/api/http/responses.go)
+            error_msg: JSON.stringify({ failedEntries: [{ entryId: "1", error: "failed to publish" }] }),
             status: 500,
           }),
         ),
