@@ -22,7 +22,7 @@ import {
   EncryptRequestOptionsSchema,
   DecryptRequestSchema,
   DecryptRequestOptionsSchema,
-} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+} from "../../../proto/dapr/proto/runtime/v1/crypto_pb";
 import { StreamPayloadSchema } from "../../../proto/dapr/proto/common/v1/common_pb";
 import { DaprChunkedStream, DeferredAsyncIterable } from "../../../utils/Streams.util";
 
@@ -254,7 +254,7 @@ export default class GRPCClientCrypto implements IClientCrypto {
     } else if (typeof inData == "object" && Buffer.isBuffer(inData)) {
       return inData;
     } else if (typeof inData == "object" && ArrayBuffer.isView(inData)) {
-      return Buffer.from(inData.buffer, inData.byteOffset);
+      return Buffer.from(inData.buffer, inData.byteOffset, inData.byteLength);
     } else if (typeof inData == "object" && inData instanceof ArrayBuffer) {
       return Buffer.from(inData);
     } else {

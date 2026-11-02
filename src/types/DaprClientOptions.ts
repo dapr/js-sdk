@@ -14,8 +14,12 @@ limitations under the License.
 import CommunicationProtocolEnum from "../enum/CommunicationProtocol.enum";
 import { ActorRuntimeOptions } from "./actors/ActorRuntimeOptions";
 import { LoggerOptions } from "./logger/LoggerOptions";
+import type { IDaprSerializer } from "../serialization/IDaprSerializer";
 
 export type DaprClientOptions = {
+  /** Custom application payload serializer. Omit to preserve the default JSON and raw-data behavior. */
+  serializer?: IDaprSerializer;
+
   /**
    * Host location of the Dapr sidecar.
    * Default is 127.0.0.1.

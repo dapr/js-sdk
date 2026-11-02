@@ -14,7 +14,7 @@ limitations under the License.
 import { create } from "@bufbuild/protobuf";
 import GRPCClient from "./GRPCClient";
 import IClientHealth from "../../../interfaces/Client/IClientHealth";
-import { GetMetadataRequestSchema } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import { GetMetadataRequestSchema } from "../../../proto/dapr/proto/runtime/v1/metadata_pb";
 
 /**
  * gRPC-based health check building block implementation.

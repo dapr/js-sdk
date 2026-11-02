@@ -16,7 +16,18 @@ import { createHash } from "crypto";
 const RFC4122_NAMESPACE_DNS = "6ba7b810-9dad-11d1-80b4-00c04fd430c8";
 
 export function newDeterministicGuid(namespace: string, name: string): string {
-  const namespaceBytes = parseUuid(namespace);
+  const hex = namespace.replace(/-/g, "");
+  const namespaceBytes = /^[0-9a-f]{32}$/i.test(hex)
+    ? parseUuid(namespace)
+    : parseUuid(newDeterministicGuid(RFC4122_NAMESPACE_DNS, namespace));
+  return guidFromBytes(namespaceBytes, name);
+}
+
+export function newLegacyDeterministicGuid(namespace: string, name: string): string {
+  return guidFromBytes(parseUuid(namespace), name);
+}
+
+function guidFromBytes(namespaceBytes: Buffer, name: string): string {
   const nameBytes = Buffer.from(name, "utf8");
 
   const hash = createHash("sha1");
@@ -44,13 +55,7 @@ export function parseUuid(uuid: string): Buffer {
 
 export function formatUuid(bytes: Buffer): string {
   const hex = bytes.toString("hex");
-  return [
-    hex.slice(0, 8),
-    hex.slice(8, 12),
-    hex.slice(12, 16),
-    hex.slice(16, 20),
-    hex.slice(20, 32),
-  ].join("-");
+  return [hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20, 32)].join("-");
 }
 
 export { RFC4122_NAMESPACE_DNS };

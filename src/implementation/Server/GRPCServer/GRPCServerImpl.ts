@@ -13,14 +13,15 @@ limitations under the License.
 
 import { create } from "@bufbuild/protobuf";
 import { AnySchema } from "@bufbuild/protobuf/wkt";
-import { type HandlerContext } from "@connectrpc/connect";
+import { Code, ConnectError, type HandlerContext } from "@connectrpc/connect";
+import IServerJobs from "../../../interfaces/Server/IServerJobs";
+import { decodeJobData, validateJobName } from "../../../jobs/Jobs.util";
 
 import { InvokeRequest, InvokeResponse, InvokeResponseSchema } from "../../../proto/dapr/proto/common/v1/common_pb";
 import {
   BindingEventRequest,
   BindingEventResponse,
   BindingEventResponseSchema,
-  BulkSubscribeConfig,
   BulkSubscribeConfigSchema,
   HealthCheckResponse,
   HealthCheckResponseSchema,
@@ -40,9 +41,7 @@ import {
   TopicEventResponse,
   TopicEventResponseSchema,
   TopicEventResponse_TopicEventResponseStatus,
-  TopicRoutes,
   TopicRoutesSchema,
-  TopicRule,
   TopicRuleSchema,
   TopicSubscription,
   TopicSubscriptionSchema,
@@ -63,14 +62,17 @@ import { Settings } from "../../../utils/Settings.util";
 import { SubscriptionManager } from "../../../pubsub/subscriptionManager";
 import { PubSubSubscriptionsType } from "../../../types/pubsub/PubSubSubscriptions.type";
 
+import type { IDaprSerializer } from "../../../serialization/IDaprSerializer";
+
 export default class GRPCServerImpl {
   private readonly logger: Logger;
   private readonly subscriptionManager: SubscriptionManager;
 
   handlersInvoke: { [key: string]: DaprInvokerCallbackFunction };
   handlersBindings: { [key: string]: TypeDaprBindingCallback };
+  private readonly jobHandlers = new Map<string, Parameters<IServerJobs["listen"]>[1]>();
 
-  constructor(_server: IServerType, loggerOptions?: LoggerOptions) {
+  constructor(_server: IServerType, loggerOptions?: LoggerOptions, private readonly serializer?: IDaprSerializer) {
     this.logger = new Logger("GRPCServer", "GRPCServerImpl", loggerOptions);
     this.subscriptionManager = new SubscriptionManager();
 
@@ -141,10 +143,15 @@ export default class GRPCServerImpl {
       },
     });
 
-    const res = create(InvokeResponseSchema, { contentType: "application/json" });
+    const res = create(InvokeResponseSchema, { contentType: this.serializer?.contentType ?? "application/json" });
 
-    if (invokeResponseData) {
-      res.data = create(AnySchema, { value: Buffer.from(JSON.stringify(invokeResponseData), "utf-8") });
+    if (invokeResponseData || (this.serializer && invokeResponseData !== undefined)) {
+      res.data = create(AnySchema, {
+        value: Buffer.from(
+          this.serializer ? this.serializer.serialize(invokeResponseData) : JSON.stringify(invokeResponseData),
+          "utf-8",
+        ),
+      });
     }
 
     return res;
@@ -164,7 +171,7 @@ export default class GRPCServerImpl {
 
     try {
       dataParsed = JSON.parse(data);
-    } catch (e) {
+    } catch {
       dataParsed = data;
     }
 
@@ -195,7 +202,7 @@ export default class GRPCServerImpl {
       return create(TopicEventResponseSchema);
     }
 
-    const data = deserializeGrpc(request.dataContentType, request.data);
+    const data = deserializeGrpc(request.dataContentType, request.data, this.serializer);
 
     const res = create(TopicEventResponseSchema);
 
@@ -254,10 +261,10 @@ export default class GRPCServerImpl {
     for (const event of request.entries) {
       let data: any;
       if (event.event.case === "bytes") {
-        data = deserializeGrpc(event.contentType, event.event.value);
+        data = deserializeGrpc(event.contentType, event.event.value, this.serializer);
       } else if (event.event.case === "cloudEvent") {
         const cloudEvent = event.event.value;
-        data = deserializeGrpc(cloudEvent.dataContentType, cloudEvent.data);
+        data = deserializeGrpc(cloudEvent.dataContentType, cloudEvent.data, this.serializer);
       }
 
       const res = create(TopicEventBulkResponseEntrySchema);
@@ -306,6 +313,7 @@ export default class GRPCServerImpl {
         status = await cb(data, headers);
       } catch (e) {
         this.logger.error(`[route - ${routeObj.path}]Message processing failed, ${e}`);
+        status = DaprPubSubStatusEnum.RETRY;
       }
 
       statuses.push(status ?? DaprPubSubStatusEnum.SUCCESS);
@@ -341,12 +349,11 @@ export default class GRPCServerImpl {
         }
 
         if (daprConfig?.bulkSubscribe) {
-          const bulkSubscribe = create(BulkSubscribeConfigSchema, {
+          topicSubscription.bulkSubscribe = create(BulkSubscribeConfigSchema, {
             enabled: daprConfig.bulkSubscribe.enabled,
             maxMessagesCount: daprConfig.bulkSubscribe.maxMessagesCount ?? 0,
             maxAwaitDurationMs: daprConfig.bulkSubscribe.maxAwaitDurationMs ?? 0,
           });
-          topicSubscription.bulkSubscribe = bulkSubscribe;
         }
 
         if (daprConfig?.metadata) {
@@ -362,10 +369,12 @@ export default class GRPCServerImpl {
 
           if (daprConfig?.routes?.rules) {
             for (const ruleItem of daprConfig.routes.rules) {
-              routes.rules.push(create(TopicRuleSchema, {
-                match: ruleItem.match,
-                path: ruleItem.path,
-              }));
+              routes.rules.push(
+                create(TopicRuleSchema, {
+                  match: ruleItem.match,
+                  path: ruleItem.path,
+                }),
+              );
             }
           }
 
@@ -393,7 +402,29 @@ export default class GRPCServerImpl {
     return create(HealthCheckResponseSchema);
   }
 
-  async onJobEventAlpha1(_request: JobEventRequest, _context: HandlerContext): Promise<JobEventResponse> {
+  registerJobHandler(name: string, callback: Parameters<IServerJobs["listen"]>[1]): void {
+    validateJobName(name);
+    if (typeof callback !== "function") {
+      throw new TypeError("A job callback is required");
+    }
+    if (this.jobHandlers.has(name)) {
+      throw new Error(`A handler for job '${name}' is already registered`);
+    }
+    this.jobHandlers.set(name, callback);
+  }
+
+  async onJobEventAlpha1(request: JobEventRequest, _context: HandlerContext): Promise<JobEventResponse> {
+    const callback = this.jobHandlers.get(request.name);
+    if (!callback) {
+      this.logger.warn(`Job '${request.name}' was not handled`);
+      throw new ConnectError("Job handler not found", Code.NotFound);
+    }
+    try {
+      await callback(decodeJobData(request.data));
+    } catch (error) {
+      this.logger.error(`Job '${request.name}' callback failed: ${error}`);
+      throw new ConnectError("Could not process job callback", Code.Internal);
+    }
     return create(JobEventResponseSchema);
   }
 }

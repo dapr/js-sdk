@@ -13,6 +13,13 @@ limitations under the License.
 
 import { Temporal } from "@js-temporal/polyfill";
 
+/** A registered reminder's identity and normalized timing configuration. */
+export type NamedActorReminderType = ActorReminderType & {
+  name: string;
+  actorType: string;
+  actorId: string;
+};
+
 /**
  * Configuration for setting up recurring reminders for an actor.
  *

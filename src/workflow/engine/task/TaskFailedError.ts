@@ -18,7 +18,12 @@ export class TaskFailedError extends Error {
   readonly errorMessage: string;
   readonly stackTrace: string | undefined;
 
-  constructor(message: string, errorType: string, stackTrace?: string) {
+  constructor(
+    message: string,
+    errorType: string,
+    stackTrace?: string,
+    public readonly failureDetails?: TaskFailureDetails,
+  ) {
     super(message);
     this.name = "TaskFailedError";
     this.errorType = errorType;
@@ -27,11 +32,7 @@ export class TaskFailedError extends Error {
   }
 
   static fromFailureDetails(message: string, details: TaskFailureDetails): TaskFailedError {
-    return new TaskFailedError(
-      message,
-      details.errorType,
-      details.stackTrace,
-    );
+    return new TaskFailedError(message, details.errorType, details.stackTrace, details);
   }
 
   /**

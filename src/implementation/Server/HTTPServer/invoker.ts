@@ -17,6 +17,7 @@ import { HttpMethod } from "../../../enum/HttpMethod.enum";
 import HTTPServer from "./HTTPServer";
 import IServerInvoker from "../../../interfaces/Server/IServerInvoker";
 import { Logger } from "../../../logger/Logger";
+import { isJsonContentType } from "../../../serialization/Serialization.util";
 
 // https://docs.dapr.io/reference/api/service_invocation_api/
 export default class HTTPServerInvoker implements IServerInvoker {
@@ -32,25 +33,39 @@ export default class HTTPServerInvoker implements IServerInvoker {
     const serverMethod: HttpMethod = (options?.method?.toLowerCase() as HttpMethod) || HttpMethod.GET;
 
     const server = await this.server.getServer();
-    server[serverMethod](`/${methodName}`, async (req, res) => {
-      const invokeResponse = await cb({
-        body: JSON.stringify(req.body),
-        query: req.originalUrl,
-        metadata: {
-          contentType: req.headers["content-type"],
-        },
-        headers: req.headers,
-      });
+    server[serverMethod](`/${methodName}`, async (req, res, next) => {
+      try {
+        const invokeResponse = await cb({
+          body:
+            this.server.client.options.serializer &&
+            !isJsonContentType(req.headers["content-type"]) &&
+            (typeof req.body === "string" || Buffer.isBuffer(req.body))
+              ? req.body.toString()
+              : JSON.stringify(req.body),
+          query: req.originalUrl,
+          metadata: {
+            contentType: req.headers["content-type"],
+          },
+          headers: req.headers,
+        });
 
-      // Make sure we close the request after the callback
-      // @TODO this should send header and http status code to client (same as grpc)
+        // Make sure we close the request after the callback
+        // @TODO this should send header and http status code to client (same as grpc)
 
-      if (!res.writableEnded) {
-        if (invokeResponse) {
-          return res.end(JSON.stringify(invokeResponse));
-        } else {
-          return res.end(JSON.stringify({ closed: true }));
+        if (!res.writableEnded) {
+          if (invokeResponse || (this.server.client.options.serializer && invokeResponse !== undefined)) {
+            const serializer = this.server.client.options.serializer;
+            if (serializer) {
+              res.type(serializer.contentType ?? "application/json");
+              return res.end(serializer.serialize(invokeResponse));
+            }
+            return res.end(JSON.stringify(invokeResponse));
+          } else {
+            return res.end(JSON.stringify({ closed: true }));
+          }
         }
+      } catch (error) {
+        next(error);
       }
     });
 

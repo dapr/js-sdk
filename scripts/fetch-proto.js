@@ -12,125 +12,101 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-const fs = require('fs-extra');
-const path = require('path');
-const { execSync } = require('child_process');
-const https = require('https');
+/* eslint-disable @typescript-eslint/no-var-requires */
+const fs = require("fs-extra");
+const path = require("path");
+const os = require("os");
 
-/**
- * Cross-platform proto file fetching script for Dapr JS SDK
- * Downloads and extracts Dapr proto files from the official Dapr repository
- */
+const DAPR_VERSION = "04215fd7eb2666910d9afd1a6d672ca3862bd1ae";
+const DURABLETASK_VERSION = "89e5df3ffbbac9ac043997b109718db2c2b182b6";
+const GOOGLEAPIS_VERSION = "ebd1d23ac613b177828dad42ad8dfb13ba498279";
 
-// Configuration
-const DAPR_VERSION = process.env.DAPR_VERSION || 'v1.16.0'; // Default version, can be overridden
-const DAPR_REPO_URL = 'https://raw.githubusercontent.com/dapr/dapr/';
-const PROTO_BASE_PATH = 'dapr/proto';
-const LOCAL_PROTO_DIR = path.join('dapr', 'proto');
+async function request(url) {
+  const response = await fetch(url, {
+    headers: { "User-Agent": "dapr-js-sdk-proto-fetcher" },
+    signal: AbortSignal.timeout(30000),
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText} for ${url}`);
+  }
+  return response;
+}
 
-// Proto files to download (commonly used Dapr proto files)
-const PROTO_FILES = [
-  'common/v1/common.proto',
-  'runtime/v1/dapr.proto',
-  'runtime/v1/appcallback.proto'
-];
+async function listProtoFiles(repo, version, selectPath) {
+  const apiUrl = `https://api.github.com/repos/${repo}`;
+  const commit = await (await request(`${apiUrl}/commits/${encodeURIComponent(version)}`)).json();
+  const tree = await (await request(`${apiUrl}/git/trees/${commit.sha}?recursive=1`)).json();
+  if (tree.truncated) {
+    throw new Error("GitHub returned a truncated repository tree; no proto files were updated");
+  }
+  const files = tree.tree
+    .filter((entry) => entry.type === "blob" && entry.path.endsWith(".proto") && selectPath(entry.path))
+    .map((entry) => ({
+      url: `https://raw.githubusercontent.com/${repo}/${commit.sha}/${entry.path}`,
+      path: selectPath(entry.path),
+    }));
+  if (files.length === 0) {
+    throw new Error(`No proto files found in ${repo} at ${commit.sha}`);
+  }
+  return files;
+}
+
+async function fetchProtoFiles(
+  version = DAPR_VERSION,
+  projectRoot = path.resolve(__dirname, ".."),
+  durabletaskVersion = DURABLETASK_VERSION,
+) {
+  const daprFiles = await listProtoFiles("dapr/dapr", version, (file) =>
+    file === "dapr/proto/common/v1/common.proto" || file.startsWith("dapr/proto/runtime/v1/") ? file : undefined,
+  );
+  const durabletaskFiles = await listProtoFiles("dapr/durabletask-protobuf", durabletaskVersion, (file) =>
+    file.startsWith("protos/") ? `dapr/proto/durabletask/v1/${file.slice("protos/".length)}` : undefined,
+  );
+  const files = [
+    ...daprFiles,
+    ...durabletaskFiles,
+    {
+      url: `https://raw.githubusercontent.com/googleapis/googleapis/${GOOGLEAPIS_VERSION}/google/rpc/status.proto`,
+      path: "google/rpc/status.proto",
+    },
+  ];
+  const stagingDir = await fs.mkdtemp(path.join(os.tmpdir(), "dapr-proto-"));
+  try {
+    for (const file of files) {
+      const response = await request(file.url);
+      const localPath = path.join(stagingDir, file.path);
+      await fs.ensureDir(path.dirname(localPath));
+      let content = await response.text();
+      if (file.path.startsWith("dapr/proto/durabletask/")) {
+        content = content.replace(/import "([^"/]+\.proto)";/g, 'import "dapr/proto/durabletask/v1/$1";');
+      }
+      await fs.writeFile(localPath, content);
+    }
+    for (const destination of [projectRoot, path.join(projectRoot, "src", "proto")]) {
+      await fs.copy(path.join(stagingDir, "dapr", "proto"), path.join(destination, "dapr", "proto"));
+      await fs.copy(path.join(stagingDir, "google"), path.join(destination, "google"));
+    }
+  } finally {
+    await fs.remove(stagingDir);
+  }
+  console.log(
+    `Updated ${daprFiles.length} common/runtime protos, ${durabletaskFiles.length} durabletask protos, and google.rpc.Status`,
+  );
+}
 
 async function main() {
-  try {
-    console.log('=======================================================');
-    console.log('============== Dapr JS SDK Proto Fetcher =============');
-    console.log('=======================================================');
-    console.log(`Executing in ${process.cwd()}`);
-    console.log(`Dapr Version: ${DAPR_VERSION}`);
-    console.log('Description: Fetch Dapr proto files from GitHub');
-    console.log('=======================================================');
-
-    // Ensure we're in the project root
-    const projectRoot = path.resolve(__dirname, '..');
-    process.chdir(projectRoot);
-
-    // Clean and create proto directory
-    console.log('Preparing proto directory...');
-    await fs.remove(LOCAL_PROTO_DIR);
-    await fs.ensureDir(LOCAL_PROTO_DIR);
-
-    // Download individual files via GitHub API
-    try {
-      await fetchProtoViaHTTP();
-      console.log('Successfully fetched proto files via HTTP');
-    } catch (error) {
-      console.error('All fetch methods failed');
-      throw error;
-    }
-
-    console.log('=======================================================');
-    console.log('Proto files fetched successfully!');
-    console.log('=======================================================');
-
-  } catch (error) {
-    console.error('Proto fetch failed:', error.message);
-    process.exit(1);
-  }
+  await fetchProtoFiles(
+    process.env.DAPR_VERSION || DAPR_VERSION,
+    path.resolve(__dirname, ".."),
+    process.env.DURABLETASK_VERSION || DURABLETASK_VERSION,
+  );
 }
 
-/**
- * Fetch proto files via HTTP (fallback method)
- */
-async function fetchProtoViaHTTP() {
-  console.log('Fetching proto files via HTTP...');
-
-  for (const protoFile of PROTO_FILES) {
-    console.log(`Downloading ${protoFile}...`);
-
-    const url = `${DAPR_REPO_URL}${DAPR_VERSION}/${PROTO_BASE_PATH}/${protoFile}`;
-    const localPath = path.join(LOCAL_PROTO_DIR, protoFile);
-
-    // Ensure directory exists
-    await fs.ensureDir(path.dirname(localPath));
-
-    // Download file
-    await downloadFile(url, localPath);
-  }
-}
-
-/**
- * Download a file from URL to local path
- */
-async function downloadFile(url, localPath) {
-  return new Promise((resolve, reject) => {
-    const request = https.get(url, (response) => {
-      if (response.statusCode === 200) {
-        const writeStream = fs.createWriteStream(localPath);
-        response.pipe(writeStream);
-
-        writeStream.on('finish', () => {
-          writeStream.close();
-          resolve();
-        });
-
-        writeStream.on('error', reject);
-      } else if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
-        // Handle redirect
-        downloadFile(response.headers.location, localPath).then(resolve).catch(reject);
-      } else {
-        reject(new Error(`HTTP ${response.statusCode}: ${response.statusMessage} for ${url}`));
-      }
-    });
-
-    request.on('error', reject);
-    request.setTimeout(30000, () => {
-      request.destroy();
-      reject(new Error(`Download timeout for ${url}`));
-    });
-  });
-}
-
-// Run the main function
 if (require.main === module) {
   main().catch((error) => {
-    console.error('Script failed:', error.message);
-    process.exit(1);
+    console.error("Proto fetch failed:", error.message);
+    process.exitCode = 1;
   });
 }
 
-module.exports = { main };
+module.exports = { main, fetchProtoFiles };

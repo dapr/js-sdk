@@ -15,7 +15,19 @@ import express from "express";
 import HTTPServerImpl from "../../../../src/implementation/Server/HTTPServer/HTTPServerImpl";
 
 describe("HttpServerImpl", () => {
-  const server = new HTTPServerImpl(express());
+  const logger = {
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    verbose: jest.fn(),
+    debug: jest.fn(),
+  };
+  let server: HTTPServerImpl;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    server = new HTTPServerImpl(express(), { service: logger });
+  });
 
   describe("extractSubscribeDataFromRequest", () => {
     it("should return string data correctly from req.body.data", () => {
@@ -119,6 +131,50 @@ describe("HttpServerImpl", () => {
           expect(data).toEqual("");
         }
       });
+    });
+  });
+
+  describe("generateDaprPubSubSubscriptionList", () => {
+    it("returns an empty list when no subscriptions are registered", () => {
+      expect(server.generateDaprPubSubSubscriptionList()).toEqual([]);
+    });
+
+    it("includes every topic across multiple pubsub components", () => {
+      server.registerPubsubSubscription("pubsub", "orders", { route: "orders" });
+      server.registerPubsubSubscription("pubsub", "payments", { route: "payments" });
+      server.registerPubsubSubscription("audit", "events", { route: "events" });
+
+      expect(server.generateDaprPubSubSubscriptionList()).toEqual([
+        { pubsubname: "pubsub", topic: "orders", route: "/pubsub--orders--orders" },
+        { pubsubname: "pubsub", topic: "payments", route: "/pubsub--payments--payments" },
+        { pubsubname: "audit", topic: "events", route: "/audit--events--events" },
+      ]);
+    });
+
+    it("preserves routing rules, metadata, dead-letter topics, and bulk settings", () => {
+      server.registerPubsubSubscription("pubsub", "orders", {
+        route: {
+          default: "orders",
+          rules: [{ match: 'event.type == "priority"', path: "priority" }],
+        },
+        metadata: { rawPayload: "true" },
+        deadLetterTopic: "orders-dead-letter",
+        bulkSubscribe: { enabled: true, maxMessagesCount: 10, maxAwaitDurationMs: 200 },
+      });
+
+      expect(server.generateDaprPubSubSubscriptionList()).toEqual([
+        {
+          pubsubname: "pubsub",
+          topic: "orders",
+          routes: {
+            default: "/pubsub--orders--orders",
+            rules: [{ match: 'event.type == "priority"', path: "/pubsub--orders--priority" }],
+          },
+          metadata: { rawPayload: '"true"' },
+          deadLetterTopic: "orders-dead-letter",
+          bulkSubscribe: { enabled: true, maxMessagesCount: 10, maxAwaitDurationMs: 200 },
+        },
+      ]);
     });
   });
 });

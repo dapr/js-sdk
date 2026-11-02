@@ -13,13 +13,13 @@ limitations under the License.
 
 import type { TWorkflow } from "../../types/workflow/Workflow.type";
 import type { TWorkflowActivity } from "../../types/workflow/Activity.type";
-import { getName } from "../engine/task";
+import { getName } from "../engine";
 import { WorkflowClientOptions } from "../../types/workflow/WorkflowClientOption";
 import { Settings } from "../../utils/Settings.util";
 import { GrpcEndpoint } from "../../network/GrpcEndpoint";
 
 export function getFunctionName(fn: TWorkflow | TWorkflowActivity<unknown, unknown>): string {
-  return getName(fn as Function);
+  return getName(fn);
 }
 
 export function generateEndpoint(options: Partial<WorkflowClientOptions>): GrpcEndpoint {

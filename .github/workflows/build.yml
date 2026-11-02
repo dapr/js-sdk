@@ -87,16 +87,40 @@ jobs:
         with:
           name: unit-tests
           flags: unit
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   get-dapr-versions:
     runs-on: ubuntu-latest
     outputs:
       matrix_json: ${{ steps.manual.outputs.matrix_json || steps.select.outputs.matrix_json }}
     steps:
+      - name: Checkout Dapr version selector
+        if: inputs.dapr_runtime_version == ''
+        uses: actions/checkout@v6
+        with:
+          repository: dapr/dotnet-sdk
+          ref: dd2d9deba4dd7e94502052f87e6013bb900f010a
+          path: dapr-version-selector
+          sparse-checkout: .github/tools/tag-selector
+          persist-credentials: false
+
+      - name: Setup Node ${{ env.NODE_VER }}
+        if: inputs.dapr_runtime_version == ''
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VER }}
+
+      - name: Build Dapr version selector
+        if: inputs.dapr_runtime_version == ''
+        working-directory: dapr-version-selector/.github/tools/tag-selector
+        run: |
+          npm ci
+          npm run build
+
       - id: select
         name: Select supported Dapr versions
         if: inputs.dapr_runtime_version == ''
-        uses: dapr/dotnet-sdk/.github/tools/tag-selector@dd2d9deba4dd7e94502052f87e6013bb900f010a
+        uses: ./dapr-version-selector/.github/tools/tag-selector
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tag_prefix: "v"
@@ -137,6 +161,11 @@ jobs:
           name: sdk-build
           path: build
 
+      - name: Setup .NET for workflow payload interoperability tests
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+
       - name: Run E2E tests
         run: npm run test:e2e:all
         env:
@@ -153,6 +182,7 @@ jobs:
         with:
           name: e2e-dapr-${{ matrix.dapr_runtime.version }}
           flags: e2e
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   publish:
     needs: [build, unit-tests, e2e]
@@ -168,6 +198,11 @@ jobs:
           node-version: ${{ env.NODE_VER }}
           registry-url: "https://registry.npmjs.org"
 
+      - name: Setup npm for trusted publishing
+        run: |
+          npm install --global npm@11.21.1
+          npm --version
+
       - name: Set version from tag
         run: |
           # Strip the leading 'v' from the tag ref (e.g. refs/tags/v1.2.3 -> 1.2.3)
@@ -181,6 +216,11 @@ jobs:
         run: npm run build-ci
 
       - name: Publish to npm (@dapr/dapr)
-        run: npm publish build/ --access public
+        run: |
+          NPM_TAG=latest
+          if [[ "${GITHUB_REF%%+*}" == *-* ]]; then
+            NPM_TAG=next
+          fi
+          npm publish build/ --access public --tag "$NPM_TAG"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

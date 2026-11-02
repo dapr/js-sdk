@@ -14,23 +14,32 @@ limitations under the License.
 import IClient from "../../interfaces/Client/IClient";
 import IClientActorBuilder from "../../interfaces/Client/IClientActorBuilder";
 import IClientBinding from "../../interfaces/Client/IClientBinding";
+import IClientBinaryStore from "../../interfaces/Client/IClientBinaryStore";
 import IClientConfiguration from "../../interfaces/Client/IClientConfiguration";
+import IClientConversation from "../../interfaces/Client/IClientConversation";
 import IClientCrypto from "../../interfaces/Client/IClientCrypto";
 import IClientHealth from "../../interfaces/Client/IClientHealth";
 import IClientInvoker from "../../interfaces/Client/IClientInvoker";
 import IClientLock from "../../interfaces/Client/IClientLock";
+import IClientJobs from "../../interfaces/Client/IClientJobs";
+import GRPCClientJobs from "./GRPCClient/jobs";
+import HTTPClientJobs from "./HTTPClient/jobs";
 import IClientMetadata from "../../interfaces/Client/IClientMetadata";
 import IClientProxy from "../../interfaces/Client/IClientProxy";
 import IClientPubSub from "../../interfaces/Client/IClientPubSub";
 import IClientSecret from "../../interfaces/Client/IClientSecret";
+import IClientSearch from "../../interfaces/Client/IClientSearch";
 import IClientSidecar from "../../interfaces/Client/IClientSidecar";
 import IClientState from "../../interfaces/Client/IClientState";
+import IClientVector from "../../interfaces/Client/IClientVector";
 import IClientWorkflow from "../../interfaces/Client/IClientWorkflow";
 
 import GRPCClient from "./GRPCClient/GRPCClient";
 import GRPCClientActor from "./GRPCClient/actor";
 import GRPCClientBinding from "./GRPCClient/binding";
+import GRPCClientBinaryStore from "./GRPCClient/binaryStore";
 import GRPCClientConfiguration from "./GRPCClient/configuration";
+import GRPCClientConversation from "./GRPCClient/conversation";
 import GRPCClientCrypto from "./GRPCClient/crypto";
 import GRPCClientHealth from "./GRPCClient/health";
 import GRPCClientInvoker from "./GRPCClient/invoker";
@@ -38,14 +47,18 @@ import GRPCClientLock from "./GRPCClient/lock";
 import GRPCClientMetadata from "./GRPCClient/metadata";
 import GRPCClientPubSub from "./GRPCClient/pubsub";
 import GRPCClientSecret from "./GRPCClient/secret";
+import GRPCClientSearch from "./GRPCClient/search";
 import GRPCClientSidecar from "./GRPCClient/sidecar";
 import GRPCClientState from "./GRPCClient/state";
+import GRPCClientVector from "./GRPCClient/vector";
 import GRPCClientWorkflow from "./GRPCClient/workflow";
 
 import HTTPClient from "./HTTPClient/HTTPClient";
 import HTTPClientActor from "./HTTPClient/actor";
 import HTTPClientBinding from "./HTTPClient/binding";
+import HTTPClientBinaryStore from "./HTTPClient/binaryStore";
 import HTTPClientConfiguration from "./HTTPClient/configuration";
+import HTTPClientConversation from "./HTTPClient/conversation";
 import HTTPClientCrypto from "./HTTPClient/crypto";
 import HTTPClientHealth from "./HTTPClient/health";
 import HTTPClientInvoker from "./HTTPClient/invoker";
@@ -54,8 +67,10 @@ import HTTPClientMetadata from "./HTTPClient/metadata";
 import HTTPClientProxy from "./HTTPClient/proxy";
 import HTTPClientPubSub from "./HTTPClient/pubsub";
 import HTTPClientSecret from "./HTTPClient/secret";
+import HTTPClientSearch from "./HTTPClient/search";
 import HTTPClientSidecar from "./HTTPClient/sidecar";
 import HTTPClientState from "./HTTPClient/state";
+import HTTPClientVector from "./HTTPClient/vector";
 import HTTPClientWorkflow from "./HTTPClient/workflow";
 
 import CommunicationProtocolEnum from "../../enum/CommunicationProtocol.enum";
@@ -135,6 +150,12 @@ export default class DaprClient {
    */
   readonly binding: IClientBinding;
 
+  /** Binary file storage and streaming (Dapr 1.19+ alpha API). */
+  readonly binaryStore: IClientBinaryStore;
+
+  /** Schedule, retrieve, and delete jobs (Dapr 1.16+). */
+  readonly jobs: IClientJobs;
+
   /**
    * Configuration store client.
    * Retrieves and watches application configuration values.
@@ -142,6 +163,9 @@ export default class DaprClient {
    * @see {@link https://dapr.io/docs/developing-applications/building-blocks/configuration/ | Dapr Configuration}
    */
   readonly configuration: IClientConfiguration;
+
+  /** LLM conversations and application-managed tool calling (Dapr 1.16+ Alpha2 API). */
+  readonly conversation: IClientConversation;
 
   /**
    * Cryptographic operations client.
@@ -203,6 +227,9 @@ export default class DaprClient {
    */
   readonly secret: IClientSecret;
 
+  /** Index management, document retrieval, and search (Dapr 1.19+ Alpha1 API, HTTP and gRPC). */
+  readonly search: IClientSearch;
+
   /**
    * Sidecar client.
    * Manages the Dapr sidecar lifecycle (shutdown, etc.).
@@ -216,6 +243,9 @@ export default class DaprClient {
    * @see {@link https://dapr.io/docs/developing-applications/building-blocks/state-management/ | Dapr State Management}
    */
   readonly state: IClientState;
+
+  /** Dense vector collections, records, and similarity queries (Dapr Vector Alpha1). */
+  readonly vector: IClientVector;
 
   /**
    * Workflow client.
@@ -284,15 +314,21 @@ export default class DaprClient {
         this.daprClient = client;
 
         this.state = new GRPCClientState(client);
+        this.vector = new GRPCClientVector(client);
         this.pubsub = new GRPCClientPubSub(client);
         this.binding = new GRPCClientBinding(client);
+        this.binaryStore = new GRPCClientBinaryStore(client);
         this.invoker = new GRPCClientInvoker(client);
         this.secret = new GRPCClientSecret(client);
+        this.search = new GRPCClientSearch(client);
         this.health = new GRPCClientHealth(client);
-        this.metadata = new GRPCClientMetadata(client);
+        const metadata = new GRPCClientMetadata(client);
+        this.metadata = metadata;
+        this.jobs = new GRPCClientJobs(client, metadata);
         this.sidecar = new GRPCClientSidecar(client);
         this.proxy = new GRPCClientProxy(client);
         this.configuration = new GRPCClientConfiguration(client);
+        this.conversation = new GRPCClientConversation(client);
         this.lock = new GRPCClientLock(client);
         this.crypto = new GRPCClientCrypto(client);
         this.actor = new GRPCClientActor(client); // we use an abstractor here since we interface through a builder with the Actor Runtime
@@ -306,17 +342,23 @@ export default class DaprClient {
 
         this.actor = new HTTPClientActor(client); // we use an abstractor here since we interface through a builder with the Actor Runtime
         this.binding = new HTTPClientBinding(client);
+        this.binaryStore = new HTTPClientBinaryStore(client);
         this.configuration = new HTTPClientConfiguration(client);
+        this.conversation = new HTTPClientConversation(client);
         this.crypto = new HTTPClientCrypto(client);
         this.health = new HTTPClientHealth(client);
         this.invoker = new HTTPClientInvoker(client);
         this.lock = new HTTPClientLock(client);
-        this.metadata = new HTTPClientMetadata(client);
+        const metadata = new HTTPClientMetadata(client);
+        this.metadata = metadata;
+        this.jobs = new HTTPClientJobs(client, metadata);
         this.proxy = new HTTPClientProxy(client);
-        this.pubsub = new HTTPClientPubSub(client);
+        this.pubsub = new HTTPClientPubSub(client, metadata);
         this.secret = new HTTPClientSecret(client);
+        this.search = new HTTPClientSearch(client);
         this.sidecar = new HTTPClientSidecar(client);
         this.state = new HTTPClientState(client);
+        this.vector = new HTTPClientVector(client);
         this.workflow = new HTTPClientWorkflow(client);
         break;
       }
@@ -331,6 +373,7 @@ export default class DaprClient {
       actor: options.actor,
       daprApiToken: options.daprApiToken,
       maxBodySizeMb: options.maxBodySizeMb,
+      serializer: options.serializer,
     };
   }
 

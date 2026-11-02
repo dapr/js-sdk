@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import fetch, { RequestInit } from "node-fetch";
+import fetch, { Headers, RequestInit, Response } from "node-fetch";
 import { DaprClient } from "../../..";
 import IClient from "../../../interfaces/Client/IClient";
 import http from "http";
@@ -25,6 +25,8 @@ import { SDK_VERSION } from "../../../version";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import communicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
 import { HttpEndpoint } from "../../../network/HttpEndpoint";
+import { getBaggageHeader } from "../../../utils/Baggage.util";
+import { withAbortSignal } from "../../../utils/Client.util";
 
 /**
  * HTTP-based Dapr client implementation.
@@ -136,6 +138,7 @@ export default class HTTPClient implements IClient {
       actor: options?.actor,
       daprApiToken: options?.daprApiToken,
       maxBodySizeMb: options?.maxBodySizeMb,
+      serializer: options?.serializer,
     };
 
     this.logger = new Logger("HTTPClient", "HTTPClient", this.options.logger);
@@ -322,6 +325,33 @@ export default class HTTPClient implements IClient {
     return await this.execute(`${newClientUrl}${url}`, params);
   }
 
+  /** Execute a raw streaming request without JSON serialization or text decoding. */
+  async executeStreamWithApiVersion(apiVersion: string, path: string, params: RequestInit): Promise<Response> {
+    const headers = new Headers(params.headers);
+    const baggage = getBaggageHeader();
+    if (baggage !== undefined && !headers.has("baggage")) {
+      headers.set("baggage", baggage);
+    }
+    if (this.options.daprApiToken) {
+      headers.set("dapr-api-token", this.options.daprApiToken);
+    }
+    headers.set("user-agent", `dapr-sdk-js/v${SDK_VERSION} http/1`);
+    const url = `${this.daprEndpoint.endpoint}/${apiVersion}${path}`;
+    const client = await this.getClient();
+    const response = await client(url, {
+      ...params,
+      headers,
+      redirect: "error",
+      agent: url.startsWith("https") ? HTTPClient.httpsAgent : HTTPClient.httpAgent,
+    });
+    if (!response.ok) {
+      throw new Error(
+        JSON.stringify({ error: response.statusText, error_msg: await response.text(), status: response.status }),
+      );
+    }
+    return response;
+  }
+
   /**
    * Executes an HTTP request to the Dapr sidecar API.
    *
@@ -384,13 +414,21 @@ export default class HTTPClient implements IClient {
     params?: THTTPExecuteParams | undefined | null,
     requiresInitialization = true,
   ): Promise<object | string> {
+    params?.signal?.throwIfAborted();
     const clientOptions: RequestInit = {};
+    if (params?.signal !== undefined) {
+      clientOptions.signal = params.signal;
+    }
 
     // Set Method
-    clientOptions.method = params?.method.toLocaleUpperCase() || (params?.body ? "POST" : "GET");
+    clientOptions.method = params?.method?.toLocaleUpperCase() || (params?.body ? "POST" : "GET");
 
     // Set Headers
-    clientOptions.headers = params?.headers ?? {};
+    clientOptions.headers = { ...params?.headers };
+    const baggage = getBaggageHeader();
+    if (baggage !== undefined && !Object.keys(clientOptions.headers).some((key) => key.toLowerCase() === "baggage")) {
+      clientOptions.headers["baggage"] = baggage;
+    }
 
     if (this.options.daprApiToken) {
       clientOptions.headers["dapr-api-token"] = this.options.daprApiToken;
@@ -399,18 +437,21 @@ export default class HTTPClient implements IClient {
     clientOptions.headers["user-agent"] = `dapr-sdk-js/v${SDK_VERSION} http/1`;
 
     // Set Body and Content-Type Header
-    if (params?.body) {
+    if (params?.body || (params?.serializer && params.body !== undefined)) {
       // If content-type is already present, use that to serialize the data.
       const headerContentType = params?.headers?.["Content-Type"] ?? undefined;
-      const { serializedData, contentType } = SerializerUtil.serializeHttp(params?.body, headerContentType);
+      const { serializedData, contentType } = SerializerUtil.serializeHttp(
+        params?.body,
+        headerContentType,
+        params?.serializer,
+      );
 
       clientOptions.headers["Content-Type"] = contentType;
       clientOptions.body = serializedData;
     }
 
     const urlFull = url.startsWith("http") ? url : `${this.clientUrl}${url}`;
-    const agent = urlFull.startsWith("https") ? HTTPClient.httpsAgent : HTTPClient.httpAgent;
-    clientOptions.agent = agent;
+    clientOptions.agent = urlFull.startsWith("https") ? HTTPClient.httpsAgent : HTTPClient.httpAgent;
 
     this.logger.debug(
       `Fetching ${clientOptions.method} ${urlFull} with (headers: ${JSON.stringify(
@@ -418,7 +459,8 @@ export default class HTTPClient implements IClient {
       )}, body size: ${(clientOptions.body?.toString()?.length ?? 0) / 1024 / 1024} Mb)`,
     );
 
-    const client = await this.getClient(requiresInitialization);
+    const client = await withAbortSignal(this.getClient(requiresInitialization), params?.signal);
+    params?.signal?.throwIfAborted();
     const res = await client(urlFull, clientOptions);
 
     // Parse body
@@ -427,12 +469,15 @@ export default class HTTPClient implements IClient {
 
     try {
       txtParsed = JSON.parse(txt);
-    } catch (e) {
+    } catch {
       txtParsed = txt;
     }
 
     // 2XX -> OK; 3XX -> Redirects and Found
     if (res.status >= 200 && res.status <= 399) {
+      if (params?.responseType === "text") {
+        return txt;
+      }
       return txtParsed;
     } else {
       throw new Error(

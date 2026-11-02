@@ -12,6 +12,7 @@ limitations under the License.
 */
 
 import { TextDecoder } from "util";
+import type { IDaprSerializer } from "../serialization/IDaprSerializer";
 
 function tryParseJson(data: any): object | string {
   // Check if the data is a Uint8Array, then we decode it first
@@ -26,7 +27,14 @@ function tryParseJson(data: any): object | string {
   }
 }
 
-export function deserializeGrpc(contentType: string, data: string | Uint8Array): any | unknown {
+export function deserializeGrpc(
+  contentType: string,
+  data: string | Uint8Array,
+  serializer?: IDaprSerializer,
+): any | unknown {
+  if (serializer) {
+    return serializer.deserialize(typeof data === "string" ? data : new TextDecoder().decode(data));
+  }
   switch (contentType) {
     case "application/json":
       return tryParseJson(data) as any;

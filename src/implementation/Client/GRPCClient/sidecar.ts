@@ -14,7 +14,8 @@ limitations under the License.
 import { create } from "@bufbuild/protobuf";
 import GRPCClient from "./GRPCClient";
 import IClientSidecar from "../../../interfaces/Client/IClientSidecar";
-import { GetMetadataRequestSchema, ShutdownRequestSchema } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import { GetMetadataRequestSchema } from "../../../proto/dapr/proto/runtime/v1/metadata_pb";
+import { ShutdownRequestSchema } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
 
 /**
  * gRPC control for sending signals to the Dapr runtime.

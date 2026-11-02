@@ -13,7 +13,7 @@ limitations under the License.
 
 import { create } from "@bufbuild/protobuf";
 import GRPCClient from "./GRPCClient";
-import { InvokeBindingRequestSchema } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import { InvokeBindingRequestSchema } from "../../../proto/dapr/proto/runtime/v1/binding_pb";
 import IClientBinding from "../../../interfaces/Client/IClientBinding";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import { KeyValueType } from "../../../types/KeyValue.type";
@@ -103,4 +103,3 @@ export default class GRPCClientBinding implements IClientBinding {
     };
   }
 }
-

@@ -13,7 +13,7 @@ limitations under the License.
 
 export class HTTPNotSupportedError extends Error {
   readonly name = "HTTPNotSupportedError";
-  constructor() {
-    super("HTTP is currently not supported.");
+  constructor(message = "HTTP is currently not supported.") {
+    super(message);
   }
 }

@@ -13,7 +13,7 @@ limitations under the License.
 
 import { create } from "@bufbuild/protobuf";
 import GRPCClient from "./GRPCClient";
-import { GetBulkSecretRequestSchema, GetSecretRequestSchema } from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+import { GetBulkSecretRequestSchema, GetSecretRequestSchema } from "../../../proto/dapr/proto/runtime/v1/secret_pb";
 import IClientSecret from "../../../interfaces/Client/IClientSecret";
 
 /**

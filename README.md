@@ -20,6 +20,10 @@ npm install --save @dapr/dapr-dev
 
 Visit [https://docs.dapr.io/developing-applications/sdks/js/](https://docs.dapr.io/developing-applications/sdks/js/) to view the full documentation.
 
+### Search
+
+`client.search` supports index management, document indexing/retrieval/deletion, and lexical or native queries over HTTP using Dapr's Search Alpha1 API (1.19+). See the [Search reference](documentation/reference.md#search-alpha1) for typed examples, acknowledgement semantics, and runtime requirements.
+
 ## Community
 
 There are multiple ways to get involved with the SDK community, please see [wiki/Community-engagement](https://github.com/dapr/js-sdk/wiki/Community-engagement) for more information.

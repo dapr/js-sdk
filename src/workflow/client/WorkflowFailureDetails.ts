@@ -32,6 +32,12 @@ export class WorkflowFailureDetails {
     return this._details.innerFailure;
   }
 
+  /** Returns the nested failure using the same API, leaving innerFailure's raw protobuf API unchanged. */
+  getInnerFailure(): WorkflowFailureDetails | undefined {
+    const inner = this._details.innerFailure;
+    return inner ? new WorkflowFailureDetails(inner) : undefined;
+  }
+
   get isNonRetriable(): boolean {
     return this._details.isNonRetriable;
   }

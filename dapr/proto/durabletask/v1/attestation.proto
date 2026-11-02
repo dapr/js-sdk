@@ -103,8 +103,8 @@ option go_package = "/api/protos";
 //
 // The innerFailure recursion depth is capped (implementation-defined, at
 // least 32 levels). Chains exceeding the cap are treated as malformed:
-// the signer refuses to produce an attestation and the verifier refuses to
-// verify one. This bounds the work performed on attacker-controlled
+// the signer refuses to produce an attestation and the verifier refuses
+// to verify one. This bounds the work performed on attacker-controlled
 // input.
 //
 // --- Versioning ---

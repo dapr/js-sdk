@@ -14,6 +14,7 @@ limitations under the License.
 import { Task } from "./Task";
 import type { TaskFailureDetails } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import { TaskFailedError } from "./TaskFailedError";
+import { notifyTaskParents } from "./taskCompletion";
 
 export class CompletableTask<T> extends Task<T> {
   complete(result: T): void {
@@ -24,9 +25,7 @@ export class CompletableTask<T> extends Task<T> {
     this._result = result;
     this._isComplete = true;
 
-    if (this._parent) {
-      this._parent.onChildCompleted(this as unknown as Task<unknown>);
-    }
+    notifyTaskParents(this);
   }
 
   fail(message: string, details?: TaskFailureDetails): void {
@@ -41,8 +40,6 @@ export class CompletableTask<T> extends Task<T> {
     }
     this._isComplete = true;
 
-    if (this._parent) {
-      this._parent.onChildCompleted(this as unknown as Task<unknown>);
-    }
+    notifyTaskParents(this);
   }
 }

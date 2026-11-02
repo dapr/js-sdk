@@ -37,9 +37,14 @@ export default class HTTPClientInvoker implements IClientInvoker {
       method,
       headers,
       body: data,
+      serializer: this.client.options.serializer,
+      responseType: this.client.options.serializer ? ("text" as const) : undefined,
     };
 
     const result = await this.client.execute(`/invoke/${appId}/method/${methodName}`, fetchOptions);
+    if (this.client.options.serializer && typeof result === "string" && result !== "") {
+      return this.client.options.serializer.deserialize<object>(result);
+    }
     return result as object;
   }
 }

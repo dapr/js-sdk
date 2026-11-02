@@ -11,25 +11,65 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import type { OrchestrationContext } from "../engine/context/OrchestrationContext";
-import type { Task } from "../engine/task/Task";
-import type { WhenAllTask } from "../engine/task/WhenAllTask";
-import type { WhenAnyTask } from "../engine/task/WhenAnyTask";
-import { whenAll, whenAny, getName } from "../engine/task";
+import type { OrchestrationContext, Task, WhenAllTask, WhenAnyTask } from "../engine";
+import type { CancellableTask } from "../../types/workflow/CancellableTask.type";
+import type { ExternalEventOptions } from "../../types/workflow/ExternalEventOptions.type";
+import { whenAll, whenAny, getName } from "../engine";
 import type { TWorkflowActivity } from "../../types/workflow/Activity.type";
 import type { TWorkflow } from "../../types/workflow/Workflow.type";
 import type { ActivityOptions } from "../../types/workflow/ActivityOptions.type";
 import type { ChildWorkflowOptions } from "../../types/workflow/ChildWorkflowOptions.type";
+import type { DetachedWorkflowOptions } from "../../types/workflow/DetachedWorkflowOptions.type";
+import { createPropagatedHistoryView, type PropagatedHistoryView } from "./PropagatedHistory";
+import type { PayloadReference } from "../payloads/PayloadReference";
+import type { Readable } from "node:stream";
+import { Logger } from "../../logger/Logger";
+import type { LoggerOptions } from "../../types/logger/LoggerOptions";
+import type { LoggerService } from "../../types/logger/LoggerService";
+import { ReplaySafeLogger } from "./ReplaySafeLogger";
 
 export default class WorkflowContext {
-  constructor(private readonly _innerContext: OrchestrationContext) {
+  private _logger?: LoggerService;
+
+  public hasPayloadResolver(): boolean {
+    return this._innerContext.hasPayloadResolver;
+  }
+
+  /** Yield this read-only task; storage I/O is drained before workflow history advances. */
+  public resolvePayload<T>(reference: PayloadReference<T>): Task<T> {
+    return this._innerContext.resolvePayload(reference);
+  }
+
+  /** Yield to obtain a raw stream. Consume asynchronously and destroy it on early exit. */
+  public openPayload(reference: PayloadReference): Task<Readable> {
+    return this._innerContext.openPayload(reference);
+  }
+
+  constructor(private readonly _innerContext: OrchestrationContext, private readonly loggerOptions?: LoggerOptions) {
     if (!_innerContext) {
       throw new Error("WorkflowContext cannot be undefined");
     }
   }
 
+  /** Logs application messages only during non-replay execution. */
+  public get logger(): LoggerService {
+    this._logger ??= new ReplaySafeLogger(
+      new Logger("Workflow", `${this.getWorkflowName()}, ${this.getWorkflowInstanceId()}`, this.loggerOptions),
+      () => this.isReplaying(),
+    );
+    return this._logger;
+  }
+
   public getWorkflowInstanceId(): string {
     return this._innerContext.instanceId;
+  }
+
+  public getWorkflowName(): string {
+    return this._innerContext.name;
+  }
+
+  public getPropagatedHistory(): PropagatedHistoryView | undefined {
+    return createPropagatedHistoryView(this._innerContext.propagatedHistory);
   }
 
   public getCurrentUtcDateTime(): Date {
@@ -40,8 +80,18 @@ export default class WorkflowContext {
     return this._innerContext.isReplaying;
   }
 
-  public createTimer(fireAt: Date | number): Task<void> {
-    return this._innerContext.createTimer(fireAt) as Task<void>;
+  /**
+   * Enables a named code change without changing previously replayed execution paths (Dapr 1.17+).
+   * Returns false for an unrecorded patch first encountered during replay, otherwise true.
+   * Names are case-sensitive, must not be blank, and must not be reused for different changes.
+   * Keep the original code path until instances that need it have finished.
+   */
+  public isPatched(patchName: string): boolean {
+    return this._innerContext.isPatched(patchName);
+  }
+
+  public createTimer(fireAt: Date | number): CancellableTask<void> {
+    return this._innerContext.createTimer(fireAt);
   }
 
   public callActivity<T = any>(
@@ -79,11 +129,31 @@ export default class WorkflowContext {
     return this._innerContext.callSubOrchestrator(getName(orchestrator), input, instanceId, options) as Task<TOutput>;
   }
 
-  public waitForExternalEvent<T = any>(name: string): Task<T> {
-    return this._innerContext.waitForExternalEvent(name) as Task<T>;
+  /**
+   * Schedules an independent workflow (Dapr 1.19+). The completed task contains its
+   * instance ID, not its output; completion and failure do not flow back to this workflow.
+   */
+  public scheduleNewDetachedWorkflow<TInput = unknown>(
+    workflow: TWorkflow | string,
+    input?: TInput,
+    instanceId?: string,
+    startAt?: Date,
+    options?: DetachedWorkflowOptions,
+  ): Task<string> {
+    return this._innerContext.scheduleNewDetachedWorkflow(
+      typeof workflow === "string" ? workflow : getName(workflow),
+      input,
+      instanceId,
+      startAt,
+      options,
+    );
   }
 
-  public continueAsNew(newInput: any, saveEvents = false): void {
+  public waitForExternalEvent<T = any>(name: string, options?: ExternalEventOptions): CancellableTask<T> {
+    return this._innerContext.waitForExternalEvent(name, options) as CancellableTask<T>;
+  }
+
+  public continueAsNew(newInput: any, saveEvents = true): void {
     this._innerContext.continueAsNew(newInput, saveEvents);
   }
 

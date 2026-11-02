@@ -14,9 +14,9 @@ limitations under the License.
 import { KeyValueType } from "../KeyValue.type";
 
 /**
- * Options for state save/upsert operations.
+ * Metadata options for state save/upsert and bulk-delete operations.
  *
- * Specifies optional metadata to pass to the state store when saving or updating state values.
+ * Specifies optional metadata to pass to the state store when saving, updating, or bulk-deleting state.
  * Metadata can include component-specific options like TTL, partitioning hints, or other store settings.
  *
  * @see {@link https://dapr.io/docs/developing-applications/building-blocks/state-management/ | Dapr State Management}
@@ -44,7 +44,7 @@ import { KeyValueType } from "../KeyValue.type";
  */
 export type StateSaveOptions = {
   /**
-   * Component-specific metadata to pass to the state store during save operations.
+   * Component-specific metadata to pass to the state store during save or bulk-delete operations.
    * The metadata accepted depends on the configured state store component
    * (e.g., Redis accepts ttlInSeconds, CosmosDB accepts partitionKey, etc.).
    *

@@ -13,15 +13,20 @@ limitations under the License.
 
 import { CompositeTask } from "./CompositeTask";
 import type { Task } from "./Task";
+import { notifyTaskParents } from "./taskCompletion";
 
 export class WhenAllTask<T> extends CompositeTask<T[]> {
   constructor(tasks: Task<T>[]) {
     super(tasks as Task<unknown>[]);
+    if (tasks.length === 0) {
+      this._result = [];
+      this._isComplete = true;
+    }
   }
 
   onChildCompleted(task: Task<unknown>): void {
     if (this._isComplete) {
-      throw new Error("Task is already completed");
+      return;
     }
 
     this._completedTasks++;
@@ -29,11 +34,14 @@ export class WhenAllTask<T> extends CompositeTask<T[]> {
     if (task.isFailed && !this._exception) {
       this._exception = task.getException();
       this._isComplete = true;
+      notifyTaskParents(this);
+      return;
     }
 
     if (this._completedTasks === this._tasks.length) {
       this._result = this._tasks.map((t) => t.getResult()) as unknown as T[];
       this._isComplete = true;
+      notifyTaskParents(this);
     }
   }
 

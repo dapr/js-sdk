@@ -18,6 +18,11 @@ import { DecryptRequest, EncryptRequest } from "../../types/crypto/Requests";
 /**
  * Dapr client interface for cryptographic operations.
  * Provides methods to encrypt and decrypt data using Dapr cryptography building block.
+ * Both HTTP and gRPC support Buffer and Duplex overloads. Dapr buffers HTTP crypto output;
+ * prefer gRPC for large payloads and production streaming.
+ *
+ * Runtimes affected by https://github.com/dapr/kit/issues/170 can fail during concurrent
+ * decryption. Avoid overlapping decryption with other crypto operations on those sidecars.
  *
  * @see https://docs.dapr.io/developing-applications/building-blocks/cryptography/
  */
@@ -25,10 +30,10 @@ export default interface IClientCrypto {
   /**
    * Encrypts data from an input stream using the specified encryption configuration.
    *
-   * @param opts - Encryption request options (key name, algorithm, key wrap algorithm).
-   * @returns A promise that resolves to a readable stream of encrypted data.
+   * @param opts - Encryption request options (component name, key name, key wrap algorithm).
+   * @returns A promise that resolves to a Duplex accepting plaintext and emitting encrypted bytes.
    *
-   * @see https://docs.dapr.io/reference/api/crypto_api/
+   * @see https://docs.dapr.io/reference/api/cryptography_api/
    */
   encrypt(opts: EncryptRequest): Promise<Duplex>;
 
@@ -37,7 +42,7 @@ export default interface IClientCrypto {
    * Accepts data in multiple formats: Buffer, ArrayBuffer, ArrayBufferView, or string.
    *
    * @param inData - The data to encrypt.
-   * @param opts - Encryption request options (key name, algorithm, key wrap algorithm).
+   * @param opts - Encryption request options (component name, key name, key wrap algorithm).
    * @returns A promise that resolves to a Buffer containing the encrypted data.
    *
    * @example
@@ -45,23 +50,24 @@ export default interface IClientCrypto {
    * const encrypted = await client.crypto.encrypt(
    *   Buffer.from("sensitive data"),
    *   {
+   *     componentName: "crypto-local",
    *     keyName: "my-key",
-   *     algorithm: "AES-GCM"
+   *     keyWrapAlgorithm: "A256KW"
    *   }
    * );
    * ```
    *
-   * @see https://docs.dapr.io/reference/api/crypto_api/
+   * @see https://docs.dapr.io/reference/api/cryptography_api/
    */
   encrypt(inData: Buffer | ArrayBuffer | ArrayBufferView | string, opts: EncryptRequest): Promise<Buffer>;
 
   /**
    * Decrypts data from an input stream using the specified decryption configuration.
    *
-   * @param opts - Decryption request options (key name, algorithm, key wrap algorithm).
-   * @returns A promise that resolves to a readable stream of decrypted data.
+   * @param opts - Decryption request options (component name and optional key name).
+   * @returns A promise that resolves to a Duplex accepting ciphertext and emitting decrypted bytes.
    *
-   * @see https://docs.dapr.io/reference/api/crypto_api/
+   * @see https://docs.dapr.io/reference/api/cryptography_api/
    */
   decrypt(opts: DecryptRequest): Promise<Duplex>;
 
@@ -70,7 +76,7 @@ export default interface IClientCrypto {
    * Accepts data in multiple formats: Buffer, ArrayBuffer, or ArrayBufferView.
    *
    * @param inData - The encrypted data to decrypt.
-   * @param opts - Decryption request options (key name, algorithm, key wrap algorithm).
+   * @param opts - Decryption request options (component name and optional key name).
    * @returns A promise that resolves to a Buffer containing the decrypted data.
    *
    * @example
@@ -78,13 +84,13 @@ export default interface IClientCrypto {
    * const decrypted = await client.crypto.decrypt(
    *   encryptedBuffer,
    *   {
-   *     keyName: "my-key",
-   *     algorithm: "AES-GCM"
+   *     componentName: "crypto-local",
+   *     keyName: "my-key"
    *   }
    * );
    * ```
    *
-   * @see https://docs.dapr.io/reference/api/crypto_api/
+   * @see https://docs.dapr.io/reference/api/cryptography_api/
    */
   decrypt(inData: Buffer | ArrayBuffer | ArrayBufferView, opts: DecryptRequest): Promise<Buffer>;
 }

@@ -48,9 +48,14 @@ import { TWorkflow } from "./types/workflow/Workflow.type";
 import { RetryPolicy } from "./types/workflow/RetryPolicy.type";
 import { ActivityOptions } from "./types/workflow/ActivityOptions.type";
 import { ChildWorkflowOptions } from "./types/workflow/ChildWorkflowOptions.type";
-import { Task } from "./workflow/engine/task/Task";
+import { DetachedWorkflowOptions } from "./types/workflow/DetachedWorkflowOptions.type";
+import { HistoryPropagationScope } from "./proto/dapr/proto/durabletask/v1/orchestration_pb";
+import { Task, TaskCanceledError, TaskTimeoutError } from "./workflow/engine/task";
+import { ExternalEventOptions } from "./types/workflow/ExternalEventOptions.type";
 import { WorkflowFailureDetails } from "./workflow/client/WorkflowFailureDetails";
 import { WorkflowState } from "./workflow/client/WorkflowState";
+import { RerunWorkflowFromEventOptions, WorkflowInstanceIdPage } from "./types/workflow/WorkflowManagement.types";
+import type { HistoryEvent } from "./proto/dapr/proto/durabletask/v1/history_events_pb";
 import {
   WorkflowRuntimeStatus,
   fromOrchestrationStatus,
@@ -90,10 +95,106 @@ export {
   RetryPolicy,
   ActivityOptions,
   ChildWorkflowOptions,
+  DetachedWorkflowOptions,
+  HistoryPropagationScope,
   Task,
+  TaskCanceledError,
+  TaskTimeoutError,
+  ExternalEventOptions,
   WorkflowFailureDetails,
   WorkflowState,
+  RerunWorkflowFromEventOptions,
+  WorkflowInstanceIdPage,
+  HistoryEvent,
   WorkflowRuntimeStatus,
   fromOrchestrationStatus,
   toOrchestrationStatus,
 };
+
+export type {
+  PropagatedHistory,
+  PropagatedHistoryEntry,
+  PropagatedHistoryView,
+} from "./workflow/runtime/PropagatedHistory";
+export type { CancellableTask } from "./types/workflow/CancellableTask.type";
+export type { IDaprSerializer } from "./serialization/IDaprSerializer";
+export type {
+  PubSubStreamingSubscription,
+  PubSubStreamingSubscriptionOptions,
+} from "./types/pubsub/PubSubStreamingSubscription.type";
+export type { NamedActorReminderType } from "./types/ActorReminder.type";
+export { JsonSerializer } from "./serialization/JsonSerializer";
+export type { default as IClientBinaryStore } from "./interfaces/Client/IClientBinaryStore";
+export type { default as IClientConversation } from "./interfaces/Client/IClientConversation";
+export type { default as IClientVector } from "./interfaces/Client/IClientVector";
+export type {
+  VectorDistanceMetric,
+  VectorOptions,
+  VectorCreateCollectionOptions,
+  VectorIndexingOptions,
+  VectorIndexAck,
+  VectorCollection,
+  VectorRecord,
+  VectorQuery,
+  VectorQueryResult,
+  VectorErrorDetail,
+  VectorError,
+  VectorUpsertResult,
+  VectorBatchQueryResult,
+} from "./types/vector/Vector.types";
+export type { default as IClientSearch } from "./interfaces/Client/IClientSearch";
+export type {
+  IndexAck,
+  IndexDocumentsResult,
+  IndexingOptions,
+  SearchDocument,
+  SearchIndex,
+  SearchOptions,
+  SearchQuery,
+  SearchResult,
+} from "./types/search/Search.types";
+export type {
+  ConversationJsonValue,
+  ConversationJsonObject,
+  ConversationMessageContent,
+  ConversationMessageOfDeveloper,
+  ConversationMessageOfSystem,
+  ConversationMessageOfUser,
+  ConversationMessageOfAssistant,
+  ConversationMessageOfTool,
+  ConversationMessage,
+  ConversationInputAlpha2,
+  ConversationToolsFunction,
+  ConversationTools,
+  ConversationToolCallsOfFunction,
+  ConversationToolCalls,
+  ConversationRequestAlpha2,
+  ConversationResultMessage,
+  ConversationResultChoices,
+  ConversationCompletionTokensDetails,
+  ConversationPromptTokensDetails,
+  ConversationCompletionUsage,
+  ConversationResultAlpha2,
+  ConversationResponseAlpha2,
+} from "./types/conversation/Conversation.types";
+export type { BinaryStoreOptions, BinaryStoreSetOptions } from "./types/binarystore/BinaryStoreOptions";
+export { withBaggage } from "./utils/Baggage.util";
+export { CronExpressionBuilder } from "./jobs/CronExpressionBuilder";
+export type { CronPeriod } from "./jobs/CronExpressionBuilder";
+export type { Job, JobOptions, JobFailurePolicy } from "./types/jobs/Job";
+export { PayloadReference, PayloadStage } from "./workflow/payloads/PayloadReference";
+export { BinaryStoreWorkflowPayloadResolver } from "./workflow/payloads/BinaryStoreWorkflowPayloadResolver";
+export {
+  BinaryStorePayloadOptions,
+  PayloadWritePreference,
+  PayloadKind,
+  PayloadSite,
+  IWorkflowPayloadManifest,
+  WorkflowPayloadRegistrationOptions,
+} from "./workflow/payloads/BinaryStorePayloadOptions";
+export {
+  PayloadNotResolvableError,
+  PayloadNotFoundError,
+  PayloadIntegrityError,
+  PayloadRehydrationLimitError,
+} from "./workflow/payloads/PayloadErrors";

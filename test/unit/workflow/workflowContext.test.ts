@@ -13,7 +13,7 @@ limitations under the License.
 
 import WorkflowContext from "../../../src/workflow/runtime/WorkflowContext";
 import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
-import { Task } from "../../../src/workflow/engine/task/Task";
+import { Task } from "../../../src";
 
 describe("WorkflowContext", () => {
   let mockInnerContext: any;
@@ -22,8 +22,10 @@ describe("WorkflowContext", () => {
   beforeEach(() => {
     mockInnerContext = {
       instanceId: "test-instance-id",
+      name: "registered-workflow",
       currentUtcDateTime: new Date("2025-01-01T00:00:00Z"),
       isReplaying: false,
+      isPatched: jest.fn(),
       createTimer: jest.fn().mockReturnValue({ isCompleted: false } as Partial<Task<any>>),
       callActivity: jest.fn().mockReturnValue({ isCompleted: false } as Partial<Task<any>>),
       callSubOrchestrator: jest.fn().mockReturnValue({ isCompleted: false } as Partial<Task<any>>),
@@ -52,6 +54,10 @@ describe("WorkflowContext", () => {
     });
   });
 
+  it("returns the registered workflow name from the inner context", () => {
+    expect(ctx.getWorkflowName()).toBe("registered-workflow");
+  });
+
   describe("getCurrentUtcDateTime", () => {
     it("should return the current UTC date/time from inner context", () => {
       expect(ctx.getCurrentUtcDateTime()).toEqual(new Date("2025-01-01T00:00:00Z"));
@@ -67,6 +73,19 @@ describe("WorkflowContext", () => {
       mockInnerContext.isReplaying = true;
       expect(ctx.isReplaying()).toBe(true);
     });
+  });
+
+  it.each([true, false])("delegates isPatched and preserves a %s decision", (patched) => {
+    mockInnerContext.isPatched.mockReturnValue(patched);
+    expect(ctx.isPatched("add-validation")).toBe(patched);
+    expect(mockInnerContext.isPatched).toHaveBeenCalledWith("add-validation");
+  });
+
+  it("propagates patch errors from the inner context", () => {
+    mockInnerContext.isPatched.mockImplementation(() => {
+      throw new TypeError("invalid patch");
+    });
+    expect(() => ctx.isPatched("")).toThrow("invalid patch");
   });
 
   describe("createTimer", () => {
@@ -230,7 +249,15 @@ describe("WorkflowContext", () => {
     it("should delegate to inner context", () => {
       ctx.waitForExternalEvent("myEvent");
 
-      expect(mockInnerContext.waitForExternalEvent).toHaveBeenCalledWith("myEvent");
+      expect(mockInnerContext.waitForExternalEvent).toHaveBeenCalledWith("myEvent", undefined);
+    });
+
+    it("should pass durable timeout options and return the cancellable task", () => {
+      const options = { timeoutInSeconds: 30 };
+      expect(ctx.waitForExternalEvent("myEvent", options)).toBe(
+        mockInnerContext.waitForExternalEvent.mock.results[0].value,
+      );
+      expect(mockInnerContext.waitForExternalEvent).toHaveBeenCalledWith("myEvent", options);
     });
   });
 
@@ -243,6 +270,12 @@ describe("WorkflowContext", () => {
 
     it("should support saving events", () => {
       ctx.continueAsNew("new-input", true);
+
+      expect(mockInnerContext.continueAsNew).toHaveBeenCalledWith("new-input", true);
+    });
+
+    it("should preserve events by default", () => {
+      ctx.continueAsNew("new-input");
 
       expect(mockInnerContext.continueAsNew).toHaveBeenCalledWith("new-input", true);
     });

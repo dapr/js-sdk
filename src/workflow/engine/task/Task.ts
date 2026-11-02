@@ -19,11 +19,18 @@ export class Task<T> {
   _exception: TaskFailedError | undefined;
   _parent: CompositeTask<T> | undefined;
   _isComplete = false;
+  _executionId: string | undefined;
 
-  constructor() {
+  constructor(executionId?: string) {
     this._isComplete = false;
     this._exception = undefined;
     this._parent = undefined;
+    this._executionId = executionId;
+  }
+
+  /** Activity execution key; undefined for legacy activities and task types without protocol support. */
+  get executionId(): string | undefined {
+    return this._executionId;
   }
 
   get isComplete(): boolean {

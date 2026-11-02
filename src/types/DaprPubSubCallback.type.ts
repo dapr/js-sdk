@@ -16,13 +16,15 @@ limitations under the License.
  *
  * This callback is invoked when the Dapr sidecar receives a message from a topic subscription.
  * The handler receives the message data and headers (such as content-type, trace IDs, etc.)
- * and must process the message asynchronously. If the handler throws an error, the message
- * is typically dead-lettered or retried depending on the Pub/Sub component configuration.
+ * and must process the message asynchronously. Thrown errors and rejected promises are logged
+ * and reported to Dapr as RETRY. Retry and dead-letter behavior depend on the configured
+ * resiliency policy and Pub/Sub component. Return DROP explicitly to discard a message.
  *
  * @param data - The message payload from the topic. Can be any type, typically string or object.
  * @param headers - Metadata headers accompanying the message, including cloudEvents attributes
  *                  and custom metadata from the Pub/Sub component.
- * @returns Promise that resolves when message processing is complete. Can return void or any response value.
+ * @returns Promise that resolves when message processing is complete. Return SUCCESS, RETRY, or DROP
+ *          to set the status; normal completion without a status defaults to SUCCESS.
  *
  * @see {@link https://dapr.io/docs/developing-applications/building-blocks/pubsub/ | Dapr Pub/Sub}
  * @see {@link https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md | CloudEvents Specification}

@@ -87,6 +87,11 @@ message ActivityInvocation {
 
   // Propagated history from the calling workflow.
   optional PropagatedHistory propagatedHistory = 2;
+
+  // Execution ID of the workflow generation that dispatched the activity.
+  // Sent back with the activity's result so the workflow can reject a result
+  // dispatched by another generation: task IDs restart on ContinueAsNew.
+  optional string parentExecutionId = 3;
 }
 
 message CreateWorkflowInstanceRequest {

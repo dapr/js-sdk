@@ -37,11 +37,9 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     }
 
     try {
-      const result = await this.client.executeWithApiVersion(
-        "v1.0-beta1",
-        `/workflows/dapr/${instanceID}`,
-        { method: "GET" },
-      );
+      const result = await this.client.executeWithApiVersion("v1.0-beta1", `/workflows/dapr/${instanceID}`, {
+        method: "GET",
+      });
 
       if (typeof result === "string") {
         throw new Error(`Error getting workflow instance: ${result}`);
@@ -89,15 +87,12 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     }
 
     try {
-      await this.client.executeWithApiVersion(
-        "v1.0-beta1",
-        `/workflows/dapr/${workflowName}/start?${queryParams}`,
-        {
-          method: "POST",
-          body: input,
-          headers,
-        },
-      );
+      await this.client.executeWithApiVersion("v1.0-beta1", `/workflows/dapr/${workflowName}/start?${queryParams}`, {
+        method: "POST",
+        body: input,
+        headers,
+        serializer: this.client.options.serializer,
+      });
 
       return instanceId;
     } catch (e: any) {
@@ -128,15 +123,12 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     }
 
     try {
-      await this.client.executeWithApiVersion(
-        "v1.0-beta1",
-        `/workflows/dapr/${instanceId}/raiseEvent/${eventName}`,
-        {
-          method: "POST",
-          body: eventData,
-          headers,
-        },
-      );
+      await this.client.executeWithApiVersion("v1.0-beta1", `/workflows/dapr/${instanceId}/raiseEvent/${eventName}`, {
+        method: "POST",
+        body: eventData,
+        headers,
+        serializer: this.client.options.serializer,
+      });
     } catch (e: any) {
       this.logger.error(`Error raising event on workflow instance: ${e.message}`);
       throw e;

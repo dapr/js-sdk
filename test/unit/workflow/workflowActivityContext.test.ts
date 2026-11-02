@@ -12,8 +12,16 @@ limitations under the License.
 */
 
 import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
+import { ActivityContext } from "../../../src/workflow/engine";
 
 describe("WorkflowActivityContext", () => {
+  it.each([undefined, "", "opaque-runtime-execution-key"])("exposes the runtime execution key %s", (key) => {
+    const context = new WorkflowActivityContext(new ActivityContext("instance", 0, undefined, key));
+    expect(context.getTaskExecutionId()).toBe(key || undefined);
+    expect(context.getWorkflowInstanceId()).toBe("instance");
+    expect(context.getWorkflowActivityId()).toBe(0);
+  });
+
   describe("constructor", () => {
     it("should throw if innerContext is undefined", () => {
       expect(() => new WorkflowActivityContext(undefined as any)).toThrow("ActivityContext cannot be undefined");
