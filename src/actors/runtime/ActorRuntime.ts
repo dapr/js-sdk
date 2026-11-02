@@ -20,12 +20,12 @@ import ActorId from "../ActorId";
 import AbstractActor from "./AbstractActor";
 import ActorManager from "./ActorManager";
 
-const ACTIVATION_ID_MIN_VERSION = [1, 19, 1];
+const ACTIVATION_ID_MIN_VERSION = [1, 19, 0];
 const RUNTIME_VERSION_LOOKUP_TIMEOUT_MS = 5000;
 
 // Older sidecars forward caller headers, so the activation id can't be trusted from them.
 export function supportsActivationId(runtimeVersion?: string): boolean {
-  const match = /^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/.exec(runtimeVersion ?? "");
+  const match = /^(\d+)\.(\d+)\.(\d+)(-[^+]*)?(?:\+.*)?$/.exec(runtimeVersion ?? "");
   if (!match) {
     return false;
   }
@@ -35,7 +35,8 @@ export function supportsActivationId(runtimeVersion?: string): boolean {
       return part > ACTIVATION_ID_MIN_VERSION[i];
     }
   }
-  return true;
+  // Release candidates of the minimum version came before the activation id shipped.
+  return match[4] === undefined;
 }
 
 /**

@@ -45,13 +45,13 @@ describe("ActorRuntime activation id gate", () => {
   const version = (runtimeVersion?: string) => getMetadata.mockResolvedValue({ runtimeVersion } as any);
   const invokedWith = (call = 0) => invoke.mock.calls[call][3];
 
-  it.each(["1.19.1", "1.19.1-rc.1", "1.19.2", "1.20.0", "2.0.0"])("honours the id on %s", async (v) => {
+  it.each(["1.19.0", "1.19.1", "1.19.1-rc.1", "1.19.2", "1.20.0", "2.0.0"])("honours the id on %s", async (v) => {
     version(v);
     await runtime.invoke(ACTOR_TYPE, "a", "say", undefined, "id1");
     expect(invokedWith()).toEqual("id1");
   });
 
-  it.each(["1.19.0", "1.19.0-rc.2", "1.18.5", "0.20.0", "edge", "dev", "", undefined])(
+  it.each(["1.19.0-rc.2", "1.19.0-rc.7", "1.18.5", "0.20.0", "edge", "dev", "", undefined])(
     "ignores the id on %s",
     async (v) => {
       version(v);
@@ -61,7 +61,7 @@ describe("ActorRuntime activation id gate", () => {
   );
 
   it("gates reminders and timers", async () => {
-    version("1.19.0");
+    version("1.19.0-rc.3");
     await runtime.fireReminder(ACTOR_TYPE, "a", "r", undefined, "id1");
     await runtime.fireTimer(ACTOR_TYPE, "a", "t", undefined, "id1");
     expect(fireReminder.mock.calls[0][3]).toBeUndefined();
@@ -103,7 +103,7 @@ describe("ActorRuntime activation id gate", () => {
   });
 
   it("parses versions", () => {
-    expect(supportsActivationId("1.19.1+build.5")).toBe(true);
+    expect(supportsActivationId("1.19.0+build.5")).toBe(true);
     expect(supportsActivationId("v1.19.1")).toBe(false);
     expect(supportsActivationId("1.19")).toBe(false);
   });
