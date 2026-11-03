@@ -11,7 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { context, ROOT_CONTEXT, trace } from "@opentelemetry/api";
+import { context, createContextKey, propagation, ROOT_CONTEXT, trace } from "@opentelemetry/api";
+import { isTracingSuppressed, suppressTracing } from "@opentelemetry/core";
 import { AsyncLocalStorageContextManager } from "@opentelemetry/context-async-hooks";
 import { getTraceContextHeaders, withTraceContext } from "../../../src/utils/TraceContext.util";
 
@@ -116,4 +117,34 @@ describe("trace context", () => {
       context.disable();
     }
   });
+  it.each([parent, "invalid", undefined])(
+    "preserves non-span context while replacing or clearing the parent (%s)",
+    async (traceparent) => {
+      context.setGlobalContextManager(new AsyncLocalStorageContextManager().enable());
+      const requestKey = createContextKey("request-value");
+      const outerSpan = { traceId: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", spanId: "bbbbbbbbbbbbbbbb", traceFlags: 1 };
+      const baggage = propagation.createBaggage({ tenant: { value: "acme" } });
+      const outer = suppressTracing(
+        propagation.setBaggage(trace.setSpanContext(ROOT_CONTEXT, outerSpan), baggage),
+      ).setValue(requestKey, "request-123");
+      try {
+        await context.with(outer, async () => {
+          await withTraceContext({ traceparent }, async () => {
+            await Promise.resolve();
+            expect(propagation.getBaggage(context.active())?.getEntry("tenant")?.value).toBe("acme");
+            expect(isTracingSuppressed(context.active())).toBe(true);
+            expect(context.active().getValue(requestKey)).toBe("request-123");
+            expect(trace.getSpanContext(context.active())?.traceId).toBe(
+              traceparent === parent ? parent.split("-")[1] : undefined,
+            );
+            expect(getTraceContextHeaders()).toEqual({}); // OpenTelemetry suppression is honored.
+          });
+          expect(trace.getSpanContext(context.active())).toEqual(outerSpan);
+          expect(propagation.getBaggage(context.active())).toBe(baggage);
+        });
+      } finally {
+        context.disable();
+      }
+    },
+  );
 });

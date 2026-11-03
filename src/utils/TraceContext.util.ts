@@ -18,7 +18,6 @@ import {
   defaultTextMapGetter,
   defaultTextMapSetter,
   isSpanContextValid,
-  ROOT_CONTEXT,
   trace,
 } from "@opentelemetry/api";
 import { W3CTraceContextPropagator } from "@opentelemetry/core";
@@ -33,7 +32,8 @@ const propagator = new W3CTraceContextPropagator();
  * Asynchronous work inherits the scope; nested calls replace it and restore the outer context.
  * Explicit outgoing traceparent headers take precedence over both inherited trace headers.
  * If an OpenTelemetry context manager is configured, this also activates the incoming context
- * and propagates active child spans created within the callback.
+ * and propagates active child spans created within the callback. Existing non-span context
+ * values, including OpenTelemetry baggage and tracing suppression, are preserved.
  *
  * @example
  * await withTraceContext(incomingHeaders, () => client.pubsub.publish("pubsub", "topic", data));
@@ -47,7 +47,7 @@ export function withTraceContext<T>(
   callback: () => T,
 ): T {
   const carrier = Object.fromEntries(Object.entries(headers).map(([key, value]) => [key.toLowerCase(), value]));
-  const extracted = propagator.extract(ROOT_CONTEXT, carrier, defaultTextMapGetter);
+  const extracted = propagator.extract(trace.deleteSpan(context.active()), carrier, defaultTextMapGetter);
   return context.with(extracted, () => traceContext.run(extracted, callback));
 }
 
