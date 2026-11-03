@@ -198,13 +198,45 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
 
     const abortController = new AbortController();
     let streamId = "";
+    let stopRequested = false;
+    let settleStop!: () => void;
+    const stopSettled = new Promise<void>((resolve) => {
+      settleStop = resolve;
+    });
+
+    const unsubscribe = async (id: string) => {
+      if (!id) {
+        return;
+      }
+      try {
+        const unsubClient = await this.client.getClient(false);
+        await unsubClient.unsubscribeConfiguration(
+          create(UnsubscribeConfigurationRequestSchema, {
+            storeName,
+            id,
+          }),
+        );
+      } catch (_e) {
+        // Ignore errors during cleanup
+      }
+    };
 
     // Start consuming the stream in the background
     (async () => {
       try {
         const stream = client.subscribeConfiguration(msg, { signal: abortController.signal });
         for await (const data of stream) {
-          streamId = data.id;
+          if (!streamId && data.id) {
+            streamId = data.id;
+            // stop() was called before the first message delivered the id:
+            // unsubscribe now, then abort. Aborting earlier would drop the id
+            // and leave the sidecar subscription hanging.
+            if (stopRequested) {
+              await unsubscribe(streamId);
+              abortController.abort();
+              break;
+            }
+          }
 
           if (Object.keys(data.items).length === 0) {
             continue;
@@ -218,25 +250,29 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
         if (!abortController.signal.aborted) {
           // Unexpected error - swallow silently
         }
+      } finally {
+        settleStop();
       }
     })();
 
     return {
       stop: async () => {
-        abortController.abort();
-
-        // Also explicitly unsubscribe if we have a streamId
-        if (streamId) {
-          try {
-            const unsubClient = await this.client.getClient(false);
-            await unsubClient.unsubscribeConfiguration(create(UnsubscribeConfigurationRequestSchema, {
-              storeName,
-              id: streamId,
-            }));
-          } catch (_e) {
-            // Ignore errors during cleanup
-          }
+        if (stopRequested) {
+          await stopSettled;
+          return;
         }
+        stopRequested = true;
+
+        if (streamId) {
+          await unsubscribe(streamId);
+          abortController.abort();
+          settleStop();
+          return;
+        }
+
+        // Id not known yet — keep the stream open until the first message
+        // (or stream end) so we can unsubscribe with the real id.
+        await stopSettled;
       },
     };
   }
