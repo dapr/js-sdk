@@ -198,3 +198,5 @@ export {
   PayloadIntegrityError,
   PayloadRehydrationLimitError,
 } from "./workflow/payloads/PayloadErrors";
+
+export { withTraceContext } from "./utils/TraceContext.util";
