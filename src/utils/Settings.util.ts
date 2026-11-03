@@ -57,7 +57,7 @@ export class Settings {
   }
 
   static getDefaultHost(): string {
-    return Settings.defaultHost;
+    return process.env.DAPR_RUNTIME_HOST ?? Settings.defaultHost;
   }
 
   static getDefaultHttpPort(): string {
