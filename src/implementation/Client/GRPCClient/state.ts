@@ -217,13 +217,14 @@ export default class GRPCClientState implements IClientState {
     );
   }
 
-  async query(storeName: string, query: StateQueryType): Promise<StateQueryResponseType> {
+  async query(storeName: string, query: StateQueryType, metadata?: IRequestMetadata): Promise<StateQueryResponseType> {
     const client = await this.client.getClient();
 
     const res = await client.queryStateAlpha1(
       create(QueryStateRequestSchema, {
         storeName,
         query: JSON.stringify(query),
+        metadata: metadata ? { ...metadata } : {},
       }),
     );
 

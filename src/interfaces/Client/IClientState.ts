@@ -164,11 +164,15 @@ export default interface IClientState {
   transaction(storeName: string, operations?: OperationType[], metadata?: IRequestMetadata | null): Promise<void>;
 
   /**
-   * Queries state values using a query language (e.g., SQL, MongoDB query syntax).
-   * Store-specific query language and capabilities depend on the configured state store component.
+   * Queries state values using the Dapr State Query API filter, sort, and pagination format.
+   * Query support and metadata depend on the state store component. For Redis, queryIndexName
+   * selects a configured queryIndexes schema and requires RedisJSON and RediSearch.
+   * This metadata parameter exposes existing component behavior; it does not add index support
+   * to stores or runtimes that do not provide it.
    *
    * @param storeName - The name of the state store component.
-   * @param query - The query specification (language, filter, sorting, pagination).
+   * @param query - The query specification (filter, sorting, pagination).
+   * @param metadata - Optional state store metadata, such as Redis queryIndexName.
    * @returns A promise that resolves to a query response containing matched state values.
    *
    * @example
@@ -176,13 +180,15 @@ export default interface IClientState {
    * const results = await client.state.query(
    *   "myStateStore",
    *   {
-   *     query: "SELECT * FROM state WHERE age > 25 ORDER BY name",
-   *     language: "sql"
-   *   }
+   *     filter: { EQ: { status: "pending" } },
+   *     sort: [{ key: "name", order: "ASC" }],
+   *     page: { limit: 10 }
+   *   },
+   *   { queryIndexName: "orders" }
    * );
    * ```
    *
    * @see https://docs.dapr.io/reference/api/state_api/#querying-state
    */
-  query(storeName: string, query: StateQueryType): Promise<StateQueryResponseType>;
+  query(storeName: string, query: StateQueryType, metadata?: IRequestMetadata): Promise<StateQueryResponseType>;
 }

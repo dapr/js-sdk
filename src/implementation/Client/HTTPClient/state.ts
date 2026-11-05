@@ -191,8 +191,10 @@ export default class HTTPClientState implements IClientState {
     });
   }
 
-  async query(storeName: string, query: StateQueryType): Promise<StateQueryResponseType> {
-    const result = await this.client.executeWithApiVersion("v1.0-alpha1", `/state/${storeName}/query`, {
+  async query(storeName: string, query: StateQueryType, metadata?: IRequestMetadata): Promise<StateQueryResponseType> {
+    const queryParams = createHTTPQueryParam({ data: metadata, type: "metadata" });
+    const path = `/state/${storeName}/query${queryParams ? `?${queryParams}` : ""}`;
+    const result = await this.client.executeWithApiVersion("v1.0-alpha1", path, {
       method: "POST",
       body: {
         ...query,
