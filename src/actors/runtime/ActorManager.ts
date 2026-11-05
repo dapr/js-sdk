@@ -25,7 +25,8 @@ import { Logger } from "../../logger/Logger";
  */
 const REMINDER_METHOD_NAME = "receiveReminder"; // the callback method name for the reminder
 
-type ActiveActor<T> = { actor: T; activationId: string };
+type ActiveActor<T> = { actor: T; activationId: string; generation: number };
+type Owner = { generation: number; activationId: string; removed: boolean };
 
 export default class ActorManager<T extends AbstractActor> {
   readonly actorCls: Class<T>;
@@ -34,6 +35,9 @@ export default class ActorManager<T extends AbstractActor> {
   private readonly logger: Logger;
 
   private readonly activeActors = new Map<string, ActiveActor<T>>();
+  // the latest activation of each actor, kept across removal so a late one can't take over
+  private readonly owners = new Map<string, Owner>();
+  private nextGeneration = 0;
 
   // dispatcher: ActorMethodDispatcher<T>;
   // timerMethodContext: any;
@@ -64,35 +68,36 @@ export default class ActorManager<T extends AbstractActor> {
     return new this.actorCls(this.daprClient, actorId);
   }
 
-  async activateActor(actorId: ActorId, activationId = ""): Promise<T> {
+  async activateActor(actorId: ActorId, activationId = "", generation = this.claim(actorId, activationId)): Promise<T> {
     const actor = await this.createActor(actorId);
+    actor.getStateManager().guard(() => this.owns(actorId, generation));
 
     // We activate the actor by calling the onActivateInternal method on it
     // this will create its state object
-    await actor.onActivateInternal(this.noneRegistered(actorId));
+    await actor.onActivateInternal(() => this.owns(actorId, generation) && this.noneRegistered(actorId));
 
-    // another call may have registered an object while this one was activating
-    const registered = this.activeActors.get(actorId.getId());
-    if (!registered) {
-      this.activeActors.set(actorId.getId(), { actor, activationId });
+    if (!this.owns(actorId, generation)) {
+      await this.deactivateDiscarded(actorId, actor);
+      throw this.superseded(actorId);
+    }
+
+    // another call with the same activation may have registered an object while this one was activating
+    if (!this.activeActors.has(actorId.getId())) {
+      this.activeActors.set(actorId.getId(), { actor, activationId, generation });
       return actor;
     }
 
-    const registeredId = registered.activationId;
     await this.deactivateDiscarded(actorId, actor);
-    if (activationId && activationId !== registeredId) {
-      throw new Error(
-        JSON.stringify({
-          error: "ACTOR_ACTIVATION_SUPERSEDED",
-          errorMsg: `The actor ${actorId.getId()} was activated by activation ${registeredId} during this activation`,
-        }),
-      );
+    const registered = this.activeActors.get(actorId.getId());
+    if (registered?.generation !== generation) {
+      throw this.superseded(actorId);
     }
     return registered.actor;
   }
 
   async deactivateActor(actorId: ActorId): Promise<void> {
-    if (!this.activeActors.has(actorId.getId())) {
+    const current = this.activeActors.get(actorId.getId());
+    if (!current) {
       throw new Error(
         JSON.stringify({
           error: "ACTOR_NOT_ACTIVATED",
@@ -101,14 +106,46 @@ export default class ActorManager<T extends AbstractActor> {
       );
     }
 
-    const actor = await this.getActiveActor(actorId);
     this.forget(actorId);
-    await actor.onDeactivateInternal(this.noneRegistered(actorId));
+    const owner = this.owners.get(actorId.getId());
+    if (owner?.generation === current.generation) {
+      owner.removed = true;
+    }
+    try {
+      await current.actor.onDeactivateInternal(() => this.owns(actorId, current.generation));
+    } finally {
+      if (this.owners.get(actorId.getId()) === owner && owner?.removed) {
+        this.owners.delete(actorId.getId());
+      }
+    }
   }
 
-  // an unregistered object must not overwrite the registered one's state
-  private noneRegistered(actorId: ActorId): () => boolean {
-    return () => !this.activeActors.has(actorId.getId());
+  // an activation with another id, or any after a removal, takes over from the previous one
+  private claim(actorId: ActorId, activationId: string): number {
+    const owner = this.owners.get(actorId.getId());
+    if (owner && !owner.removed && (!activationId || owner.activationId === activationId)) {
+      return owner.generation;
+    }
+    const generation = ++this.nextGeneration;
+    this.owners.set(actorId.getId(), { generation, activationId, removed: false });
+    return generation;
+  }
+
+  private owns(actorId: ActorId, generation: number): boolean {
+    return this.owners.get(actorId.getId())?.generation === generation;
+  }
+
+  private noneRegistered(actorId: ActorId): boolean {
+    return !this.activeActors.has(actorId.getId());
+  }
+
+  private superseded(actorId: ActorId): Error {
+    return new Error(
+      JSON.stringify({
+        error: "ACTOR_ACTIVATION_SUPERSEDED",
+        errorMsg: `The actor ${actorId.getId()} was activated by a newer activation during this activation`,
+      }),
+    );
   }
 
   private forget(actorId: ActorId): void {
@@ -132,8 +169,10 @@ export default class ActorManager<T extends AbstractActor> {
       }
 
       // a new activation id means daprd reactivated the actor, so this object is stale
+      const generation = this.claim(actorId, activationId);
       this.forget(actorId);
       await this.deactivateDiscarded(actorId, current.actor);
+      return await this.activateActor(actorId, activationId, generation);
     }
 
     return await this.activateActor(actorId, activationId);

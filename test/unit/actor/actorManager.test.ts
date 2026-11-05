@@ -88,6 +88,43 @@ class PostOverrideActor extends DemoActorActivationIdImpl {
   }
 }
 
+class SaveOnActivateActor extends DemoActorActivationIdImpl {
+  async onActivate(): Promise<void> {
+    await this.getStateManager<number>().setState("counter", (await this.read()) + 100);
+    await this.getStateManager().saveState();
+  }
+}
+
+class ExplicitSaveActor extends DemoActorActivationIdImpl {
+  async incrAndSaveAfterGate(): Promise<number> {
+    const value = await this.incrAfterGate();
+    await this.getStateManager().saveState();
+    return value;
+  }
+}
+
+class HeldReadOnActivateActor extends HeldDeactivateActor {
+  async onActivate(): Promise<void> {
+    await this.read();
+  }
+}
+
+class HeldSaveOnDeactivateActor extends DemoActorActivationIdImpl {
+  static hold?: { entered: Deferred; release: Deferred };
+
+  async onDeactivate(): Promise<void> {
+    await super.onDeactivate();
+    const hold = HeldSaveOnDeactivateActor.hold;
+    if (hold) {
+      HeldSaveOnDeactivateActor.hold = undefined;
+      hold.entered.resolve();
+      await hold.release.promise;
+    }
+    await this.getStateManager<number>().setState("counter", -1);
+    await this.getStateManager().saveState();
+  }
+}
+
 describe("ActorManager activation id", () => {
   let client: DaprClient;
   let manager: ActorManager<DemoActorActivationIdImpl>;
@@ -315,6 +352,100 @@ describe("ActorManager activation id", () => {
       expect(active(m).get(actorId.getId())?.actor).toBe(created()[1]);
       expect(created()).toHaveLength(3);
       expect(created()[2].deactivations).toEqual(1);
+    });
+  });
+
+  describe("object that lost ownership saving on its own", () => {
+    it("refuses an explicit save in onActivate of a losing activation", async () => {
+      const m = new ActorManager(SaveOnActivateActor, client);
+      otherHostWrites(10);
+      loadHold.release = deferred();
+      const release = loadHold.release;
+      const old = m.invoke(actorId, "incr", undefined, "a1");
+      await loadHold.entered.promise;
+
+      expect(await m.invoke(actorId, "incr", undefined, "a2")).toEqual(111);
+
+      release.resolve();
+      await expect(old).rejects.toThrow("ACTOR_REPLACED");
+      expect(store.get(counterKey(actorId.getId()))).toEqual(111);
+      expect(active(m).get(actorId.getId())?.actor).toBe(created()[1]);
+    });
+
+    it("fails a late activation after the newer one was removed", async () => {
+      const m = new ActorManager(ReadOnActivateActor, client);
+      otherHostWrites(10);
+      loadHold.release = deferred();
+      const release = loadHold.release;
+      const old = m.invoke(actorId, "incr", undefined, "a1");
+      await loadHold.entered.promise;
+
+      otherHostWrites(20);
+      expect(await m.invoke(actorId, "incr", undefined, "a2")).toEqual(21);
+      await m.deactivateActor(actorId);
+
+      release.resolve();
+      await expect(old).rejects.toThrow("ACTOR_ACTIVATION_SUPERSEDED");
+      expect(store.get(counterKey(actorId.getId()))).toEqual(21);
+      expect(active(m).has(actorId.getId())).toBe(false);
+      expect(created()[0].deactivations).toEqual(1);
+    });
+
+    it("does not run a call on an object replaced while its activation was cleaning up", async () => {
+      const m = new ActorManager(HeldReadOnActivateActor, client);
+      loadHold.release = deferred();
+      const release = loadHold.release;
+      const first = m.invoke(actorId, "count", undefined, "a1");
+      await loadHold.entered.promise;
+      await m.invoke(actorId, "count", undefined, "a1");
+
+      HeldDeactivateActor.hold = { entered: deferred(), release: deferred() };
+      const hold = HeldDeactivateActor.hold;
+      release.resolve();
+      await hold.entered.promise;
+
+      await m.invoke(actorId, "count", undefined, "a2");
+      hold.release.resolve();
+      await expect(first).rejects.toThrow("ACTOR_ACTIVATION_SUPERSEDED");
+      expect(created()[1].calls).toEqual(1);
+      expect(active(m).get(actorId.getId())?.actor).toBe(created()[2]);
+    });
+
+    it("refuses an explicit save from a call still running after DELETE and a new activation", async () => {
+      const m = new ActorManager(ExplicitSaveActor, client);
+      otherHostWrites(1);
+      const old = m.invoke(actorId, "incrAndSaveAfterGate", undefined, "a1");
+      await gates.entered.promise;
+      await m.deactivateActor(actorId);
+
+      otherHostWrites(5);
+      expect(await m.invoke(actorId, "incr", undefined, "a2")).toEqual(6);
+      gates.release.resolve();
+      await expect(old).rejects.toThrow("ACTOR_REPLACED");
+      expect(store.get(counterKey(actorId.getId()))).toEqual(6);
+    });
+
+    it("refuses an explicit save from an onDeactivate that finishes after a new activation", async () => {
+      const m = new ActorManager(HeldSaveOnDeactivateActor, client);
+      expect(await m.invoke(actorId, "incr", undefined, "a1")).toEqual(1);
+
+      HeldSaveOnDeactivateActor.hold = { entered: deferred(), release: deferred() };
+      const hold = HeldSaveOnDeactivateActor.hold;
+      const deleting = m.deactivateActor(actorId);
+      await hold.entered.promise;
+
+      expect(await m.invoke(actorId, "incr", undefined, "a2")).toEqual(2);
+      hold.release.resolve();
+      await expect(deleting).rejects.toThrow("ACTOR_REPLACED");
+      expect(store.get(counterKey(actorId.getId()))).toEqual(2);
+    });
+
+    it("still saves from onDeactivate on DELETE", async () => {
+      const m = new ActorManager(HeldSaveOnDeactivateActor, client);
+      await m.invoke(actorId, "incr", undefined, "a1");
+      await m.deactivateActor(actorId);
+      expect(store.get(counterKey(actorId.getId()))).toEqual(-1);
+      expect(m["owners"].has(actorId.getId())).toBe(false);
     });
   });
 
