@@ -24,3 +24,25 @@ export interface RerunWorkflowFromEventOptions {
   /** Defaults to true when input is provided. Set false to preserve the original activity input. */
   overwriteInput?: boolean;
 }
+
+/** Result of a workflow operation that the sidecar may stage. */
+export interface WorkflowOperationResult {
+  /**
+   * True when the sidecar accepted the operation but no workflow worker was connected to run it.
+   * The sidecar saved the operation and runs it once a worker connects.
+   * False when the operation ran at once, and on sidecars that do not stage operations.
+   */
+  staged: boolean;
+}
+
+/** Result of scheduling a new workflow instance. */
+export interface ScheduleWorkflowResult extends WorkflowOperationResult {
+  /** The ID of the scheduled workflow instance. */
+  instanceId: string;
+}
+
+/** Result of rerunning a workflow from a history event. */
+export interface RerunWorkflowFromEventResult extends WorkflowOperationResult {
+  /** The ID of the new workflow instance. */
+  newInstanceId: string;
+}
