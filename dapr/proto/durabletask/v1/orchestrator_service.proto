@@ -121,6 +121,12 @@ message CreateInstanceRequest {
 
 message CreateInstanceResponse {
     string instanceId = 1;
+
+    // staged is true when the sidecar accepted the operation but no workflow
+    // worker was connected to run it. The operation is saved and runs once a
+    // worker connects. False when the operation ran at once, and on sidecars
+    // that do not stage operations.
+    bool staged = 2;
 }
 
 message GetInstanceRequest {
@@ -148,7 +154,11 @@ message RaiseEventRequest {
 }
 
 message RaiseEventResponse {
-    // No payload
+    // staged is true when the sidecar accepted the operation but no workflow
+    // worker was connected to run it. The operation is saved and runs once a
+    // worker connects. False when the operation ran at once, and on sidecars
+    // that do not stage operations.
+    bool staged = 1;
 }
 
 message TerminateRequest {
@@ -162,7 +172,11 @@ message TerminateRequest {
 }
 
 message TerminateResponse {
-    // No payload
+    // staged is true when the sidecar accepted the operation but no workflow
+    // worker was connected to run it. The operation is saved and runs once a
+    // worker connects. False when the operation ran at once, and on sidecars
+    // that do not stage operations.
+    bool staged = 1;
 }
 
 message SuspendRequest {
@@ -175,7 +189,11 @@ message SuspendRequest {
 }
 
 message SuspendResponse {
-    // No payload
+    // staged is true when the sidecar accepted the operation but no workflow
+    // worker was connected to run it. The operation is saved and runs once a
+    // worker connects. False when the operation ran at once, and on sidecars
+    // that do not stage operations.
+    bool staged = 1;
 }
 
 message ResumeRequest {
@@ -188,7 +206,11 @@ message ResumeRequest {
 }
 
 message ResumeResponse {
-    // No payload
+    // staged is true when the sidecar accepted the operation but no workflow
+    // worker was connected to run it. The operation is saved and runs once a
+    // worker connects. False when the operation ran at once, and on sidecars
+    // that do not stage operations.
+    bool staged = 1;
 }
 
 message PurgeInstancesRequest {
@@ -316,6 +338,12 @@ message RerunWorkflowFromEventRequest {
 // RerunWorkflowFromEvent.
 message RerunWorkflowFromEventResponse {
     string newInstanceID = 1;
+
+    // staged is true when the sidecar accepted the operation but no workflow
+    // worker was connected to run it. The operation is saved and runs once a
+    // worker connects. False when the operation ran at once, and on sidecars
+    // that do not stage operations.
+    bool staged = 2;
 }
 
 // ListInstanceIDsRequest is used to list all workflow instances.
