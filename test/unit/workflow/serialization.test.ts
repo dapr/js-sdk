@@ -33,8 +33,8 @@ import { CustomSerializer } from "../../fixtures/CustomSerializer";
 
 const mockClient = {
   startInstance: jest.fn(async (_request: { input?: string }) => ({ instanceId: "id" })),
-  raiseEvent: jest.fn(),
-  terminateInstance: jest.fn(),
+  raiseEvent: jest.fn(async (_request: { input?: string }) => ({ staged: false })),
+  terminateInstance: jest.fn(async (_request: { output?: string }) => ({ staged: false })),
   rerunWorkflowFromEvent: jest.fn(async (_request: { input?: string }) => ({ newInstanceID: "rerun" })),
 };
 jest.mock("@connectrpc/connect", () => ({

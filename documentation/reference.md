@@ -1020,6 +1020,33 @@ Rerunning creates a new instance; it does not modify the source instance. Omit `
 
 `rerunWorkflowFromEvent` rejects non-integer event IDs or IDs outside `0` through `4294967295` with `RangeError`, and an empty `newInstanceId` with `TypeError`. The runtime validates whether the source instance and event exist and whether the event can be rerun. Both history retrieval and rerun propagate runtime RPC errors as `ConnectError` from `@connectrpc/connect`, preserving the error code and message; they do not turn missing-instance errors into empty history or a successful rerun. Error codes and messages can differ between runtime versions. Unlike `getWorkflowState`, these methods do not normalize missing instances to `undefined`.
 
+## Staged workflow operations
+
+With the `WorkflowsStagedOperations` preview feature, a Dapr sidecar with no workflow worker connected still accepts start, raise event, terminate, suspend, resume and rerun. It saves the operation and runs it once a worker connects. The existing `DaprWorkflowClient` methods return the same result either way. To find out whether the sidecar staged an operation, call the `WithResult` variant:
+
+| Method                             | Result                                                     |
+| ---------------------------------- | ---------------------------------------------------------- |
+| `scheduleNewWorkflowWithResult`    | `ScheduleWorkflowResult` (`instanceId`, `staged`)          |
+| `raiseEventWithResult`             | `WorkflowOperationResult` (`staged`)                       |
+| `terminateWorkflowWithResult`      | `WorkflowOperationResult` (`staged`)                       |
+| `suspendWorkflowWithResult`        | `WorkflowOperationResult` (`staged`)                       |
+| `resumeWorkflowWithResult`         | `WorkflowOperationResult` (`staged`)                       |
+| `rerunWorkflowFromEventWithResult` | `RerunWorkflowFromEventResult` (`newInstanceId`, `staged`) |
+
+Each takes the same arguments as the method without the suffix.
+
+```typescript
+import { DaprWorkflowClient } from "@dapr/dapr";
+
+const client = new DaprWorkflowClient();
+const { instanceId, staged } = await client.scheduleNewWorkflowWithResult("orderWorkflow", { orderId: "123" });
+if (staged) {
+  console.log(`Workflow ${instanceId} is saved and starts once a workflow worker connects`);
+}
+```
+
+`staged` is `true` only when the sidecar staged the operation. It is `false` when the operation ran at once, and always `false` on sidecars that do not stage operations.
+
 ## Pub/Sub
 
 ### Streaming subscriptions (gRPC, alpha)
