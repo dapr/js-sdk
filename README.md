@@ -23,18 +23,18 @@ The SDK implements the following Dapr building blocks:
 - **Service invocation**: call methods on other Dapr applications. [Docs](https://docs.dapr.io/developing-applications/building-blocks/service-invocation/)
 - **State management**: key/value state with transactions. [Docs](https://docs.dapr.io/developing-applications/building-blocks/state-management/)
 - **Publish & subscribe**: publish messages and subscribe to topics, including streaming subscriptions. [Docs](https://docs.dapr.io/developing-applications/building-blocks/pubsub/)
-- **Workflows**: durable, long-running orchestrations of activities, timers and external events that resume after a crash or restart. [Docs](https://docs.dapr.io/developing-applications/building-blocks/workflow/), [examples](https://github.com/dapr/js-sdk/tree/main/examples/workflow)
+- **Workflows**: durable, long-running orchestrations of activities, timers and external events that resume after a crash or restart. [Docs](https://docs.dapr.io/developing-applications/building-blocks/workflow/)
 - **Bindings**: trigger and be triggered by external systems. [Docs](https://docs.dapr.io/developing-applications/building-blocks/bindings/)
 - **Actors**: virtual actors with timers and reminders. [Docs](https://docs.dapr.io/developing-applications/building-blocks/actors/)
 - **Secrets**: read secrets from a secret store. [Docs](https://docs.dapr.io/developing-applications/building-blocks/secrets/)
 - **Configuration**: read and subscribe to configuration items. [Docs](https://docs.dapr.io/developing-applications/building-blocks/configuration/)
-- **Distributed lock**: acquire and release locks on shared resources. [Docs](https://docs.dapr.io/developing-applications/building-blocks/locks/)
+- **Distributed lock**: acquire and release locks on shared resources. [Docs](https://docs.dapr.io/developing-applications/building-blocks/distributed-lock/)
 - **Cryptography**: encrypt and decrypt data without exposing keys to the application. [Docs](https://docs.dapr.io/developing-applications/building-blocks/cryptography/)
 - **Jobs**: schedule jobs that the Dapr runtime triggers. [Docs](https://docs.dapr.io/developing-applications/building-blocks/jobs/)
 - **Conversation**: send prompts to LLM providers through a common API. [Docs](https://docs.dapr.io/developing-applications/building-blocks/conversation/)
-- **Binary store (Alpha, Dapr 1.19+)**: upload, stream and delete binary files.
-- **Vector (Alpha, Dapr 1.19+)**: store dense, pre-embedded vectors and run similarity queries.
-- **Search (Alpha, Dapr 1.19+)**: manage indexes and documents and run lexical or native queries.
+- **Binary store (Alpha, Dapr 1.19+)**: upload, stream and delete binary files. [Docs](https://docs.dapr.io/developing-applications/building-blocks/binarystore/)
+- **Vector (Alpha, Dapr 1.19+)**: store dense, pre-embedded vectors and run similarity queries. [Docs](https://docs.dapr.io/developing-applications/building-blocks/vector/)
+- **Search (Alpha, Dapr 1.19+)**: manage indexes and documents and run lexical or native queries. [Docs](https://docs.dapr.io/developing-applications/building-blocks/search/)
 
 ## Community
 
