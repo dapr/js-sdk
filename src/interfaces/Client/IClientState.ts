@@ -172,7 +172,7 @@ export default interface IClientState {
    *
    * @param storeName - The name of the state store component.
    * @param query - The query specification (filter, sorting, pagination).
-   * @param metadata - Optional state store metadata, such as Redis queryIndexName.
+   * @param metadata - Optional query metadata.
    * @returns A promise that resolves to a query response containing matched state values.
    *
    * @example
