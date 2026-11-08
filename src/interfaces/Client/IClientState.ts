@@ -14,6 +14,7 @@ limitations under the License.
 import { OperationType } from "../../types/Operation.type";
 import { IRequestMetadata } from "../../types/RequestMetadata.type";
 import { KeyValuePairType } from "../../types/KeyValuePair.type";
+import { StateGetResponseType } from "../../types/state/StateGetResponse.type";
 import { KeyValueType } from "../../types/KeyValue.type";
 import { StateQueryType } from "../../types/state/StateQuery.type";
 import { StateQueryResponseType } from "../../types/state/StateQueryResponse.type";
@@ -76,6 +77,22 @@ export default interface IClientState {
    * @see https://docs.dapr.io/reference/api/state_api/
    */
   get(storeName: string, key: string, options?: Partial<StateGetOptions>): Promise<KeyValueType | string>;
+
+  /**
+   * Reads a value together with its ETag and response metadata over HTTP or gRPC.
+   * Use the returned ETag in a subsequent state save to detect concurrent updates.
+   *
+   * @param storeName - State store component name.
+   * @param key - State key.
+   * @param options - Optional consistency and component metadata.
+   * @returns The key, decoded value, optional ETag, and component metadata.
+   * @example
+   * ```ts
+   * const state = await client.state.getWithMetadata("store", "counter");
+   * await client.state.save("store", [{ key: state.key, value: 2, etag: state.etag }]);
+   * ```
+   */
+  getWithMetadata(storeName: string, key: string, options?: Partial<StateGetOptions>): Promise<StateGetResponseType>;
 
   /**
    * Retrieves multiple state values from the state store.
