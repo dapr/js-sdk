@@ -73,12 +73,8 @@ export default class GRPCClientSecret implements IClientSecret {
     }));
 
     // res.data is { [secretKey]: secretValue }
-    // Return the first entry as { [key]: value }
-    const entries = Object.entries(res.data);
-    if (entries.length === 0) {
-      return {};
-    }
-    return { [entries[0][0]]: entries[0][1] };
+    // A secret can hold several key/value pairs (e.g. a Kubernetes secret), so return all of them
+    return { ...res.data };
   }
 
   async getBulk(secretStoreName: string): Promise<object> {
