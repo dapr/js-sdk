@@ -264,8 +264,8 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
         stopRequested = true;
 
         if (streamId) {
-          await unsubscribe(streamId);
           abortController.abort();
+          await unsubscribe(streamId);
           settleStop();
           return;
         }
