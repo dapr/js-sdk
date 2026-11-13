@@ -14,7 +14,7 @@ limitations under the License.
 import { CommunicationProtocolEnum, DaprClient, DaprServer } from "../../../src";
 import fetch from "node-fetch";
 import { Network, StartedNetwork, StartedTestContainer, TestContainers } from "testcontainers";
-import { DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
+import { Configuration, DaprContainer, StartedDaprContainer } from "@dapr/testcontainer-node";
 
 import * as NodeJSUtil from "../../../src/utils/NodeJS.util";
 import ActorId from "../../../src/actors/ActorId";
@@ -42,6 +42,8 @@ import DemoActorTimerTtlImpl from "../../actor/DemoActorTimerTtlImpl";
 import DemoActorReminderTtlImpl from "../../actor/DemoActorReminderTtlImpl";
 import DemoActorDeleteStateImpl from "../../actor/DemoActorDeleteStateImpl";
 import DemoActorDeleteStateInterface from "../../actor/DemoActorDeleteStateInterface";
+import DemoActorStateTtlImpl from "../../actor/DemoActorStateTtlImpl";
+import DemoActorStateTtlInterface from "../../actor/DemoActorStateTtlInterface";
 import {
   startRedisContainer,
   buildStateRedisComponent,
@@ -84,6 +86,7 @@ const DEMO_ACTORS: Class<AbstractActor>[] = [
   DemoActorTimerTtlImpl,
   DemoActorReminderTtlImpl,
   DemoActorDeleteStateImpl,
+  DemoActorStateTtlImpl,
 ];
 
 describe("http/actors", () => {
@@ -137,6 +140,10 @@ describe("http/actors", () => {
       .withAppChannelAddress("host.testcontainers.internal")
       // actorStateStore must be "true" for actor support
       .withComponent(buildStateRedisComponent(true))
+      // Actor state TTL (ttlInSeconds metadata) is a preview feature that must be enabled explicitly
+      .withConfiguration(
+        new Configuration("actors-config", undefined, undefined, [{ name: "ActorStateTTL", enabled: true }]),
+      )
       .start();
 
     // Build a DaprClient pointing at the real container ports.
@@ -199,7 +206,7 @@ describe("http/actors", () => {
 
       const config = JSON.parse(await res.text());
 
-      expect(config.entities.length).toBe(11);
+      expect(config.entities.length).toBe(12);
       expect(config.actorIdleTimeout).toBe("1h");
       expect(config.actorScanInterval).toBe("30s");
       expect(config.drainOngoingCallTimeout).toBe("1m");
@@ -281,11 +288,180 @@ describe("http/actors", () => {
       expect(deletedRes).toEqual(false);
     }, 30000);
   });
+
+  describe("actorStateAdd", () => {
+    const rawStateUrl = (actorId: ActorId, key: string) =>
+      `http://${daprContainer.getHost()}:${daprContainer.getHttpPort()}/v1.0/actors/${
+        DemoActorStateTtlImpl.name
+      }/${actorId.getURLSafeId()}/state/${key}`;
+
+    it("should add a key that does not exist and refuse to add it again", async () => {
+      const actorId = ActorId.createRandomId();
+      const actor = new ActorProxyBuilder<DemoActorStateTtlInterface>(DemoActorStateTtlImpl, client).build(actorId);
+
+      await actor.addState("new-key", "value");
+
+      const stored = await fetch(rawStateUrl(actorId, "new-key"));
+      expect(stored.status).toBe(200);
+      expect(await stored.json()).toEqual("value");
+
+      await expect(actor.addState("new-key", "other")).rejects.toThrow("ERR_ACTOR_INVOKE_METHOD");
+      expect(await (await fetch(rawStateUrl(actorId, "new-key"))).json()).toEqual("value");
+    }, 30000);
+
+    it("should refuse to add a key that exists only in the state store", async () => {
+      const actorId = ActorId.createRandomId();
+      const actor = new ActorProxyBuilder<DemoActorStateTtlInterface>(DemoActorStateTtlImpl, client).build(actorId);
+      // Activate the actor so its state can be written directly; containsState does not cache the key.
+      expect(await actor.hasState("existing-key")).toBe(false);
+
+      const actorClient = new ActorClient(
+        daprContainer.getHost(),
+        daprContainer.getHttpPort().toString(),
+        CommunicationProtocolEnum.HTTP,
+        {
+          daprHost: daprContainer.getHost(),
+          daprPort: daprContainer.getHttpPort().toString(),
+          communicationProtocol: CommunicationProtocolEnum.HTTP,
+          isKeepAlive: false,
+        },
+      );
+      await actorClient.actor.stateTransaction(DemoActorStateTtlImpl.name, actorId, [
+        { operation: "upsert", request: { key: "existing-key", value: "stored" } },
+      ]);
+
+      await expect(actor.addState("existing-key", "other")).rejects.toThrow("ERR_ACTOR_INVOKE_METHOD");
+      expect(await (await fetch(rawStateUrl(actorId, "existing-key"))).json()).toEqual("stored");
+    }, 30000);
+  });
+
+  describe("actorStateTtl", () => {
+    const ttlSeconds = 3;
+    // Wait comfortably past the TTL so the state store has expired the key.
+    const waitPastTtlMs = (ttlSeconds + 3) * 1000;
+
+    const rawStateUrl = (actorId: ActorId, key: string) =>
+      `http://${daprContainer.getHost()}:${daprContainer.getHttpPort()}/v1.0/actors/${
+        DemoActorStateTtlImpl.name
+      }/${actorId.getURLSafeId()}/state/${key}`;
+
+    it("should expire state saved with a TTL through the actor state manager", async () => {
+      const actorId = ActorId.createRandomId();
+      const actor = new ActorProxyBuilder<DemoActorStateTtlInterface>(DemoActorStateTtlImpl, client).build(actorId);
+
+      await actor.setState("ttl-key", "ttl-value", ttlSeconds);
+
+      // The state is persisted with an expiration time in the state store.
+      const stored = await fetch(rawStateUrl(actorId, "ttl-key"));
+      expect(stored.status).toBe(200);
+      expect(await stored.json()).toEqual("ttl-value");
+
+      expect(await actor.getState("ttl-key")).toEqual("ttl-value");
+      expect(await actor.hasState("ttl-key")).toBe(true);
+
+      await NodeJSUtil.sleep(waitPastTtlMs);
+
+      // Both the actor's cached copy and the persisted state are gone.
+      expect(await actor.getState("ttl-key")).toBeNull();
+      expect(await actor.hasState("ttl-key")).toBe(false);
+      expect((await fetch(rawStateUrl(actorId, "ttl-key"))).status).toBe(204);
+    }, 30000);
+
+    it("should expire state saved with a TTL through addOrUpdateState", async () => {
+      const actorId = ActorId.createRandomId();
+      const actor = new ActorProxyBuilder<DemoActorStateTtlInterface>(DemoActorStateTtlImpl, client).build(actorId);
+
+      expect(await actor.addOrUpdateState("ttl-key", "ttl-value", ttlSeconds)).toEqual("ttl-value");
+
+      expect((await fetch(rawStateUrl(actorId, "ttl-key"))).status).toBe(200);
+
+      await NodeJSUtil.sleep(waitPastTtlMs);
+
+      expect(await actor.getState("ttl-key")).toBeNull();
+      expect((await fetch(rawStateUrl(actorId, "ttl-key"))).status).toBe(204);
+    }, 30000);
+
+    it("should remove a previously set TTL when the state is set again without one", async () => {
+      const actorId = ActorId.createRandomId();
+      const actor = new ActorProxyBuilder<DemoActorStateTtlInterface>(DemoActorStateTtlImpl, client).build(actorId);
+
+      await actor.setState("ttl-key", "ttl-value", ttlSeconds);
+      await actor.setState("ttl-key", "persistent-value");
+
+      expect((await fetch(rawStateUrl(actorId, "ttl-key"))).status).toBe(200);
+
+      await NodeJSUtil.sleep(waitPastTtlMs);
+
+      expect(await actor.getState("ttl-key")).toEqual("persistent-value");
+      expect((await fetch(rawStateUrl(actorId, "ttl-key"))).status).toBe(200);
+    }, 30000);
+
+    describe.each([CommunicationProtocolEnum.HTTP, CommunicationProtocolEnum.GRPC])(
+      "state transactions with ttlInSeconds metadata over %s",
+      (protocol) => {
+        let actorClient: ActorClient;
+
+        beforeAll(() => {
+          const options = {
+            daprHost: daprContainer.getHost(),
+            daprPort: (protocol === CommunicationProtocolEnum.GRPC
+              ? daprContainer.getGrpcPort()
+              : daprContainer.getHttpPort()
+            ).toString(),
+            communicationProtocol: protocol,
+            isKeepAlive: false,
+          };
+          actorClient = new ActorClient(options.daprHost, options.daprPort, protocol, options);
+        });
+
+        it("should expire state written with ttlInSeconds metadata", async () => {
+          const actorId = ActorId.createRandomId();
+          // Actor state can only be written for an actor that is active on this host.
+          const actor = new ActorProxyBuilder<DemoActorStateTtlInterface>(DemoActorStateTtlImpl, client).build(actorId);
+          await actor.hasState("ttl-key");
+
+          await actorClient.actor.stateTransaction(DemoActorStateTtlImpl.name, actorId, [
+            {
+              operation: "upsert",
+              request: { key: "ttl-key", value: "ttl-value", metadata: { ttlInSeconds: ttlSeconds.toString() } },
+            },
+            {
+              operation: "upsert",
+              request: {
+                key: "ttl-removed-key",
+                value: "ttl-value",
+                metadata: { ttlInSeconds: ttlSeconds.toString() },
+              },
+            },
+            { operation: "upsert", request: { key: "no-ttl-key", value: "persistent-value" } },
+          ]);
+          await actorClient.actor.stateTransaction(DemoActorStateTtlImpl.name, actorId, [
+            {
+              operation: "upsert",
+              request: { key: "ttl-removed-key", value: "persistent-value", metadata: { ttlInSeconds: "-1" } },
+            },
+          ]);
+
+          expect(await actorClient.actor.stateGet(DemoActorStateTtlImpl.name, actorId, "ttl-key")).toEqual("ttl-value");
+
+          await NodeJSUtil.sleep(waitPastTtlMs);
+
+          expect(await actorClient.actor.stateGet(DemoActorStateTtlImpl.name, actorId, "ttl-key")).toBeFalsy();
+          expect(await actorClient.actor.stateGet(DemoActorStateTtlImpl.name, actorId, "no-ttl-key")).toEqual(
+            "persistent-value",
+          );
+          expect(await actorClient.actor.stateGet(DemoActorStateTtlImpl.name, actorId, "ttl-removed-key")).toEqual(
+            "persistent-value",
+          );
+        }, 30000);
+      },
+    );
+  });
   describe("invoke", () => {
     it("should register actors correctly", async () => {
       const actors = await server.actor.getRegisteredActors();
 
-      expect(actors.length).toEqual(11);
+      expect(actors.length).toEqual(12);
 
       expect(actors).toContain(DemoActorCounterImpl.name);
       expect(actors).toContain(DemoActorSayImpl.name);
@@ -298,6 +474,7 @@ describe("http/actors", () => {
       expect(actors).toContain(DemoActorTimerTtlImpl.name);
       expect(actors).toContain(DemoActorReminderTtlImpl.name);
       expect(actors).toContain(DemoActorDeleteStateImpl.name);
+      expect(actors).toContain(DemoActorStateTtlImpl.name);
     });
 
     it("should be able to invoke an actor through a text message", async () => {
@@ -660,7 +837,9 @@ describe("http/actors", () => {
         };
         const getReminder = (reminder: (typeof reminders)[number]) =>
           fetch(
-            `http://${daprContainer.getHost()}:${daprContainer.getHttpPort()}/v1.0/actors/${reminder.actorType}/${reminder.actorId.getURLSafeId()}/reminders/${reminder.name}`,
+            `http://${daprContainer.getHost()}:${daprContainer.getHttpPort()}/v1.0/actors/${
+              reminder.actorType
+            }/${reminder.actorId.getURLSafeId()}/reminders/${reminder.name}`,
           );
 
         try {
@@ -697,23 +876,26 @@ describe("http/actors", () => {
         }
       });
 
-      it.each([true, false])("rejects HTTP cleanup without deleting reminders (instance-scoped: %s)", async (scoped) => {
-        const actorType = DemoActorSayImpl.name;
-        const actorId = ActorId.createRandomId();
-        const name = "bulk-http-unsupported";
-        await http.actor.registerActorReminder(actorType, actorId, name, {
-          dueTime: Temporal.Duration.from({ hours: 1 }),
-        });
-        try {
-          await expect(
-            http.actor.unregisterActorRemindersByType(actorType, scoped ? actorId : undefined),
-          ).rejects.toBeInstanceOf(HTTPNotSupportedError);
-          const reminder = await http.actor.getActorReminder(actorType, actorId, name);
-          expect(reminder.dueTime?.total("seconds")).toBe(3600);
-        } finally {
-          await http.actor.unregisterActorReminder(actorType, actorId, name);
-        }
-      });
+      it.each([true, false])(
+        "rejects HTTP cleanup without deleting reminders (instance-scoped: %s)",
+        async (scoped) => {
+          const actorType = DemoActorSayImpl.name;
+          const actorId = ActorId.createRandomId();
+          const name = "bulk-http-unsupported";
+          await http.actor.registerActorReminder(actorType, actorId, name, {
+            dueTime: Temporal.Duration.from({ hours: 1 }),
+          });
+          try {
+            await expect(
+              http.actor.unregisterActorRemindersByType(actorType, scoped ? actorId : undefined),
+            ).rejects.toBeInstanceOf(HTTPNotSupportedError);
+            const reminder = await http.actor.getActorReminder(actorType, actorId, name);
+            expect(reminder.dueTime?.total("seconds")).toBe(3600);
+          } finally {
+            await http.actor.unregisterActorReminder(actorType, actorId, name);
+          }
+        },
+      );
     });
 
     it("should be able to unregister a reminder", async () => {
