@@ -49,7 +49,8 @@ export default class StateProvider {
    *         "operation": "upsert",
    *         "request": {
    *             "key": "key1",
-   *             "value": "myData"
+   *             "value": "myData",
+   *             "metadata": { "ttlInSeconds": "60" }
    *         }
    *     },
    *     {
@@ -88,13 +89,22 @@ export default class StateProvider {
           continue;
       }
 
-      jsonOutput.push({
-        operation,
-        request: {
-          key: state.getStateName(),
-          value: state.getValue() as string,
-        },
-      });
+      const request: OperationType["request"] = {
+        key: state.getStateName(),
+        value: state.getValue() as string,
+      };
+
+      const ttlExpireTime = state.getTtlExpireTime();
+      if (operation === "upsert" && ttlExpireTime) {
+        // Never send <= 0 for a TTL: state stores interpret -1 as "never expire".
+        const ttlInSeconds = Math.max(1, Math.ceil((ttlExpireTime.getTime() - Date.now()) / 1000));
+        request.metadata = { ttlInSeconds: ttlInSeconds.toString() };
+      } else if (operation === "upsert" && state.isTtlRemoved()) {
+        // Upserting without metadata keeps an existing TTL in some stores (e.g. Redis); -1 removes it.
+        request.metadata = { ttlInSeconds: "-1" };
+      }
+
+      jsonOutput.push({ operation, request });
     }
 
     await this.actorClient.actor.stateTransaction(actorType, actorId, jsonOutput);
