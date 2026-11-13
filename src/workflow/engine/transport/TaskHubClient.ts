@@ -36,6 +36,14 @@ import type {
   TaskFailureDetails,
 } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import type { HistoryEvent } from "../../../proto/dapr/proto/durabletask/v1/history_events_pb";
+import {
+  CreateWorkflowScheduleRequestSchema,
+  DeleteWorkflowScheduleRequestSchema,
+  GetWorkflowScheduleRequestSchema,
+  ListWorkflowSchedulesRequestSchema,
+  TriggerWorkflowScheduleRequestSchema,
+  type WorkflowSchedule as ProtoWorkflowSchedule,
+} from "../../../proto/dapr/proto/durabletask/v1/workflow_schedule_pb";
 import { OrchestrationStatus as OrchestrationStatusEnum } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import { timestampToDate } from "../worker/protoHelpers";
 import { Logger } from "../../../logger/Logger";
@@ -49,7 +57,19 @@ import type {
 import type { BinaryStoreWorkflowPayloadResolver } from "../../payloads/BinaryStoreWorkflowPayloadResolver";
 import { WorkflowPayloadHandler } from "../../payloads/WorkflowPayloadHandler";
 import { PayloadKind, PayloadSite } from "../../payloads/BinaryStorePayloadOptions";
+
+// The runtime reserves this instance ID prefix for a schedule's own workflow.
+const WORKFLOW_SCHEDULE_INSTANCE_ID_PREFIX = "dapr-internal-schedule-";
 import { getWorkflowTraceContext } from "../worker/WorkflowTrace";
+import type {
+  CreateWorkflowScheduleOptions,
+  ListWorkflowSchedulesOptions,
+  WorkflowSchedule,
+  WorkflowSchedulePage,
+  WorkflowScheduleState,
+} from "../../../types/workflow/WorkflowSchedule.types";
+import { WorkflowFailureDetails } from "../../client/WorkflowFailureDetails";
+import { fromOrchestrationStatus } from "../../runtime/WorkflowRuntimeStatus";
 
 export class OrchestrationState {
   constructor(
@@ -161,6 +181,74 @@ export class TaskHubClient {
     return res.instanceId;
   }
 
+  async createWorkflowSchedule(
+    name: string,
+    workflowName: string,
+    schedule: string,
+    options: CreateWorkflowScheduleOptions = {},
+  ): Promise<void> {
+    // Every run gets the same input, so it is stored once, owned by the schedule's own instance ID.
+    const input =
+      options.serializedInput ??
+      (options.input === undefined
+        ? undefined
+        : await this.encodePayload(options.input, {
+            kind: PayloadKind.WorkflowInput,
+            instanceId: WORKFLOW_SCHEDULE_INSTANCE_ID_PREFIX + name,
+            name: workflowName,
+          }));
+    const req = create(CreateWorkflowScheduleRequestSchema, {
+      schedule: {
+        name,
+        workflowName,
+        schedule,
+        input,
+        dueTime: options.dueTime && timestampFromDate(options.dueTime),
+        expirationTime: options.expirationTime && timestampFromDate(options.expirationTime),
+        repeats: options.repeats,
+        targetAppID: options.targetAppId,
+        targetAppNamespace: options.targetAppNamespace,
+        skipMissed: options.skipMissed || undefined,
+      },
+      overwrite: options.overwrite,
+    });
+
+    this.logger.info(`Creating workflow schedule '${name}' for ${workflowName}`);
+    await this.client.createWorkflowSchedule(req);
+  }
+
+  async getWorkflowSchedule(name: string): Promise<WorkflowSchedule> {
+    const res = await this.client.getWorkflowSchedule(create(GetWorkflowScheduleRequestSchema, { name }));
+    if (!res.schedule) {
+      throw new Error(`The runtime returned no workflow schedule for '${name}'`);
+    }
+    return toWorkflowSchedule(res.schedule);
+  }
+
+  async listWorkflowSchedules(options: ListWorkflowSchedulesOptions = {}): Promise<WorkflowSchedulePage> {
+    const res = await this.client.listWorkflowSchedules(
+      create(ListWorkflowSchedulesRequestSchema, {
+        pageSize: options.pageSize,
+        continuationToken: options.continuationToken,
+      }),
+    );
+    return {
+      schedules: res.schedules.map(toWorkflowSchedule),
+      continuationToken: res.continuationToken,
+    };
+  }
+
+  async deleteWorkflowSchedule(name: string): Promise<void> {
+    this.logger.info(`Deleting workflow schedule '${name}'`);
+    await this.client.deleteWorkflowSchedule(create(DeleteWorkflowScheduleRequestSchema, { name }));
+  }
+
+  async triggerWorkflowSchedule(name: string): Promise<string> {
+    this.logger.info(`Triggering workflow schedule '${name}'`);
+    const res = await this.client.triggerWorkflowSchedule(create(TriggerWorkflowScheduleRequestSchema, { name }));
+    return res.instanceId;
+  }
+
   async getOrchestrationState(
     instanceId: string,
     fetchPayloads = true,
@@ -175,10 +263,15 @@ export class TaskHubClient {
     return OrchestrationState.fromGetInstanceResponse(instanceId, res);
   }
 
-  async listWorkflowInstanceIds(continuationToken?: string, pageSize?: number): Promise<WorkflowInstanceIdPage> {
+  async listWorkflowInstanceIds(
+    continuationToken?: string,
+    pageSize?: number,
+    instanceIdPrefix?: string,
+  ): Promise<WorkflowInstanceIdPage> {
     const req = create(ListInstanceIDsRequestSchema, {
       continuationToken,
       pageSize,
+      instanceIdPrefix,
     });
     const res = await this.client.listInstanceIDs(req);
     return {
@@ -377,4 +470,37 @@ export class TaskHubClient {
     }
     return { signal, timeoutMs: timeoutSeconds === undefined ? undefined : timeoutSeconds * 1000 };
   }
+}
+
+function toWorkflowSchedule(schedule: ProtoWorkflowSchedule): WorkflowSchedule {
+  const { status } = schedule;
+  const run = status?.lastRun;
+  return {
+    name: schedule.name,
+    workflowName: schedule.workflowName,
+    schedule: schedule.schedule,
+    serializedInput: schedule.input,
+    dueTime: schedule.dueTime && timestampToDate(schedule.dueTime),
+    expirationTime: schedule.expirationTime && timestampToDate(schedule.expirationTime),
+    repeats: schedule.repeats,
+    targetAppId: schedule.targetAppID,
+    targetAppNamespace: schedule.targetAppNamespace,
+    skipMissed: schedule.skipMissed ?? false,
+    status: status && {
+      state: status.state as unknown as WorkflowScheduleState,
+      createdAt: status.createdAt && timestampToDate(status.createdAt),
+      nextRunTime: status.nextRunTime && timestampToDate(status.nextRunTime),
+      lastRunTime: status.lastRunTime && timestampToDate(status.lastRunTime),
+      runCount: status.runCount,
+      failureMessage: status.failureMessage,
+      lastRun: run && {
+        instanceId: run.instanceId,
+        runtimeStatus: run.runtimeStatus === undefined ? undefined : fromOrchestrationStatus(run.runtimeStatus),
+        createdAt: run.createdTimestamp && timestampToDate(run.createdTimestamp),
+        lastUpdatedAt: run.lastUpdatedTimestamp && timestampToDate(run.lastUpdatedTimestamp),
+        serializedOutput: run.output,
+        failureDetails: run.failureDetails && new WorkflowFailureDetails(run.failureDetails),
+      },
+    },
+  };
 }

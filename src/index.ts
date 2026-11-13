@@ -117,6 +117,15 @@ export type {
   PropagatedHistoryView,
 } from "./workflow/runtime/PropagatedHistory";
 export type { CancellableTask } from "./types/workflow/CancellableTask.type";
+export { WorkflowScheduleState } from "./types/workflow/WorkflowSchedule.types";
+export type {
+  CreateWorkflowScheduleOptions,
+  ListWorkflowSchedulesOptions,
+  WorkflowSchedule,
+  WorkflowSchedulePage,
+  WorkflowScheduleRun,
+  WorkflowScheduleStatus,
+} from "./types/workflow/WorkflowSchedule.types";
 export type { IDaprSerializer } from "./serialization/IDaprSerializer";
 export type {
   PubSubStreamingSubscription,

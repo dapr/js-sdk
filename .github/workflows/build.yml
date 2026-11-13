@@ -144,6 +144,10 @@ jobs:
       fail-fast: false
       matrix:
         dapr_runtime: ${{ fromJson(needs.get-dapr-versions.outputs.matrix_json) }}
+        include:
+          - dapr_runtime: { version: edge }
+    # The edge leg tracks dapr master and must not block PRs.
+    continue-on-error: ${{ matrix.dapr_runtime.version == 'edge' }}
     steps:
       - uses: actions/checkout@v6
 
