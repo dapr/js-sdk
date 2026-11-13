@@ -20,7 +20,10 @@ import type { WorkflowClientOptions } from "../../types/workflow/WorkflowClientO
 import type { HistoryEvent } from "../../proto/dapr/proto/durabletask/v1/history_events_pb";
 import type {
   RerunWorkflowFromEventOptions,
+  RerunWorkflowFromEventResult,
+  ScheduleWorkflowResult,
   WorkflowInstanceIdPage,
+  WorkflowOperationResult,
 } from "../../types/workflow/WorkflowManagement.types";
 
 export default class DaprWorkflowClient {
@@ -59,8 +62,35 @@ export default class DaprWorkflowClient {
     );
   }
 
+  /**
+   * Same as {@link scheduleNewWorkflow}, but also reports whether the sidecar staged the start
+   * because no workflow worker was connected.
+   */
+  public async scheduleNewWorkflowWithResult(
+    workflow: TWorkflow | string,
+    input?: unknown,
+    instanceId?: string,
+    startAt?: Date,
+    signal?: AbortSignal,
+  ): Promise<ScheduleWorkflowResult> {
+    const name = typeof workflow === "string" ? workflow : getFunctionName(workflow);
+    return await this._innerClient.scheduleNewOrchestrationWithResult(name, input, instanceId, startAt, signal);
+  }
+
   public async terminateWorkflow(workflowInstanceId: string, output?: unknown, signal?: AbortSignal): Promise<void> {
     await this._innerClient.terminateOrchestration(workflowInstanceId, output, signal);
+  }
+
+  /**
+   * Same as {@link terminateWorkflow}, but also reports whether the sidecar staged the terminate
+   * because no workflow worker was connected.
+   */
+  public async terminateWorkflowWithResult(
+    workflowInstanceId: string,
+    output?: unknown,
+    signal?: AbortSignal,
+  ): Promise<WorkflowOperationResult> {
+    return await this._innerClient.terminateOrchestrationWithResult(workflowInstanceId, output, signal);
   }
 
   /**
@@ -119,14 +149,21 @@ export default class DaprWorkflowClient {
     eventId: number,
     options: RerunWorkflowFromEventOptions = {},
   ): Promise<string> {
-    if (!Number.isInteger(eventId) || eventId < 0 || eventId > 0xffffffff) {
-      throw new RangeError("eventId must be an integer between 0 and 4294967295");
-    }
-    if (options.newInstanceId !== undefined && options.newInstanceId.length === 0) {
-      throw new TypeError("newInstanceId must not be empty");
-    }
-
+    validateRerunArguments(eventId, options);
     return await this._innerClient.rerunWorkflowFromEvent(sourceInstanceId, eventId, options);
+  }
+
+  /**
+   * Same as {@link rerunWorkflowFromEvent}, but also reports whether the sidecar staged the rerun
+   * because no workflow worker was connected.
+   */
+  public async rerunWorkflowFromEventWithResult(
+    sourceInstanceId: string,
+    eventId: number,
+    options: RerunWorkflowFromEventOptions = {},
+  ): Promise<RerunWorkflowFromEventResult> {
+    validateRerunArguments(eventId, options);
+    return await this._innerClient.rerunWorkflowFromEventWithResult(sourceInstanceId, eventId, options);
   }
 
   public async waitForWorkflowStart(
@@ -172,6 +209,24 @@ export default class DaprWorkflowClient {
     await this._innerClient.raiseOrchestrationEvent(workflowInstanceId, eventName, eventPayload, signal);
   }
 
+  /**
+   * Same as {@link raiseEvent}, but also reports whether the sidecar staged the event
+   * because no workflow worker was connected.
+   */
+  public async raiseEventWithResult(
+    workflowInstanceId: string,
+    eventName: string,
+    eventPayload?: unknown,
+    signal?: AbortSignal,
+  ): Promise<WorkflowOperationResult> {
+    return await this._innerClient.raiseOrchestrationEventWithResult(
+      workflowInstanceId,
+      eventName,
+      eventPayload,
+      signal,
+    );
+  }
+
   public async purgeWorkflow(workflowInstanceId: string, signal?: AbortSignal): Promise<boolean> {
     const purgeResult = await this._innerClient.purgeOrchestration(workflowInstanceId, signal);
     if (purgeResult !== undefined) {
@@ -184,12 +239,45 @@ export default class DaprWorkflowClient {
     await this._innerClient.suspendOrchestration(workflowInstanceId, reason, signal);
   }
 
+  /**
+   * Same as {@link suspendWorkflow}, but also reports whether the sidecar staged the suspend
+   * because no workflow worker was connected.
+   */
+  public async suspendWorkflowWithResult(
+    workflowInstanceId: string,
+    reason?: string,
+    signal?: AbortSignal,
+  ): Promise<WorkflowOperationResult> {
+    return await this._innerClient.suspendOrchestrationWithResult(workflowInstanceId, reason, signal);
+  }
+
   public async resumeWorkflow(workflowInstanceId: string, reason?: string, signal?: AbortSignal): Promise<void> {
     await this._innerClient.resumeOrchestration(workflowInstanceId, reason, signal);
   }
 
+  /**
+   * Same as {@link resumeWorkflow}, but also reports whether the sidecar staged the resume
+   * because no workflow worker was connected.
+   */
+  public async resumeWorkflowWithResult(
+    workflowInstanceId: string,
+    reason?: string,
+    signal?: AbortSignal,
+  ): Promise<WorkflowOperationResult> {
+    return await this._innerClient.resumeOrchestrationWithResult(workflowInstanceId, reason, signal);
+  }
+
   public async stop(): Promise<void> {
     await this._innerClient.stop();
+  }
+}
+
+function validateRerunArguments(eventId: number, options: RerunWorkflowFromEventOptions): void {
+  if (!Number.isInteger(eventId) || eventId < 0 || eventId > 0xffffffff) {
+    throw new RangeError("eventId must be an integer between 0 and 4294967295");
+  }
+  if (options.newInstanceId !== undefined && options.newInstanceId.length === 0) {
+    throw new TypeError("newInstanceId must not be empty");
   }
 }
 

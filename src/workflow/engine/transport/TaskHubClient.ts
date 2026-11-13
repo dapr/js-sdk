@@ -44,7 +44,10 @@ import { serializeWorkflowValue } from "../../../serialization/Serialization.uti
 import { type GrpcChannelOptions, mapGrpcOptions } from "../../../types/workflow/WorkflowClientOption";
 import type {
   RerunWorkflowFromEventOptions,
+  RerunWorkflowFromEventResult,
+  ScheduleWorkflowResult,
   WorkflowInstanceIdPage,
+  WorkflowOperationResult,
 } from "../../../types/workflow/WorkflowManagement.types";
 import type { BinaryStoreWorkflowPayloadResolver } from "../../payloads/BinaryStoreWorkflowPayloadResolver";
 import { WorkflowPayloadHandler } from "../../payloads/WorkflowPayloadHandler";
@@ -138,6 +141,16 @@ export class TaskHubClient {
     startAt?: Date,
     signal?: AbortSignal,
   ): Promise<string> {
+    return (await this.scheduleNewOrchestrationWithResult(name, input, instanceId, startAt, signal)).instanceId;
+  }
+
+  async scheduleNewOrchestrationWithResult(
+    name: string,
+    input?: unknown,
+    instanceId?: string,
+    startAt?: Date,
+    signal?: AbortSignal,
+  ): Promise<ScheduleWorkflowResult> {
     const req = create(CreateInstanceRequestSchema, {
       name,
       instanceId: instanceId ?? randomUUID(),
@@ -158,7 +171,7 @@ export class TaskHubClient {
 
     this.logger.info(`Starting new ${name} instance with ID = ${req.instanceId}`);
     const res = await this.client.startInstance(req, this.callOptions(signal));
-    return res.instanceId;
+    return { instanceId: res.instanceId, staged: res.staged };
   }
 
   async getOrchestrationState(
@@ -198,6 +211,14 @@ export class TaskHubClient {
     eventId: number,
     options: RerunWorkflowFromEventOptions = {},
   ): Promise<string> {
+    return (await this.rerunWorkflowFromEventWithResult(sourceInstanceId, eventId, options)).newInstanceId;
+  }
+
+  async rerunWorkflowFromEventWithResult(
+    sourceInstanceId: string,
+    eventId: number,
+    options: RerunWorkflowFromEventOptions = {},
+  ): Promise<RerunWorkflowFromEventResult> {
     const req = create(RerunWorkflowFromEventRequestSchema, {
       sourceInstanceID: sourceInstanceId,
       eventID: eventId,
@@ -220,7 +241,7 @@ export class TaskHubClient {
     }
 
     const res = await this.client.rerunWorkflowFromEvent(req);
-    return res.newInstanceID;
+    return { newInstanceId: res.newInstanceID, staged: res.staged };
   }
 
   async waitForOrchestrationStart(
@@ -285,6 +306,15 @@ export class TaskHubClient {
     data: unknown = null,
     signal?: AbortSignal,
   ): Promise<void> {
+    await this.raiseOrchestrationEventWithResult(instanceId, eventName, data, signal);
+  }
+
+  async raiseOrchestrationEventWithResult(
+    instanceId: string,
+    eventName: string,
+    data: unknown = null,
+    signal?: AbortSignal,
+  ): Promise<WorkflowOperationResult> {
     const req = create(RaiseEventRequestSchema, {
       instanceId,
       name: eventName,
@@ -299,10 +329,19 @@ export class TaskHubClient {
     }
 
     this.logger.info(`Raising event '${eventName}' for instance '${instanceId}'`);
-    await this.client.raiseEvent(req, this.callOptions(signal));
+    const res = await this.client.raiseEvent(req, this.callOptions(signal));
+    return { staged: res.staged };
   }
 
   async terminateOrchestration(instanceId: string, output: unknown = null, signal?: AbortSignal): Promise<void> {
+    await this.terminateOrchestrationWithResult(instanceId, output, signal);
+  }
+
+  async terminateOrchestrationWithResult(
+    instanceId: string,
+    output: unknown = null,
+    signal?: AbortSignal,
+  ): Promise<WorkflowOperationResult> {
     const req = create(TerminateRequestSchema, {
       instanceId,
       recursive: true,
@@ -313,10 +352,19 @@ export class TaskHubClient {
     }
 
     this.logger.info(`Terminating '${instanceId}'`);
-    await this.client.terminateInstance(req, this.callOptions(signal));
+    const res = await this.client.terminateInstance(req, this.callOptions(signal));
+    return { staged: res.staged };
   }
 
   async suspendOrchestration(instanceId: string, reason?: string, signal?: AbortSignal): Promise<void> {
+    await this.suspendOrchestrationWithResult(instanceId, reason, signal);
+  }
+
+  async suspendOrchestrationWithResult(
+    instanceId: string,
+    reason?: string,
+    signal?: AbortSignal,
+  ): Promise<WorkflowOperationResult> {
     const req = create(SuspendRequestSchema, {
       instanceId,
     });
@@ -326,10 +374,19 @@ export class TaskHubClient {
     }
 
     this.logger.info(`Suspending '${instanceId}'`);
-    await this.client.suspendInstance(req, this.callOptions(signal));
+    const res = await this.client.suspendInstance(req, this.callOptions(signal));
+    return { staged: res.staged };
   }
 
   async resumeOrchestration(instanceId: string, reason?: string, signal?: AbortSignal): Promise<void> {
+    await this.resumeOrchestrationWithResult(instanceId, reason, signal);
+  }
+
+  async resumeOrchestrationWithResult(
+    instanceId: string,
+    reason?: string,
+    signal?: AbortSignal,
+  ): Promise<WorkflowOperationResult> {
     const req = create(ResumeRequestSchema, {
       instanceId,
     });
@@ -339,7 +396,8 @@ export class TaskHubClient {
     }
 
     this.logger.info(`Resuming '${instanceId}'`);
-    await this.client.resumeInstance(req, this.callOptions(signal));
+    const res = await this.client.resumeInstance(req, this.callOptions(signal));
+    return { staged: res.staged };
   }
 
   async purgeOrchestration(instanceId: string, signal?: AbortSignal): Promise<PurgeResult | undefined> {
