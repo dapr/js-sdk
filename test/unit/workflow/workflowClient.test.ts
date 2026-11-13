@@ -33,6 +33,11 @@ const mockPurgeOrchestration = jest.fn();
 const mockSuspendOrchestration = jest.fn();
 const mockResumeOrchestration = jest.fn();
 const mockClientStop = jest.fn();
+const mockCreateWorkflowSchedule = jest.fn();
+const mockGetWorkflowSchedule = jest.fn();
+const mockListWorkflowSchedules = jest.fn();
+const mockDeleteWorkflowSchedule = jest.fn();
+const mockTriggerWorkflowSchedule = jest.fn();
 
 jest.mock("../../../src/workflow/engine/transport/TaskHubClient", () => {
   const actual = jest.requireActual("../../../src/workflow/engine/transport/TaskHubClient");
@@ -52,6 +57,11 @@ jest.mock("../../../src/workflow/engine/transport/TaskHubClient", () => {
       suspendOrchestration: mockSuspendOrchestration,
       resumeOrchestration: mockResumeOrchestration,
       stop: mockClientStop,
+      createWorkflowSchedule: mockCreateWorkflowSchedule,
+      getWorkflowSchedule: mockGetWorkflowSchedule,
+      listWorkflowSchedules: mockListWorkflowSchedules,
+      deleteWorkflowSchedule: mockDeleteWorkflowSchedule,
+      triggerWorkflowSchedule: mockTriggerWorkflowSchedule,
     })),
   };
 });
@@ -204,14 +214,21 @@ describe("DaprWorkflowClient", () => {
       mockListWorkflowInstanceIds.mockResolvedValue(page);
 
       await expect(client.listWorkflowInstanceIds("previous-page", 10)).resolves.toEqual(page);
-      expect(mockListWorkflowInstanceIds).toHaveBeenCalledWith("previous-page", 10);
+      expect(mockListWorkflowInstanceIds).toHaveBeenCalledWith("previous-page", 10, undefined);
     });
 
     it("should allow listing without pagination options", async () => {
       mockListWorkflowInstanceIds.mockResolvedValue({ instanceIds: [] });
 
       await expect(client.listWorkflowInstanceIds()).resolves.toEqual({ instanceIds: [] });
-      expect(mockListWorkflowInstanceIds).toHaveBeenCalledWith(undefined, undefined);
+      expect(mockListWorkflowInstanceIds).toHaveBeenCalledWith(undefined, undefined, undefined);
+    });
+
+    it("should forward the instance ID prefix", async () => {
+      mockListWorkflowInstanceIds.mockResolvedValue({ instanceIds: ["nightly_20260102T030405Z"] });
+
+      await client.listWorkflowInstanceIds(undefined, undefined, "nightly_");
+      expect(mockListWorkflowInstanceIds).toHaveBeenCalledWith(undefined, undefined, "nightly_");
     });
 
     it.each([0, -1, 1.5, 0x1_0000_0000])("should reject invalid page size %s", async (pageSize) => {
@@ -287,6 +304,65 @@ describe("DaprWorkflowClient", () => {
         TypeError,
       );
       expect(mockRerunWorkflowFromEvent).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("workflow schedules", () => {
+    it("should create a schedule for a workflow function or name", async () => {
+      const report: TWorkflow = async () => undefined;
+      const options = { input: { day: 1 }, repeats: 1, overwrite: true };
+
+      await client.createWorkflowSchedule("nightly", report, "@daily", options);
+      await client.createWorkflowSchedule("remote", "remoteWorkflow", "0 30 9 * * MON");
+
+      expect(mockCreateWorkflowSchedule).toHaveBeenNthCalledWith(1, "nightly", "report", "@daily", options);
+      expect(mockCreateWorkflowSchedule).toHaveBeenNthCalledWith(2, "remote", "remoteWorkflow", "0 30 9 * * MON", {});
+    });
+
+    it("should reject input together with serialized input", async () => {
+      await expect(
+        client.createWorkflowSchedule("nightly", "report", "@daily", { input: 1, serializedInput: "1" }),
+      ).rejects.toThrow(TypeError);
+      expect(mockCreateWorkflowSchedule).not.toHaveBeenCalled();
+    });
+
+    it.each([0, -1, 1.5, 0x1_0000_0000])("should reject invalid repeats %s", async (repeats) => {
+      await expect(client.createWorkflowSchedule("nightly", "report", "@daily", { repeats })).rejects.toThrow(
+        RangeError,
+      );
+      expect(mockCreateWorkflowSchedule).not.toHaveBeenCalled();
+    });
+
+    it.each([0, 1.5])("should reject invalid list page size %s", async (pageSize) => {
+      await expect(client.listWorkflowSchedules({ pageSize })).rejects.toThrow(RangeError);
+      expect(mockListWorkflowSchedules).not.toHaveBeenCalled();
+    });
+
+    it("should forward get, list, delete and trigger", async () => {
+      const schedule = { name: "nightly", workflowName: "report", schedule: "@daily" };
+      const page = { schedules: [schedule], continuationToken: "next" };
+      mockGetWorkflowSchedule.mockResolvedValue(schedule);
+      mockListWorkflowSchedules.mockResolvedValue(page);
+      mockTriggerWorkflowSchedule.mockResolvedValue("nightly_20260102T030405Z_manual");
+
+      await expect(client.getWorkflowSchedule("nightly")).resolves.toBe(schedule);
+      await expect(client.listWorkflowSchedules({ pageSize: 1, continuationToken: "prev" })).resolves.toBe(page);
+      await expect(client.listWorkflowSchedules()).resolves.toBe(page);
+      await client.deleteWorkflowSchedule("nightly");
+      await expect(client.triggerWorkflowSchedule("nightly")).resolves.toBe("nightly_20260102T030405Z_manual");
+
+      expect(mockGetWorkflowSchedule).toHaveBeenCalledWith("nightly");
+      expect(mockListWorkflowSchedules).toHaveBeenNthCalledWith(1, { pageSize: 1, continuationToken: "prev" });
+      expect(mockListWorkflowSchedules).toHaveBeenNthCalledWith(2, {});
+      expect(mockDeleteWorkflowSchedule).toHaveBeenCalledWith("nightly");
+      expect(mockTriggerWorkflowSchedule).toHaveBeenCalledWith("nightly");
+    });
+
+    it("should propagate a missing schedule as a not-found RPC error", async () => {
+      const error = new ConnectError("schedule not found", Code.NotFound);
+      mockGetWorkflowSchedule.mockRejectedValue(error);
+
+      await expect(client.getWorkflowSchedule("missing")).rejects.toBe(error);
     });
   });
 
