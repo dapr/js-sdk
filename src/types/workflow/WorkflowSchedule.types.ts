@@ -16,7 +16,12 @@ import type { WorkflowFailureDetails } from "../../workflow/client/WorkflowFailu
 import type { WorkflowRuntimeStatus } from "../../workflow/runtime/WorkflowRuntimeStatus";
 
 export interface CreateWorkflowScheduleOptions {
-  /** Input every run is given, serialized with the client's serializer (JSON by default). */
+  /**
+   * Input every run is given, serialized with the client's serializer (JSON by default). The client's
+   * payload policy applies: an input it offloads to the binary store is stored once, under the schedule's
+   * instance ID `dapr-internal-schedule-<name>`, and shared by every run. Delete it with that instance ID
+   * once the schedule is gone.
+   */
   input?: unknown;
   /** Already serialized input every run is given, sent as is. Cannot be combined with input. */
   serializedInput?: string;

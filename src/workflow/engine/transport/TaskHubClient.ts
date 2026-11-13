@@ -57,6 +57,9 @@ import type {
 import type { BinaryStoreWorkflowPayloadResolver } from "../../payloads/BinaryStoreWorkflowPayloadResolver";
 import { WorkflowPayloadHandler } from "../../payloads/WorkflowPayloadHandler";
 import { PayloadKind, PayloadSite } from "../../payloads/BinaryStorePayloadOptions";
+
+// The runtime reserves this instance ID prefix for a schedule's own workflow.
+const WORKFLOW_SCHEDULE_INSTANCE_ID_PREFIX = "dapr-internal-schedule-";
 import { getWorkflowTraceContext } from "../worker/WorkflowTrace";
 import type {
   CreateWorkflowScheduleOptions,
@@ -184,14 +187,22 @@ export class TaskHubClient {
     schedule: string,
     options: CreateWorkflowScheduleOptions = {},
   ): Promise<void> {
+    // Every run gets the same input, so it is stored once, owned by the schedule's own instance ID.
+    const input =
+      options.serializedInput ??
+      (options.input === undefined
+        ? undefined
+        : await this.encodePayload(options.input, {
+            kind: PayloadKind.WorkflowInput,
+            instanceId: WORKFLOW_SCHEDULE_INSTANCE_ID_PREFIX + name,
+            name: workflowName,
+          }));
     const req = create(CreateWorkflowScheduleRequestSchema, {
       schedule: {
         name,
         workflowName,
         schedule,
-        input:
-          options.serializedInput ??
-          (options.input === undefined ? undefined : serializeWorkflowValue(options.input, this.serializer)),
+        input,
         dueTime: options.dueTime && timestampFromDate(options.dueTime),
         expirationTime: options.expirationTime && timestampFromDate(options.expirationTime),
         repeats: options.repeats,

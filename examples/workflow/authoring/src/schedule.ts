@@ -35,32 +35,48 @@ async function start() {
   workflowRuntime.registerWorkflow(greeting).registerActivity(greet);
   await workflowRuntime.start();
 
-  // Run the workflow every 2 seconds, 3 times. Each run is a new instance with the ID "greetings_<owner>_<fire time>".
-  await workflowClient.createWorkflowSchedule("greetings", greeting, "@every 2s", {
+  // A name of its own per invocation: runs outlive their schedule, so a fixed name would list earlier invocations' runs.
+  const scheduleName = `greetings-${Date.now().toString(36)}`;
+
+  // Run the workflow every 2 seconds, 3 times. Each run is a new instance with the ID "<schedule name>_<owner>_<fire time>".
+  await workflowClient.createWorkflowSchedule(scheduleName, greeting, "@every 2s", {
     input: "Dapr",
     repeats: 3,
     overwrite: true,
   });
 
   // Start a run now. It counts towards repeats but does not move the next scheduled run.
-  await workflowClient.triggerWorkflowSchedule("greetings");
+  await workflowClient.triggerWorkflowSchedule(scheduleName);
   console.log("Triggered a manual run");
 
-  let schedule = await workflowClient.getWorkflowSchedule("greetings");
+  let schedule = await workflowClient.getWorkflowSchedule(scheduleName);
   while (schedule.status?.state === WorkflowScheduleState.ACTIVE) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    schedule = await workflowClient.getWorkflowSchedule("greetings");
+    schedule = await workflowClient.getWorkflowSchedule(scheduleName);
   }
   console.log(`Schedule finished after ${schedule.status?.runCount} runs`);
 
-  const { instanceIds } = await workflowClient.listWorkflowInstanceIds(undefined, undefined, "greetings_");
-  for (const id of instanceIds) {
+  // A page can come back short, even empty, while more remain, so follow the token to the end.
+  const runIds: string[] = [];
+  let continuationToken: string | undefined;
+  do {
+    const page = await workflowClient.listWorkflowInstanceIds(continuationToken, undefined, `${scheduleName}_`);
+    runIds.push(...page.instanceIds);
+    continuationToken = page.continuationToken;
+  } while (continuationToken);
+
+  for (const id of runIds) {
     const state = await workflowClient.waitForWorkflowCompletion(id, true, 30);
     console.log(`Run output: ${state?.serializedOutput}`);
   }
 
-  await workflowClient.deleteWorkflowSchedule("greetings");
+  await workflowClient.deleteWorkflowSchedule(scheduleName);
   console.log("Schedule deleted");
+
+  // Deleting a schedule leaves its runs, so purge them.
+  for (const id of runIds) {
+    await workflowClient.purgeWorkflow(id);
+  }
   await workflowRuntime.stop();
   await workflowClient.stop();
   process.exit(0);
