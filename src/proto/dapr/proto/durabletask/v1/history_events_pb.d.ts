@@ -652,6 +652,11 @@ export declare type EventRaisedEvent = Message<"EventRaisedEvent"> & {
    * @generated from field: google.protobuf.StringValue input = 2;
    */
   input?: string | undefined;
+
+  /**
+   * @generated from field: TaskFailureDetails failureDetails = 3;
+   */
+  failureDetails?: TaskFailureDetails | undefined;
 };
 
 /**

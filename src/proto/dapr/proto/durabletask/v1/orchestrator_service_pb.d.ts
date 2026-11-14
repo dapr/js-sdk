@@ -410,6 +410,11 @@ export declare type RaiseEventRequest = Message<"RaiseEventRequest"> & {
    * @generated from field: optional TaskRouter router = 4;
    */
   router?: TaskRouter | undefined;
+
+  /**
+   * @generated from field: TaskFailureDetails failureDetails = 5;
+   */
+  failureDetails?: TaskFailureDetails | undefined;
 };
 
 /**
@@ -1043,6 +1048,11 @@ export declare const TaskHubSidecarService: GenService<{
    * @generated from rpc TaskHubSidecarService.RaiseEvent
    */
   raiseEvent: {
+    methodKind: "unary";
+    input: typeof RaiseEventRequestSchema;
+    output: typeof RaiseEventResponseSchema;
+  },
+  raiseError: {
     methodKind: "unary";
     input: typeof RaiseEventRequestSchema;
     output: typeof RaiseEventResponseSchema;
