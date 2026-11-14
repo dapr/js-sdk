@@ -64,6 +64,21 @@ export default class DaprWorkflowClient {
   }
 
   /**
+   * Terminates a workflow with a durable, retrievable reason.
+   *
+   * The reason is stored in the workflow history and exposed on the
+   * {@link WorkflowState.terminationReason} property after termination.
+   */
+  public async terminateWorkflowWithReason(
+    workflowInstanceId: string,
+    reason: string,
+    output?: unknown,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    await this._innerClient.terminateOrchestration(workflowInstanceId, output, signal, reason);
+  }
+
+  /**
    * Gets a snapshot of the current workflow state, or undefined if the instance does not exist.
    * Compare runtimeStatus with WorkflowRuntimeStatus members, not hard-coded numbers or strings.
    */
