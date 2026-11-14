@@ -145,6 +145,9 @@ message RaiseEventRequest {
     // router optionally routes this operation to the workflow instance owned
     // by another app. sourceAppID is stamped by the sidecar, not the client.
     optional TaskRouter router = 4;
+
+    // Optional reason retained in the workflow's termination history.
+    google.protobuf.StringValue reason = 5;
 }
 
 message RaiseEventResponse {
