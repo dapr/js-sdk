@@ -55,6 +55,10 @@ export default class GRPCClientWorkflow implements IClientWorkflow {
     throw new GRPCNotSupportedError();
   }
 
+  raiseError(_instanceId: string, _eventName: string, _error: Error): Promise<void> {
+    throw new GRPCNotSupportedError();
+  }
+
   /** @deprecated Use {@link getWorkflowState} instead. Will be removed with the release of Dapr 1.20. */
   get(_instanceId: string): Promise<WorkflowGetResponseType> {
     return this.getWorkflowState(_instanceId);

@@ -21,6 +21,7 @@ import { randomUUID } from "crypto";
 import { createHTTPQueryParam } from "../../../utils/Client.util";
 import { WorkflowRaiseOptions } from "../../../types/workflow/WorkflowRaiseOptions.type";
 import { PropertyRequiredError } from "../../../errors/PropertyRequiredError";
+import { newFailureDetails } from "../../../workflow/engine/worker/protoHelpers";
 
 export default class HTTPClientWorkflow implements IClientWorkflow {
   private readonly client: HTTPClient;
@@ -131,6 +132,29 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
       });
     } catch (e: any) {
       this.logger.error(`Error raising event on workflow instance: ${e.message}`);
+      throw e;
+    }
+  }
+
+  async raiseError(instanceId: string, eventName: string, error: Error): Promise<void> {
+    if (!instanceId) throw new PropertyRequiredError("instanceID");
+    if (!eventName) throw new PropertyRequiredError("eventName");
+    if (!(error instanceof Error)) throw new TypeError("error must be an Error");
+
+    const failureDetails = newFailureDetails(error);
+    try {
+      await this.client.executeWithApiVersion(
+        "v1.0-beta1",
+        `/workflows/dapr/${instanceId}/raiseError/${eventName}`,
+        {
+          method: "POST",
+          body: failureDetails,
+          headers: { "Content-Type": "application/json" },
+          serializer: this.client.options.serializer,
+        },
+      );
+    } catch (e: any) {
+      this.logger.error(`Error raising workflow error: ${e.message}`);
       throw e;
     }
   }

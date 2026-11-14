@@ -125,6 +125,8 @@ export default interface IClientWorkflow {
    * @see https://docs.dapr.io/reference/api/workflow_api/
    */
   raiseEvent(instanceId: string, eventName: string, eventData?: any): Promise<void>;
+  /** Raises a structured failure for the oldest matching external-event wait. */
+  raiseError(instanceId: string, eventName: string, error: Error): Promise<void>;
 
   /**
    * @deprecated Use {@link getWorkflowState} instead. Will be removed with the release of Dapr 1.20.
