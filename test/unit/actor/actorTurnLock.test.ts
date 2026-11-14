@@ -14,6 +14,7 @@ limitations under the License.
 import * as http from "http";
 import { AddressInfo } from "net";
 import { DaprClient } from "../../../src";
+import ActorClientHTTP from "../../../src/actors/client/ActorClient/ActorClientHTTP";
 import AbstractActor from "../../../src/actors/runtime/AbstractActor";
 import ActorRuntime from "../../../src/actors/runtime/ActorRuntime";
 import ActorTurnLock, {
@@ -45,6 +46,85 @@ function flush(): Promise<void> {
   return new Promise((resolve) => setImmediate(resolve));
 }
 
+type RecordedOperation = { operation: string; key: string; value: unknown };
+
+type DeferredStateSave = {
+  gate: {
+    resolve: () => void;
+    reject: (error: unknown) => void;
+  };
+  started: Promise<void>;
+  saves: RecordedOperation[][];
+  release: () => void;
+};
+
+let unblockStateMock: () => void = () => undefined;
+let restoreStateMock: () => void = () => undefined;
+
+function controllable(): {
+  promise: Promise<void>;
+  resolve: () => void;
+  reject: (error: unknown) => void;
+} {
+  let resolve: () => void = () => undefined;
+  let reject: (error: unknown) => void = () => undefined;
+  const promise = new Promise<void>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
+
+/**
+ * The runtime persists actor state through `ActorClient.stateTransaction`
+ * (other SDKs call this saveActorStateTransactionally). The save numbered
+ * `deferOnCall` (1-based) stays pending until the gate settles. Later saves
+ * complete immediately. `stateGet` reports an empty store, so a later turn
+ * can only see values the actor kept in its own cache.
+ */
+function mockDeferredActorStateSave(deferOnCall = 1): DeferredStateSave {
+  const gate = controllable();
+  let markStarted: () => void = () => undefined;
+  const started = new Promise<void>((resolve) => {
+    markStarted = resolve;
+  });
+  const saves: RecordedOperation[][] = [];
+  let restored = false;
+
+  const stateGet = jest.spyOn(ActorClientHTTP.prototype, "stateGet").mockResolvedValue("");
+  const stateTransaction = jest
+    .spyOn(ActorClientHTTP.prototype, "stateTransaction")
+    .mockImplementation(async (_actorType, _actorId, ops) => {
+      saves.push(
+        ops.map((op) => ({
+          operation: op.operation,
+          key: op.request.key,
+          value: op.request.value,
+        })),
+      );
+      if (saves.length === deferOnCall) {
+        markStarted();
+        await gate.promise;
+      }
+    });
+
+  const release = () => {
+    gate.resolve();
+  };
+  const restore = () => {
+    if (restored) {
+      return;
+    }
+    restored = true;
+    stateGet.mockRestore();
+    stateTransaction.mockRestore();
+  };
+  unblockStateMock = release;
+  restoreStateMock = restore;
+
+  return { gate, started, saves, release };
+}
+
 class Probe {
   events: string[] = [];
   current = 0;
@@ -62,6 +142,8 @@ class Probe {
   failPost = false;
   failPre = false;
   failActivate = false;
+  persistOnActivate = false;
+  persistOnDeactivate = false;
 
   constructor() {
     this.activationGate.resolve();
@@ -85,6 +167,8 @@ class Probe {
     this.failPost = false;
     this.failPre = false;
     this.failActivate = false;
+    this.persistOnActivate = false;
+    this.persistOnDeactivate = false;
   }
 
   /** Unblock every actor still waiting so a failed assertion cannot hang the suite. */
@@ -227,6 +311,47 @@ class OtherTypeActor extends AbstractActor {
     }
     probe.trackExit(name);
     return name;
+  }
+}
+
+/**
+ * Writes real actor state. The method returns before `onActorMethodPostInternal`
+ * awaits the transactional save, which is the window the turn must still own.
+ */
+class StateTurnActor extends AbstractActor {
+  async onActivate(): Promise<void> {
+    probe.events.push("activate-start");
+    if (probe.persistOnActivate) {
+      await this.getStateManager<boolean>().setState("ready", true);
+    }
+    probe.events.push("activate-end");
+  }
+
+  async onDeactivate(): Promise<void> {
+    probe.events.push("deactivate");
+    if (probe.persistOnDeactivate) {
+      await this.getStateManager<boolean>().setState("closed", true);
+    }
+  }
+
+  async onActorMethodPost(): Promise<void> {
+    probe.events.push("post");
+  }
+
+  async add(amount: number): Promise<number> {
+    probe.events.push("enter:add");
+    const [hasCount, current] = await this.getStateManager<number>().tryGetState("count");
+    const next = (hasCount ? current ?? 0 : 0) + amount;
+    await this.getStateManager<number>().setState("count", next);
+    probe.events.push("body-returned");
+    return next;
+  }
+
+  async read(name: string): Promise<unknown> {
+    probe.events.push(`enter:read:${name}`);
+    const [hasValue, value] = await this.getStateManager<unknown>().tryGetState(name);
+    probe.events.push(`exit:read:${name}`);
+    return hasValue ? value : null;
   }
 }
 
@@ -418,16 +543,40 @@ describe("actor turn gate", () => {
     runtime.clearActorManagers();
     runtime.registerActor(TurnProbeActor);
     runtime.registerActor(OtherTypeActor);
+    runtime.registerActor(StateTurnActor);
   });
 
   afterEach(async () => {
     probe.release();
-    await Promise.allSettled(pending);
+    unblockStateMock();
+    unblockStateMock = () => undefined;
+    try {
+      await Promise.allSettled(pending);
+    } finally {
+      restoreStateMock();
+      restoreStateMock = () => undefined;
+    }
   });
 
   function track<T>(promise: Promise<T>): Promise<T> {
     pending.push(promise);
     return promise;
+  }
+
+  function watch<T>(promise: Promise<T>): { promise: Promise<T>; settled: () => boolean } {
+    let done = false;
+    const observed = promise.then(
+      (value) => {
+        done = true;
+        return value;
+      },
+      (error) => {
+        done = true;
+        throw error;
+      },
+    );
+    pending.push(observed);
+    return { promise: observed, settled: () => done };
   }
 
   it("keeps a second call behind a method that is still running", async () => {
@@ -717,6 +866,281 @@ describe("actor turn gate", () => {
     }
     expect(manager.actors.size).toEqual(0);
     expect(manager.turnLockSize()).toEqual(0);
+  });
+
+  it("holds the turn through the post-method state save, then runs queued work in order", async () => {
+    const state = mockDeferredActorStateSave(1);
+    try {
+      const first = watch(call(StateTurnActor, "acct", "add", 1));
+      await state.started;
+      await flush();
+
+      // The method body and the post hook have returned. Persistence has not.
+      expect(probe.events).toEqual(["activate-start", "activate-end", "enter:add", "body-returned", "post"]);
+      expect(first.settled()).toEqual(false);
+      expect(runtime.getActorManager(StateTurnActor.name).actors.has("acct")).toEqual(true);
+      expect(state.saves).toEqual([[{ operation: "upsert", key: "count", value: 1 }]]);
+      expect(lockSize(StateTurnActor)).toBeGreaterThan(0);
+
+      const second = watch(call(StateTurnActor, "acct", "add", 10));
+      let deactivated = false;
+      const stopping = watch(
+        runtime.deactivate(StateTurnActor.name, "acct").then(() => {
+          deactivated = true;
+        }),
+      );
+      await flush();
+
+      expect(first.settled()).toEqual(false);
+      expect(second.settled()).toEqual(false);
+      expect(deactivated).toEqual(false);
+      expect(probe.events.filter((event) => event === "enter:add")).toHaveLength(1);
+      expect(probe.events).not.toContain("deactivate");
+      expect(state.saves).toHaveLength(1);
+      expect(lockSize(StateTurnActor)).toBeGreaterThan(0);
+
+      state.gate.resolve();
+      await expect(first.promise).resolves.toEqual(1);
+      // The store mock stays empty, so 11 is the cached write from the first turn.
+      await expect(second.promise).resolves.toEqual(11);
+      await stopping.promise;
+
+      expect(deactivated).toEqual(true);
+      expect(probe.events).toEqual([
+        "activate-start",
+        "activate-end",
+        "enter:add",
+        "body-returned",
+        "post",
+        "enter:add",
+        "body-returned",
+        "post",
+        "deactivate",
+      ]);
+      expect(state.saves).toEqual([
+        [{ operation: "upsert", key: "count", value: 1 }],
+        [{ operation: "upsert", key: "count", value: 11 }],
+      ]);
+      expect(runtime.getActorManager(StateTurnActor.name).actors.has("acct")).toEqual(false);
+      expect(lockSize(StateTurnActor)).toEqual(0);
+    } finally {
+      state.release();
+    }
+  });
+
+  it("releases the turn when the post-method state save fails so queued work can finish", async () => {
+    const state = mockDeferredActorStateSave(1);
+    try {
+      const first = watch(call(StateTurnActor, "acct", "add", 1));
+      await state.started;
+
+      const second = watch(call(StateTurnActor, "acct", "read", "count"));
+      let deactivated = false;
+      const stopping = watch(
+        runtime.deactivate(StateTurnActor.name, "acct").then(() => {
+          deactivated = true;
+        }),
+      );
+      await flush();
+
+      expect(first.settled()).toEqual(false);
+      expect(second.settled()).toEqual(false);
+      expect(deactivated).toEqual(false);
+      expect(probe.events).toEqual(["activate-start", "activate-end", "enter:add", "body-returned", "post"]);
+      expect(probe.events).not.toContain("enter:read:count");
+      expect(probe.events).not.toContain("deactivate");
+      expect(lockSize(StateTurnActor)).toBeGreaterThan(0);
+
+      state.gate.reject(new Error("state-store-down"));
+      await expect(first.promise).rejects.toThrow("state-store-down");
+      // The failed save leaves the method's write in the actor cache. The queued read sees it.
+      await expect(second.promise).resolves.toEqual(1);
+      await stopping.promise;
+
+      expect(deactivated).toEqual(true);
+      expect(probe.events).toEqual([
+        "activate-start",
+        "activate-end",
+        "enter:add",
+        "body-returned",
+        "post",
+        "enter:read:count",
+        "exit:read:count",
+        "post",
+        "deactivate",
+      ]);
+      expect(state.saves).toEqual([[{ operation: "upsert", key: "count", value: 1 }]]);
+      expect(runtime.getActorManager(StateTurnActor.name).actors.has("acct")).toEqual(false);
+      expect(lockSize(StateTurnActor)).toEqual(0);
+    } finally {
+      state.release();
+    }
+  });
+
+  it("does not run the method or a queued call until the activation state save settles", async () => {
+    probe.persistOnActivate = true;
+    const state = mockDeferredActorStateSave(1);
+    try {
+      const first = watch(call(StateTurnActor, "acct", "add", 1));
+      await state.started;
+      await flush();
+
+      expect(probe.events).toEqual(["activate-start", "activate-end"]);
+      expect(first.settled()).toEqual(false);
+      expect(runtime.getActorManager(StateTurnActor.name).actors.has("acct")).toEqual(false);
+      expect(state.saves).toEqual([[{ operation: "upsert", key: "ready", value: true }]]);
+      expect(lockSize(StateTurnActor)).toBeGreaterThan(0);
+
+      const second = watch(call(StateTurnActor, "acct", "add", 10));
+      await flush();
+      expect(second.settled()).toEqual(false);
+      expect(probe.events).not.toContain("enter:add");
+      expect(state.saves).toHaveLength(1);
+      expect(lockSize(StateTurnActor)).toBeGreaterThan(0);
+
+      state.gate.resolve();
+      await expect(first.promise).resolves.toEqual(1);
+      await expect(second.promise).resolves.toEqual(11);
+      expect(probe.events).toEqual([
+        "activate-start",
+        "activate-end",
+        "enter:add",
+        "body-returned",
+        "post",
+        "enter:add",
+        "body-returned",
+        "post",
+      ]);
+      expect(state.saves).toEqual([
+        [{ operation: "upsert", key: "ready", value: true }],
+        [{ operation: "upsert", key: "count", value: 1 }],
+        [{ operation: "upsert", key: "count", value: 11 }],
+      ]);
+      expect(lockSize(StateTurnActor)).toEqual(0);
+    } finally {
+      state.release();
+    }
+  });
+
+  it("releases the turn when the activation state save fails and lets the next call activate", async () => {
+    probe.persistOnActivate = true;
+    const state = mockDeferredActorStateSave(1);
+    try {
+      const first = watch(call(StateTurnActor, "acct", "add", 1));
+      await state.started;
+      const second = watch(call(StateTurnActor, "acct", "add", 4));
+      await flush();
+
+      expect(probe.events).toEqual(["activate-start", "activate-end"]);
+      expect(first.settled()).toEqual(false);
+      expect(second.settled()).toEqual(false);
+      expect(runtime.getActorManager(StateTurnActor.name).actors.has("acct")).toEqual(false);
+      expect(lockSize(StateTurnActor)).toBeGreaterThan(0);
+
+      state.gate.reject(new Error("state-store-down"));
+      await expect(first.promise).rejects.toThrow("state-store-down");
+      await expect(second.promise).resolves.toEqual(4);
+
+      expect(probe.events.filter((event) => event === "activate-start")).toHaveLength(2);
+      expect(probe.events.filter((event) => event === "enter:add")).toHaveLength(1);
+      expect(runtime.getActorManager(StateTurnActor.name).actors.has("acct")).toEqual(true);
+      expect(lockSize(StateTurnActor)).toEqual(0);
+    } finally {
+      state.release();
+    }
+  });
+
+  it("holds the turn through the deactivation state save before a queued invocation runs", async () => {
+    probe.persistOnDeactivate = true;
+    const state = mockDeferredActorStateSave(2);
+    try {
+      await call(StateTurnActor, "acct", "add", 1);
+      expect(state.saves).toHaveLength(1);
+      expect(lockSize(StateTurnActor)).toEqual(0);
+
+      const stopping = watch(runtime.deactivate(StateTurnActor.name, "acct"));
+      await state.started;
+      await flush();
+
+      expect(stopping.settled()).toEqual(false);
+      expect(probe.events).toEqual([
+        "activate-start",
+        "activate-end",
+        "enter:add",
+        "body-returned",
+        "post",
+        "deactivate",
+      ]);
+      expect(state.saves[1]).toEqual([{ operation: "upsert", key: "closed", value: true }]);
+      expect(runtime.getActorManager(StateTurnActor.name).actors.has("acct")).toEqual(true);
+      expect(lockSize(StateTurnActor)).toBeGreaterThan(0);
+
+      const next = watch(call(StateTurnActor, "acct", "add", 3));
+      await flush();
+      expect(next.settled()).toEqual(false);
+      expect(probe.events.filter((event) => event === "enter:add")).toHaveLength(1);
+      expect(state.saves).toHaveLength(2);
+
+      state.gate.resolve();
+      await stopping.promise;
+      await expect(next.promise).resolves.toEqual(3);
+      expect(probe.events).toEqual([
+        "activate-start",
+        "activate-end",
+        "enter:add",
+        "body-returned",
+        "post",
+        "deactivate",
+        "activate-start",
+        "activate-end",
+        "enter:add",
+        "body-returned",
+        "post",
+      ]);
+      expect(state.saves).toEqual([
+        [{ operation: "upsert", key: "count", value: 1 }],
+        [{ operation: "upsert", key: "closed", value: true }],
+        [{ operation: "upsert", key: "count", value: 3 }],
+      ]);
+      expect(runtime.getActorManager(StateTurnActor.name).actors.has("acct")).toEqual(true);
+      expect(lockSize(StateTurnActor)).toEqual(0);
+    } finally {
+      state.release();
+    }
+  });
+
+  it("releases the turn when the deactivation state save fails and still runs queued work", async () => {
+    probe.persistOnDeactivate = true;
+    const state = mockDeferredActorStateSave(2);
+    try {
+      await call(StateTurnActor, "acct", "add", 1);
+      const stopping = watch(runtime.deactivate(StateTurnActor.name, "acct"));
+      await state.started;
+
+      const next = watch(call(StateTurnActor, "acct", "read", "closed"));
+      await flush();
+      expect(stopping.settled()).toEqual(false);
+      expect(next.settled()).toEqual(false);
+      expect(probe.events).not.toContain("enter:read:closed");
+      expect(runtime.getActorManager(StateTurnActor.name).actors.has("acct")).toEqual(true);
+      expect(lockSize(StateTurnActor)).toBeGreaterThan(0);
+
+      state.gate.reject(new Error("state-store-down"));
+      await expect(stopping.promise).rejects.toThrow("state-store-down");
+      await expect(next.promise).resolves.toEqual(true);
+
+      expect(probe.events.filter((event) => event === "activate-start")).toHaveLength(1);
+      expect(probe.events).toContain("enter:read:closed");
+      expect(state.saves).toEqual([
+        [{ operation: "upsert", key: "count", value: 1 }],
+        [{ operation: "upsert", key: "closed", value: true }],
+      ]);
+      // The failed deactivation does not drop the actor. The lock entry is still removed.
+      expect(runtime.getActorManager(StateTurnActor.name).actors.has("acct")).toEqual(true);
+      expect(lockSize(StateTurnActor)).toEqual(0);
+    } finally {
+      state.release();
+    }
   });
 
   it("reads Dapr-Reentrancy-Id on the HTTP actor route, regardless of header casing", async () => {
