@@ -219,6 +219,13 @@ export declare type TerminateWorkflowRequest = Message<"dapr.proto.runtime.v1.Te
    * @generated from field: optional string app_id = 3 [json_name = "appID"];
    */
   appId?: string | undefined;
+
+  /**
+   * Optional reason describing why the workflow is being terminated.
+   *
+   * @generated from field: optional string reason = 4;
+   */
+  reason?: string | undefined;
 };
 
 /**
