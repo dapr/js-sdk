@@ -23,6 +23,8 @@ import StateProvider from "./StateProvider";
  * Represents the base class for actors.
  * The base type for actors, that provides the common functionality for actors.
  * The state is preserved across actor garbage collections and fail-overs.
+ * Cancelling a caller does not stop actor code. The host keeps that actor's turn
+ * until the method and its lifecycle callbacks finish, including the state save.
  *
  * Example
  *

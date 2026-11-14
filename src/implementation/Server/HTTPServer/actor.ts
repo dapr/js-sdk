@@ -23,6 +23,7 @@ import { DaprClient } from "../../..";
 import { Logger } from "../../../logger/Logger";
 import { getRegisteredActorResponse } from "../../../utils/Actors.util";
 import HttpStatusCode from "../../../enum/HttpStatusCode.enum";
+import { DAPR_REENTRANCY_ID_HEADER, reentrancyIdFromHeaderValue } from "../../../actors/runtime/ActorTurnLock";
 
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class HTTPServerActor implements IServerActor {
@@ -96,8 +97,7 @@ export default class HTTPServerActor implements IServerActor {
   private async handlerMethod(req: IRequest, res: IResponse): Promise<IResponse> {
     const { actorTypeName, actorId, methodName } = req.params;
     const body = req.body;
-
-    // @todo: reentrancy id? (https://github.com/dapr/python-sdk/blob/master/ext/flask_dapr/flask_dapr/actor.py#L91)
+    const reentrancyId = this.reentrancyIdFrom(req);
 
     const dataSerialized = this.serializer.serialize(body);
     try {
@@ -106,6 +106,7 @@ export default class HTTPServerActor implements IServerActor {
         actorId,
         methodName,
         dataSerialized,
+        reentrancyId,
       );
       res.statusCode = HttpStatusCode.OK;
       return this.handleResult(res, result);
@@ -127,6 +128,7 @@ export default class HTTPServerActor implements IServerActor {
       actorId,
       timerName,
       dataSerialized,
+      this.reentrancyIdFrom(req),
     );
     return res.status(200).send(result);
   }
@@ -141,8 +143,17 @@ export default class HTTPServerActor implements IServerActor {
       actorId,
       reminderName,
       dataSerialized,
+      this.reentrancyIdFrom(req),
     );
     return res.status(200).send(result);
+  }
+
+  /**
+   * `req.header` matches case-insensitively. Deactivation does not use this id:
+   * it always waits for the current turn instead of joining it.
+   */
+  private reentrancyIdFrom(req: IRequest): string | undefined {
+    return reentrancyIdFromHeaderValue(req.header(DAPR_REENTRANCY_ID_HEADER));
   }
 
   private handleResult(res: IResponse, result: any) {
