@@ -69,7 +69,7 @@ export default interface IClientWorkflow {
    *
    * @see https://docs.dapr.io/reference/api/workflow_api/
    */
-  terminate(instanceId: string): Promise<void>;
+  terminate(instanceId: string, reason?: string): Promise<void>;
 
   /**
    * Pauses a running workflow instance.
