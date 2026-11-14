@@ -380,6 +380,11 @@ export declare type WorkflowMetadata = Message<"durabletask.protos.backend.v1.Wo
    * @generated from field: optional google.protobuf.Timestamp startedAt = 14;
    */
   startedAt?: Timestamp | undefined;
+
+  /**
+   * @generated from field: google.protobuf.StringValue terminationReason = 15;
+   */
+  terminationReason?: string | undefined;
 };
 
 /**
