@@ -26,6 +26,15 @@ retried on the next call. Direct metadata reads remain uncached.
 Dapr 1.17 and newer still serve the alpha1 API, so the fallback remains valid for every currently supported
 runtime.
 
+#### Actors: a cancelled call no longer overlaps the next turn
+
+When a caller cancels an actor invocation, daprd releases that actor's turn even though the method is still
+running in the app. The SDK now keeps a per-actor turn lock until the method and its state save finish, so the
+next call for the same actor id waits. Calls for other actor ids are unaffected. With actor reentrancy enabled,
+a request that carries the same non-empty `Dapr-Reentrancy-Id` as the active turn may enter; any other id waits
+until that chain's depth returns to zero. Reminders, timers, and deactivation take the same lock. Idle actor ids
+are removed from the lock table.
+
 ### v3.0.0
 
 #### Breaking Changes
