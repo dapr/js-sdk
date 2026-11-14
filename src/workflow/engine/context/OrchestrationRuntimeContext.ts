@@ -231,6 +231,11 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
   }
 
   completeExternalEvent(task: CompletableTask<unknown>, value: unknown): void {
+    if (value instanceof BufferedExternalEventFailure) {
+      this.failExternalEvent(task, value.eventName, value.failureDetails);
+      return;
+    }
+
     const asReference = this.referenceEvents.has(task);
     if (value instanceof PayloadReference || asReference) {
       this.queuePayloadRead(task, async () => {
