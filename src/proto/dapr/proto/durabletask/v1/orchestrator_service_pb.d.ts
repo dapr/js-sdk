@@ -458,6 +458,11 @@ export declare type TerminateRequest = Message<"TerminateRequest"> & {
    * @generated from field: optional TaskRouter router = 4;
    */
   router?: TaskRouter | undefined;
+
+  /**
+   * @generated from field: google.protobuf.StringValue reason = 5;
+   */
+  reason?: string | undefined;
 };
 
 /**
