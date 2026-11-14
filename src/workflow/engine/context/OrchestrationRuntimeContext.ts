@@ -51,6 +51,10 @@ import {
   newFailureDetails,
 } from "../worker/protoHelpers";
 
+class BufferedExternalEventFailure {
+  constructor(readonly eventName: string, readonly failureDetails: TaskFailureDetails) {}
+}
+
 export class OrchestrationRuntimeContext extends OrchestrationContext {
   private _generator?: AnyGenerator<Task<unknown>>;
   private _previousTask?: Task<unknown>;
@@ -240,6 +244,20 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     }
   }
 
+  failExternalEvent(
+    task: CompletableTask<unknown>,
+    eventName: string,
+    failureDetails: TaskFailureDetails,
+  ): void {
+    task.fail(`External event '${eventName}' failed: ${failureDetails.errorMessage}`, failureDetails);
+  }
+
+  bufferExternalEventFailure(eventName: string, failureDetails: TaskFailureDetails): void {
+    const normalizedName = eventName.toLowerCase();
+    const eventList = this._receivedEvents[normalizedName] ?? (this._receivedEvents[normalizedName] = []);
+    eventList.push(new BufferedExternalEventFailure(eventName, failureDetails));
+  }
+
   private queuePayloadRead<T>(task: CompletableTask<T>, read: () => Promise<T>): void {
     this.payloadReads.push(async () => {
       if (task.isComplete) return;
@@ -313,8 +331,12 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
         carryoverEvents = [];
         for (const [eventName, values] of Object.entries(this._receivedEvents)) {
           for (const eventValue of values) {
-            const encodedValue = eventValue != null ? serializeWorkflowValue(eventValue, this.serializer) : undefined;
-            carryoverEvents.push(newEventRaisedEvent(eventName, encodedValue));
+            if (eventValue instanceof BufferedExternalEventFailure) {
+              carryoverEvents.push(newEventRaisedEvent(eventName, undefined, eventValue.failureDetails));
+            } else {
+              const encodedValue = eventValue != null ? serializeWorkflowValue(eventValue, this.serializer) : undefined;
+              carryoverEvents.push(newEventRaisedEvent(eventName, encodedValue));
+            }
           }
         }
       }

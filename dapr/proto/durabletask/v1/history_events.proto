@@ -212,6 +212,7 @@ message EventSentEvent {
 message EventRaisedEvent {
     string name = 1;
     google.protobuf.StringValue input = 2;
+    TaskFailureDetails failureDetails = 3;
 }
 
 message ContinueAsNewEvent {

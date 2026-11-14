@@ -145,6 +145,7 @@ message RaiseEventRequest {
     // router optionally routes this operation to the workflow instance owned
     // by another app. sourceAppID is stamped by the sidecar, not the client.
     optional TaskRouter router = 4;
+    TaskFailureDetails failureDetails = 5;
 }
 
 message RaiseEventResponse {
@@ -369,6 +370,9 @@ service TaskHubSidecarService {
 
     // Raises an event to a running workflow instance.
     rpc RaiseEvent(RaiseEventRequest) returns (RaiseEventResponse);
+
+    // Fails the matching external-event wait with structured failure details.
+    rpc RaiseError(RaiseEventRequest) returns (RaiseEventResponse);
 
     // Terminates a running workflow instance.
     rpc TerminateInstance(TerminateRequest) returns (TerminateResponse);

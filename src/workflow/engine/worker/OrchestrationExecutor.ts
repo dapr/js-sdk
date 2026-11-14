@@ -546,24 +546,23 @@ export class OrchestrationExecutor {
           this.logger.info(`${ctx.instanceId}: Event raised: ${eventName}`);
         }
 
-        let taskList;
-        if (eventName && !ctx._isComplete) {
-          taskList = ctx._pendingEvents[eventName];
-        }
-
-        let decodedResult: unknown;
+        const failureDetails = eventType.value.failureDetails;
+        const taskList = eventName && !ctx._isComplete ? ctx._pendingEvents[eventName] : undefined;
 
         if (taskList) {
           const eventTask = taskList.shift();
-
-          if (!isEmpty(eventType.value.input)) {
-            decodedResult =
-              PayloadReference.parse(eventType.value.input) ??
-              deserializeWorkflowValue(eventType.value.input ?? "", this.serializer);
-          }
-
           if (eventTask) {
-            ctx.completeExternalEvent(eventTask, decodedResult);
+            if (failureDetails) {
+              ctx.failExternalEvent(eventTask, eventType.value.name, failureDetails);
+            } else {
+              let decodedResult: unknown;
+              if (!isEmpty(eventType.value.input)) {
+                decodedResult =
+                  PayloadReference.parse(eventType.value.input) ??
+                  deserializeWorkflowValue(eventType.value.input ?? "", this.serializer);
+              }
+              ctx.completeExternalEvent(eventTask, decodedResult);
+            }
           }
 
           if (taskList.length === 0 && eventName) {
@@ -571,24 +570,24 @@ export class OrchestrationExecutor {
           }
 
           await ctx.resume();
-        } else {
-          let eventList: unknown[] | undefined = [];
-
-          if (eventName) {
-            eventList = ctx._receivedEvents[eventName];
+        } else if (eventName) {
+          if (failureDetails) {
+            ctx.bufferExternalEventFailure(eventType.value.name, failureDetails);
+          } else {
+            let decodedResult: unknown;
+            let eventList = ctx._receivedEvents[eventName];
             if (!eventList?.length) {
               eventList = [];
               ctx._receivedEvents[eventName] = eventList;
             }
-          }
 
-          if (!isEmpty(eventType.value.input)) {
-            decodedResult =
-              PayloadReference.parse(eventType.value.input) ??
-              deserializeWorkflowValue(eventType.value.input ?? "", this.serializer);
+            if (!isEmpty(eventType.value.input)) {
+              decodedResult =
+                PayloadReference.parse(eventType.value.input) ??
+                deserializeWorkflowValue(eventType.value.input ?? "", this.serializer);
+            }
+            eventList.push(decodedResult);
           }
-
-          eventList?.push(decodedResult);
 
           if (!ctx._isReplaying) {
             this.logger.info(

@@ -214,7 +214,11 @@ export function newTimerFiredEvent(timerId: number, fireAt: Date): HistoryEvent 
   });
 }
 
-export function newEventRaisedEvent(name: string, encodedInput?: string): HistoryEvent {
+export function newEventRaisedEvent(
+  name: string,
+  encodedInput?: string,
+  failureDetails?: TaskFailureDetails,
+): HistoryEvent {
   return create(HistoryEventSchema, {
     eventId: -1,
     timestamp: dateToTimestamp(new Date()),
@@ -223,6 +227,7 @@ export function newEventRaisedEvent(name: string, encodedInput?: string): Histor
       value: create(EventRaisedEventSchema, {
         name,
         input: encodedInput,
+        failureDetails,
       }),
     },
   });
