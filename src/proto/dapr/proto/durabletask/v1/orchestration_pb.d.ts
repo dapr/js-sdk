@@ -331,6 +331,11 @@ export declare type WorkflowState = Message<"WorkflowState"> & {
    * @generated from field: optional google.protobuf.Timestamp startedAt = 17;
    */
   startedAt?: Timestamp | undefined;
+
+  /**
+   * @generated from field: google.protobuf.StringValue terminationReason = 18;
+   */
+  terminationReason?: string | undefined;
 };
 
 /**
