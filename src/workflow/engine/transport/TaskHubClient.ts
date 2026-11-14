@@ -62,6 +62,7 @@ export class OrchestrationState {
     public serializedOutput?: string,
     public serializedCustomStatus?: string,
     public failureDetails?: TaskFailureDetails,
+    public terminationReason?: string,
   ) {}
 
   static fromGetInstanceResponse(instanceId: string, res: GetInstanceResponse): OrchestrationState | undefined {
@@ -85,6 +86,7 @@ export class OrchestrationState {
       state.output,
       state.customStatus,
       failureDetails,
+      state.terminationReason,
     );
   }
 }
@@ -302,7 +304,12 @@ export class TaskHubClient {
     await this.client.raiseEvent(req, this.callOptions(signal));
   }
 
-  async terminateOrchestration(instanceId: string, output: unknown = null, signal?: AbortSignal): Promise<void> {
+  async terminateOrchestration(
+    instanceId: string,
+    output: unknown = null,
+    signal?: AbortSignal,
+    reason?: string,
+  ): Promise<void> {
     const req = create(TerminateRequestSchema, {
       instanceId,
       recursive: true,
@@ -310,6 +317,10 @@ export class TaskHubClient {
 
     if (output !== undefined) {
       req.output = await this.encodePayload(output, { kind: PayloadKind.WorkflowOutput, instanceId }, signal);
+    }
+
+    if (reason !== undefined) {
+      req.reason = reason;
     }
 
     this.logger.info(`Terminating '${instanceId}'`);
