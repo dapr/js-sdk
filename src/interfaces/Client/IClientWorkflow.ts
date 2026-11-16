@@ -65,7 +65,6 @@ export default interface IClientWorkflow {
    * The workflow cannot be resumed after termination.
    *
    * @param instanceId - The unique identifier for the workflow instance to terminate.
-   * @param reason - Optional reason for the termination. When provided, it is retained with the workflow metadata and is available from `properties["dapr.workflow.termination_reason"]` when the workflow state is retrieved.
    * @returns A promise that resolves when the termination request is acknowledged.
    *
    * @see https://docs.dapr.io/reference/api/workflow_api/
