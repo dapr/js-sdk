@@ -31,6 +31,8 @@ export default class ActorStateChange<T> {
   private readonly stateName: string;
   private readonly value: T;
   private readonly changeKind: StateChangeKind;
+  private readonly ttlExpireTime: Date | undefined;
+  private readonly ttlRemoved: boolean;
 
   /**
    * Constructs an ActorStateChange.
@@ -38,11 +40,31 @@ export default class ActorStateChange<T> {
    * @param stateName - The key identifying this state item.
    * @param value - The new value to persist (or null for removes).
    * @param changeKind - The type of modification ({@link StateChangeKind}).
+   * @param ttlExpireTime - Optional absolute time at which the persisted state should expire.
+   * @param ttlRemoved - Whether a previously applied TTL must be explicitly removed in the state store.
    */
-  constructor(stateName: string, value: T, changeKind: StateChangeKind) {
+  constructor(stateName: string, value: T, changeKind: StateChangeKind, ttlExpireTime?: Date, ttlRemoved = false) {
     this.stateName = stateName;
     this.value = value;
     this.changeKind = changeKind;
+    this.ttlExpireTime = ttlExpireTime;
+    this.ttlRemoved = ttlRemoved;
+  }
+
+  /**
+   * Whether a previously applied TTL must be explicitly removed in the state store.
+   */
+  isTtlRemoved(): boolean {
+    return this.ttlRemoved;
+  }
+
+  /**
+   * Retrieves the absolute time at which the persisted state should expire.
+   *
+   * @returns The expiration time, or undefined if the state does not expire.
+   */
+  getTtlExpireTime(): Date | undefined {
+    return this.ttlExpireTime;
   }
 
   /**
