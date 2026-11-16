@@ -23,6 +23,7 @@ import { DaprClient } from "../../..";
 import { Logger } from "../../../logger/Logger";
 import { getRegisteredActorResponse } from "../../../utils/Actors.util";
 import HttpStatusCode from "../../../enum/HttpStatusCode.enum";
+import { DAPR_REENTRANCY_ID_HEADER, reentrancyIdFromHeaderValue } from "../../../actors/runtime/ActorTurnLock";
 
 export const ACTOR_ACTIVATION_ID_HEADER = "Dapr-Actor-Activation-Id";
 
@@ -103,8 +104,7 @@ export default class HTTPServerActor implements IServerActor {
   private async handlerMethod(req: IRequest, res: IResponse): Promise<IResponse> {
     const { actorTypeName, actorId, methodName } = req.params;
     const body = req.body;
-
-    // @todo: reentrancy id? (https://github.com/dapr/python-sdk/blob/master/ext/flask_dapr/flask_dapr/actor.py#L91)
+    const reentrancyId = this.reentrancyIdFrom(req);
 
     const dataSerialized = this.serializer.serialize(body);
     try {
@@ -114,6 +114,7 @@ export default class HTTPServerActor implements IServerActor {
         methodName,
         dataSerialized,
         req.header(ACTOR_ACTIVATION_ID_HEADER),
+        reentrancyId,
       );
       res.statusCode = HttpStatusCode.OK;
       return this.handleResult(res, result);
@@ -137,6 +138,7 @@ export default class HTTPServerActor implements IServerActor {
         timerName,
         dataSerialized,
         req.header(ACTOR_ACTIVATION_ID_HEADER),
+        this.reentrancyIdFrom(req),
       );
       return res.status(200).send(result);
     } catch (err) {
@@ -156,6 +158,7 @@ export default class HTTPServerActor implements IServerActor {
         reminderName,
         dataSerialized,
         req.header(ACTOR_ACTIVATION_ID_HEADER),
+        this.reentrancyIdFrom(req),
       );
       return res.status(200).send(result);
     } catch (err) {
@@ -172,6 +175,14 @@ export default class HTTPServerActor implements IServerActor {
       return HttpStatusCode.INTERNAL_SERVER_ERROR;
     }
     return HttpStatusCode.INTERNAL_SERVER_ERROR;
+  }
+
+  /**
+   * `req.header` matches case-insensitively. Deactivation does not use this id:
+   * it always waits for the current turn instead of joining it.
+   */
+  private reentrancyIdFrom(req: IRequest): string | undefined {
+    return reentrancyIdFromHeaderValue(req.header(DAPR_REENTRANCY_ID_HEADER));
   }
 
   private handleResult(res: IResponse, result: any) {
