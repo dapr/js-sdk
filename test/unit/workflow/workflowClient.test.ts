@@ -353,6 +353,22 @@ describe("DaprWorkflowClient", () => {
     });
   });
 
+  describe("terminateWorkflowWithReason", () => {
+    it("forwards the reason separately from the termination output", async () => {
+      mockTerminateOrchestration.mockResolvedValue(undefined);
+
+      const output = { result: "cancelled" };
+      await client.terminateWorkflowWithReason("instance-1", "operator requested", output);
+
+      expect(mockTerminateOrchestration).toHaveBeenCalledWith(
+        "instance-1",
+        output,
+        undefined,
+        "operator requested",
+      );
+    });
+  });
+
   describe("raiseEvent", () => {
     it("should raise an event with payload", async () => {
       mockRaiseOrchestrationEvent.mockResolvedValue(undefined);
