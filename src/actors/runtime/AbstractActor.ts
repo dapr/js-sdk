@@ -138,20 +138,24 @@ export default abstract class AbstractActor {
    * This method gets called when the actor is activated
    * Note: we require this to save the state so that we know the actor got activated!
    */
-  async onActivateInternal(): Promise<void> {
+  async onActivateInternal(canSave?: () => boolean): Promise<void> {
     await this.resetStateInternal();
     await this.onActivate();
-    await this.saveStateInternal();
+    if (!canSave || canSave()) {
+      await this.saveStateInternal();
+    }
   }
 
   /**
    * Clears all state cache and calls the overridden method onDeactivate
    * This callback is called when an actor is deactivated
    */
-  async onDeactivateInternal(): Promise<void> {
+  async onDeactivateInternal(canSave?: () => boolean): Promise<void> {
     await this.resetStateInternal();
     await this.onDeactivate();
-    await this.saveStateInternal();
+    if (!canSave || canSave()) {
+      await this.saveStateInternal();
+    }
   }
 
   /**
@@ -167,8 +171,9 @@ export default abstract class AbstractActor {
    * This gets called just after executing a method
    * It also persists the state changes of the actor
    */
-  async onActorMethodPostInternal(): Promise<void> {
+  async onActorMethodPostInternal(beforeSave?: () => void): Promise<void> {
     await this.onActorMethodPost();
+    beforeSave?.();
 
     // We need to save the state of the actor
     await this.saveStateInternal();
