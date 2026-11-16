@@ -35,7 +35,7 @@ For **building** a new version, we:
 PR this change into the right release branch, e.g. `release-3.4.0`. Merging to `master` branch should happen last.
 
 The proto snapshots are pinned to dapr/dapr commit `6801e6d54e908e0f7625e2a467d40359c3eb77d6`
-and dapr/durabletask-protobuf commit `89e5df3ffbbac9ac043997b109718db2c2b182b6`.
+and dapr/durabletask-protobuf commit `caf5cc1dbbb896f38d50cd6f8bb1b603a57ca006`.
 To fetch another tag, branch, or commit, set `DAPR_VERSION` before running the fetcher
 (for example, `$env:DAPR_VERSION = "master"` in PowerShell).
 The fetcher updates both `dapr/proto` and the packaged sources in `src/proto/dapr/proto`,
