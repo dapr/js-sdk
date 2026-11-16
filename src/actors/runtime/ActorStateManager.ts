@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { Temporal } from "@js-temporal/polyfill";
 import AbstractActor from "./AbstractActor";
 import ActorStateChange from "./ActorStateChange";
 import StateChangeKind from "./StateChangeKind";
@@ -31,22 +32,60 @@ export default class ActorStateManager<T> {
     return this.defaultStateChangeTracker;
   }
 
-  async addState(stateName: string, value: T): Promise<void> {
-    const res = await this.tryAddState(stateName, value);
+  /**
+   * Converts an optional TTL into an absolute expiration time.
+   *
+   * @throws If the TTL is not a positive duration.
+   */
+  private static toTtlExpireTime(ttl?: Temporal.Duration): Date | undefined {
+    if (ttl === undefined) {
+      return undefined;
+    }
+
+    const ms = ttl.total({ unit: "milliseconds", relativeTo: Temporal.Now.zonedDateTimeISO() });
+
+    if (!(ms > 0)) {
+      throw new Error(`The actor state TTL must be a positive duration, received ${ttl.toString()}`);
+    }
+
+    return new Date(Date.now() + ms);
+  }
+
+  /**
+   * Adds a state with the given name, throwing if it already exists.
+   *
+   * @param stateName - The name of the state.
+   * @param value - The value of the state.
+   * @param ttl - Optional time-to-live after which the state store expires the state.
+   */
+  async addState(stateName: string, value: T, ttl?: Temporal.Duration): Promise<void> {
+    const res = await this.tryAddState(stateName, value, ttl);
 
     if (!res) {
       throw new Error(`The actor state name ${stateName} already exist`);
     }
   }
 
-  async tryAddState(stateName: string, value: T): Promise<boolean> {
+  /**
+   * Attempts to add a state with the given name.
+   *
+   * @param stateName - The name of the state.
+   * @param value - The value of the state.
+   * @param ttl - Optional time-to-live after which the state store expires the state.
+   * @returns true if the state was added, false if it already exists.
+   */
+  async tryAddState(stateName: string, value: T, ttl?: Temporal.Duration): Promise<boolean> {
+    const ttlExpireTime = ActorStateManager.toTtlExpireTime(ttl);
     const stateChangeTracker = this.getContextualStateTracker();
 
     if (stateChangeTracker.has(stateName)) {
       const stateMetadata = stateChangeTracker.get(stateName);
 
-      if (stateMetadata?.getChangeKind() === StateChangeKind.REMOVE) {
-        stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.UPDATE));
+      if (stateMetadata?.getChangeKind() === StateChangeKind.REMOVE || stateMetadata?.isExpired()) {
+        stateChangeTracker.set(
+          stateName,
+          StateMetadata.replacing(stateMetadata, value, StateChangeKind.UPDATE, ttlExpireTime),
+        );
         return true;
       }
 
@@ -57,11 +96,11 @@ export default class ActorStateManager<T> {
       .getStateProvider()
       .containsState(this.actor.getActorType(), this.actor.getActorId(), stateName);
 
-    if (!didExist) {
+    if (didExist) {
       return false;
     }
 
-    stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.ADD));
+    stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.ADD, ttlExpireTime));
     return true;
   }
 
@@ -81,7 +120,7 @@ export default class ActorStateManager<T> {
     if (stateChangeTracker.has(stateName)) {
       const stateMetadata = stateChangeTracker.get(stateName);
 
-      if (stateMetadata?.getChangeKind() === StateChangeKind.REMOVE) {
+      if (stateMetadata?.getChangeKind() === StateChangeKind.REMOVE || stateMetadata?.isExpired()) {
         return [false, null];
       }
 
@@ -100,8 +139,23 @@ export default class ActorStateManager<T> {
     return [hasValue, value];
   }
 
+  /**
+   * Sets a state, adding it if it does not exist.
+   *
+   * Setting a state without a TTL removes any TTL previously applied to it by this actor
+   * instance (persisted as `ttlInSeconds: -1`). TTLs applied in an earlier activation are not
+   * tracked, so the state store keeps them unless a new TTL is provided.
+   *
+   * Using a TTL requires the `ActorStateTTL` feature to be enabled in the Dapr Configuration and a
+   * state store that supports TTLs.
+   *
+   * @param stateName - The name of the state.
+   * @param value - The value of the state.
+   * @param ttl - Optional time-to-live after which the state store expires the state.
+   */
   // SEE: https://github.com/dapr/python-sdk/blob/0f0b6f6a1cf45d2ac0c519b48fc868898d81124e/dapr/actor/runtime/state_manager.py#L236
-  async setState(stateName: string, value: T): Promise<void> {
+  async setState(stateName: string, value: T, ttl?: Temporal.Duration): Promise<void> {
+    const ttlExpireTime = ActorStateManager.toTtlExpireTime(ttl);
     const stateChangeTracker = this.getContextualStateTracker();
 
     if (stateChangeTracker.has(stateName)) {
@@ -112,6 +166,7 @@ export default class ActorStateManager<T> {
       }
 
       stateMetadata.setValue(value);
+      stateMetadata.setTtlExpireTime(ttlExpireTime);
 
       if (
         stateMetadata.getChangeKind() === StateChangeKind.NONE ||
@@ -130,9 +185,9 @@ export default class ActorStateManager<T> {
       .containsState(this.actor.getActorType(), this.actor.getActorId(), stateName);
 
     if (didExist) {
-      stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.UPDATE));
+      stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.UPDATE, ttlExpireTime));
     } else {
-      stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.ADD));
+      stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.ADD, ttlExpireTime));
     }
   }
 
@@ -149,6 +204,11 @@ export default class ActorStateManager<T> {
 
     if (stateChangeTracker.has(stateName)) {
       const stateMetadata = stateChangeTracker.get(stateName);
+
+      if (stateMetadata?.isExpired()) {
+        stateChangeTracker.delete(stateName);
+        return false;
+      }
 
       if (stateMetadata?.getChangeKind() === StateChangeKind.REMOVE) {
         return false;
@@ -179,7 +239,7 @@ export default class ActorStateManager<T> {
 
     if (stateChangeTracker.has(stateName)) {
       const stateMetadata = stateChangeTracker.get(stateName);
-      return stateMetadata?.getChangeKind() !== StateChangeKind.REMOVE;
+      return stateMetadata?.getChangeKind() !== StateChangeKind.REMOVE && !stateMetadata?.isExpired();
     }
 
     const doesContainState = await this.actor
@@ -188,7 +248,15 @@ export default class ActorStateManager<T> {
     return doesContainState;
   }
 
-  async getOrAddState(stateName: string, value: T): Promise<T | null> {
+  /**
+   * Gets a state, adding it with the given value if it does not exist.
+   *
+   * @param stateName - The name of the state.
+   * @param value - The value to add if the state does not exist.
+   * @param ttl - Optional time-to-live applied only when the state is added.
+   */
+  async getOrAddState(stateName: string, value: T, ttl?: Temporal.Duration): Promise<T | null> {
+    const ttlExpireTime = ActorStateManager.toTtlExpireTime(ttl);
     const stateChangeTracker = this.getContextualStateTracker();
     const [hasValue, val] = await this.tryGetState(stateName);
 
@@ -196,8 +264,12 @@ export default class ActorStateManager<T> {
       return val;
     }
 
-    const changeKind = (await this.isStateMarkedForRemove(stateName)) ? StateChangeKind.UPDATE : StateChangeKind.ADD;
-    stateChangeTracker.set(stateName, new StateMetadata(value, changeKind));
+    // A tracked (removed or expired) entry may still exist in the store, so upsert as an update.
+    const changeKind = stateChangeTracker.has(stateName) ? StateChangeKind.UPDATE : StateChangeKind.ADD;
+    stateChangeTracker.set(
+      stateName,
+      StateMetadata.replacing(stateChangeTracker.get(stateName), value, changeKind, ttlExpireTime),
+    );
 
     return value;
   }
@@ -213,7 +285,23 @@ export default class ActorStateManager<T> {
     return false;
   }
 
-  async addOrUpdateState(stateName: string, value: T, updateValueFactory: (a: string, b: T) => T): Promise<T> {
+  /**
+   * Adds a state if it does not exist, or updates it using the factory if it does.
+   *
+   * Like {@link setState}, omitting the TTL removes a TTL previously applied by this actor instance.
+   *
+   * @param stateName - The name of the state.
+   * @param value - The value to add if the state does not exist.
+   * @param updateValueFactory - Produces the new value from the existing one.
+   * @param ttl - Optional time-to-live after which the state store expires the state.
+   */
+  async addOrUpdateState(
+    stateName: string,
+    value: T,
+    updateValueFactory: (a: string, b: T) => T,
+    ttl?: Temporal.Duration,
+  ): Promise<T> {
+    const ttlExpireTime = ActorStateManager.toTtlExpireTime(ttl);
     const stateChangeTracker = this.getContextualStateTracker();
 
     if (stateChangeTracker.has(stateName)) {
@@ -223,13 +311,17 @@ export default class ActorStateManager<T> {
         throw new Error("State Metadata was not set");
       }
 
-      if (stateMetadata?.getChangeKind() === StateChangeKind.REMOVE) {
-        stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.UPDATE));
+      if (stateMetadata.getChangeKind() === StateChangeKind.REMOVE || stateMetadata.isExpired()) {
+        stateChangeTracker.set(
+          stateName,
+          StateMetadata.replacing(stateMetadata, value, StateChangeKind.UPDATE, ttlExpireTime),
+        );
         return value;
       }
 
       const newValue = updateValueFactory(stateName, stateMetadata.getValue());
       stateMetadata.setValue(newValue);
+      stateMetadata.setTtlExpireTime(ttlExpireTime);
 
       if (stateMetadata.getChangeKind() === StateChangeKind.NONE) {
         stateMetadata.setChangeKind(StateChangeKind.UPDATE);
@@ -246,11 +338,11 @@ export default class ActorStateManager<T> {
 
     if (hasValue) {
       const newValue = updateValueFactory(stateName, val);
-      stateChangeTracker.set(stateName, new StateMetadata(newValue, StateChangeKind.UPDATE));
+      stateChangeTracker.set(stateName, new StateMetadata(newValue, StateChangeKind.UPDATE, ttlExpireTime));
       return newValue;
     }
 
-    stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.ADD));
+    stateChangeTracker.set(stateName, new StateMetadata(value, StateChangeKind.ADD, ttlExpireTime));
 
     return value;
   }
@@ -289,7 +381,17 @@ export default class ActorStateManager<T> {
         return;
       }
 
-      stateChanges.push(new ActorStateChange(stateName, stateMetadata.getValue(), stateMetadata.getChangeKind()));
+      stateChanges.push(
+        new ActorStateChange(
+          stateName,
+          stateMetadata.getValue(),
+          stateMetadata.getChangeKind(),
+          stateMetadata.getTtlExpireTime(),
+          stateMetadata.isTtlRemoved(),
+        ),
+      );
+
+      stateMetadata.clearTtlRemoved();
 
       if (stateMetadata.getChangeKind() === StateChangeKind.REMOVE) {
         statesToRemove.push(stateName);

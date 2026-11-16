@@ -31,16 +31,86 @@ import StateChangeKind from "./StateChangeKind";
 export default class StateMetadata<T> {
   private value: T;
   private changeKind: StateChangeKind;
+  private ttlExpireTime: Date | undefined;
+  private ttlRemoved = false;
 
   /**
    * Constructs a StateMetadata instance.
    *
    * @param value - The current state value.
    * @param changeKind - The type of modification applied to this state ({@link StateChangeKind}).
+   * @param ttlExpireTime - Optional absolute time at which this state expires.
    */
-  constructor(value: T, changeKind: StateChangeKind) {
+  constructor(value: T, changeKind: StateChangeKind, ttlExpireTime?: Date) {
     this.value = value;
     this.changeKind = changeKind;
+    this.ttlExpireTime = ttlExpireTime;
+  }
+
+  /**
+   * Creates metadata that replaces an existing tracked entry, remembering whether a TTL
+   * previously applied to the state has to be explicitly removed in the state store.
+   */
+  static replacing<T>(
+    previous: StateMetadata<T> | undefined,
+    value: T,
+    changeKind: StateChangeKind,
+    ttlExpireTime?: Date,
+  ): StateMetadata<T> {
+    const metadata = new StateMetadata(value, changeKind, previous?.getTtlExpireTime());
+    metadata.ttlRemoved = previous?.isTtlRemoved() ?? false;
+    metadata.setTtlExpireTime(ttlExpireTime);
+    return metadata;
+  }
+
+  /**
+   * Retrieves the absolute time at which this state expires, if a TTL was set.
+   *
+   * @returns The expiration time, or undefined if the state does not expire.
+   */
+  getTtlExpireTime(): Date | undefined {
+    return this.ttlExpireTime;
+  }
+
+  /**
+   * Updates the absolute time at which this state expires.
+   *
+   * Clearing a previously set expiration marks the TTL as removed, so the next save
+   * explicitly persists the state without expiration.
+   *
+   * @param ttlExpireTime - The new expiration time, or undefined to remove the expiration.
+   */
+  setTtlExpireTime(ttlExpireTime: Date | undefined): void {
+    if (ttlExpireTime !== undefined) {
+      this.ttlRemoved = false;
+    } else if (this.ttlExpireTime !== undefined) {
+      this.ttlRemoved = true;
+    }
+
+    this.ttlExpireTime = ttlExpireTime;
+  }
+
+  /**
+   * Whether a TTL previously applied to this state was removed and must be cleared in the state store.
+   */
+  isTtlRemoved(): boolean {
+    return this.ttlRemoved;
+  }
+
+  /**
+   * Marks a removed TTL as persisted.
+   */
+  clearTtlRemoved(): void {
+    this.ttlRemoved = false;
+  }
+
+  /**
+   * Whether this state has a TTL that has already elapsed.
+   *
+   * @param now - The reference time (defaults to the current time).
+   */
+  isExpired(now: Date = new Date()): boolean {
+    return this.ttlExpireTime !== undefined && this.ttlExpireTime.getTime() <= now.getTime();
   }
 
   /**
