@@ -136,7 +136,8 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
   }
 
   async terminate(instanceId: string, reason?: string): Promise<void> {
-    await this._invokeMethod(instanceId, "terminate", reason === undefined ? undefined : { reason });
+    const method = reason === undefined ? "terminate" : `terminate?reason=${encodeURIComponent(reason)}`;
+    await this._invokeMethod(instanceId, method);
   }
 
   async pause(instanceId: string): Promise<void> {
@@ -176,7 +177,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     return this.raiseEvent(instanceId, eventName, eventData, options);
   }
 
-  async _invokeMethod(instanceId: string, method: string, body?: unknown): Promise<any> {
+  async _invokeMethod(instanceId: string, method: string): Promise<any> {
     if (!instanceId) {
       throw new PropertyRequiredError("instanceID");
     }
@@ -188,8 +189,6 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     try {
       await this.client.executeWithApiVersion("v1.0-beta1", `/workflows/dapr/${instanceId}/${method}`, {
         method: "POST",
-        body,
-        serializer: this.client.options.serializer,
       });
     } catch (e: any) {
       this.logger.error(`Error invoking ${method} on workflow instance: ${e.message}`);
