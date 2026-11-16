@@ -26,6 +26,7 @@ import * as SerializerUtil from "../../../utils/Serializer.util";
 import communicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
 import { HttpEndpoint } from "../../../network/HttpEndpoint";
 import { getBaggageHeader } from "../../../utils/Baggage.util";
+import { getTraceContextHeaders } from "../../../utils/TraceContext.util";
 import { withAbortSignal } from "../../../utils/Client.util";
 
 /**
@@ -328,6 +329,13 @@ export default class HTTPClient implements IClient {
   /** Execute a raw streaming request without JSON serialization or text decoding. */
   async executeStreamWithApiVersion(apiVersion: string, path: string, params: RequestInit): Promise<Response> {
     const headers = new Headers(params.headers);
+    if (!headers.has("traceparent")) {
+      for (const [key, value] of Object.entries(getTraceContextHeaders())) {
+        if (!headers.has(key)) {
+          headers.set(key, value);
+        }
+      }
+    }
     const baggage = getBaggageHeader();
     if (baggage !== undefined && !headers.has("baggage")) {
       headers.set("baggage", baggage);
@@ -425,6 +433,14 @@ export default class HTTPClient implements IClient {
 
     // Set Headers
     clientOptions.headers = { ...params?.headers };
+    const headerNames = new Set(Object.keys(clientOptions.headers).map((key) => key.toLowerCase()));
+    if (!headerNames.has("traceparent")) {
+      for (const [key, value] of Object.entries(getTraceContextHeaders())) {
+        if (!headerNames.has(key)) {
+          clientOptions.headers[key] = value;
+        }
+      }
+    }
     const baggage = getBaggageHeader();
     if (baggage !== undefined && !Object.keys(clientOptions.headers).some((key) => key.toLowerCase() === "baggage")) {
       clientOptions.headers["baggage"] = baggage;
