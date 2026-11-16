@@ -68,18 +68,6 @@ export default class DaprWorkflowClient {
    *
    * The reason is stored in the workflow history and exposed on the
    * {@link WorkflowState.terminationReason} property after termination.
-   *
-   * @param workflowInstanceId - ID of the workflow instance to terminate.
-   * @param reason - Reason to retain with the termination event.
-   * @param output - Optional termination output.
-   * @param signal - Optional cancellation signal for the request.
-   *
-   * @example
-   * ```ts
-   * await workflowClient.terminateWorkflowWithReason(instanceId, "Order was cancelled");
-   * const state = await workflowClient.getWorkflowState(instanceId, false);
-   * console.log(state?.terminationReason);
-   * ```
    */
   public async terminateWorkflowWithReason(
     workflowInstanceId: string,
