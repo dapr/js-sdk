@@ -11,6 +11,7 @@ import type { OrchestrationStatus, TaskFailureDetails, TaskRouter, TraceContext,
 import type { HistoryEvent, PropagatedHistory } from "./history_events_pb.js";
 import type { WorkflowAction } from "./orchestrator_actions_pb.js";
 import type { EmptySchema, Timestamp } from "@bufbuild/protobuf/wkt";
+import type { CreateWorkflowScheduleRequestSchema, CreateWorkflowScheduleResponseSchema, DeleteWorkflowScheduleRequestSchema, DeleteWorkflowScheduleResponseSchema, GetWorkflowScheduleRequestSchema, GetWorkflowScheduleResponseSchema, ListWorkflowSchedulesRequestSchema, ListWorkflowSchedulesResponseSchema, TriggerWorkflowScheduleRequestSchema, TriggerWorkflowScheduleResponseSchema } from "./workflow_schedule_pb.js";
 
 /**
  * Describes the file dapr/proto/durabletask/v1/orchestrator_service.proto.
@@ -326,6 +327,16 @@ export declare type CreateInstanceResponse = Message<"CreateInstanceResponse"> &
    * @generated from field: string instanceId = 1;
    */
   instanceId: string;
+
+  /**
+   * staged is true when the sidecar accepted the operation but no workflow
+   * worker was connected to run it. The operation is saved and runs once a
+   * worker connects. False when the operation ran at once, and on sidecars
+   * that do not stage operations.
+   *
+   * @generated from field: bool staged = 2;
+   */
+  staged: boolean;
 };
 
 /**
@@ -419,11 +430,18 @@ export declare type RaiseEventRequest = Message<"RaiseEventRequest"> & {
 export declare const RaiseEventRequestSchema: GenMessage<RaiseEventRequest>;
 
 /**
- * No payload
- *
  * @generated from message RaiseEventResponse
  */
 export declare type RaiseEventResponse = Message<"RaiseEventResponse"> & {
+  /**
+   * staged is true when the sidecar accepted the operation but no workflow
+   * worker was connected to run it. The operation is saved and runs once a
+   * worker connects. False when the operation ran at once, and on sidecars
+   * that do not stage operations.
+   *
+   * @generated from field: bool staged = 1;
+   */
+  staged: boolean;
 };
 
 /**
@@ -467,11 +485,18 @@ export declare type TerminateRequest = Message<"TerminateRequest"> & {
 export declare const TerminateRequestSchema: GenMessage<TerminateRequest>;
 
 /**
- * No payload
- *
  * @generated from message TerminateResponse
  */
 export declare type TerminateResponse = Message<"TerminateResponse"> & {
+  /**
+   * staged is true when the sidecar accepted the operation but no workflow
+   * worker was connected to run it. The operation is saved and runs once a
+   * worker connects. False when the operation ran at once, and on sidecars
+   * that do not stage operations.
+   *
+   * @generated from field: bool staged = 1;
+   */
+  staged: boolean;
 };
 
 /**
@@ -510,11 +535,18 @@ export declare type SuspendRequest = Message<"SuspendRequest"> & {
 export declare const SuspendRequestSchema: GenMessage<SuspendRequest>;
 
 /**
- * No payload
- *
  * @generated from message SuspendResponse
  */
 export declare type SuspendResponse = Message<"SuspendResponse"> & {
+  /**
+   * staged is true when the sidecar accepted the operation but no workflow
+   * worker was connected to run it. The operation is saved and runs once a
+   * worker connects. False when the operation ran at once, and on sidecars
+   * that do not stage operations.
+   *
+   * @generated from field: bool staged = 1;
+   */
+  staged: boolean;
 };
 
 /**
@@ -553,11 +585,18 @@ export declare type ResumeRequest = Message<"ResumeRequest"> & {
 export declare const ResumeRequestSchema: GenMessage<ResumeRequest>;
 
 /**
- * No payload
- *
  * @generated from message ResumeResponse
  */
 export declare type ResumeResponse = Message<"ResumeResponse"> & {
+  /**
+   * staged is true when the sidecar accepted the operation but no workflow
+   * worker was connected to run it. The operation is saved and runs once a
+   * worker connects. False when the operation ran at once, and on sidecars
+   * that do not stage operations.
+   *
+   * @generated from field: bool staged = 1;
+   */
+  staged: boolean;
 };
 
 /**
@@ -840,6 +879,16 @@ export declare type RerunWorkflowFromEventResponse = Message<"RerunWorkflowFromE
    * @generated from field: string newInstanceID = 1;
    */
   newInstanceID: string;
+
+  /**
+   * staged is true when the sidecar accepted the operation but no workflow
+   * worker was connected to run it. The operation is saved and runs once a
+   * worker connects. False when the operation ran at once, and on sidecars
+   * that do not stage operations.
+   *
+   * @generated from field: bool staged = 2;
+   */
+  staged: boolean;
 };
 
 /**
@@ -870,6 +919,14 @@ export declare type ListInstanceIDsRequest = Message<"ListInstanceIDsRequest"> &
    * @generated from field: optional uint32 pageSize = 2;
    */
   pageSize?: number | undefined;
+
+  /**
+   * instanceIdPrefix, when set, returns only the instances whose ID starts
+   * with it.
+   *
+   * @generated from field: optional string instanceIdPrefix = 3;
+   */
+  instanceIdPrefix?: string | undefined;
 };
 
 /**
@@ -1147,6 +1204,49 @@ export declare const TaskHubSidecarService: GenService<{
     methodKind: "unary";
     input: typeof GetInstanceHistoryRequestSchema;
     output: typeof GetInstanceHistoryResponseSchema;
+  },
+  /**
+   * Workflow schedules start a workflow on a cron schedule. See
+   * workflow_schedule.proto.
+   *
+   * @generated from rpc TaskHubSidecarService.CreateWorkflowSchedule
+   */
+  createWorkflowSchedule: {
+    methodKind: "unary";
+    input: typeof CreateWorkflowScheduleRequestSchema;
+    output: typeof CreateWorkflowScheduleResponseSchema;
+  },
+  /**
+   * @generated from rpc TaskHubSidecarService.GetWorkflowSchedule
+   */
+  getWorkflowSchedule: {
+    methodKind: "unary";
+    input: typeof GetWorkflowScheduleRequestSchema;
+    output: typeof GetWorkflowScheduleResponseSchema;
+  },
+  /**
+   * @generated from rpc TaskHubSidecarService.ListWorkflowSchedules
+   */
+  listWorkflowSchedules: {
+    methodKind: "unary";
+    input: typeof ListWorkflowSchedulesRequestSchema;
+    output: typeof ListWorkflowSchedulesResponseSchema;
+  },
+  /**
+   * @generated from rpc TaskHubSidecarService.DeleteWorkflowSchedule
+   */
+  deleteWorkflowSchedule: {
+    methodKind: "unary";
+    input: typeof DeleteWorkflowScheduleRequestSchema;
+    output: typeof DeleteWorkflowScheduleResponseSchema;
+  },
+  /**
+   * @generated from rpc TaskHubSidecarService.TriggerWorkflowSchedule
+   */
+  triggerWorkflowSchedule: {
+    methodKind: "unary";
+    input: typeof TriggerWorkflowScheduleRequestSchema;
+    output: typeof TriggerWorkflowScheduleResponseSchema;
   },
 }>;
 

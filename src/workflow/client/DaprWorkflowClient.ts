@@ -22,6 +22,12 @@ import type {
   RerunWorkflowFromEventOptions,
   WorkflowInstanceIdPage,
 } from "../../types/workflow/WorkflowManagement.types";
+import type {
+  CreateWorkflowScheduleOptions,
+  ListWorkflowSchedulesOptions,
+  WorkflowSchedule,
+  WorkflowSchedulePage,
+} from "../../types/workflow/WorkflowSchedule.types";
 
 export default class DaprWorkflowClient {
   private readonly _innerClient: TaskHubClient;
@@ -59,6 +65,72 @@ export default class DaprWorkflowClient {
     );
   }
 
+  /**
+   * Creates a schedule that starts the workflow repeatedly. Each run is a new, detached workflow instance with the
+   * ID "<name>_<owner>_<fire time as 20060102T150405Z UTC>", where <owner> is a 6-character tag of the app that owns
+   * the schedule, so all runs of a schedule are the instances whose ID starts with "<name>_<owner>_" (see the
+   * instanceIdPrefix of listWorkflowInstanceIds).
+   *
+   * @param name 1 to 30 letters, digits or '-'.
+   * @param schedule Dapr Jobs API syntax: a 6-field cron expression with seconds ("0 30 9 * * MON"),
+   *   "@every <duration>" (at least 1s), or "@yearly", "@monthly", "@weekly", "@daily", "@hourly". A
+   *   "CRON_TZ=<zone> " prefix sets the time zone of a cron expression, which is UTC otherwise.
+   *
+   * Times missed while the app was down are caught up durably: each starts its own run, one after another. Set
+   * options.skipMissed to start one run for them instead and carry on from the next time after now.
+   *
+   * Runtime errors are propagated as ConnectError: InvalidArgument for an invalid schedule, AlreadyExists when the
+   * name is taken and overwrite is not set, Unimplemented when the runtime does not support schedules.
+   */
+  public async createWorkflowSchedule(
+    name: string,
+    workflow: TWorkflow | string,
+    schedule: string,
+    options: CreateWorkflowScheduleOptions = {},
+  ): Promise<void> {
+    if (options.input !== undefined && options.serializedInput !== undefined) {
+      throw new TypeError("input and serializedInput cannot both be set");
+    }
+    if (options.repeats !== undefined) assertUint32("repeats", options.repeats, 1);
+    const workflowName = typeof workflow === "string" ? workflow : getFunctionName(workflow);
+    await this._innerClient.createWorkflowSchedule(name, workflowName, schedule, options);
+  }
+
+  /**
+   * Gets a schedule with its status, including how its last run went.
+   * A missing schedule is propagated as a ConnectError with Code.NotFound.
+   */
+  public async getWorkflowSchedule(name: string): Promise<WorkflowSchedule> {
+    return await this._innerClient.getWorkflowSchedule(name);
+  }
+
+  /**
+   * Lists a page of the app's schedules with their status.
+   */
+  public async listWorkflowSchedules(options: ListWorkflowSchedulesOptions = {}): Promise<WorkflowSchedulePage> {
+    if (options.pageSize !== undefined) assertUint32("pageSize", options.pageSize, 1);
+    return await this._innerClient.listWorkflowSchedules(options);
+  }
+
+  /**
+   * Stops and removes a schedule. Runs it already started are not affected.
+   * A missing schedule is propagated as a ConnectError with Code.NotFound.
+   */
+  public async deleteWorkflowSchedule(name: string): Promise<void> {
+    await this._innerClient.deleteWorkflowSchedule(name);
+  }
+
+  /**
+   * Starts a run of the schedule now, without moving its next scheduled run, and returns the run's instance ID
+   * ("<name>_<owner>_<time>_manual"). The run counts towards repeats. Triggers within the same millisecond start one
+   * run.
+   * Runtime errors are propagated as ConnectError: NotFound for a missing schedule, FailedPrecondition for a
+   * completed schedule or when no workflow worker is connected for the app.
+   */
+  public async triggerWorkflowSchedule(name: string): Promise<string> {
+    return await this._innerClient.triggerWorkflowSchedule(name);
+  }
+
   public async terminateWorkflow(workflowInstanceId: string, output?: unknown, signal?: AbortSignal): Promise<void> {
     await this._innerClient.terminateOrchestration(workflowInstanceId, output, signal);
   }
@@ -92,13 +164,16 @@ export default class DaprWorkflowClient {
 
   /**
    * Lists workflow instance IDs, optionally requesting a page using a continuation token.
+   * instanceIdPrefix limits the result to the instances whose ID starts with it, for example "<schedule name>_".
    */
-  public async listWorkflowInstanceIds(continuationToken?: string, pageSize?: number): Promise<WorkflowInstanceIdPage> {
-    if (pageSize !== undefined && (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 0xffffffff)) {
-      throw new RangeError("pageSize must be an integer between 1 and 4294967295");
-    }
+  public async listWorkflowInstanceIds(
+    continuationToken?: string,
+    pageSize?: number,
+    instanceIdPrefix?: string,
+  ): Promise<WorkflowInstanceIdPage> {
+    if (pageSize !== undefined) assertUint32("pageSize", pageSize, 1);
 
-    return await this._innerClient.listWorkflowInstanceIds(continuationToken, pageSize);
+    return await this._innerClient.listWorkflowInstanceIds(continuationToken, pageSize, instanceIdPrefix);
   }
 
   /**
@@ -119,9 +194,7 @@ export default class DaprWorkflowClient {
     eventId: number,
     options: RerunWorkflowFromEventOptions = {},
   ): Promise<string> {
-    if (!Number.isInteger(eventId) || eventId < 0 || eventId > 0xffffffff) {
-      throw new RangeError("eventId must be an integer between 0 and 4294967295");
-    }
+    assertUint32("eventId", eventId, 0);
     if (options.newInstanceId !== undefined && options.newInstanceId.length === 0) {
       throw new TypeError("newInstanceId must not be empty");
     }
@@ -201,4 +274,10 @@ function isWorkflowInstanceNotFound(error: unknown): boolean {
   return (
     error.code === Code.NotFound || (error.code === Code.Unknown && /no such instance exists/i.test(error.message))
   );
+}
+
+function assertUint32(name: string, value: number, min: number): void {
+  if (!Number.isInteger(value) || value < min || value > 0xffffffff) {
+    throw new RangeError(`${name} must be an integer between ${min} and 4294967295`);
+  }
 }

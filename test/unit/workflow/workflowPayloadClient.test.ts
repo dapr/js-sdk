@@ -39,6 +39,7 @@ const mockRpc = {
   waitForInstanceCompletion: jest.fn(),
   purgeInstances: jest.fn(),
   getInstanceHistory: jest.fn(),
+  createWorkflowSchedule: jest.fn(),
 };
 
 jest.mock("@connectrpc/connect", () => ({
@@ -201,5 +202,18 @@ describe("workflow client data references", () => {
     mockRpc.purgeInstances.mockResolvedValue({ deletedInstanceCount: 1 });
     expect(await client.purgeWorkflow("id")).toBe(true);
     expect(store.files.has(`${reference.storeName}/${reference.key}`)).toBe(true);
+  });
+
+  it("stores a schedule's input once under the schedule's instance ID and sends serialized input as is", async () => {
+    await client.createWorkflowSchedule("nightly", "report", "@daily", { input: { region: "eu" } });
+
+    const sent = mockRpc.createWorkflowSchedule.mock.calls[0][0].schedule.input;
+    const ref = PayloadReference.parse(sent)!;
+    expect(ref.key).toContain("/dapr-internal-schedule-nightly/");
+    expect(store.files.has(`${ref.storeName}/${ref.key}`)).toBe(true);
+
+    await client.createWorkflowSchedule("raw", "report", "@daily", { serializedInput: '"as is"' });
+
+    expect(mockRpc.createWorkflowSchedule.mock.calls[1][0].schedule.input).toBe('"as is"');
   });
 });

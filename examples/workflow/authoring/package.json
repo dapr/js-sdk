@@ -8,11 +8,13 @@
     "start:activity-sequence": "npm run build && node dist/activity-sequence.js",
     "start:fanout-fanin": "npm run build && node dist/fanout-fanin.js",
     "start:human-interaction": "npm run build && node dist/human-interaction.js",
+    "start:schedule": "npm run build && node dist/schedule.js",
     "start:comprehensive-test": "npm run build && node dist/comprehensive-test.js",
     "start:dapr:comprehensive-test": "dapr run --app-id comprehensive-test --app-protocol grpc --dapr-grpc-port 50001 --components-path ./components -- npm run start:comprehensive-test",
     "start:dapr:activity-sequence": "dapr run --app-id activity-sequence-workflow --app-protocol grpc --dapr-grpc-port 50001 --components-path ./components npm run start:activity-sequence",
     "start:dapr:fanout-fanin": "dapr run --app-id activity-sequence-workflow --app-protocol grpc --dapr-grpc-port 50001 --components-path ./components npm run start:fanout-fanin",
-    "start:dapr:human-interaction": "dapr run --app-id activity-sequence-workflow --app-protocol grpc --dapr-grpc-port 50001 --components-path ./components npm run start:human-interaction"
+    "start:dapr:human-interaction": "dapr run --app-id activity-sequence-workflow --app-protocol grpc --dapr-grpc-port 50001 --components-path ./components npm run start:human-interaction",
+    "start:dapr:schedule": "dapr run --app-id schedule-workflow --app-protocol grpc --dapr-grpc-port 50001 --components-path ./components npm run start:schedule"
   },
   "author": "",
   "license": "ISC",

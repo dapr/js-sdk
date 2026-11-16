@@ -18,7 +18,7 @@ const path = require("path");
 const os = require("os");
 
 const DAPR_VERSION = "04215fd7eb2666910d9afd1a6d672ca3862bd1ae";
-const DURABLETASK_VERSION = "89e5df3ffbbac9ac043997b109718db2c2b182b6";
+const DURABLETASK_VERSION = "v0.7.0";
 const GOOGLEAPIS_VERSION = "ebd1d23ac613b177828dad42ad8dfb13ba498279";
 
 async function request(url) {
