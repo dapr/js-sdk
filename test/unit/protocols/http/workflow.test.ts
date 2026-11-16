@@ -42,4 +42,55 @@ describe("workflow", () => {
   it("should throw PropertyRequiredError when eventName variable is not provided in raiseEvent method", async () => {
     await expect(workflow.raiseEvent(randomUUID(), "")).rejects.toThrow(PropertyRequiredError);
   });
+  describe("terminate", () => {
+    it("sends a termination reason as a query parameter", async () => {
+      const reason = "operator requested & confirmed";
+      const execute = jest.spyOn(client, "executeWithApiVersion").mockResolvedValue({});
+
+      try {
+        await workflow.terminate("instance-1", reason);
+
+        expect(execute).toHaveBeenCalledWith(
+          "v1.0-beta1",
+          `/workflows/dapr/instance-1/terminate?reason=${encodeURIComponent(reason)}`,
+          { method: "POST" },
+        );
+      } finally {
+        execute.mockRestore();
+      }
+    });
+
+    it("preserves an explicitly empty termination reason", async () => {
+      const execute = jest.spyOn(client, "executeWithApiVersion").mockResolvedValue({});
+
+      try {
+        await workflow.terminate("instance-1", "");
+
+        expect(execute).toHaveBeenCalledWith(
+          "v1.0-beta1",
+          "/workflows/dapr/instance-1/terminate?reason=",
+          { method: "POST" },
+        );
+      } finally {
+        execute.mockRestore();
+      }
+    });
+
+    it("omits the termination reason when it is undefined", async () => {
+      const execute = jest.spyOn(client, "executeWithApiVersion").mockResolvedValue({});
+
+      try {
+        await workflow.terminate("instance-1");
+
+        expect(execute).toHaveBeenCalledWith(
+          "v1.0-beta1",
+          "/workflows/dapr/instance-1/terminate",
+          { method: "POST" },
+        );
+      } finally {
+        execute.mockRestore();
+      }
+    });
+  });
+
 });
