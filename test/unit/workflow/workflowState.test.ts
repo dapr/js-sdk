@@ -129,6 +129,25 @@ describe("WorkflowState", () => {
       });
     });
 
+    it("should expose the termination reason", () => {
+      const orchState = new OrchestrationState(
+        "instance-terminated",
+        "myWorkflow",
+        OrchestrationStatus.TERMINATED,
+        now,
+        later,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        "operator requested",
+      );
+
+      const state = new WorkflowState(orchState);
+
+      expect(state.terminationReason).toBe("operator requested");
+    });
+
     it("should handle undefined optional fields", () => {
       const orchState = new OrchestrationState("instance-1", "myWorkflow", OrchestrationStatus.RUNNING, now, later);
 
