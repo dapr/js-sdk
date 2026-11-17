@@ -308,8 +308,8 @@ export class TaskHubClient {
     failureDetails: TaskFailureDetails,
     signal?: AbortSignal,
   ): Promise<void> {
-    if (!failureDetails?.errorType?.trim() || !failureDetails?.errorMessage?.trim()) {
-      throw new TypeError("failureDetails must include a non-empty errorType and errorMessage");
+    if (!failureDetails?.errorType?.trim()) {
+      throw new TypeError("failureDetails must include a non-empty errorType");
     }
 
     const req = create(RaiseEventRequestSchema, {
