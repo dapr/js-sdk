@@ -50,6 +50,13 @@ describe("WorkflowFailureDetails", () => {
     expect(child.innerFailure).toBe(raw.innerFailure?.innerFailure);
   });
 
+  it("preserves an empty message when serializing a raised exception", () => {
+    const details = newFailureDetails(new Error());
+
+    expect(details.errorType).toBe("Error");
+    expect(details.errorMessage).toBe("");
+  });
+
   it("preserves task failure chains when a failed activity or child fails its caller", () => {
     const raw = create(TaskFailureDetailsSchema, {
       errorType: "TypeError",
