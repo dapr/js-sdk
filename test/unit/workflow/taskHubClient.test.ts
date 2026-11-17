@@ -19,13 +19,16 @@ import {
   GetInstanceHistoryResponseSchema,
   RerunWorkflowFromEventRequestSchema,
   RerunWorkflowFromEventResponseSchema,
+  RaiseEventRequestSchema,
 } from "../../../src/proto/dapr/proto/durabletask/v1/orchestrator_service_pb";
+import { TaskFailureDetailsSchema } from "../../../src/proto/dapr/proto/durabletask/v1/orchestration_pb";
 import type { RerunWorkflowFromEventOptions } from "../../../src";
 import { TaskHubClient } from "../../../src/workflow/engine";
 
 const mockClient = {
   getInstanceHistory: jest.fn(),
   rerunWorkflowFromEvent: jest.fn(),
+  raiseError: jest.fn(),
 };
 
 jest.mock("@connectrpc/connect", () => ({
@@ -60,6 +63,32 @@ describe("TaskHubClient workflow history", () => {
     );
     expect(history).toBe(response.events);
     expect(history[0].eventType).toEqual(event.eventType);
+  });
+
+  it("raises structured failures without requiring an error message", async () => {
+    const failureDetails = create(TaskFailureDetailsSchema, {
+      errorType: "Error",
+      errorMessage: "",
+    });
+    mockClient.raiseError.mockResolvedValueOnce(undefined);
+
+    await expect(client.raiseOrchestrationError("instance", "approval", failureDetails)).resolves.toBeUndefined();
+
+    expect(mockClient.raiseError).toHaveBeenCalledWith(
+      create(RaiseEventRequestSchema, {
+        instanceId: "instance",
+        name: "approval",
+        failureDetails,
+      }),
+      undefined,
+    );
+  });
+
+  it("rejects raised failures without an error type", async () => {
+    await expect(
+      client.raiseOrchestrationError("instance", "approval", create(TaskFailureDetailsSchema, { errorMessage: "" })),
+    ).rejects.toThrow("failureDetails must include a non-empty errorType");
+    expect(mockClient.raiseError).not.toHaveBeenCalled();
   });
 
   it("preserves an empty history returned by the runtime", async () => {
