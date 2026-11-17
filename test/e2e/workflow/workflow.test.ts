@@ -742,6 +742,28 @@ describe("workflow", () => {
     expect(state?.serializedOutput).toEqual(JSON.stringify(["a", "b", "c"]));
   }, 31000);
 
+  it("should fail an external-event wait when an error is raised", async () => {
+    const workflow: TWorkflow = async function* (ctx: WorkflowContext): any {
+      ctx.setCustomStatus("waiting");
+      yield ctx.waitForExternalEvent("approval");
+      return "unexpected success";
+    };
+
+    workflowRuntime.registerWorkflow(workflow);
+    await workflowRuntime.start();
+
+    const id = await workflowClient.scheduleNewWorkflow(workflow);
+    await waitForCustomStatus(id, '"waiting"');
+    await workflowClient.raiseError(id, "approval", new Error());
+
+    const state = await workflowClient.waitForWorkflowCompletion(id, true, 30);
+
+    expect(state).toBeDefined();
+    expect(state?.runtimeStatus).toEqual(WorkflowRuntimeStatus.FAILED);
+    expect(state?.workflowFailureDetails?.getErrorType()).toEqual("TaskFailedError");
+    expect(state?.workflowFailureDetails?.getErrorMessage()).toContain("approval");
+  }, 31000);
+
   it("should be able to run an single timer", async () => {
     const delay = 3;
     const singleTimerWorkflow: TWorkflow = async function* (ctx: WorkflowContext, _: number): any {
