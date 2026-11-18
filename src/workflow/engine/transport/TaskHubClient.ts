@@ -62,7 +62,6 @@ export class OrchestrationState {
     public serializedOutput?: string,
     public serializedCustomStatus?: string,
     public failureDetails?: TaskFailureDetails,
-    public terminationReason?: string,
   ) {}
 
   static fromGetInstanceResponse(instanceId: string, res: GetInstanceResponse): OrchestrationState | undefined {
@@ -86,7 +85,6 @@ export class OrchestrationState {
       state.output,
       state.customStatus,
       failureDetails,
-      state.terminationReason,
     );
   }
 }
@@ -315,12 +313,14 @@ export class TaskHubClient {
       recursive: true,
     });
 
-    if (output !== undefined) {
-      req.output = await this.encodePayload(output, { kind: PayloadKind.WorkflowOutput, instanceId }, signal);
+    if (output !== undefined && reason !== undefined) {
+      throw new TypeError("output and reason cannot be supplied together");
     }
 
     if (reason !== undefined) {
-      req.reason = reason;
+      req.output = reason;
+    } else if (output !== undefined) {
+      req.output = await this.encodePayload(output, { kind: PayloadKind.WorkflowOutput, instanceId }, signal);
     }
 
     this.logger.info(`Terminating '${instanceId}'`);
