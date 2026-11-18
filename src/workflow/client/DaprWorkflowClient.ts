@@ -66,8 +66,8 @@ export default class DaprWorkflowClient {
   /**
    * Terminates a workflow with a durable, retrievable reason.
    *
-   * The reason is stored in the workflow history and exposed on the
-   * {@link WorkflowState.terminationReason} property after termination.
+   * The reason is stored as the existing termination input and exposed through
+   * {@link WorkflowState.customStatus}. It cannot be combined with an output.
    */
   public async terminateWorkflowWithReason(
     workflowInstanceId: string,
@@ -75,7 +75,10 @@ export default class DaprWorkflowClient {
     output?: unknown,
     signal?: AbortSignal,
   ): Promise<void> {
-    await this._innerClient.terminateOrchestration(workflowInstanceId, output, signal, reason);
+    if (output !== undefined) {
+      throw new TypeError("output and reason cannot be supplied together");
+    }
+    await this._innerClient.terminateOrchestration(workflowInstanceId, reason, signal);
   }
 
   /**
