@@ -313,7 +313,7 @@ export class TaskHubClient {
       recursive: true,
     });
 
-    if (output !== null && output !== undefined && reason !== undefined) {
+    if (output !== undefined && reason !== undefined) {
       throw new TypeError("output and reason cannot be supplied together");
     }
 
