@@ -361,8 +361,9 @@ describe("DaprWorkflowClient", () => {
 
       expect(mockTerminateOrchestration).toHaveBeenCalledWith(
         "instance-1",
-        "operator requested",
+        null,
         undefined,
+        "operator requested",
       );
     });
 
