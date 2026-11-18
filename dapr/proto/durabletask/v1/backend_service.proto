@@ -123,7 +123,6 @@ message WorkflowMetadata {
   optional google.protobuf.StringValue version = 12;
   optional google.protobuf.StringValue parentAppId = 13;
   optional google.protobuf.Timestamp startedAt = 14;
-  google.protobuf.StringValue terminationReason = 15;
 }
 
 message BackendWorkflowStateMetadata {
