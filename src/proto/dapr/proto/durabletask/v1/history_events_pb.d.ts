@@ -111,11 +111,6 @@ export declare type ExecutionTerminatedEvent = Message<"ExecutionTerminatedEvent
    * @generated from field: bool recurse = 2;
    */
   recurse: boolean;
-
-  /**
-   * @generated from field: google.protobuf.StringValue reason = 3;
-   */
-  reason?: string | undefined;
 };
 
 /**
