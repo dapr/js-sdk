@@ -75,11 +75,6 @@ export class WorkflowState {
     return fromOrchestrationStatus(this._state.runtimeStatus);
   }
 
-  /** Returns the optional reason supplied when the workflow was terminated. */
-  get terminationReason(): string | undefined {
-    return this._state.terminationReason;
-  }
-
   get createdAt(): Date {
     return this._state.createdAt;
   }
