@@ -34,7 +34,6 @@ message ExecutionCompletedEvent {
 message ExecutionTerminatedEvent {
     google.protobuf.StringValue input = 1;
     bool recurse = 2;
-    google.protobuf.StringValue reason = 3;
 }
 
 message TaskScheduledEvent {
