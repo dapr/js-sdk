@@ -302,13 +302,24 @@ export class TaskHubClient {
     await this.client.raiseEvent(req, this.callOptions(signal));
   }
 
-  async terminateOrchestration(instanceId: string, output: unknown = null, signal?: AbortSignal): Promise<void> {
+  async terminateOrchestration(
+    instanceId: string,
+    output: unknown = null,
+    signal?: AbortSignal,
+    reason?: string,
+  ): Promise<void> {
     const req = create(TerminateRequestSchema, {
       instanceId,
       recursive: true,
     });
 
-    if (output !== undefined) {
+    if (output !== undefined && reason !== undefined) {
+      throw new TypeError("output and reason cannot be supplied together");
+    }
+
+    if (reason !== undefined) {
+      req.output = reason;
+    } else if (output !== undefined) {
       req.output = await this.encodePayload(output, { kind: PayloadKind.WorkflowOutput, instanceId }, signal);
     }
 

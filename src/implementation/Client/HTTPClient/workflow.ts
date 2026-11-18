@@ -135,8 +135,9 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     }
   }
 
-  async terminate(instanceId: string): Promise<void> {
-    await this._invokeMethod(instanceId, "terminate");
+  async terminate(instanceId: string, reason?: string): Promise<void> {
+    const method = reason === undefined ? "terminate" : `terminate?reason=${encodeURIComponent(reason)}`;
+    await this._invokeMethod(instanceId, method);
   }
 
   async pause(instanceId: string): Promise<void> {

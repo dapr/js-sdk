@@ -353,6 +353,27 @@ describe("DaprWorkflowClient", () => {
     });
   });
 
+  describe("terminateWorkflowWithReason", () => {
+    it("maps the reason to the existing termination input", async () => {
+      mockTerminateOrchestration.mockResolvedValue(undefined);
+
+      await client.terminateWorkflowWithReason("instance-1", "operator requested");
+
+      expect(mockTerminateOrchestration).toHaveBeenCalledWith(
+        "instance-1",
+        null,
+        undefined,
+        "operator requested",
+      );
+    });
+
+    it("rejects separate output and reason values", async () => {
+      await expect(
+        client.terminateWorkflowWithReason("instance-1", "operator requested", { result: "cancelled" }),
+      ).rejects.toThrow("output and reason cannot be supplied together");
+    });
+  });
+
   describe("raiseEvent", () => {
     it("should raise an event with payload", async () => {
       mockRaiseOrchestrationEvent.mockResolvedValue(undefined);
