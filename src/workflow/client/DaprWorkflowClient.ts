@@ -78,7 +78,7 @@ export default class DaprWorkflowClient {
     if (output !== undefined) {
       throw new TypeError("output and reason cannot be supplied together");
     }
-    await this._innerClient.terminateOrchestration(workflowInstanceId, null, signal, reason);
+    await this._innerClient.terminateOrchestration(workflowInstanceId, undefined, signal, reason);
   }
 
   /**
