@@ -1052,11 +1052,6 @@ export declare const TaskHubSidecarService: GenService<{
     input: typeof RaiseEventRequestSchema;
     output: typeof RaiseEventResponseSchema;
   },
-  raiseError: {
-    methodKind: "unary";
-    input: typeof RaiseEventRequestSchema;
-    output: typeof RaiseEventResponseSchema;
-  },
   /**
    * Terminates a running workflow instance.
    *
