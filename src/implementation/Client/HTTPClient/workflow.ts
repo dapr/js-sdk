@@ -144,7 +144,7 @@ export default class HTTPClientWorkflow implements IClientWorkflow {
     const failureDetails = newFailureDetails(error);
     try {
       await this.client.executeWithApiVersion(
-        "v1.0-beta1",
+        "v1.0-alpha1",
         `/workflows/dapr/${instanceId}/raiseError/${eventName}`,
         {
           method: "POST",
