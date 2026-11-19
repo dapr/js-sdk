@@ -28,7 +28,7 @@ import { TaskHubClient } from "../../../src/workflow/engine";
 const mockClient = {
   getInstanceHistory: jest.fn(),
   rerunWorkflowFromEvent: jest.fn(),
-  raiseError: jest.fn(),
+  raiseEvent: jest.fn(),
 };
 
 jest.mock("@connectrpc/connect", () => ({
@@ -70,7 +70,7 @@ describe("TaskHubClient workflow history", () => {
       errorType: "Error",
       errorMessage: "",
     });
-    mockClient.raiseError.mockResolvedValueOnce(undefined);
+    mockClient.raiseEvent.mockResolvedValueOnce(undefined);
 
     await expect(client.raiseOrchestrationError("instance", "approval", failureDetails)).resolves.toBeUndefined();
 
