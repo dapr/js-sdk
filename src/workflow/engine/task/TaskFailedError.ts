@@ -27,7 +27,7 @@ export class TaskFailedError extends Error {
     super(message);
     this.name = "TaskFailedError";
     this.errorType = errorType;
-    this.errorMessage = message;
+    this.errorMessage = failureDetails?.errorMessage ?? message;
     this.stackTrace = stackTrace;
   }
 
@@ -50,5 +50,15 @@ export class TaskFailedError extends Error {
       errorType: this.errorType,
       stackTrace: this.stackTrace,
     };
+  }
+
+  /** Gets the nested error details, if the remote error included a cause. */
+  get innerFailure(): TaskFailureDetails | undefined {
+    return this.failureDetails?.innerFailure;
+  }
+
+  /** Indicates whether the failure was marked as non-retriable. */
+  get isNonRetriable(): boolean {
+    return this.failureDetails?.isNonRetriable ?? false;
   }
 }

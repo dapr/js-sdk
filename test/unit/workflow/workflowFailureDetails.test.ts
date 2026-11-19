@@ -50,6 +50,30 @@ describe("WorkflowFailureDetails", () => {
     expect(child.innerFailure).toBe(raw.innerFailure?.innerFailure);
   });
 
+  it("preserves an empty message when serializing a raised exception", () => {
+    const details = newFailureDetails(new Error());
+
+    expect(details.errorType).toBe("Error");
+    expect(details.errorMessage).toBe("");
+  });
+
+  it("preserves native Error.cause chains and bounds cyclic causes", () => {
+    const root = new TypeError("risk service unavailable");
+    const wrapped = new Error("approval rejected");
+    Object.defineProperty(wrapped, "cause", { value: root });
+
+    const details = newFailureDetails(wrapped);
+    expect(details.errorType).toBe("Error");
+    expect(details.errorMessage).toBe("approval rejected");
+    expect(details.innerFailure?.errorType).toBe("TypeError");
+    expect(details.innerFailure?.errorMessage).toBe("risk service unavailable");
+
+    Object.defineProperty(root, "cause", { value: wrapped });
+    const cyclic = newFailureDetails(wrapped);
+    expect(cyclic.innerFailure?.innerFailure?.errorType).toBe("Error");
+    expect(cyclic.innerFailure?.innerFailure?.innerFailure).toBeUndefined();
+  });
+
   it("preserves task failure chains when a failed activity or child fails its caller", () => {
     const raw = create(TaskFailureDetailsSchema, {
       errorType: "TypeError",

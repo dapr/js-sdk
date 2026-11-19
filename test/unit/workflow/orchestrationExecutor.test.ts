@@ -13,7 +13,10 @@ limitations under the License.
 
 import { create } from "@bufbuild/protobuf";
 import { HistoryEventSchema } from "../../../src/proto/dapr/proto/durabletask/v1/history_events_pb";
-import { OrchestrationStatus } from "../../../src/proto/dapr/proto/durabletask/v1/orchestration_pb";
+import {
+  OrchestrationStatus,
+  TaskFailureDetailsSchema,
+} from "../../../src/proto/dapr/proto/durabletask/v1/orchestration_pb";
 import type { HistoryEvent } from "../../../src";
 import { StopIterationError, whenAny } from "../../../src/workflow/engine";
 import type { Task } from "../../../src";
@@ -270,6 +273,41 @@ describe("OrchestrationExecutor completion", () => {
             failureDetails: {
               errorType: "NonDeterminismError",
               errorMessage: expect.stringContaining("trying to call different"),
+            },
+          },
+        });
+      },
+    );
+
+    it.each(["pending waiter", "buffered before the wait"])(
+      "fails the external-event wait with structured details when the error is %s",
+      async (delivery) => {
+        const registry = new Registry();
+        registry.addNamedOrchestrator("workflow", function* (context) {
+          yield context.waitForExternalEvent("approval");
+        });
+        const failureDetails = create(TaskFailureDetailsSchema, {
+          errorType: "Error",
+          errorMessage: "",
+        });
+        const started = newExecutionStartedEvent("workflow", "id");
+        const raisedError = newEventRaisedEvent("approval", undefined, failureDetails);
+        const history = [started, ...(delivery === "buffered before the wait" ? [raisedError] : [])];
+        const newEvents = delivery === "pending waiter" ? [raisedError] : [];
+
+        const result = await new OrchestrationExecutor(registry).execute("id", history, newEvents);
+
+        expect(result.actions).toHaveLength(1);
+        expect(result.actions[0].workflowActionType).toMatchObject({
+          case: "completeWorkflow",
+          value: {
+            workflowStatus: OrchestrationStatus.FAILED,
+            failureDetails: {
+              errorType: "TaskFailedError",
+              innerFailure: {
+                errorType: "Error",
+                errorMessage: "",
+              },
             },
           },
         });

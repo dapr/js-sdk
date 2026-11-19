@@ -50,7 +50,7 @@ import { ActivityOptions } from "./types/workflow/ActivityOptions.type";
 import { ChildWorkflowOptions } from "./types/workflow/ChildWorkflowOptions.type";
 import { DetachedWorkflowOptions } from "./types/workflow/DetachedWorkflowOptions.type";
 import { HistoryPropagationScope } from "./proto/dapr/proto/durabletask/v1/orchestration_pb";
-import { Task, TaskCanceledError, TaskTimeoutError } from "./workflow/engine/task";
+import { Task, TaskCanceledError, TaskTimeoutError, TaskFailedError } from "./workflow/engine/task";
 import { ExternalEventOptions } from "./types/workflow/ExternalEventOptions.type";
 import { WorkflowFailureDetails } from "./workflow/client/WorkflowFailureDetails";
 import { WorkflowState } from "./workflow/client/WorkflowState";
@@ -100,6 +100,7 @@ export {
   Task,
   TaskCanceledError,
   TaskTimeoutError,
+  TaskFailedError,
   ExternalEventOptions,
   WorkflowFailureDetails,
   WorkflowState,

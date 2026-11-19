@@ -145,6 +145,7 @@ message RaiseEventRequest {
     // router optionally routes this operation to the workflow instance owned
     // by another app. sourceAppID is stamped by the sidecar, not the client.
     optional TaskRouter router = 4;
+    TaskFailureDetails failureDetails = 5;
 }
 
 message RaiseEventResponse {

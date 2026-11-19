@@ -12,6 +12,7 @@ limitations under the License.
 */
 
 import { TaskHubClient } from "../engine";
+import { newFailureDetails } from "../engine/worker/protoHelpers";
 import { Code, ConnectError } from "@connectrpc/connect";
 import { WorkflowState } from "./WorkflowState";
 import { generateEndpoint, getDaprApiToken, getFunctionName } from "../internal";
@@ -170,6 +171,24 @@ export default class DaprWorkflowClient {
     signal?: AbortSignal,
   ): Promise<void> {
     await this._innerClient.raiseOrchestrationEvent(workflowInstanceId, eventName, eventPayload, signal);
+  }
+
+  public async raiseError(
+    workflowInstanceId: string,
+    eventName: string,
+    error: Error,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    if (!workflowInstanceId?.trim()) throw new TypeError("workflowInstanceId is required");
+    if (!eventName?.trim()) throw new TypeError("eventName is required");
+    if (!(error instanceof Error)) throw new TypeError("error must be an Error");
+
+    await this._innerClient.raiseOrchestrationError(
+      workflowInstanceId,
+      eventName,
+      newFailureDetails(error),
+      signal,
+    );
   }
 
   public async purgeWorkflow(workflowInstanceId: string, signal?: AbortSignal): Promise<boolean> {

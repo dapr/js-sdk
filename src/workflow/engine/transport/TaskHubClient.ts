@@ -302,6 +302,25 @@ export class TaskHubClient {
     await this.client.raiseEvent(req, this.callOptions(signal));
   }
 
+  async raiseOrchestrationError(
+    instanceId: string,
+    eventName: string,
+    failureDetails: TaskFailureDetails,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    if (!failureDetails?.errorType?.trim()) {
+      throw new TypeError("failureDetails must include a non-empty errorType");
+    }
+
+    const req = create(RaiseEventRequestSchema, {
+      instanceId,
+      name: eventName,
+      failureDetails,
+    });
+    this.logger.info(`Raising error for event '${eventName}' on instance '${instanceId}'`);
+    await this.client.raiseEvent(req, this.callOptions(signal));
+  }
+
   async terminateOrchestration(instanceId: string, output: unknown = null, signal?: AbortSignal): Promise<void> {
     const req = create(TerminateRequestSchema, {
       instanceId,

@@ -410,6 +410,11 @@ export declare type RaiseEventRequest = Message<"RaiseEventRequest"> & {
    * @generated from field: optional TaskRouter router = 4;
    */
   router?: TaskRouter | undefined;
+
+  /**
+   * @generated from field: TaskFailureDetails failureDetails = 5;
+   */
+  failureDetails?: TaskFailureDetails | undefined;
 };
 
 /**
