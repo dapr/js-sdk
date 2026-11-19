@@ -318,7 +318,7 @@ export class TaskHubClient {
       failureDetails,
     });
     this.logger.info(`Raising error for event '${eventName}' on instance '${instanceId}'`);
-    await this.client.raiseError(req, this.callOptions(signal));
+    await this.client.raiseEvent(req, this.callOptions(signal));
   }
 
   async terminateOrchestration(instanceId: string, output: unknown = null, signal?: AbortSignal): Promise<void> {
