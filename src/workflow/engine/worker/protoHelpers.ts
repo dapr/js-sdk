@@ -103,15 +103,43 @@ export function toError(value: unknown): Error {
   return new Error(String(value));
 }
 
-export function newFailureDetails(value: unknown): TaskFailureDetails {
-  const e = toError(value);
-  return create(TaskFailureDetailsSchema, {
-    errorType: e.constructor?.name ?? "Error",
-    errorMessage: e.message,
-    stackTrace: e.stack?.toString() ?? "",
+function failureDetailsFromError(error: Error, seen: Set<Error>, depth: number): TaskFailureDetails {
+  const details = {
+    errorType: error.constructor?.name ?? "Error",
+    errorMessage: error.message,
+    stackTrace: error.stack?.toString() ?? "",
     isNonRetriable: false,
-    innerFailure: e instanceof TaskFailedError ? e.failureDetails : undefined,
-  });
+  };
+
+  if (depth >= 16 || seen.has(error)) {
+    return create(TaskFailureDetailsSchema, details);
+  }
+  seen.add(error);
+
+  // Preserve the structured failure when a TaskFailedError is rethrown.
+  if (error instanceof TaskFailedError && error.failureDetails) {
+    return create(TaskFailureDetailsSchema, {
+      ...details,
+      innerFailure: error.failureDetails,
+    });
+  }
+
+  // Error.cause is intentionally read as a data property so an application
+  // supplied getter cannot run while serializing a failure.
+  const cause = Object.getOwnPropertyDescriptor(error, "cause")?.value;
+  if (cause !== undefined) {
+    const inner = failureDetailsFromError(toError(cause), seen, depth + 1);
+    return create(TaskFailureDetailsSchema, {
+      ...details,
+      innerFailure: inner,
+    });
+  }
+
+  return create(TaskFailureDetailsSchema, details);
+}
+
+export function newFailureDetails(value: unknown): TaskFailureDetails {
+  return failureDetailsFromError(toError(value), new Set<Error>(), 0);
 }
 
 export function newExecutionStartedEvent(name: string, instanceId: string, encodedInput?: string): HistoryEvent {
