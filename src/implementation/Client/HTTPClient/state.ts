@@ -27,6 +27,7 @@ import { StateSaveResponseType } from "../../../types/state/StateSaveResponseTyp
 import { StateSaveOptions } from "../../../types/state/StateSaveOptions.type";
 import { StateDeleteOptions } from "../../../types/state/StateDeleteOptions.type";
 import { THTTPExecuteParams } from "../../../types/http/THTTPExecuteParams.type";
+import { StateGetResponseType } from "../../../types/state/StateGetResponse.type";
 import { StateGetOptions } from "../../../types/state/StateGetOptions.type";
 import { serializeJsonValue, deserializeJsonValue } from "../../../serialization/Serialization.util";
 
@@ -92,6 +93,40 @@ export default class HTTPClientState implements IClientState {
     }
 
     return result as KeyValueType;
+  }
+
+  async getWithMetadata(
+    storeName: string,
+    key: string,
+    options?: Partial<StateGetOptions>,
+  ): Promise<StateGetResponseType> {
+    const queryParams = createHTTPQueryParam(
+      { data: options?.metadata, type: "metadata" },
+      { data: { consistency: getStateConsistencyValue(options?.consistency) } },
+    );
+    const response = await this.client.executeStreamWithApiVersion(
+      "v1.0",
+      `/state/${storeName}/${encodeURIComponent(key)}${queryParams ? `?${queryParams}` : ""}`,
+      { method: "GET" },
+    );
+    const text = await response.text();
+    let value: unknown = text;
+    if (this.client.options.serializer && text !== "") {
+      value = deserializeJsonValue(JSON.parse(text), this.client.options.serializer);
+    } else {
+      try {
+        value = JSON.parse(text);
+      } catch {
+        // Non-JSON and empty values retain the existing get() behavior.
+      }
+    }
+    const metadata: IRequestMetadata = {};
+    response.headers.forEach((value, name) => {
+      if (name.startsWith("metadata.")) {
+        metadata[name.slice("metadata.".length)] = value;
+      }
+    });
+    return { key, value, etag: response.headers.get("etag") || undefined, metadata };
   }
 
   async getBulk(storeName: string, keys: string[], options?: StateGetBulkOptions): Promise<KeyValueType[]> {
