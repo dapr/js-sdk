@@ -93,6 +93,8 @@ export default class GRPCClientInvoker implements IClientInvoker {
    * ```
    *
    * @see {@link https://docs.dapr.io/reference/api/service_invocation_api/#invoking-a-service}
+   * @deprecated Use a native HTTP or gRPC client for service invocation.
+   * @see https://docs.dapr.io/developing-applications/building-blocks/service-invocation/howto-invoke-discover-services/
    */
   async invoke(
     appId: string,

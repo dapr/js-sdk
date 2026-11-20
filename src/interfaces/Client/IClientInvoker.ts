@@ -24,6 +24,9 @@ export default interface IClientInvoker {
   /**
    * Invokes a method on a remote service.
    *
+   * @deprecated Use a native HTTP or gRPC client for service invocation.
+   * @see https://docs.dapr.io/developing-applications/building-blocks/service-invocation/howto-invoke-discover-services/
+   *
    * @param appId - The Dapr app ID of the target service.
    * @param methodName - The name or path of the method to invoke on the target service.
    * @param method - The HTTP method to use for the invocation (GET, POST, PUT, DELETE, etc.).
