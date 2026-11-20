@@ -1,0 +1,10 @@
+{
+  "id": "crasher-tool",
+  "name": "Crasher Tool",
+  "description": "Test-only tools: crasher (exits on first call, ok on subsequent) and get_weather.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}
