@@ -12,7 +12,10 @@ limitations under the License.
 */
 
 type PubSubBulkPublishApiResponseStatus = {
-  entryID: string;
+  // daprd's HTTP bulk publish API serializes this as "entryId" (see dapr/dapr
+  // pkg/api/http/responses.go). Older mocks/docs also used "entryID".
+  entryId?: string;
+  entryID?: string;
   error: string;
 };
 

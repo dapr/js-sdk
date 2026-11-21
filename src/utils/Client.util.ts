@@ -242,10 +242,14 @@ export function getBulkPublishResponse(
   }
 
   // Some or all of the entries failed to be published.
+  // Match both "entryId" (daprd HTTP JSON) and "entryID" (legacy / SDK-side naming).
+  // Do not optional-chain failedEntries: a missing array must throw so HTTP
+  // handleBulkPublishError can fall back to marking every entry as failed.
   return {
     failedMessages:
       params.response.failedEntries.flatMap((entry) => {
-        const message = params.entries.find((message) => message.entryID === entry.entryID);
+        const entryId = entry.entryId ?? entry.entryID;
+        const message = params.entries.find((message) => message.entryID === entryId);
         if (!message) {
           return [];
         }

@@ -180,7 +180,8 @@ describe("http/pubsub", () => {
           new Error(
             JSON.stringify({
               error: "Internal Server Error",
-              error_msg: JSON.stringify({ failedEntries: [{ entryID: "1", error: "failed to publish" }] }),
+              // daprd HTTP uses "entryId" (see dapr pkg/api/http/responses.go)
+              error_msg: JSON.stringify({ failedEntries: [{ entryId: "1", error: "failed to publish" }] }),
               status: 500,
             }),
           ),
@@ -238,7 +239,8 @@ describe("http/pubsub", () => {
         new Error(
           JSON.stringify({
             error: "Internal Server Error",
-            error_msg: JSON.stringify({ failedEntries: [{ entryID: "1", error: "failed to publish" }] }),
+            // daprd HTTP uses "entryId" (see dapr pkg/api/http/responses.go)
+            error_msg: JSON.stringify({ failedEntries: [{ entryId: "1", error: "failed to publish" }] }),
             status: 500,
           }),
         ),
@@ -252,6 +254,29 @@ describe("http/pubsub", () => {
       expect(res.failedMessages.length).toBe(1);
       expect(res.failedMessages[0].message.entryID).toBe("1");
       expect(res.failedMessages[0].error.message).toBe("failed to publish");
+    });
+
+    it("should mark every entry failed when the error JSON has no failedEntries", async () => {
+      // Missing failedEntries must not look like success; handleBulkPublishError
+      // falls back to treating the whole request as failed.
+      const { pubsub, execute } = getPubSub();
+      const bulkError = new Error(
+        JSON.stringify({
+          error: "Internal Server Error",
+          error_msg: JSON.stringify({ errorCode: "ERR_PUBSUB_PUBLISH_MESSAGE", message: "publish failed" }),
+          status: 500,
+        }),
+      );
+      execute.mockRejectedValue(bulkError);
+
+      const res = await pubsub.publishBulk("my-pubsub", "my-topic", [
+        { entryID: "1", event: { hello: "world" }, contentType: "application/json" },
+        { entryID: "2", event: { hello: "world 2" }, contentType: "application/json" },
+      ]);
+
+      expect(res.failedMessages).toHaveLength(2);
+      expect(res.failedMessages.map((failed) => failed.message.entryID)).toEqual(["1", "2"]);
+      expect(res.failedMessages.every((failed) => failed.error === bulkError)).toBe(true);
     });
   });
 });

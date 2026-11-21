@@ -610,6 +610,24 @@ describe("Client.util", () => {
       expect(response.failedMessages[0].message).toEqual(entries[0]);
       expect(response.failedMessages[0].error).toEqual(new Error(apiResponse.failedEntries[0].error));
     });
+
+    it("maps daprd HTTP failedEntries that use entryId (not entryID)", () => {
+      // daprd serializes the field as "entryId"; matching only "entryID" drops failures.
+      const response = getBulkPublishResponse({
+        entries,
+        response: {
+          failedEntries: [
+            { entryId: "entry1", error: "kafka: Failed to deliver 1 messages" },
+            { entryId: "entry2", error: "kafka: Failed to deliver 1 messages" },
+          ],
+        },
+      });
+
+      expect(response.failedMessages).toHaveLength(2);
+      expect(response.failedMessages[0].message).toBe(entries[0]);
+      expect(response.failedMessages[1].message).toBe(entries[1]);
+      expect(response.failedMessages[0].error.message).toBe("kafka: Failed to deliver 1 messages");
+    });
   });
 
   describe("getClientOptions", () => {
