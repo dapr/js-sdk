@@ -26,6 +26,7 @@ import {
   TaskFailureDetailsSchema,
   WorkflowInstanceSchema,
   TaskRouterSchema,
+  RetryParentInstanceInfoSchema,
 } from "../../../proto/dapr/proto/durabletask/v1/orchestration_pb";
 import type {
   HistoryEvent,
@@ -45,6 +46,8 @@ import {
   ExecutionResumedEventSchema,
   WorkflowStartedEventSchema,
   TimerOriginCreateTimerSchema,
+  TimerOriginActivityRetrySchema,
+  TimerOriginChildWorkflowRetrySchema,
 } from "../../../proto/dapr/proto/durabletask/v1/history_events_pb";
 import type { WorkflowAction } from "../../../proto/dapr/proto/durabletask/v1/orchestrator_actions_pb";
 import {
@@ -56,6 +59,12 @@ import {
   CompleteWorkflowActionSchema,
   SendEventActionSchema,
 } from "../../../proto/dapr/proto/durabletask/v1/orchestrator_actions_pb";
+
+// What a retry delay timer is waiting to retry. The runtime persists it on the
+// TimerCreated event so history readers can tie the timer to its retry chain.
+export type RetryTimerOrigin =
+  | { case: "activityRetry"; taskExecutionId: string }
+  | { case: "childWorkflowRetry"; instanceId: string };
 
 type RoutingOptions = Pick<ActivityOptions, "targetAppId" | "propagationScope"> & { sourceAppId?: string };
 
@@ -298,19 +307,27 @@ export function newScheduleTaskAction(
   });
 }
 
-export function newCreateTimerAction(id: number, fireAt: Date): WorkflowAction {
+export function newCreateTimerAction(id: number, fireAt: Date, retryOrigin?: RetryTimerOrigin): WorkflowAction {
+  const action = create(CreateTimerActionSchema, { fireAt: dateToTimestamp(fireAt) });
+  switch (retryOrigin?.case) {
+    case "activityRetry":
+      action.origin = {
+        case: "activityRetry",
+        value: create(TimerOriginActivityRetrySchema, { taskExecutionId: retryOrigin.taskExecutionId }),
+      };
+      break;
+    case "childWorkflowRetry":
+      action.origin = {
+        case: "childWorkflowRetry",
+        value: create(TimerOriginChildWorkflowRetrySchema, { instanceId: retryOrigin.instanceId }),
+      };
+      break;
+    default:
+      action.origin = { case: "createTimer", value: create(TimerOriginCreateTimerSchema, {}) };
+  }
   return create(WorkflowActionSchema, {
     id,
-    workflowActionType: {
-      case: "createTimer",
-      value: create(CreateTimerActionSchema, {
-        fireAt: dateToTimestamp(fireAt),
-        origin: {
-          case: "createTimer",
-          value: create(TimerOriginCreateTimerSchema, {}),
-        },
-      }),
-    },
+    workflowActionType: { case: "createTimer", value: action },
   });
 }
 
@@ -320,6 +337,7 @@ export function newCreateChildWorkflowAction(
   instanceId: string,
   encodedInput?: string,
   options?: RoutingOptions,
+  retryParentInstanceId?: string,
 ): WorkflowAction {
   return create(WorkflowActionSchema, {
     id,
@@ -333,6 +351,9 @@ export function newCreateChildWorkflowAction(
         instanceId,
         input: encodedInput,
         historyPropagationScope: options?.propagationScope || undefined,
+        retryParentInstanceInfo: retryParentInstanceId
+          ? create(RetryParentInstanceInfoSchema, { instanceID: retryParentInstanceId })
+          : undefined,
       }),
     },
   });
