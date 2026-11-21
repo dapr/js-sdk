@@ -75,6 +75,7 @@ export default class ActorClientGRPC implements IClientActor {
         value: create(AnySchema, {
           value: Buffer.from(`${o.request.value}`, "utf-8"),
         }),
+        metadata: o.request.metadata ?? {},
       }),
     );
 
