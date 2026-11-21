@@ -49,6 +49,7 @@ import {
   newSendEventAction,
   newEventRaisedEvent,
   newFailureDetails,
+  type RetryTimerOrigin,
 } from "../worker/protoHelpers";
 
 export class OrchestrationRuntimeContext extends OrchestrationContext {
@@ -374,13 +375,18 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     const routing = this.getRoutingOptions(options);
     if (options?.retryPolicy) {
       let executionId: string | undefined;
-      return this.callWithRetry(options.retryPolicy, (id) => {
-        executionId = this.getTaskExecutionId(id, executionId);
-        const action = newScheduleTaskAction(id, name, encodedInput, executionId, routing);
-        this.configurePayloadCall(id, options);
-        this._pendingActions[action.id] = action;
-        return executionId;
-      });
+      return this.callWithRetry(
+        options.retryPolicy,
+        (id) => {
+          executionId = this.getTaskExecutionId(id, executionId);
+          const action = newScheduleTaskAction(id, name, encodedInput, executionId, routing);
+          this.configurePayloadCall(id, options);
+          this._pendingActions[action.id] = action;
+          return executionId;
+        },
+        // Histories from before execution IDs existed have nothing to correlate on.
+        () => (executionId ? { case: "activityRetry", taskExecutionId: executionId } : undefined),
+      );
     }
 
     const id = this.nextSequenceNumber();
@@ -404,17 +410,33 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
     const encodedInput = input != null ? serializeWorkflowValue(input, this.serializer) : undefined;
     const routing = this.getRoutingOptions(options);
     if (options?.retryPolicy) {
-      const firstInstanceId = instanceId;
-      return this.callWithRetry(options.retryPolicy, (id, attempt) => {
-        const childInstanceId =
-          attempt === 1 && firstInstanceId
-            ? firstInstanceId
-            : `${this._instanceId}:${id.toString(16).padStart(4, "0")}`;
-        const action = newCreateChildWorkflowAction(id, name, childInstanceId, encodedInput, routing);
-        this.configurePayloadCall(id, options);
-        this._pendingActions[action.id] = action;
-        return undefined;
-      });
+      const requestedInstanceId = instanceId;
+      // Every attempt is its own child instance. Attempts after the first, and
+      // the retry timers, point back at the first attempt's instance ID.
+      let firstInstanceId: string | undefined;
+      return this.callWithRetry(
+        options.retryPolicy,
+        (id, attempt) => {
+          const childInstanceId =
+            attempt === 1 && requestedInstanceId
+              ? requestedInstanceId
+              : `${this._instanceId}:${id.toString(16).padStart(4, "0")}`;
+          const retryParentInstanceId = firstInstanceId;
+          firstInstanceId ??= childInstanceId;
+          const action = newCreateChildWorkflowAction(
+            id,
+            name,
+            childInstanceId,
+            encodedInput,
+            routing,
+            retryParentInstanceId,
+          );
+          this.configurePayloadCall(id, options);
+          this._pendingActions[action.id] = action;
+          return undefined;
+        },
+        () => (firstInstanceId ? { case: "childWorkflowRetry", instanceId: firstInstanceId } : undefined),
+      );
     }
 
     const id = this.nextSequenceNumber();
@@ -607,6 +629,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
   private callWithRetry<T>(
     retryPolicy: RetryPolicy,
     scheduleAttempt: (id: number, attempt: number) => string | undefined,
+    retryTimerOrigin: () => RetryTimerOrigin | undefined,
   ): Task<T> {
     const policy = validateRetryPolicy(retryPolicy);
     const retryTask = new CompletableTask<T>();
@@ -635,7 +658,7 @@ export class OrchestrationRuntimeContext extends OrchestrationContext {
 
           const timerId = this.nextSequenceNumber();
           const fireAt = new Date(retryAt);
-          const timerAction = newCreateTimerAction(timerId, fireAt);
+          const timerAction = newCreateTimerAction(timerId, fireAt, retryTimerOrigin());
           this._pendingActions[timerAction.id] = timerAction;
           this._pendingTasks[timerId] = new RetryDelayTask(runAttempt);
         },

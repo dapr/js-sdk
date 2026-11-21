@@ -11,6 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { create } from "@bufbuild/protobuf";
+import { HistoryEventSchema } from "../../../src/proto/dapr/proto/durabletask/v1/history_events_pb";
 import { OrchestrationRuntimeContext } from "../../../src/workflow/engine/context/OrchestrationRuntimeContext";
 import { OrchestrationExecutor } from "../../../src/workflow/engine/worker/OrchestrationExecutor";
 import { Registry } from "../../../src/workflow/engine/worker/Registry";
@@ -19,6 +21,8 @@ import {
   newFailureDetails,
   newTaskFailedEvent,
   newTaskScheduledEvent,
+  newTimerCreatedEvent,
+  newTimerFiredEvent,
   timestampToDate,
 } from "../../../src/workflow/engine/worker/protoHelpers";
 import type { RetryPolicy } from "../../../src/types/workflow/RetryPolicy.type";
@@ -116,6 +120,14 @@ describe("workflow retry policies", () => {
 
     context._pendingActions = {};
     context._pendingTasks[1].fail("first failure", newFailureDetails(new Error("first failure")));
+    const timer = Object.values(context._pendingActions)[0];
+    if (timer.workflowActionType.case !== "createTimer") {
+      throw new Error("Expected a retry timer action");
+    }
+    expect(timer.workflowActionType.value.origin).toMatchObject({
+      case: "childWorkflowRetry",
+      value: { instanceId: "requested-child-id" },
+    });
     context._pendingActions = {};
     context._pendingTasks[2].complete(undefined);
 
@@ -124,6 +136,7 @@ describe("workflow retry policies", () => {
       throw new Error("Expected a retried child workflow action");
     }
     expect(retryAction.workflowActionType.value.instanceId).toBe("parent-id:0003");
+    expect(retryAction.workflowActionType.value.retryParentInstanceInfo?.instanceID).toBe("requested-child-id");
     expect(retryAction.workflowActionType.value.input).toBe(JSON.stringify({ value: 42 }));
   });
 
@@ -154,6 +167,212 @@ describe("workflow retry policies", () => {
     expect(timestampToDate(replayedTimer.workflowActionType.value.fireAt)).toEqual(
       timestampToDate(firstTimer.workflowActionType.value.fireAt),
     );
+  });
+
+  it("gives every activity attempt and retry timer the same task execution ID", () => {
+    const context = new OrchestrationRuntimeContext("workflow-id");
+    context.callActivity("activity", undefined, { retryPolicy: policy });
+
+    const firstAction = Object.values(context._pendingActions)[0];
+    if (firstAction.workflowActionType.case !== "scheduleTask") {
+      throw new Error("Expected a scheduled activity action");
+    }
+    const executionId = firstAction.workflowActionType.value.taskExecutionId;
+    expect(executionId).not.toBe("");
+
+    context._pendingActions = {};
+    context._pendingTasks[1].fail("first failure", newFailureDetails(new Error("first failure")));
+    const timer = Object.values(context._pendingActions)[0];
+    if (timer.workflowActionType.case !== "createTimer") {
+      throw new Error("Expected a retry timer action");
+    }
+    expect(timer.workflowActionType.value.origin).toMatchObject({
+      case: "activityRetry",
+      value: { taskExecutionId: executionId },
+    });
+
+    context._pendingActions = {};
+    context._pendingTasks[2].complete(undefined);
+    const retryAction = Object.values(context._pendingActions)[0];
+    if (retryAction.workflowActionType.case !== "scheduleTask") {
+      throw new Error("Expected a retried activity action");
+    }
+    expect(retryAction.workflowActionType.value.taskExecutionId).toBe(executionId);
+  });
+
+  it("links child workflow retries and their timers to the first attempt", () => {
+    const context = new OrchestrationRuntimeContext("parent-id");
+    context.callSubOrchestrator("child", undefined, undefined, {
+      retryPolicy: { firstRetryInterval: 1, maxNumberOfAttempts: 3 },
+    });
+
+    const firstAction = Object.values(context._pendingActions)[0];
+    if (firstAction.workflowActionType.case !== "createChildWorkflow") {
+      throw new Error("Expected a child workflow action");
+    }
+    expect(firstAction.workflowActionType.value.instanceId).toBe("parent-id:0001");
+    expect(firstAction.workflowActionType.value.retryParentInstanceInfo).toBeUndefined();
+
+    for (const [failedId, timerId, retryId] of [
+      [1, 2, "parent-id:0003"],
+      [3, 4, "parent-id:0005"],
+    ] as const) {
+      context._pendingActions = {};
+      context._pendingTasks[failedId].fail("failure", newFailureDetails(new Error("failure")));
+      const timer = Object.values(context._pendingActions)[0];
+      if (timer.workflowActionType.case !== "createTimer") {
+        throw new Error("Expected a retry timer action");
+      }
+      expect(timer.workflowActionType.value.origin).toMatchObject({
+        case: "childWorkflowRetry",
+        value: { instanceId: "parent-id:0001" },
+      });
+
+      context._pendingActions = {};
+      context._pendingTasks[timerId].complete(undefined);
+      const retryAction = Object.values(context._pendingActions)[0];
+      if (retryAction.workflowActionType.case !== "createChildWorkflow") {
+        throw new Error("Expected a retried child workflow action");
+      }
+      expect(retryAction.workflowActionType.value.instanceId).toBe(retryId);
+      expect(retryAction.workflowActionType.value.retryParentInstanceInfo?.instanceID).toBe("parent-id:0001");
+    }
+  });
+
+  it("replays a retry recorded before retry timers carried an origin", async () => {
+    const registry = new Registry();
+    registry.addNamedOrchestrator("retryWorkflow", function* (context) {
+      yield context.callActivity("activity", undefined, {
+        retryPolicy: { firstRetryInterval: 2, maxNumberOfAttempts: 3 },
+      });
+    });
+    const executor = new OrchestrationExecutor(registry);
+    const executionStarted = newExecutionStartedEvent("retryWorkflow", "workflow-id");
+    // No task execution ID and a plain createTimer origin: what older SDKs recorded.
+    const taskScheduled = newTaskScheduledEvent(1, "activity");
+    const taskFailed = newTaskFailedEvent(1, newFailureDetails(new Error("transient failure")));
+
+    const failed = await executor.execute("workflow-id", [executionStarted, taskScheduled], [taskFailed]);
+    const timer = failed.actions[0];
+    if (timer.workflowActionType.case !== "createTimer") {
+      throw new Error("Expected a retry timer action");
+    }
+    expect(timer.workflowActionType.value.origin.case).toBe("createTimer");
+
+    const fireAt = timestampToDate(timer.workflowActionType.value.fireAt);
+    const retried = await executor.execute(
+      "workflow-id",
+      [executionStarted, taskScheduled, taskFailed, newTimerCreatedEvent(timer.id, fireAt)],
+      [newTimerFiredEvent(timer.id, fireAt)],
+    );
+    expect(retried.actions).toHaveLength(1);
+    expect(retried.actions[0].workflowActionType.case).toBe("scheduleTask");
+  });
+
+  it("replays an activity retry whose history has execution IDs but a plain timer origin", async () => {
+    const registry = new Registry();
+    registry.addNamedOrchestrator("retryWorkflow", function* (context) {
+      yield context.callActivity("activity", undefined, {
+        retryPolicy: { firstRetryInterval: 2, maxNumberOfAttempts: 3 },
+      });
+    });
+    const executor = new OrchestrationExecutor(registry);
+    const executionStarted = newExecutionStartedEvent("retryWorkflow", "workflow-id");
+    const taskScheduled = newTaskScheduledEvent(1, "activity", undefined, "exec-1");
+    const taskFailed = newTaskFailedEvent(1, newFailureDetails(new Error("transient failure")), "exec-1");
+
+    const failed = await executor.execute("workflow-id", [executionStarted, taskScheduled], [taskFailed]);
+    const timer = failed.actions[0];
+    if (timer.workflowActionType.case !== "createTimer") {
+      throw new Error("Expected a retry timer action");
+    }
+    expect(timer.workflowActionType.value.origin).toMatchObject({
+      case: "activityRetry",
+      value: { taskExecutionId: "exec-1" },
+    });
+
+    // The recorded timer has the createTimer origin older SDKs wrote, while the
+    // replayed action now has activityRetry. Replay must accept the difference.
+    const fireAt = timestampToDate(timer.workflowActionType.value.fireAt);
+    const retried = await executor.execute(
+      "workflow-id",
+      [executionStarted, taskScheduled, taskFailed, newTimerCreatedEvent(timer.id, fireAt)],
+      [newTimerFiredEvent(timer.id, fireAt)],
+    );
+    expect(retried.actions).toHaveLength(1);
+    const retryAction = retried.actions[0].workflowActionType;
+    if (retryAction.case !== "scheduleTask") {
+      throw new Error("Expected a retried activity action");
+    }
+    expect(retryAction.value.taskExecutionId).toBe("exec-1");
+  });
+
+  it("replays a child workflow retry recorded without retry parent links", async () => {
+    const registry = new Registry();
+    registry.addNamedOrchestrator("parent", function* (context) {
+      yield context.callSubOrchestrator("child", undefined, undefined, {
+        retryPolicy: { firstRetryInterval: 2, maxNumberOfAttempts: 3 },
+      });
+    });
+    const executor = new OrchestrationExecutor(registry);
+    const childCreated = (eventId: number) =>
+      create(HistoryEventSchema, {
+        eventId,
+        eventType: {
+          case: "childWorkflowInstanceCreated",
+          value: { name: "child", instanceId: `parent-id:${eventId.toString(16).padStart(4, "0")}` },
+        },
+      });
+    const childFailed = (taskScheduledId: number) =>
+      create(HistoryEventSchema, {
+        eventId: -1,
+        eventType: {
+          case: "childWorkflowInstanceFailed",
+          value: { taskScheduledId, failureDetails: newFailureDetails(new Error("child failed")) },
+        },
+      });
+    const fireAt = new Date(Date.now() + 2000);
+    const firstAttempt = [
+      newExecutionStartedEvent("parent", "parent-id"),
+      childCreated(1),
+      childFailed(1),
+      newTimerCreatedEvent(2, fireAt),
+    ];
+
+    const retried = await executor.execute("parent-id", firstAttempt, [newTimerFiredEvent(2, fireAt)]);
+    expect(retried.actions).toHaveLength(1);
+    const retryAction = retried.actions[0].workflowActionType;
+    if (retryAction.case !== "createChildWorkflow") {
+      throw new Error("Expected a retried child workflow action");
+    }
+    expect(retryAction.value.instanceId).toBe("parent-id:0003");
+    expect(retryAction.value.retryParentInstanceInfo?.instanceID).toBe("parent-id:0001");
+
+    const failedAgain = await executor.execute(
+      "parent-id",
+      [...firstAttempt, newTimerFiredEvent(2, fireAt), childCreated(3)],
+      [childFailed(3)],
+    );
+    expect(failedAgain.actions).toHaveLength(1);
+    const secondTimer = failedAgain.actions[0].workflowActionType;
+    if (secondTimer.case !== "createTimer") {
+      throw new Error("Expected a retry timer action");
+    }
+    expect(secondTimer.value.origin).toMatchObject({
+      case: "childWorkflowRetry",
+      value: { instanceId: "parent-id:0001" },
+    });
+  });
+
+  it("keeps the createTimer origin on timers the workflow creates itself", () => {
+    const context = new OrchestrationRuntimeContext("workflow-id");
+    context.createTimer(5);
+
+    const timer = Object.values(context._pendingActions)[0];
+    if (timer.workflowActionType.case !== "createTimer") {
+      throw new Error("Expected a timer action");
+    }
+    expect(timer.workflowActionType.value.origin.case).toBe("createTimer");
   });
 
   it("does not retry failures marked non-retriable", () => {
