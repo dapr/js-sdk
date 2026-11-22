@@ -31,6 +31,25 @@ const timerBody = (callback: string) => Buffer.from(JSON.stringify({ callback, d
 const reminderBody = (data: string) => Buffer.from(JSON.stringify({ data }));
 const active = (m: ActorManager<any>) => m["activeActors"];
 
+function flush(): Promise<void> {
+  return new Promise((resolve) => setImmediate(resolve));
+}
+
+function watch<T>(promise: Promise<T>): { promise: Promise<T>; settled: () => boolean } {
+  let done = false;
+  const observed = promise.then(
+    (value) => {
+      done = true;
+      return value;
+    },
+    (error) => {
+      done = true;
+      throw error;
+    },
+  );
+  return { promise: observed, settled: () => done };
+}
+
 class WriteOnActivateActor extends DemoActorActivationIdImpl {
   async onActivate(): Promise<void> {
     await this.getStateManager<number>().setState("counter", (await this.read()) + 100);
@@ -244,13 +263,13 @@ describe("ActorManager activation id", () => {
       expect(created()[0].deactivations).toEqual(0);
     });
 
-    it("share one registered object when they all activate it", async () => {
+    it("activate one object when concurrent first calls share an id", async () => {
       const m = new ActorManager(ReadOnActivateActor, client);
       await Promise.all(Array.from({ length: calls }, () => m.invoke(actorId, "count", undefined, "a1")));
       const registered = active(m).get(actorId.getId())?.actor;
-      expect(created().length).toBeGreaterThan(1);
+      expect(created()).toHaveLength(1);
       expect(registered?.calls).toEqual(calls);
-      expect(created().filter((a) => a !== registered && a.deactivations !== 1)).toHaveLength(0);
+      expect(created()[0]).toBe(registered);
     });
   });
 
@@ -260,14 +279,22 @@ describe("ActorManager activation id", () => {
       otherHostWrites(10);
       loadHold.release = deferred();
       const release = loadHold.release;
-      const old = m.invoke(actorId, "incr", undefined, "a1");
+      const old = watch(m.invoke(actorId, "incr", undefined, "a1"));
       await loadHold.entered.promise;
 
       otherHostWrites(20);
-      expect(await m.invoke(actorId, "incr", undefined, "a2")).toEqual(21);
+      const replacing = watch(m.invoke(actorId, "incr", undefined, "a2"));
+      await flush();
+      // a2 has detached a1 and is waiting on the turn. onDeactivate has not started.
+      expect(replacing.settled()).toBe(false);
+      expect(created()).toHaveLength(1);
+      expect(created()[0].deactivations).toEqual(0);
+      expect(active(m).has(actorId.getId())).toBe(false);
+      expect(m.turnLockSize()).toBeGreaterThan(0);
 
       release.resolve();
-      await expect(old).rejects.toThrow("ACTOR_ACTIVATION_SUPERSEDED");
+      await expect(old.promise).rejects.toThrow("ACTOR_ACTIVATION_SUPERSEDED");
+      expect(await replacing.promise).toEqual(21);
       expect(store.get(counterKey(actorId.getId()))).toEqual(21);
       expect(active(m).get(actorId.getId())?.actor).toBe(created()[1]);
       expect(active(m).get(actorId.getId())?.activationId).toEqual("a2");
@@ -279,14 +306,20 @@ describe("ActorManager activation id", () => {
       otherHostWrites(10);
       loadHold.release = deferred();
       const release = loadHold.release;
-      const old = m.invoke(actorId, "incr", undefined, "a1");
+      const old = watch(m.invoke(actorId, "incr", undefined, "a1"));
       await loadHold.entered.promise;
 
-      expect(await m.invoke(actorId, "incr", undefined, "a2")).toEqual(111);
+      const replacing = watch(m.invoke(actorId, "incr", undefined, "a2"));
+      await flush();
+      expect(replacing.settled()).toBe(false);
+      expect(store.get(counterKey(actorId.getId()))).toEqual(10);
+      expect(m.turnLockSize()).toBeGreaterThan(0);
 
       release.resolve();
-      await expect(old).rejects.toThrow("ACTOR_ACTIVATION_SUPERSEDED");
+      await expect(old.promise).rejects.toThrow("ACTOR_ACTIVATION_SUPERSEDED");
+      expect(await replacing.promise).toEqual(111);
       expect(store.get(counterKey(actorId.getId()))).toEqual(111);
+      expect(created()[0].deactivations).toEqual(1);
     });
 
     it("does not save state written by the onDeactivate of a losing activation", async () => {
@@ -294,14 +327,19 @@ describe("ActorManager activation id", () => {
       otherHostWrites(10);
       loadHold.release = deferred();
       const release = loadHold.release;
-      const old = m.invoke(actorId, "incr", undefined, "a1");
+      const old = watch(m.invoke(actorId, "incr", undefined, "a1"));
       await loadHold.entered.promise;
 
-      expect(await m.invoke(actorId, "incr", undefined, "a2")).toEqual(11);
+      const replacing = watch(m.invoke(actorId, "incr", undefined, "a2"));
+      await flush();
+      expect(replacing.settled()).toBe(false);
+      expect(created()[0].deactivations).toEqual(0);
 
       release.resolve();
-      await expect(old).rejects.toThrow("ACTOR_ACTIVATION_SUPERSEDED");
+      await expect(old.promise).rejects.toThrow("ACTOR_ACTIVATION_SUPERSEDED");
+      expect(await replacing.promise).toEqual(11);
       expect(created()[0].deactivations).toEqual(1);
+      // onDeactivate writes -1, and that save is refused because the object was discarded.
       expect(store.get(counterKey(actorId.getId()))).toEqual(11);
     });
 
@@ -316,42 +354,50 @@ describe("ActorManager activation id", () => {
       expect(store.get(counterKey(actorId.getId()))).toEqual(21);
     });
 
-    it("shares one object between concurrent first activations with the same id", async () => {
+    it("activates one object when a second same-id call arrives during onActivate", async () => {
       const m = new ActorManager(ReadOnActivateActor, client);
       loadHold.release = deferred();
       const release = loadHold.release;
-      const first = m.invoke(actorId, "incr", undefined, "a1");
+      const first = watch(m.invoke(actorId, "incr", undefined, "a1"));
       await loadHold.entered.promise;
-      expect(await m.invoke(actorId, "incr", undefined, "a1")).toEqual(1);
+      const second = watch(m.invoke(actorId, "incr", undefined, "a1"));
+      await flush();
+      expect(second.settled()).toBe(false);
+      expect(created()).toHaveLength(1);
 
       release.resolve();
-      expect(await first).toEqual(2);
-      expect(created()).toHaveLength(2);
-      expect(created()[0].deactivations).toEqual(1);
-      expect(active(m).get(actorId.getId())?.actor).toBe(created()[1]);
+      expect(await first.promise).toEqual(1);
+      expect(await second.promise).toEqual(2);
+      expect(created()).toHaveLength(1);
+      expect(created()[0].deactivations).toEqual(0);
+      expect(active(m).get(actorId.getId())?.actor).toBe(created()[0]);
     });
 
-    it("does not hand an object of another activation to a call that reset the stale one", async () => {
+    it("does not run another call until a stale-object reset finishes deactivating", async () => {
       const m = new ActorManager(HeldDeactivateActor, client);
       await m.invoke(actorId, "incr", undefined, "a1");
 
       HeldDeactivateActor.hold = { entered: deferred(), release: deferred() };
       const hold = HeldDeactivateActor.hold;
-      const resetting = m.invoke(actorId, "incr", undefined, "a2");
+      const resetting = watch(m.invoke(actorId, "incr", undefined, "a2"));
       await hold.entered.promise;
 
-      const other = m.invoke(actorId, "incrAfterGate", undefined, "a1");
-      await gates.entered.promise;
+      const other = watch(m.invoke(actorId, "incr", undefined, "a1"));
+      await flush();
+      expect(other.settled()).toBe(false);
+      expect(resetting.settled()).toBe(false);
+      expect(active(m).has(actorId.getId())).toBe(false);
+      expect(m.turnLockSize()).toBeGreaterThan(0);
 
       hold.release.resolve();
-      await expect(resetting).rejects.toThrow("ACTOR_ACTIVATION_SUPERSEDED");
-
-      gates.release.resolve();
-      expect(await other).toEqual(2);
+      // a1 was admitted while a2 still owned the turn, so a2 must not activate and evict it.
+      await expect(resetting.promise).rejects.toThrow("ACTOR_ACTIVATION_SUPERSEDED");
+      expect(await other.promise).toEqual(2);
       expect(store.get(counterKey(actorId.getId()))).toEqual(2);
       expect(active(m).get(actorId.getId())?.actor).toBe(created()[1]);
-      expect(created()).toHaveLength(3);
-      expect(created()[2].deactivations).toEqual(1);
+      expect(active(m).get(actorId.getId())?.activationId).toEqual("a1");
+      expect(created()).toHaveLength(2);
+      expect(created()[0].deactivations).toEqual(1);
     });
   });
 
@@ -361,13 +407,18 @@ describe("ActorManager activation id", () => {
       otherHostWrites(10);
       loadHold.release = deferred();
       const release = loadHold.release;
-      const old = m.invoke(actorId, "incr", undefined, "a1");
+      const old = watch(m.invoke(actorId, "incr", undefined, "a1"));
       await loadHold.entered.promise;
 
-      expect(await m.invoke(actorId, "incr", undefined, "a2")).toEqual(111);
+      const replacing = watch(m.invoke(actorId, "incr", undefined, "a2"));
+      await flush();
+      expect(replacing.settled()).toBe(false);
+      expect(store.get(counterKey(actorId.getId()))).toEqual(10);
+      expect(m.turnLockSize()).toBeGreaterThan(0);
 
       release.resolve();
-      await expect(old).rejects.toThrow("ACTOR_REPLACED");
+      await expect(old.promise).rejects.toThrow("ACTOR_REPLACED");
+      expect(await replacing.promise).toEqual(111);
       expect(store.get(counterKey(actorId.getId()))).toEqual(111);
       expect(active(m).get(actorId.getId())?.actor).toBe(created()[1]);
     });
@@ -377,66 +428,86 @@ describe("ActorManager activation id", () => {
       otherHostWrites(10);
       loadHold.release = deferred();
       const release = loadHold.release;
-      const old = m.invoke(actorId, "incr", undefined, "a1");
+      const old = watch(m.invoke(actorId, "incr", undefined, "a1"));
       await loadHold.entered.promise;
 
       otherHostWrites(20);
-      expect(await m.invoke(actorId, "incr", undefined, "a2")).toEqual(21);
-      await m.deactivateActor(actorId);
+      const replacing = watch(m.invoke(actorId, "incr", undefined, "a2"));
+      const deleting = watch(m.deactivateActor(actorId));
+      await flush();
+      expect(replacing.settled()).toBe(false);
+      expect(deleting.settled()).toBe(false);
+      expect(m.turnLockSize()).toBeGreaterThan(0);
 
       release.resolve();
-      await expect(old).rejects.toThrow("ACTOR_ACTIVATION_SUPERSEDED");
+      await expect(old.promise).rejects.toThrow("ACTOR_ACTIVATION_SUPERSEDED");
+      expect(await replacing.promise).toEqual(21);
+      await deleting.promise;
       expect(store.get(counterKey(actorId.getId()))).toEqual(21);
       expect(active(m).has(actorId.getId())).toBe(false);
       expect(created()[0].deactivations).toEqual(1);
     });
 
-    it("does not run a call on an object replaced while its activation was cleaning up", async () => {
+    it("runs queued same-id calls on the single object activated under the lock", async () => {
       const m = new ActorManager(HeldReadOnActivateActor, client);
       loadHold.release = deferred();
       const release = loadHold.release;
-      const first = m.invoke(actorId, "count", undefined, "a1");
+      const first = watch(m.invoke(actorId, "count", undefined, "a1"));
       await loadHold.entered.promise;
-      await m.invoke(actorId, "count", undefined, "a1");
+      const second = watch(m.invoke(actorId, "count", undefined, "a1"));
+      await flush();
+      expect(second.settled()).toBe(false);
+      expect(created()).toHaveLength(1);
 
-      HeldDeactivateActor.hold = { entered: deferred(), release: deferred() };
-      const hold = HeldDeactivateActor.hold;
       release.resolve();
-      await hold.entered.promise;
-
-      await m.invoke(actorId, "count", undefined, "a2");
-      hold.release.resolve();
-      await expect(first).rejects.toThrow("ACTOR_ACTIVATION_SUPERSEDED");
-      expect(created()[1].calls).toEqual(1);
-      expect(active(m).get(actorId.getId())?.actor).toBe(created()[2]);
+      await first.promise;
+      await second.promise;
+      expect(created()).toHaveLength(1);
+      expect(created()[0].calls).toEqual(2);
+      expect(created()[0].deactivations).toEqual(0);
+      expect(active(m).get(actorId.getId())?.actor).toBe(created()[0]);
     });
 
     it("refuses an explicit save from a call still running after DELETE and a new activation", async () => {
       const m = new ActorManager(ExplicitSaveActor, client);
       otherHostWrites(1);
-      const old = m.invoke(actorId, "incrAndSaveAfterGate", undefined, "a1");
+      const old = watch(m.invoke(actorId, "incrAndSaveAfterGate", undefined, "a1"));
       await gates.entered.promise;
-      await m.deactivateActor(actorId);
-
       otherHostWrites(5);
-      expect(await m.invoke(actorId, "incr", undefined, "a2")).toEqual(6);
+      const deleting = watch(m.deactivateActor(actorId));
+      const replacing = watch(m.invoke(actorId, "incr", undefined, "a2"));
+      await flush();
+      expect(active(m).has(actorId.getId())).toBe(false);
+      expect(deleting.settled()).toBe(false);
+      expect(replacing.settled()).toBe(false);
+      expect(m.turnLockSize()).toBeGreaterThan(0);
+      expect(store.get(counterKey(actorId.getId()))).toEqual(5);
+
       gates.release.resolve();
-      await expect(old).rejects.toThrow("ACTOR_REPLACED");
+      await expect(old.promise).rejects.toThrow("ACTOR_REPLACED");
+      await deleting.promise;
+      expect(await replacing.promise).toEqual(6);
       expect(store.get(counterKey(actorId.getId()))).toEqual(6);
     });
 
-    it("refuses an explicit save from an onDeactivate that finishes after a new activation", async () => {
+    it("refuses an explicit save from an onDeactivate that a new activation supersedes", async () => {
       const m = new ActorManager(HeldSaveOnDeactivateActor, client);
       expect(await m.invoke(actorId, "incr", undefined, "a1")).toEqual(1);
 
       HeldSaveOnDeactivateActor.hold = { entered: deferred(), release: deferred() };
       const hold = HeldSaveOnDeactivateActor.hold;
-      const deleting = m.deactivateActor(actorId);
+      const deleting = watch(m.deactivateActor(actorId));
       await hold.entered.promise;
 
-      expect(await m.invoke(actorId, "incr", undefined, "a2")).toEqual(2);
+      const replacing = watch(m.invoke(actorId, "incr", undefined, "a2"));
+      await flush();
+      expect(replacing.settled()).toBe(false);
+      expect(deleting.settled()).toBe(false);
+      expect(m.turnLockSize()).toBeGreaterThan(0);
+
       hold.release.resolve();
-      await expect(deleting).rejects.toThrow("ACTOR_REPLACED");
+      await expect(deleting.promise).rejects.toThrow("ACTOR_REPLACED");
+      expect(await replacing.promise).toEqual(2);
       expect(store.get(counterKey(actorId.getId()))).toEqual(2);
     });
 
@@ -491,31 +562,46 @@ describe("ActorManager activation id", () => {
     it("refuses an explicit save from a call still running", async () => {
       const m = new ActorManager(SavingActor, client);
       otherHostWrites(1);
-      const old = m.invoke(actorId, "incrAndSaveAfterGate", undefined, "a1");
+      const old = watch(m.invoke(actorId, "incrAndSaveAfterGate", undefined, "a1"));
       await gates.entered.promise;
       otherHostWrites(5);
-      expect(await m.invoke(actorId, "incr", undefined, "a2")).toEqual(6);
+      const replacing = watch(m.invoke(actorId, "incr", undefined, "a2"));
+      await flush();
+      expect(replacing.settled()).toBe(false);
+      expect(active(m).has(actorId.getId())).toBe(false);
+      expect(created()[0].deactivations).toEqual(0);
+      expect(m.turnLockSize()).toBeGreaterThan(0);
+      expect(store.get(counterKey(actorId.getId()))).toEqual(5);
+
       gates.release.resolve();
-      await expect(old).rejects.toThrow("ACTOR_REPLACED");
+      await expect(old.promise).rejects.toThrow("ACTOR_REPLACED");
+      expect(await replacing.promise).toEqual(6);
       expect(store.get(counterKey(actorId.getId()))).toEqual(6);
+      expect(created()).toHaveLength(2);
+      expect(created()[0].deactivations).toEqual(1);
     });
   });
 
   describe("call still running on a replaced object", () => {
     const runReplaced = async (startOld: () => Promise<unknown>) => {
       otherHostWrites(1);
-      const old = startOld();
+      const old = watch(startOld());
       await gates.entered.promise;
       otherHostWrites(5);
-      expect(await manager.invoke(actorId, "incr", undefined, "a2")).toEqual(6);
+      const replacing = watch(manager.invoke(actorId, "incr", undefined, "a2"));
+      await flush();
+      expect(replacing.settled()).toBe(false);
+      expect(active(manager).has(actorId.getId())).toBe(false);
+      expect(created()).toHaveLength(1);
+      expect(created()[0].deactivations).toEqual(0);
+      expect(manager.turnLockSize()).toBeGreaterThan(0);
+
       gates.release.resolve();
-      const err = await old.then(
-        () => undefined,
-        (e: Error) => e,
-      );
+      await expect(old.promise).rejects.toThrow("ACTOR_DEACTIVATED_DURING_CALL");
+      expect(await replacing.promise).toEqual(6);
       expect(store.get(counterKey(actorId.getId()))).toEqual(6);
-      expect(err?.message).toContain("ACTOR_DEACTIVATED_DURING_CALL");
       expect(created()).toHaveLength(2);
+      expect(created()[0].deactivations).toEqual(1);
     };
 
     it("skips the save for a method", async () => {
@@ -532,27 +618,58 @@ describe("ActorManager activation id", () => {
 
     it("skips the save after a DELETE", async () => {
       otherHostWrites(1);
-      const old = manager.invoke(actorId, "incrAfterGate", undefined, "a1");
+      const old = watch(manager.invoke(actorId, "incrAfterGate", undefined, "a1"));
       await gates.entered.promise;
-      await manager.deactivateActor(actorId);
+      const deleting = watch(manager.deactivateActor(actorId));
+      await flush();
+      expect(deleting.settled()).toBe(false);
+      expect(active(manager).has(actorId.getId())).toBe(false);
+      expect(manager.turnLockSize()).toBeGreaterThan(0);
+
       gates.release.resolve();
-      const err = await old.then(
-        () => undefined,
-        (e: Error) => e,
-      );
+      await expect(old.promise).rejects.toThrow("ACTOR_DEACTIVATED_DURING_CALL");
+      await deleting.promise;
       expect(store.get(counterKey(actorId.getId()))).toEqual(1);
-      expect(err?.message).toContain("ACTOR_DEACTIVATED_DURING_CALL");
+      expect(active(manager).has(actorId.getId())).toBe(false);
     });
 
     it("still saves when the other call has no id", async () => {
       otherHostWrites(1);
-      const old = manager.invoke(actorId, "incrAfterGate", undefined, "a1");
+      const old = watch(manager.invoke(actorId, "incrAfterGate", undefined, "a1"));
       await gates.entered.promise;
-      await manager.invoke(actorId, "read");
+      const reading = watch(manager.invoke(actorId, "read"));
+      await flush();
+      expect(reading.settled()).toBe(false);
+      expect(active(manager).has(actorId.getId())).toBe(true);
+
       gates.release.resolve();
-      expect(await old).toEqual(2);
+      expect(await old.promise).toEqual(2);
+      expect(await reading.promise).toEqual(2);
       expect(store.get(counterKey(actorId.getId()))).toEqual(2);
       expect(created()).toHaveLength(1);
+    });
+
+    it("rejects the older queued activation instead of letting it evict the newer one", async () => {
+      await manager.invoke(actorId, "incr", undefined, "a0");
+      const held = watch(manager.invoke(actorId, "incrAfterGate", undefined, "a0"));
+      await gates.entered.promise;
+      otherHostWrites(5);
+      const older = watch(manager.invoke(actorId, "incr", undefined, "a1"));
+      const newer = watch(manager.invoke(actorId, "incr", undefined, "a2"));
+      await flush();
+      expect(older.settled()).toBe(false);
+      expect(newer.settled()).toBe(false);
+      expect(active(manager).has(actorId.getId())).toBe(false);
+      expect(created()[0].deactivations).toEqual(0);
+
+      gates.release.resolve();
+      await expect(held.promise).rejects.toThrow("ACTOR_DEACTIVATED_DURING_CALL");
+      await expect(older.promise).rejects.toThrow("ACTOR_ACTIVATION_SUPERSEDED");
+      expect(await newer.promise).toEqual(6);
+      expect(store.get(counterKey(actorId.getId()))).toEqual(6);
+      expect(active(manager).get(actorId.getId())?.activationId).toEqual("a2");
+      expect(active(manager).get(actorId.getId())?.actor).toBe(created()[1]);
+      expect(created()[0].deactivations).toEqual(1);
     });
   });
 });

@@ -146,10 +146,13 @@ export default class ActorRuntime {
     actorMethodName: string,
     requestBody?: Buffer,
     activationId?: string,
+    reentrancyId?: string,
   ): Promise<Buffer> {
     const actorIdObj = new ActorId(actorId);
     const manager = this.getActorManager(actorTypeName);
-    return await manager.invoke(actorIdObj, actorMethodName, requestBody, await this.trustedActivationId(activationId));
+    return await this.callWithTrustedActivationId(activationId, (trusted) =>
+      manager.invoke(actorIdObj, actorMethodName, requestBody, trusted, reentrancyId),
+    );
   }
 
   /**
@@ -166,10 +169,13 @@ export default class ActorRuntime {
     name: string,
     requestBody?: Buffer,
     activationId?: string,
+    reentrancyId?: string,
   ) {
     const actorIdObj = new ActorId(actorId);
     const manager = this.getActorManager(actorTypeName);
-    return await manager.fireReminder(actorIdObj, name, requestBody, await this.trustedActivationId(activationId));
+    return await this.callWithTrustedActivationId(activationId, (trusted) =>
+      manager.fireReminder(actorIdObj, name, requestBody, trusted, reentrancyId),
+    );
   }
 
   /**
@@ -180,16 +186,40 @@ export default class ActorRuntime {
    * @param name the name of the timer
    * @param requestBody the body passed to the timer callback
    */
-  async fireTimer(actorTypeName: string, actorId: string, name: string, requestBody?: Buffer, activationId?: string) {
+  async fireTimer(
+    actorTypeName: string,
+    actorId: string,
+    name: string,
+    requestBody?: Buffer,
+    activationId?: string,
+    reentrancyId?: string,
+  ) {
     const actorIdObj = new ActorId(actorId);
     const manager = this.getActorManager(actorTypeName);
-    return await manager.fireTimer(actorIdObj, name, requestBody, await this.trustedActivationId(activationId));
+    return await this.callWithTrustedActivationId(activationId, (trusted) =>
+      manager.fireTimer(actorIdObj, name, requestBody, trusted, reentrancyId),
+    );
   }
 
   async deactivate(actorTypeName: string, actorId: string): Promise<void> {
     const actorIdObj = new ActorId(actorId);
     const manager = this.getActorManager(actorTypeName);
     return await manager.deactivateActor(actorIdObj);
+  }
+
+  /**
+   * An empty activation id needs no sidecar lookup. Calling `call` before any await lets that
+   * call queue its turn immediately. Awaiting first would yield, and a deactivate started in the
+   * same turn could take the lock ahead of the method that was issued first.
+   */
+  private async callWithTrustedActivationId<T>(
+    activationId: string | undefined,
+    call: (trustedActivationId: string | undefined) => Promise<T>,
+  ): Promise<T> {
+    if (!activationId) {
+      return await call(activationId);
+    }
+    return await call(await this.trustedActivationId(activationId));
   }
 
   private async trustedActivationId(activationId?: string): Promise<string | undefined> {

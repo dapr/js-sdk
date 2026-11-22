@@ -176,11 +176,43 @@ describe("HTTPServerActor activation id", () => {
     const old = startOld();
     await gates.entered.promise;
     otherHostWrites(5);
-    expect(await method("incr", "a2")).toEqual({ status: 200, text: "6" });
+
+    const turnLock = manager()["turnLock"];
+    const originalAcquire = turnLock.acquire.bind(turnLock);
+    let queuedResolve!: () => void;
+    const queued = new Promise<void>((resolve) => {
+      queuedResolve = resolve;
+    });
+    const acquireSpy = jest.spyOn(turnLock, "acquire").mockImplementation((...args: any[]) => {
+      const result = originalAcquire(...(args as [string, string | undefined, boolean | undefined]));
+      if (args[0] === actorId) {
+        queuedResolve();
+      }
+      return result;
+    });
+
+    let newer: { status: number; text: string } | undefined;
+    const pendingNewer = method("incr", "a2").then((res) => {
+      newer = res;
+      return res;
+    });
+    await queued;
+    acquireSpy.mockRestore();
+
+    expect(newer).toBeUndefined();
+    expect(active().has(actorId)).toBe(false);
+    expect(created()).toHaveLength(1);
+    expect(created()[0].deactivations).toEqual(0);
+
     gates.release.resolve();
     const res = await old;
-    expect(stored()).toEqual(6);
+    const newerRes = await pendingNewer;
     expect(res.status).toEqual(500);
     expect(res.text).toContain("ACTOR_DEACTIVATED_DURING_CALL");
+    expect(newerRes).toEqual({ status: 200, text: "6" });
+    expect(stored()).toEqual(6);
+    expect(created()).toHaveLength(2);
+    expect(created()[0].deactivations).toEqual(1);
+    expect(active().get(actorId)?.activationId).toEqual("a2");
   });
 });
