@@ -326,6 +326,16 @@ export declare type CreateInstanceResponse = Message<"CreateInstanceResponse"> &
    * @generated from field: string instanceId = 1;
    */
   instanceId: string;
+
+  /**
+   * staged is true when the sidecar accepted the operation but no workflow
+   * worker was connected to run it. The operation is saved and runs once a
+   * worker connects. False when the operation ran at once, and on sidecars
+   * that do not stage operations.
+   *
+   * @generated from field: bool staged = 2;
+   */
+  staged: boolean;
 };
 
 /**
@@ -419,11 +429,18 @@ export declare type RaiseEventRequest = Message<"RaiseEventRequest"> & {
 export declare const RaiseEventRequestSchema: GenMessage<RaiseEventRequest>;
 
 /**
- * No payload
- *
  * @generated from message RaiseEventResponse
  */
 export declare type RaiseEventResponse = Message<"RaiseEventResponse"> & {
+  /**
+   * staged is true when the sidecar accepted the operation but no workflow
+   * worker was connected to run it. The operation is saved and runs once a
+   * worker connects. False when the operation ran at once, and on sidecars
+   * that do not stage operations.
+   *
+   * @generated from field: bool staged = 1;
+   */
+  staged: boolean;
 };
 
 /**
@@ -467,11 +484,18 @@ export declare type TerminateRequest = Message<"TerminateRequest"> & {
 export declare const TerminateRequestSchema: GenMessage<TerminateRequest>;
 
 /**
- * No payload
- *
  * @generated from message TerminateResponse
  */
 export declare type TerminateResponse = Message<"TerminateResponse"> & {
+  /**
+   * staged is true when the sidecar accepted the operation but no workflow
+   * worker was connected to run it. The operation is saved and runs once a
+   * worker connects. False when the operation ran at once, and on sidecars
+   * that do not stage operations.
+   *
+   * @generated from field: bool staged = 1;
+   */
+  staged: boolean;
 };
 
 /**
@@ -510,11 +534,18 @@ export declare type SuspendRequest = Message<"SuspendRequest"> & {
 export declare const SuspendRequestSchema: GenMessage<SuspendRequest>;
 
 /**
- * No payload
- *
  * @generated from message SuspendResponse
  */
 export declare type SuspendResponse = Message<"SuspendResponse"> & {
+  /**
+   * staged is true when the sidecar accepted the operation but no workflow
+   * worker was connected to run it. The operation is saved and runs once a
+   * worker connects. False when the operation ran at once, and on sidecars
+   * that do not stage operations.
+   *
+   * @generated from field: bool staged = 1;
+   */
+  staged: boolean;
 };
 
 /**
@@ -553,11 +584,18 @@ export declare type ResumeRequest = Message<"ResumeRequest"> & {
 export declare const ResumeRequestSchema: GenMessage<ResumeRequest>;
 
 /**
- * No payload
- *
  * @generated from message ResumeResponse
  */
 export declare type ResumeResponse = Message<"ResumeResponse"> & {
+  /**
+   * staged is true when the sidecar accepted the operation but no workflow
+   * worker was connected to run it. The operation is saved and runs once a
+   * worker connects. False when the operation ran at once, and on sidecars
+   * that do not stage operations.
+   *
+   * @generated from field: bool staged = 1;
+   */
+  staged: boolean;
 };
 
 /**
@@ -840,6 +878,16 @@ export declare type RerunWorkflowFromEventResponse = Message<"RerunWorkflowFromE
    * @generated from field: string newInstanceID = 1;
    */
   newInstanceID: string;
+
+  /**
+   * staged is true when the sidecar accepted the operation but no workflow
+   * worker was connected to run it. The operation is saved and runs once a
+   * worker connects. False when the operation ran at once, and on sidecars
+   * that do not stage operations.
+   *
+   * @generated from field: bool staged = 2;
+   */
+  staged: boolean;
 };
 
 /**
