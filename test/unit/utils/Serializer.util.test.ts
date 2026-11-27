@@ -40,6 +40,24 @@ describe("serializer", () => {
     expect(data.contentType).toEqual("application/cloudevents+json");
   });
 
+  describe("class instances", () => {
+    class Order {
+      constructor(public id: number, public item: string) {}
+    }
+
+    it("grpc/should serialize a class instance as JSON", () => {
+      const data = SerializerUtil.serializeGrpc(new Order(1, "book"));
+      expect(data.serializedData.toString()).toEqual('{"id":1,"item":"book"}');
+      expect(data.contentType).toEqual("application/json");
+    });
+
+    it("http/should serialize a class instance as JSON", () => {
+      const data = SerializerUtil.serializeHttp(new Order(1, "book"));
+      expect(data.serializedData).toEqual('{"id":1,"item":"book"}');
+      expect(data.contentType).toEqual("application/json");
+    });
+  });
+
   runIt("should serialize a String to a Buffer of type text/plain", () => {
     const data = SerializerUtil.serializeGrpc("hello-world");
     expect(data.serializedData).toEqual(Buffer.from("hello-world"));
