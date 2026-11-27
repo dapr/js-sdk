@@ -157,6 +157,8 @@ export function createConfigurationType(configDict: { [key: string]: Configurati
  * If the data is a valid Cloud Event, the Content-Type is "application/cloudevents+json".
  * If the data is a JSON object, the Content-Type is "application/json".
  * If the data is a string, the Content-Type is "text/plain".
+ * If the data is binary (Buffer, typed array, ArrayBuffer, Blob), the Content-Type is "application/octet-stream".
+ * Any other object, such as a class instance or an object without a prototype, is treated as JSON.
  * Otherwise, the Content-Type is "application/octet-stream".
  *
  * @param data input data
@@ -169,19 +171,36 @@ export function getContentType(data: any): string {
   switch (type) {
     case "Array":
     case "Object":
-      if (isCloudEvent(data as object)) {
-        return "application/cloudevents+json";
-      } else {
-        return "application/json";
-      }
+      return getObjectContentType(data);
     case "Boolean":
     case "Number":
     case "String":
       return "text/plain";
     // Uint8Array, Int8Array, Buffer, SlowBuffer, Blob, etc.
     default:
+      if (isBinaryData(data)) {
+        return "application/octet-stream";
+      }
+      // Class instances and objects without a prototype can't be sent as raw bytes:
+      // the serializers would call Buffer.from() on them (gRPC) or send "[object Object]" (HTTP).
+      if (data !== null && typeof data === "object") {
+        return getObjectContentType(data);
+      }
       return "application/octet-stream";
   }
+}
+
+function getObjectContentType(data: object): string {
+  return isCloudEvent(data) ? "application/cloudevents+json" : "application/json";
+}
+
+function isBinaryData(data: unknown): boolean {
+  return (
+    data instanceof ArrayBuffer ||
+    ArrayBuffer.isView(data) ||
+    (typeof SharedArrayBuffer !== "undefined" && data instanceof SharedArrayBuffer) ||
+    (typeof Blob !== "undefined" && data instanceof Blob)
+  );
 }
 
 /**
@@ -264,7 +283,8 @@ export function getBulkPublishResponse(
 function getType(o: any) {
   // If the type is set in the constructor name, return the name
   // e.g., Uint8Array, Int8Array, Buffer, SlowBuffer, Blob, etc.
-  if (o.constructor.name) {
+  // Objects created with Object.create(null) have no constructor.
+  if (o?.constructor?.name) {
     return o.constructor.name;
   }
 

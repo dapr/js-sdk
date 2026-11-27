@@ -356,13 +356,42 @@ describe("Client.util", () => {
       },
     );
 
-    it("falls back to binary content for an unnamed class instance", () => {
+    it("returns application/json for an unnamed class instance", () => {
       const value = new (class {
         value = 1;
       })();
       expect(value.constructor.name).toBe("");
-      expect(getContentType(value)).toBe("application/octet-stream");
+      expect(getContentType(value)).toBe("application/json");
     });
+
+    it("returns application/json for a named class instance", () => {
+      class Order {
+        constructor(public id: number) {}
+      }
+      expect(getContentType(new Order(1))).toBe("application/json");
+    });
+
+    it("returns application/json for an object without a prototype", () => {
+      const value = Object.assign(Object.create(null), { foo: "bar" });
+      expect(getContentType(value)).toBe("application/json");
+    });
+
+    it("returns application/cloudevents+json for a CloudEvent class instance", () => {
+      class MyEvent {
+        id = "id";
+        source = "source";
+        type = "type";
+        specversion = "1.0";
+      }
+      expect(getContentType(new MyEvent())).toBe("application/cloudevents+json");
+    });
+
+    it.each([new Uint8Array([1]), new DataView(new ArrayBuffer(1)), new Blob(["a"])])(
+      "keeps application/octet-stream for binary data %p",
+      (value) => {
+        expect(getContentType(value)).toBe("application/octet-stream");
+      },
+    );
 
     it("should return text/plain for a string", () => {
       expect(getContentType("foobar")).toEqual("text/plain");
