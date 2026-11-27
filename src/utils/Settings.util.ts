@@ -49,7 +49,7 @@ export class Settings {
   }
 
   static getAppId(): string {
-    return process.env.APP_ID ?? Settings.defaultAppId;
+    return process.env.APP_ID || Settings.defaultAppId;
   }
 
   static getDefaultApiToken() {
@@ -61,11 +61,11 @@ export class Settings {
   }
 
   static getDefaultHttpPort(): string {
-    return process.env.DAPR_HTTP_PORT ?? Settings.defaultHttpPort;
+    return process.env.DAPR_HTTP_PORT || Settings.defaultHttpPort;
   }
 
   static getDefaultGrpcPort(): string {
-    return process.env.DAPR_GRPC_PORT ?? Settings.defaultGrpcPort;
+    return process.env.DAPR_GRPC_PORT || Settings.defaultGrpcPort;
   }
 
   static getDefaultStateGetBulkParallelism(): number {
@@ -87,11 +87,11 @@ export class Settings {
   }
 
   static getDefaultHttpAppPort(): string {
-    return process.env.APP_PORT ?? Settings.defaultHttpAppPort;
+    return process.env.APP_PORT || Settings.defaultHttpAppPort;
   }
 
   static getDefaultGrpcAppPort(): string {
-    return process.env.APP_PORT ?? Settings.defaultGrpcAppPort;
+    return process.env.APP_PORT || Settings.defaultGrpcAppPort;
   }
 
   static getDefaultHttpEndpoint(): string {
