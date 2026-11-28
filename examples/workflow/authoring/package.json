@@ -10,11 +10,13 @@
     "start:human-interaction": "npm run build && node dist/human-interaction.js",
     "start:comprehensive-test": "npm run build && node dist/comprehensive-test.js",
     "start:compensation": "npm run build && node dist/compensation.js",
+    "start:retry-policy": "npm run build && node dist/retry-policy.js",
     "start:dapr:comprehensive-test": "dapr run --app-id comprehensive-test --app-protocol grpc --dapr-grpc-port 50001 --components-path ./components -- npm run start:comprehensive-test",
     "start:dapr:activity-sequence": "dapr run --app-id activity-sequence-workflow --app-protocol grpc --dapr-grpc-port 50001 --components-path ./components npm run start:activity-sequence",
     "start:dapr:fanout-fanin": "dapr run --app-id activity-sequence-workflow --app-protocol grpc --dapr-grpc-port 50001 --components-path ./components npm run start:fanout-fanin",
     "start:dapr:human-interaction": "dapr run --app-id activity-sequence-workflow --app-protocol grpc --dapr-grpc-port 50001 --components-path ./components npm run start:human-interaction",
-    "start:dapr:compensation": "dapr run --app-id compensation-workflow --app-protocol grpc --dapr-grpc-port 50001 --components-path ./components npm run start:compensation"
+    "start:dapr:compensation": "dapr run --app-id compensation-workflow --app-protocol grpc --dapr-grpc-port 50001 --components-path ./components npm run start:compensation",
+    "start:dapr:retry-policy": "dapr run --app-id retry-policy-workflow --app-protocol grpc --dapr-grpc-port 50001 --components-path ./components npm run start:retry-policy"
   },
   "author": "",
   "license": "ISC",
